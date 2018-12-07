@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% block content %}
+<head><title>Officership application history | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% if mehfil_owner_mode %}
+	{% include "mehfil/decide_officer_application_navbar.html" with section='applier_history' static_url=STATIC_URL guid=unique applier_id=target_id idx=idx %}
+{% else %}
+	{% include "mehfil/officer_application_navbar.html" with section='history' static_url=STATIC_URL guid=unique %}
+{% endif %}
+
+<div class="mbl" style="max-width:550px;margin-left:auto;margin-right:auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">{% if mehfil_owner_mode %}{{ target_uname|truncatechars:'11' }}'s officer application history:{% else %}Officer application history:{% endif %}</h1>
+</div>
+
+{% if apps_submitted %}
+{% load emoticons_tags %}
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+	<form class="mbs mt" method="POST" style="text-align:center;border-bottom:1px dashed lightgray;padding:10px 0" action="{% url 'public_mehfil_oversight_dashboard' %}">{% csrf_token %}<input type="hidden" name="guid" value="{{ unique }}"><button class="cm sp cb pg_ok_res" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to settings</button></form>
+
+	<div class="lsp cxl" style="text-align:center;padding-bottom:10px">{% if mehfil_owner_mode %}{% load s3 %}<img src="{{ target_avurl|s3:'thumb' }}" style="border-radius:50%">{% if target_uname in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="14" height="14" alt="*" style="color:deeppink">{% endif %}&nbsp;<a href="{% url 'profile' target_uname %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue"><b>{{ target_uname }}</b></a> ki pichli officer applications ki history ye hai:{% else %}Apki pichli officer applications ki history ye hai:{% endif %}</div>
+</div><br>
+
+	<form method="POST" action="{% url 'display_officer_app_detailed_info' %}" target="_blank" class="mbs fx fxaicn" style="justify-content:space-around;flex-wrap:wrap;max-width:450px;padding:auto 0;margin-right:auto;margin-left:auto">
+	{% csrf_token %}
+
+		<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="1">
+			<div style="text-align:center"><img src="{{ STATIC_URL }}img/apps.svg" width="26" height="26" alt="created" class="cxs" style="overflow:hidden;color:white"></div>
+			<div class="mt" style="color:#8c76a6;text-align:center">
+				<div class="cxs sp">APPS<br>SUBMITTED</div>
+				<div class="mt cs sp">{{ apps_submitted }}</div>
+			</div>
+		</button>
+		<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="2">
+			<div style="text-align:center"><img src="{{ STATIC_URL }}img/thumbs-up.svg" width="26" height="26" alt="owner" class="cxs" style="overflow:hidden;color:white"></div>
+			<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
+				<div class="cxs sp">ACCEPTED<br>APPS</div>
+				<div class="mt cs">{{ apps_accepted }}</div>
+			</div>
+		</button>
+		<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="3">
+			<div style="text-align:center"><img src="{{ STATIC_URL }}img/network.svg" height="26" width="26" alt="joined" class="cxs" style="overflow:hidden;color:white"></div>
+			<div class="mt" style="color:#8c76a6;text-align:center">
+				<div class="cxs sp">OFFICER<br>NOW</div>
+				<div class="mt cs sp">{{ currently_officer }}</div>
+			</div>
+		</button>
+		<input type="hidden" name="guid" value="{{ unique }}">
+		<input type="hidden" name="tid" value="{{ target_id }}">
+		{% if mehfil_owner_mode %}<input type="hidden" name="fself" value="0">{% else %}<input type="hidden" name="fself" value="1">{% endif %}
+	</form>
+
+	{% for app in user_officer_app_history %}
+		{% if mehfil_owner_mode %}
+			{% if app.idx|slugify != idx or app.gid != target_group_id %}
+			<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+				<div style="text-align:center;border-bottom:1px dashed lightgray;padding:10px" class="cs sp"><span class="cp">{% if app.acc == '1' %}applied {{ app.t|human_time }} (accepted){% else %}applied {{ app.t|human_time }}{% endif %}</span></div>
+				{% if app.acc == '1' %}<div style="padding:10px;background-color:azure;border-bottom-right-radius:6px;border-bottom-left-radius:6px">{% else %}<div style="padding:10px">{% endif %}
+					<div class="cl sp lsp cgy">{{ q1 }}</div>
+					<div class="mbs bw cl sp lsp">{% emoticons %}{{ app.ans1 }}{% endemoticons %}</div>
+					<div class="cl sp lsp cgy">{{ q2 }}</div>
+					<div class="bw cl sp lsp">{% emoticons %}{{ app.ans2 }}{% endemoticons %}</div>
+				</div>
+			</div><br>
+			{% endif %}
+		{% else %}
+			<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+			<div style="text-align:center;border-bottom:1px dashed lightgray;padding:10px" class="cs sp"><span class="cp">{% if app.acc == '1' %}applied {{ app.t|human_time }} (accepted){% else %}applied {{ app.t|human_time }}{% endif %}</span></div>
+			{% if app.acc == '1' %}<div style="padding:10px;background-color:azure;border-bottom-right-radius:6px;border-bottom-left-radius:6px">{% else %}<div style="padding:10px">{% endif %}
+				<div class="cl sp lsp cgy">{{ q1 }}</div>
+				<div class="mbs bw cl sp lsp">{% emoticons %}{{ app.ans1 }}{% endemoticons %}</div>
+				<div class="cl sp lsp cgy">{{ q2 }}</div>
+				<div class="bw cl sp lsp">{% emoticons %}{{ app.ans2 }}{% endemoticons %}</div>
+			</div>
+			</div><br>
+		{% endif %}
+	{% endfor %}
+	{% if not records_truncated %}
+		<div style="text-align:center" class="cs sp cp lsp"><b>Note:</b> answers ki history kuch months baad delete ho jati hai</div>
+	{% endif %}
+{% else %}
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+	<div class="mbl mt" style="border-bottom:1px dashed lightgray;padding-bottom:15px;text-align:center"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	<div class="cr cxl lsp mbs" style="text-align:center">{% if mehfil_owner_mode %}{{ target_uname }} ne recently officer banney ke liye apply nahi kiya{% else %}Ap ne recently officer banney ke liye apply nahi kiya{% endif %}</div>
+</div>
+{% endif %}
+
+</div>
+
+<br>
+{% endblock %}

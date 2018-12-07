@@ -2,63 +2,99 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Invite users to public group | Damadam.pk</title></head>
-<div class="margin clb">
+<head><title>Invite users to public mehfil | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/open_group_invite_navbar.html" with static_url=STATIC_URL section='invite' guid=unique %}
+
 {% if group %}
-		{% if group.private == '1' %}
-		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cg cl" style="border:none;background:none;font-weight:bold">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</button></form>mein invite karein:<br>
-		{% else %}
-		<div style="overflow:hidden"><a href="{% url 'public_group' unique %}">{% emoticons %}{{ group.topic|truncatechars:80 }}{% endemoticons %}</a> mein invite karein:</div>
-		{% endif %}
-	<br>
-	<span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></span><br><br>
-	{% for visitor in object_list %}
-	{% if visitor.userprofile__score > 0 and visitor.username != user.username %}
-		<span class="cgy cxs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+	<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+	<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden;margin:0">Invite to&nbsp;<span class="cp">{% emoticons %}{{ group_topic|truncatechars:'80' }}{% endemoticons %}</span></h1>
+	</div>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
 
-		<input type="hidden" id="id_voter" name="invitee" class="hidden_id" value="{{ visitor__id }}">
-			{% if visitor.userprofile__avatar %}
-		        <img src="{{ visitor.userprofile__avatar|s3:'thumb' }}" alt="pic" style="border-radius:50%">
-		    {% else %}
-		        <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="pic" style="border-radius:50%">
-		    {% endif %}
-			{{ visitor.username }}
-		    <span class="cg">({{ visitor.userprofile__score }})</span>
-			{% for person in legit %}
-			    {% if person == visitor.username %}
-			        <span class="pinkstar"><b>*</b></span>
-			    {% endif %}
-			{% endfor %}	
-			
-			<form method="POST" action="{% url 'process_public_group_invite' %}" style="display:inline">
-			{% csrf_token %}
-			<input type="hidden" name="puid" value="{{ unique }}">
-			<button type="submit" name="vid" class="btn bcp bm mls mbs mts" value="{{ visitor.id }}" style="height:23px">invite</button>
-			</form>
-			<hr size=1 COLOR="#e6e6e6">
-
+	{% if show_instr %}
+		<div style="padding:8px;background-color:ivory" class="bizcard mbs lsp">
+			{% if instr_type == 'owner' %}
+				<div class="cxl lsp">Mehfil owner {{ max_invites }} users invite kar sakta hai</div>
+				<hr size=1 COLOR="#E9EBEE">
+				<div class="cm sp cr" style="text-align:left">Note:</div>
+				<div class="cs sp" style="text-align:left">&#x25CF;&nbsp;Agar ap ne 1 user invite kiya tou apkey <b>{{ one_less }}</b> invites reh jaien ge</div>
+				<div class="cs sp" style="text-align:left">&#x25CF;&nbsp;Agar invited user ne mehfil join kar li tou invites dubara <b>{{ max_invites }}</b> ho jaien ge</div>
+			{% else %}
+				<div class="cxl lsp">Invite karney se pehlay invites ka <form method="POST" action="{% url 'public_group_invite_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="guid" value="{{ unique }}"><button type="submit" class="cm cb pg_ok_res" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">help section</button></form> zarur dekh lein</div>
+			{% endif %}
+		</div>
+	{% else %}
+		<div class="cxl lsp sp">{{ invites_remaining }} invite(s) remaining</div>
+		<hr size=1 COLOR="#E9EBEE">
 	{% endif %}
-	{% endfor %}
+
+	<div class="mbl"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+	
+	<div class="mbs cs sp"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></div>
+	<ul style="display:inline-block;padding: 0;list-style:none">
+	{% if no_more_invites %}
+		{% for visitor in object_list %}
+			<li class="mbl" style="text-align:left;padding-bottom:10px;border-bottom:1px dashed lightgray">
+			<span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+			<img src="{{ visitor.avurl|s3:'thumb' }}" alt="pic" style="vertical-align:sub;border-radius:50%">{% if visitor.username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ visitor.username }}</bdi>
+			</li>
+		{% endfor %}
+	{% else %}
+		{% for visitor in object_list %}
+			<li class="mbl" style="text-align:left;border-bottom:1px dashed lightgray">
+			<span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+			<img src="{{ visitor.avurl|s3:'thumb' }}" alt="pic" style="vertical-align:sub;border-radius:50%">{% if visitor.username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ visitor.username }}</bdi>
+			<form method="POST" action="{% url 'process_public_group_invite' %}" style="display:inline">
+				{% csrf_token %}
+				<input type="hidden" name="puid" value="{{ unique }}">
+				<button type="submit" name="vid" class="btn bcp bm mls mbl pg_ok_res sp" value="{{ visitor.id }}" style="height:23px">invite</button>
+			</form>
+			</li>
+		{% endfor %}
+	{% endif %}
+	</ul>
+
+	<div class="mbs"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+	</div>
 {% else %}
-{% load emoticons_tags %}
-{% emoticons %}Damadam ko cheenk aa gayee! .i1.i2.i3.i4{% endemoticons %}<br><br>
-<a href="{% url 'group_page' %}#section0"><button class="btn bcp bm cm">wapis</button></a>
-{% endif %}
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Cannot invite to mehfil</h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+	{% if no_online %}
+	<div class="cm cgy lsp sp">- invite karney ke liye koi nahi hai -</div>
+	<div class="mbs mts"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+	{% elif cant_invite %}
+	<div class="cxl lsp">Ap ye nahi kar saktey</div>
+	<div class="mbs mts"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+	{% elif no_group %}
+	<div class="cxl lsp">Ye is terah nahi chalta!</div>
+	<div class="mbs mts"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+	{% elif banned %}
+	<div class="cxl lsp">Ap ye nahi kar saktey</div>
+	<div class="mbs mts"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+	{% else %}
+	<div class="cxl lsp">Ye is terah nahi chalta!</div>
+	<div class="mbs mts"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+	{% endif %}
 </div>
+{% endif %}
 {% endblock %}
 
 {% block pagination %}
-{% if is_paginated %}
-<div class="pagination">
-    {% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bm bcr"><bdi>wapis</bdi></button></a>
-    {% endif %}
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
-    {% endif %}
-</div><br>
-<br>
-{% endif %}
-<br>
+	<div class="mtl mbl">
+	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+		{% if page_obj.has_previous %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
+	    {% if page_obj.has_next %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
+	</div>
+	</div>
+
 {% endblock %}

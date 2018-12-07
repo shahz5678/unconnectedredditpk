@@ -2,6 +2,7 @@
 {% block content %}
 <style>body{background: #E9EBEE}</style>
 <head><title>Mehfil refreshing tutorial | Damadam.pk</title></head>
+<br>
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 <form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><input type="image" height="23" width="23" class="mrs" src="{{ STATIC_URL }}img/refresh.svg"></form><div class="cxl lsp" style="display:inline">Ye button press kar ke ap mehfil refresh kar saktey hain</div>
  <hr size=1 COLOR="#E9EBEE">

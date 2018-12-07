@@ -1,0 +1,14 @@
+{% if section == 'single_app' %}
+<div class="mbl fx fxjscn fxaicn">
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/decide.svg" width="28" height="28" style="vertical-align:middle"></button>
+
+	<form method="POST" action="{% url 'view_officer_app_history' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="guid" value="{{ guid }}"><input type="hidden" name="idx" value="{{ idx }}"><button name="uid" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0;border-top-right-radius:5px;border-bottom-right-radius:5px" value="{{ applier_id }}"><img src="{{ static_url }}img/history_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></form>
+</div>
+{% elif section == 'applier_history' %}
+<div class="mbl fx fxjscn fxaicn">
+	<form method="POST" action="{% url 'display_officer_application' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="guid" value="{{ guid }}"><input type="hidden" name="idx" value="{{ idx }}"><button name="cid" type="submit" value="{{ applier_id }}" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/decide_disabled.svg" width="22" height="22" style="vertical-align:middle"></button></form>
+
+	<button type="submit" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;"><img src="{{ static_url }}img/history.svg" width="24" height="24" style="vertical-align:middle"></button>
+</div>
+{% else %}
+{% endif %}

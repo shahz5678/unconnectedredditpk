@@ -122,9 +122,6 @@
         {% if user == parent.submitter %}
         &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=parent.pk %}"><button class="btn bcgy bs cxs"><b>hide</b></button></a>
         {% endif %}
-        {% if user != reply.submitted_by %}
-        &nbsp;<a href="{% url 'mehfilhelp' pk=reply.submitted_by_id num=parent.pk %}"><button class="btn bct bs cxs"><b>mehfil</b></button></a>
-        {% endif %}
 
     {% endif %}
     {% group_button user.id reply.submitted_by_id parent.pk 'home' 'publicreply' comment.submitted_by.username %}

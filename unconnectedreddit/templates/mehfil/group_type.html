@@ -11,11 +11,11 @@
 <div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:0px;background-color:white;text-align:center">
 
 {% if ttl %}
-<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Ap ye mehfil bana sakein ge {{ ttl|future_time }}</div>
+	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Ap ne recently mehfil banai, is liye ap dubara mehfil bana sakein ge {{ ttl|future_time }}</div></div>
 {% elif score_inadequate %}
-<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Apka score itna nahi ke ye mehfil bana sakein</div>
+	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Apka score itna nahi ke ye mehfil bana sakein</div></div>
 {% elif user_age_inadequate %}
-<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Ap ko join kiye huay ziyada time nahi guzra. Ap ye mehfil bana sakein ge {{ age_inadequate_ttl|future_time }}</div>
+	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Apko join kiye huay ziyada time nahi guzra. Ap ye mehfil bana sakein ge {{ age_inadequate_ttl|future_time }}</div></div>
 {% endif %}
 
 {% cache 3600 mehfil_type %}

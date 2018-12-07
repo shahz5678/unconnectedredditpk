@@ -1,269 +1,216 @@
 {% extends "base.html" %}
 {% load s3 %}
-{% load humanize %}
+{% load human_time %}
 {% load show_error %}
 {% load emoticons_tags %}
-{% load get_group_button %}
 {% block content %}
-<head><title>{% if switching %}Public group{% else %}{{ group.topic }} (public group){% endif %} | Damadam.pk</title></head>
-<div class="margin">
+<head><title>{% if switching %}Public mehfil{% else %}{{ group_topic }} (public mehfil){% endif %} | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
 
-{% if group_banned %}
-    
-    <div class="cxl cp mbs">Ap <b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b> se bahir ho gaye ho!</div><div class="cp cl">Ab kisi <a href="{% url 'get_ranked_groups' %}">aur mehfil</a> mein jain</div>
+{% if switching %}
 
-{% elif switching %}
-    <span class="clb"><b>Ye mehfil ap se dar ke bhag gye hai! {% emoticons %}:P{% endemoticons %}</b><br>
-    Hum pakarne ki koshish kar rehay hain</span><br><br>
-    <a href="{% url 'group_page' %}#section0"><button class="btn bm bcg mbs"><b>wapis</b></button></a>
-    <br><br><br>
-{% else %}
-        {% if mobile_verified %}
-        {% include "announcement/coming_soon_notice.html" with static_url=STATIC_URL %}
-            <div class="mts" style="text-align:center">
-            <ins class="adsbygoogle"
-                style="display:inline-block;width:320px;height:100px"
-                data-ad-client="ca-pub-2568547635306983"
-                data-ad-slot="9029992964"></ins>
-            <script>
-            (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-            </div>
-        {% else %}
-        {% include "verification/mobile_verification_bar.html" with is_user_verified=mobile_verified static_url=STATIC_URL %}
+<div class="mbs">
+<div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl sp">Mehfil not found:</h1>
+</div>
+</div>
 
-        {% endif %}
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">    
+    <div class="cxl lsp" style="text-align:center">Ye mehfil dar ke bhag gye hai! {% emoticons %}:P{% endemoticons %}</div>
+    <hr size=1 COLOR="#E9EBEE">
+    <div class="sp lsp mbl" style="text-align:center">Hum pakarne ki koshish kar rehay hain</div>
+    <div style="text-align:center"><a href="{% url 'group_page' %}#section0"><button class="btn bm bcp mbl pg_ok_res sp" style="height:26px">wapis</button></a></div>
+</div>
+{% elif full_member %}
 
-        <div style="overflow:hidden">
-        <form method="POST" class="mrs" action="{% url 'leave_public_group' %}" style="display:inline;">
-            {% csrf_token %}
-            <input type="hidden" name="guuid" value="{{ group.unique }}">
-            <input type="hidden" name="insg" value="1">
-            <input type="hidden" name="gid" value="{{ group.id }}">
-            <button class="btn bxs bcr" name="prv" value="0" style="border:none;height:23px;vertical-align:middle"><b>X</b></button>
-        </form>
+{% load get_group_button %}
+<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
+</div>
 
-        <span class="lsp clb"><bdi><b>{% emoticons %}{{ group.topic }}{% endemoticons %}</b></bdi></span>
-        <span class="cgy cs">&nbsp;by&nbsp;
-        <a href="{% url 'profile' slug=group.owner.username %}#section0">
-        {% if group.owner.userprofile.avatar %}
-            <img src="{{ group.owner.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="no pic">
-        {% else %}
-            <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic">
-        {% endif %}
-        </a>
-        <a href="{% url 'profile' slug=group.owner.username %}"><bdi>{{ group.owner }}</bdi></a>
-        </span>
-
-           {% if group.owner.username in ensured %}
-                <span class="pinkstar"><b>*</b></span>
-           {% endif %}
-
-        <span class="cs">
-
-            {% if group.owner.userprofile.score %}
-                {% if group.owner.userprofile.score < 0 %}
-                    <span style="color:#18A018;">(1)</span>
-                {% else %}
-                    <span style="color:#18A018;">({{ group.owner.userprofile.score }})</span>
-                {% endif %}
-            {% endif %}
-
-        </span>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+        <a name="sectionJ"></a> 
+        <div style="text-align:center">
+        <ins class="adsbygoogle"
+            style="display:inline-block;width:320px;height:100px"
+            data-ad-client="ca-pub-2568547635306983"
+            data-ad-slot="9029992964"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
         </div>
-        
-        {% if user == group.owner %}
-        <div class="mts"><a href="{% url 'change_topic' %}" class="sp cxs">change topic</a><br></div>
-        {% endif %}
-        
-        <div class="lsp mts">
-        {% if group.rules %}
-        <div style="overflow:hidden"><span class="clb cs">Rules:&nbsp;<span class="cp"><b><bdi>{% emoticons %}{{ group.rules }}{% endemoticons %}</bdi></b></span></span></div>
-        {% endif %}
-        {% if user == group.owner %}
-        <a href="{% url 'change_rules' %}" class="sp cxs">change rules</a>
-        {% endif %}
-        </div>
-    <a name="sectionJ"></a> 
-    <hr size=1 COLOR="#ac39ac">
-    <div id="pub_grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
-    <div id="pub_grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
-    <form action="{% url 'public_group_reply' %}" id="pub_grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
+
+    <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
+    <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+    <form action="{% url 'public_group_reply' %}" id="grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        {% if group.pics_ki_ijazat == '1' %}
+        {% if pics_perms == '1' %}
         <div class="mbl">
-        <span class="cp"><b>Photo:</b></span>&nbsp;{{ form.image }}<br>
+        <b class="sp cs">Upload foto:</b>
+        <div class="mt">{{ form.image }}</div>
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
         </div>
         {% endif %}
-        {% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% else %}<span class="cp"><b>Likho:</b></span>{% endif %}<br>{{ form.text }}
-        
-        <input id="pub_grp_sk" type="hidden" name="sk" value="{{ sk }}">
-        <input type="hidden" name="uid" value="{{ unique }}">
-        <button id="pub_grp_subform" name="gp" value="{{ group.id }}" class="btn bm bcp mrl mbs mts" style="border:none;height:23px" type="submit">OK</button>
-    </form>
+       <div class="mtl sp"> {% if form.errors %}<span class="cr lsp">{{ form.errors|show_error }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div><div class="mt">{{ form.text }}</div>
+        <input id="grp_sk" type="hidden" name="sk" value="{{ sk }}">
+        <input id="grp_wid" type="hidden" name="wid" value="-1">
+        <input name="uid" type="hidden" value="{{ unique }}">
+        <button class="btn bm bcp mrl mbs mts pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:26px" value="{{ group_id }}">OK</button>
+    </form>&nbsp;
     <form action="{% url 'first_time_public_refresh' %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        <button class="btn bms bco mts" name="uid" value="{{ unique }}" style="background-image: url({{ STATIC_URL }}img/rfrsh1.png);background-size: 23px 23px;background-repeat: no-repeat;background-position: center;width:23px;height:23px;border:none" type="submit">&nbsp;</button>
+        <button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:middle;width:23px;height:23px" name="uid" value="{{ unique }}" type="submit"></button>
     </form>
-        <div class="mts sp">
-        <a href="{% url 'invite' %}#section0" class="cs cb"><b>invite</b></a>
-        {% if user == group.owner %}<span class="cs ms">|</span>
-        <a href="{% url 'owner_group_online_kon' %}" class="cs cb"><b>afsar</b></a>
-        {% else %}
-        <span class="cxs">|</span>
-        <a href="{% url 'group_online_kon' %}" class="cs cb"><b>online</b></a>
-        {% endif %}
-        </div>
 
-        {% if not mobile_verified %}
-            <div style="text-align:center">
-            <ins class="adsbygoogle"
-                style="display:inline-block;width:320px;height:100px"
-                data-ad-client="ca-pub-2568547635306983"
-                data-ad-slot="9029992964"></ins>
-            <script>
-            (adsbygoogle = window.adsbygoogle || []).push({});
-            </script>
-            </div>
-        {% endif %}
+        {% include "mehfil/public_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
 
-    <div class="sp mtl mbl">
-        {% if replies|length < 25 %}
-            <span class="cp cs">{{ replies|length }} baatien:</span>
-        {% else %}
-            <span class="cp cs">Pichli 25 baatien:</span>
-        {% endif %}
-    </div>
-
-        {% for reply,writer,time in replies %}
-
+        {% for reply,status in replies %}
+        
         {% if reply.category == '2' %}
-                {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
-                {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
-                {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
-                {% endif %}
-                <span class="lsp cp cs">
-                <a href="{% url 'profile' slug=reply.writer.username %}">
-                    {{ writer }}
-                    {% if writer.username in ensured %}
-                        <span class="pinkstar"><b>*</b></span>
-                    {% endif %}
-                </a>
-                    ne&nbsp;<a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a>&nbsp;ko mehfil se <b>nikal</b> <b>dia</b>
-                </span>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>
         {% elif reply.category == '3' %}
-                {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
-                {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
-                {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
-                {% endif %}
-            <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %} ki is baat ko <a href="{% url 'profile' slug=reply.text %}"><bdi>{{ reply.text }}</bdi></a> ne mita diya</span>
+            <div class="lsp sp cs mrl" style="display:inline"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ki baat hide kar di geyi</span></div>
+            <form method="POST" action="{% url 'group_hide_submission' %}" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="dec" value="u">
+            <input type="hidden" name="gid" value="{{ reply.gid }}">
+            <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/restore.svg" width="18" height="18" style="vertical-align:sub"></button>
+            </form>
         {% elif reply.category == '4' %}
-            <div style="overflow:hidden">
-                {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
-                {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
-                {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
-                {% endif %}
-            <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne topic change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diya</span>
-            </div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new topic rakha: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
         {% elif reply.category == '5' %}
-            <div style="overflow:hidden">
-                {% if time < 41 %}
-                    <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
-                {% elif time < 91 %}
-                    <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
-                {% else %}
-                    <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
-                {% endif %}
-            <span class="lsp cp cs"><a href="{% url 'profile' slug=writer.username %}"><bdi>{{ writer }}</bdi></a>{% if writer.username in ensured %}<span class="pinkstar"><b>*</b></span>{% endif %}&nbsp;ne rules change kar ke <b><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b> rakh diye</span>
-            </div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new rules set kiye: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
+        {% elif reply.category == '8' %}
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ka new owner <bdi><a href="{% url 'profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko bana dia</span></div>
+        {% elif reply.category == '9' %}
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.writer_uname %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil ko join kiya</span></div>
         {% else %}
             {% if reply.image %}
-            <img class="pht" src="{{ reply.image.url|s3 }}" style="border-radius:12px;" alt="foto"><br>
+            <img src="{{ reply.image|s3 }}" style="border-radius:12px;max-width:100%" alt="foto"><br>
             {% endif %}
-            <div style="overflow:hidden">
+            <div class="lsp" style="overflow:hidden">
 
-            {% if time < 41 %}
+            {% if status == 'green' %}
                 <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
-            {% elif time < 91 %}
+            {% elif status == 'idle' %}
                 <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
             {% else %}
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'profile' slug=writer.username %}#section0">
-            {% if writer.userprofile.avatar %}
-                <img src="{{ writer.userprofile.avatar|s3:"thumb" }}" style="border-radius:50%" alt="no pic">
-            {% else %}
-                <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic">
-            {% endif %}
-            </a>          
-            <span class="lsp">
-            <a href="{% url 'profile' slug=writer.username %}" style="font-size:90%;"><bdi>{{ writer }}</bdi></a>
-            <span style="font-size:70%;">
+            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a><span class="cg cxs sp">&nbsp;{% if reply.writer_score|add:"0" < 0 %}(1){% else %}({{ reply.writer_score }}){% endif %}</span>&nbsp;:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
 
-                {% if writer.userprofile.score %}
-                    {% if writer.userprofile.score < 0 %}
-                        <span style="color:#18A018;">(1)</span>
-                    {% else %}
-                        <span style="color:#18A018;">({{ writer.userprofile.score }})</span>
-                    {% endif %}
-                {% endif %}
-            </span>
-                {% if writer.username in ensured %}
-                    <span class="pinkstar"><b>*</b></span>
-                {% endif %}:&nbsp;&nbsp;<bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi>
-            <span class="sp cgy cxs mrl">,{{ reply.submitted_on|naturaltime }}
-                {% if reply.device == '1' %}
-                &nbsp;<img src="{{ STATIC_URL }}img/featurephone.png" alt="no pic">
-                {% elif reply.device == '2' %}
-                &nbsp;<img src="{{ STATIC_URL }}img/smartphone.png" alt="no pic">
-                {% elif reply.device == '4' %}
-                &nbsp;<img src="{{ STATIC_URL }}img/tablet.png" alt="no pic">
-                {% elif reply.device == '5' %}
-                &nbsp;<img src="{{ STATIC_URL }}img/other.png" alt="no pic">
-                {% elif reply.device == '3' %}
-                &nbsp;<img src="{{ STATIC_URL }}img/laptop.png" alt="no pic">
-                {% else %}
-                {% endif %}
-            </span>
-            {% if user == group.owner %}
-                <form method="POST" action="{% url 'kick_pk' %}" style="display:inline">
-                {% csrf_token %}
-                <input type="hidden" name="dec" value="rem">
-                <input type="hidden" name="slug" value="{{ unique }}">
-                <button type="submit" name="pk" class="btn bcp mts bm cxs" value="{{ writer.pk }}" style="border:none;height:15px;line-height:15px"><b>kick</b></button>
-                </form>
-            {% else %}
-                <form method="POST" action="{% url 'group_report_pk' %}" style="display:inline">
-                {% csrf_token %}
-                <input type="hidden" name="dec" value="rep">
-                <input type="hidden" name="slug" value="{{ unique }}">
-                <button type="submit" name="pk" class="btn bcgy mts bm cxs" value="{{ reply.pk }}" style="border:none;height:15px;line-height:15px"><b>report</b></button>
-                </form>
-            {% endif %}
-            </span>
-            {% group_button user.pk writer.pk group.unique 'group' 'public' writer.username %}
+            <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
+        
+            <button name="wid" style="display:{{ display }};background:0 0;border:none;padding:0" class="at pg_ok_res mrs" value="{{ reply.wid }}"><img src="{{ STATIC_URL }}img/at.svg" width="15" height="15" class="mrs" style="vertical-align:sub"></button>
+
+            <form method="POST" action="{% url 'group_hide_submission' %}" style="display:inline">
+            {% csrf_token %}
+            <input type="hidden" name="dec" value="h">
+            <input type="hidden" name="gid" value="{{ reply.gid }}">
+            <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:sub"></button>
+            </form>
+            
+            {% group_button own_id reply.wid unique 'group' 'public' reply.writer_uname %}
             </div>
            
         {% endif %}
-        <hr size=1 COLOR="#f2d9f2">
+        <hr size=1 COLOR="#E9EBEE">
         
         {% endfor %}
     
+</div>
+{% else %}
 
-    {% endif %}
+<div class="mbs">
+<div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
+</div>
+</div>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+    <div style="text-align:center">
+    <ins class="adsbygoogle"
+        style="display:inline-block;width:320px;height:100px"
+        data-ad-client="ca-pub-2568547635306983"
+        data-ad-slot="9029992964"></ins>
+    <script>
+    (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
     </div>
+
+    <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
+
+        {% if only_pinkstars %}
+        <div class="sp mbs lsp" style="border-bottom:1px dotted #FFAFAA;padding:5px;border-radius:0;font-weight:bold">Ye mehfil sirf pink stars ke <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink"> liye hai</div>
+        {% endif %}
+
+        {% if partial_member %}
+            <div class="cl">MEHFIL RULES:</div>
+            <form class="mt mbs" method="POST" action="{% url 'quick_accept_open_group_rules' %}">
+                {% csrf_token %}
+                <div style="text-align:left">{% emoticons %}{{ rules|linebreaksbr }}{% endemoticons %}</div>
+                <hr size=1 COLOR="#E9EBEE">
+                <input name="uid" type="hidden" value="{{ unique }}">
+                <div class="mts" style="font-weight:bold">Kya apko is mehfil ke latest rules qabool hain?</div>
+                <input name="gid" type="hidden" value="{{ group_id }}">
+                <button name="dec" type="submit" class="btn bcp bl sp pg_ok_res mtl mrs" value="1" style="height:26px">Haan</button>
+                <button name="dec" type="submit" class="btn bcgy bl sp pg_ok_res mtl mls" value="0" style="height:26px">Nahi</button>
+            </form>
+        {% else %}
+            <div>Is mehfil ke member banney ke liye 'JOIN' dabain:</div>
+            <form method="POST" class="mtl mbl" action="{% url 'join_public_group' %}">
+                {% csrf_token %}
+                <input name="uid" type="hidden" value="{{ unique }}">
+                <button name="gid" type="submit" class="btn bcp bxl sp pg_ok_res mrs" value="{{ group_id }}" style="height:26px;font-weight:bold;border:1px solid #9971a5">JOIN</button>
+            </form>
+        {% endif %}
+    
+    </div>
+
+    {% for reply,status in replies %}
+
+        {% if reply.category == '2' %}
+            <div class="lsp sp cs"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>
+        {% elif reply.category == '3' %}
+            <div class="lsp sp cs"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ki baat hide kar di geyi</span></div>
+        {% elif reply.category == '4' %}
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new topic rakha: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
+        {% elif reply.category == '5' %}
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new rules set kiye: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
+        {% elif reply.category == '8' %}
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ka new owner <b class="clb"><bdi>{{ reply.text }</bdi></b> ko bana dia</span></div>
+        {% elif reply.category == '9' %}
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ko join kiya</span></div>
+        {% else %}
+            {% if reply.image %}
+            <img class="pht" src="{{ reply.image|s3 }}" style="border-radius:12px;" alt="foto"><br>
+            {% endif %}
+            <div class="lsp" style="overflow:hidden">
+
+            {% if status == 'green' %}
+                <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
+            {% elif status == 'idle' %}
+                <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
+            {% else %}
+                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
+            {% endif %}
+
+            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a><span class="cg cxs sp">&nbsp;{% if reply.writer_score|add:"0" < 0 %}(1){% else %}({{ reply.writer_score }}){% endif %}</span>&nbsp;:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
+
+            <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+            </div>
+           
+        {% endif %}
+        <hr size=1 COLOR="#E9EBEE">
+        
+        {% endfor %}
+
+</div>
+{% endif %}
     <br><br>
+<input type="hidden" id="furl" name="furl" value="{{ furl }}">
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.8.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.12.js"></script>
 {% endblock %}

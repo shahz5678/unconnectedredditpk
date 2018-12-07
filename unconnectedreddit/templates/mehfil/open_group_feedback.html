@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load s3 %}
+{% block content %}
+<head><title>Feeedback | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/open_group_feedback_navbar.html" with static_url=STATIC_URL section=type %}
+
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if type == '1' %}Praise from members:{% elif type == '2' %}Complaints from members:{% elif type == '3' %}Ideas from members:{% endif %}</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:left">
+
+{% if show_instr %}
+<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard mt mbl sp lsp">
+<span class="cxl">Members apko confidential feedback bhej saktey hain jo yahan display hota hai. Ap har kuch waqt baad yahan check kartey rehna</span>
+<hr size=1 COLOR="#E9EBEE">
+<span class="cs">Feedback 3 types ke hain: 'Complaints' yani shikayatein, 'Ideas' yani tajweez and 'Praise' yani tareef</span>
+</div>
+{% endif %}
+
+{% if feedback %}
+<form method="POST" action="{% url 'delete_open_group_feedback' %}" style="text-align:center" class="mts mbs">
+{% csrf_token %}
+<input type="hidden" name="guid" value="{{ guid }}">
+<input type="hidden" name="type" value="{{ type }}">
+<button type="submit" name="dec" class="mrs sp btn bcp bl pg_ok_res" style="height:26px" value="1">Delete all</button><button name="dec" class="cgy sp mls cl" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" value="0">wapis</button>
+</form>
+{% else %}
+<div style="text-align:center" class="mbl"><a href="{% url 'public_group' guid %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+{% endif %}
+
+<hr size=1 COLOR="#E9EBEE">
+{% for item in feedback %}
+<div class="cl lsp sp mts"><img src="{{ item.oau|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<b>{{ item.uname }}:</b>&nbsp;{% emoticons %}{{ item.f }}{% endemoticons %}</div>
+<div class="sp lsp cxs mts mbs" style="text-align:right"><span class="cgy">{{ item.tt|human_time }}</span></div>
+<hr size=1 COLOR="#E9EBEE">
+{% empty %}
+<div class="sp lsp" style="text-align:center"><span class="cl cgy">- abhi list khali hai -</span></div>
+{% endfor %}
+
+{% if feedback %}
+<form method="POST" action="{% url 'delete_open_group_feedback' %}" style="text-align:center" class="mtl mbs">
+{% csrf_token %}
+<input type="hidden" name="guid" value="{{ guid }}">
+<input type="hidden" name="type" value="{{ type }}">
+<button type="submit" class="mrs sp btn bcp bl pg_ok_res" name="dec" value="1" style="height:26px">Delete all</button><button class="sp mls cl" name="dec" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray;color:gray" value="0">wapis</button>
+</form>
+{% endif %}
+
+</div><br><br>																													
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load s3 %}
+{% load human_time %}
+{% block content %}
+<head><title>Public group administration | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% if add_officers %}
+	{% include "mehfil/officer_navbar.html" with guid=guid static_url=STATIC_URL section='add' %}
+	<h1 style="text-align:center" class="clb cxl lsp">Check officer applications:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	
+	<div class="mbs mt"><a href="{% url 'public_group' slug=guid %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+
+	{% if show_tut %}
+		<div class="mt mbs bizcard cxl lsp" style="background-color:ivory;padding:10px">
+		Members apki mehfil mein officer banney ke liye apply kar saktey hain<hr size=1 COLOR="#E9EBEE"><span class="cs cgy sp">Unki applications ap yahan se check kar sakte hain</span>
+		</div>
+	{% else %}
+		<div class="cxl lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px">
+		In user(s) ne officer banney ke liye apply kiya:
+		</div>
+	{% endif %}
+
+	{% if applications %}
+		{% for application in applications %}
+			<form action="{% url 'display_officer_application' %}" method="POST" style="text-align:center">
+				{% csrf_token %}
+				<input type="hidden" name="idx" value="{{ application.idx }}">
+				<input type="hidden" name="guid" value="{{ guid }}">
+				<ul class="mt" style="display:inline-block;padding: 0;margin-bottom:0;list-style:none">
+					<div class="sp mtl lsp" style="border-bottom:1px dashed lightgray;padding-bottom:18px;">
+						<button name="cid" class="bizcard pg_ok_res" style="background:0 0;border:none;padding:0" type="submit" value="{{ application.user_id }}">
+							<div style="background-color:whitesmoke;padding:5px">
+								<li style="text-align:left;">
+									<img src="{{ application.own_avurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">{% if application.uname in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b>{{ application.uname }}</b> ne apply kiya <b>{{ application.t|human_time }}</b>
+									<div style="text-align:center">
+										<div class="mts cl sp cb lsp" style="border-bottom:1px dotted dodgerblue;display:inline-block">check application</div>
+									</div>
+								</li>
+							</div>
+						</button>
+					</div>
+				</ul>
+			</form>
+		{% endfor %}
+	{% else %}
+		<div class="sp lsp cxl cr mbl mtl">Apki mehfil mein officer banney ke liye is time kisi ne apply nahi kiya hua!</div>
+	{% endif %}
+
+	<div style="border-top:1px dashed lightgray;padding-top:10px" class="sp cs"><span class="cgy"><b>Note:</b> application 3 days baad expire ho jati hai</span></div>
+	</div>
+
+{% elif set_priveleges %}
+
+	<h1 style="text-align:center" class="clb cxl lsp">Make officer:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	
+	<div class="mbs lsp">
+		<div class="cxl">Is officer ko hide ki power di jaye gi ...</div>
+		<hr size=1 COLOR="#E9EBEE">
+		<div class="sp">Kya isko koi aur power bhi deni hai?</div>
+	</div>
+	
+	<form method="POST" class="mtl" action="{% url 'process_officer_application_result' %}">
+		{% csrf_token %}
+		<div><ul class="mt" style="display:inline-block;padding: 0;list-style:none">
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="checkbox" id="1" name="pids" value="1" checked="" disabled=""><label for="1"><span class="clb">Hide:</span></label><span class="mls cgy cs sp">Mehfil mein text ya foto post ko hide karna</span></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="checkbox" id="2" name="pids" value="2"><label for="2"><span class="clb">Kick out:</span></label><span class="mls cgy cs sp">Mehfil se user ko bahir nikal dena</span></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="checkbox" id="3" name="pids" value="3"><label for="3"><span class="clb">Change topic:</span></label><span class="mls cgy cs sp">Mehfil ka topic change kar dena</span></li>
+		</ul></div>
+		<input type="hidden" name="guid" value="{{ guid }}">
+		<button type="submit" name="pdec" value="1" class="btn bcp bm mbl mls pg_ok_res sp mrs" style="height:26px">Submit</button><button type="submit" name="pdec" value="0" class="mls cgy mbl mls pg_ok_res sp cl" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray">Cancel</button>
+	</form>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cs sp lsp"><span class="cgy"><b>Note:</b>&nbsp;topic change karney ke power soch samajh ke dein. Agar mehfil ka bura topic rakha gya tou saza sab se pehlay mehfil owner ko miley gi</span></div>
+	</div>
+
+{% elif rem_officers %}
+	{% include "mehfil/officer_navbar.html" with guid=guid static_url=STATIC_URL section='remove' %}
+	{% load human_time %}
+	<h1 style="text-align:center" class="clb cxl lsp">Remove officers:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+		
+	<div class="mbs mt"><a href="{% url 'public_group' slug=guid %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+
+	<div class="cxl lsp">Woh officers select karein jinko hatana hai:</div>
+	<form method="POST" action="{% url 'remove_officer' %}">
+	{% csrf_token %}
+	{% if officer_data %}
+	<div><ul class="mt" style="display:inline-block;padding: 0;margin-bottom:0;list-style:none">	
+	{% for officer_id, officer_obj, appointment_time, can_hide, can_kick, can_topic in officer_data %}
+		<li style="text-align:left">
+		<div class="mts mbl">
+		<input style="vertical-align:middle" class="mrs" type="checkbox" id="{{ forloop.counter }}" name="oids" value="{{ officer_id }}">
+		<label for="{{ forloop.counter }}"><img src="{{ officer_obj.userprofile.avatar|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%" alt="pic">{% if officer_obj.username in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ officer_obj.username }}&nbsp;<span class="cxs sp cgy">- added {{ appointment_time|human_time }}, power(s): {% if can_hide == '1' and can_kick == '1' and can_topic == '1' %}hide, kick, change topic{% elif can_hide == '1' and can_kick == '1' %}hide, kick{% elif can_kick == '1' and can_topic == '1' %}kick, change topic{% elif can_hide == '1' and can_topic == '1' %}hide, change topic{% elif can_hide == '1' %}hide{% elif can_kick == '1' %}kick{% elif can_topic == '1' %}change topic{% else %}{% endif %}</span></label>
+		</div>
+		</li>
+	{% endfor %}
+	</ul></div>
+	{% else %}
+	<div class="sp lsp cgy mbl mtl">Is mehfil mein officers nahi hain</div>
+	{% endif %}
+	<button type="submit" name="dec" value="1" class="mt btn bcp bm mbl mls pg_ok_res sp mrs" style="height:26px">Submit</button><button type="submit" name="dec" value="0" class="mls cgy mbl mls pg_ok_res sp cl" style="height:26px;background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray">Cancel</button>
+	</form>
+	</div>
+
+{% else %}
+{% endif %}
+
+<br><br>
+{% endblock %}

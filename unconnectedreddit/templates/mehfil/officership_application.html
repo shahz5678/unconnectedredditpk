@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Officership application | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/officer_application_navbar.html" with section='application' static_url=STATIC_URL guid=unique %}
+
+<div class="mbl" style="max-width:600px;margin-left:auto;margin-right:auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">Apply for officer:</h1>
+</div>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	
+	<div class="mbl mt"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+
+	{% if show_tut %}
+		<div class="mts mbs bizcard lsp cxl" style="background-color:ivory;padding:8px">Owner ko yaqeen dilain ke ap aik achey officer sabit hon ge<hr size=1 COLOR="#e6e6e6"><span class="cs sp cgy">Neechay diye gaye questions ko answer karein</span></div>
+	{% else %}
+		<div class="mts mbs bizcard lsp cxl" style="background-color:ivory;padding:8px">
+			In questions ko answer karein:
+			<hr size=1 COLOR="#e6e6e6">
+			<span class="cs sp cgy">Agar apke answers mehfil owner ko pasand aye tou apko officer bana dia jaye ga</span>
+		</div>
+	{% endif %}
+
+	<form method="POST" class="mbl" action="{% url 'apply_for_officer' %}">
+		{% csrf_token %}
+		<input type="hidden" name="guid" value="{{ unique }}">
+		<div class="mtl cl sp lsp" style="font-weight:bold"><span class="cs">1.</span> {{ q1 }}</div>
+		{% if form.answer1.errors %}
+			<div class="mts cr cl sp lsp" style="font-weight:bold">{{ form.answer1.errors.0 }}</div>
+		{% else %}
+			<div class="cgy mbs mt cs sp lsp">(answer 200 chars se ziada nahi ho)</div>
+		{% endif %}
+		{{ form.answer1 }}
+		<div class="mtl cl sp lsp" style="font-weight:bold"><span class="cs">2.</span> {{ q2 }}</div>
+		{% if form.answer2.errors %}
+			<div class="mts cr cl sp lsp" style="font-weight:bold">{{ form.answer2.errors.0 }}</div>
+		{% else %}
+			<div class="cgy mbs mt cs sp lsp">(answer 200 chars se ziada nahi ho)</div>
+		{% endif %}
+		{{ form.answer2 }}
+		<button type="submit" name="dec" class="btn bcp sp pg_ok_res bl mtl mrs" style="height:26px" value="1">Submit</button><button type="submit" name="dec" class="cgy cl sp mls" style="background:0 0;padding: 0;border: none;border-bottom:1px dotted darkgray" value="0">Cancel</button>
+	</form>
+	<hr size=1 COLOR="#e6e6e6">
+	<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note:</b> apke answers saved rahen ge aur dusri mehfils ke owners inko dekh sakein ge jab ap ne unki mehfil mein officer ke liye apply kiya</span></div>
+</div>
+
+<br><br>
+{% endblock %}

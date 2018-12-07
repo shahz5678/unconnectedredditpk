@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Public mehfil rules settings | Damadam.pk</title></head>
+<h1 class="clb cxl" style="text-align:center">Enforce new rules:</h1>
+<style>body{background: #E9EBEE}</style>
+<div class="clb bizcard sp" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+
+<div class="cxl lsp mbl">Kya members se apke new rules zabardasti accept karwai jaien?</div>
+
+<form method="POST" action="{% url 'force_rules_onto_members' %}" class="mt mbl">
+	{% csrf_token %}
+	<input type="hidden" name="gid" value="{{ gid }}">
+	<button type="submit" name="dec" style="height:26px" class="btn bcp bm pg_ok_res mrs" value="1">Haan</button>
+	<button type="submit" name="dec" style="height:26px;background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" class="mls cgy cm sp" value="0">Rehnay do</button>
+</form>
+
+<hr size=1 COLOR="#E9EBEE">
+<div class="cs sp lsp cgy" style="text-align:left"><b>Warning:</b> Ho sakta hai kuch members apkey new rules accept karney ke bajai mehfil chore dein, is liye 'Haan' sirf tab press karein jab new rules old rules se kafi ziyada different hon</div>
+</div>
+<br><br>
+{% endblock %}
+
+
+

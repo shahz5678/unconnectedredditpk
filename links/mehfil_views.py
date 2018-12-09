@@ -3517,7 +3517,7 @@ def paginate_group_list(data):
 	return pages, len(pages)
 
 
-def group_list(request):
+def group_page(request):	
 	"""
 	Renders list of all joined and invited mehfils (public and private both)
 
@@ -3605,7 +3605,7 @@ def group_list(request):
 		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False}})
 
 
-def group_page(request):
+def group_list(request):	
 	"""
 	Renders list of all joined and invited mehfils (public and private both)
 	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)

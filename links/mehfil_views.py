@@ -982,9 +982,21 @@ def public_mehfil_oversight_dashboard(request):
 					# 	return render(request,"judgement/mehfil_report.html",context)
 				else:
 					# drop an application to become an officer
-					return render(request,"mehfil/officership_application.html",{'unique':group_uuid,'form':OfficerApplicationForm(),\
-						'show_tut':tutorial_unseen(user_id=own_id, which_tut='28', renew_lease=True),'q1':GROUP_OFFICER_QUESTIONS['1'],\
-						'q2':GROUP_OFFICER_QUESTIONS['2']})
+					try:
+						join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
+					except User.DoesNotExist:
+						# this user does not exist thus data incomplete
+						raise Http404("You cannot apply to become an officer because you don't exist!")
+					recent_app_joiner, recent_mehfil_joiner = user_too_young_to_become_officer(own_id, time.time(),join_date, \
+						retrieve_group_joining_time(group_id, own_id))
+					if recent_app_joiner or recent_mehfil_joiner:
+						# the user is a recent arrival - gently turn them away
+						return render(request,"mehfil/notify_and_redirect.html",{'too_young_for_officer':True,'unique':group_uuid,\
+							'youth_type':'recent_app_joiner' if recent_app_joiner else 'recent_mehfil_joiner'})
+					else:
+						return render(request,"mehfil/officership_application.html",{'unique':group_uuid,'form':OfficerApplicationForm(),\
+							'show_tut':tutorial_unseen(user_id=own_id, which_tut='28', renew_lease=True),'q1':GROUP_OFFICER_QUESTIONS['1'],\
+							'q2':GROUP_OFFICER_QUESTIONS['2']})
 			else:
 				# user has not made a decision - show default 'user' screen
 				return render(request,"mehfil/public_group_administration.html",{'topic':data['tp'],'regular_user':True,'unique':group_uuid})

@@ -259,7 +259,7 @@ def processing_group_ownership_transfer(request, slug):
 						offerer_id = request.POST.get("oid",None)
 						if is_ownership_request_legit(group_id, offerer_id):
 							if is_mobile_verified(offerer_id):# offerer must be mobile verified
-								offer_details = retrieve_offer_details(group_id, offerer_id)	
+								offer_details = retrieve_offer_details(group_id, offerer_id)    
 								if offer_details:
 									# {'sid':submitter_id,'suname':submitter_uname,'savurl':submitter_avurl,'t':time_now,'pts':points_offered,'gid':group_id}
 									points_offered = offer_details.get('pts',0)
@@ -332,9 +332,6 @@ def processing_group_ownership_transfer(request, slug):
 													else:
 														# change owner object in Group model and create a reply
 														Group.objects.filter(unique=group_uuid).update(owner=target_user)
-														# charge the offerer the score they offered
-														if is_public:
-															UserProfile.objects.filter(user_id=offerer_id).update(score=F('score')-points_offered)
 														### process redis6 related stuff ### 
 														# change owner object in redis6 data
 														# ensure ownership change is seen in administrative activity
@@ -349,6 +346,11 @@ def processing_group_ownership_transfer(request, slug):
 															category='8', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 														invalidate_cached_mehfil_replies(group_id)
 														invalidate_presence(group_id)
+														 ###################################
+														# charge the offerer the score they offered - and transfer it to the original owner
+														if is_public:
+															UserProfile.objects.filter(user_id=offerer_id).update(score=F('score') - points_offered)
+															UserProfile.objects.filter(user_id=own_id).update(score=F('score') + points_offered)
 														return render(request,"mehfil/transfer_final_status.html",{'guid':group_uuid,'ouname':submitter_uname,\
 															'is_public':is_public})
 												else:

@@ -1,5 +1,5 @@
 from django import forms
-from redis4 import get_temp_order_data, log_buyer_form_err
+from redis4 import get_temp_order_data, log_buyer_form_err, check_orders_processing
 import re, time
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.auth.models import User
@@ -69,9 +69,9 @@ class CareemAdForm(forms.Form):
 class BuyerForm(forms.Form):
 	username = forms.RegexField(max_length=143, regex=re.compile("^[a-zA-Z\s]+$"),\
 		error_messages={'invalid': _("Name mein sirf english harf ho sakta hai"),\
-		'required':_("Is mein apna name likhien")})
+		'required':_("Apna name likhna zaroori hai")})
 	address = forms.RegexField(max_length=300, regex=re.compile("^[A-Za-z0-9999!-/@#,$%^&* ]+$"),\
-		error_messages={'required':_("Is mein apna address likhien")})
+		error_messages={'required':_("Apna address likhna zaroori hai")})
 	phonenumber = forms.RegexField(max_length=11, regex=re.compile("^[0-9]+$"),\
 		error_messages={'required': 'Mobile number diay gaiey tareekay say likhna zaroori hai'})
 	
@@ -79,12 +79,12 @@ class BuyerForm(forms.Form):
 		fields = ('username','address','phonenumber')
 
 	def __init__(self, *args, **kwargs):
-		self.user_id = kwargs.pop('user_id',None)
+		#self.user_id = kwargs.pop('user_id',None)
 		super(BuyerForm, self).__init__(*args, **kwargs)
 		self.fields['username'].widget.attrs['style'] = \
 		'background-color:#fffce6;width:100%;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
 		self.fields['username'].widget.attrs['class'] = 'cxl'
-		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['username'].widget.attrs['autofocus'] = 'off'
 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
 		self.fields['address'].widget.attrs['style'] = \
 		'background-color:#fffce6;width:100%;border: 1px solid #80acaa;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #80acaa;'
@@ -99,39 +99,42 @@ class BuyerForm(forms.Form):
 	def clean_username(self):
 		username = self.cleaned_data.get('username')
 		if len(username) < 5:
-			error= {'user_id':self.user_id, 'err_msg':'username_too_small','data_entered':username,'time':time.time()}
-			log_buyer_form_err(error)
+		#	error= {'user_id':self.user_id, 'err_msg':'username_too_small','data_entered':username,'time':time.time()}
+		#	log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: apna poora naam likhien)')
 		elif len(username) > 250:
-			error= {'user_id':self.user_id, 'err_msg':'username_too_big','data_entered':username,'time':time.time()}
-			log_buyer_form_err(error)
+		#	error= {'user_id':self.user_id, 'err_msg':'username_too_big','data_entered':username,'time':time.time()}
+		#	log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota kerien)')
 		return username
 
 	def clean_address(self):
 		address = self.cleaned_data.get('address')
 		if len(address) < 10:
-			error= {'user_id':self.user_id, 'err_msg':'address_too_small','data_entered':address,'time':time.time()}
-			log_buyer_form_err(error)
+		#	error= {'user_id':self.user_id, 'err_msg':'address_too_small','data_entered':address,'time':time.time()}
+		#	log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: apna poora address bataien jiss per daak bheji ja sakey)')
 		elif len(address) > 250:
-			error= {'user_id':self.user_id, 'err_msg':'address_too_big','data_entered':address,'time':time.time()}
-			log_buyer_form_err(error)
+		#	error= {'user_id':self.user_id, 'err_msg':'address_too_big','data_entered':address,'time':time.time()}
+		#	log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karien)')
 		return address
 
 	def clean_phonenumber(self):
 		phonenumber = self.cleaned_data.get('phonenumber')
 		if phonenumber == '03451234567':
-			error= {'user_id':self.user_id, 'err_msg':'entered_sample_phonenumber','data_entered':phonenumber,'time':time.time()}
-			log_buyer_form_err(error)
+		#	error= {'user_id':self.user_id, 'err_msg':'entered_sample_phonenumber','data_entered':phonenumber,'time':time.time()}
+		#	log_buyer_form_err(error)
 			raise forms.ValidationError('(tip: Apna asli phonenumber dalien)')
 		mobile_length = len(phonenumber)
 		if mobile_length < 11:
-			error= {'user_id':self.user_id, 'err_msg':'phonenumber_too_small','data_entered':phonenumber,'time':time.time()}
-			log_buyer_form_err(error)
+		#	error= {'user_id':self.user_id, 'err_msg':'phonenumber_too_small','data_entered':phonenumber,'time':time.time()}
+		#	log_buyer_form_err(error)
 			raise forms.ValidationError('Poora mobile number likhien')
 		phonenumber = ''.join(re.split('[, \-_!?:]+',phonenumber)) #removes any excess characters from the mobile number
+		check = check_orders_processing(None,phonenumber[-11:])
+		if check: 
+			raise forms.ValidationError('Iss number per aik order pehle say maujood hai, Koi aur number likhien')
 		return phonenumber[-11:]
 
 
@@ -232,7 +235,28 @@ class InfoForm(forms.Form):
 
 
 
+class NewMobileForm(forms.Form):
+	model = forms.RegexField(max_length=43, regex=re.compile("^[a-zA-Z\s]+$"),\
+		error_messages={'invalid': _("Name mein sirf english harf ho sakta hai"),\
+		'required':_("Is mein mobile ka naam likhien")})
+#	phonenumber = forms.CharField(max_length=11)#,validators=[validate_whitespaces_in_nickname])
+	class Meta:
+		fields = ('model')
 
-
+	def __init__(self, *args, **kwargs):
+		super(NewMobileForm, self).__init__(*args, **kwargs)
+		self.fields['model'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #00c853;'
+		self.fields['model'].widget.attrs['class'] = 'cxl'
+		self.fields['model'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['model'].widget.attrs['autocomplete'] = 'off'
+		
+	def clean_model(self):
+		username = self.cleaned_data.get('model')
+		if len(username) < 5:
+			raise forms.ValidationError('(tip: poora naam likhien mobile ka)')
+		elif len(username) > 250:
+			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota kerien)')
+		return username
 
 

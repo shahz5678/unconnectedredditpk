@@ -2300,7 +2300,11 @@ def create_group_membership_and_rules_signatory(group_id, member_id, time_now, m
 		if is_public:
 			my_server.zadd(key,member_id,time_now)
 			my_server.zadd(GROUP_RULES_SIGNATORY+group_id,member_id,time_now)
-			my_server.zincrby(GROUP_SIZE_LIST,group_id,amount=1)
+			############################################################
+			num_mems = my_server.zcard(key)
+			my_server.zadd(GROUP_SIZE_LIST,group_id,num_mems)
+			# my_server.zincrby(GROUP_SIZE_LIST,group_id,amount=1)# ENABLE THIS LINE AGAIN AFTER 17th Dec 2018 (ensure group_size_list scores are correct)
+			############################################################
 			if member_join_time:
 				# when did the member join Damadam
 				my_server.zadd(GROUP_USER_AGE_LIST+group_id,member_id,member_join_time)
@@ -2398,8 +2402,13 @@ def insert_rules_signatory(group_id, member_id, time_now):
 	key = GROUP_RULES_SIGNATORY+group_id
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(key):
-		my_server.zadd(GROUP_RULES_SIGNATORY+group_id,member_id,time_now)
-		invalidate_member_and_signatory_cache(group_id, member_id, my_server)
+		if my_server.zscore(key,member_id):
+			# already a signatory - do nothing
+			pass
+		else:
+			# make a signatory
+			my_server.zadd(key,member_id,time_now)
+			invalidate_member_and_signatory_cache(group_id, member_id, my_server)
 
 
 def purge_group_membership(group_id, member_id, is_public, time_now):

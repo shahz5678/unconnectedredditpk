@@ -3791,45 +3791,49 @@ def owner_rejoining_public_group(request):
 						'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE,'owner_rejoining':True,'gid':data['gid'],'cat':data['category']})
 			elif decision == '2':
 				# accept credentials
-				time_now = time.time()
 				data = get_temporarily_saved_group_credentials(own_id)
 				topic, rules, group_category, raw_rules, group_id = data['topic'], data['formatted_rules'], data["category"], data['rules'], data['gid']
-				Group.objects.filter(id=group_id).update(topic=topic,rules=rules)
-				update_group_topic.delay(group_id=group_id, topic=topic)#redis 2
-				saved = save_group_topic_and_rules(group_id, topic=topic, rules=rules, raw_rules=raw_rules)
-				if saved:
-					own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
-					##############################################
-					# legacy functionality
-					add_group_member(group_id, own_uname)
-					remove_group_invite(own_id, group_id)
-					add_user_group(own_id, group_id)#to take care of grouppageview()
-					##############################################
-					reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')
-					group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=time_now,\
-						poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,priority='public_mehfil',\
-						from_unseen=False, reply_id=reply.id, txt_type='join')# to take care of matka, priv is group privacy
-					submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,\
-						category='9', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))# makes 'joining' announcement appear inside group
-					if num_submissions > DELETION_THRESHOLD:
-						# delete extra submissions
-						trim_group_submissions.delay(group_id)
-					invalidate_cached_mehfil_replies(group_id)#redis6 function
-					##############################################
-					try:
-						join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
-					except User.DoesNotExist:
-						# this user does not exist thus data incomplete
-						join_date = None
-					added = create_group_membership_and_rules_signatory(group_id=group_id, member_id=own_id, member_join_time=join_date, \
-						time_now=time_now, is_public=True, member_is_owner=True)
-					if added:
-						return render(request,"mehfil/force_members_to_accept_rules.html",{'gid':group_id})
-					else:
-						# group was recently deleted
-						return redirect("group_page")
+				if group_member_exists(group_id, own_id):
+					# already a member
+					return redirect("public_group")
 				else:
-					return redirect("group_page")
+					time_now = time.time()
+					Group.objects.filter(id=group_id).update(topic=topic,rules=rules)
+					update_group_topic.delay(group_id=group_id, topic=topic)#redis 2
+					saved = save_group_topic_and_rules(group_id, topic=topic, rules=rules, raw_rules=raw_rules)
+					if saved:
+						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
+						##############################################
+						# legacy functionality
+						add_group_member(group_id, own_uname)
+						remove_group_invite(own_id, group_id)
+						add_user_group(own_id, group_id)#to take care of grouppageview()
+						##############################################
+						reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')
+						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=time_now,\
+							poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,priority='public_mehfil',\
+							from_unseen=False, reply_id=reply.id, txt_type='join')# to take care of matka, priv is group privacy
+						submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,\
+							category='9', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))# makes 'joining' announcement appear inside group
+						if num_submissions > DELETION_THRESHOLD:
+							# delete extra submissions
+							trim_group_submissions.delay(group_id)
+						invalidate_cached_mehfil_replies(group_id)#redis6 function
+						##############################################
+						try:
+							join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
+						except User.DoesNotExist:
+							# this user does not exist thus data incomplete
+							join_date = None
+						added = create_group_membership_and_rules_signatory(group_id=group_id, member_id=own_id, member_join_time=join_date, \
+							time_now=time_now, is_public=True, member_is_owner=True)
+						if added:
+							return render(request,"mehfil/force_members_to_accept_rules.html",{'gid':group_id})
+						else:
+							# group was recently deleted
+							return redirect("group_page")
+					else:
+						return redirect("group_page")
 		else:
 			# invalid entry
 			return redirect("public_group")
@@ -3956,7 +3960,10 @@ def accept_open_group_rules(request):
 			accept_rules = request.POST.get("acc",None)
 			start_time = request.POST.get("st",None)
 			time_to_read = request.POST.get("ttr",None)
-			if banned_from_group(group_id, own_id):
+			if group_member_exists(group_id, own_id):
+				# already a member
+				return redirect("public_group")
+			elif banned_from_group(group_id, own_id):
 				# user is banned from group, turn them away
 				ban_details = get_ban_details(group_id, own_id)
 				ban_start_time = float(ban_details['kt'])
@@ -4083,7 +4090,7 @@ def quick_accept_open_group_rules(request):
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_public_mehfil':True})
 		elif banned_from_group(pk, own_id):
 			return redirect("public_group")
-		else:
+		elif group_member_exists(pk, own_id):
 			decision = request.POST.get("dec",None)
 			unique = request.POST.get("uid",None)
 			data = retrieve_group_reqd_data(group_id=pk,with_group_owner_id=True,with_uuid=True)#group privacy, group_id, group_topic, group_owner_id (optional), 'pics'(optional)
@@ -4106,8 +4113,12 @@ def quick_accept_open_group_rules(request):
 			else:
 				# group does not exist
 				return redirect("group_page")
+		else:
+			# the user is no longer a member of the group
+			return redirect("group_page")
 	else:
 		return redirect("public_group")
+
 
 #################### Inviting users to mehfils #####################
 

@@ -50,27 +50,6 @@
 		</div>
 	{% endif %}
 
-	{% if forloop.counter == 6 %}
-		{% if enqueued_match %}
-			{% load get_cricket_summary %}
-			<div class="bizcard" style="background-color:#D3FFFC;padding-top:1em; margin-bottom:14px; padding:10px;text-align:center;">
-				{% cricket_summary enqueued_match %}
-			</div>
-		{% endif %}
-	{% endif %}
-
-
-	{% if forloop.counter == 9 %}
-		<div class="bizcard" style="background-image: url('{{ STATIC_URL }}img/wallpaper.png');margin-bottom:14px;padding:3px; padding-bottom:10px;">
-			<div class="mls">
-				<b class="cxl" style="color:#388e3c;">Damadam pe khareed o farokht karein!</b><br>
-				<div itemscope="itemscope" itemtype="http://www.schema.org/SiteNavigationElement">
-				<a href="{% url 'classified_listing' %}" itemprop="url"><button class="btn bcg bl cl mtl mbs" style="height:25px" itemprop="name">Start</button></a>
-				</div>
-			</div>
-		</div>
-	{% endif %}
-
 {% if link.c == '2' %}
 	
 	<div class="bizcard mtl" style="margin-bottom:16px">

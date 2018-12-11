@@ -28,6 +28,7 @@ from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
+from templatetags.s3 import get_s3_object
 from image_processing import clean_image_file, clean_image_file_with_hash
 from salutations import SALUTATIONS
 from forms import getip
@@ -60,7 +61,8 @@ from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_upload_tasks, video_tasks, video_vote_tasks, photo_vote_tasks, queue_for_deletion, VOTE_WEIGHT, rank_public_groups, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
-home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session, log_profile_view#, log_organic_attention
+home_photo_tasks, sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session, log_profile_view,group_attendance_tasks\
+#, log_organic_attention
 from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_photo_abuse, check_video_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -68,7 +70,7 @@ ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, H
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, get_and_delete_text_input_key,\
-invalidate_avurl, retrieve_user_id, get_most_recent_online_users, retrieve_uname
+invalidate_avurl, retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
@@ -96,7 +98,7 @@ get_link_writer, get_photo_owner, get_inactives, unlock_uname_search, is_uname_s
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts
 #, set_prev_retorts
 from .website_feedback_form import AdvertiseWithUsForm
-
+from redis6 import invalidate_cached_mehfil_replies, save_group_submission, invalidate_cached_mehfil_pages
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -4821,11 +4823,9 @@ class WelcomeMessageView(CreateView):
 def unseen_group(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request,'limits',False)
 	if was_limited:
-		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-100)
-		# return render(request, 'penalty_unseengroupreply.html', {'penalty':100,'uname':username})
 		return redirect("missing_page")
 	elif request.user_banned:
-		return render(request,"500.html",{})
+		return redirect("error")
 	username = request.user.username
 	user_id = request.user.id
 	grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
@@ -4843,40 +4843,34 @@ def unseen_group(request, pk=None, *args, **kwargs):
 			if form.is_valid():
 				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
 				description = desc1 if desc1 else desc2
-				if request.is_feature_phone:
-					device = '1'
-				elif request.is_phone:
-					device = '2'
-				elif request.is_tablet:
-					device = '4'
-				elif request.is_mobile:
-					device = '5'
-				else:
-					device = '3'
-				groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description,device=device)#,image='')
+				groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description)#,image='')
 				reply_time = convert_to_epoch(groupreply.submitted_on)
-				try:
-					url = request.user.userprofile.avatar.url
-				except ValueError:
-					url = None
+				invalidate_cached_mehfil_replies(pk)
+				invalidate_cached_mehfil_pages(user_id)
+				group_attendance_tasks.delay(group_id=pk, user_id=user_id, time_now=reply_time)
+				if grp["private"] == '1':
+					set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
+					priority='priv_mehfil'
+					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
+				else:
+					set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
+					priority='public_mehfil'
+					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+					rank_public_groups.delay(group_id=pk,writer_id=user_id)
+					# public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
+				#######################################################
 				try:
 					image_url = groupreply.image.url
 				except ValueError:
 					image_url = None
-				if grp["private"] == '1':
-					set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=time.time())
-					priority='priv_mehfil'
-					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
-				else:
-					set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=time.time())
-					priority='public_mehfil'
-					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-					rank_public_groups.delay(group_id=pk,writer_id=user_id)
-					public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
-				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],\
-					topic=grp["topic"],reply_time=reply_time,poster_url=url, poster_username=username,\
-					reply_text=description,priv=grp["private"], slug=grp["unique"],image_url=image_url,\
-					priority=priority,from_unseen=True, reply_id=groupreply.id)
+				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
+				save_group_submission(writer_id=user_id, group_id=pk, text=description, image=image_url, posting_time=reply_time,\
+					writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_score=request.user.userprofile.score,category='0',\
+					writer_uname=own_uname,save_latest_submission=True)
+				#######################################################
+				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],topic=grp["topic"],\
+					reply_time=reply_time,poster_url=own_avurl, poster_username=username,reply_text=description,priv=grp["private"], \
+					slug=grp["unique"],image_url=image_url,priority=priority,from_unseen=True, reply_id=groupreply.id)
 				if origin:
 					if origin == '0':
 						return redirect("photo")

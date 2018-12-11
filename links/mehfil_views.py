@@ -56,7 +56,8 @@ MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, CANCEL_INVITE_AFTER_TIME_PASSAGE, PUBLIC_G
 GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_MIN_SELLING_PRICE, GROUP_MEMBERS_PER_PAGE, GROUP_VISITORS_PER_PAGE, PRIVATE_GROUP_MAX_MEMBERSHIP,\
 MAX_OWNER_INVITES_PER_PRIVATE_GROUP, MIN_MEMBERSHIP_AGE_FOR_GIVING_PUBLIC_GRP_FEEDBACK, MIN_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OWNERSHIP, \
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, DELETION_THRESHOLD, MEHFIL_REPORT_PROMPT, MAX_OFFICER_APPOINTMENTS_ALLWD, GROUP_OFFICER_QUESTIONS, \
-MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE
+MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE,\
+PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK
 
 from redis6 import appoint_public_mehfil_officer, is_officer_appointments_rate_limited, retrieve_cached_attendance_data, get_latest_presence, \
 cache_group_attendance_data, get_attendance, retrieve_all_officers, remove_public_mehfil_officers, retrieve_group_category, save_group_submission, \
@@ -79,7 +80,7 @@ retrieve_closed_group_remaining_invites, recently_quit_group, can_officer_change
 retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_membership_frozen, retrieve_cached_ranked_groups, cache_ranked_groups, \
 get_ranked_mehfils, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
 retrieve_officer_stats, invalidate_cached_ranked_groups, invalidate_cached_mehfil_pages, retrieve_cached_mehfil_pages, retrieve_topic_and_rules_ttl, \
-cache_mehfil_pages#, cache_mehfil_list#, retrieve_latest_group_replies, remove_public_mehfil_captain
+cache_mehfil_pages, human_readable_time #, cache_mehfil_list#, retrieve_latest_group_replies, remove_public_mehfil_captain
 
 
 ################################### Mehfil info #####################################
@@ -259,7 +260,7 @@ def processing_group_ownership_transfer(request, slug):
 						offerer_id = request.POST.get("oid",None)
 						if is_ownership_request_legit(group_id, offerer_id):
 							if is_mobile_verified(offerer_id):# offerer must be mobile verified
-								offer_details = retrieve_offer_details(group_id, offerer_id)	
+								offer_details = retrieve_offer_details(group_id, offerer_id)    
 								if offer_details:
 									# {'sid':submitter_id,'suname':submitter_uname,'savurl':submitter_avurl,'t':time_now,'pts':points_offered,'gid':group_id}
 									points_offered = offer_details.get('pts',0)
@@ -332,9 +333,6 @@ def processing_group_ownership_transfer(request, slug):
 													else:
 														# change owner object in Group model and create a reply
 														Group.objects.filter(unique=group_uuid).update(owner=target_user)
-														# charge the offerer the score they offered
-														if is_public:
-															UserProfile.objects.filter(user_id=offerer_id).update(score=F('score')-points_offered)
 														### process redis6 related stuff ### 
 														# change owner object in redis6 data
 														# ensure ownership change is seen in administrative activity
@@ -349,6 +347,11 @@ def processing_group_ownership_transfer(request, slug):
 															category='8', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 														invalidate_cached_mehfil_replies(group_id)
 														invalidate_presence(group_id)
+														 ###################################
+														# charge the offerer the score they offered - and transfer it to the original owner
+														if is_public:
+															UserProfile.objects.filter(user_id=offerer_id).update(score=F('score') - points_offered)
+															UserProfile.objects.filter(user_id=own_id).update(score=F('score') + points_offered)
 														return render(request,"mehfil/transfer_final_status.html",{'guid':group_uuid,'ouname':submitter_uname,\
 															'is_public':is_public})
 												else:
@@ -972,19 +975,31 @@ def public_mehfil_oversight_dashboard(request):
 					# user_score = request.user.userprofile.score
 					# price_of_report = get_price(user_score)
 					# if price_of_report > user_score:
-					# 	#disallow reporting (user doesn't have requisite score)
-					# 	request.session["redirect_reason"+own_id] = 'not_enough_score_to_report_mehfil'
-					# 	request.session["redirect_guid"+own_id] = group_uuid
-					# 	return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
+					#	#disallow reporting (user doesn't have requisite score)
+					#	request.session["redirect_reason"+own_id] = 'not_enough_score_to_report_mehfil'
+					#   request.session["redirect_guid"+own_id] = group_uuid
+					#   return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 					# else:
-					# 	context = {'price':price_of_report, 'group_uuid':group_uuid,'rep_opt':ordered_list_of_tup(MEHFIL_REPORT_PROMPT), 'gid':group_id, \
-					# 	'topic':data['tp'],'rules':retrieve_group_rules(group_id)}
-					# 	return render(request,"judgement/mehfil_report.html",context)
+					#   context = {'price':price_of_report, 'group_uuid':group_uuid,'rep_opt':ordered_list_of_tup(MEHFIL_REPORT_PROMPT), 'gid':group_id, \
+					#   'topic':data['tp'],'rules':retrieve_group_rules(group_id)}
+					#   return render(request,"judgement/mehfil_report.html",context)
 				else:
 					# drop an application to become an officer
-					return render(request,"mehfil/officership_application.html",{'unique':group_uuid,'form':OfficerApplicationForm(),\
-						'show_tut':tutorial_unseen(user_id=own_id, which_tut='28', renew_lease=True),'q1':GROUP_OFFICER_QUESTIONS['1'],\
-						'q2':GROUP_OFFICER_QUESTIONS['2']})
+					try:
+						join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
+					except User.DoesNotExist:
+						# this user does not exist thus data incomplete
+						raise Http404("You cannot apply to become an officer because you don't exist!")
+					recent_app_joiner, recent_mehfil_joiner = user_too_young_to_become_officer(own_id, time.time(),join_date, \
+						retrieve_group_joining_time(group_id, own_id))
+					if recent_app_joiner or recent_mehfil_joiner:
+						# the user is a recent arrival - gently turn them away
+						return render(request,"mehfil/notify_and_redirect.html",{'too_young_for_officer':True,'unique':group_uuid,\
+							'youth_type':'recent_app_joiner' if recent_app_joiner else 'recent_mehfil_joiner'})
+					else:
+						return render(request,"mehfil/officership_application.html",{'unique':group_uuid,'form':OfficerApplicationForm(),\
+							'show_tut':tutorial_unseen(user_id=own_id, which_tut='28', renew_lease=True),'q1':GROUP_OFFICER_QUESTIONS['1'],\
+							'q2':GROUP_OFFICER_QUESTIONS['2']})
 			else:
 				# user has not made a decision - show default 'user' screen
 				return render(request,"mehfil/public_group_administration.html",{'topic':data['tp'],'regular_user':True,'unique':group_uuid})
@@ -1048,7 +1063,7 @@ def process_open_group_feedback(request):
 				return redirect("public_group")
 		else:
 			# decided against submitting feedback
-			return redirect("public_group")	
+			return redirect("public_group") 
 	else:
 		# not a POST request
 		return redirect("public_group")
@@ -1727,7 +1742,7 @@ def unkick_users(request, slug):
 									return render(request,"mehfil/kick_out_group_members.html",{'show_unkick_feedback_options':True,'form':GroupFeedbackForm(),\
 										'reason_len':GROUP_FEEDBACK_SIZE})
 								# return render(request,'mehfil/take_action_against_group_visitors.html',{'show_unkick_feedback_options':True,'form':GroupFeedbackForm(),\
-								# 	'reason_len':GROUP_FEEDBACK_SIZE})
+								#   'reason_len':GROUP_FEEDBACK_SIZE})
 							else:
 								# no unkicking activity generated - perhaps culprits already kicked by an officer
 								if is_public:
@@ -1980,7 +1995,7 @@ def kick_out(request, slug):
 						return redirect("public_group")
 			else:
 				# unauthorized user
-				return redirect("group_page")	
+				return redirect("group_page")   
 		else:
 			# the user decided to not take any action
 			is_public = False if group_privacy == '1' else True
@@ -2003,94 +2018,94 @@ def kick_out(request, slug):
 # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 # @csrf_protect
 # def slow_down(request):
-# 	"""
-# 	Processing the slowing down of an errant user from a public mehfil
-# 	"""
-# 	if request.user_banned:
-# 		return redirect("error")
-# 	elif request.method == "POST":
-# 		kick_decision = request.POST.get("kdec",None)
-# 		decision = request.POST.get("dec",None)
-# 		if kick_decision == '1':
-# 			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=request.POST.get("guid",None),with_group_id=True)
-# 			if group_owner_id:
-# 				own_id = str(request.user.id)
-# 				if group_owner_id == own_id:
-# 					slow_duration = request.POST.get("sdur",None)
-# 					if slow_duration in ('1','2','3','4','5','6'):
-# 						# take action
-# 						time_now = time.time()
-# 						culprit_ids = request.session.get("final_slow_ids"+str(group_id),[])
-# 						culprit_ids = map(str,culprit_ids) if culprit_ids else culprit_ids
-# 						# ttl = slow_users_in_group(group_id, culprit_ids, time_now, retrieve_uname(own_id,decode=True), own_id, slow_duration)
-# 						# provide optional form where slowed user(s) can receive feedback so that recidivism doesn't happen
-# 					else:
-# 						# the user decided to not take any action
-# 						return redirect("public_group")
-# 				elif is_group_officer(group_id,own_id):
-# 					slow_duration = request.POST.get("sdur",None)
-# 					if slow_duration in ('1','2','3'):
-# 						# take action
-# 						time_now = time.time()
-# 						culprit_ids = request.session.get("final_slow_ids"+str(group_id),[])
-# 						culprit_ids = map(str,culprit_ids) if culprit_ids else culprit_ids
-# 						# ttl = slow_users_in_group(group_id, culprit_ids, time_now, retrieve_uname(own_id,decode=True), own_id, slow_duration)
-# 						# provide optional form where slowed user(s) can receive feedback so that recidivism doesn't happen
-# 					else:
-# 						# the user decided to not take any action
-# 						return redirect("public_group")
-# 				else:
-# 					# the user is unauthorized to do this
-# 					return redirect("group_page")
-# 			else:
-# 				# group probably does not exist
-# 				return redirect("group_page")	
-# 		elif decision == '1':
-# 			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=request.POST.get("guid",None),with_group_id=True)
-# 			if group_owner_id:
-# 				own_id = str(request.user.id)
-# 				if own_id == group_owner_id:
-# 					# show owner's slowing down options
-# 					culprit_ids = request.POST.getlist('cids',[])#in list format
-# 					if not culprit_ids:
-# 						# no one was selected
-# 						return redirect("public_group")
-# 					elif own_id in culprit_ids:
-# 						return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_self':True})
-# 					else:
-# 						# punish the rest!
-# 						request.session["final_slow_ids"+str(group_id)] = culprit_ids
-# 						request.session.modified = True
-# 						return render(request,"mehfil/take_action_against_group_visitors.html",{'show_punishment_options':True,'owner':True,'slow':True})
-# 				elif is_group_officer(group_id,own_id):
-# 					# show officer's slowing down options
-# 					culprit_ids = request.POST.getlist('cids',[])
-# 					if not culprit_ids:
-# 						# no one was selected
-# 						return redirect("public_group")
-# 					elif group_owner_id in culprit_ids:
-# 						return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_owner':True})
-# 					elif own_id in culprit_ids:
-# 						return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_self':True})
-# 					elif group_officer_targeted(group_id,culprit_ids):
-# 						return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_officers':True})
-# 					else:
-# 						# punish the rest!
-# 						request.session["final_slow_ids"+str(group_id)] = culprit_ids
-# 						request.session.modified = True
-# 						return render(request,"mehfil/take_action_against_group_visitors.html",{'show_punishment_options':True,'officer':True,'slow':True})
-# 				else:
-# 					# unauthorized user
-# 					return redirect("group_page")	
-# 			else:
-# 				# group probably does not exist
-# 				return redirect("group_page")
-# 		else:
-# 			# the user decided to not take any action
-# 			return redirect("public_group")
-# 	else:
-# 		# not a POST method
-# 		return redirect("public_group")
+#   """
+#   Processing the slowing down of an errant user from a public mehfil
+#   """
+#   if request.user_banned:
+#       return redirect("error")
+#   elif request.method == "POST":
+#       kick_decision = request.POST.get("kdec",None)
+#       decision = request.POST.get("dec",None)
+#       if kick_decision == '1':
+#           group_owner_id, group_id = retrieve_group_owner_id(group_uuid=request.POST.get("guid",None),with_group_id=True)
+#           if group_owner_id:
+#               own_id = str(request.user.id)
+#               if group_owner_id == own_id:
+#                   slow_duration = request.POST.get("sdur",None)
+#                   if slow_duration in ('1','2','3','4','5','6'):
+#                       # take action
+#                       time_now = time.time()
+#                       culprit_ids = request.session.get("final_slow_ids"+str(group_id),[])
+#                       culprit_ids = map(str,culprit_ids) if culprit_ids else culprit_ids
+#                       # ttl = slow_users_in_group(group_id, culprit_ids, time_now, retrieve_uname(own_id,decode=True), own_id, slow_duration)
+#                       # provide optional form where slowed user(s) can receive feedback so that recidivism doesn't happen
+#                   else:
+#                       # the user decided to not take any action
+#                       return redirect("public_group")
+#               elif is_group_officer(group_id,own_id):
+#                   slow_duration = request.POST.get("sdur",None)
+#                   if slow_duration in ('1','2','3'):
+#                       # take action
+#                       time_now = time.time()
+#                       culprit_ids = request.session.get("final_slow_ids"+str(group_id),[])
+#                       culprit_ids = map(str,culprit_ids) if culprit_ids else culprit_ids
+#                       # ttl = slow_users_in_group(group_id, culprit_ids, time_now, retrieve_uname(own_id,decode=True), own_id, slow_duration)
+#                       # provide optional form where slowed user(s) can receive feedback so that recidivism doesn't happen
+#                   else:
+#                       # the user decided to not take any action
+#                       return redirect("public_group")
+#               else:
+#                   # the user is unauthorized to do this
+#                   return redirect("group_page")
+#           else:
+#               # group probably does not exist
+#               return redirect("group_page")   
+#       elif decision == '1':
+#           group_owner_id, group_id = retrieve_group_owner_id(group_uuid=request.POST.get("guid",None),with_group_id=True)
+#           if group_owner_id:
+#               own_id = str(request.user.id)
+#               if own_id == group_owner_id:
+#                   # show owner's slowing down options
+#                   culprit_ids = request.POST.getlist('cids',[])#in list format
+#                   if not culprit_ids:
+#                       # no one was selected
+#                       return redirect("public_group")
+#                   elif own_id in culprit_ids:
+#                       return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_self':True})
+#                   else:
+#                       # punish the rest!
+#                       request.session["final_slow_ids"+str(group_id)] = culprit_ids
+#                       request.session.modified = True
+#                       return render(request,"mehfil/take_action_against_group_visitors.html",{'show_punishment_options':True,'owner':True,'slow':True})
+#               elif is_group_officer(group_id,own_id):
+#                   # show officer's slowing down options
+#                   culprit_ids = request.POST.getlist('cids',[])
+#                   if not culprit_ids:
+#                       # no one was selected
+#                       return redirect("public_group")
+#                   elif group_owner_id in culprit_ids:
+#                       return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_owner':True})
+#                   elif own_id in culprit_ids:
+#                       return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_self':True})
+#                   elif group_officer_targeted(group_id,culprit_ids):
+#                       return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_officers':True})
+#                   else:
+#                       # punish the rest!
+#                       request.session["final_slow_ids"+str(group_id)] = culprit_ids
+#                       request.session.modified = True
+#                       return render(request,"mehfil/take_action_against_group_visitors.html",{'show_punishment_options':True,'officer':True,'slow':True})
+#               else:
+#                   # unauthorized user
+#                   return redirect("group_page")   
+#           else:
+#               # group probably does not exist
+#               return redirect("group_page")
+#       else:
+#           # the user decided to not take any action
+#           return redirect("public_group")
+#   else:
+#       # not a POST method
+#       return redirect("public_group")
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2384,7 +2399,7 @@ def display_group_users_list(request, grp_priv, list_type):
 			return redirect("group_page")
 	else:
 		#unauthorized access attempt, group does not exist or user is not authorized
-		return redirect("group_page")			
+		return redirect("group_page")           
 
 ############################## Changing public and private mehfil topic ##############################
 
@@ -2509,7 +2524,7 @@ class ChangeGroupTopicView(CreateView):
 		user = self.request.user
 		if user.is_authenticated():
 			unique = self.request.session.get("public_uuid",None)
-			if unique:	
+			if unique:  
 				context["unique"] = unique
 				group_owner_id, group_id, group_privacy = retrieve_group_owner_id(group_uuid=unique, with_group_id=True,with_group_privacy=True)
 				own_id = str(user.id)
@@ -2589,7 +2604,7 @@ class ChangeGroupRulesView(CreateView):
 			group_id = retrieve_group_id(uuid)
 			return {'rules':retrieve_group_rules(group_id,raw=True)}
 		else:
-			return {}	
+			return {}   
 
 	def get_form_kwargs( self ):
 		kwargs = super(ChangeGroupRulesView,self).get_form_kwargs()
@@ -2747,11 +2762,11 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						# # removing postgresql group data (canceling plans to do this since it cascades over ALL replies in the group and can lock up the table)
 						# replies = Reply.objects.filter(which_group_id=group_id).order_by('-id').values_list('id',flat=True)[:1000]
 						# if replies.exists():
-						# 	# very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
-						# 	Reply.objects.filter(id__in=replies).delete()
+						#   # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
+						#   Reply.objects.filter(id__in=replies).delete()
 						# banned_users = GroupBanList.objects.filter(which_group_id=group_id)
 						# if banned_users.exists():
-						# 	banned_users.delete()
+						#   banned_users.delete()
 						# Group.objects.get(id=group_id).delete()
 
 						# purging redis 6 group related data structures:
@@ -2815,8 +2830,8 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 					# # removing postgresql group data (didn't do it since it cascades over ALL replies - that could lock table for a long time)
 					# replies = Reply.objects.filter(which_group_id=group_id).order_by('-id').values_list('id',flat=True)[:1000]
 					# if replies.exists():
-					# 	# very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
-					# 	Reply.objects.filter(id__in=replies).delete()
+					#   # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
+					#   Reply.objects.filter(id__in=replies).delete()
 					# Group.objects.get(id=group_id).delete()
 
 					# purging redis 6 group related data structures:
@@ -2947,7 +2962,7 @@ def priv_group(request,*args,**kwargs):
 			request.session["unique_id"] = slug
 			return redirect("private_group_reply")
 		else:
-			return redirect("group_page")	
+			return redirect("group_page")   
 	else:
 		return redirect("group_page")
 
@@ -2973,22 +2988,22 @@ class PrivateGroupView(CreateView):
 	Renders and processes submissions to private mehfil
 	"""
 	model = Reply
-	form_class = PrivateGroupReplyForm		
+	form_class = PrivateGroupReplyForm      
 	template_name = "mehfil/private_group_reply.html"
 
 	# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 	# def dispatch(self, request, *args, **kwargs):
-	# 	# Try to dispatch to the right method; if a method doesn't exist,
-	# 	# defer to the error handler. Also defer to the error handler if the
-	# 	# request method isn't on the approved list.
-	# 	if request.method.lower() in self.http_method_names:
-	# 		handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
-	# 	else:
-	# 		handler = self.http_method_not_allowed
-	# 	self.request = request
-	# 	self.args = args
-	# 	self.kwargs = kwargs
-	# 	return handler(request, *args, **kwargs)
+	#   # Try to dispatch to the right method; if a method doesn't exist,
+	#   # defer to the error handler. Also defer to the error handler if the
+	#   # request method isn't on the approved list.
+	#   if request.method.lower() in self.http_method_names:
+	#       handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+	#   else:
+	#       handler = self.http_method_not_allowed
+	#   self.request = request
+	#   self.args = args
+	#   self.kwargs = kwargs
+	#   return handler(request, *args, **kwargs)
 
 	def get_form_kwargs( self ):
 		kwargs = super(PrivateGroupView,self).get_form_kwargs()
@@ -3065,6 +3080,7 @@ class PrivateGroupView(CreateView):
 					context["group_topic"] = data['tp']
 					context["group_id"] = group_id
 					context["score"] = self.request.user.userprofile.score
+					context["exit_wait_time"] = human_readable_time(PRIVATE_GROUP_EXIT_LOCK)
 			else:
 				context["switching"] = True
 		return context
@@ -3145,7 +3161,7 @@ class PrivateGroupView(CreateView):
 					###########################################
 					###########################################
 					writer_id = str(form.cleaned_data.get('wid','-1'))# the target_id of the writer we're about to directly respond to
-					if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):	
+					if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):    
 						# if the writer is not self, and is indeed a member of this group
 						raw_user_cred = retrieve_bulk_credentials([user_id,writer_id],decode_unames=True)
 						own_uname, own_avurl = raw_user_cred[user_id]['uname'], raw_user_cred[user_id]['avurl']
@@ -3230,17 +3246,17 @@ class PublicGroupView(CreateView):
 
 	# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 	# def dispatch(self, request, *args, **kwargs):
-	# 	# Try to dispatch to the right method; if a method doesn't exist,
-	# 	# defer to the error handler. Also defer to the error handler if the
-	# 	# request method isn't on the approved list.
-	# 	if request.method.lower() in self.http_method_names:
-	# 		handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
-	# 	else:
-	# 		handler = self.http_method_not_allowed
-	# 	self.request = request
-	# 	self.args = args
-	# 	self.kwargs = kwargs
-	# 	return handler(request, *args, **kwargs)
+	#   # Try to dispatch to the right method; if a method doesn't exist,
+	#   # defer to the error handler. Also defer to the error handler if the
+	#   # request method isn't on the approved list.
+	#   if request.method.lower() in self.http_method_names:
+	#       handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
+	#   else:
+	#       handler = self.http_method_not_allowed
+	#   self.request = request
+	#   self.args = args
+	#   self.kwargs = kwargs
+	#   return handler(request, *args, **kwargs)
 
 	def get_form_kwargs(self):
 		kwargs = super(PublicGroupView,self).get_form_kwargs()
@@ -3328,9 +3344,11 @@ class PublicGroupView(CreateView):
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
 					presence_dict[str(user_id)] = 'green'#ensures own status is 'green'
 					context["replies"] = [(reply,presence_dict.get(reply["wid"],'gone')) for reply in latest_replies]
+					context["exit_wait_time"] = human_readable_time(PUBLIC_GROUP_EXIT_LOCK)
 			else:
 				context["switching"] = True
 		return context
+
 
 	def form_invalid(self, form):
 		"""
@@ -3460,37 +3478,37 @@ class PublicGroupView(CreateView):
 
 
 # class NewGroupPageView(ListView):
-# 	"""
-# 	Renders list of all joined and invited mehfils (public and private both)
-# 	"""
-# 	# model = Reply
-# 	form_class = GroupPageForm
-# 	template_name = "mehfil/group.html"
-# 	paginate_by = 20
+#   """
+#   Renders list of all joined and invited mehfils (public and private both)
+#   """
+#   # model = Reply
+#   form_class = GroupPageForm
+#   template_name = "mehfil/group.html"
+#   paginate_by = 20
 
-# 	def get_queryset(self):
-# 		groups = []
-# 		replies = []
-# 		user_id = self.request.user.id
-# 		group_ids = get_user_groups(user_id)
-# 		replies = filter(None, get_latest_group_replies(group_ids))
-# 		replies_qset = Reply.objects.filter(id__in=list(set(replies))).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
-# 			'which_group__unique','writer__userprofile__avatar','which_group__private','category').order_by('-id')[:80]
-# 		for reply in replies_qset:
-# 			print reply
-# 		invited_group_ids_and_times = retrieve_group_invites(user_id)#list of tuples containing invited groups and invite times
-# 		print invited_group_ids_and_times
-# 		reply_req = reply.category, reply.writer_uname, reply.writer_avurl, reply.posting_time, reply.group.private, reply.text, reply.group.unique, reply.group.id, reply.group.topic, 
+#   def get_queryset(self):
+#       groups = []
+#       replies = []
+#       user_id = self.request.user.id
+#       group_ids = get_user_groups(user_id)
+#       replies = filter(None, get_latest_group_replies(group_ids))
+#       replies_qset = Reply.objects.filter(id__in=list(set(replies))).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
+#           'which_group__unique','writer__userprofile__avatar','which_group__private','category').order_by('-id')[:80]
+#       for reply in replies_qset:
+#           print reply
+#       invited_group_ids_and_times = retrieve_group_invites(user_id)#list of tuples containing invited groups and invite times
+#       print invited_group_ids_and_times
+#       reply_req = reply.category, reply.writer_uname, reply.writer_avurl, reply.posting_time, reply.group.private, reply.text, reply.group.unique, reply.group.id, reply.group.topic, 
 
-# 		invite_req = reply.category, reply.writer_uname, reply.writer_avurl, reply.posting_time, reply.group.private, reply.group.unique, reply.group.id, reply.group.topic
+#       invite_req = reply.category, reply.writer_uname, reply.writer_avurl, reply.posting_time, reply.group.private, reply.group.unique, reply.group.id, reply.group.topic
 
-# 		reply_data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+#       reply_data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
 
-# 	def get_context_data(self, **kwargs):
-# 		context = super(GroupPageView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			context["verified"] = FEMALES
-# 		return context
+#   def get_context_data(self, **kwargs):
+#       context = super(GroupPageView, self).get_context_data(**kwargs)
+#       if self.request.user.is_authenticated():
+#           context["verified"] = FEMALES
+#       return context
 
 
 # i) Set TOTAL_LIST_SIZE in score.py
@@ -3517,7 +3535,7 @@ def paginate_group_list(data):
 	return pages, len(pages)
 
 
-def group_list(request):
+def group_page(request):    
 	"""
 	Renders list of all joined and invited mehfils (public and private both)
 
@@ -3605,7 +3623,7 @@ def group_list(request):
 		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False}})
 
 
-def group_page(request):
+def group_list(request):    
 	"""
 	Renders list of all joined and invited mehfils (public and private both)
 	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
@@ -3791,45 +3809,49 @@ def owner_rejoining_public_group(request):
 						'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE,'owner_rejoining':True,'gid':data['gid'],'cat':data['category']})
 			elif decision == '2':
 				# accept credentials
-				time_now = time.time()
 				data = get_temporarily_saved_group_credentials(own_id)
 				topic, rules, group_category, raw_rules, group_id = data['topic'], data['formatted_rules'], data["category"], data['rules'], data['gid']
-				Group.objects.filter(id=group_id).update(topic=topic,rules=rules)
-				update_group_topic.delay(group_id=group_id, topic=topic)#redis 2
-				saved = save_group_topic_and_rules(group_id, topic=topic, rules=rules, raw_rules=raw_rules)
-				if saved:
-					own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
-					##############################################
-					# legacy functionality
-					add_group_member(group_id, own_uname)
-					remove_group_invite(own_id, group_id)
-					add_user_group(own_id, group_id)#to take care of grouppageview()
-					##############################################
-					reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')
-					group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=time_now,\
-						poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,priority='public_mehfil',\
-						from_unseen=False, reply_id=reply.id, txt_type='join')# to take care of matka, priv is group privacy
-					submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,\
-						category='9', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))# makes 'joining' announcement appear inside group
-					if num_submissions > DELETION_THRESHOLD:
-						# delete extra submissions
-						trim_group_submissions.delay(group_id)
-					invalidate_cached_mehfil_replies(group_id)#redis6 function
-					##############################################
-					try:
-						join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
-					except User.DoesNotExist:
-						# this user does not exist thus data incomplete
-						join_date = None
-					added = create_group_membership_and_rules_signatory(group_id=group_id, member_id=own_id, member_join_time=join_date, \
-						time_now=time_now, is_public=True, member_is_owner=True)
-					if added:
-						return render(request,"mehfil/force_members_to_accept_rules.html",{'gid':group_id})
-					else:
-						# group was recently deleted
-						return redirect("group_page")
+				if group_member_exists(group_id, own_id):
+					# already a member
+					return redirect("public_group")
 				else:
-					return redirect("group_page")
+					time_now = time.time()
+					Group.objects.filter(id=group_id).update(topic=topic,rules=rules)
+					update_group_topic.delay(group_id=group_id, topic=topic)#redis 2
+					saved = save_group_topic_and_rules(group_id, topic=topic, rules=rules, raw_rules=raw_rules)
+					if saved:
+						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
+						##############################################
+						# legacy functionality
+						add_group_member(group_id, own_uname)
+						remove_group_invite(own_id, group_id)
+						add_user_group(own_id, group_id)#to take care of grouppageview()
+						##############################################
+						reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')
+						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=time_now,\
+							poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,priority='public_mehfil',\
+							from_unseen=False, reply_id=reply.id, txt_type='join')# to take care of matka, priv is group privacy
+						submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,\
+							category='9', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))# makes 'joining' announcement appear inside group
+						if num_submissions > DELETION_THRESHOLD:
+							# delete extra submissions
+							trim_group_submissions.delay(group_id)
+						invalidate_cached_mehfil_replies(group_id)#redis6 function
+						##############################################
+						try:
+							join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
+						except User.DoesNotExist:
+							# this user does not exist thus data incomplete
+							join_date = None
+						added = create_group_membership_and_rules_signatory(group_id=group_id, member_id=own_id, member_join_time=join_date, \
+							time_now=time_now, is_public=True, member_is_owner=True)
+						if added:
+							return render(request,"mehfil/force_members_to_accept_rules.html",{'gid':group_id})
+						else:
+							# group was recently deleted
+							return redirect("group_page")
+					else:
+						return redirect("group_page")
 		else:
 			# invalid entry
 			return redirect("public_group")
@@ -3956,7 +3978,10 @@ def accept_open_group_rules(request):
 			accept_rules = request.POST.get("acc",None)
 			start_time = request.POST.get("st",None)
 			time_to_read = request.POST.get("ttr",None)
-			if banned_from_group(group_id, own_id):
+			if group_member_exists(group_id, own_id):
+				# already a member
+				return redirect("public_group")
+			elif banned_from_group(group_id, own_id):
 				# user is banned from group, turn them away
 				ban_details = get_ban_details(group_id, own_id)
 				ban_start_time = float(ban_details['kt'])
@@ -4083,7 +4108,7 @@ def quick_accept_open_group_rules(request):
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_public_mehfil':True})
 		elif banned_from_group(pk, own_id):
 			return redirect("public_group")
-		else:
+		elif group_member_exists(pk, own_id):
 			decision = request.POST.get("dec",None)
 			unique = request.POST.get("uid",None)
 			data = retrieve_group_reqd_data(group_id=pk,with_group_owner_id=True,with_uuid=True)#group privacy, group_id, group_topic, group_owner_id (optional), 'pics'(optional)
@@ -4106,8 +4131,12 @@ def quick_accept_open_group_rules(request):
 			else:
 				# group does not exist
 				return redirect("group_page")
+		else:
+			# the user is no longer a member of the group
+			return redirect("group_page")
 	else:
 		return redirect("public_group")
+
 
 #################### Inviting users to mehfils #####################
 
@@ -4122,7 +4151,7 @@ def process_public_group_invite(request,*args, **kwargs):
 	"""
 	if request.user_banned:
 		return redirect("group_page")
-	elif request.method == "POST":	
+	elif request.method == "POST":  
 		uuid = request.POST.get("puid",None)
 		pk = request.POST.get("vid",None)#visitor id
 		group_owner_id, group_id = retrieve_group_owner_id(group_uuid=uuid,with_group_id=True)
@@ -4245,43 +4274,43 @@ def process_private_group_invite(request, *args, **kwargs):
 ############################################################
 
 # class InviteUsersToPrivateGroupView(ListView):
-# 	"""
-# 	Renders list of currently online users, and allows inviter to select users from there for their private mehfil
-# 	"""
-# 	# model = Session
-# 	template_name = "mehfil/invite_for_private_group.html"
-# 	paginate_by = 100
+#   """
+#   Renders list of currently online users, and allows inviter to select users from there for their private mehfil
+#   """
+#   # model = Session
+#   template_name = "mehfil/invite_for_private_group.html"
+#   paginate_by = 100
 
-# 	def get_queryset(self):
-# 		if self.request.user_banned:
-# 			return []
-# 		else:
-# 			global condemned
-# 			user_ids = get_most_recent_online_users()#cache_mem.get('online')
-# 			try:
-# 				group = Group.objects.get(unique=self.request.session["unique_id"])
-# 				users_purified = [pk for pk in user_ids if pk not in condemned]
-# 				non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
-# 				non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
-# 				print "kads"
-# 				print User.objects.filter(id__in=non_invited_non_member_online_ids).values('id','userprofile__score','userprofile__avatar','username')
-# 				return User.objects.filter(id__in=non_invited_non_member_online_ids).values('id','userprofile__score','userprofile__avatar','username')
-# 			except:
-# 				return []
+#   def get_queryset(self):
+#       if self.request.user_banned:
+#           return []
+#       else:
+#           global condemned
+#           user_ids = get_most_recent_online_users()#cache_mem.get('online')
+#           try:
+#               group = Group.objects.get(unique=self.request.session["unique_id"])
+#               users_purified = [pk for pk in user_ids if pk not in condemned]
+#               non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
+#               non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
+#               print "kads"
+#               print User.objects.filter(id__in=non_invited_non_member_online_ids).values('id','userprofile__score','userprofile__avatar','username')
+#               return User.objects.filter(id__in=non_invited_non_member_online_ids).values('id','userprofile__score','userprofile__avatar','username')
+#           except:
+#               return []
 
-# 	def get_context_data(self, **kwargs):
-# 		context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			context["legit"] = FEMALES
-# 			try:	
-# 				unique = self.request.session["unique_id"]
-# 				context["unique"] = unique
-# 				group = Group.objects.get(unique=unique)
-# 				context["authorized"] = True
-# 				context["group"] = group
-# 			except:
-# 				context["authorized"] = False
-# 		return context				
+#   def get_context_data(self, **kwargs):
+#       context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
+#       if self.request.user.is_authenticated():
+#           context["legit"] = FEMALES
+#           try:    
+#               unique = self.request.session["unique_id"]
+#               context["unique"] = unique
+#               group = Group.objects.get(unique=unique)
+#               context["authorized"] = True
+#               context["group"] = group
+#           except:
+#               context["authorized"] = False
+#       return context              
 
 
 ############################################################
@@ -4384,64 +4413,64 @@ class InviteUsersToPrivateGroupView(ListView):
 				else:
 					context["no_group"] = True
 					context["group"] = False
-		return context	
+		return context  
 
 	
 	# def get_context_data(self, **kwargs):
-	# 	context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
-	# 	if self.request.user.is_authenticated():
-	# 		unique = self.request.session.get("unique_id",None)
-	# 		context["unique"] = unique
-	# 		marker = context["object_list"][0]['id']
-	# 		if marker < 0:
-	# 			# cannot invite users
-	# 			context["group"] = False
-	# 			if marker == -1:
-	# 				# no one online
-	# 				context["no_online"] = True
-	# 			elif marker == -2:
-	# 				# not allowed to invite users
-	# 				context["cant_invite"] = True
-	# 			elif marker == -3:
-	# 				# group not found
-	# 				context["no_group"] = True
-	# 			elif marker == -4:
-	# 				# user is banned
-	# 				context["banned"] = True
-	# 		else:
-	# 			# can invite
-	# 			own_id = self.request.user.id
-	# 			group_topic = retrieve_group_topic(group_uuid=unique,requestor_id=own_id)
-	# 			if group_topic:
-	# 				show_instr, instr_type = show_private_group_invite_instructions(unique,own_id)
-	# 				if instr_type:
-	# 					context["show_instr"] = show_instr
-	# 					if show_instr:
-	# 						context["max_invites"] = MAX_OWNER_INVITES_PER_PRIVATE_GROUP if instr_type == 'owner' else MAX_MEMBER_INVITES_PER_PRIVATE_GROUP
-	# 						context["one_less"] = context["max_invites"] - 1
-	# 						context["instr_type"] = instr_type
-	# 					else:
-	# 						invites_remaining = retrieve_closed_group_remaining_invites(unique,user_type=instr_type)
-	# 						if invites_remaining == -1:
-	# 							# this is a general error
-	# 							context["cant_invite"] = True
-	# 							context["group"] = False
-	# 						elif invites_remaining == 0:
-	# 							context["invites_remaining"] = 0
-	# 							context["no_more_invites"] = True
-	# 						else:
-	# 							context["invites_remaining"] = invites_remaining
-	# 					context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
-	# 					context["group_topic"] = group_topic
-	# 					context["legit"] = FEMALES
-	# 					context["group"] = True
-	# 				else:
-	# 					context["cant_invite"] = True
-	# 					context["group"] = False
-	# 			else:
-	# 				context["no_group"] = True
-	# 				context["group"] = False
-	# 	return context				
+	#   context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
+	#   if self.request.user.is_authenticated():
+	#       unique = self.request.session.get("unique_id",None)
+	#       context["unique"] = unique
+	#       marker = context["object_list"][0]['id']
+	#       if marker < 0:
+	#           # cannot invite users
+	#           context["group"] = False
+	#           if marker == -1:
+	#               # no one online
+	#               context["no_online"] = True
+	#           elif marker == -2:
+	#               # not allowed to invite users
+	#               context["cant_invite"] = True
+	#           elif marker == -3:
+	#               # group not found
+	#               context["no_group"] = True
+	#           elif marker == -4:
+	#               # user is banned
+	#               context["banned"] = True
+	#       else:
+	#           # can invite
+	#           own_id = self.request.user.id
+	#           group_topic = retrieve_group_topic(group_uuid=unique,requestor_id=own_id)
+	#           if group_topic:
+	#               show_instr, instr_type = show_private_group_invite_instructions(unique,own_id)
+	#               if instr_type:
+	#                   context["show_instr"] = show_instr
+	#                   if show_instr:
+	#                       context["max_invites"] = MAX_OWNER_INVITES_PER_PRIVATE_GROUP if instr_type == 'owner' else MAX_MEMBER_INVITES_PER_PRIVATE_GROUP
+	#                       context["one_less"] = context["max_invites"] - 1
+	#                       context["instr_type"] = instr_type
+	#                   else:
+	#                       invites_remaining = retrieve_closed_group_remaining_invites(unique,user_type=instr_type)
+	#                       if invites_remaining == -1:
+	#                           # this is a general error
+	#                           context["cant_invite"] = True
+	#                           context["group"] = False
+	#                       elif invites_remaining == 0:
+	#                           context["invites_remaining"] = 0
+	#                           context["no_more_invites"] = True
+	#                       else:
+	#                           context["invites_remaining"] = invites_remaining
+	#                   context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
+	#                   context["group_topic"] = group_topic
+	#                   context["legit"] = FEMALES
+	#                   context["group"] = True
+	#               else:
+	#                   context["cant_invite"] = True
+	#                   context["group"] = False
+	#           else:
+	#               context["no_group"] = True
+	#               context["group"] = False
+	#   return context              
 
 
 @csrf_protect
@@ -5162,7 +5191,7 @@ def create_open_group(request):
 							'data_expired':True,'topic_char_limit':PUBLIC_GROUP_MAX_TITLE_SIZE,'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE})
 		else:
 			# the 'dec' option is not recognized
-			return redirect("missing")	
+			return redirect("missing")  
 	else:
 		return redirect("missing")
 

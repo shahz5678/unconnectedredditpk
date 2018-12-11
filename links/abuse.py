@@ -40,7 +40,7 @@ CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','l
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\
 '!s!s','is-is','is_is','is.is','terrorist','terr0rist','terror!st','terr0r!st','terorist','ter0rist','teror!st','ter0r!st','hindutva','hindutwa',\
-'i.s.i.s','h.i.t.l.e.r']
+'i.s.i.s','h.i.t.l.e.r','iluminati','illuminati']
 
 
 MISC_POLITICALLY_SENSITIVE_WORDS = ['india','america','amreeka','amrika','bharat','bharti','bharty','bhartee','umreeka','umrika','pakistaan',\

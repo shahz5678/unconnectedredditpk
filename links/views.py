@@ -98,7 +98,7 @@ get_link_writer, get_photo_owner, get_inactives, unlock_uname_search, is_uname_s
 in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts
 #, set_prev_retorts
 from .website_feedback_form import AdvertiseWithUsForm
-from redis6 import invalidate_cached_mehfil_replies, save_group_submission
+from redis6 import invalidate_cached_mehfil_replies, save_group_submission, invalidate_cached_mehfil_pages
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -4846,6 +4846,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description)#,image='')
 				reply_time = convert_to_epoch(groupreply.submitted_on)
 				invalidate_cached_mehfil_replies(pk)
+				invalidate_cached_mehfil_pages(user_id)
 				group_attendance_tasks.delay(group_id=pk, user_id=user_id, time_now=reply_time)
 				if grp["private"] == '1':
 					set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)

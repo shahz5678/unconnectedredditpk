@@ -136,12 +136,12 @@
 
      <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
 
-        <form class="mbs" method="POST" action="{% url 'join_private_group' %}">
+        <form class="mbl" method="POST" action="{% url 'join_private_group' %}">
             {% csrf_token %}
             <div>Is mehfil ke member banney ke liye 'JOIN' dabain:</div>
             <button name="gid" type="submit" class="btn bxl sp pg_ok_res mtl" style="background-color:#19a83b;height:26px;font-weight:bold" value="{{ group_id }}">JOIN</button>
         </form>
-    
+        <div class="cs sp" style="border-top:1px dashed lightgray;padding-top:10px"><span class="cgy"><b>Note:</b> Join karney ke baad mehfil ko {{ exit_wait_time }} tak exit nahi kia ja sakta</span></div>
     </div>
 
     

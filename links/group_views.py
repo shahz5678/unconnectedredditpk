@@ -458,7 +458,7 @@ def post_to_personal_group(request, *args, **kwargs):
 					########################################################
 					######################### Alpha ########################
 					########################################################
-					priv_msg_sent_logger.delay(user_id=own_id, target_id=target_id)
+					priv_msg_sent_logger.delay(user_id=own_id,group_id=group_id)
 					########################################################
 					########################################################
 					########################################################
@@ -1019,7 +1019,7 @@ def post_chat_action_in_personal_group(request):
 				########################################################
 				######################### Alpha ########################
 				########################################################
-				priv_msg_sent_logger.delay(user_id=own_id, target_id=target_id)
+				priv_msg_sent_logger.delay(user_id=own_id,group_id=group_id)
 				########################################################
 				########################################################
 				########################################################
@@ -2106,7 +2106,7 @@ def process_personal_group_invite(request):
 				###################################################
 				#################### Alpha ########################
 				###################################################
-				priv_invite_accepted_logger.delay(own_id,target_id)
+				priv_invite_accepted_logger.delay(own_id, group_id)
 				if own_id % 2 != 0:
 					request.session.modified = True
 					return redirect("enter_personal_group")
@@ -2165,7 +2165,7 @@ def post_js_reply_to_personal_group(request):
 						########################################################
 						######################### Alpha ########################
 						########################################################
-						priv_msg_sent_logger.delay(user_id=own_id, target_id=target_id)
+						priv_msg_sent_logger.delay(user_id=own_id, group_id=group_id)
 						########################################################
 						########################################################
 						########################################################

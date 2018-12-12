@@ -21,7 +21,7 @@ CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','l
 'bhosri','bhosry','bosri','bosry','phati','phtti','phti','phoodi','pyasi','pyasa','piyasa','piyasi','payasi','payasa','bh0sre','bh0sri','bh0sry','b0sry','b0sre','b0sri',\
 'ch0d','ch00d','chood','l0ra','lorra','l0wra','1un','phud!','gasht!','1anat','da11a','d11a','h!jra','hijjra','hjra','khassi','qhassi','khasi','qhasi','kutte','luuun',\
 'rundi','rund!','sooar','suar','suer','sooer','soowar','soower','suuer','suuar','mamey','bhosad','bhosd','ch00t',' muth ','bhosda','choos','chodun','chodho','chuda!',\
-'lorray',' gand ','phdy','1orra','1ora','ghasti','gasti','gast!','chuse','charh','randee','randy','rande','rand!','tattay','tatay','tutta','tutty','tutti','tatti',\
+'lorray',' gand ','phdy','1orra','1ora','ghasti','gasti','gast!','chuse','charh','randee','randy','rande','rand!','tatta','tatay','tutta','tutty','tutti','tatti',\
 'tatey','tetti',' tati ','gasht1','gast1','gand','rand1','tutt1','tatt1','tatte','tutte','tutta','mumma','kanjar','kunjur','kunjer','kanjer','kanjr','kenjr','kanjjar'\
 ,'kannjar','canjar','canjer','kenjer','kuta','kutey','kutay','k@njr','qutay','fuddi','fudi','fudddi','phdddi','chaval','podi','p0di','p0d!','pudd!','pudi','pudda',\
 'puddda','pdda','yawan','yaawan','khusra','kusra','qhusra','qusra','yawaan','yavan','yaavan','yavaan','yuvai','yuwai','yuvay','yvai','ywai','yave','ph-ddi','ph_ddi',\

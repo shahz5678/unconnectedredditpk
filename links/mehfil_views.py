@@ -3655,7 +3655,7 @@ def time_reqd_to_read(lenght_of_text):
 	"""
 	base_str_len = 9
 	base_ttr = 2#2 seconds
-	max_ttr = 20#20 seconds
+	max_ttr = 10#20 seconds
 
 	if lenght_of_text < base_str_len:
 		return base_ttr

@@ -41,7 +41,7 @@ add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_m
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos,get_photo_link_mapping,\
 delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, cleanse_public_and_private_groups_data
 from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
-log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,log_mehfil_data
+log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members
 
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -80,22 +80,6 @@ MAX_FANS_TARGETED = 0.95 # 95%
 # 		# If page is out of range (e.g. 9999), deliver last page of results.
 # 		return paginator.page(paginator.num_pages)
 
-####################################
-####################################
-
-from redis6 import log_mehfil_data
-
-@celery_app1.task(name='tasks.mehfil_data_logger')
-def mehfil_data_logger(user_id,group_id):
-	
-	"""
-	Task that increments whenever a message is sent in a mehfil 
-	"""
-	log_mehfil_data(user_id,group_id)
-
-
-####################################
-####################################
 def get_credentials(user_id, uname=None, avurl=None):
 	if not uname and not avurl:
 		# both dont exist
@@ -406,18 +390,18 @@ def set_user_age(user_id):
 
 
 @celery_app1.task(name='tasks.priv_msg_sent_logger')
-def priv_msg_sent_logger(user_id,target_id):
+def priv_msg_sent_logger(user_id, group_id):
 	"""
-	Task that increments user's age in the world
+	Increment chat for group in A/B test
 	"""
-	log_message_sent(user_id,target_id)
+	log_message_sent(user_id,group_id)
 
 @celery_app1.task(name='tasks.priv_invite_accepted_logger')
-def priv_invite_accepted_logger(user_id,target_id):
+def priv_invite_accepted_logger(user_id, group_id):
 	"""
-	Task that increments user's age in the world
+	Logging group for A/B test
 	"""
-	log_invite_accepted(user_id,target_id)
+	log_invite_accepted(user_id, group_id)
 
 ######################################################
 

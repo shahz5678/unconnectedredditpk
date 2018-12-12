@@ -12,88 +12,141 @@
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 
 {% if owner %}
-	<div class="cxl lsp mbs">Ap kya karna chahtey hain?</div>
 
-	<form method="POST" class="mbs" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+	<form method="POST" class="mt mbl" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+
+	<div class="cxl lsp mbs" style="border-top:1px dashed lightgray;padding-top:10px">Owner! Ap kya karna chahtey hain?</div>
 
 	<form action="{% url 'private_mehfil_oversight_dashboard' %}" style="max-width:420px;margin:0 auto" method="POST">
 	{% csrf_token %}
 	
 	<input type="hidden" name="guid" value="{{ unique }}">
-	
-	<div class="mbl fx fxjscn fxaicn">
-	<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="1" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/title-cg.svg" width="45" height="45" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;ye dabain mehfil ka topic change karney ke liye</div>
-	</div>
 
-	<div class="mbl fx fxjscn fxaicn">
-	<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="2" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/add-cg.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;ye dabain mehfil mein new members invite karney ke liye</div>
-	</div>
+	<table style="border-collapse: separate;border-spacing: 10px;">
 
-	<div class="mbl fx fxjscn fxaicn">
-	<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="3" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/kick-cg.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Kick out:</b>&nbsp;ye dabain mehfil se members ko kick out karney ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="3" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/kick-cg.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Kick out:</b>&nbsp;ye dabain mehfil se members ko kick out karney ke liye</div>
+		</td>
+	</tr>
 
-	<div class="mbl fx fxjscn fxaicn">
-		<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history-cg.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;ye dabain members ke actions ki history dekhne ke liye</div>
-	</div>
-	
-	<div class="mbl fx fxjscn fxaicn">
-		<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="4" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/transfer-cg.svg" width="45" height="45" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Transfer ownership:</b>&nbsp;ye dabain mehfil ka owner change karney ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="1" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/title-cg.svg" width="45" height="45" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;ye dabain mehfil ka topic change karney ke liye</div>
+		</td>
+	</tr>
 
-	<div class="mbl fx fxjscn fxaicn">
-		<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="5" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/exit.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Delete mehfil:</b>&nbsp;ye dabain mehfil delete karney ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="2" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/add-cg.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;ye dabain mehfil mein new members invite karney ke liye</div>
+		</td>
+	</tr>
+
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history-cg.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;ye dabain members ke actions ki history dekhne ke liye</div>
+		</td>
+	</tr>
+
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="4" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/transfer-cg.svg" width="45" height="45" style="vertical-align:middle">
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Transfer ownership:</b>&nbsp;ye dabain mehfil ka owner change karney ke liye</div>
+		</td>
+	</tr>
+
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="5" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/exit.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Delete mehfil:</b>&nbsp;ye dabain mehfil delete karney ke liye</div>
+		</td>
+	</tr>
+
+	</table>
 
 	</form>
 
-	<form method="POST" class="mts mbl" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+	<form method="POST" class="mts mbs" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
 
 {% else %}
 
-	<div class="cxl lsp mbs">Ap kya karna chahtey hain?</div>
+	<form method="POST" class="mbl mt" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
 
-	<form method="POST" class="mbs" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+	<div class="cxl lsp mbs" style="border-top:1px dashed lightgray;padding-top:10px">Ap kya karna chahtey hain?</div>
 
 	<form action="{% url 'private_mehfil_oversight_dashboard' %}" style="max-width:420px;margin:0 auto" method="POST">
 	{% csrf_token %}
 
 	<input type="hidden" name="guid" value="{{ unique }}">
+
+	<table style="border-collapse: separate;border-spacing: 10px;">
 	
-	<div class="mbl fx fxjscn fxaicn">
-	<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="1" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/title-cg.svg" width="45" height="45" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;ye dabain mehfil ka topic change karney ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="1" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/title-cg.svg" width="45" height="45" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;ye dabain mehfil ka topic change karney ke liye</div>
+		</td>
+	</tr>
 
-	<div class="mbl fx fxjscn fxaicn">
-	<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="2" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/add-cg.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;ye dabain mehfil mein new members invite karney ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="2" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/add-cg.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;ye dabain mehfil mein new members invite karney ke liye</div>
+		</td>
+	</tr>
 
-	<div class="mbl fx fxjscn fxaicn">
-		<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history-cg.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;ye dabain members ke actions ki history dekhne ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history-cg.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;ye dabain members ke actions ki history dekhne ke liye</div>
+		</td>
+	</tr>
 
-	<div class="mbl fx fxjscn fxaicn">
-		<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="6" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/ownership-cg.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Request ownership:</b>&nbsp;ye dabain mehfil ke owner banney ki request karney ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="6" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/ownership-cg.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Request ownership:</b>&nbsp;ye dabain mehfil ke owner banney ki request karney ke liye</div>
+		</td>
+	</tr>
 
-	<div class="mbl fx fxjscn fxaicn">
-		<div style="box-sizing:border-box"><button type="submit" class="bizcard st-bg mrl" name="dec" value="7" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/exit.svg" width="50" height="50" style="vertical-align:middle"></button></div>
-	<div class="lsp" style="text-align:left"><b>Exit mehfil:</b>&nbsp;ye dabain mehfil exit karney ke liye</div>
-	</div>
+	<tr>
+		<td>
+			<button type="submit" class="bizcard st-bg" name="dec" value="7" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/exit.svg" width="50" height="50" style="vertical-align:middle"></button>
+		</td>
+		<td>
+			<div class="lsp" style="text-align:left"><b>Exit mehfil:</b>&nbsp;ye dabain mehfil exit karney ke liye</div>
+		</td>
+	</tr>
+
+	</table>
 
 	</form>
 
-	<form method="POST" class="mts mbl" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
+	<form method="POST" class="mts mbs" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
 
 {% endif %}
 

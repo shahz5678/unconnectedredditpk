@@ -636,7 +636,7 @@ class OfficerApplicationForm(forms.Form):
 	def clean_answer1(self):
 		answer1 = self.cleaned_data["answer1"]
 		len_answer1 = len(answer1)
-		if len_answer1 < 10:
+		if len_answer1 < 12:
 			raise ValidationError("Itna chota answer nahi likh saktey")
 		elif len_answer1 > PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN:
 			raise ValidationError("Itna lamba answer nahi likh saktey")
@@ -645,7 +645,7 @@ class OfficerApplicationForm(forms.Form):
 	def clean_answer2(self):
 		answer2 = self.cleaned_data["answer2"]
 		len_answer2 = len(answer2)
-		if len_answer2 < 10:
+		if len_answer2 < 5:
 			raise ValidationError("Itna chota answer nahi likh saktey")
 		elif len_answer2 > PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN:
 			raise ValidationError("Itna lamba answer nahi likh saktey")

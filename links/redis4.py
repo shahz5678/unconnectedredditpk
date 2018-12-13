@@ -646,7 +646,7 @@ def get_recent_online():
 	online_ids = []
 	for user in online_users:
 		online_ids.append(user.split(":",1)[0])
-	return online_ids
+	return set(online_ids)
 
 def save_most_recent_online_users(user_ids):
 	"""
@@ -664,6 +664,7 @@ def get_most_recent_online_users():
 	"""
 	return redis.Redis(connection_pool=POOL).lrange('online_user_ids',0,-1)
 
+	
 ######################################## Detect Clones of User ID ########################################
 
 

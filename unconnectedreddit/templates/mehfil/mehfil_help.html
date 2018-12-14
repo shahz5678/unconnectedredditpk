@@ -1,20 +1,9 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Create private group | Damadam.pk</title></head>
-<div class="margin clb">
-{% if target %}
-	<h2>Private mehfil mein log private chat karte hain</h2>
-	Kya ap <b class="ct">{{ target.username }}</b> ke sath private mehfil banana chahte hain?<br>
-	<span class="cs cgy">(Qeemat <b>500 points</b>)</span>
-	<br><br>
-	<form action="{% url 'mehfil_help' %}" method="POST">
-	{% csrf_token %}
-	<button type="submit" name="decision" value ="Haan" class="btn bm bcg mbl" style="height:25px">Haan</button><br>
-	<button type="submit" name="decision" value ="Nahi" class="btn bm bcr mbl" style="height:25px">Nahi</button><br>
-	</form>
-{% else %}
-	<h2>Is waqt mehfil ka mood kharab hai!</h2>
-{% endif %}
-<br>
-</div>
+<head><title>Mehfil help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/mehfil_help_topics.html" with section=section static_url=STATIC_URL guid=guid %}
+
+<br><br>
 {% endblock %}

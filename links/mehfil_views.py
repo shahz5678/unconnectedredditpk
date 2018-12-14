@@ -594,7 +594,22 @@ def private_mehfil_oversight_dashboard(request):
 		if owner_id == own_id:
 			# group admin
 			decision = request.POST.get("dec",None)
-			if decision in ('1','2','3','4','5','8'):
+			help_decision = request.POST.get("hdec",None)
+			if help_decision in ('1','2','3','4','5','8'):
+				if help_decision == '1':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_change_topic','guid':group_uuid})
+				elif help_decision == '2':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_invite','guid':group_uuid,\
+						'max_owner_invites':MAX_OWNER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP})
+				elif help_decision == '3':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_kick','guid':group_uuid})
+				elif help_decision == '4':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_transfer_ownership','guid':group_uuid})
+				elif help_decision == '5':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_delete_mehfil','guid':group_uuid})
+				else:
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_history','guid':group_uuid})
+			elif decision in ('1','2','3','4','5','8'):
 				if decision == '1':
 					# owner wants to change topic
 					request.session["unique_id"] = group_uuid
@@ -639,7 +654,20 @@ def private_mehfil_oversight_dashboard(request):
 		elif group_member_exists(group_id, own_id):
 			# a regular member
 			decision = request.POST.get("dec",None)
-			if decision in ('1','2','6','7','8'):
+			help_decision = request.POST.get("hdec",None)
+			if help_decision in ('1','2','6','7','8'):
+				if help_decision == '1':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_change_topic','guid':group_uuid})
+				elif help_decision == '2':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_invite','guid':group_uuid,\
+						'max_member_invites':MAX_MEMBER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP})
+				elif help_decision == '6':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_ownership_request','guid':group_uuid})
+				elif help_decision == '7':
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_exit','guid':group_uuid})
+				else:
+					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_history','guid':group_uuid})
+			elif decision in ('1','2','6','7','8'):
 				if decision == '1':
 					# member wants to change topic
 					request.session["unique_id"] = group_uuid
@@ -788,7 +816,29 @@ def public_mehfil_oversight_dashboard(request):
 		if owner_id == own_id:
 			# group admin
 			decision = request.POST.get("dec",None)
-			if decision in ('1','2','3','4','5','6','11','13','17'):
+			help_decision = request.POST.get("hdec",None)
+			if help_decision in ('1','2','3','4','5','6','11','13','17'):
+				if help_decision == '1':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_manage_officers','guid':group_uuid})
+				elif help_decision == '2':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_kick','guid':group_uuid})
+				elif help_decision == '3':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_invite','guid':group_uuid,\
+						'max_owner_invites':MAX_OWNER_INVITES_PER_PUBLIC_GROUP})
+				elif help_decision == '4':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_read_feedback','guid':group_uuid})
+				elif help_decision == '5':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_change_topic','guid':group_uuid})
+				elif help_decision == '6':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_change_rules','guid':group_uuid})
+				elif help_decision == '11':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_transfer_ownership','guid':group_uuid,\
+						'min_price':PUBLIC_GROUP_MIN_SELLING_PRICE,'max_price':PUBLIC_GROUP_MAX_SELLING_PRICE})
+				elif help_decision == '13':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_delete_mehfil','guid':group_uuid})
+				else:
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_history','guid':group_uuid})
+			elif decision in ('1','2','3','4','5','6','11','13','17'):
 				# make a decision
 				if decision == '1':
 					# manage officers (i.e. default to 'add officers'. From there, user can go to remove officers or view history)
@@ -849,7 +899,30 @@ def public_mehfil_oversight_dashboard(request):
 		elif is_group_officer(group_id,own_id):
 			# group officer, can use their powers here
 			decision = request.POST.get("dec",None)
-			if decision in ('2','3','5','7','8','9','10','12','13','14'):
+			help_decision = request.POST.get("hdec",None)
+			if help_decision in ('2','3','5','7','8','9','10','12','13','14'):
+				if help_decision == '2':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_kick','guid':group_uuid})
+				elif help_decision == '3':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_invite','guid':group_uuid,\
+						'max_officer_invites':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP})
+				elif help_decision == '5':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_change_topic','guid':group_uuid})
+				elif help_decision == '7':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_history','guid':group_uuid})
+				elif help_decision == '8':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_praise_feedback','guid':group_uuid})
+				elif help_decision == '9':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_complaint_feedback','guid':group_uuid})
+				elif help_decision == '10':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_idea_feedback','guid':group_uuid})
+				elif help_decision == '12':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_ownership_request','guid':group_uuid})
+				elif help_decision == '13':
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_exit','guid':group_uuid})
+				else:
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_read_rules','guid':group_uuid})
+			elif decision in ('2','3','5','7','8','9','10','12','13','14'):
 				if decision == '2':
 					# kick out
 					can_kick = can_officer_kick_out(group_id, own_id)
@@ -933,7 +1006,33 @@ def public_mehfil_oversight_dashboard(request):
 		elif group_member_exists(group_id, own_id):
 			# just an onlooker
 			decision = request.POST.get("dec",None)
-			if decision in ('8','9','10','12','13','14','15','16'):
+			help_decision = request.POST.get("hdec",None)
+			if help_decision in ('8','9','10','12','13','14','15','16'):
+				if help_decision == '8':
+					# praise
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_praise_feedback','guid':group_uuid})
+				elif help_decision == '9':
+					# complaint
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_complaint_feedback','guid':group_uuid})
+				elif help_decision == '10':
+					# idea
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_idea_feedback','guid':group_uuid})
+				elif help_decision == '12':
+					# request ownership
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_ownership_request','guid':group_uuid})
+				elif help_decision == '14':
+					# read rules
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_read_rules','guid':group_uuid})
+				elif help_decision == '15':
+					# report mehfil
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_report_mehfil','guid':group_uuid})
+				elif help_decision == '16':
+					# apply for officer
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_officer_application','guid':group_uuid})
+				else:
+					# exit mehfil
+					return render(request,"mehfil/mehfil_help.html",{'section':'public_member_exit','guid':group_uuid})
+			elif decision in ('8','9','10','12','13','14','15','16'):
 				if decision == '8':
 					# provide praise
 					return render(request,"mehfil/open_group_feedback_submission.html",{'form':GroupFeedbackForm(),'praise':True,'guid':group_uuid,\
@@ -975,14 +1074,14 @@ def public_mehfil_oversight_dashboard(request):
 					# user_score = request.user.userprofile.score
 					# price_of_report = get_price(user_score)
 					# if price_of_report > user_score:
-					#	#disallow reporting (user doesn't have requisite score)
-					#	request.session["redirect_reason"+own_id] = 'not_enough_score_to_report_mehfil'
-					#   request.session["redirect_guid"+own_id] = group_uuid
-					#   return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
+					# 	#disallow reporting (user doesn't have requisite score)
+					# 	request.session["redirect_reason"+own_id] = 'not_enough_score_to_report_mehfil'
+					# 	request.session["redirect_guid"+own_id] = group_uuid
+					# 	return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 					# else:
-					#   context = {'price':price_of_report, 'group_uuid':group_uuid,'rep_opt':ordered_list_of_tup(MEHFIL_REPORT_PROMPT), 'gid':group_id, \
-					#   'topic':data['tp'],'rules':retrieve_group_rules(group_id)}
-					#   return render(request,"judgement/mehfil_report.html",context)
+					# 	context = {'price':price_of_report, 'group_uuid':group_uuid,'rep_opt':ordered_list_of_tup(MEHFIL_REPORT_PROMPT), 'gid':group_id, \
+					# 	'topic':data['tp'],'rules':retrieve_group_rules(group_id)}
+					# 	return render(request,"judgement/mehfil_report.html",context)
 				else:
 					# drop an application to become an officer
 					try:
@@ -1008,7 +1107,7 @@ def public_mehfil_oversight_dashboard(request):
 			return redirect("group_page")
 	else:
 		return redirect("public_group")
-		
+
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -2685,6 +2784,7 @@ def leave_private_group(request, *args, **kwargs):
 				return render(request, 'mehfil/leave_private_group.html', context)
 		else:
 			# group does not exist
+			invalidate_cached_mehfil_pages(user_id)
 			remove_group_invite(user_id, pk)# in case redis 1 invite exists, delete it (DEPRECATE REDIS 1 LATER)
 			return redirect("group_page")
 	else:
@@ -2715,6 +2815,7 @@ def leave_public_group(request):
 					'topic':retrieve_group_topic(group_id=pk,requestor_id=own_id)})
 		else:
 			# group does not exist
+			invalidate_cached_mehfil_pages(own_id)
 			remove_group_invite(own_id, pk)# in case redis 1 invite exists, delete it (DEPRECATE REDIS 1 LATER)
 			return redirect("group_page")
 	else:
@@ -2772,6 +2873,9 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						# purging redis 6 group related data structures:
 						permanently_delete_group(group_id, group_type='public')# get rid of all redis 6 data related to the group
 						
+						# purging group_list cache view for the owner
+						invalidate_cached_mehfil_pages(own_id)
+
 						return render(request,'mehfil/notify_and_redirect.html', {'deleted':True,'is_public':True})
 				elif group_id != str(pk):
 					# maybe the input was tinkered with?
@@ -2836,7 +2940,9 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 
 					# purging redis 6 group related data structures:
 					permanently_delete_group(group_id, group_type='private')# get rid of all redis 6 data related to the group
-
+					# purging group_list cache view for the owner
+					invalidate_cached_mehfil_pages(own_id)
+					
 					return render(request,'mehfil/notify_and_redirect.html', {'deleted':True,'is_public':False})
 			elif group_id != str(pk):
 				# maybe the input was tinkered with?

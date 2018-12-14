@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
-{% load future_time %}
 {% block content %}
 <head><title>Public group administration | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
@@ -14,6 +13,7 @@
 {% if officers_appointed %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">Officer appoint kar diya gya!</div>
 {% elif ttl %}
+	{% load future_time %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp cr">Ap ye qadam utha sakein ge <b>{{ ttl|future_time }}</b></div>
 {% elif cannot_make_officer %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp cr"><b>{{ uname }}</b> ko officer nahi banaya ja sakta kiyun ke woh pehlay hi {{ limit }} mehfils mein officer hai</div>
@@ -40,7 +40,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="1" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/shield_y.svg" width="55" height="55" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Manage officers:</b>&nbsp;ye dabain mehfil ke officers ko manage karney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Manage officers:</b>&nbsp;<span class="mrs">ye dabain mehfil ke officers ko manage karney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="1" id="h1" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -49,7 +51,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="17" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history.svg" width="50" height="50" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;ye dabain officers ke actions ki history dekhne ke liye</div>
+				<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;<span class="mrs">ye dabain officers ki history dekhne ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="17" id="h17" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -58,7 +62,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="2" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/kick.svg" width="50" height="50" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Kick out:</b>&nbsp;ye dabain mehfil se bad users ko kick out karney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Kick out:</b>&nbsp;<span class="mrs">ye dabain mehfil se bad users ko kick out karney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="2" id="h2" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -67,7 +73,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="3" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/add-cp.svg" width="50" height="50" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;ye dabain mehfil mein new members invite karney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;<span class="mrs">ye dabain mehfil mein new members invite karney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="3" id="h3" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -76,7 +84,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="4" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/read.svg" width="50" height="50" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Read feedback:</b>&nbsp;ye dabain apko receive honay wala feedback parhney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Read feedback:</b>&nbsp;<span class="mrs">ye dabain apko receive honay wala feedback parhney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="4" id="h4" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -85,7 +95,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="5" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/title-cp.svg" width="45" height="45" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;ye dabain mehfil ka topic change karney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;<span class="mrs">ye dabain mehfil ka topic change karney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="5" id="h5" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -94,7 +106,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="6" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/list.svg" width="45" height="45" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Change rules:</b>&nbsp;ye dabain mehfil ke rules change karney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Change rules:</b>&nbsp;<span class="mrs">ye dabain mehfil ke rules change karney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="6" id="h6" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -103,7 +117,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="11" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/transfer-cp.svg" width="45" height="45" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Transfer ownership:</b>&nbsp;ye dabain mehfil ka owner change karney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Transfer ownership:</b>&nbsp;<span class="mrs">ye dabain mehfil ka owner change karney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="11" id="h11" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 
@@ -112,7 +128,9 @@
 				<button type="submit" class="bizcard st-bg" name="dec" value="13" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/exit.svg" width="50" height="50" style="vertical-align:middle"></button>
 			</td>
 			<td>
-				<div class="lsp" style="text-align:left"><b>Delete mehfil:</b>&nbsp;ye dabain mehfil delete karney ke liye</div>
+				<div class="lsp" style="text-align:left"><b>Delete mehfil:</b>&nbsp;<span class="mrs">ye dabain mehfil delete karney ke liye</span>
+				<button type="submit" name="hdec" class="cb cs sp" value="13" id="h13" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+				</div>
 			</td>
 		</tr>
 	</table>
@@ -144,7 +162,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="2" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/kick.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Kick out:</b>&nbsp;ye dabain mehfil se bad users ko kick out karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Kick out:</b>&nbsp;<span class="mrs">ye dabain mehfil se bad users ko kick out karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="2" id="h2" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 	{% endif %}
@@ -154,7 +174,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="3" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/add-cp.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;ye dabain mehfil mein new members invite karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Invite:</b>&nbsp;<span class="mrs">ye dabain mehfil mein new members invite karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="3" id="h3" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -164,7 +186,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="5" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/title-cp.svg" width="45" height="45" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;ye dabain mehfil ka topic change karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Change topic:</b>&nbsp;<span class="mrs">ye dabain mehfil ka topic change karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="5" id="h5" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 	{% endif %}
@@ -174,7 +198,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="14" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/list.svg" width="45" height="45" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Read rules:</b>&nbsp;ye dabain mehfil ke rules read karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Read rules:</b>&nbsp;<span class="mrs">ye dabain mehfil ke rules read karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="14" id="h14" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -183,7 +209,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="7" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;ye dabain officers ke actions ki history dekhne ke liye</div>
+			<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;<span class="mrs">ye dabain officers ki history dekhne ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="7" id="h7" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -193,7 +221,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/praise.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Praise:</b>&nbsp;agar mehfil mein kuch buhut acha hai tou mehfil owner ki hosla afzai karein</div>
+			<div class="lsp" style="text-align:left"><b>Praise:</b>&nbsp;<span class="mrs">agar mehfil mein kuch buhut acha hai tou mehfil owner ki hosla afzai karein</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="8" id="h8" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -202,7 +232,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="9" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/complain.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Complain:</b>&nbsp;agar mehfil mein kuch ghalat hua hai tou mehfil owner ko batain</div>
+			<div class="lsp" style="text-align:left"><b>Complain:</b>&nbsp;<span class="mrs">agar mehfil mein kuch ghalat hua hai tou mehfil owner ko batain</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="9" id="h9" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -211,7 +243,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="10" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/feedback.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Idea:</b>&nbsp;mehfil ko behtar bananey ke liye mehfil owner ko ideas dein</div>
+			<div class="lsp" style="text-align:left"><b>Idea:</b>&nbsp;<span class="mrs">mehfil ko behtar bananey ke liye mehfil owner ko ideas dein</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="10" id="h10" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -220,7 +254,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="12" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/ownership-cp.svg" width="50" height="50" style="vertical-align:middle">
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Request ownership:</b>&nbsp;ye dabain mehfil ke owner banney ki request karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Request ownership:</b>&nbsp;<span class="mrs">ye dabain mehfil ke owner banney ki request karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="12" id="h12" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -229,7 +265,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="13" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/exit.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Exit mehfil:</b>&nbsp;ye dabain mehfil exit karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Exit mehfil:</b>&nbsp;<span class="mrs">ye dabain mehfil exit karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="13" id="h13" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -238,6 +276,7 @@
 	</form>
 
 	<div class="mts mbl"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	
 {% elif regular_user %}
 
 	<div class="mbl mt"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
@@ -256,16 +295,20 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="14" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/list.svg" width="45" height="45" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Read rules:</b>&nbsp;ye dabain mehfil ke rules read karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Read rules:</b>&nbsp;<span class="mrs">ye dabain mehfil ke rules read karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="14" id="h14" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
-	
+
 	<tr>
 		<td>
 			<button type="submit" class="bizcard st-bg" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/praise.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Praise:</b>&nbsp;agar mehfil mein kuch buhut acha hai tou mehfil owner ki hosla afzai karein</div>
+			<div class="lsp" style="text-align:left"><b>Praise:</b>&nbsp;<span class="mrs">agar mehfil mein kuch buhut acha hai tou mehfil owner ki hosla afzai karein</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="8" id="h8" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -274,7 +317,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="9" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/complain.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Complain:</b>&nbsp;agar mehfil mein kuch ghalat hua hai tou mehfil owner ko batain</div>
+			<div class="lsp" style="text-align:left"><b>Complain:</b>&nbsp;<span class="mrs">agar mehfil mein kuch ghalat hua hai tou mehfil owner ko batain</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="9" id="h9" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -283,7 +328,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="10" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/feedback.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Idea:</b>&nbsp;mehfil ko behtar bananey ke liye mehfil owner ko ideas dein</div>
+			<div class="lsp" style="text-align:left"><b>Idea:</b>&nbsp;<span class="mrs">mehfil ko behtar bananey ke liye mehfil owner ko ideas dein</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="10" id="h10" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -292,7 +339,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="16" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/shield_y.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Apply for officer:</b>&nbsp;ye dabain is mehfil ke officer banney ke liye apply karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Apply for officer:</b>&nbsp;<span class="mrs">ye dabain is mehfil ke officer banney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="16" id="h16" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -301,7 +350,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="12" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/ownership-cp.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Request ownership:</b>&nbsp;ye dabain mehfil ke owner banney ki request karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Request ownership:</b>&nbsp;<span class="mrs">ye dabain mehfil ke owner banney ki request karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="12" id="h12" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 
@@ -310,7 +361,9 @@
 			<button type="submit" class="bizcard st-bg" name="dec" value="13" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/exit.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Exit mehfil:</b>&nbsp;ye dabain mehfil exit karney ke liye</div>
+			<div class="lsp" style="text-align:left"><b>Exit mehfil:</b>&nbsp;<span class="mrs">ye dabain mehfil exit karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="13" id="h13" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			</div>
 		</td>
 	</tr>
 

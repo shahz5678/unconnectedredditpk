@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from verified import FEMALES
 from models import Reply, Group
 from views import convert_to_epoch
+from redis3 import invalid_topic_logger, invalid_rules_logger
 from forms import repetition_found, uniform_string, clear_zalgo_text
 from abuse import BANNED_MEHFIL_TOPIC_WORDS, BANNED_MEHFIL_RULES_WORDS
 from redis4 import many_short_messages, get_and_delete_text_input_key, is_limited, log_short_message
@@ -13,7 +14,8 @@ group_ownership_transfer_blocked_by_rate_limit, ownership_request_rate_limit, is
 log_topic_changing_attempt, topic_change_rate_limited, log_rules_change, log_rules_changing_attempt, rules_change_rate_limited, group_member_exists
 from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, PUBLIC_GROUP_COST, PRIVATE_GROUP_COST, \
 GROUP_FEEDBACK_SIZE, PUBLIC_GROUP_REPLY_LENGTH, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_MAX_SELLING_PRICE, PUBLIC_GROUP_MIN_SELLING_PRICE, \
-USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED, GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN
+USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED, GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN, \
+MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC
 
 def number_new_lines(text):
 	"""
@@ -45,6 +47,7 @@ def validate_rules_chars(rules, user_id=None):
 	for word in BANNED_MEHFIL_RULES_WORDS:
 		if word in rules.lower():
 			log_rules_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
+			invalid_rules_logger(word,rules)
 			raise ValidationError('Rules mein "%s" nahi likhein' % word.capitalize())
 
 
@@ -111,6 +114,87 @@ def process_group_rules(rules, rules_len_threshold, user_id=None, unique=None, g
 			log_rules_change(user_id,unique)
 
 
+def disallow_multiple_occurences(text):
+	"""
+	Limits puntuation usage in mehfil topics (for readability)
+	"""
+	if text.count('.') > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '.'
+	elif text.count('-') > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '-'
+	elif text.count('_') > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '_'
+	elif text.count("$") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '$'
+	elif text.count(":") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return ':'
+	elif text.count(",") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return ','
+	elif text.count("(") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '('
+	elif text.count(")") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return ')'
+	elif text.count("?") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '?'
+	elif text.count("%") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '%'
+	elif text.count(";") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return ';'
+	elif text.count("!") > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '!'
+	elif text.count('"') > MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC:
+		return '"'
+
+
+
+def disallow_sequential_occurences(text):
+	"""
+	Limits sequential occurences in mehfil topics (for readability)
+	"""
+	if '..' in text:
+		return '..'
+	elif ',,' in text:
+		return ',,'
+	elif "$$" in text:
+		return '$$'
+	elif '--' in text:
+		return '--'
+	elif '__' in text:
+		return '__'
+	elif '::' in text:
+		return '::'
+	elif ';;' in text:
+		return ';;'
+	elif '._' in text:
+		return '._'
+	elif '_.' in text:
+		return '_.'
+	elif '-_' in text:
+		return '-_'
+	elif '_-' in text:
+		return '_-'
+	elif '.-' in text:
+		return '.-'
+	elif '-.' in text:
+		return '-.'
+	elif ':;' in text:
+		return ':;'
+	elif ';:' in text:
+		return ';:'
+	elif ',.' in text:
+		return ',.'
+	elif '.,' in text:
+		return '.,'
+	elif ':.' in text:
+		return ':.'
+	elif '.:' in text:
+		return '.:'
+	elif ':,' in text:
+		return ':,'
+	elif ',:' in text:
+		return ',:'
+
+
 def validate_topic_chars(topic, user_id=None):
 	"""
 	Performs validation checks on mehfil topic
@@ -118,10 +202,21 @@ def validate_topic_chars(topic, user_id=None):
 	reg = re.compile('^[\w\s.?\-%()\$,;:!\'"]+$')
 	if not reg.match(topic):
 		raise ValidationError('Topic mein sirf english words, numbers ya ! ? % $ _ . , ; : ( ) - " \' characters likhein')
-	for word in BANNED_MEHFIL_TOPIC_WORDS:
-		if word in topic.lower():
-			log_topic_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
-			raise ValidationError('Topic mein "%s" nahi likhein' % word.capitalize())
+	else:
+		disallowed_char = disallow_multiple_occurences(topic)
+		if disallowed_char:
+			raise ValidationError("Topic mein '{0}' {1} se ziyada dafa nahi likhein".format(disallowed_char, \
+				MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC))
+		else:
+			disallowed_sequence = disallow_sequential_occurences(topic)
+			if disallowed_sequence:
+				raise ValidationError("Topic mein '{0}' nahi likhein".format(disallowed_sequence))
+			else: 
+				for word in BANNED_MEHFIL_TOPIC_WORDS:
+					if word in topic.lower():
+						log_topic_changing_attempt(user_id)# rate limit the user if too many of these words are attempted
+						invalid_topic_logger(word,topic)
+						raise ValidationError('Topic mein "%s" nahi likhein' % word.capitalize())
 
 
 def spot_gibberish_or_repeating_text_in_topic(text,length_of_text, user_id=None):

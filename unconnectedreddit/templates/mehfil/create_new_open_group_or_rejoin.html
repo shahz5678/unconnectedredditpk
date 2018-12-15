@@ -1,8 +1,8 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Create public mehfil | Damadam.pk</title></head>
-<h1 class="clb cxl" style="text-align:center">{% if owner_rejoining %}Set new topic and rules:{% else %}Create public mehfil:{% endif %}</h1>
 <style>body{background: #E9EBEE}</style>
+<h1 class="clb cxl" style="text-align:center">{% if owner_rejoining %}Set new topic and rules:{% else %}Create public mehfil:{% endif %}</h1>
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
 
 {% if data_expired %}
@@ -29,7 +29,7 @@
 	{% if form.topic.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.topic.errors.0 }}</div>{% else %}<div class="cl mbs" style="font-weight:bold">Public mehfil ka topic likhein:</div>{% endif %}
 	<ul style="margin:0;padding-left: 15px;">
 		<li>Topic mein saaf alfaz mein mehfil ka maqsad explain karein</li>
-		<li>Topic dilchusp ho takey invited users khushi se join karein</li>
+		<li>Achey topics woh hain jinko parh ke members forun samajh jaien mehfil kis barey mein hai</li>
 		<li>Topic {{ topic_char_limit }} characters tak hona chahiye</li>
 	</ul>
 	<div class="mts">{{ form.topic }}</div>

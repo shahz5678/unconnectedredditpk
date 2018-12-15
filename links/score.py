@@ -7,6 +7,9 @@ UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_SUBMISSION_ALLWD_PER_DAY = 20#num of home and photo posts allowed in one day
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
+################################################ Judgement Related Variables ##################################
+USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
+USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
 SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 SUPER_UPVOTE = 20# REMOVE
@@ -123,6 +126,7 @@ FEEDBACK_RATELIMIT = 259200#3 days; num seconds user is rate limited from sendin
 FEEDBACK_CACHE = 86400#1 day, num seconds the feedback list is cached for
 ########################################
 
+MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC = 2# how many times can '.' or '-' (etc) occur in a mehfil topic
 GROUP_MEMBERS_PER_PAGE = 50 #num of group members per page, shown in a mehfil's group members page
 GROUP_VISITORS_PER_PAGE = 50 #num of group members per page, shown in a mehfil's group members page
 

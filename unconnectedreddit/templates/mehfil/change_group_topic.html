@@ -18,20 +18,15 @@
 			{% endif %}
 			<ul style="margin:0;padding-left: 15px;">
 				<li style="text-align:left">Topic mein saaf alfaz mein mehfil ka maqsad explain karein</li>
-				<li style="text-align:left">Topic dilchusp ho takey invited users khushi se join karein</li>
+				<li style="text-align:left">Achey topics woh hain jinko parh ke members forun samajh jaien mehfil kis barey mein hai</li>
 				<li style="text-align:left">Topic {{ topic_char_limit }} characters tak hona chahiye</li>
 			</ul>
 			<div class="mts">{{ form.topic }}</div>
 		</div>
 		<button class="btn bcp bm mtl mbl mrs pg_ok_res" style="height:26px" type="submit">OK</button>
 	</form>
-		<a href="{% url 'public_group' slug=unique %}" class="mls cgy cl sp" style="border-bottom:1px dotted gray">Cancel</a>
-		<br>
-	<div style="border-top:1px solid #E8E8E8;padding-top:10px;color:gray" class="cs sp lsp">
-	Achey topics woh hain jin ko parh ke members forun samajh jaien mehfil kis barey mein hai
-	</div>
+		<a href="{% url 'public_group' slug=unique %}" class="mls cl sp" style="border-bottom:1px dotted gray"><span class="cgy">Cancel</span></a>
 {% endif %}
 </div>
 <br><br>
-
 {% endblock %}

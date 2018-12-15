@@ -22,16 +22,7 @@
     <a href="{% url 'group_page' %}#section0" class="cgy cl sp" style="border-bottom:1px dotted darkgray">wapis</a>
     </div><br>
 {% elif full_member %}
-    <a name="sectionJ"></a> 
-    <div style="text-align:center">
-    <ins class="adsbygoogle"
-        style="display:inline-block;width:320px;height:100px"
-        data-ad-client="ca-pub-2568547635306983"
-        data-ad-slot="4784035315"></ins>
-    <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-    </div>
+    <a name="sectionJ"></a>
 
     <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
     <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
@@ -55,6 +46,19 @@
     {% include "mehfil/private_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
 
     {% for reply,status in replies %}
+
+        {% if not on_fbs and forloop.counter == 7 %}
+            <div style="text-align:center;background:snow">
+                <ins class="adsbygoogle"
+                    style="display:inline-block;vertical-align: middle;width:320px;height:100px"
+                    data-ad-client="ca-pub-2568547635306983"
+                    data-ad-slot="4784035315"></ins>
+                <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            <hr size=1 COLOR="#E9EBEE">
+        {% endif %}
 
         {% if reply.category == '1' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b> ne <bdi><a href="{% url 'profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko invite kia</span></div>
@@ -123,18 +127,9 @@
 
 {% else %}
 
-    <a name="sectionJ"></a> 
-    <div style="text-align:center">
-    <ins class="adsbygoogle"
-        style="display:inline-block;width:320px;height:100px"
-        data-ad-client="ca-pub-2568547635306983"
-        data-ad-slot="4784035315"></ins>
-    <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-    </div>
+    <a name="sectionJ"></a>  
 
-     <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
+     <div class="bizcard mbs lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
 
         <form class="mbl" method="POST" action="{% url 'join_private_group' %}">
             {% csrf_token %}
@@ -142,7 +137,20 @@
             <button name="gid" type="submit" class="btn bxl sp pg_ok_res mtl" style="background-color:#19a83b;height:26px;font-weight:bold" value="{{ group_id }}">JOIN</button>
         </form>
         <div class="cs sp" style="border-top:1px dashed lightgray;padding-top:10px"><span class="cgy"><b>Note:</b> Join karney ke baad mehfil ko {{ exit_wait_time }} tak exit nahi kia ja sakta</span></div>
+
     </div>
+
+    {% if not on_fbs %}
+    <div style="text-align:center;background:snow;">
+        <ins class="adsbygoogle"
+            style="display:inline-block;vertical-align: middle;width:320px;height:100px"
+            data-ad-client="ca-pub-2568547635306983"
+            data-ad-slot="4784035315"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+    </div>
+    {% endif %}
 
     
 {% endif %}

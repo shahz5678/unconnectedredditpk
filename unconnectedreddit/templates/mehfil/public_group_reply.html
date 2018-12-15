@@ -29,16 +29,7 @@
 </div>
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
-        <a name="sectionJ"></a> 
-        <div style="text-align:center">
-        <ins class="adsbygoogle"
-            style="display:inline-block;width:320px;height:100px"
-            data-ad-client="ca-pub-2568547635306983"
-            data-ad-slot="9029992964"></ins>
-        <script>
-        (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-        </div>
+    <a name="sectionJ"></a> 
 
     <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
     <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
@@ -65,6 +56,19 @@
         {% include "mehfil/public_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
 
         {% for reply,status in replies %}
+
+            {% if not on_fbs and forloop.counter == 7 %}
+                <div style="text-align:center;background:snow">
+                    <ins class="adsbygoogle"
+                        style="display:inline-block;vertical-align: middle;width:320px;height:100px"
+                        data-ad-client="ca-pub-2568547635306983"
+                        data-ad-slot="9029992964"></ins>
+                    <script>
+                    (adsbygoogle = window.adsbygoogle || []).push({});
+                    </script>
+                </div>
+                <hr size=1 COLOR="#E9EBEE">
+            {% endif %}
         
         {% if reply.category == '2' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>
@@ -129,17 +133,14 @@
 </div>
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
-    <div style="text-align:center">
-    <ins class="adsbygoogle"
-        style="display:inline-block;width:320px;height:100px"
-        data-ad-client="ca-pub-2568547635306983"
-        data-ad-slot="9029992964"></ins>
-    <script>
-    (adsbygoogle = window.adsbygoogle || []).push({});
-    </script>
-    </div>
 
-    <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
+    <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:0 10px 10px 10px;text-align:center">
+    
+        <form method="POST" action="{% url 'report_mehfil' %}" style="text-align:right">
+            {% csrf_token %}
+            <input name="guid" type="hidden" value="{{ unique }}">
+            <button type="submit" style="background:0 0;padding:0;border:none"><img src="{{ STATIC_URL }}img/warn_cp.svg" height="15" width="15"></button>
+        </form>
 
         {% if only_pinkstars %}
         <div class="sp mbs lsp" style="border-bottom:1px dotted #FFAFAA;padding:5px;border-radius:0;font-weight:bold">Ye mehfil sirf pink stars ke <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink"> liye hai</div>
@@ -170,6 +171,19 @@
     </div>
 
     {% for reply,status in replies %}
+
+        {% if not on_fbs and forloop.counter == 7 %}
+            <div style="text-align:center;background:snow">
+                <ins class="adsbygoogle"
+                    style="display:inline-block;vertical-align: middle;width:320px;height:100px"
+                    data-ad-client="ca-pub-2568547635306983"
+                    data-ad-slot="9029992964"></ins>
+                <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+            <hr size=1 COLOR="#E9EBEE">
+        {% endif %}
 
         {% if reply.category == '2' %}
             <div class="lsp sp cs"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>

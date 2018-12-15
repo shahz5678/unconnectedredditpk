@@ -3128,6 +3128,8 @@ class PrivateGroupView(CreateView):
 			else:
 				raise Http404("Mehfil does not exist")
 			if data['p'] =='1':
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				context["on_fbs"] = on_fbs
 				context["switching"] = False
 				group_id = data['gi']
 				context["own_id"] = user_id
@@ -3138,11 +3140,10 @@ class PrivateGroupView(CreateView):
 					context["group_topic"] = data['tp']
 					context["group_id"] = group_id
 					context["display"] = 'inline' if retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), \
-						fbs=self.request.META.get('HTTP_X_IORG_FBS',False)) else 'none'
+						fbs=on_fbs) else 'none'
 					secret_key = uuid.uuid4()
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'prv_grp', secret_key)
-					on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 					context["ensured"] = FEMALES
 					prev_form = self.request.session.pop("private_group_form",None)
 					context["form"] = prev_form if prev_form else PrivateGroupReplyForm()
@@ -3190,7 +3191,6 @@ class PrivateGroupView(CreateView):
 			else:
 				context["switching"] = True
 		return context
-
 	
 	def form_invalid(self, form):
 		"""
@@ -3385,6 +3385,8 @@ class PublicGroupView(CreateView):
 			else:
 				raise Http404("Mehfil does not exist")
 			if group_data['p'] == '0':
+				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+				context["on_fbs"] = on_fbs
 				context["own_id"] = user_id
 				context["ensured"] = FEMALES
 				context["csrf"] = csrf.get_token(self.request)
@@ -3400,7 +3402,7 @@ class PublicGroupView(CreateView):
 					context["full_member"] = True
 					context["member_since"] = is_member
 					context["display"] = 'inline' if retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), \
-						fbs=self.request.META.get('HTTP_X_IORG_FBS',False)) else 'none'
+						fbs=on_fbs) else 'none'
 					secret_key = uuid.uuid4()
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'pub_grp', secret_key)

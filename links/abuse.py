@@ -43,9 +43,9 @@ CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','
 'i.s.i.s','h.i.t.l.e.r','iluminati','illuminati']
 
 
-MISC_POLITICALLY_SENSITIVE_WORDS = ['india','america','amreeka','amrika','bharat','bharti','bharty','bhartee','umreeka','umrika','pakistaan',\
-'hindustan','israel','indya','inddia','amrica','izrael','yahoodi','yah00di','yh00di','yhoodi','yahood!','hindu','h!ndu','hindoo','moslem','muzlim',\
-'mus1im','musl!m','mus1!m','yahudi','yahud!']
+MISC_POLITICALLY_SENSITIVE_WORDS = ['india','america','amreeka','amrika','bharat','bharti','bharty','bhartee','umreeka','umrika',\
+'hindustan','israel','indya','inddia','amrica','izrael','yahoodi','yah00di','yh00di','yhoodi','yahood!','hindu','h!ndu','hindoo',\
+'moslem','muzlim','mus1im','musl!m','mus1!m','yahudi','yahud!']
 
 
 CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['bhagwan','kafir','qafir','kafr','qafr','kfir','qfir','kaphir','qaphir','kaf1r','kaf!r','a11ah','bhagvan',\
@@ -60,7 +60,7 @@ MISC_SENSITIVE_WORDS = ['fahashi','jinsi','garam','kartoot','qartoot','kart00t',
 'krtut','qrtut','kertut','kert00t','kertoot','qertoot','qert00t','idiot','idi0t','id!ot','id!0t','1diot','damn','kat!l','scandal','scandle','scendel',\
 'skendel','skendl','scandl','scendl','sharmnaak','sharamnaak','sharamnaaq','sharmnaaq','shrmnaak','shrmnaaq','jinsy','j!nsy','j!nsi','porn','p0rn',\
 'sharamnak','p-o-r-n','p_o_r_n','p.o.r.n','p-o_r-n','p_o-r_n','p-o_r_n','p_o_r-n','mhb','m_h_b','m-h-b','m.h.b','m-h_b','m_h-b','m.h_b','m_h.b','m-h.b',\
-'m.h-b','mh.b','m.h@b']
+'m.h-b','mh.b','m.h@b','murdabad','mrdabad']
 
 SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook','facebuk','facebok','telenor','mobilink','zong','ufone','warid',\
 'telen0r','m0bilink','z0ng','facbook']
@@ -68,7 +68,7 @@ SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook',
 BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pussy','boob','xx','breast','penis','hitler','gasht','gandu','luun',\
 'mhb','allah','bhagwan','allaah','quran','jesus','Damadam-Feedback','Damadam-Admin']
 
-CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin']
+CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin','pakistn','pakistaan','pkistan']
 
 BANNED_NICKS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+MISC_POLITICALLY_SENSITIVE_WORDS+\
 CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS+CONTEXTUALLY_SENSITIVE_WORDS

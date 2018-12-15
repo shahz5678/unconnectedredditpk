@@ -2105,3 +2105,20 @@ def log_post_banned_username(username):
 	myserver.lpush("post_abuse_nicks",username)
 	myserver.ltrim("post_abuse_nicks",0,999)
 
+#########################################Invalid Topic & Rules Logger##################################
+
+def invalid_topic_logger(banned_word,topic):
+	"""
+	This function logs the topics that were filtered by abuse.py
+	"""
+	myserver = redis.Redis(connection_pool=POOL)
+	myserver.lpush("invalid_topics",topic+":"+banned_word)
+	myserver.ltrim("invalid_topics",0,999)
+
+def invalid_rules_logger(banned_word,rules):
+	"""
+	This function logs the topics that were filtered by abuse.py
+	"""
+	myserver = redis.Redis(connection_pool=POOL)
+	myserver.lpush("invalid_rules",rules+":"+banned_word)
+	myserver.ltrim("invalid_rules",0,999)	

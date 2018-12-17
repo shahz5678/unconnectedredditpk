@@ -57,7 +57,7 @@ GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_MIN_SELLING_PRICE, GRO
 MAX_OWNER_INVITES_PER_PRIVATE_GROUP, MIN_MEMBERSHIP_AGE_FOR_GIVING_PUBLIC_GRP_FEEDBACK, MIN_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OWNERSHIP, \
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, DELETION_THRESHOLD, MEHFIL_REPORT_PROMPT, MAX_OFFICER_APPOINTMENTS_ALLWD, GROUP_OFFICER_QUESTIONS, \
 MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE,\
-PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK
+PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF
 
 from redis6 import appoint_public_mehfil_officer, is_officer_appointments_rate_limited, retrieve_cached_attendance_data, get_latest_presence, \
 cache_group_attendance_data, get_attendance, retrieve_all_officers, remove_public_mehfil_officers, retrieve_group_category, save_group_submission, \
@@ -2411,6 +2411,7 @@ def group_hide_submission(request, *args, **kwargs):
 
 ############################## Mehfil online list ##############################
 
+
 def display_group_users_list(request, grp_priv, list_type):
 	"""
 	Displays members or visitors of a mehfil
@@ -2451,7 +2452,14 @@ def display_group_users_list(request, grp_priv, list_type):
 					credentials = retrieve_bulk_credentials(all_online_ids, decode_unames=True)#dictionary of dictionaries is returned
 					row_num = 1
 					for visitor_id,visit_time in attendance_data:
-						final_visitor_data.append((visitor_id,credentials[int(visitor_id)],visit_time,row_num))
+						how_old = time.time() - visit_time
+						if how_old < GROUP_GREEN_DOT_CUTOFF:
+							status = 'green'
+						elif how_old < GROUP_IDLE_DOT_CUTOFF:
+							status = 'idle'
+						else:
+							status = 'gone'
+						final_visitor_data.append((visitor_id,credentials[int(visitor_id)],visit_time,row_num,status))
 						row_num += 1
 					cache_group_attendance_data(json.dumps(final_visitor_data),group_id)
 			if group_privacy == '0':
@@ -2498,7 +2506,8 @@ def display_group_users_list(request, grp_priv, list_type):
 			return redirect("group_page")
 	else:
 		#unauthorized access attempt, group does not exist or user is not authorized
-		return redirect("group_page")           
+		return redirect("group_page")
+
 
 ############################## Changing public and private mehfil topic ##############################
 

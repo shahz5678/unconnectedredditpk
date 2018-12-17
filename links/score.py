@@ -104,7 +104,7 @@ NUM_RULES_CHANGE_ATTEMPTS_ALLOWED = 4 # num of rules change 'failed' attempts in
 
 ####### Group messaging thresholds #######
 GROUP_GREEN_DOT_CUTOFF = 60# if seen in last 60 seconds, show green dot
-GROUP_IDLE_DOT_CUTOFF = 120# if seen later than 60 but before 120, show idle dot
+GROUP_IDLE_DOT_CUTOFF = 210# if seen later than 60 but before 210, show idle dot
 MSGS_TO_SHOW_IN_GROUP = 35# number of messages to show in groups (public and private both)
 DELETION_THRESHOLD = 70# number of messages to keep in group list (before deletion sets in)
 NUM_TO_DELETE = 35#number of messages to delete once DELETION_THRESHOLD HITS

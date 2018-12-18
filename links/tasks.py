@@ -22,18 +22,18 @@ from order_home_posts import order_home_posts, order_home_posts2, order_home_pos
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
-public_group_ranking_clean_up,set_world_age, retrieve_random_pin#, set_section_wise_retention
+public_group_ranking_clean_up,set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
-rate_limit_personal_group_sharing,log_message_sent,log_invite_accepted
+rate_limit_personal_group_sharing,log_message_sent,log_invite_accepted, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
-log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view, retrieve_bulk_unames, save_most_recent_online_users#, log_photo_attention_from_fresh
+log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
-remove_notification_of_banned_user, remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, \
+remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, sanitize_eachothers_unseen_activities,\
 update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif, update_group_topic_in_obj, bulk_remove_multiple_group_notifications
 from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
@@ -250,27 +250,35 @@ def delete_exited_personal_group():
 	exited_personal_group_hard_deletion()
 
 
-def retrieve_object_type(origin):
-	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
-	'publicreply:reply':'2', 'history:link':'2', 'notif:reply':'2','notif:photo':'0','profile:fans':'99'}
-	try:
-		return PARENT_OBJECT_TYPE[origin]
-	except:
-		return -1
-
-
 @celery_app1.task(name='tasks.post_banning_tasks')
-def post_banning_tasks(own_id, target_id, object_id, origin):
-	object_type = retrieve_object_type(origin)
-	if object_type != -1:
-		if object_id != 'fan':
-			remove_notification_of_banned_user(target_id,object_id,object_type)
-		################################################################################
-		# unfan (in case was a fan)
-		UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
-		UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
-		remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
-		remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
+def post_banning_tasks(own_id, target_id):
+	"""
+	Remove's banner's notification from from the bannee's matka, also unfans them.
+
+	It's a good-to-have task, not mission critical (and can be improved).
+	Problems include: 
+	1) If bannee wanted to eavesdrop on banner's posts, they could do so in myriad of ways
+	2) In fact, much better to design a new matka which includes the '@' functionality, deprecate this prototypical one.
+	"""
+	# unfan (in case was a fan)
+	UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
+	UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
+	remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
+	remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
+	rate_limit_unfanned_user(own_id=own_id,target_id=target_id)
+	################################################################################
+	# this ensures all posts of eachothers are deleted from the matka
+	sanitize_eachothers_unseen_activities(user1_id=own_id, user2_id=target_id)
+	################################################################################
+	# 1) Exit yourself if group is non-exited
+	# 2) If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them=
+	# 3) No notifications will be generated since we already sanitized each user's activity
+	# this ensures they can't private chat with eachother
+	exit_user_from_targets_priv_chat(own_id,target_id)
+	################################################################################
+	# we did a LOT of work, ensure banner didn't ban in vain!
+	ratelimit_banner_from_unbanning_target(own_id,target_id)
+	################################################################################
 
 
 @celery_app1.task(name='tasks.sanitize_expired_bans')

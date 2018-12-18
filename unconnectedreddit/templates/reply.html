@@ -28,7 +28,7 @@
         {% endif %}
     :&nbsp;<bdi class="clb cl bw lsp">{% emoticons %}{{ parent.description }}{% endemoticons %}</bdi>&nbsp;<span class="cgy sp cxs mrs"><bdi>,{{ parent.submitted_on|naturaltime }}</bdi>
     </span>
-    {% block_button parent.submitter_id parent_submitter_username user.id parent.id 'publicreply:link' STATIC_URL %}
+    {% block_button parent.submitter_id parent_submitter_username user.id parent.id '9' STATIC_URL %}
 </div>
 
     <a name="sectionJ"></a> 
@@ -117,7 +117,7 @@
                 {% endif %}:&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span>
                 <span class="cxs cgy mrs sp"><bdi>,{{ reply.submitted_on|naturaltime }}</bdi></span>
 
-            {% block_button reply.submitted_by_id reply.submitted_by.username user.id parent.pk 'publicreply:reply' STATIC_URL %}
+            {% block_button reply.submitted_by_id reply.submitted_by.username user.id parent.pk '9' STATIC_URL %}
      &nbsp;
         {% if user == parent.submitter %}
         &nbsp;<a href="{% url 'reportreply_pk' pk=reply.pk num=parent.pk %}"><button class="btn bcgy bs cxs"><b>hide</b></button></a>

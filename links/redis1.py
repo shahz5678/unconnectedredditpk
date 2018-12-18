@@ -498,14 +498,6 @@ def unlock_uname_search(user_id):
 #photo_ads_visitor:     '17'
 #first_time_banner:     '18'
 
-def first_time_banner(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name,'18'):
-		return False
-	else:
-		return True	
-
 def first_time_photo_ads_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)

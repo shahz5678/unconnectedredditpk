@@ -1,6 +1,5 @@
 {% load s3 %}
 {% load truncap %}
-{% load get_block_button %}
 {% load emoticons_tags %}
 	{% if notification %}
 		{% if type_of_object == '2' %}
@@ -35,7 +34,7 @@
 
 			<bdi>{{ parent.lrsn }}</bdi></a>
 			:<bdi class="clb lsp">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cxs sp mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
-			</span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:reply' static_url %}
+			</span>
 			</div>
 				{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
 				<form method="POST" action="{% url 'unseen_reply' parent_pk %}" style="display:inline;">
@@ -284,7 +283,7 @@
 		<img src="{{ parent.lrau|s3:'thumb' }}" alt="pic" style="border-radius:50%" width="22" height="22">
 		{% if latest_comment.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}
 		<bdi>{{ latest_comment.lrsn }}</bdi></a>
-		:&nbsp;<span class="cl lsp clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cxs sp mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>{% block_button parent.lrwi parent.lrsn ident parent.oi 'notif:photo' static_url %}
+		:&nbsp;<span class="cl lsp clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cxs sp mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
 		</div>
 		
 		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}

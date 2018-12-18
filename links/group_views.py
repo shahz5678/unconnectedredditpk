@@ -11,8 +11,8 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from redis1 import check_photo_upload_ban
-from redis3 import tutorial_unseen, get_user_verified_number
-from redis2 import update_notification, skip_private_chat_notif
+from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
+from redis2 import skip_private_chat_notif
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
 avg_num_of_switchovers_per_type, avg_sessions_per_type, get_cached_photo_dim, cache_photo_dim, retrieve_uname, retrieve_user_id, retrieve_photo_data,\
 retrieve_fresh_photo_shares_or_cached_data
@@ -121,6 +121,8 @@ def return_to_source(origin,parent_object_id,target_username):
 			return redirect("user_activity",slug=target_username)
 		else:
 			return redirect("home")
+	elif origin == 'private':
+		return redirect("private_group_reply")
 	elif origin == 'public':
 		if parent_object_id:
 			return redirect("public_group",slug=parent_object_id)
@@ -1090,13 +1092,13 @@ def get_user_perms_for_group(request):
 
 def x_per_grp_notif(request, gid, fid, from_home):
 	"""
-	Used to skip personal group notification
+	Used to skip personal group single notification
 	"""
 	own_id = request.user.id
 	group_id, exists = personal_group_already_exists(own_id, fid)
 	if exists and group_id == str(gid):
 		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	if from_home == '1':
+	if from_home == '3':
 		return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
@@ -1108,7 +1110,7 @@ def x_per_grp_notif(request, gid, fid, from_home):
 @csrf_protect
 def unseen_per_grp(request, gid, fid):
 	"""
-	Processes reply given in personal group straight from a notification
+	Processes reply given in personal group straight from a notification or unseen activity
 	"""
 	if request.method == "POST":
 		own_id = request.user.id
@@ -1126,9 +1128,9 @@ def unseen_per_grp(request, gid, fid):
 					successful=True if bid else False, from_unseen=True)
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 				if origin:
-					if origin == '0':
+					if origin == '1':
 						return redirect("photo")
-					elif origin == '1':
+					elif origin == '3':
 						if lang == 'urdu' and sort_by == 'best':
 							return redirect("ur_home_best", 'urdu')
 						elif sort_by == 'best':
@@ -1147,9 +1149,9 @@ def unseen_per_grp(request, gid, fid):
 				if origin:
 					request.session["notif_form"] = form
 					request.session.modified = True
-					if origin == '0':
+					if origin == '1':
 						return redirect("photo")
-					elif origin == '1':
+					elif origin == '3':
 						if lang == 'urdu' and sort_by == 'best':
 							return redirect("ur_home_best", 'urdu')
 						elif sort_by == 'best':
@@ -1182,11 +1184,14 @@ def unseen_per_grp(request, gid, fid):
 ######################################### Personal Group Settings #########################################
 ###########################################################################################################
 
+
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def personal_group_reentry(request):
 	"""
 	Reentering personal group after exiting it
+
+	Do not re-enter if a block is in progress (even if it's your right to re-enter)
 	"""
 	if request.method == "POST":
 		own_id, tid = request.user.id, request.POST.get("tid",None)
@@ -1195,33 +1200,41 @@ def personal_group_reentry(request):
 			return redirect("personal_group_user_listing")
 		else:
 			exit_by_self, exit_by_them, sus_time = exit_already_triggered(own_id, tid, group_id, sus_time=True)
+			banned_by, ban_time = is_already_banned(own_id=own_id,target_id=tid, return_banner=True)
 			if exit_by_self:
-				# revert the group
-				try:
-					time_diff = time.time() - float(sus_time)
-				except TypeError:
-					time_diff = None
-				if not time_diff:
-					# no time stamp was returned - something is wrong
+				if banned_by:
+					# show special msg that you can't re-enter priv chat - because a block is in play
+					# doesn't matter who blocked who. If you exited but they blocked you, you still can't re-enter, sorry
 					their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
-					return redirect(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'their_anon':their_anon_status,\
-					'avatar':their_avurl,'name':their_uname,'reentry_denied':True,'tid':tid})
-				elif time_diff < ONE_DAY:
-					# cant return yet - it's too soon
-					their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
-					return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'reentry_too_soon':True,\
-						'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status,'tid':tid,'time_remaining':ONE_DAY-time_diff})
+					return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'ban_underway':True,\
+						'banned_by_self':True if banned_by == str(own_id) else False,'tid':tid,'avatar':their_avurl,'name':their_uname})
 				else:
-					# re-enter normally, i.e. unsuspend group
-					unsuspend_personal_group(own_id, tid, group_id)
-					reset_all_group_chat(group_id) #permanently resetting group chat
-					private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='reentry',txt_type='reentry',\
-						own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
-						own_avurl='',deleted='undel',hidden='no')
-					request.session['personal_group_tid_key'] = tid
-					request.session["personal_group_gid_key:"+tid] = group_id
-					request.session.modified = True
-					return redirect("enter_personal_group")
+					# revert the group
+					try:
+						time_diff = time.time() - float(sus_time)
+					except TypeError:
+						time_diff = None
+					if not time_diff:
+						# no time stamp was returned - something is wrong
+						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
+						return redirect(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'their_anon':their_anon_status,\
+						'avatar':their_avurl,'name':their_uname,'reentry_denied':True,'tid':tid})
+					elif time_diff < ONE_DAY:
+						# cant return yet - it's too soon
+						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
+						return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'reentry_too_soon':True,\
+							'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status,'tid':tid,'time_remaining':ONE_DAY-time_diff})
+					else:
+						# re-enter normally, i.e. unsuspend group
+						unsuspend_personal_group(own_id, tid, group_id)
+						reset_all_group_chat(group_id) #permanently resetting group chat
+						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='reentry',txt_type='reentry',\
+							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
+							own_avurl='',deleted='undel',hidden='no')
+						request.session['personal_group_tid_key'] = tid
+						request.session["personal_group_gid_key:"+tid] = group_id
+						request.session.modified = True
+						return redirect("enter_personal_group")
 			elif exit_by_them:
 				# user doesn't have the privilege to do this
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
@@ -1943,8 +1956,6 @@ def render_personal_group_invite(request):
 	raise Http404("Please do not refresh page when inviting users to 1 on 1")
 
 
-
-
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def accept_personal_group_invite(request):
@@ -1953,40 +1964,49 @@ def accept_personal_group_invite(request):
 	"""
 	if request.method == "POST":
 		if request.user_banned:
-			return render(request,'500.html',{}) #errorbanning
-		decision = request.POST.get("dec",None)
-		if decision == '1':
-			own_id, target_id = request.user.id, request.session.get("personal_group_invitation_sent_by_id",None)
-			int_tid = int(target_id)
-			username_dictionary = retrieve_bulk_unames([own_id,target_id],decode=True)
-			own_username = username_dictionary[own_id]
-			target_username = username_dictionary[int_tid]
-			is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
-			sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-			own_anon, target_anon = '0','1' if is_target_anon == True else '0'
-			group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
-			if not already_existed:
-				reset_invite_count(own_id)
-				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
-					own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
-			request.session["personal_group_tid_key"] = target_id
-			request.session["personal_group_gid_key:"+target_id] = group_id
-			request.session.modified = True
-			return redirect("enter_personal_group")
+			return redirect("error") #errorbanning
 		else:
-			origin, poid, target_username = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None)
-			if origin == 'publicreply':
-				if poid:
-					request.session["link_pk"] = poid
+			decision = request.POST.get("dec",None)
+			if decision == '1':
+				own_id, target_id = request.user.id, request.session.get("personal_group_invitation_sent_by_id",None)
+				int_tid = int(target_id)
+				username_dictionary = retrieve_bulk_unames([own_id,target_id],decode=True)
+				own_username = username_dictionary[own_id]
+				target_username = username_dictionary[int_tid]
+				banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
+				if banned_by:
+					request.session["where_from"] = 'priv_chat_list'
+					request.session["banned_by_yourself"] = banned_by == str(own_id)
+					request.session["target_username"] = target_username
+					request.session["ban_time"] = ban_time
 					request.session.modified = True
-					return redirect("publicreply_view")
+					return redirect("ban_underway") 
 				else:
-					return redirect("home")
+					is_target_anon = request.session.get("personal_group_invitation_sent_by_anon",None)
+					sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
+					own_anon, target_anon = '0','1' if is_target_anon == True else '0'
+					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
+					if not already_existed:
+						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
+						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+							own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
+					request.session["personal_group_tid_key"] = target_id
+					request.session["personal_group_gid_key:"+target_id] = group_id
+					request.session.modified = True
+					return redirect("enter_personal_group")
 			else:
-				return return_to_source(origin,poid,target_username)
+				origin, poid, target_username = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None)
+				if origin == 'publicreply':
+					if poid:
+						request.session["link_pk"] = poid
+						request.session.modified = True
+						return redirect("publicreply_view")
+					else:
+						return redirect("home")
+				else:
+					return return_to_source(origin,poid,target_username)
 	else:
 		return redirect("home")
-
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2016,7 +2036,6 @@ def send_personal_group_invite(request):
 		return redirect("home")
 
 
-
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def change_personal_group_invite_privacy(request):
@@ -2034,46 +2053,63 @@ def change_personal_group_invite_privacy(request):
 			return redirect("enter_personal_group")
 		else:
 			if request.user_banned:
-				return render(request,'500.html',{}) #errorbanning
-			decision = request.POST.get("dec",None)
-			own_username, target_username = get_target_username(str(own_id)),request.session.get("personal_group_invite_target_username",None)
-			state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, own_username, target_id, target_username)
-			if state in ('2','3'):
-				# they already invited me, so accept the invite instead of inviting them back
-				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-				avatars = retrieve_bulk_avurls([own_id, target_id])
-				own_av_url = avatars[own_id]
-				target_av_url = avatars[int(target_id)]
-				own_anon, target_anon = '1' if decision == '0' else '0', '1' if state == '3' else '0'
-				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
-				if not already_existed:
-					reset_invite_count(own_id)
-					private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
-						own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
-				request.session["personal_group_tid_key"] = target_id
-				request.session["personal_group_gid_key:"+target_id] = group_id
-				request.session.modified = True
-				return redirect("enter_personal_group")
+				return redirect("error") #errorbanning
 			else:
-				# proceed with the invite
-				parent_object_id = request.session.get("personal_group_invite_parent_object_id",None)
-				origin = request.session.get("personal_group_invite_origin",None)
-				target_av_url = request.session.get("personal_group_invite_target_av_url",None)
-				object_type = request.session.get("personal_group_invite_object_type",None)
-				context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
-				sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)				
-				if sent is False:
-					context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
-					return render(request,"personal_group/invites/personal_group_status.html",context)
-				else:
-					reset_invite_count(target_id)
-					if decision == '0':
-						interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
-						if tutorial_unseen(user_id=own_id, which_tut='0', renew_lease=True):
-							context["personal_group_invite_privacy"] = True
-							context["oun"] = own_username
+				decision = request.POST.get("dec",None)
+				own_username, target_username = get_target_username(str(own_id)),request.session.get("personal_group_invite_target_username",None)
+				banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
+				if banned_by:
+					request.session["where_from"] = 'priv_chat_invite_list'
+					request.session["banned_by_yourself"] = banned_by == str(own_id)
+					request.session["target_username"] = target_username
+					request.session["ban_time"] = ban_time
+					request.session.modified = True
+					return redirect("ban_underway") 
+				else:    
+					state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, own_username, target_id, target_username)
+					if state in ('2','3'):
+						# they already invited me, so accept the invite instead of inviting them back
+						sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
+						avatars = retrieve_bulk_avurls([own_id, target_id])
+						own_av_url = avatars[own_id]
+						target_av_url = avatars[int(target_id)]
+						own_anon, target_anon = '1' if decision == '0' else '0', '1' if state == '3' else '0'
+						group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
+						if not already_existed:
+							reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
+							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+								own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
+						request.session["personal_group_tid_key"] = target_id
+						request.session["personal_group_gid_key:"+target_id] = group_id
+						request.session.modified = True
+						return redirect("enter_personal_group")
+					else:
+						# proceed with the invite
+						parent_object_id = request.session.get("personal_group_invite_parent_object_id",None)
+						origin = request.session.get("personal_group_invite_origin",None)
+						target_av_url = request.session.get("personal_group_invite_target_av_url",None)
+						object_type = request.session.get("personal_group_invite_object_type",None)
+						context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
+						sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)
+						if sent is False:
+							context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
+							return render(request,"personal_group/invites/personal_group_status.html",context)
+						else:
+							# if decision == '0':
+							#     interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
+							#     if tutorial_unseen(user_id=own_id, which_tut='0', renew_lease=True):
+							#         context["personal_group_invite_privacy"] = True
+							#         context["oun"] = own_username
+							#         return render(request,"helpful_instructions.html",context)
+							# return redirect("show_personal_group_invite_list",list_type='sent')
+							reset_invite_count(target_id)# resetting invite count shown in navbar for target_id
+							if decision == '0':
+								interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
+								context["oun"] = own_username
+								context["personal_group_invite_privacy"] = True
+							context["personal_group_invite"] = True
+							# context["personal_group_invite_sent"] = True
 							return render(request,"helpful_instructions.html",context)
-					return redirect("show_personal_group_invite_list",list_type='sent')
 	else:
 		return redirect("home")
 
@@ -2091,37 +2127,46 @@ def process_personal_group_invite(request):
 		state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, own_username, target_id, target_username)
 		if state in ('2','3'):
 			if request.POST.get("sel",None) == '1':
+				banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 				if request.user_banned:
-					return render(request,'500.html',{}) #errorbanning
-				sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
-				own_anon, target_anon = '0', '1' if state == '3' else '0'
-				group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
-				if not already_existed:
-					reset_invite_count(own_id)
-					private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
-						own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl=own_av_url,deleted='undel',\
-						hidden='no')
-				request.session["personal_group_tid_key"] = target_id
-				request.session["personal_group_gid_key:"+target_id] = group_id
-				###################################################
-				#################### Alpha ########################
-				###################################################
-				priv_invite_accepted_logger.delay(own_id, group_id)
-				if own_id % 2 != 0:
+					return redirect("error") #errorbanning
+				elif banned_by:
+					request.session["where_from"] = 'priv_chat_invite_list'
+					request.session["banned_by_yourself"] = banned_by == str(own_id)
+					request.session["target_username"] = target_username
+					request.session["ban_time"] = ban_time
 					request.session.modified = True
-					return redirect("enter_personal_group")
-				###################################################
-				###################################################
-				###################################################
+					return redirect("ban_underway") 
 				else:
-					request.session["personal_group_invite_accepted"] = True
-					request.session["personal_group_invite_accepted_is_anon"] = True if state == '3' else False
-					request.session["personal_group_invite_accepted_username"] = target_username
-					request.session["personal_group_invite_accepted_av_url"] = target_av_url
-					request.session.modified = True
+					sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
+					own_anon, target_anon = '0', '1' if state == '3' else '0'
+					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
+					if not already_existed:
+						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
+						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+							own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl=own_av_url,deleted='undel',\
+							hidden='no')
+					request.session["personal_group_tid_key"] = target_id
+					request.session["personal_group_gid_key:"+target_id] = group_id
+					###################################################
+					#################### Alpha ########################
+					###################################################
+					priv_invite_accepted_logger.delay(own_id, group_id)
+					if own_id % 2 != 0:
+						request.session.modified = True
+						return redirect("enter_personal_group")
+					###################################################
+					###################################################
+					###################################################
+					else:	
+						request.session["personal_group_invite_accepted"] = True
+						request.session["personal_group_invite_accepted_is_anon"] = True if state == '3' else False
+						request.session["personal_group_invite_accepted_username"] = target_username
+						request.session["personal_group_invite_accepted_av_url"] = target_av_url
+						request.session.modified = True
 			else:
 				ignore_invite(own_id, own_username, target_id, target_username)
-				reset_invite_count(own_id)
+				reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
 	return redirect("show_personal_group_invite_list",list_type='received')
 
 

@@ -319,6 +319,27 @@ def retrieve_photo_data(photo_ids, owner_id):
 			my_server.expire(key,THREE_DAYS)
 	return photo_data
 
+
+######################## Rate limiting unfanned user ########################
+
+
+def rate_limit_unfanned_user(own_id,target_id):
+    """
+    Rate limit to ensure unfanned user doesn't refan the star immediately after
+    """
+    redis.Redis(connection_pool=POOL).setex('rlf:'+str(own_id)+":"+str(target_id),'1',THREE_DAYS)
+
+
+def is_potential_fan_rate_limited(star_id,own_id):
+    """
+    Checking if allowed to fan the star, or is rate-limited due to a previous unfanning event
+    """
+    if redis.Redis(connection_pool=POOL).ttl('rlf:'+str(star_id)+":"+str(own_id)) > 0:
+        return True
+    else:
+        return False
+
+
 ###################### User credentials caching ######################
 
 

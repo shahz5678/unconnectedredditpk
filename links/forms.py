@@ -346,7 +346,7 @@ class UserProfileForm(forms.ModelForm):
 			user_id = self.user.id
 			ttl = get_aurl(user_id)
 			if ttl > 1:
-				raise forms.ValidationError(retrieve_validation_error_string('display_pic_rate_limited',ttl))
+				raise forms.ValidationError(retrieve_validation_error_string('display_pic_rate_limited',payload=ttl))
 			invalidate_avatar_url.delay(user_id, set_rate_limit=True)
 			if image:
 				try:

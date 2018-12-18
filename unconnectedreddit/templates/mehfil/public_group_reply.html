@@ -58,6 +58,7 @@
         {% for reply,status in replies %}
 
             {% if not on_fbs and forloop.counter == 7 %}
+
                 <div style="text-align:center;background:snow">
                     <ins class="adsbygoogle"
                         style="display:inline-block;vertical-align: middle;width:320px;height:100px"
@@ -159,7 +160,7 @@
                 <input name="uid" type="hidden" value="{{ unique }}">
                 <button name="gid" type="submit" class="btn bcp bxl sp pg_ok_res mrs" value="{{ group_id }}" style="height:26px;font-weight:bold;border:1px solid #9971a5">JOIN</button>
             </form>
-            <div class="cs sp" style="border-top:1px dashed lightgray;padding-top:10px"><span class="cgy"><b>Note:</b> Join karney ke baad mehfil ko {{ exit_wait_time }} tak exit nahi kia ja sakta</span></div>
+            <div class="cs sp" style="border-top:1px dashed lightgray;padding-top:10px"><span class="cgy"><b>Note:</b> Join karney ke baad apko kam az kam {{ exit_wait_time }} tak member rehna ho ga</span></div>
         {% endif %}
     
     </div>

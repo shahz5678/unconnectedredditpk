@@ -1,0 +1,17 @@
+<h1 class="cxl clb lsp title" style="text-align:center;overflow:hidden">History help:</h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<form method="POST" action="{% url 'public_mehfil_oversight_dashboard' %}" class="mt" style="text-align:center;border-bottom:1px dashed darkgray;padding-bottom:12px">{% csrf_token %}<button type="submit" class="cb sp pg_ok_res" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to settings</button><input type="hidden" name="guid" value="{{ guid }}"></form>
+	<div class="description">
+		<div class="cl mts lsp sp"><div style="text-align:left">Yahan mehfil ke officers and mehfil owner ko unkey administrative actions ki history display hoti hai. Owner aur officers ke ilawa history koi nahi dekh sakta. Ye actions history mein save ho jatey hain:</div>
+		<ul style="display:inline-block;padding: 0;list-style:none">
+		    <li style="text-align:left">1. Kick out or unban</li>
+		    <li style="text-align:left">2. Invite or cancel invite</li>
+		    <li style="text-align:left">3. Hide or unhide</li>
+		    <li style="text-align:left">4. Topic change</li>
+		    <li style="text-align:left">5. Appoint or dismiss officer</li>
+		    <li style="text-align:left">6. Ownership transfer</li>
+		</ul>
+		</div>
+	</div>
+</div>

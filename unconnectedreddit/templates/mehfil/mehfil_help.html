@@ -3,7 +3,9 @@
 <head><title>Mehfil help | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
-{% include "mehfil/mehfil_help_topics.html" with section=section static_url=STATIC_URL guid=guid %}
+{% with "mehfil/help_topics/"|add:section as template %}
+	{% include template with section=section static_url=STATIC_URL guid=guid %}
+{% endwith %}
 
 <br><br>
 {% endblock %}

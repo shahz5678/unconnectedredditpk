@@ -8,6 +8,7 @@
 <script type="text/javascript">
 
 window.onload = function () {
+    if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]") return;//supported
     display = document.getElementById('secs');
     var duration = Number(display.innerHTML);
     (function foo(){
@@ -48,7 +49,7 @@ window.onload = function () {
     <div class="cs cgy sp lsp">wait and read for <span id="secs">{{ ttr }}</span> seconds</div>
     </div>
 
-    <div style="padding:8px;background-color:ivory;margin:0 auto;width:92%" class="bizcard mts mbs cl sp lsp">
+    <div style="padding:8px;background-color:ivory;margin:0 auto;width:92%" class="bizcard mts mbs cl sp lsp">       
         {% emoticons %}{{ rules|linebreaksbr }}{% endemoticons %}
     </div>
 

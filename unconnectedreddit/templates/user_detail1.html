@@ -143,17 +143,28 @@
       <b>Fans:</b>
       <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn bcg mrl" style="height:22px">&nbsp;{{ fans }}&nbsp;</button></a>
        {% if authenticated and not own_profile and allowed_fan %}
-        <form action="{% url 'fan' %}" method="POST" style="display:inline">
-        {% csrf_token %}
-        <input type="hidden" name="oid" value="0">
-        <input type="hidden" name="org" value="1">
-          {% if not_fan %}
-          <button type="submit" name="sid_btn" class="btn nw bcg bxl" style="height:22px" value="{{ subject_id }}">fan banein</button>
-          {% else %}
-          <button type="submit" name="sid_btn" class="btn nw bcr bxl" style="height:22px" value="{{ subject_id }}">fan khatm</button>
-          {% endif %}
-        </form>
+          <form action="{% url 'fan' %}" method="POST" style="display:inline">
+          {% csrf_token %}
+          <input type="hidden" name="oid" value="0">
+          <input type="hidden" name="org" value="4">
+             {% if not_fan %}
+                <button type="submit" class="wt" name="sid_btn" style="height:22px;border:1px solid #ffcd00" value="{{ subject_id }}">
+                <div class="fx fxjssb fxaicn">
+                  <div><img src="{{ STATIC_URL }}img/fan.svg" width="16" height="16" class="mrs" style="vertical-align:text-top"></div>
+                  <div class="co sp">fan</div>&nbsp;
+                </div>
+                </button>
+              {% else %}
+                <button type="submit" name="sid_btn" style="height:22px;border:1px solid #cdcdcd" class="wt" value="{{ subject_id }}">
+                <div class="fx fxjssb fxaicn">
+                  <div><img src="{{ STATIC_URL }}img/unfan.svg" width="16" height="16" class="mrs" style="vertical-align:text-top"></div>
+                  <div class="sp"><span class="cgy">unfan</span></div>&nbsp;
+                </div>
+                </button>
+              {% endif %}
+          </form>
         {% endif %}
+  
       <hr size=1 COLOR="#b3e6b3">
       <b>Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' slug %}"><button type="submit" class="btn nw bcg bm" style="height:22px">fotos</button></a>
                   
@@ -163,9 +174,11 @@
 
 <div class="mtl">
 {% for photo in object_list %}
-  <div class="bizcard mbl" style="background-color:white;padding:10px 7px;">
+
+   <div class="bizcard mbl" style="background-color:white;padding:10px 7px;">
       <a name="sectionJ">
       <a name="section{{ forloop.counter }}"></a>
+
 
       {% if not own_profile %}
         {% if time_remaining == '-2' or defender %}

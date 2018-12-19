@@ -594,13 +594,6 @@ def first_time_password_changer(user_id):
 	else:
 		return True
 
-def first_time_fan(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name,'4'):
-		return False
-	else:
-		return True
 
 def first_time_inbox_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -643,10 +636,6 @@ def add_inbox(user_id):
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '3')
 
-def add_fan(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '4')
 
 def add_password_change(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -947,12 +936,6 @@ def can_vote_on_photo(user_id):
 		pipeline1.execute()
 		return None, True
 
-def never_posted_photo(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.llen("phts:"+str(user_id)):
-		return False
-	else:
-		return True
 
 def get_recent_photos(user_id):
 	"""

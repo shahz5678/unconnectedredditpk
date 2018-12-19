@@ -762,6 +762,7 @@ class PhotoCommentForm(forms.Form):
 			org = 'home'
 		else:
 			org = 'best_photos'
+		# if more 'org' values are needed, ensure they match the values in return_to_content() in views.py
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
 		if secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('tip: sirf aik dafa button dabain')
@@ -849,9 +850,9 @@ class UnseenActivityForm(forms.Form):
 	def clean(self):
 		data, user_id = self.cleaned_data, self.user_id
 		origin, secret_key_from_form = data.get("origin"), data.get("sk")
-		if origin == '0':
+		if origin == '1':
 			org = 'fresh_photos'
-		elif origin == '1':
+		elif origin == '3':
 			org = 'home'
 		elif origin == '2':
 			org = 'best_photos'

@@ -69,8 +69,9 @@ from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo,
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
-from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, get_and_delete_text_input_key,\
-invalidate_avurl, retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials
+from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key,\
+invalidate_avurl, retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
+rate_limit_unfanned_user
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
@@ -89,7 +90,7 @@ video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, sa
 get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, first_time_refresher, add_refresher, \
 in_defenders, first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, check_photo_vote_ban, can_vote_on_photo, \
 add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, first_time_inbox_visitor, \
-first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
+add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
 add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, add_video,add_inbox,\
 voted_for_single_photo, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, set_inactives,\
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
@@ -258,7 +259,13 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		return redirect("comment_pk", obj_id)
 	elif origin == '12':
 		# originated from user's own fanlist 
-		return redirect("fan_list", obj_id)		
+		return redirect("fan_list", obj_id)
+	elif origin == '13':
+		# originated from user's own star list
+		return redirect("star_list")
+	elif origin == '14':
+		# originated from user's own unseen activity
+		return redirect("unseen_activity")			
 	else:
 		# take the voter to best photos by default
 		return redirect("best_photo")
@@ -584,7 +591,11 @@ class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
 
+
 def star_list(request, *args, **kwargs):
+	"""
+	Renders the list of users the given user is a fan of
+	"""
 	context = {}
 	pk = request.user.id
 	ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('-fanning_time')
@@ -603,6 +614,7 @@ def star_list(request, *args, **kwargs):
 		context["fan"] = User.objects.get(id=pk)
 		context["girls"] = FEMALES
 	return render(request,"star_list.html",context)
+
 
 def fan_list(request, pk=None, *args, **kwargs):
 	page_num = request.GET.get('page', '1')
@@ -5989,36 +6001,64 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		context = {'invitee':user, 'namaz':salat_timings['namaz']}
 		return render(request, 'salat_invite_error.html', context)
 
+
+@ratelimit(rate='3/s')
+def unfan(request):
+	"""
+	Unfans target user, provided target is provably a fan of own_id
+	"""
+	if getattr(request, 'limits', False):
+		raise Http404("You cannot unfan this person")
+	elif request.method == "POST":
+		own_id = request.user.id
+		dec = request.POST.get('dec',None)
+		target_user_id = request.POST.get('tuid',None)
+		if dec == '1':
+			if is_fan(own_id, target_user_id):
+				#target user is indeed a fan - remove
+				UserFan.objects.filter(fan_id=target_user_id, star_id=own_id).delete()
+				remove_from_photo_owner_activity(photo_owner_id=target_user_id, fan_id=own_id)
+				# remove own fandom as well (debatable)
+				UserFan.objects.filter(fan_id=own_id, star_id=target_user_id).delete()
+				remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_user_id)
+				rate_limit_unfanned_user(own_id=own_id,target_id=target_user_id)
+				return redirect("fan_list",pk=own_id)
+			else:
+				return redirect("fan_list",pk=own_id)
+		elif dec == '0':
+			return redirect("fan_list",pk=own_id)
+		else:
+			target_username = request.POST.get('tunm',None)
+			return render(request,"unfan.html",{'target_username':target_username,'target_user_id':target_user_id})
+	else:
+		raise Http404("Not a POST request")
+
+
 @ratelimit(rate='3/s')
 def fan(request,*args,**kwargs):
-	was_limited = getattr(request, 'limits', False)
-	user_id = request.user.id
-	if was_limited:
-		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-		# return redirect("best_photo")
-		return redirect("missing_page")
-	if request.method == "POST":
+	"""
+	Responsible for processing fanning and unfanning request
+	"""
+	if getattr(request, 'limits', False):
+		raise Http404("You cannot fan this person")
+	elif request.method == "POST":
+		user_id = request.user.id
 		origin, object_id, star_id = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None)
 		if int(user_id) == int(star_id):
-			# penalize this user - she's trying to fan herself!
-			UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-			return render(request,'penalty_fan.html',{'unique':request.user.username})
+			raise Http404("You cannot fan your own self")
 		else:
-			star = User.objects.get(id=star_id)
-			star_username = star.username
-			try:
+			star_username = retrieve_uname(star_id,decode=True)
+			if UserFan.objects.filter(fan_id=user_id, star_id=star_id).exists():
 				# allow unfanning even if never posted photo
 				UserFan.objects.get(fan_id=user_id, star_id=star_id).delete()
 				remove_from_photo_owner_activity(star_id, user_id)
-			except:
-				if never_posted_photo(user_id):
-					# show "please first upload at least 1 photo" to be eligible for becomming a fan
-					return render(request, 'fan_requirement.html', {'unique': request.user.username})
+			else:
+				# fan does not already exist
+				if not request.mobile_verified:
+					return render(request,'verification/unable_to_submit_without_verifying.html', {'fan':True})
 				else:
 					#if not shown tutorial of what 'fan' is, show tutorial
-					if first_time_fan(user_id):
-						# show fan tutorial first, then do the rest
-						add_fan(user_id) #adding fan tutorial flag
+					if tutorial_unseen(user_id=user_id, which_tut='13', renew_lease=True):
 						context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username}
 						return render(request, 'fan_tutorial.html', context)
 					else:
@@ -6029,37 +6069,90 @@ def fan(request,*args,**kwargs):
 							request.session["target_username"] = star_username
 							request.session["ban_time"] = ban_time
 							request.session.modified = True
-							return redirect("ban_underway") 
-						UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
-						add_to_photo_owner_activity(star_id, user_id, new=True)
-			"""
-			origin codes:
-				(un)fanned from starlist: '0'
-				(un)fanned from starprofile: '1'
-				(un)fanned from fresh photos: '2'
-				(un)fanned from best photos: '3'
-				(un)fanned from home: '4'
-			"""
-			if origin == '0':
-				return redirect("star_list")
-			elif origin == '1':
-				return redirect("profile", star_username)
-			elif origin == '2':
-				request.session["target_photo_id"] = object_id
-				request.session.modified = True
-				return redirect("photo_loc")
-			elif origin == '3':
-				request.session["target_best_photo_id"] = object_id
-				request.session.modified = True
-				return redirect("best_photo_loc")
-			elif origin == '4':
-				request.session['target_id'] = object_id
-				request.session.modified = True
-				return redirect("home_loc")
-			else:
-				return redirect("home")
+							return redirect("ban_underway")
+						elif is_potential_fan_rate_limited(star_id=star_id,own_id=user_id):
+							return render(request,'penalty_fan.html',{'rate_limited':True,'star_username':star_username,\
+								'origin':origin,'obid':object_id})
+						else:
+							UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
+							add_to_photo_owner_activity(star_id, user_id, new=True)
+			return return_to_content(request,origin,object_id,object_id,star_username)
 	else:
-		return redirect("missing_page")
+		raise Http404("Not a POST request")
+
+
+# @ratelimit(rate='3/s')
+# def fan(request,*args,**kwargs):
+# 	was_limited = getattr(request, 'limits', False)
+# 	user_id = request.user.id
+# 	if was_limited:
+# 		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
+# 		# return redirect("best_photo")
+# 		return redirect("missing_page")
+# 	if request.method == "POST":
+# 		origin, object_id, star_id = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None)
+# 		if int(user_id) == int(star_id):
+# 			# penalize this user - she's trying to fan herself!
+# 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
+# 			return render(request,'penalty_fan.html',{'unique':request.user.username})
+# 		else:
+# 			star = User.objects.get(id=star_id)
+# 			star_username = star.username
+# 			try:
+# 				# allow unfanning even if never posted photo
+# 				UserFan.objects.get(fan_id=user_id, star_id=star_id).delete()
+# 				remove_from_photo_owner_activity(star_id, user_id)
+# 			except:
+# 				if never_posted_photo(user_id):
+# 					# show "please first upload at least 1 photo" to be eligible for becomming a fan
+# 					return render(request, 'fan_requirement.html', {'unique': request.user.username})
+# 				else:
+# 					#if not shown tutorial of what 'fan' is, show tutorial
+# 					if first_time_fan(user_id):
+# 						# show fan tutorial first, then do the rest
+# 						add_fan(user_id) #adding fan tutorial flag
+# 						context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username}
+# 						return render(request, 'fan_tutorial.html', context)
+# 					else:
+# 						banned_by, ban_time = is_already_banned(own_id=user_id,target_id=star_id, return_banner=True)
+# 						if banned_by:
+# 							request.session["where_from"] = 'fan'
+# 							request.session["banned_by_yourself"] = banned_by == str(user_id)
+# 							request.session["target_username"] = star_username
+# 							request.session["ban_time"] = ban_time
+# 							request.session.modified = True
+# 							return redirect("ban_underway") 
+# 						UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
+# 						add_to_photo_owner_activity(star_id, user_id, new=True)
+# 			"""
+# 			origin codes:
+# 				(un)fanned from starlist: '0'
+# 				(un)fanned from starprofile: '1'
+# 				(un)fanned from fresh photos: '2'
+# 				(un)fanned from best photos: '3'
+# 				(un)fanned from home: '4'
+# 			"""
+# 			if origin == '0':
+# 				return redirect("star_list")
+# 			elif origin == '1':
+# 				return redirect("profile", star_username)
+# 			elif origin == '2':
+# 				request.session["target_photo_id"] = object_id
+# 				request.session.modified = True
+# 				return redirect("photo_loc")
+# 			elif origin == '3':
+# 				request.session["target_best_photo_id"] = object_id
+# 				request.session.modified = True
+# 				return redirect("best_photo_loc")
+# 			elif origin == '4':
+# 				request.session['target_id'] = object_id
+# 				request.session.modified = True
+# 				return redirect("home_loc")
+# 			else:
+# 				return redirect("home")
+# 	else:
+# 		return redirect("missing_page")
+
 
 class SalatTutorialView(FormView):
 	form_class = SalatTutorialForm

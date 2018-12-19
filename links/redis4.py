@@ -327,7 +327,7 @@ def rate_limit_unfanned_user(own_id,target_id):
     """
     Rate limit to ensure unfanned user doesn't refan the star immediately after
     """
-    redis.Redis(connection_pool=POOL).setex('rlf:'+str(own_id)+":"+str(target_id),'1',THREE_DAYS)
+    redis.Redis(connection_pool=POOL).setex('rlf:'+str(own_id)+":"+str(target_id),'1',TWO_WEEKS)
 
 
 def is_potential_fan_rate_limited(star_id,own_id):
@@ -864,12 +864,8 @@ def check_orders_processing(user_id,phone=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	user = my_server.zscore('ordersinprocess',user_id)
 	if user == None:
-		print "user = "
-		print user
 		if phone:
 			phonenumber = my_server.zscore('numbersinprocess',phone)
-			print "Phone = "
-			print phonenumber
 			if phonenumber:
 				return True
 			else:

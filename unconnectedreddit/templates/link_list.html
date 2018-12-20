@@ -31,7 +31,7 @@
 
 	{% include "verification/mobile_verification_bar.html" with is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True sk=sk %}	
+	{% notification_bar notification=process_notification origin='3' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True sk=sk %}
 {% endif %}
 
 {% for link in link_list %}
@@ -87,7 +87,7 @@
 	<a name="section{{ forloop.counter }}"></a>
 
 	<div style="display:inline-block">
-	{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=4 fan_list=fanned static_url=STATIC_URL %}
+	{% fan_button own_user_id=ident target_user_id=link.w object_id=link.l origin=3 fan_list=fanned static_url=STATIC_URL %}
 	</div>
 
 	<div style="display:inline-block">
@@ -96,7 +96,7 @@
 	
 
 		<div style="overflow:hidden"><b class="cl clb lsp"><bdi>{% emoticons %}<span itemprop="headline">{{ link.de }}</span>{% endemoticons %}</bdi></b>
-		{% block_button link.w link.n ident link.pi 'home:photo' STATIC_URL %}</div>
+		{% block_button link.w link.n ident link.pi '3' STATIC_URL %}</div>
 
 	    {% if not link.aw == '1' or not link.h|add:"0" > 5 %}
 	    <a href="{% url 'see_photo_pk' link.pi %}">
@@ -191,7 +191,7 @@
 				<a name="section{{ forloop.counter  }}"></a>
 			<span class="cs cgy mrs"><bdi>,<span itemprop="datePublished">{{ link.t|human_time }}</span></bdi></span>
 
-			{% block_button link.w link.n ident link.l 'home:link' STATIC_URL %}
+			{% block_button link.w link.n ident link.l '3' STATIC_URL %}
 
 			{% group_button ident link.w link.l 'link' 'home' link.n %}
 

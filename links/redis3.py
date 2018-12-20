@@ -10,7 +10,7 @@ from templatetags.s3 import get_s3_object
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
-from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
+from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT
 
 '''
 ##########Redis 3 Namespace##########
@@ -424,8 +424,8 @@ def ensure_removability(own_id, id_list, server):
 
 
 def delete_ban_target_credentials(own_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.delete('tc:'+str(own_id))
+	redis.Redis(connection_pool=POOL).delete('tc:'+str(own_id))
+
 
 def get_ban_target_credentials(own_id, username_only=False, id_only=False, destroy=False):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -453,13 +453,13 @@ def get_ban_target_credentials(own_id, username_only=False, id_only=False, destr
 			return credentials
 
 
-def save_ban_target_credentials(own_id, target_id, target_username, object_id=None, origin=None, id_only=False, username_only=False):
-	my_server = redis.Redis(connection_pool=POOL)
+def save_ban_target_credentials(own_id, target_id, target_username, id_only=False, username_only=False):
+	"""
+	Temporarily saves credentials of a target a user is intending to ban
+	"""
 	key = 'tc:'+str(own_id)
-	if object_id and origin:
-		mapping = {'target_id':target_id, 'target_username':target_username, 'object_id':object_id, 'origin':origin}
-	else:
-		mapping = {'target_id':target_id, 'target_username':target_username}
+	mapping = {'target_id':target_id, 'target_username':target_username}
+	my_server = redis.Redis(connection_pool=POOL)
 	my_server.hmset(key,mapping)
 	my_server.expire(key,FORTY_FIVE_MINS)
 
@@ -467,6 +467,7 @@ def save_ban_target_credentials(own_id, target_id, target_username, object_id=No
 def get_banned_users_count(own_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.zcard("bl:"+str(own_id))
+
 
 def get_banned_users(own_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -514,17 +515,36 @@ def remove_single_ban(own_id, target_id):
 	own_id = str(own_id)
 	if banned_by == own_id:
 		# remove ban
-		pipeline1 = my_server.pipeline()
-		pipeline1.delete(key_name)
-		pipeline1.zrem("bl:"+own_id,target_id)
-		pipeline1.setex("blrl:"+own_id+":"+target_id,'1',ONE_DAY)
-		pipeline1.execute()
-		return True
+		block_rl = "brl:"+str(own_id)+":"+str(target_id)
+		ttl = my_server.ttl(block_rl)
+		if ttl > 0:
+			return False, ttl
+		else:
+			pipeline1 = my_server.pipeline()
+			pipeline1.delete(key_name)
+			pipeline1.zrem("bl:"+own_id,target_id)
+			pipeline1.setex("blrl:"+own_id+":"+target_id,'1',USER_REBAN_ACTION_RATELIMIT)
+			pipeline1.execute()
+			return True, None
 	else:
 		# don't have the right to remove this ban, since you didn't place this ban
-		return False
+		return False, None
+
+
+def ratelimit_banner_from_unbanning_target(own_id,target_id):
+	"""
+	Can't unban someone immediately, so that no one bans in vain
+	"""
+	block_rate_limit = "brl:"+str(own_id)+":"+str(target_id) # set this key so that user can't immediately unblock the blocked target
+	redis.Redis(connection_pool=POOL).setex(block_rate_limit,'1',USER_UNBAN_ACTION_RATELIMIT)
+
 
 def is_already_banned(own_id, target_id, key_name=None, server=None, return_banner=False):
+	"""
+	Retrieves whether there's a block underway between own_id and target_id
+
+	Can optionally send the ID of the banner
+	"""
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
 	if not key_name:
@@ -548,7 +568,8 @@ def is_already_banned(own_id, target_id, key_name=None, server=None, return_bann
 			# key exists but has no associated expire time
 			return False
 
-def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban, recent_joiner):
+
+def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban):
 	"""
 	Bans a given target user by setting relevant data in redis
 	"""
@@ -562,24 +583,20 @@ def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_un
 		existing_ttl = is_already_banned(own_id=own_id, target_id=target_id, key_name=key_name, server=my_server)
 		if existing_ttl is None or existing_ttl is False or can_unban == '1':
 			pipeline1 = my_server.pipeline()
-			# a 'solitary' key, to help make quick decision on whether an interaction is to be allowed or not
+			# a key to help make quick decision on whether an interaction is to be allowed or not
 			pipeline1.setex(key_name,own_id,ttl)
 			# combined with 'solitary' keys above, this helps populate a list of all banned people for the user to see
 			pipeline1.zadd("bl:"+str(own_id),target_id, time_now)
 			# only add to the global list if it was NOT a re-ban
-			if not can_unban and recent_joiner:
-				#if list consistently shows ugly nicks, can 'auto-ban' top 10 from this list. Trim and update a copy of this list after every 5 mins
-				#pipeline1.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
-				pipeline1.zincrby("malicious_user_list",target_id,amount=1)
 			pipeline1.execute()
 			return True, None
 		else:
 			return False, None
 
 
-def get_global_ban_leaderboard():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("global_inter_user_ban_list",-50,-1,withscores=True)
+# def get_global_ban_leaderboard():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.zrange("global_inter_user_ban_list",-50,-1,withscores=True)
 
 ########################################################################################################
 # def populate_ad_list(which_list="photos"):
@@ -2122,3 +2139,4 @@ def invalid_rules_logger(banned_word,rules):
 	myserver = redis.Redis(connection_pool=POOL)
 	myserver.lpush("invalid_rules",rules+":"+banned_word)
 	myserver.ltrim("invalid_rules",0,999)	
+

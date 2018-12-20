@@ -69,8 +69,9 @@ from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo,
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
 Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
-from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, get_and_delete_text_input_key,\
-invalidate_avurl, retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials
+from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key,\
+invalidate_avurl, retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
+rate_limit_unfanned_user
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, retire_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
@@ -89,13 +90,13 @@ video_uploaded_too_soon, add_vote_to_video, voted_for_video, get_video_votes, sa
 get_recent_videos, get_photo_votes, voted_for_photo, add_vote_to_photo, first_time_refresher, add_refresher, \
 in_defenders, first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, check_photo_vote_ban, can_vote_on_photo, \
 add_home_link, update_cc_in_home_photo, retrieve_home_links, add_vote_to_link, first_time_inbox_visitor, \
-first_time_fan, add_fan, never_posted_photo, add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
+add_photo_entry, add_photo_comment, retrieve_photo_posts, first_time_password_changer, \
 add_password_change, voted_for_photo_qs, voted_for_link, add_home_replier, can_vote_on_link, add_video,add_inbox,\
 voted_for_single_photo, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, set_inactives,\
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, update_comment_in_home_link, first_time_home_replier, \
 get_link_writer, get_photo_owner, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, \
-in_defenders,website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts
+website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts
 #, set_prev_retorts
 from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, invalidate_cached_mehfil_pages
@@ -183,6 +184,91 @@ def get_addendum(index,objs_per_page):
 def convert_to_epoch(time):
 	#time = pytz.utc.localize(time)
 	return (time-datetime(1970,1,1)).total_seconds()
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def redirect_to_content(request):
+	"""
+	Helper function for return_to_content()
+	"""
+	orig = request.POST.get("orig",None)
+	obid = request.POST.get("obid",None)
+	oun = request.POST.get("oun",None)
+	lid = request.POST.get("lid",None)
+	return return_to_content(request,orig,obid,lid,oun)
+
+
+def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None):
+	"""
+	Decides where to redirect user to
+
+	This is merely a redirect view and needs no url pattern (request is passed from other views, e.g. redirect_to_content())
+	"""
+	if origin == '1':
+		# originated from taza photos page
+		request.session["target_photo_id"] = obj_id
+		request.modified = True
+		return redirect("photo_loc")
+	elif origin == '2':
+		# originated from best photos page
+		request.session["target_best_photo_id"] = obj_id
+		request.modified = True
+		return redirect("best_photo_loc")
+	elif origin == '3':
+		# originated from home
+		request.session["target_id"] = link_id
+		request.modified = True
+		return redirect("home_loc")
+	elif origin == '4':
+		# originated from user profile
+		request.session["photograph_id"] = obj_id
+		request.modified = True
+		return redirect("profile", target_uname)
+	elif origin == '5':
+		# originated from photo detail
+		return redirect("photo_detail", obj_id)
+	elif origin == '6':
+		# originated from 'cull_content' (a defender view)
+		if in_defenders(request.user.id):
+			return redirect("cull_content")
+		else:
+			return redirect("best_photo")
+	elif origin == '7':
+		# originated from shared photos page
+		if target_uname:
+			return redirect("show_shared_photo_metrics", target_uname)
+		else:
+			return redirect("best_photo")
+	elif origin == '8':
+		# originated from home history
+		if target_uname:
+			return redirect("user_activity", target_uname)
+		else:
+			return redirect("home")
+	elif origin == '9':
+		# originated from a publicreply
+		request.session["link_pk"] = obj_id
+		request.modified = True
+		return redirect("publicreply_view")
+	elif origin == '10':
+		# originated from user profile (About page)
+		return redirect("user_profile", target_uname)
+	elif origin == '11':
+		# originated from comments page
+		return redirect("comment_pk", obj_id)
+	elif origin == '12':
+		# originated from user's own fanlist 
+		return redirect("fan_list", obj_id)
+	elif origin == '13':
+		# originated from user's own star list
+		return redirect("star_list")
+	elif origin == '14':
+		# originated from user's own unseen activity
+		return redirect("unseen_activity")			
+	else:
+		# take the voter to best photos by default
+		return redirect("best_photo")
 
 
 def return_to_photo(request,origin,photo_id=None,link_id=None,target_uname=None):
@@ -505,7 +591,11 @@ class ScoreHelpView(FormView):
 	form_class = ScoreHelpForm
 	template_name = "score_help.html"
 
+
 def star_list(request, *args, **kwargs):
+	"""
+	Renders the list of users the given user is a fan of
+	"""
 	context = {}
 	pk = request.user.id
 	ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('-fanning_time')
@@ -524,6 +614,7 @@ def star_list(request, *args, **kwargs):
 		context["fan"] = User.objects.get(id=pk)
 		context["girls"] = FEMALES
 	return render(request,"star_list.html",context)
+
 
 def fan_list(request, pk=None, *args, **kwargs):
 	page_num = request.GET.get('page', '1')
@@ -4821,309 +4912,318 @@ class WelcomeMessageView(CreateView):
 @csrf_protect
 @ratelimit(rate='3/s')
 def unseen_group(request, pk=None, *args, **kwargs):
+	"""
+	Handles replying to a mehfil message from a single notification or from unseen activity
+	"""
 	was_limited = getattr(request,'limits',False)
 	if was_limited:
-		return redirect("missing_page")
+		raise Http404("Not so fast!")
 	elif request.user_banned:
 		return redirect("error")
-	username = request.user.username
-	user_id = request.user.id
-	grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
-	if not check_group_member(pk, username):
-		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
-	elif not request.mobile_verified and not grp["private"] == '1':
-		return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_verified':True})
 	else:
-		if request.method == 'POST':
-			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-			if grp["private"] == '1':
-				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='',per_grp_id='')
-			else:
-				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='',per_grp_id='')
-			if form.is_valid():
-				desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
-				description = desc1 if desc1 else desc2
-				groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description)#,image='')
-				reply_time = convert_to_epoch(groupreply.submitted_on)
-				invalidate_cached_mehfil_replies(pk)
-				invalidate_cached_mehfil_pages(user_id)
-				group_attendance_tasks.delay(group_id=pk, user_id=user_id, time_now=reply_time)
-				if grp["private"] == '1':
-					set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
-					priority='priv_mehfil'
-					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
-				else:
-					set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
-					priority='public_mehfil'
-					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-					rank_public_groups.delay(group_id=pk,writer_id=user_id)
-					# public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
-				#######################################################
-				try:
-					image_url = groupreply.image.url
-				except ValueError:
-					image_url = None
-				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-				save_group_submission(writer_id=user_id, group_id=pk, text=description, image=image_url, posting_time=reply_time,\
-					writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_score=request.user.userprofile.score,category='0',\
-					writer_uname=own_uname,save_latest_submission=True)
-				#######################################################
-				group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],topic=grp["topic"],\
-					reply_time=reply_time,poster_url=own_avurl, poster_username=username,reply_text=description,priv=grp["private"], \
-					slug=grp["unique"],image_url=image_url,priority=priority,from_unseen=True, reply_id=groupreply.id)
-				if origin:
-					if origin == '0':
-						return redirect("photo")
-					elif origin == '1':
-						if lang == 'urdu' and sort_by == 'best':
-							return redirect("ur_home_best", 'urdu')
-						elif sort_by == 'best':
-							return redirect("home_best")
-						elif lang == 'urdu':
-							return redirect("ur_home", 'urdu')
-						else:
-							return redirect("home")
-					elif origin == '2':
-						return redirect("best_photo")
-					else:
-						return redirect("unseen_activity", username)
-				else:
-					return redirect("unseen_activity", username)
-			else:
-				if origin:
-					request.session["notif_form"] = form
-					request.session.modified = True
-					if origin == '0':
-						return redirect("photo")
-					elif origin == '1':
-						if lang == 'urdu' and sort_by == 'best':
-							return redirect("ur_home_best", 'urdu')
-						elif sort_by == 'best':
-							return redirect("home_best")
-						elif lang == 'urdu':
-							return redirect("ur_home", 'urdu')
-						else:
-							return redirect("home")
-					elif origin == '2':
-						return redirect("best_photo")
-					else:
-						return redirect("unseen_activity", username)
-				else:
-					notification = "np:"+str(user_id)+":3:"+str(pk)
-					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-					url = reverse_lazy("unseen_activity", args=[username])+addendum
-					forms[pk] = form
-					request.session["forms"] = forms
-					request.session["oblist"] = oblist
-					request.session["page_obj"] = page_obj
-					request.session.modified = True
-					return redirect(url)
+		user_id = request.user.id
+		username = retrieve_uname(user_id,decode=True)#request.user.username
+		grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
+		if not check_group_member(pk, username):# legacy redis 1 functionality (to be replaced)
+			return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
+		elif not request.mobile_verified and not grp["private"] == '1':
+			return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_verified':True})
 		else:
-			return redirect("unseen_activity", username)
+			if request.method == 'POST':
+				origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
+				if grp["private"] == '1':
+					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='',per_grp_id='')
+				else:
+					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='',per_grp_id='')
+				if form.is_valid():
+					desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
+					description = desc1 if desc1 else desc2
+					groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description)#,image='')
+					reply_time = convert_to_epoch(groupreply.submitted_on)
+					invalidate_cached_mehfil_replies(pk)
+					invalidate_cached_mehfil_pages(user_id)
+					group_attendance_tasks.delay(group_id=pk, user_id=user_id, time_now=reply_time)
+					if grp["private"] == '1':
+						set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
+						priority='priv_mehfil'
+						UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
+					else:
+						set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
+						priority='public_mehfil'
+						UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+						rank_public_groups.delay(group_id=pk,writer_id=user_id)
+						# public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
+					#######################################################
+					try:
+						image_url = groupreply.image.url
+					except ValueError:
+						image_url = None
+					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
+					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=image_url, posting_time=reply_time,\
+						writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_score=request.user.userprofile.score,category='0',\
+						writer_uname=own_uname,save_latest_submission=True)
+					#######################################################
+					group_notification_tasks.delay(group_id=pk,sender_id=user_id, group_owner_id=grp["owner_id"],topic=grp["topic"],\
+						reply_time=reply_time,poster_url=own_avurl, poster_username=username,reply_text=description,priv=grp["private"], \
+						slug=grp["unique"],image_url=image_url,priority=priority,from_unseen=True, reply_id=groupreply.id)
+					if origin:
+						if origin == '1':
+							return redirect("photo")
+						elif origin == '3':
+							if lang == 'urdu' and sort_by == 'best':
+								return redirect("ur_home_best", 'urdu')
+							elif sort_by == 'best':
+								return redirect("home_best")
+							elif lang == 'urdu':
+								return redirect("ur_home", 'urdu')
+							else:
+								return redirect("home")
+						elif origin == '2':
+							return redirect("best_photo")
+						else:
+							return redirect("unseen_activity", username)
+					else:
+						return redirect("unseen_activity", username)
+				else:
+					if origin:
+						request.session["notif_form"] = form
+						request.session.modified = True
+						if origin == '1':
+							return redirect("photo")
+						elif origin == '3':
+							if lang == 'urdu' and sort_by == 'best':
+								return redirect("ur_home_best", 'urdu')
+							elif sort_by == 'best':
+								return redirect("home_best")
+							elif lang == 'urdu':
+								return redirect("ur_home", 'urdu')
+							else:
+								return redirect("home")
+						elif origin == '2':
+							return redirect("best_photo")
+						else:
+							return redirect("unseen_activity", username)
+					else:
+						notification = "np:"+str(user_id)+":3:"+str(pk)
+						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
+						url = reverse_lazy("unseen_activity", args=[username])+addendum
+						forms[pk] = form
+						request.session["forms"] = forms
+						request.session["oblist"] = oblist
+						request.session["page_obj"] = page_obj
+						request.session.modified = True
+						return redirect(url)
+			else:
+				return redirect("unseen_activity", username)
+
 
 #called when replying from unseen_activity
 @csrf_protect
 @ratelimit(rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	"""
-	Processes comment under photo from unseen activity
+	Processes comment under photo from unseen activity (or single notification)
 	"""
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-100)
-		# return render(request, 'penalty_unseen_comment.html', {'penalty':100,'uname':username})
-		return redirect("missing_page")
+		raise Http404("Not so fast!")
 	elif request.user_banned:
-		return render(request,"500.html",{})
-	username = request.user.username
-	user_id = request.user.id
-	if request.method == 'POST':
-		photo_owner_id, origin = request.POST.get("popk",None), request.POST.get("origin",None)
-		banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
-		if banned_by:
-			request.session["banned_by"] = banned_by
-			request.session["ban_time"] = ban_time
-			if origin == '1':
-				request.session["where_from"] = 'home'
-			elif origin == '0':
-				request.session["where_from"] = 'photos'
-			elif origin == '2':
-				request.session["where_from"] = 'best_photos'
-			else:
-				request.session["where_from"] = 'matka'
-			request.session["own_uname"] = username
-			request.session.modified = True
-			return redirect("ban_underway")
-		lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-		form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk,per_grp_id='')
-		if form.is_valid():
-			photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
-			description = form.cleaned_data.get("photo_comment")
-			set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time.time())
-			if request.is_feature_phone:
-				device = '1'
-			elif request.is_phone:
-				device = '2'
-			elif request.is_tablet:
-				device = '4'
-			elif request.is_mobile:
-				device = '5'
-			else:
-				device = '3'
-			exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
-			photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo_id=pk, text=description,device=device)
-			# reset_best_photos_cache.delay(pk)
-			update_cc_in_home_photo(pk)
-			comment_time = convert_to_epoch(photocomment.submitted_on)
-			try:
-				url = request.user.userprofile.avatar.url
-			except ValueError:
-				url = None
-			citizen = request.mobile_verified
-			add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
-				latest_comm_av_url=url,latest_comm_writer_uname=username, exists=exists, citizen = citizen,time=comment_time)
-			unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
-				username, url, citizen)
-			if user_id != photo_owner_id:
-				home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_owner_id=photo_owner_id,photo_id=pk)
-			if origin:
-				if origin == '0':
-					return redirect("photo")
-				elif origin == '1':
-					if lang == 'urdu' and sort_by == 'best':
-						return redirect("ur_home_best", 'urdu')
-					elif sort_by == 'best':
-						return redirect("home_best")
-					elif lang == 'urdu':
-						return redirect("ur_home", 'urdu')
-					else:
-						return redirect("home")
-				elif origin == '2':
-					return redirect("best_photo")
-				else:
-					return redirect("best_photo")
-			else:
-				return redirect("unseen_activity", username)
-		else:
-			if origin:
-				request.session["notif_form"] = form
-				request.session.modified = True
-				if origin == '0':
-					return redirect("photo")
-				elif origin == '1':
-					if lang == 'urdu' and sort_by == 'best':
-						return redirect("ur_home_best", 'urdu')
-					elif sort_by == 'best':
-						return redirect("home_best")
-					elif lang == 'urdu':
-						return redirect("ur_home", 'urdu')
-					else:
-						return redirect("home")
-				elif origin == '2':
-					return redirect("best_photo")
-				else:
-					return redirect("best_photo")
-			else:
-				notification = "np:"+str(request.user.id)+":0:"+str(pk)
-				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-				url = reverse_lazy("unseen_activity", args=[username])+addendum
-				forms[pk] = form
-				request.session["forms"] = forms
-				request.session["oblist"] = oblist
-				request.session["page_obj"] = page_obj
-				request.session.modified = True
-				return redirect(url)
+		return redirect("error")
 	else:
-		return redirect("unseen_activity", username)
+		username = request.user.username
+		user_id = request.user.id
+		if request.method == 'POST':
+			photo_owner_id, origin = request.POST.get("popk",None), request.POST.get("origin",None)
+			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
+			if banned_by:
+				request.session["banned_by"] = banned_by
+				request.session["ban_time"] = ban_time
+				if origin == '3':
+					request.session["where_from"] = 'home'
+				elif origin == '1':
+					request.session["where_from"] = 'photos'
+				elif origin == '2':
+					request.session["where_from"] = 'best_photos'
+				else:
+					request.session["where_from"] = 'matka'
+				request.session["own_uname"] = username
+				request.session.modified = True
+				return redirect("ban_underway")
+			else:
+				lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
+				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk,per_grp_id='')
+				if form.is_valid():
+					photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
+					description = form.cleaned_data.get("photo_comment")
+					set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time.time())
+					if request.is_feature_phone:
+						device = '1'
+					elif request.is_phone:
+						device = '2'
+					elif request.is_tablet:
+						device = '4'
+					elif request.is_mobile:
+						device = '5'
+					else:
+						device = '3'
+					exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
+					photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo_id=pk, text=description,device=device)
+					update_cc_in_home_photo(pk)
+					comment_time = convert_to_epoch(photocomment.submitted_on)
+					try:
+						url = request.user.userprofile.avatar.url
+					except ValueError:
+						url = None
+					citizen = request.mobile_verified
+					add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
+						latest_comm_av_url=url,latest_comm_writer_uname=username, exists=exists, citizen = citizen,time=comment_time)
+					unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
+						username, url, citizen)
+					if user_id != photo_owner_id:
+						home_photo_tasks.delay(text=description, replier_id=user_id, time=comment_time, photo_owner_id=photo_owner_id,photo_id=pk)
+					if origin:
+						if origin == '1':
+							return redirect("photo")
+						elif origin == '3':
+							if lang == 'urdu' and sort_by == 'best':
+								return redirect("ur_home_best", 'urdu')
+							elif sort_by == 'best':
+								return redirect("home_best")
+							elif lang == 'urdu':
+								return redirect("ur_home", 'urdu')
+							else:
+								return redirect("home")
+						elif origin == '2':
+							return redirect("best_photo")
+						else:
+							return redirect("best_photo")
+					else:
+						return redirect("unseen_activity", username)
+				else:
+					if origin:
+						request.session["notif_form"] = form
+						request.session.modified = True
+						if origin == '1':
+							return redirect("photo")
+						elif origin == '3':
+							if lang == 'urdu' and sort_by == 'best':
+								return redirect("ur_home_best", 'urdu')
+							elif sort_by == 'best':
+								return redirect("home_best")
+							elif lang == 'urdu':
+								return redirect("ur_home", 'urdu')
+							else:
+								return redirect("home")
+						elif origin == '2':
+							return redirect("best_photo")
+						else:
+							return redirect("best_photo")
+					else:
+						notification = "np:"+str(request.user.id)+":0:"+str(pk)
+						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
+						url = reverse_lazy("unseen_activity", args=[username])+addendum
+						forms[pk] = form
+						request.session["forms"] = forms
+						request.session["oblist"] = oblist
+						request.session["page_obj"] = page_obj
+						request.session.modified = True
+						return redirect(url)
+		else:
+			return redirect("unseen_activity", username)
+
 
 #called when replying from unseen_activity
 @csrf_protect
 @ratelimit(rate='3/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
+	"""
+	Handles replying as a 'jawab' from a single notification or from unseen activity
+	"""
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		# UserProfile.objects.filter(user_id=own_id).update(score=F('score')-100)
-		# return render(request, 'penalty_publicreply.html', {'penalty':100,'uname':own_uname})
-		return redirect("missing_page")
+		raise Http404("Not so fast!")
 	elif request.user_banned:
-		return render(request,"500.html",{})
-	own_id = request.user.id
-	own_uname = request.user.username
-	if request.method == 'POST':
-		link_writer_id, origin = request.POST.get("lwpk",None), request.POST.get("origin",None)
-		banned_by, ban_time = is_already_banned(own_id=own_id,target_id=link_writer_id, return_banner=True)
-		if banned_by:
-			request.session["banned_by"] = banned_by
-			request.session["ban_time"] = ban_time
-			if origin == '1':
-				request.session["where_from"] = 'home'
-			elif origin == '0':
-				request.session["where_from"] = 'photos'
-			elif origin == '2':
-				request.session["where_from"] = 'best_photos'
-			else:
-				request.session["where_from"] = 'matka'
-			request.session["own_uname"] = own_uname
-			request.session.modified = True
-			return redirect("ban_underway")
-		lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
-		form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='',per_grp_id='')
-		if form.is_valid():
-			text = form.cleaned_data.get("home_comment")
-			target = process_publicreply(request=request,link_id=pk,text=text,origin=origin if origin else 'from_unseen',\
-				link_writer_id=link_writer_id)
-			set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=own_id,time_now=time.time())
-			if target == ":":
-				return redirect("ban_underway")
-			elif origin:
-				if origin == '0':
-					return redirect("photo")
-				elif origin == '1':
-					if lang == 'urdu' and sort_by == 'best':
-						return redirect("ur_home_best", 'urdu')
-					elif sort_by == 'best':
-						return redirect("home_best")
-					elif lang == 'urdu':
-						return redirect("ur_home", 'urdu')
-					else:
-						return redirect("home")
-				elif origin == '2':
-					return redirect("best_photo")
-				else:
-					return redirect("home")
-			else:
-				return redirect("unseen_activity", own_uname)
-		else:
-			if origin:
-				request.session["notif_form"] = form
-				request.session.modified = True
-				if origin == '0':
-					return redirect("photo")
-				elif origin == '1':
-					if lang == 'urdu' and sort_by == 'best':
-						return redirect("ur_home_best", 'urdu')
-					elif sort_by == 'best':
-						return redirect("home_best")
-					elif lang == 'urdu':
-						return redirect("ur_home", 'urdu')
-					else:
-						return redirect("home")
-				elif origin == '2':
-					return redirect("best_photo")
-				else:
-					return redirect("home")
-			else:
-				notification = "np:"+str(own_id)+":2:"+str(pk)
-				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-				url = reverse_lazy("unseen_activity", args=[own_uname,])+addendum
-				forms[pk] = form
-				request.session["forms"] = forms
-				request.session["oblist"] = oblist
-				request.session["page_obj"] = page_obj
-				request.session.modified = True
-				return redirect(url)
+		return redirect("error")
 	else:
-		return redirect("unseen_activity", own_uname)
+		own_id = request.user.id
+		own_uname = request.user.username
+		if request.method == 'POST':
+			link_writer_id, origin = request.POST.get("lwpk",None), request.POST.get("origin",None)
+			banned_by, ban_time = is_already_banned(own_id=own_id,target_id=link_writer_id, return_banner=True)
+			if banned_by:
+				request.session["banned_by"] = banned_by
+				request.session["ban_time"] = ban_time
+				if origin == '3':
+					request.session["where_from"] = 'home'
+				elif origin == '1':
+					request.session["where_from"] = 'photos'
+				elif origin == '2':
+					request.session["where_from"] = 'best_photos'
+				else:
+					request.session["where_from"] = 'matka'
+				request.session["own_uname"] = own_uname
+				request.session.modified = True
+				return redirect("ban_underway")
+			else:
+				lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
+				form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='',per_grp_id='')
+				if form.is_valid():
+					text = form.cleaned_data.get("home_comment")
+					target = process_publicreply(request=request,link_id=pk,text=text,origin=origin if origin else 'from_unseen',\
+						link_writer_id=link_writer_id)
+					set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=own_id,time_now=time.time())
+					if target == ":":
+						return redirect("ban_underway")
+					elif origin:
+						if origin == '1':
+							return redirect("photo")
+						elif origin == '3':
+							if lang == 'urdu' and sort_by == 'best':
+								return redirect("ur_home_best", 'urdu')
+							elif sort_by == 'best':
+								return redirect("home_best")
+							elif lang == 'urdu':
+								return redirect("ur_home", 'urdu')
+							else:
+								return redirect("home")
+						elif origin == '2':
+							return redirect("best_photo")
+						else:
+							return redirect("home")
+					else:
+						return redirect("unseen_activity", own_uname)
+				else:
+					if origin:
+						request.session["notif_form"] = form
+						request.session.modified = True
+						if origin == '1':
+							return redirect("photo")
+						elif origin == '3':
+							if lang == 'urdu' and sort_by == 'best':
+								return redirect("ur_home_best", 'urdu')
+							elif sort_by == 'best':
+								return redirect("home_best")
+							elif lang == 'urdu':
+								return redirect("ur_home", 'urdu')
+							else:
+								return redirect("home")
+						elif origin == '2':
+							return redirect("best_photo")
+						else:
+							return redirect("home")
+					else:
+						notification = "np:"+str(own_id)+":2:"+str(pk)
+						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
+						url = reverse_lazy("unseen_activity", args=[own_uname,])+addendum
+						forms[pk] = form
+						request.session["forms"] = forms
+						request.session["oblist"] = oblist
+						request.session["page_obj"] = page_obj
+						request.session.modified = True
+						return redirect(url)
+		else:
+			return redirect("unseen_activity", own_uname)
+
 
 def get_object_list_and_forms(request, notif=None):
 	notifications = retrieve_unseen_notifications(request.user.id)
@@ -5669,7 +5769,7 @@ def welcome_reply(request,*args,**kwargs):
 def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_by=None, *args,**kwargs):
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
 		bump_ua=False)
-	if from_home == '1':
+	if from_home == '3':
 		if lang == 'urdu' and sort_by == 'best':
 			return redirect("ur_home_best", 'urdu')
 		elif sort_by == 'best':
@@ -5680,15 +5780,14 @@ def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	# elif from_home == '5':
-	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
+
 
 def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=usr, object_id=pk, object_type='0',seen=True, unseen_activity=True,\
 		single_notif=False,bump_ua=False)
-	if from_home == '1':
+	if from_home == '3':
 		if lang == 'urdu' and sort_by == 'best':
 			return redirect("ur_home_best", 'urdu')
 		elif sort_by == 'best':
@@ -5699,17 +5798,16 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	# elif from_home == '5':
-	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
+
 
 def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=None, *args, **kwargs):
 	notif_name = "np:"+user+":"+pk.split(":",1)[1]
 	hash_name = pk
 	viewer_id = user
 	delete_salat_notification(notif_name,hash_name,viewer_id)
-	if from_home == '1':
+	if from_home == '3':
 		if lang == 'urdu' and sort_by == 'best':
 			return redirect("ur_home_best", 'urdu')
 		elif sort_by == 'best':
@@ -5720,15 +5818,14 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, so
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	# elif from_home == '5':
-	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
+
 
 def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=user, object_id=pk, object_type='2',seen=True, unseen_activity=True,\
 		single_notif=False, bump_ua=False)
-	if from_home == '1':
+	if from_home == '3':
 		if lang == 'urdu' and sort_by == 'best':
 			return redirect("ur_home_best", 'urdu')
 		elif sort_by == 'best':
@@ -5739,8 +5836,6 @@ def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=
 			return redirect("home")
 	elif from_home == '2':
 		return redirect("best_photo")
-	# elif from_home == '5':
-	# 	return redirect("see_special_photo")
 	else:
 		return redirect("photo")
 
@@ -5906,36 +6001,64 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		context = {'invitee':user, 'namaz':salat_timings['namaz']}
 		return render(request, 'salat_invite_error.html', context)
 
+
+@ratelimit(rate='3/s')
+def unfan(request):
+	"""
+	Unfans target user, provided target is provably a fan of own_id
+	"""
+	if getattr(request, 'limits', False):
+		raise Http404("You cannot unfan this person")
+	elif request.method == "POST":
+		own_id = request.user.id
+		dec = request.POST.get('dec',None)
+		target_user_id = request.POST.get('tuid',None)
+		if dec == '1':
+			if is_fan(own_id, target_user_id):
+				#target user is indeed a fan - remove
+				UserFan.objects.filter(fan_id=target_user_id, star_id=own_id).delete()
+				remove_from_photo_owner_activity(photo_owner_id=target_user_id, fan_id=own_id)
+				# remove own fandom as well (debatable)
+				UserFan.objects.filter(fan_id=own_id, star_id=target_user_id).delete()
+				remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_user_id)
+				rate_limit_unfanned_user(own_id=own_id,target_id=target_user_id)
+				return redirect("fan_list",pk=own_id)
+			else:
+				return redirect("fan_list",pk=own_id)
+		elif dec == '0':
+			return redirect("fan_list",pk=own_id)
+		else:
+			target_username = request.POST.get('tunm',None)
+			return render(request,"unfan.html",{'target_username':target_username,'target_user_id':target_user_id})
+	else:
+		raise Http404("Not a POST request")
+
+
 @ratelimit(rate='3/s')
 def fan(request,*args,**kwargs):
-	was_limited = getattr(request, 'limits', False)
-	user_id = request.user.id
-	if was_limited:
-		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-		# return redirect("best_photo")
-		return redirect("missing_page")
-	if request.method == "POST":
+	"""
+	Responsible for processing fanning and unfanning request
+	"""
+	if getattr(request, 'limits', False):
+		raise Http404("You cannot fan this person")
+	elif request.method == "POST":
+		user_id = request.user.id
 		origin, object_id, star_id = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None)
 		if int(user_id) == int(star_id):
-			# penalize this user - she's trying to fan herself!
-			UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-			return render(request,'penalty_fan.html',{'unique':request.user.username})
+			raise Http404("You cannot fan your own self")
 		else:
-			star = User.objects.get(id=star_id)
-			star_username = star.username
-			try:
+			star_username = retrieve_uname(star_id,decode=True)
+			if UserFan.objects.filter(fan_id=user_id, star_id=star_id).exists():
 				# allow unfanning even if never posted photo
 				UserFan.objects.get(fan_id=user_id, star_id=star_id).delete()
 				remove_from_photo_owner_activity(star_id, user_id)
-			except:
-				if never_posted_photo(user_id):
-					# show "please first upload at least 1 photo" to be eligible for becomming a fan
-					return render(request, 'fan_requirement.html', {'unique': request.user.username})
+			else:
+				# fan does not already exist
+				if not request.mobile_verified:
+					return render(request,'verification/unable_to_submit_without_verifying.html', {'fan':True})
 				else:
 					#if not shown tutorial of what 'fan' is, show tutorial
-					if first_time_fan(user_id):
-						# show fan tutorial first, then do the rest
-						add_fan(user_id) #adding fan tutorial flag
+					if tutorial_unseen(user_id=user_id, which_tut='13', renew_lease=True):
 						context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username}
 						return render(request, 'fan_tutorial.html', context)
 					else:
@@ -5946,37 +6069,90 @@ def fan(request,*args,**kwargs):
 							request.session["target_username"] = star_username
 							request.session["ban_time"] = ban_time
 							request.session.modified = True
-							return redirect("ban_underway") 
-						UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
-						add_to_photo_owner_activity(star_id, user_id, new=True)
-			"""
-			origin codes:
-				(un)fanned from starlist: '0'
-				(un)fanned from starprofile: '1'
-				(un)fanned from fresh photos: '2'
-				(un)fanned from best photos: '3'
-				(un)fanned from home: '4'
-			"""
-			if origin == '0':
-				return redirect("star_list")
-			elif origin == '1':
-				return redirect("profile", star_username)
-			elif origin == '2':
-				request.session["target_photo_id"] = object_id
-				request.session.modified = True
-				return redirect("photo_loc")
-			elif origin == '3':
-				request.session["target_best_photo_id"] = object_id
-				request.session.modified = True
-				return redirect("best_photo_loc")
-			elif origin == '4':
-				request.session['target_id'] = object_id
-				request.session.modified = True
-				return redirect("home_loc")
-			else:
-				return redirect("home")
+							return redirect("ban_underway")
+						elif is_potential_fan_rate_limited(star_id=star_id,own_id=user_id):
+							return render(request,'penalty_fan.html',{'rate_limited':True,'star_username':star_username,\
+								'origin':origin,'obid':object_id})
+						else:
+							UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
+							add_to_photo_owner_activity(star_id, user_id, new=True)
+			return return_to_content(request,origin,object_id,object_id,star_username)
 	else:
-		return redirect("missing_page")
+		raise Http404("Not a POST request")
+
+
+# @ratelimit(rate='3/s')
+# def fan(request,*args,**kwargs):
+# 	was_limited = getattr(request, 'limits', False)
+# 	user_id = request.user.id
+# 	if was_limited:
+# 		# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
+# 		# return redirect("best_photo")
+# 		return redirect("missing_page")
+# 	if request.method == "POST":
+# 		origin, object_id, star_id = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None)
+# 		if int(user_id) == int(star_id):
+# 			# penalize this user - she's trying to fan herself!
+# 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
+# 			return render(request,'penalty_fan.html',{'unique':request.user.username})
+# 		else:
+# 			star = User.objects.get(id=star_id)
+# 			star_username = star.username
+# 			try:
+# 				# allow unfanning even if never posted photo
+# 				UserFan.objects.get(fan_id=user_id, star_id=star_id).delete()
+# 				remove_from_photo_owner_activity(star_id, user_id)
+# 			except:
+# 				if never_posted_photo(user_id):
+# 					# show "please first upload at least 1 photo" to be eligible for becomming a fan
+# 					return render(request, 'fan_requirement.html', {'unique': request.user.username})
+# 				else:
+# 					#if not shown tutorial of what 'fan' is, show tutorial
+# 					if first_time_fan(user_id):
+# 						# show fan tutorial first, then do the rest
+# 						add_fan(user_id) #adding fan tutorial flag
+# 						context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username}
+# 						return render(request, 'fan_tutorial.html', context)
+# 					else:
+# 						banned_by, ban_time = is_already_banned(own_id=user_id,target_id=star_id, return_banner=True)
+# 						if banned_by:
+# 							request.session["where_from"] = 'fan'
+# 							request.session["banned_by_yourself"] = banned_by == str(user_id)
+# 							request.session["target_username"] = star_username
+# 							request.session["ban_time"] = ban_time
+# 							request.session.modified = True
+# 							return redirect("ban_underway") 
+# 						UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
+# 						add_to_photo_owner_activity(star_id, user_id, new=True)
+# 			"""
+# 			origin codes:
+# 				(un)fanned from starlist: '0'
+# 				(un)fanned from starprofile: '1'
+# 				(un)fanned from fresh photos: '2'
+# 				(un)fanned from best photos: '3'
+# 				(un)fanned from home: '4'
+# 			"""
+# 			if origin == '0':
+# 				return redirect("star_list")
+# 			elif origin == '1':
+# 				return redirect("profile", star_username)
+# 			elif origin == '2':
+# 				request.session["target_photo_id"] = object_id
+# 				request.session.modified = True
+# 				return redirect("photo_loc")
+# 			elif origin == '3':
+# 				request.session["target_best_photo_id"] = object_id
+# 				request.session.modified = True
+# 				return redirect("best_photo_loc")
+# 			elif origin == '4':
+# 				request.session['target_id'] = object_id
+# 				request.session.modified = True
+# 				return redirect("home_loc")
+# 			else:
+# 				return redirect("home")
+# 	else:
+# 		return redirect("missing_page")
+
 
 class SalatTutorialView(FormView):
 	form_class = SalatTutorialForm

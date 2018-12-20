@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Blocked user | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:550px;width:93%;padding:10px;background-color:white;text-align:center">
+
+{% if own_id == banned_by %}
+	
+	{% load future_time %}
+	<div class="cxl lsp">Sorry! Ap ne inko block kia hua hai aur block khatam ho ga <b>{{ ban_time|future_time }}</b></div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mtl">Abhi block time change karney ke liye</span> <a href="{% url 'banned_users_list' %}#section0" class="cb" style="border-bottom:1px dotted blue">ye dabain</a></div>
+	
+{% else %}
+
+	<div class="cxl lsp">Sorry! Ap is user ke jawab, foto tabsrey aur private chat mein shamil nahi ho saktey</div>
+
+{% endif %}
+
+{% if origin == 'home' %}
+	<a href="{% url 'home' %}#section0">
+{% elif origin == 'matka' %}
+	{% if uname != 'None' %}
+	<a href="{% url 'unseen_activity' uname %}#section0">
+	{% else %}
+	<a href="{% url 'home' %}#section0">
+	{% endif %}
+{% elif origin == 'photos' %}
+	<a href="{% url 'photo' %}#section0">
+{% elif origin == 'priv_chat_invite_list' %}
+	<a href="{% url 'show_personal_group_invite_list' 'received' %}#section0">
+{% elif origin == 'priv_chat_list' %}
+	<a href="{% url 'personal_group_user_listing' %}#section0">
+{% elif origin == 'best_photos' %}
+	<a href="{% url 'best_photo' %}#section0">
+{% elif origin == 'profile_photos' %}
+	<a href="{% url 'home' %}#section0">
+{% elif origin == 'cricket_comment_page' %}
+	<form method="POST" action="{% url 'cricket_comment_page' %}">
+	{% csrf_token %}
+	<button class="btn bcg bm mtl mbs">wapis</button>
+	</form>
+{% elif origin == 'priv_chat' %}
+	<a href="{% url 'enter_personal_group' %}">
+{% else %}
+	<a href="{% url 'home' %}#section0">
+{% endif %}
+
+
+{% if origin != 'cricket_comment_page' %}
+	<button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:26px">wapis</button></a>
+{% endif %}
+
+
+</div>
+<br><br>
+{% endblock %}

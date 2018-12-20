@@ -2,15 +2,17 @@
 {% block content %}
 <head><title>Unfan {{ target_username }} | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
-<h1 style="text-align:center;max-width:500" class="clb cxl">Unfan {{ target_username }}</h1>
-<div class="bizcard clb" style="overflow:hidden;max-width:500px;margin:0 auto;text-align:center;background-color:white;padding:10px 6px 5px 6px">
+<h1 style="text-align:center;max-width:500" class="clb cxl lsp">Unfan {{ target_username }}:</h1>
+<div class="bizcard clb" style="overflow:hidden;max-width:500px;margin:0 auto;text-align:center;background-color:white;padding:10px 15px">
 	<div class="cxl lsp">Kya ap <b>{{ target_username }}</b> ko apni fan list se bahir nikalna chahtey hain?</div>
-	<form action="{% url 'unfan' %}" method="POST" class="mtl mbl">
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts cgy">Agar ap {{ target_username }} ke fan hain tou woh bhi khatam kar dia jaye ga</div>
+	<form action="{% url 'unfan' %}" method="POST" class="mts mbs">
 	    {% csrf_token %}
 	    <input type="hidden" name="tuid" value="{{ target_user_id }}">
 	    <button class="btn bcb bm mrl mbs pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
 	    <button class="btn bcgy bm mts pg_cl" style="border:none;height:30px;" name="dec" value="0">Nahi</button>
 	  </form>
 </div>
-<br>
+<br><br>
 {% endblock %}

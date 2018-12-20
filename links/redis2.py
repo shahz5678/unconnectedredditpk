@@ -30,8 +30,8 @@ sorted_set = "whose_online_new"
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC2, db=0)
 
 # 6,000,000,000 is most important priority wise
-PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
-
+#PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
+PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':5000000000,'photo_tabsra':5000000000,'public_mehfil':5000000000,'photo_fan':5000000000,'namaz_invite':1000000000}
 # Weightage of 'seen' status, used to find notification count for each user
 SEEN={True:2000000000,False:4000000000}
 
@@ -598,20 +598,148 @@ def remove_erroneous_notif(notif_name, user_id):
 	my_server.delete(notif_name)
 
 
-def remove_notification_of_banned_user(target_id, object_id, object_type):
+def sanitize_eachothers_unseen_activities(user1_id, user2_id):
+	"""
+	This ensures all posts of eachothers are deleted from the respective matkas
+
+	It's called in the event of a user-initiated block
+	Associated objects are deleted too if they fall below a certain subscriber limit
+	"""
+	user1_id, user2_id = str(user1_id),str(user2_id)
+	ua1, ua2 = "ua:"+user1_id, "ua:"+user2_id
 	my_server = redis.Redis(connection_pool=POOL)
-	target_id = str(target_id)
-	notification = "np:"+target_id+":"+object_type+":"+object_id
-	################################################################################
-	sorted_set = "sn:"+target_id
-	unseen_activity = "ua:"+target_id
-	unseen_activity_resorted = "uar:"+target_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+	notif_list1 = my_server.zrange(ua1,0,-1) # list of user1's notifications
+	notif_list2 = my_server.zrange(ua2,0,-1) # list of user2's notifications
+	ob_list1, only_fives1 = [], []
+	for notif in notif_list1:
+		data = notif.split(":")
+		obj_type = data[2]
+		if obj_type == '5':
+			only_fives1.append({'ob':"o:5:"+data[3],'np':notif})
+		else:
+			# all others go here    
+			ob_list1.append({'ob':"o:"+obj_type+":"+data[3],'np':notif})
+	ob_list2, only_fives2 = [], []
+	for notif in notif_list2:
+		data = notif.split(":")
+		obj_type = data[2]
+		if obj_type == '5':
+			only_fives2.append({'ob':"o:5:"+data[3],'np':notif})
+		else:
+			# all others go here    
+			ob_list2.append({'ob':"o:"+obj_type+":"+data[3],'np':notif})
+
+	######## get IDs of all original posters of notif objects ########
 	pipeline1 = my_server.pipeline()
-	pipeline1.zrem(sorted_set, notification)
-	pipeline1.zrem(unseen_activity, notification)
-	pipeline1.zrem(unseen_activity_resorted, notification)
-	pipeline1.execute()
-	my_server.delete(notification)
+	for obj in ob_list1:
+		pipeline1.hget(obj['ob'],'ooi')
+	result1 = pipeline1.execute()
+	counter1,notifs1_to_del = 0, []
+	for obj in ob_list1:
+		if result1[counter1] == user2_id:
+			notifs1_to_del.append(obj['np'])
+		counter1 += 1
+
+	pipeline2 = my_server.pipeline()
+	for obj in only_fives1:
+		pipeline2.hmget(obj['ob'],'id1','id2')
+	result2 = pipeline2.execute()
+	counter2 = 0
+	for obj in only_fives1:
+		if user2_id in result2[counter2]:
+			notifs1_to_del.append(obj['np'])
+		counter2 += 1
+
+
+	pipeline3 = my_server.pipeline()
+	for obj in ob_list2:
+		pipeline3.hget(obj['ob'],'ooi')
+	result3 = pipeline3.execute()
+	counter3,notifs2_to_del = 0, []
+	for obj in ob_list2:
+		if result3[counter3] == user1_id:
+			notifs2_to_del.append(obj['np'])
+		counter3 += 1
+
+	pipeline4 = my_server.pipeline()
+	for obj in only_fives2:
+		pipeline4.hmget(obj['ob'],'id1','id2')
+	result4 = pipeline4.execute()
+	counter4 = 0
+	for obj in only_fives2:
+		if user1_id in result4[counter4]:
+			notifs2_to_del.append(obj['np'])
+		counter4 += 1
+
+	# notifs1_to_del contains all matka notifications of user1_id that belong to user2_id
+	# notifs2_to_del contains all matka notifications of user2_id that belong to user1_id
+	# these can now be deleted without prejudice
+	uar1, uar2 = "uar:"+user1_id, "uar:"+user2_id
+	sn1, sn2 = 'sn:'+user1_id, 'sn:'+user2_id
+	
+	print "cleansing user ID {0}'s notif list: {1}".format(user1_id, notifs1_to_del)
+	print "cleansing user ID {0}'s notif list: {1}".format(user2_id, notifs2_to_del)
+
+	if notifs1_to_del:
+		# clean out ua, uar and sn for respective users
+		my_server.zrem(ua1,*notifs1_to_del)
+		my_server.zrem(uar1,*notifs1_to_del)
+		my_server.zrem(sn1,*notifs1_to_del)
+
+	if notifs2_to_del:
+		# clean out ua, uar and sn for respective users
+		my_server.zrem(ua2,*notifs2_to_del)
+		my_server.zrem(uar2,*notifs2_to_del)
+		my_server.zrem(sn2,*notifs2_to_del)
+
+	all_notifs_to_delete = notifs1_to_del+notifs2_to_del
+
+	if all_notifs_to_delete:
+		# get rid of all notification objects themselves
+		pipeline5 = my_server.pipeline()
+		for notif in all_notifs_to_delete:
+			pipeline5.delete(notif)
+		pipeline5.execute()
+
+		# decrement all related objects
+		pipeline6 = my_server.pipeline()
+		for notif in all_notifs_to_delete:
+			object_hash = "o:"+notif.split(":",2)[2]
+			pipeline6.hincrby(object_hash,"n",amount=-1)
+		pipeline6.execute()
+		
+		# delete all objects with no subscribers
+		objects_to_review = []
+		for notif in all_notifs_to_delete:
+			object_hash = "o:"+notif.split(":",2)[2]
+			objects_to_review.append(object_hash)
+		objects_to_review = list(set(objects_to_review))
+		pipeline7 = my_server.pipeline()
+		for obj in objects_to_review:
+			pipeline7.hget(obj,'n')
+		subscribers = pipeline7.execute()
+		count8 = 0
+		pipeline8 = my_server.pipeline()
+		for obj in objects_to_review:
+			if subscribers[count8] and int(subscribers[count8]) < 1:
+				pipeline8.delete(obj)
+			count8 += 1
+		pipeline8.execute()
+
+# def remove_notification_of_banned_user(target_id, object_id, object_type):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	target_id = str(target_id)
+# 	notification = "np:"+target_id+":"+object_type+":"+object_id
+# 	################################################################################
+# 	sorted_set = "sn:"+target_id
+# 	unseen_activity = "ua:"+target_id
+# 	unseen_activity_resorted = "uar:"+target_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+# 	pipeline1 = my_server.pipeline()
+# 	pipeline1.zrem(sorted_set, notification)
+# 	pipeline1.zrem(unseen_activity, notification)
+# 	pipeline1.zrem(unseen_activity_resorted, notification)
+# 	pipeline1.execute()
+# 	my_server.delete(notification)
 
 
 def remove_group_object(group_id, my_server=None):

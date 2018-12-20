@@ -109,7 +109,7 @@ MSGS_TO_SHOW_IN_GROUP = 35# number of messages to show in groups (public and pri
 DELETION_THRESHOLD = 70# number of messages to keep in group list (before deletion sets in)
 NUM_TO_DELETE = 35#number of messages to delete once DELETION_THRESHOLD HITS
 PUBLIC_GROUP_MESSAGE = 2 # score for messaging in public group
-PRIVATE_GROUP_MESSAGE = 1 # score for messaging in privte group
+PRIVATE_GROUP_MESSAGE = 2 # score for messaging in privte group
 ##########################################
 
 ########## Group exiting ##########
@@ -189,7 +189,7 @@ GET_PROFILE_REPORT_HELP_LABEL = {'0':'','1':'username_vulgar','2':'username_abus
 
 EXIT_DISCOUNT = 1
 KICK_DISCOUNT = 0.5
-GROUP_SIZE_PERCENTILE_CUTOFF = 75#what percentile of groups to consider when ranking public groups
+GROUP_SIZE_PERCENTILE_CUTOFF = 95#what percentile of groups to consider when ranking public groups
 ###############################################################################################################
 ON_FBS_PHOTO_THRESHOLD = 200000
 OFF_FBS_PHOTO_THRESHOLD = 10000000

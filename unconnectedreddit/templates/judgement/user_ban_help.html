@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>User blocking help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb lsp" style="text-align:center">Block Help:</h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:520px;width:92%;padding:10px 8px;background-color:white;text-align:center">
+<div class="cxl lsp">Block ka maqsad bad users ko sirf <b>apki apni</b> posts aur fotos se bahir rakhna hai</div>
+<hr size=1 COLOR="#e5e7e9">
+<div class="mt cgy cl lsp mts">
+Aik blocked user <b>dusrey users</b> ki posts ya fotos mein apse bat kar sakta hai. Ap dono aik dusrey ko jhappi chupair bhi mar sakte ho<br>
+</div>
+
+{% if tunm %}
+<form action="{% url 'enter_inter_user_ban' %}" method="POST">
+{% csrf_token %}
+<input type="hidden" name="init_dec" value="1">
+<input type="hidden" name="orig" value="{{ orig }}">
+<input type="hidden" name="obid" value="{{ obid }}">
+<input type="hidden" name="lid" value="{{ lid }}">
+<button name="tunm" class="btn bcb bm mts mbl sp pg_ok_res" type="submit" style="height:27px" value="{{ tunm }}">wapis</button>
+</form>
+{% endif %}
+
+</div>
+<br><br>
+{% endblock %}

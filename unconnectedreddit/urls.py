@@ -11,17 +11,17 @@ from urls_maint import urlpatterns as urlpatterns_maint
 from urls_advertiser import urlpatterns as urlpatterns_adv
 #from urls_retention import urlpatterns as urlpatterns_retention
 from urls_ads import urlpatterns as urlpatterns_ads
-from urls_banning import urlpatterns as urlpatterns_banning
 from urls_feedback import urlpatterns as urlpatterns_feedback
 from urls_groups import urlpatterns as urlpatterns_groups
 from urls_sharing import urlpatterns as urlpatterns_sharing
 from urls_mehfil import urlpatterns as urlpatterns_mehfil
 from urls_verification import urlpatterns as urlpatterns_verification
+from urls_judgement import urlpatterns as urlpatterns_judgement
 
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cast_vote, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, \
-comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, reportreply_pk, link_create_pk, welcome_pk, fan, fan_list, \
+comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, reportreply_pk, link_create_pk, welcome_pk, fan, unfan, fan_list, \
 comment_profile_pk, comment_chat_pk, photostream_izzat, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, \
 salat_notification, cross_salat_notif, report_comment, see_special_photo_pk, special_photo, photo_location, \
 unseen_reply, unseen_comment, unseen_activity, videocomment_pk, video_vote, profile_pk, \
@@ -32,7 +32,7 @@ best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_i
 manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, missing_page, \
 cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, feature_unlocked,search_uname_unlocking_dec, search_username, \
 go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, retire_home_rules, website_rules, logout_rules, \
-photo_comment, public_reply_view, post_public_reply, public_photo_upload_denied
+photo_comment, public_reply_view, post_public_reply, public_photo_upload_denied, redirect_to_content
 from links.judgement_views import cull_single_photo,curate_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters
 from links.number_verification import verify_user_number
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoScoreView, PhotoQataarHelpView, BaqiPhotosHelpView, \
@@ -64,6 +64,7 @@ urlpatterns = patterns('',
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
 	url(r'^redirect/(?P<pk>\d+)/$', auth(home_location_pk), name='home_loc_pk'),
+	url(r'^redirect-to-content/$', auth(redirect_to_content), name='redirect_to_content'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^redirect/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
@@ -165,6 +166,7 @@ urlpatterns = patterns('',
 	url(r'^photo_detail/(?P<pk>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^photo_detail/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^fan/$', auth(fan), name='fan'),
+	url(r'^unfan/$', auth(unfan), name='unfan'),
 	url(r'^fanlist/(?P<pk>\d+)/$', auth(fan_list), name='fan_list'),
 	url(r'^starlist/$', auth(star_list), name='star_list'),
 	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
@@ -297,14 +299,12 @@ urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
 #urlpatterns += urlpatterns_retention
-urlpatterns += urlpatterns_banning
 urlpatterns += urlpatterns_maint
 urlpatterns += urlpatterns_groups
 urlpatterns += urlpatterns_sharing
 urlpatterns += urlpatterns_mehfil
 urlpatterns += urlpatterns_verification
-
-
+urlpatterns += urlpatterns_judgement
 
 
 handler404 = 'links.error_views.not_found'

@@ -1380,7 +1380,8 @@ def get_suspension_details(own_id, target_id, group_id):
 	can_rejoin = True if time_diff > PERSONAL_GROUP_REJOIN_RATELIMIT else False
 	return suspended_by, suspension_time, can_rejoin, None if can_rejoin else ONE_DAY-time_diff
 
-def suspend_personal_group(suspended_by_id, their_id, group_id):
+
+def suspend_personal_group(suspended_by_id, their_id, group_id, override_rl=False):
 	"""
 	Suspend personal group when a user uses the 'exit' feature
 	"""
@@ -1392,9 +1393,7 @@ def suspend_personal_group(suspended_by_id, their_id, group_id):
 	elif already_suspended_by_self == '1':
 		return None, None
 	else:
-		if my_server.exists('pggrrl:'+group_id+":"+suspended_by_id):
-			return True, my_server.ttl('pggrrl:'+group_id+":"+suspended_by_id)
-		else:
+		if override_rl:
 			# exit personal group and reset all sharing permissions
 			exit_time = time.time()
 			mapping = {'susgrp'+suspended_by_id:'1','is_sus':'1','sus_time':exit_time,'smsrec'+suspended_by_id:'0','smsrec'+their_id:'0',\
@@ -1408,6 +1407,23 @@ def suspend_personal_group(suspended_by_id, their_id, group_id):
 			pipeline1.zadd("pgfgm:"+their_id,group_id+":"+suspended_by_id,exit_time)
 			pipeline1.execute()
 			return True, None
+		else:
+			if my_server.exists('pggrrl:'+group_id+":"+suspended_by_id):
+				return True, my_server.ttl('pggrrl:'+group_id+":"+suspended_by_id)
+			else:
+				# exit personal group and reset all sharing permissions
+				exit_time = time.time()
+				mapping = {'susgrp'+suspended_by_id:'1','is_sus':'1','sus_time':exit_time,'smsrec'+suspended_by_id:'0','smsrec'+their_id:'0',\
+				'phrec'+suspended_by_id:'0','phrec'+their_id:'0','svprm'+suspended_by_id:'0','svprm'+their_id:'0','lt_msg_t':exit_time,\
+				'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
+				'lt_msg_id':''}
+				pipeline1 = my_server.pipeline()
+				pipeline1.hmset("pgah:"+group_id,mapping)
+				pipeline1.zadd('exited_personal_groups',group_id,exit_time)
+				pipeline1.zadd("pgfgm:"+suspended_by_id,group_id+":"+their_id,exit_time)
+				pipeline1.zadd("pgfgm:"+their_id,group_id+":"+suspended_by_id,exit_time)
+				pipeline1.execute()
+				return True, None
 
 
 def unsuspend_personal_group(own_id, target_id,group_id):
@@ -1435,6 +1451,19 @@ def unsuspend_personal_group(own_id, target_id,group_id):
 		return True
 	else:
 		return False
+
+def exit_user_from_targets_priv_chat(own_id,target_id):
+	"""
+	Called when user has triggered a block on target
+
+	If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them and shit is serious now
+	"""
+	own_id, target_id = str(own_id), str(target_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, group_exists = personal_group_already_exists(own_id, target_id, server=my_server)
+	if group_exists:
+		# suspend group, overriding any rate limits. This won't suspend if group already suspended (we'll handle those cases in re-entry)
+		suspend_personal_group(own_id, target_id, group_id, override_rl=True)
 
 
 ########################################## Personal Group SMS Settings ###########################################

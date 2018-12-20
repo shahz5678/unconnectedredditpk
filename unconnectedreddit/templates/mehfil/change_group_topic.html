@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Change public group topic | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Change topic:</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+{% if unauthorized %}
+	<div class="cxl lsp">Apke pas ye karney ka permission nahi</div>
+{% else %}
+
+	<form method="post" style="display:inline" action="">
+		{% csrf_token %}
+		<div style="padding:3px 8px 8px 8px;background-color:ivory" class="bizcard sp lsp">
+			{% if form.topic.errors %}
+			<div class="cr lsp cxl">{{ form.topic.errors.0 }}</div>
+			{% else %}
+			<div class="cxl lsp">Mehfil ka new topic likhein:</div>
+			{% endif %}
+			<ul style="margin:0;padding-left: 15px;">
+				<li style="text-align:left">Topic mein saaf alfaz mein mehfil ka maqsad explain karein</li>
+				<li style="text-align:left">Achey topics woh hain jinko parh ke members forun samajh jaien mehfil kis barey mein hai</li>
+				<li style="text-align:left">Topic {{ topic_char_limit }} characters tak hona chahiye</li>
+			</ul>
+			<div class="mts">{{ form.topic }}</div>
+		</div>
+		<button class="btn bcp bm mtl mbl mrs pg_ok_res" style="height:26px" type="submit">OK</button>
+	</form>
+		<a href="{% url 'public_group' slug=unique %}" class="mls cl sp" style="border-bottom:1px dotted gray"><span class="cgy">Cancel</span></a>
+{% endif %}
+</div>
+<br><br>
+{% endblock %}

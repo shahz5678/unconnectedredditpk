@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load human_time %}
+{% block content %}
+<head><title>Invited users | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/closed_group_invite_navbar.html" with static_url=STATIC_URL section='invited' guid=guid %}
+
+<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">Invite list:</h1>
+</div>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+
+{% if show_instr %}
+<div style="padding:8px;background-color:ivory" class="bizcard mbl sp cl lsp">
+Ye woh tamam invited users hain jinhoon ne apki private mehfil ka invite accept nahi kiya
+<hr size=1 COLOR="#E9EBEE">
+<div class="sp lsp cs"><span class="cgy"><b>Note:</b>&nbsp;Invite ke 10 days baad mehfil members yahan se invite cancel kar saktey hain</span></div>
+</div>
+{% endif %}
+
+<form method="POST" class="mbs" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ guid }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+
+<ul style="display:inline-block;padding: 0;list-style:none">
+{% for user_id, uname, avurl, invite_time, can_cancel in final_data %}
+	<li class="mbs" style="text-align:left;border-bottom:1px dashed lightgray">
+		<div class="mts mbs"><img src="{{ avurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">{% if uname in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ uname }}</bdi><span class="cgy mls cs sp">invited {{ invite_time|human_time }}</span>{% if can_cancel %}<form method="POST" action="{% url 'cancel_closed_group_invite' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="guid" value="{{ guid }}"><button name="tgt" type="submit" class="cp cp-bg mls mts" style="border:none;padding:0;background:0 0;vertical-align:middle" value="{{ user_id }}"><img src="{{ STATIC_URL }}img/remove-cg.svg" width="20" height="20"></button></form>{% endif %}</div>
+	</li>
+{% empty %}
+<span class="cgy cl sp lsp">- ye list khali hai -</span>
+{% endfor %}
+</ul>
+
+	<form method="POST" class="mbs" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ guid }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+</div>
+<br><br>
+{% endblock %}

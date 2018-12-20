@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Logout help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Logging out...</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+	<div class="cxl lsp">Dubara login karney ke liye apna password yad rakhna</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts mbs">Agar pehlay password change karna hai tou <b>Change Password</b> dabain, warna <b>Logout</b> daba dein</div>
+
+	<form action="{% url 'bahirniklo' %}#section0" method="POST" style="display:inline">{% csrf_token %}<button class="mrs btn bcgy bm mbl mtl pg_ok_res sp" style="height:28px">Logout</button></form><a href="{% url 'reauth' %}#section0"><button class="mls btn bcg mbl mts pg_ok_res sp" style="height:28px;padding-left:10px;padding-right:10px">Change Password</button></a>
+
+</div>
+
+<br><br>
+{% endblock %}

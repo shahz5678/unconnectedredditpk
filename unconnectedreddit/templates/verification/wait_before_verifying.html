@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load future_time %}
+{% block content %}
+
+<head><title>Mobile verification rate-limited | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">{% if redirect_to_paid_internet %}Use Wi-Fi or Internet Package{% else %}Please wait!{% endif %}</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;width:92%;margin:0 auto;overflow:hidden;text-align:center">
+
+{% if redirect_to_paid_internet %}
+
+	<div class="cxl lsp mbs" style="border-bottom:1px dashed lightgray;padding-bottom:10px">Wi-Fi ya Internet package pe Damadam use kar ke ap abhi forun verify karwa saktey hain</div>	
+
+	<div class="cgy cs sp lsp">Verify karwaney ke baad beshak free Damadam use karien</div>
+
+	<a href="https://goo.gl/XFFbVJ" target="_blank"><button type="submit" style="padding:1em 0;border:none;width:100%;background:#3cb7dd;border-radius:6px" class="mt pg_ok_res"><span style="color:white;font-weight:bold" class="cxl sp lsp">USE DAMADAM ON PKG OR WI-FI</span></button></a>
+
+{% else %}
+
+	<img src="{{ STATIC_URL }}img/please_wait.svg" width="100" height="100" class="mt mbs">
+
+	<div class="cxl lsp mbs" style="border-bottom:1px dashed lightgray;padding-bottom:10px">Apka Damadam account verify ho sakey ga <b>{{ time_to_wait|future_time }}</b></div>
+
+	<form method="POST" action="{% url 'wait_before_verifying' %}">
+		{% csrf_token %}
+		<button type="submit" style="padding:1em 0;border:none;width:100%;background:#3cb7dd;border-radius:6px" class="mt pg_ok_res"><span style="color:white;font-weight:bold" class="cxl sp lsp">MUJHE WAIT NAHI KARNA!</span></button>
+	</form>
+
+{% endif %}
+</div><br><br>
+
+{% endblock %}

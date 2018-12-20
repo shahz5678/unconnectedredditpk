@@ -1,10 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
+<style>body{background: #E9EBEE}</style>
 <head><title>Inbox refreshing tutorial | Damadam.pk</title></head>
-<div class="margin clb">
-<a href="{% url 'unseen_activity' unique %}"><img src="{{ STATIC_URL }}img/rfrsh1.png" style="margin-right:0.6em;" alt="no pic" height="26" width="26"></a>
-Ye button daba ke matke mein agar new baatein ayee hon toh dekhi ja sakte hain!
+<br>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp"><a href="{% url 'unseen_activity' unique %}"><img height="23" width="23" src="{{ STATIC_URL }}img/refresh.svg" class="mrs" alt="pic" style="vertical-align:sub"></a> Ye button press kar ke ap matka refresh kar saktey hain!</div>
+ <hr size=1 COLOR="#E9EBEE">
+<div class="cs sp cgy lsp mbl">Agar koi new notifications aye huay tou woh nazar aa jayein gey</div>
+<a href="{% url 'unseen_activity' unique %}"><button class="btn bcb bm mbs pg_ok_res sp" style="height:26px">OK</button></a>
+</div>
 <br><br>
-<a href="{% url 'unseen_activity' unique %}"><button class="btn bcg bl mbs">Theek hai</button></a>
-</div><br><br>
 {% endblock %}

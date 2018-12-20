@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Change private group topic | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Change topic:</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+{% if unauthorized %}
+	<div class="cxl lsp">Apke pas ye karney ka permission nahi</div>
+{% else %}
+	
+	<form method="post" style="display:inline" action="">
+		{% csrf_token %}
+		<div style="padding:3px 8px 8px 8px;background-color:ivory" class="bizcard sp lsp">
+			{% if form.topic.errors %}
+			<div class="cr lsp cxl">{{ form.topic.errors.0 }}</div>
+			{% else %}
+			<div class="cxl lsp">Mehfil ka new topic likhein:</div>
+			{% endif %}
+			<ul style="margin:0;padding-left: 15px;">
+				<li style="text-align:left">Topic mein sirf english words, numbers ya ! ? % $ _ . , ; : ( ) - " ' characters likhein</li>
+				<li style="text-align:left">Topic dilchusp ho takey parhney waloon ko acha lagey</li>
+				<li style="text-align:left">Topic {{ topic_char_limit }} characters se ziyada na ho</li>
+			</ul>
+			<div class="mts">{{ form.topic }}</div>
+		</div>
+		<button class="btn bcg bm mtl mbl mrs pg_ok_res" style="height:26px" type="submit">OK</button>
+	</form>
+	
+		<form method="POST" action="{% url 'priv_group' %}" style="display:inline;">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="mls mbl mts sp cl cgy" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray">Cancel</button></form>
+	
+	<div style="border-top:1px solid #E8E8E8;padding-top:10px;color:gray" class="cs sp lsp">
+	Achey topics woh hain jo parhney waloon ke liye dilchusp hain aur mehfil ko yadgaar banatey hain
+	</div>
+{% endif %}
+</div>
+<br><br>
+{% endblock %}

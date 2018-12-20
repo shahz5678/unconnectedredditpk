@@ -11,7 +11,6 @@
 {% load get_notification_bar %}
 {% load get_photo_comment_bar %}
 {% load get_photo_comments_section %}
-{% load get_mobile_verification_bar %}
 {% block content %}
 
 <head><title>Trending photos and memes | Damadam.pk</title></head>
@@ -72,7 +71,7 @@ body{background: #E9EBEE}
 	<!-- -->
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 	
-	{% mobile_verification_bar user.id csrf mobile_verified score %}
+	{% include "verification/mobile_verification_bar.html" with is_user_verified=mobile_verified static_url=STATIC_URL %}
 
 	{% notification_bar notification=process_notification origin='2' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 

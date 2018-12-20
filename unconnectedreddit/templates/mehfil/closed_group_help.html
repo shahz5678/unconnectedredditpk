@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Private mehfil price | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% if user.userprofile.score >= private_price %}
+
+	<h1 class="clb cxl" style="text-align:center">New private mehfil:</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Private mehfil banane ki price <b>{{ private_price }} points</b> hai</div>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cl sp mbs">Ap ye price pay karna chahtey hain?</div>
+	<a href="{% url 'closed_group_create' %}#section0"><button class="btn bcg bm cm pg_ok_res sp mrs" style="height:26px">Haan</button></a>
+	<a href="{% url 'group_type' %}#section0"><button class="btn bcgy bm cm mtl mbl pg_ok_res sp mls" style="height:26px">Nahi</button></a>
+	</div>
+
+{% else %}
+
+	<h1 class="clb cxl" style="text-align:center">Not enough points!</h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Private mehfil banane ki price <b>{{ private_price }} points</b> hai</div>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cl sp lsp mbs">Apke sirf <b class="cr">{{ user.userprofile.score }}</b> points hain</div>
+	<a href="{% url 'group_type' %}#section0" class="cl sp cb" style="border-bottom:1px dotted blue">wapis</a>
+	<hr size=1 COLOR="#E9EBEE">
+	<span class="cs sp cgy">Posts aur fotos pe jhappi miley se points increase hotay hain</span>
+	</div>
+
+{% endif %}
+
+<br><br>
+{% endblock %}

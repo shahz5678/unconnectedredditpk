@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+{% load cache %}
+{% cache 6000 officer_app_help_page %}
+<head><title>Officership application help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/officer_application_navbar.html" with section='help' static_url=STATIC_URL guid=unique %}
+
+<div class="mbl" style="max-width:600px;margin-left:auto;margin-right:auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">Officer application help:</h1>
+</div>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+	<div class="mt" style="border-bottom:1px dashed lightgray;padding:10px;text-align:center"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	<div style="padding:10px">
+	<div class="cxl lsp">Kya apply kiye beghair officer bana ja sakta hai?</div>
+	<div class="mt cxl lsp"><span class="cgy">No. Aisa mumqin nahi. Application submit karwana zaruri hai officer banney ke liye, beshaq apki mehfil owner se dosti hi kiyun na ho</span></div>
+	</div>
+</div>
+<br>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+	<div class="mt" style="border-bottom:1px dashed lightgray;padding:10px;text-align:center"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	<div style="padding:10px">
+	<div class="cxl lsp">Application ke questions ko answer karney ka best tareeqa kya hai?</div>
+	<div class="mt cxl lsp"><span class="cgy">Aisey answers dein jo mehfil owner ko satisfy kar sakein ke ap aik zabardast officer sabit hon ge. Mehfil owner ko yaqeen dilain ke ap:
+	<ul class="mts mbs">
+	<li>Fighting, abuse and spamming stop karein ge</li>
+	<li>New members laney mein help karein ge</li>
+	<li>Members ko bore nahi honay dein ge</li>
+	<li>Mehfil ko ziyada se ziyada time dein ge</li>
+	</ul>
+	</span></div>
+	</div>
+</div>
+<br>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+	<div class="mt" style="border-bottom:1px dashed lightgray;padding:10px;text-align:center"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	<div style="padding:10px">
+	<div class="cxl lsp">Kiya apke answers secret rahein ge?</div>
+	<div class="mt cxl lsp"><span class="cgy">Apke answers sirf mehfil owner ko show hotay hain. And in answers ki history saved rehti hai. Ye history mustaqbil mein dusri mehfil ke owners bhi dekh saktey hain, lekin sirf tab jab ap un mehfils mein officer banney ki application submit karien</span></div><div class="mt cxl lsp"><span class="cgy">Ap khud apney answers ki history <form method="POST" action="{% url 'view_own_officer_app_history' %}" style="display:inline">{% csrf_token %}<button name="guid" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;font-size:100%" class="cb sp pg_ok_res" value="{{ unique }}">yahan</button></form> dekh saktey hain</span></div>
+	</div>
+</div>
+<br>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+	<div class="mt" style="border-bottom:1px dashed lightgray;padding:10px;text-align:center"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	<div style="padding:10px">
+	<div class="cxl lsp">Applications ki history delete ki ja sakti hai?</div>
+	<div class="mt cxl lsp"><span class="cgy">No. Ap khud se apni officer applications ki history delete nahi kar saktey. Lekin kuch months baad yeh history khud bakhud delete kar di jati hai. Hamesha aisey answers likhein jo baad mein apko sharminda na karein</span></div>
+	</div>
+</div>
+<br>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+	<div class="mt" style="border-bottom:1px dashed lightgray;padding:10px;text-align:center"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
+	<div style="padding:10px">
+	<div class="cxl lsp">Mehfil owner apki application pe kitney time mein decision le ga?</div>
+	<div class="mt cxl lsp"><span class="cgy">Mehfil owner ke pas apkey answers dekh ke decision lene ke liye 3 days hotay hain. 3 days mein decision nahi li jaye tou application ignore ho jati hai</span></div>
+	</div>
+</div>
+
+<br><br>
+{% endcache %}
+{% endblock %}

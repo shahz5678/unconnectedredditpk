@@ -1,0 +1,33 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Test login (urdu) | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='ur' translate='0' login='0' %}
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:10px;background-color:#2de0ae;text-align:center">
+	
+	{% if form.errors %}
+		<div class="mt mbs" style="padding-bottom:10px;border-bottom:1px dashed #c0f4d5">
+			<b style="color:#f9ef6c;text-shadow:1px 1px #009940;font-size:23px">نام یا پاس ورڈ میں غلطی ہے۔ پھر سے لکھو</b>
+		</div>
+	{% endif %}
+	
+	<form method="post" action="{% url 'login_backdoor' %}">
+	  <input type="hidden" name="next" value="/">
+	 	
+	 	<div class="mtl mbl">
+	    <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">:نام</b><br>
+	      {{ form.username }}
+	  	</div>
+	  	<div class="mbl">
+	    <b class="cxl" style="color:white;text-shadow:1px 1px #009940;">:پاس ورڈ</b><br>
+	      {{ form.password }}
+	   </div>
+	  
+	  <button class="mts mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button>
+	  
+	</form>
+
+</div>
+
+</div>
+{% endblock %}

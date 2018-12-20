@@ -1,0 +1,9 @@
+<h1 class="cxl clb lsp title" style="text-align:center;overflow:hidden">Read rules help:</h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+	<form method="POST" action="{% url 'public_mehfil_oversight_dashboard' %}" class="mt" style="text-align:center;border-bottom:1px dashed darkgray;padding-bottom:12px">{% csrf_token %}<button type="submit" class="cb sp pg_ok_res" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to settings</button><input type="hidden" name="guid" value="{{ guid }}"></form>
+	<div class="description">
+		<div class="cl mts mbs lsp sp">'Read rules' mein ja ke ap mehfil ke rules dekh saktey hain. Bad members ko rules ke mutabiq punishment deni chahiye takey mehfil ka mahol saf reh sakey</div>
+		<div class="cl mts mbs lsp sp">Yad rakhein ke members ke pas bhi 'read rules' ka option mojood hota hai, lehaza members ko rules remind karwaye ja saktey hain</div>
+	</div>
+</div>

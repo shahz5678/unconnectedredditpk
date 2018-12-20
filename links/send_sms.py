@@ -23,6 +23,11 @@ def process_buyer_sms(target_number,order_id,order_data, buyer_number=None):
 		body = order_data
 	message = client.messages.create(to=target_number, from_="+18328955063",body=body)
 
+def process_user_pin_sms(target_number,payload, buyer_number=None):
+	if payload:
+		body = payload
+		message = client.messages.create(to=target_number, from_="+18328955063",body=body)
+
 
 
 def send_personal_group_sms(mobile_number, sms_text):

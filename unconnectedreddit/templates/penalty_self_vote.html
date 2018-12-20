@@ -2,9 +2,12 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Unable to complete action | Damadam.pk</title></head>
-<div class="margin clb">
-<h2>Ap apne ap ko vote nahi de sakte {% emoticons %}.i5.i6.i7.i8{% endemoticons %}</h2>
-<a href="{% url 'home' %}#section0"><button class="btn bct bm mtl">wapis</button></a>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Cannot vote!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="cxl lsp">Ap apne ap ko vote nahi de sakte!</div>
+<hr size=1 COLOR="#e5e7e9">	
+	<a href="{% url 'home_loc' %}"><button class="cl pg_ok_res sp cgy" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray">wapis</button></a>
 </div>
 <br><br>
 {% endblock %}

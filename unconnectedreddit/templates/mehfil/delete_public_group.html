@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Delete public mehfil | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div class="mbs">
+<div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
+</div>
+</div>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp mbl">Kya is mehfil ko hamesha ke liye delete kar dein?</div>
+
+<form action="{% url 'del_public_group' pk unique %}" method="POST">
+	{% csrf_token %}
+	<button name="ddec" class="btn bcr bm mbl pg_ok_res sp mrs" style="height:26px" value="2">Delete</button>
+	{% if inside_grp == '1' %}
+	<button name="ddec" class="pg_ok_res cl sp mls cgy" style="background:0 0;padding:0;border:none;border-bottom: 1px dotted darkgray" value="0">Cancel</button>
+	{% else %}
+	<button name="ddec" class="pg_ok_res cl sp mls cgy" style="background:0 0;padding:0;border:none;border-bottom: 1px dotted darkgray" value="1">Cancel</button>
+	{% endif %}
+</form>
+
+<hr size=1 COLOR="#E9EBEE">
+<div class="cs sp lsp"><span class="cgy"><b>Note:</b>&nbsp;Delete karney ke bajai ap chahein tou mehfil ka owner kisi aur ko bana saktey hain. Iskey liye <form method="POST" action="{% url 'public_mehfil_oversight_dashboard' %}" style="display:inline">{% csrf_token %}<button type="submit" class="cb sp" style="border:none;border-bottom:1px dotted blue;background:0 0;padding:0">settings</button></form> mein wapis jaien</span></div>
+</div>
+<br><br>
+{% endblock %}

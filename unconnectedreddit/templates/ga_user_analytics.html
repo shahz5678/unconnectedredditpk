@@ -1,0 +1,14 @@
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-126033988-1"></script>
+<input id="uvalga" type="hidden" name="my_var" value="{{ my_var }}">
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  var uvalga = document.getElementById("uvalga").value;
+  if (uvalga)
+  {
+    gtag('set', {'user_id': uvalga}); // Set the user ID using signed-in user_id.
+  	gtag('config', 'UA-126033988-1');
+  }
+
+</script>

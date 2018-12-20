@@ -30,8 +30,8 @@ sorted_set = "whose_online_new"
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC2, db=0)
 
 # 6,000,000,000 is most important priority wise
-PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
-
+#PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
+PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':5000000000,'photo_tabsra':5000000000,'public_mehfil':5000000000,'photo_fan':5000000000,'namaz_invite':1000000000}
 # Weightage of 'seen' status, used to find notification count for each user
 SEEN={True:2000000000,False:4000000000}
 
@@ -150,6 +150,13 @@ def viewer_salat_notifications(viewer_id=None, object_id=None, time=None):
 
 ###############################################################################################################################
 
+def update_group_topic_in_obj(group_id, topic):
+	"""
+	Updates the topic field in a mehfil related object
+	"""
+	redis.Redis(connection_pool=POOL).hset("o:3:"+str(group_id), 'od', topic)
+
+	
 def update_object(object_id=None, object_type=None, lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,\
 	res_count=None, vote_score=None,reply_photourl=None, object_desc=None, just_vote=None, lt_res_wid=None, slug=None):
 	"""
@@ -159,8 +166,7 @@ def update_object(object_id=None, object_type=None, lt_res_time=None,lt_res_avur
 	if object_type == '2':
 		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count, 'lrwi':lt_res_wid}
 	elif object_type == '3':
-		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'lrwi':lt_res_wid,\
-		'od':object_desc}
+		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'lrwi':lt_res_wid}
 	elif object_type == '0':
 		mapping={'v':vote_score} if just_vote else {'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,\
 		'r':res_count,'v':vote_score, 'lrwi':lt_res_wid}
@@ -330,32 +336,44 @@ def update_notification(viewer_id=None, object_id=None, object_type=None, seen=N
 
 
 def create_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
-	single_notif=None, priority=None, no_comment=None):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
-	composite_id = "o:"+str(object_type)+":"+str(object_id) #points to the parent object this notification is related to
-	if my_server.exists(hash_name):
-		return False
-	else:
-		mapping = { 's':seen,'u':updated_at,'c':composite_id,'nc':no_comment }
-		my_server.hmset(hash_name, mapping)
-		#updating unseen_acitivity sorted set
-		if unseen_activity:
-			sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-			sorted_set2 = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-			my_server.zadd(sorted_set, hash_name, updated_at) #where updated_at is the score
-			my_server.zadd(sorted_set2, hash_name, updated_at+SEEN[seen])
-			my_server.hincrby(composite_id, 'n', amount=1) #increment number_of_subscribers in parent_object. This is equivalent to number of unseen_activities the reply shows up in!
-		#updating single_notif sorted set
-		if single_notif:
-			sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-			score = PRIORITY[priority]+int(updated_at)
-			my_server.zadd(sorted_set, hash_name, score) #where updated_at is the score
-		if my_server.zcard("ua:"+str(viewer_id)) > UA_LIMIT:
-			from tasks import delete_notifications
-			delete_notifications.delay(viewer_id)
-		return True
+	single_notif=None, priority=None, no_comment=None, check_parent_obj=False):
+	"""
+	Notifications are generated so that users' matka can be populated
 
+	Each social action causes notifications to be generated for all concerned users
+	Notifications can be 'seen', or 'unseen'
+	The user whose actions generated the notification always gets a 'seen' notifcation, others get an 'unseen' notification
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)#viewer_id is the user whose matka will receive the notification
+	composite_id = "o:"+str(object_type)+":"+str(object_id) #points to the parent object this notification is related to
+	notif_already_exists = my_server.exists(hash_name)
+	if check_parent_obj:
+		parent_exists = my_server.exists(composite_id)
+		if notif_already_exists or not parent_exists:
+			return False
+	else:
+		if notif_already_exists:
+			return False
+	mapping = { 's':seen,'u':updated_at,'c':composite_id,'nc':no_comment }
+	my_server.hmset(hash_name, mapping)
+	#updating unseen_acitivity sorted set
+	if unseen_activity:
+		sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
+		sorted_set2 = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
+		my_server.zadd(sorted_set, hash_name, updated_at) #where updated_at is the score
+		my_server.zadd(sorted_set2, hash_name, updated_at+SEEN[seen])
+		my_server.hincrby(composite_id, 'n', amount=1) #increment number_of_subscribers in parent_object. This is equivalent to number of unseen_activities the reply shows up in!
+	#updating single_notif sorted set
+	if single_notif:
+		sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
+		score = PRIORITY[priority]+int(updated_at)
+		my_server.zadd(sorted_set, hash_name, score) #where updated_at is the score
+	if my_server.zcard("ua:"+str(viewer_id)) > UA_LIMIT:
+		from tasks import delete_notifications
+		delete_notifications.delay(viewer_id)
+	return True
+	
 ############################# Personal Group related notification functionality #############################
 
 def get_latest_notif_obj_pgh(group_id,my_server=None,send_status=False):
@@ -580,38 +598,208 @@ def remove_erroneous_notif(notif_name, user_id):
 	my_server.delete(notif_name)
 
 
-def remove_notification_of_banned_user(target_id, object_id, object_type):
+def sanitize_eachothers_unseen_activities(user1_id, user2_id):
+	"""
+	This ensures all posts of eachothers are deleted from the respective matkas
+
+	It's called in the event of a user-initiated block
+	Associated objects are deleted too if they fall below a certain subscriber limit
+	"""
+	user1_id, user2_id = str(user1_id),str(user2_id)
+	ua1, ua2 = "ua:"+user1_id, "ua:"+user2_id
 	my_server = redis.Redis(connection_pool=POOL)
-	target_id = str(target_id)
-	notification = "np:"+target_id+":"+object_type+":"+object_id
-	################################################################################
-	sorted_set = "sn:"+target_id
-	unseen_activity = "ua:"+target_id
-	unseen_activity_resorted = "uar:"+target_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+	notif_list1 = my_server.zrange(ua1,0,-1) # list of user1's notifications
+	notif_list2 = my_server.zrange(ua2,0,-1) # list of user2's notifications
+	ob_list1, only_fives1 = [], []
+	for notif in notif_list1:
+		data = notif.split(":")
+		obj_type = data[2]
+		if obj_type == '5':
+			only_fives1.append({'ob':"o:5:"+data[3],'np':notif})
+		else:
+			# all others go here    
+			ob_list1.append({'ob':"o:"+obj_type+":"+data[3],'np':notif})
+	ob_list2, only_fives2 = [], []
+	for notif in notif_list2:
+		data = notif.split(":")
+		obj_type = data[2]
+		if obj_type == '5':
+			only_fives2.append({'ob':"o:5:"+data[3],'np':notif})
+		else:
+			# all others go here    
+			ob_list2.append({'ob':"o:"+obj_type+":"+data[3],'np':notif})
+
+	######## get IDs of all original posters of notif objects ########
 	pipeline1 = my_server.pipeline()
-	pipeline1.zrem(sorted_set, notification)
-	pipeline1.zrem(unseen_activity, notification)
-	pipeline1.zrem(unseen_activity_resorted, notification)
-	pipeline1.execute()
-	my_server.delete(notification)
+	for obj in ob_list1:
+		pipeline1.hget(obj['ob'],'ooi')
+	result1 = pipeline1.execute()
+	counter1,notifs1_to_del = 0, []
+	for obj in ob_list1:
+		if result1[counter1] == user2_id:
+			notifs1_to_del.append(obj['np'])
+		counter1 += 1
 
-def remove_group_object(group_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	group_object = "o:3:"+str(group_id)
-	my_server.delete(group_object)
+	pipeline2 = my_server.pipeline()
+	for obj in only_fives1:
+		pipeline2.hmget(obj['ob'],'id1','id2')
+	result2 = pipeline2.execute()
+	counter2 = 0
+	for obj in only_fives1:
+		if user2_id in result2[counter2]:
+			notifs1_to_del.append(obj['np'])
+		counter2 += 1
 
-def remove_group_notification(user_id=None,group_id=None):
+
+	pipeline3 = my_server.pipeline()
+	for obj in ob_list2:
+		pipeline3.hget(obj['ob'],'ooi')
+	result3 = pipeline3.execute()
+	counter3,notifs2_to_del = 0, []
+	for obj in ob_list2:
+		if result3[counter3] == user1_id:
+			notifs2_to_del.append(obj['np'])
+		counter3 += 1
+
+	pipeline4 = my_server.pipeline()
+	for obj in only_fives2:
+		pipeline4.hmget(obj['ob'],'id1','id2')
+	result4 = pipeline4.execute()
+	counter4 = 0
+	for obj in only_fives2:
+		if user1_id in result4[counter4]:
+			notifs2_to_del.append(obj['np'])
+		counter4 += 1
+
+	# notifs1_to_del contains all matka notifications of user1_id that belong to user2_id
+	# notifs2_to_del contains all matka notifications of user2_id that belong to user1_id
+	# these can now be deleted without prejudice
+	uar1, uar2 = "uar:"+user1_id, "uar:"+user2_id
+	sn1, sn2 = 'sn:'+user1_id, 'sn:'+user2_id
+	
+	print "cleansing user ID {0}'s notif list: {1}".format(user1_id, notifs1_to_del)
+	print "cleansing user ID {0}'s notif list: {1}".format(user2_id, notifs2_to_del)
+
+	if notifs1_to_del:
+		# clean out ua, uar and sn for respective users
+		my_server.zrem(ua1,*notifs1_to_del)
+		my_server.zrem(uar1,*notifs1_to_del)
+		my_server.zrem(sn1,*notifs1_to_del)
+
+	if notifs2_to_del:
+		# clean out ua, uar and sn for respective users
+		my_server.zrem(ua2,*notifs2_to_del)
+		my_server.zrem(uar2,*notifs2_to_del)
+		my_server.zrem(sn2,*notifs2_to_del)
+
+	all_notifs_to_delete = notifs1_to_del+notifs2_to_del
+
+	if all_notifs_to_delete:
+		# get rid of all notification objects themselves
+		pipeline5 = my_server.pipeline()
+		for notif in all_notifs_to_delete:
+			pipeline5.delete(notif)
+		pipeline5.execute()
+
+		# decrement all related objects
+		pipeline6 = my_server.pipeline()
+		for notif in all_notifs_to_delete:
+			object_hash = "o:"+notif.split(":",2)[2]
+			pipeline6.hincrby(object_hash,"n",amount=-1)
+		pipeline6.execute()
+		
+		# delete all objects with no subscribers
+		objects_to_review = []
+		for notif in all_notifs_to_delete:
+			object_hash = "o:"+notif.split(":",2)[2]
+			objects_to_review.append(object_hash)
+		objects_to_review = list(set(objects_to_review))
+		pipeline7 = my_server.pipeline()
+		for obj in objects_to_review:
+			pipeline7.hget(obj,'n')
+		subscribers = pipeline7.execute()
+		count8 = 0
+		pipeline8 = my_server.pipeline()
+		for obj in objects_to_review:
+			if subscribers[count8] and int(subscribers[count8]) < 1:
+				pipeline8.delete(obj)
+			count8 += 1
+		pipeline8.execute()
+
+# def remove_notification_of_banned_user(target_id, object_id, object_type):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	target_id = str(target_id)
+# 	notification = "np:"+target_id+":"+object_type+":"+object_id
+# 	################################################################################
+# 	sorted_set = "sn:"+target_id
+# 	unseen_activity = "ua:"+target_id
+# 	unseen_activity_resorted = "uar:"+target_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+# 	pipeline1 = my_server.pipeline()
+# 	pipeline1.zrem(sorted_set, notification)
+# 	pipeline1.zrem(unseen_activity, notification)
+# 	pipeline1.zrem(unseen_activity_resorted, notification)
+# 	pipeline1.execute()
+# 	my_server.delete(notification)
+
+
+def remove_group_object(group_id, my_server=None):
+	"""
+	Deletes the group parent object
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	my_server.delete("o:3:"+str(group_id))
+
+
+def bulk_remove_multiple_group_notifications(grp_ids_and_members):
+	"""
+	Given a list of groups, it removes all their redis 2 related content
+
+	It's called when a groups have already been deleted from redis 6
+	Useful when groups undergo 'full deletion' after becoming ghosts (i.e. idle > 30 days)
+	grp_ids_and_members is a dictionary of the sort { group_id:[member_ids] }
+	"""
+	if grp_ids_and_members:
+		my_server = redis.Redis(connection_pool=POOL)
+		for group_id, member_ids in grp_ids_and_members.iteritems():
+			bulk_remove_group_notification(member_ids, group_id, my_server=my_server)
+			remove_group_object(group_id, my_server=my_server)
+
+
+def bulk_remove_group_notification(user_ids, group_id, my_server=None):
+	"""
+	Bulk removes the a group's notifications from matka (when users leave or get kicked out)
+	"""
+	group_id = str(group_id)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	for user_id in user_ids:
+		parent_obj = "o:3:"+group_id
+		notification = "np:"+str(user_id)+":3:"+group_id
+		my_server.zrem("ua:"+str(user_id),notification)
+		my_server.zrem("uar:"+str(user_id),notification)
+		my_server.zrem("sn:"+str(user_id),notification)
+		my_server.delete(notification)
+		if my_server.exists(parent_obj):
+			# decrementing number of subscribers of the object by 1
+			my_server.hincrby(parent_obj, 'n', amount=-1)
+
+def remove_group_notification(user_id,group_id):
+	"""
+	Removes the group's notification from matka (when a user leaves the group)
+	"""
+	group_id, user_id = str(group_id), str(user_id)
+	unseen_activity = "ua:"+user_id
+	unseen_activity_resorted = "uar:"+user_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
+	single_notif = "sn:"+user_id
+	notification = "np:"+user_id+":3:"+group_id
+	parent_object = "o:3:"+group_id
 	my_server = redis.Redis(connection_pool=POOL)
-	unseen_activity = "ua:"+str(user_id)
-	unseen_activity_resorted = "uar:"+str(user_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-	single_notif = "sn:"+str(user_id)
-	notification = "np:"+str(user_id)+":3:"+str(group_id)
-	parent_object = "o:3:"+str(group_id)
-	my_server.zrem(unseen_activity, notification)			#not worked
-	my_server.zrem(unseen_activity_resorted, notification)  #not worked
-	my_server.zrem(single_notif, notification)				#not worked
-	my_server.delete(notification)							#WORKED
-	num_subscribers = my_server.hincrby(parent_object, 'n', amount=-1)
+	my_server.zrem(unseen_activity, notification)
+	my_server.zrem(unseen_activity_resorted, notification)
+	my_server.zrem(single_notif, notification)
+	my_server.delete(notification)        
+	if my_server.exists(parent_object):
+		# decrementing number of subscribers of the object by 1
+		my_server.hincrby(parent_object, 'n', amount=-1)
 
 
 def bulk_delete_pergrp_notif(groups_and_participants, obj_type='5'):
@@ -776,7 +964,7 @@ def get_notif_count(viewer_id):
 	sorted_set = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
 	last_visit = 't:'+str(viewer_id)
 	last_visit_time = my_server.get(last_visit) #O(1)
-	count = my_server.zcount(sorted_set,'('+str(last_visit_time),'+inf') #O(log(N))
+	count = my_server.zcount(sorted_set,'('+str(last_visit_time),'+inf') if last_visit_time else 0
 	return count
 
 #####################Public Group Rankings#####################

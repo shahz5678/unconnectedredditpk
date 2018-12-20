@@ -5,9 +5,9 @@
 <head><title>Judgement on {{ oun }}'s photo | Damadam.pk</title></head>
 
 <div class="margin clb"> 
-<img src="{{ purl }}" style="border: 1px solid #A9A9A9;"></img>&nbsp;
+<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px">&nbsp;
 {% if dec == '1' %}
-
+	
 	{% if already_banned == '0' %}
 	<b class="ct">{{ oun }}</b> ko kitne time ke liye photo charhane se ban krna hai?
 	{% elif already_banned == '-1' %}
@@ -32,7 +32,7 @@
 		{% else %}
 		<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="dur" value="-1"><span class="cb">Rehne do</span><br><br>
 		{% endif %}
-		<button type="submit" class="btn bcr bm">OK</button>
+		<button type="submit" class="btn bcr bm" style="height:26px">OK</button>
 	</form>
 
 {% elif dec == '2' %}
@@ -81,7 +81,7 @@
 			<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="4"><span class="cr">Forever</span><br><br>
 			<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="0"><span class="cb">Rehne do</span><br><br>
 
-			<button type="submit" class="btn bcr bm">OK</button>
+			<button type="submit" class="btn bcr bm" style="height:26px">OK</button>
 		</form>
 	{% endif %}
 
@@ -136,7 +136,7 @@
 			<hr size=1 COLOR="#D0D0D0">
 		{% endif %}
 		<br>
-		<button type="submit" class="btn bcr bm">OK</button>
+		<button type="submit" class="btn bcr bm" style="height:26px">OK</button>
 
 	</form>
 {% elif dec == '0' %}
@@ -168,7 +168,7 @@
 		<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="4"><span class="cr">Forever</span><br><br>
 		<input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="0"><span class="cb">Rehne do</span><br><br>
 
-		<button type="submit" class="btn bcr bm">OK</button>
+		<button type="submit" class="btn bcr bm" style="height:26px">OK</button>
 	</form>
 	
 {% else %}

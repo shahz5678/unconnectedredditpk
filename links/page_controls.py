@@ -22,7 +22,7 @@ PERSONAL_GROUP_IMG_WIDTH = 400
 PERSONAL_GROUP_IMGS_PER_PAGE = 20
 PERSONAL_GROUP_MAX_SMS_SIZE = 150
 PERSONAL_GROUP_MAX_PHOTO_CAPTION_SIZE = 150#max size of caption of shared photo
-PERSONAL_GROUP_SMS_LOCK_TTL = 3600 #1 hour
+PERSONAL_GROUP_SMS_LOCK_TTL = 7200 # 2 hours - ttl for sending SMS in private chat
 PERSONAL_GROUP_SAVED_CHAT_COUNTER = 17 # number of messages a user can save at a time
 PERSONAL_GROUP_OWN_BG = 'csb'
 PERSONAL_GROUP_OWN_BORDER = 'sbb'
@@ -44,3 +44,4 @@ PRIV_CHAT_EMOTEXT = {'1':'ki dharkan tez ho geyi','2':'ko hansi ka dora par gaya
 '4':'buhut udas hai...','5':'ne poocha kya scene hai?'}# used when generating notifications only (not centrally connected)
 PRIV_CHAT_NOTIF = {'1':'ne photo send karney ki ijazat mangi','2':'ne ijazat mangi ke jab ap online na hon tou apko Damadam pe SMS ke zariye bulaya ja sakey'}
 PHOTO_SHARING_FRIEND_LIMIT = 5#number of friends a person can share a photo with simultaneously
+GROUPS_PER_PAGE = 10

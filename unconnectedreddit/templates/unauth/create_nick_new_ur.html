@@ -1,0 +1,23 @@
+{% extends "base_signup.html" %}
+{% block content %}
+<head><title>Create new username (Urdu) | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='ur' translate='1' %}
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:10px;background-color:#2de0ae;text-align:center">
+
+<form method="POST" action="{% url 'create_nick_new' 'ur' %}#section0" class="mts">
+	{% csrf_token %}
+	{% if form.username.errors %}
+		<div style="color:#f9ef6c;text-shadow:1px 1px #009940;font-size:23px" class="mbs" ><b><bdi>{{ form.username.errors.0 }}</bdi></b></div>
+	{% else %}
+		<div class="mbs" style="text-shadow:1px 1px #009940;color:white;font-size:23px;font-weight:bold"><bdo dir="rtl"><b>اپنا ایک مذے کا نام لکھیں:</b></bdo></div>
+	{% endif %}
+	{{ form.username }}<br>
+	<button class="mtl mbs bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button>
+</form>
+</div>
+<br>
+{% include "unauth/old_account_button.html" with lang='ur' %}
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% if lang == 'ur' %}
+	{% if forgot_pass == '1' and translate == '1' %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">دمادم <a href="{% url 'forgot_password' %}" class="cb" style="font-size:0.5em">(eng)</a></h1>
+	{% elif login == '1' and translate == '1' %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">دمادم <a href="{% url 'login' %}" class="cb" style="font-size:0.5em">(eng)</a></h1>
+	{% elif translate == '1' %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">دمادم <a href="{% url 'unauth_home_new' %}" class="cb" style="font-size:0.5em">(eng)</a></h1>
+	{% else %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">دمادم</h1>
+	{% endif %}
+
+{% else %}
+	
+	{% if forgot_pass == '1' and translate == '1' %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">Damadam.pk <a href="{% url 'forgot_password' 'ur' %}" class="cb" style="font-size:0.5em">(اردو)</a></h1>
+	{% elif login == '1' and translate == '1' %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">Damadam.pk <a href="{% url 'login' 'ur' %}" class="cb" style="font-size:0.5em">(اردو)</a></h1>
+	{% elif translate == '1' %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">Damadam.pk <a href="{% url 'unauth_home_new' 'ur' %}" class="cb" style="font-size:0.5em">(اردو)</a></h1>
+	{% else %}
+		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">Damadam.pk</h1>
+	{% endif %}
+
+{% endif %}

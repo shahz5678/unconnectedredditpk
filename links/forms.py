@@ -1,24 +1,271 @@
 # coding=utf-8
-from django import forms
-from django.forms import Textarea
-from tasks import log_gibberish_writer, invalidate_avatar_url
-from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl
-from .models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, Vote, \
-ChatPic, UserSettings, Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
+import re, time, random
+import unicodedata
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 from django.core import validators
 from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
-from image_processing import compute_avg_hash, reorient_image, make_thumbnail
+from django import forms
+from django.forms import Textarea
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-import re, time, random
 from user_sessions.models import Session
-import unicodedata
+from tasks import invalidate_avatar_url, log_gibberish_writer
+from templatetags.s3 import get_s3_object
+from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key,\
+get_aurl
+from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
+Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
+from image_processing import compute_avg_hash, reorient_image, make_thumbnail
+from redis6 import is_group_member_and_rules_signatory, human_readable_time, group_member_exists
+from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE
+
 
 ########################################### Utilities #######################################
+
+def retrieve_validation_error_string(err_type, lang=None, payload=None):
+	"""
+	Return a validation error string, if given 'err_type' of error
+
+	Takes 'payload' as an optional parameter in case the error string requires enrichment (e.g. a nickname has to be inserted into it)
+	"""
+	if err_type == 'nick_empty':
+		if lang == 'ur':
+			return 'نام کو خالی نہ چھویں'
+		else:
+			return "Nickname khali nahi chorein"
+	if err_type == 'nick_too_small':
+		if lang == 'ur':
+			return 'نام اتنا چهوٹا نہیں ہو سکتا'
+		else:
+			return 'Nickname itna chota nahi ho sakta'
+	elif err_type == 'invalid_new_nick':
+		if lang == 'ur':
+			return "نام میں انگریزی حروف، نمبر اور @ _ + - کے نشان کے علاوہ اور کچھ نہیں ہو سکتا۔ دوبارا کوشش کریں"
+		else:
+			return "Nickname mein english harf, number ya @ _ . + - likhein"
+	elif err_type == 'required_new_nick':
+		if lang == 'ur':
+			return 'اس سفید پٹی میں نام لکھیں'
+		else:
+			return "Safed patti mein nickname likh ke OK dabain"
+	elif err_type == 'required_visible_nick':
+		if lang == 'ur':
+			return 'نک نیم میں حرف لکهنا ضروری ے'
+		else:
+			return "Nickname mein harf likhna zaruri hain"
+	elif err_type == 'nick_only_has_digits':
+		if lang == 'ur':
+			return 'نام میں صرف نمبر نہیں ہو سکتے'
+		else:
+			return 'Nickname mei sirf numbers nahi ho saktey'
+	elif err_type == 'nick_is_taken':
+		if lang == 'ur':
+			return 'یہ نام پہلے سے کسی نے رکھا ہوا ہے، کوی اور نام رکھیں'
+		else:
+			return '"%s" kisi aur ka nickname hai. Kuch aur likhein' % payload
+	elif err_type == 'nick_recently_taken':
+		if lang == 'ur':
+			return 'یہ نام آپ سے پہلے کسی اور نے رکھ لیا'
+		else:
+			return '"%s" nickname ap se pehle kisi aur ne rakh liya' % payload
+	elif err_type == 'banned_sequence_in_nick':
+		if lang == 'ur':
+			return 'نام میں "%s" نہیں ڈالیں' % payload
+		else:
+			return 'Nickname mein "%s" nahi ho sakta' % payload
+	elif err_type == 'illegal_sequence_in_nick':
+		if lang == 'ur':
+			return 'نام میں "%s" نہیں ڈالیں' % payload
+		else:
+			return 'Nickname mein "%s" nahi dalein' % payload
+	elif err_type == 'dot_at_nick_start':
+		if lang == 'ur':
+			return 'نام کے شروع میں . نہیں ڈالیں'
+		else:
+			return "Nickname ke start mein . nahi dalein"
+	elif err_type == 'dot_at_nick_end':
+		if lang == 'ur':
+			return 'نام کے آخر میں . نہیں ڈالیں'
+		else:
+			return "Nickname ke end mein . nahi dalein"
+	elif err_type == 'dash_at_nick_start':
+		if lang == 'ur':
+			return 'نام کے شروع میں - نہیں ڈالیں'
+		else:
+			return "Nickname ke start mein - nahi dalein"
+	elif err_type == 'dash_at_nick_end':
+		if lang == 'ur':
+			return 'نام کے آخر میں - نہیں ڈالیں'
+		else:
+			return 'Nickname ke end mein - nahi dalein'
+	elif err_type == 'plus_at_nick_start':
+		if lang == 'ur':
+			return 'نام کے شروع میں + نہیں ڈالیں'
+		else:
+			return 'Nickname ke start mein + nahi dalein'
+	elif err_type == 'plus_at_nick_end':
+		if lang == 'ur':
+			return 'نام کے آخر میں + نہیں ڈالیں'
+		else:
+			return 'Nickname ke end mein + nahi dalein'
+	elif err_type == 'uscore_at_nick_start':
+		if lang == 'ur':
+			return 'نام کے شروع میں _ نہیں ڈالیں'
+		else:
+			return 'Nickname ke start mein _ nahi dalein'
+	elif err_type == 'uscore_at_nick_end':
+		if lang == 'ur':
+			return 'نام کے آخر میں _ نہیں ڈالیں'
+		else:
+			return 'Nickname ke end mein _ nahi dalein'
+	elif err_type == 'repeating_sequence_in_nick':
+		if lang == 'ur':
+			return "ایک ہی چیز کو بار بار نہ لکھیں"
+		else:
+			return 'Nickname mein aik hi cheez bar bar nahi likhein'
+	elif err_type == 'generic_nickname_error':
+		if lang == 'ur':
+			return 'یہ نام صحیح نہیں ہے'
+		else:
+			return "Ye nickname sahi nahi hai"
+	elif err_type == 'bad_case':
+		if lang == 'ur':
+			return 'نک نیم میں حرف غلط ہیں ـ یا بڑا حرف چھوٹا لکھ دیا ے، یا چھوٹا حرف بڑا'
+		else:
+			return '"%s" nickname mein harf ghalat hain. Ya chota harf bara likh diya hai, ya bara harf chota' % payload
+	elif err_type == 'not_found':
+		if lang == 'ur':
+			return 'یہ نک نیم ﮨمارے رکارڈ میں نہیں'
+		else:
+			return '"%s" hamarey record mein nahi' % payload
+	elif err_type == 'banned_sequence_in_pass':
+		if lang == 'ur':
+			return 'اس پاس ورڈ کا اندازہ لگانا آسان ہے، کچھ اور لکھیں'
+		else:
+			return '"%s" ko boojhna aasan hai, kuch aur likhein' % payload
+	elif err_type == 'example_sequence_in_pass':
+		if lang == 'ur':
+			return 'یہ پاس ورڈ استعمال نہیں کریں'
+		else:
+			return '"%s" ko password nahi rakhein' % payload
+	elif err_type == 'nickname_in_pass':
+		if lang == 'ur':
+			return 'پاس ورڈ میں نام نہ لکھیں'
+		else:
+			return '"%s" nahi likh sakte kiyunke nickname mein hai' % payload
+	elif err_type == 'pass_too_small':
+		if lang == 'ur':
+			return 'کم سے کم چھ حرف لکھنا ضروری ہے'
+		else:
+			return "Kam se kam 6 letters likhna zaruri hain!"
+	elif err_type == 'required_visible_pass':
+		if lang == 'ur':
+			return 'پاس ورڈ میں حرف لکهنا ضروری ہے'
+		else:
+			return 'Password mein harf likhna zaruri hain'
+	elif err_type == 'old_new_pass_same':
+		if lang == 'ur':
+			return 'نیا پاس ورڈ پرانے پاس ورڈ سے مختلف رکھیں'
+		else:
+			return 'New password old password se different rakhein'
+	elif err_type == 'required_new_pass':
+		if lang == 'ur':
+			return 'سفید پٹی میں پاس ورڈ لکھیں'
+		else:
+			return "Safed patti mein password likhein"
+	elif err_type == 'pass_empty':
+		if lang == 'ur':
+			return 'پاس ورڈ خالی نہیں چھوڑیں'
+		else:
+			return "Password khali nahi chorein"
+	elif err_type == 'wrong_pass_input':
+		if lang == 'ur':
+			return 'پاس ورڈ غلط لکھا ہے ۔ اگر پاس ورڈ یاد نہیں تو سب سے نیچے "پاس ورڈ بھول گۓ" کو دبایں'
+		else:
+			return 'Password sahi nahi. Agr password yad nahi tou sab se neechay "Password yad nahi" dabain'
+	elif err_type == 'wrong_pin':
+		if lang == 'ur':
+			return 'کوڈ غلط ہے'
+		else:
+			return 'Apka pin code ghalat hai'
+	elif err_type == 'invalid_pin':
+		if lang == 'ur':
+			return 'کوڈ میں صرف نمبر لکھیں'
+		else:
+			return 'Pin mein sirf number likhein'
+	elif err_type == 'pin_too_small':
+		if lang == 'ur':
+			return 'پورا کوڈ لکھیں'
+		else:
+			return 'Pura pin code likhien'
+	elif err_type == 'required_pin':
+		if lang == 'ur':
+			return 'خفیہ کوڈ لکهنا ضروری ے'
+		else:
+			return 'Pin code likhna zaruri hai'
+	elif err_type == 'pin_tries_rate_limited':
+		if lang == 'ur':
+			return 'بہت زیادہ غلطیاں ہو گیں، واپس آیں %s baad' % payload
+		else:
+			return 'Ziyada ghalat tries ho gaien, %s baad wapis aien' % payload
+	elif err_type == 'mobnum_too_small':
+		if lang == 'ur':
+			return 'پورا موبائل نمبر لکھیں'
+		else:
+			return 'Pura mobile number likhein'
+	elif err_type == 'fake_mobnum':
+		if lang == 'ur':
+			return 'اپنا اصلی موبائل نمبر لکھیں'
+		else:
+			return 'Apna real mobile number likhein'
+	elif err_type == 'mobnum_not_verified':
+		if lang == 'ur':
+			return 'آپکا موبائل نمبر تصدیق شدہ نہیں، پاس ورڈ نہیں مل سکتا'
+		else:
+			return 'Ap verified nahi, password nahi mil sakta'
+	elif err_type == 'not_your_mobnum':
+		if lang == 'ur':
+			return ' موبائل نمبر صحیح لکھیں'
+		else:
+			return 'Mobile number sahi likhein'
+	elif err_type == 'mobnum_wrong_format':
+		if lang == 'ur':
+			return 'موبائل نمبر "03" سے شروع کریں'
+		else:
+			return 'Mobile number "03" se start karein'
+	elif err_type == 'required_mobnum':
+		if lang == 'ur':
+			return 'موبائل نمبر لکهنا ضروری ے'
+		else:
+			return 'Mobile number likhna zaruri hai'
+	elif err_type == 'invalid_mobnum':
+		if lang == 'ur':
+			return 'اپنا موبائل نمبر اس طرح لکھیں - 03451234567'
+		else:
+			return 'Mobile number is andaz mein likhein - 03451234567'
+
+	elif err_type == 'display_pic_rate_limited':
+		if lang == 'ur':
+			return ''
+		else:
+			return 'Ap profile foto change kar sakien ge %s secs baad' % payload
+	elif err_type == 'age_too_large':
+		if lang == 'ur':
+			return 'عمر صحیح لکھیں'
+		else:
+			return 'Age sahi likhein'
+	elif err_type == 'display_pic_frozen':
+		if lang == 'ur':
+			return ''
+		else:
+			return 'Sorry! Apki profile report ho chuki hai. Investigation puri honay tak display pic change nahi ki ja sakti'
+	else:
+		# generic error string
+		return "Ye sahi nahi hai"
+
 
 def repetition_found(section,section_id,user_id, target_text):
 	msgs_list = retrieve_previous_msgs(section=section, section_id=section_id,user_id=user_id)
@@ -47,51 +294,14 @@ def getip(request):
 def clear_zalgo_text(text):
 	return ''.join((c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn'))
 
-def human_readable_time(future_time_in_seconds):
-	try:
-		m, s = divmod(future_time_in_seconds, 60)
-		h, m = divmod(m, 60)
-		d, h = divmod(h, 24)
-		mo, d = divmod(d, 30)
-		if mo:
-			mo = int(mo)
-			if mo == 1:
-				return "1 month"
-			else:
-				return "%s months" % mo
-		elif d:
-			d = int(d)
-			if d == 1:
-				return "1 day"
-			else:
-				return "%s days" % d
-		elif h:
-			h = int(h)
-			if h == 1:
-				return "1 hour"
-			else:
-				return "%s hours" % h
-		elif m:
-			m = int(m)
-			if m == 1:
-				return "1 min"
-			else:
-				return "%s mins" % m
-		elif s:
-			s = int(s)
-			if s == 1:
-				return "1 sec"
-			else:
-				return "%s secs" % s
-		else:
-			return "kuch waqt"
-	except (NameError,TypeError):
-		return "kuch waqt"
 
 ################################################################################################
 
 
-class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
+class UserProfileForm(forms.ModelForm):
+	"""
+	This controls the userprofile edit form
+	"""
 	MardAurat = (
 		('1','Girl'),
 		('0','Boy'),
@@ -132,11 +342,11 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 				return image
 		except (AttributeError, ValueError):
 			pass
-		if image or image is False:	
+		if image or image is False: 
 			user_id = self.user.id
 			ttl = get_aurl(user_id)
 			if ttl > 1:
-				raise forms.ValidationError('Ap profile photo change kar sakien ge %s secs baad' % ttl)
+				raise forms.ValidationError(retrieve_validation_error_string('display_pic_rate_limited',payload=ttl))
 			invalidate_avatar_url.delay(user_id, set_rate_limit=True)
 			if image:
 				try:
@@ -161,7 +371,7 @@ class UserProfileForm(forms.ModelForm): #this controls the userprofile edit form
 	def clean_age(self):
 		age = self.cleaned_data.get("age")
 		if len(age) > 2:
-			raise forms.ValidationError('Age sahi likhein')
+			raise forms.ValidationError(retrieve_validation_error_string('age_too_large'))
 		return age
 
 class UserSettingsForm(forms.ModelForm):
@@ -206,7 +416,7 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 			else:
 				desc_len = len(description)
 				# if desc_len < 2:
-				# 	raise forms.ValidationError('tip: itna choti baat nahi likh sakte')
+				#   raise forms.ValidationError('tip: itna choti baat nahi likh sakte')
 				if desc_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
@@ -217,16 +427,16 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 				# description = clear_zalgo_text(description)
 				# uni_str = uniform_string(description)
 				# if uni_str:
-				# 	if uni_str.isspace():
-				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-				# 	else:
-				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				#   if uni_str.isspace():
+				#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				#   else:
+				#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return data
 
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
 	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),\
+		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_SUBMISSION_SIZE}),\
 	error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
 
@@ -250,11 +460,11 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		elif secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+			raise forms.ValidationError('tip: milti julti baatien nah likhein')
 		else:
 			rate_limited, reason = is_limited(user_id,section='home',with_reason=True)
 			if rate_limited > 0:
-				raise forms.ValidationError('Ap home pe likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				raise forms.ValidationError('Ap home pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 			else:
 				len_ = len(description)
 				if len_ < 2:
@@ -264,91 +474,12 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
 					else:
 						log_short_message(user_id,section,section_id)
-				elif len_ > 500:
-					raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-				# description = clear_zalgo_text(description)
-				# uni_str = uniform_string(description)
-				# if uni_str:
-				# 	if uni_str.isspace():
-				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-				# 	else:
-				# 		raise forms.ValidationError('"%s" is terhan bar bar ek hi harf nah likho' % uni_str)
+				elif len_ > MAX_HOME_SUBMISSION_SIZE:
+					raise forms.ValidationError('{0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
 				log_gibberish_writer.delay(user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
+				
 				return data
 
-class PublicGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
-		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
-	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
-	sk = forms.CharField(required=False)
-	gp = forms.IntegerField()
-
-	class Meta:
-		model = Reply
-		exclude = ("submitted_on","which_group","writer","abuse")
-		fields = ("image", "text")
-
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		self.is_mob_verified = kwargs.pop('is_mob_verified',None)
-		super(PublicGroupReplyForm, self).__init__(*args,**kwargs)
-		# self.fields['image'].widget.attrs['accept'] = 'image/*'
-		self.fields['image'].widget.attrs['id'] = 'pub_grp_browse_image_btn'
-		self.fields['text'].widget.attrs['id'] = 'pub_grp_text_field'
-		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean(self):
-		data = self.cleaned_data
-		text, user_id, section_id, section, image, secret_key_from_form = data.get("text"), self.user_id, data.get("gp"), 'pub_grp', \
-		data.get('image'), data.get('sk')
-		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'pub_grp')
-		text = text.strip() if text else text # make function sophisticated https://stackoverflow.com/questions/1546226/simple-way-to-remove-multiple-spaces-in-a-string
-		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
-		elif not text:
-			if image:
-				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				elif not self.is_mob_verified:
-					raise forms.ValidationError('tip: yahan foto laganey ke liye apna mobile number verify karwain')
-				else:
-					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
-						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
-					return data
-			else:
-				raise forms.ValidationError('tip: likhna zaruri hai')
-		else:
-			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
-				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-			else:
-				rate_limited, reason = is_limited(user_id,section='pub_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					text_len = len(text)
-					# if text_len < 1:
-					# 	raise forms.ValidationError('tip: likhna zaruri hai')
-					# elif text_len < 2:
-					# 	raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-					if text_len < 6:
-						if many_short_messages(user_id,section,section_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-						else:
-							log_short_message(user_id,section,section_id)
-					elif text_len > 500:
-						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-					if not self.is_mob_verified:
-						raise forms.ValidationError('tip: yahan likhne ke liye apna mobile number verify karwain')
-					# text = clear_zalgo_text(text)
-					# uni_str = uniform_string(text)
-					# if uni_str:
-					# 	if uni_str.isspace():
-					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					# 	else:
-					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likhein' % uni_str)
-					data["text"] = text
-					return data
 		
 class OutsiderGroupForm(forms.ModelForm):
 	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
@@ -356,72 +487,6 @@ class OutsiderGroupForm(forms.ModelForm):
 		model = Reply
 		exclude = ("submitted_on","which_group","writer","abuse")
 		fields = ("image", "text")
-
-class PrivateGroupReplyForm(forms.ModelForm):
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus','class': 'cxl',\
-		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}),error_messages={'required': 'tip: likhna zaruri hai'})
-	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
-	sk = forms.CharField(required=False)
-	gp = forms.IntegerField()
-	
-	class Meta:
-		model = Reply
-		exclude = ("submitted_on","which_group","writer","abuse")
-		fields = ("image", "text")
-
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		super(PrivateGroupReplyForm, self).__init__(*args,**kwargs)
-		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean(self):
-		data = self.cleaned_data
-		text, user_id, section_id, section, image, secret_key_from_form = data.get("text"), self.user_id, data.get("gp"), 'prv_grp', \
-		data.get("image"), data.get("sk")
-		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'prv_grp')
-		text = text.strip() if text else text
-		if not text:
-			if image:
-				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					data["text"] = random.choice(["... ... ...",".. .. ..","... .. ...",".. ... ..","... ... ..",".. ... ...",". ... .",\
-						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
-					return data
-			else:
-				raise forms.ValidationError('tip: likhna zaruri hai')
-		elif secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
-		else:
-			if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=text):
-				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-			else:
-				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					text_len = len(text)
-					if text_len < 1:
-						raise forms.ValidationError('tip: likhna zaruri hai')
-					# elif text_len < 2:
-					# 	raise forms.ValidationError('tip: itni choti baat nahi likh sakte')
-					if text_len < 6:
-						if many_short_messages(user_id,section,section_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-						else:
-							log_short_message(user_id,section,section_id)
-					elif text_len > 500:
-						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
-					# text = clear_zalgo_text(text)
-					# uni_str = uniform_string(text)
-					# if uni_str:
-					# 	if uni_str.isspace():
-					# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					# 	else:
-					# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-					data["text"] = text
-					return data
 
 
 class WelcomeMessageForm(forms.ModelForm):
@@ -433,7 +498,7 @@ class WelcomeMessageForm(forms.ModelForm):
 		fields = ("description",)
 
 class CommentForm(forms.ModelForm):
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;','class': 'cxl','autofocus': 'autofocus',\
+	text = forms.CharField(widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
 		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}))
 	sk = forms.CharField(required=False)
 
@@ -446,7 +511,7 @@ class CommentForm(forms.ModelForm):
 		self.user_id = kwargs.pop('user_id',None)
 		self.photo_id = kwargs.pop('photo_id',None)
 		super(CommentForm, self).__init__(*args,**kwargs)
-		self.fields['text'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['text'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean(self):
 		data = self.cleaned_data
@@ -466,7 +531,7 @@ class CommentForm(forms.ModelForm):
 			else:
 				text_len = len(text)
 				# if text_len < 2:
-				# 	raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
+				#   raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
 				if text_len < 6:
 					if many_short_messages(user_id,section,photo_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
@@ -477,10 +542,10 @@ class CommentForm(forms.ModelForm):
 				# text = clear_zalgo_text(text)
 				# uni_str = uniform_string(text)
 				# if uni_str:
-				# 	if uni_str.isspace():
-				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-				# 	else:
-				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				#   if uni_str.isspace():
+				#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				#   else:
+				#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return data
 
 class VideoCommentForm(forms.ModelForm):
@@ -490,9 +555,10 @@ class VideoCommentForm(forms.ModelForm):
 		exclude = ("which_photo", "device", "submitted_by", "submitted_on",)
 		fields = ("text",)
 
+
 class PublicreplyForm(forms.ModelForm):
-	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}), \
+	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
+		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_REPLY_SIZE}), \
 	error_messages={'required': 'Pehlay jawab likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
 
@@ -505,9 +571,9 @@ class PublicreplyForm(forms.ModelForm):
 		self.user_id = kwargs.pop('user_id',None)
 		self.link_id = kwargs.pop('link_id',None)
 		super(PublicreplyForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['description'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
-	def clean_sk(self):															
+	def clean_sk(self):                                                         
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,self.link_id,'home_rep')
 		if secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('tip: sirf aik dafa button dabain')
@@ -527,7 +593,7 @@ class PublicreplyForm(forms.ModelForm):
 			else:
 				desc_len = len(description)
 				# if desc_len < 2:
-				# 	raise forms.ValidationError('tip: itna chota jawab nahi likh sakte')
+				#   raise forms.ValidationError('tip: itna chota jawab nahi likh sakte')
 				if desc_len < 6:
 					if many_short_messages(user_id,section,section_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
@@ -538,10 +604,10 @@ class PublicreplyForm(forms.ModelForm):
 				# description = clear_zalgo_text(description)
 				# uni_str = uniform_string(description)
 				# if uni_str:
-				# 	if uni_str.isspace():
-				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-				# 	else:
-				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				#   if uni_str.isspace():
+				#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				#   else:
+				#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return description
 
 
@@ -553,7 +619,7 @@ class PublicreplyMiniForm(PublicreplyForm):
 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt ml'
 		self.fields['description'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:20px; line-height:30px;'
-		self.fields['description'].widget.attrs['autocomplete'] = 'off'											
+		self.fields['description'].widget.attrs['autocomplete'] = 'off'                                         
 
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')
@@ -562,21 +628,21 @@ class PublicreplyMiniForm(PublicreplyForm):
 		return secret_key_from_form
 
 class SearchNicknameForm(forms.Form):
-	nickname = forms.CharField(max_length=71)
+	nickname = forms.CharField(max_length=71,error_messages={'required': 'Safed patti mein "nickname" likhein jisko search karna hai'})
 
 	def __init__(self, *args, **kwargs):
 		super(SearchNicknameForm, self).__init__(*args, **kwargs)
 		self.fields['nickname'].widget.attrs['style'] = \
 		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #179b36;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #179b36;'
 		self.fields['nickname'].widget.attrs['class'] = 'cxl'
-		# self.fields['nickname'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['nickname'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['nickname'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_nickname(self):
 		nickname = self.cleaned_data.get("nickname")
 		nickname = nickname.strip()
 		if len(nickname) > 70:
-			raise forms.ValidationError('tip: inta bara nickname nahi likh sakte')
+			raise forms.ValidationError('Itna bara nickname nahi likh sakte')
 		# nickname = clear_zalgo_text(nickname)
 		return nickname
 
@@ -696,12 +762,13 @@ class PhotoCommentForm(forms.Form):
 			org = 'home'
 		else:
 			org = 'best_photos'
+		# if more 'org' values are needed, ensure they match the values in return_to_content() in views.py
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
 		if secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		comment = comment.strip() if comment else comment
 		if not comment:
-			raise forms.ValidationError('tip: likhna zaruri hai')
+			raise forms.ValidationError('Pehlay yahan kuch likhein, phir "tabsra kro" button dabain')
 		elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
 			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 		else:
@@ -711,7 +778,7 @@ class PhotoCommentForm(forms.Form):
 			else:
 				comm_len = len(comment)
 				# if comm_len < 2:
-				# 	raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
+				#   raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
 				if comm_len < 6:
 					if many_short_messages(user_id,section,photo_id):
 						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
@@ -722,10 +789,10 @@ class PhotoCommentForm(forms.Form):
 				# comment = clear_zalgo_text(comment)
 				# uni_str = uniform_string(comment)
 				# if uni_str:
-				# 	if uni_str.isspace():
-				# 		raise forms.ValidationError('tip: ziyada spaces daal di hain')
-				# 	else:
-				# 		raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+				#   if uni_str.isspace():
+				#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
+				#   else:
+				#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 				return data
 
 
@@ -783,9 +850,9 @@ class UnseenActivityForm(forms.Form):
 	def clean(self):
 		data, user_id = self.cleaned_data, self.user_id
 		origin, secret_key_from_form = data.get("origin"), data.get("sk")
-		if origin == '0':
+		if origin == '1':
 			org = 'fresh_photos'
-		elif origin == '1':
+		elif origin == '3':
 			org = 'home'
 		elif origin == '2':
 			org = 'best_photos'
@@ -810,7 +877,7 @@ class UnseenActivityForm(forms.Form):
 					len_payload = len(payload)
 					if len_payload < 6:
 						if many_short_messages(user_id,section,obj_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+							raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
 						else:
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
@@ -830,7 +897,7 @@ class UnseenActivityForm(forms.Form):
 					len_payload = len(payload)
 					if len_payload < 6:
 						if many_short_messages(user_id,section,obj_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
 						else:
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
@@ -838,44 +905,60 @@ class UnseenActivityForm(forms.Form):
 					return data
 			elif pub_grp_id:
 				section, payload, obj_id= 'pub_grp', data.get("public_group_reply"), pub_grp_id
-				payload = payload.strip() if payload else None
-				if not payload:
-					raise forms.ValidationError('tip: likhna zaruri hai')
-				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-					raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap open mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				#######################################
+				membership = is_group_member_and_rules_signatory(group_id=obj_id, user_id=user_id)
+				is_member, is_signatory = membership[0], membership[1]
+				#######################################
+				if is_member and is_signatory:
+					payload = payload.strip() if payload else None
+					if not payload:
+						raise forms.ValidationError('tip: likhna zaruri hai')
+					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+						raise forms.ValidationError('tip: milti julti baatien nahi post karein')
+					rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
+					if rate_limited > 0:
+						raise forms.ValidationError('Ap public mehfils mein post karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+					else:
+						len_payload = len(payload)
+						if len_payload < 6:
+							if many_short_messages(user_id,section,obj_id):
+								raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+							else:
+								log_short_message(user_id,section,obj_id)
+						elif len_payload > 500:
+							raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+						return data
+				elif is_member:
+					# needs to become a signatory
+					raise forms.ValidationError('Pehlay mehfil ke andr ja ke rules accept karein')
 				else:
-					len_payload = len(payload)
-					if len_payload < 6:
-						if many_short_messages(user_id,section,obj_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-						else:
-							log_short_message(user_id,section,obj_id)
-					elif len_payload > 500:
-						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					return data
+					raise forms.ValidationError('Pehlay mehfil ke andr ja ke "join" press karein')
 			elif prv_grp_id:
 				section, payload, obj_id = 'prv_grp', data.get("private_group_reply"), prv_grp_id
-				payload = payload.strip() if payload else None
-				if not payload:
-					raise forms.ValidationError('tip: likhna zaruri hai')
-				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-					raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
-				rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				#######################################
+				is_member = group_member_exists(group_id=obj_id, user_id=user_id)
+				#######################################
+				if is_member:
+					payload = payload.strip() if payload else None
+					if not payload:
+						raise forms.ValidationError('tip: likhna zaruri hai')
+					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+						raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
+					rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
+					if rate_limited > 0:
+						raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+					else:
+						len_payload = len(payload)
+						if len_payload < 6:
+							if many_short_messages(user_id,section,obj_id):
+								raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
+							else:
+								log_short_message(user_id,section,obj_id)
+						elif len_payload > 500:
+							raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+						return data
 				else:
-					len_payload = len(payload)
-					if len_payload < 6:
-						if many_short_messages(user_id,section,obj_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-						else:
-							log_short_message(user_id,section,obj_id)
-					elif len_payload > 500:
-						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
-					return data
+					raise forms.ValidationError('Pehlay mehfil ke andr ja ke "join" press karein')
 			elif per_grp_id:
 				payload = data.get("personal_group_reply")
 				payload = payload.strip() if payload else None
@@ -887,83 +970,15 @@ class UnseenActivityForm(forms.Form):
 				pass
 			return data
 
-
-
 class PhotoTimeForm(forms.Form):
 	class Meta:
 		pass
-
-class ClosedGroupCreateForm(forms.ModelForm):
-	class Meta:
-		model = Group
-		exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
-		fields = ("topic",)
-
-	def __init__(self, *args, **kwargs):
-		super(ClosedGroupCreateForm, self).__init__(*args, **kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
-
-class OpenGroupCreateForm(forms.ModelForm):
-	PicNoPic = (
-		('1','Haan'),
-		('0','Nahi'),
-		)
-	pics_ki_ijazat = forms.TypedChoiceField(choices=PicNoPic, widget=forms.RadioSelect, coerce=int)
-	class Meta:
-		model = Group
-		exclude = ("owner","created_at", "members", "cagtegory","private")
-		fields = ("topic", "rules", "pics_ki_ijazat")
-
-	def __init__(self, *args, **kwargs):
-		self.is_mob_verified = kwargs.pop('verified',None)
-		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
-		self.fields['topic'].widget.attrs['style'] = 'width:95%;'
-		self.fields['rules'].widget.attrs['style'] = 'width:95%;'
-
-	def clean_topic(self):
-		data, is_mob_verified = self.cleaned_data.get("topic"), self.is_mob_verified
-		if not is_mob_verified:
-			raise forms.ValidationError('Mobile number verify kiye beghair mehfil nahi ban sakti')
-		return data
-
 
 class ChangeOutsideGroupTopicForm(forms.ModelForm):
 	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
 	class Meta:
 		model = Group
 		fields = ("topic",)
-
-class ChangePrivateGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='New Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
-	class Meta:
-		model = Group
-		fields = ("topic",)
-
-	def clean_topic(self):
-		topic = self.cleaned_data.get("topic")
-		topic = topic.strip()
-		# topic = clear_zalgo_text(topic)
-		if not topic:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		elif topic < 1:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		return topic
-
-class ChangeGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
-	class Meta:
-		model = Group
-		fields = ("topic",)
-
-	def clean_topic(self):
-		topic = self.cleaned_data.get("topic")
-		topic = topic.strip()
-		# topic = clear_zalgo_text(topic)
-		if not topic:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		elif topic < 1:
-			raise forms.ValidationError('Topic rakhna zaruri hai')
-		return topic
 
 
 class UploadPhotoReplyForm(forms.ModelForm):
@@ -980,7 +995,8 @@ class UploadPhotoReplyForm(forms.ModelForm):
 
 class UploadPhotoForm(forms.ModelForm):
 	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;','spellcheck':'false','maxlength':MAX_PHOTO_CAPTION_SIZE}),\
+		error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
 	class Meta:
 		model = Photo
 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
@@ -1015,11 +1031,6 @@ class PicsChatUploadForm(forms.ModelForm):
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
 		# self.fields['image'].widget.attrs['accept'] = 'image/*'
 
-class ChangeGroupRulesForm(forms.ModelForm):
-	rules = forms.CharField(label='Neya Qanoon:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;'}))
-	class Meta:
-		model = Group
-		fields = ("rules",)
 
 class PhotoReportForm(forms.Form):
 	description = forms.CharField(widget=forms.Textarea(attrs=\
@@ -1105,10 +1116,6 @@ class SalatTutorialForm(forms.Form):
 	class Meta:
 		pass
 
-class DirectMessageForm(forms.Form):
-	class Meta:
-		pass
-
 class SalatInviteForm(forms.Form):
 	class Meta:
 		pass
@@ -1157,21 +1164,10 @@ class PicHelpForm(forms.Form):
 	class Meta:
 		pass
 
-class DirectMessageCreateForm(forms.Form):
-	class Meta:
-		model = Group
 
 class PicExpiryForm(forms.Form):
 	class Meta:
 		pass
-
-class InvitePrivateForm(forms.Form):
-	class Meta:
-		model = Session
-
-class InviteForm(forms.Form): # doesn't work if one uses Model form
-	class Meta:
-		model = Session
 
 class VerifiedForm(forms.Form):
 	class Meta:
@@ -1185,14 +1181,6 @@ class TopForm(forms.Form):
 	class Meta:
 		model = User
 
-class OwnerGroupOnlineKonForm(forms.ModelForm):
-	class Meta:
-		model = GroupTraffic
-
-class GroupOnlineKonForm(forms.ModelForm):
-	class Meta:
-		model = GroupTraffic
-
 class DeviceHelpForm(forms.Form):
 	class Meta:
 		pass
@@ -1201,35 +1189,11 @@ class ReportcommentForm(forms.Form):
 	class Meta:
 		pass
 
-class MehfilCommentForm(forms.Form):
-	class Meta:
-		pass
+# class MehfilCommentForm(forms.Form):
+# 	class Meta:
+# 		pass
 
 class WelcomeForm(forms.Form):
-	class Meta:
-		pass
-
-class GroupPageForm(forms.Form):
-	class Meta:
-		model = Reply
-
-class AppointCaptainForm(forms.Form): #doesn't work as forms.ModelForm
-	class Meta:
-		pass
-
-class GroupListForm(forms.Form):
-	class Meta:
-		pass
-
-class OpenGroupHelpForm(forms.Form):
-	class Meta:
-		pass
-
-class ClosedGroupHelpForm(forms.Form):
-	class Meta:
-		pass
-
-class GroupTypeForm(forms.Form):
 	class Meta:
 		pass
 
@@ -1265,10 +1229,6 @@ class LogoutPenaltyForm(forms.Form):
 	class Meta:
 		pass
 
-class ReinvitePrivateForm(forms.Form):
-	class Meta:
-		pass
-
 class ReportNicknameForm(forms.Form):
 	class Meta:
 		pass
@@ -1277,21 +1237,14 @@ class SpecialPhotoTutorialForm(forms.Form):
 	class Meta:
 		pass
 
-class ReinviteForm(forms.Form):
-	class Meta:
-		pass
-
 # class KickForm(forms.Form):
-# 	class Meta:
-# 		pass
+#   class Meta:
+#       pass
 
-class MehfilForm(forms.Form):
-	class Meta:
-		pass
 
 # class GroupReportForm(forms.Form):
-# 	class Meta:
-# 		model = Reply
+#   class Meta:
+#       model = Reply
 
 class MehfildecisionForm(forms.Form):
 	class Meta:
@@ -1317,7 +1270,14 @@ class ReauthForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request',None)
 		super(ReauthForm, self).__init__(*args,**kwargs)
-		self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
+		self.fields['password'].error_messages = {'required':retrieve_validation_error_string('pass_empty'),'invalid':retrieve_validation_error_string('generic')}
+		self.fields['password'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color:#1cb841;'
+		self.fields['password'].widget.attrs['class'] = 'cxl'
+		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_password(self):
 		entered_password = self.cleaned_data["password"]
@@ -1325,41 +1285,60 @@ class ReauthForm(forms.Form):
 		if check_password(password=entered_password,encoded=real_password):
 			return entered_password
 		else:
-			raise forms.ValidationError('Password theek nahi, phir se likho')
+			raise forms.ValidationError(retrieve_validation_error_string('generic'))
 
 
 class ResetPasswordForm(forms.Form):
-	password = forms.CharField(widget=forms.PasswordInput)
+	password = forms.CharField()
 	class Meta:
 		fields = ('password',)
 
 	def __init__(self,*args,**kwargs):
 		self.request = kwargs.pop('request',None)
 		super(ResetPasswordForm, self).__init__(*args,**kwargs)
-		self.fields['password'].widget.attrs['style'] = 'max-width:95%;'
+		self.fields['password'].error_messages = {'required':retrieve_validation_error_string('pass_empty'),'invalid':retrieve_validation_error_string('generic')}
+		self.fields['password'].widget.attrs['style'] = \
+		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color:#1cb841;'
+		self.fields['password'].widget.attrs['class'] = 'cxl'
+		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['password'].widget.attrs['autocomplete'] = 'off'
+		self.fields['password'].widget.attrs['autocapitalize'] = 'none'
+		self.fields['password'].widget.attrs['spellcheck'] = 'false'
 
 	def clean_password(self):
 		password = self.cleaned_data["password"]
 		password = password.strip()
-		old_password = self.request.user.password
-		lower_pass = password.lower()
-		nickname = self.request.user.username
-		lower_nick = nickname.lower()
-		if check_password(password,old_password):
-			raise ValidationError('New password purane password se mukhtalif rakhein')
-		if len(password) < 6:
-			raise ValidationError('Kam se kam 6 harf likhna zaruri hain!')
-		elif lower_pass in '1234567890':
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
-		elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
-			raise ValidationError('"%s" ko boojhna aasan hai, kuch aur likhein'  % lower_pass)
-		elif lower_nick in lower_pass:
-			raise ValidationError('"%s" nahi likh sakte kiyunke nickname mein hai' % nickname)
-		elif 'damadam' in lower_pass:
-			raise ValidationError('"damadam" ko boojhna aasan hai, kuch aur likhein')
-		elif 'qwerty' in lower_pass:
-			raise ValidationError('"qwerty" ko boojhna aasan hai, kuch aur likhein')
-		return password
+		if not password:
+			raise ValidationError(retrieve_validation_error_string('pass_empty'))
+		else:
+			old_password = self.request.user.password
+			lower_pass = password.lower()
+			nickname = self.request.user.username
+			lower_nick = nickname.lower()
+			if check_password(password,old_password):
+				raise ValidationError(retrieve_validation_error_string('old_new_pass_same'))
+			if len(password) < 6:
+				raise ValidationError(retrieve_validation_error_string('pass_too_small'))
+			elif lower_pass in '1234567890':
+				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',payload=lower_pass))
+			elif lower_pass == lower_pass[0]*len(lower_pass): #checks if it's a string made of a single character
+				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',payload=lower_pass))
+			elif lower_nick in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('nickname_in_pass',payload=nickname))
+			elif 'facebook' in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',payload='facebook'))
+			elif 'damadam' in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',payload='damadam'))
+			elif 'qwerty' in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',payload='qwerty'))
+			elif 'babykobasspasandhai' in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('example_sequence_in_pass',payload='babykobasspasandhai'))
+			elif 'chaachi420' in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('example_sequence_in_pass',payload='chaachi420'))
+			elif 'garamaanday' in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('example_sequence_in_pass',payload='garamaanday'))
+			else:
+				return password
 
 
 	def save(self, commit=True):
@@ -1369,6 +1348,7 @@ class ResetPasswordForm(forms.Form):
 		if commit:
 			user.save()
 		return user
+
 
 class LoginWalkthroughForm(forms.Form):
 	class Meta:
@@ -1391,10 +1371,6 @@ class HistoryHelpForm(forms.Form):
 		pass
 
 class WhoseOnlineForm(forms.Form):
-	class Meta:
-		pass
-
-class GroupHelpForm(forms.Form):
 	class Meta:
 		pass
 
@@ -1450,3 +1426,4 @@ class AdFeedbackForm(forms.Form):
 			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
 		feedback = clear_zalgo_text(feedback)
 		return feedback
+		

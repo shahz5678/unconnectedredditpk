@@ -319,6 +319,27 @@ def retrieve_photo_data(photo_ids, owner_id):
 			my_server.expire(key,THREE_DAYS)
 	return photo_data
 
+
+######################## Rate limiting unfanned user ########################
+
+
+def rate_limit_unfanned_user(own_id,target_id):
+    """
+    Rate limit to ensure unfanned user doesn't refan the star immediately after
+    """
+    redis.Redis(connection_pool=POOL).setex('rlf:'+str(own_id)+":"+str(target_id),'1',TWO_WEEKS)
+
+
+def is_potential_fan_rate_limited(star_id,own_id):
+    """
+    Checking if allowed to fan the star, or is rate-limited due to a previous unfanning event
+    """
+    if redis.Redis(connection_pool=POOL).ttl('rlf:'+str(star_id)+":"+str(own_id)) > 0:
+        return True
+    else:
+        return False
+
+
 ###################### User credentials caching ######################
 
 
@@ -452,8 +473,6 @@ def retrieve_bulk_unames(user_ids, decode=False):
 		pipeline2.execute()
 	return usernames
 
-
-
 def retrieve_uname(user_id,decode=False):
 	"""
 	Returns user's nickname
@@ -467,14 +486,17 @@ def retrieve_uname(user_id,decode=False):
 		else:
 			return username
 	else:
-		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
+		try:
+			username = User.objects.only('username').get(id=user_id).username
+		except User.DoesNotExist:
+			return None
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'uname',username)
 		pipeline1.expire(hash_name,ONE_DAY)
 		pipeline1.execute()
 		return username
 
-
+		
 def retrieve_credentials(user_id,decode_uname=False):
 	"""
 	Returns username and avatar_url for given user_id
@@ -489,8 +511,7 @@ def retrieve_credentials(user_id,decode_uname=False):
 			return username, avurl
 	elif username:
 		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
-		if not avurl:
-			avurl = 'empty'
+		avurl = avurl if avurl else 'empty'
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'avurl',avurl)
 		pipeline1.expire(hash_name,ONE_DAY)
@@ -509,8 +530,7 @@ def retrieve_credentials(user_id,decode_uname=False):
 	else:
 		username = User.objects.filter(id=user_id).values_list('username',flat=True)[0]
 		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
-		if not avurl:
-			avurl = 'empty'
+		avurl = avurl if avurl else 'empty'
 		mapping = {'uname':username,'avurl':avurl}
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset(hash_name,mapping)
@@ -647,9 +667,25 @@ def get_recent_online():
 	online_ids = []
 	for user in online_users:
 		online_ids.append(user.split(":",1)[0])
-	return online_ids
+	return set(online_ids)
+
+def save_most_recent_online_users(user_ids):
+	"""
+	Saves a snapshot of online user ids
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if user_ids:
+		my_server.delete("online_user_ids")
+		my_server.lpush('online_user_ids',*user_ids)
 
 
+def get_most_recent_online_users():
+	"""
+	Retrieves online user ids to show in OnlineKonView()
+	"""
+	return redis.Redis(connection_pool=POOL).lrange('online_user_ids',0,-1)
+
+	
 ######################################## Detect Clones of User ID ########################################
 
 
@@ -747,6 +783,7 @@ def del_careem_data():
 ##################################################Mobile_Shop
 
 
+
 def log_buyer_form_err(error_data):
 	my_server = redis.Redis(connection_pool=POOL)
 	error_id = get_error_id()
@@ -797,23 +834,21 @@ def place_order(user_id):
 	order_id = get_order_id()
 	order_data['order_id'] = order_id
 	pipeline1.zadd('ordersinprocess',user_id,order_id)
+	pipeline1.zadd('numbersinprocess',order_data['phonenumber'],order_id)
 	# after a few months, export this to excel and clean the list (it takes up needless space)
 	pipeline1.hmset("placedorders:"+str(order_id),order_data)
 	pipeline1.execute()
 	return order_data
 
-def delete_order(order_id,user_id):
+def delete_order(order_id,user_id,phonenumber):
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	# after a few months, export this to excel and clean the list (it takes up needless space)
 	my_server.zrem("ordersinprocess",user_id)
+	my_server.zrem("numbersinprocess",phonenumber)
 	my_server.delete("placedorders:"+str(order_id))
 	pipeline1.execute()
 	return {}
-
-
-
-
 
 def get_temp_order_data(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -825,18 +860,28 @@ def get_temp_order_data(user_id):
 	else:
 		return {}
 
-def check_orders_processing(user_id):
-	user = redis.Redis(connection_pool=POOL).zscore('ordersinprocess',user_id)
+def check_orders_processing(user_id,phone=False):
+	my_server = redis.Redis(connection_pool=POOL)
+	user = my_server.zscore('ordersinprocess',user_id)
 	if user == None:
-		return False
+		if phone:
+			phonenumber = my_server.zscore('numbersinprocess',phone)
+			if phonenumber:
+				return True
+			else:
+				return False
+		else:
+				return False
 	else:
 		return True
 
 def get_order_id():
-	return redis.Redis(connection_pool=POOL).incr("order_id")
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.incr("order_id")
 
 def get_total_orders():
-	return redis.Redis(connection_pool=POOL).get("order_id")
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.get("order_id")
 
 def show_new_orders():
 	total_orders = get_total_orders()
@@ -868,6 +913,8 @@ def show_new_queries():
 			pipeline1.hgetall('querydata:'+obj)
 		result1 = pipeline1.execute()
 		return result1
+
+
 
 
 
@@ -1285,7 +1332,7 @@ def increment_convo_counter(group_id, writer_id, group_type=None):
 	2) What are avg number of switchovers produced per type of chat?
 	"""
 	if group_type:
-		last_interaction_in_group = "lig_"+group_type+":"+group_id
+		last_interaction_in_group = "lig_"+group_type+":"+str(group_id)
 		my_server = redis.Redis(connection_pool=POOL)
 		lwid = my_server.getset(last_interaction_in_group,writer_id)
 		if lwid:

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>User verification | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl lsp clb" style="text-align:center">Enter pin code:</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+	{% if reentry_instr %}<div class="cxl mt lsp clb">Kuch hi time pehlay apko pin code SMS kiya gaya hai</div>{% else %}<div class="cxl mt lsp clb">Apkey mobile number pe pin code SMS kar dia gya hai</div>{% endif %}
+
+	<hr size=1 COLOR="#e6e6e6">
+
+		<form method="POST" action="{% url 'pin_verification' %}" class="mtl cgy">
+			{% csrf_token %}
+			<div class="sp lsp mbl">Pin code neechay likh ke "OK" dabaien</div>
+			{% if form.pinnumber.errors %}<b class="cr sp cl lsp mt mbs">{{ form.pinnumber.errors.0 }}</b><br>{% endif %}
+			{{ form.pinnumber }}<br>
+			<button class="btn bct mtl mbs bm cl sp pg_ok_res" style="height:28px">OK</button>
+		</form>
+
+		<hr size=1 COLOR="#e6e6e6">
+		{% if ttl %}
+			{% load future_time %}
+			<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note I:</b> ap dubara pin code SMS karwa sakein ge<span style="color:red" > {{ ttl|future_time }}</span><br><b>Note II:</b> kuch deir wait karein, network slow ho sakta hai</span></div>
+		{% else %}
+			<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note:</b> is screen pe wait karein jab tak SMS na aye, network slow ho sakta hai</div>
+		{% endif %}
+
+</div><br><br>
+{% endblock %}

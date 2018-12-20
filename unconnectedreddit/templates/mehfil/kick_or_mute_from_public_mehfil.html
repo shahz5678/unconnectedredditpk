@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Kick user from public mehfil | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Take action against {{ culprit_username|truncatechars:'13' }}:</span></h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if unauthorized %}
+		<div class="cxl mbs lsp"><b>{{ user.username }}</b> ye impossible hai!</div>
+		<a href="{% url 'public_group' slug=unique %}" class="cl sp cgy" style="border-bottom:1px dotted gray">wapis</a><br><br>
+	{% else %}
+		{% if culprit_username == owner_uname %}
+			<div class="cxl mbs lsp">Ap mehfil owner hain, ap apney khilaf action nahi le saktey</div>
+			<a href="{% url 'public_group' slug=unique %}" class="cl sp cgy" style="border-bottom:1px dotted gray">wapis</a><br><br>
+		{% else %}
+			{% if action_type == 'mute' %}
+				<div class="cxl lsp"><b>{{ culprit_username }}</b> ko mehfil mein kitney time ke liye mute karna hai?</div>
+				<form action="{% url 'kick_or_mute' %}" method="POST">
+				{% csrf_token %}
+					<input type="hidden" name="slug" value="{{ unique }}">
+	    			<input type="hidden" name="pk" value="{{ pk }}">
+	    			<input type="hidden" name="at" value="m">
+	    			<ul style="display:inline-block;padding: 0;list-style:none">
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="1" name="dur" value="1"><label for="1"><span class="cr">3 hours</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="2" name="dur" value="2"><label for="2"><span class="cr">1 day</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="3" name="dur" value="3"><label for="3"><span class="cr">3 days</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="4" name="dur" value="4"><label for="4"><span class="cr">1 week</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="5" name="dur" value="5"><label for="5"><span class="cr">1 month</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="6" name="dur" value="6"><label for="6"><span class="cr">Forever</span></label></li>
+						<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="0" name="dur" value="0" checked><label for="0"><b class="cb sp">Cancel</b></label></li>
+					</ul><br>
+
+					<button type="submit" name="act" class="btn bcr bm mrl mbl pg_ok_res sp" style="height:26px" value="1">OK</button>
+					<button type="submit" name="act" class="mts cgy mbl cl sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray" value="0">Cancel</button>
+				</form>
+			{% else %}
+				<div class="cxl lsp"><b>{{ culprit_username }}</b> ko mehfil se kitney time ke liye kick out karna hai?</div>
+				<form action="{% url 'kick_or_mute' %}" method="POST">
+				{% csrf_token %}
+					<input type="hidden" name="slug" value="{{ unique }}">
+	    			<input type="hidden" name="pk" value="{{ pk }}">
+	    			<input type="hidden" name="at" value="k">
+	    			<ul style="display:inline-block;padding: 0;list-style:none">
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="1" name="dur" value="1"><label for="1"><span class="cr">3 hours</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="2" name="dur" value="2"><label for="2"><span class="cr">1 day</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="3" name="dur" value="3"><label for="3"><span class="cr">3 days</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="4" name="dur" value="4"><label for="4"><span class="cr">1 week</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="5" name="dur" value="5"><label for="5"><span class="cr">1 month</span></label></li>
+						<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="6" name="dur" value="6"><label for="6"><span class="cr">Forever</span></label></li>
+						<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="0" name="dur" value="0" checked><label for="0"><b class="cb sp">Cancel</b></label></li>
+					</ul><br>
+
+					<button type="submit" name="act" class="btn bcr bm mrl mbl pg_ok_res sp" style="height:26px" value="1">OK</button>
+					<button type="submit" name="act" class="mts cgy mbl cl sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray" value="0">Cancel</button>
+				</form>
+		{% endif %}
+	{% endif %}
+</div><br>
+{% endblock %}

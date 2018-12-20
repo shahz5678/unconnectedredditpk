@@ -6,8 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     {% include "favicons.html" %}
-        
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v2.css">
+    {% include "css.html" %}
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -44,6 +43,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 </head>
 <body>
 {% include "fb_analytics.html" %}
+{% include "ga_user_analytics.html" with my_var=user.id %}
 {% load count %}
 {% load search_unlocked %}
 {% check_notif_count as notif_count %}

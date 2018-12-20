@@ -10,7 +10,6 @@
 {% load get_notification_bar %}
 {% load get_photo_comment_bar %}
 {% load get_photo_comments_section %}
-{% load get_mobile_verification_bar %}
 {% load get_curate_photo %}
 {% block content %}
 
@@ -60,10 +59,9 @@ body{background: #E9EBEE}
 
 <div class="margin">
 	{% if home_rules %}{{ home_rules|safe }}{% endif %}
-	
-	{% mobile_verification_bar user.id csrf mobile_verified score %}
+	{% include "verification/mobile_verification_bar.html" with is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-	{% notification_bar notification=process_notification origin='0' notif_form=notif_form user=user user_id=user.id females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
+	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=user.id females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
 	
 {% if score >= threshold and not banned %}
@@ -114,7 +112,7 @@ body{background: #E9EBEE}
 		{% endif %}
 
 		<div style="display:inline-block">
-		{% fan_button own_user_id=user.id target_user_id=photo.oi object_id=photo.i origin=2 fan_list=fanned static_url=STATIC_URL %}
+		{% fan_button own_user_id=user.id target_user_id=photo.oi object_id=photo.i origin=1 fan_list=fanned static_url=STATIC_URL %}
 		</div>
 
 

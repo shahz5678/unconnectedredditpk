@@ -9,34 +9,40 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
-from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms
+from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
+process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
-SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN
+SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE
+
+
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream, HellBanList, UserFan
+Video, HotUser, PhotoStream, HellBanList, UserFan, Group
 from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
-public_group_ranking_clean_up
+public_group_ranking_clean_up,set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
-rate_limit_personal_group_sharing
+rate_limit_personal_group_sharing,log_message_sent,log_invite_accepted, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
-log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view#, log_photo_attention_from_fresh
+log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
-remove_notification_of_banned_user, remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, \
-update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif
+remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, sanitize_eachothers_unseen_activities,\
+update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif, update_group_topic_in_obj, bulk_remove_multiple_group_notifications
 from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
 delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos,get_photo_link_mapping,\
-delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients
+delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, cleanse_public_and_private_groups_data
+from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
+log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members
+
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -244,27 +250,35 @@ def delete_exited_personal_group():
 	exited_personal_group_hard_deletion()
 
 
-def retrieve_object_type(origin):
-	PARENT_OBJECT_TYPE = {'photo:comments':'0','home:reply':'2','home:photo':'0','home:link':'2','home:comment':'0','publicreply:link':'2',\
-	'publicreply:reply':'2', 'history:link':'2', 'notif:reply':'2','notif:photo':'0','profile:fans':'99'}
-	try:
-		return PARENT_OBJECT_TYPE[origin]
-	except:
-		return -1
-
-
 @celery_app1.task(name='tasks.post_banning_tasks')
-def post_banning_tasks(own_id, target_id, object_id, origin):
-	object_type = retrieve_object_type(origin)
-	if object_type != -1:
-		if object_id != 'fan':
-			remove_notification_of_banned_user(target_id,object_id,object_type)
-		################################################################################
-		# unfan (in case was a fan)
-		UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
-		UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
-		remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
-		remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
+def post_banning_tasks(own_id, target_id):
+	"""
+	Remove's banner's notification from from the bannee's matka, also unfans them.
+
+	It's a good-to-have task, not mission critical (and can be improved).
+	Problems include: 
+	1) If bannee wanted to eavesdrop on banner's posts, they could do so in myriad of ways
+	2) In fact, much better to design a new matka which includes the '@' functionality, deprecate this prototypical one.
+	"""
+	# unfan (in case was a fan)
+	UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
+	UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
+	remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
+	remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
+	rate_limit_unfanned_user(own_id=own_id,target_id=target_id)
+	################################################################################
+	# this ensures all posts of eachothers are deleted from the matka
+	sanitize_eachothers_unseen_activities(user1_id=own_id, user2_id=target_id)
+	################################################################################
+	# 1) Exit yourself if group is non-exited
+	# 2) If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them=
+	# 3) No notifications will be generated since we already sanitized each user's activity
+	# this ensures they can't private chat with eachother
+	exit_user_from_targets_priv_chat(own_id,target_id)
+	################################################################################
+	# we did a LOT of work, ensure banner didn't ban in vain!
+	ratelimit_banner_from_unbanning_target(own_id,target_id)
+	################################################################################
 
 
 @celery_app1.task(name='tasks.sanitize_expired_bans')
@@ -336,7 +350,7 @@ def calc_ecomm_metrics():
 	insert_latest_metrics()
 
 
-@celery_app1.task(name='tasks.log_gibberish')
+@celery_app1.task(name='tasks.log_gibberish_writer')
 def log_gibberish_writer(user_id,text,length_of_text):
 	if length_of_text > 10 and ' ' not in text:
 		log_gibberish_text_writer(user_id)
@@ -363,10 +377,51 @@ def log_gibberish_writer(user_id,text,length_of_text):
 							log_gibberish_text_writer(user_id)
 							# log_spam_text_writer(user_id, text)
 
+# @celery_app1.task(name='tasks.set_section_retention')
+# def set_section_retention(which_section, user_id):
+#     """
+#     Logs users for retention calculation of various sections of the app
+
+#     Sections include 'private_mehfil', 'public_mehfil', 'private_chat' currently
+#     """
+#     set_section_wise_retention(which_section, user_id)
+
+@celery_app1.task(name='tasks.set_user_age')
+def set_user_age(user_id):
+	"""
+	Task that increments user's age in the world
+	"""
+	set_world_age(user_id)
+
+
+########################### priv chat split test ########
+
+
+@celery_app1.task(name='tasks.priv_msg_sent_logger')
+def priv_msg_sent_logger(user_id, group_id):
+	"""
+	Increment chat for group in A/B test
+	"""
+	log_message_sent(user_id,group_id)
+
+@celery_app1.task(name='tasks.priv_invite_accepted_logger')
+def priv_invite_accepted_logger(user_id, group_id):
+	"""
+	Logging group for A/B test
+	"""
+	log_invite_accepted(user_id, group_id)
+
+######################################################
+
+
 @celery_app1.task(name='tasks.save_online_user')
 def save_online_user(user_id,user_ip):
 	set_online_users(str(user_id),str(user_ip))
 
+@celery_app1.task(name='tasks.whoseonline')
+def whoseonline():
+	user_ids = get_recent_online()
+	save_most_recent_online_users(user_ids)
 
 @celery_app1.task(name='tasks.detail_click_logger')
 def detail_click_logger(ad_id, clicker_id):
@@ -378,14 +433,21 @@ def detail_click_logger(ad_id, clicker_id):
 # 	log_photo_attention_from_fresh(photo_id, att_giver, photo_owner_id, action, vote_value)
 
 
+
 @celery_app1.task(name='tasks.enqueue_sms')
 def enqueue_sms(mobile_number, ad_id, status=None, buyer_number=None, item_name=None):
 	process_sms(mobile_number,ad_id,status, buyer_number, item_name)
 
+# @celery_app1.task(name='tasks.enqueue_buyer_sms')
+# def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
+# 	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
+# 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
+
 @celery_app1.task(name='tasks.enqueue_buyer_sms')
 def enqueue_buyer_sms(mobile_number, ad_id, order_data, buyer_number=None):
-	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone="+str(order_data['phonenumber'])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
+	cleansed_data = "Name="+str(order_data['firstname'])+",City="+ str(order_data['address'])+",Phone=+92"+str(order_data['phonenumber'][1:])+",Order#="+ str(order_data['order_id'])+",Model="+str(order_data['model'])
 	process_buyer_sms(mobile_number,ad_id,str(cleansed_data), buyer_number)
+
 
 @celery_app1.task(name='tasks.enqueue_orderer_sms')
 def enqueue_orderer_sms(mobile_number, ad_id, order_data, buyer_number=None):
@@ -399,6 +461,15 @@ def send_orderer_pin(mobile_number, pin, order_data, buyer_number=None):
 	mobile_number2 = '+923491058364'
 	process_buyer_sms(mobile_number,pin,str(cleansed_data), buyer_number)
 	process_buyer_sms(mobile_number2,pin,str(cleansed_data2), buyer_number)
+
+@celery_app1.task(name='tasks.send_user_pin')
+def send_user_pin(sender_id, mobile_number):
+	"""
+	This function sends the pin code to user (for home-grown verification purposes)
+	"""
+	pin = retrieve_random_pin(sender_id)
+	payload = "Salam! %s apka Damadam pin code hai. Isko pin code wali screen mein enter karein. Have a nice day & enjoy Damadam.pk :-)" % (pin)
+	process_user_pin_sms(mobile_number,payload)
 
 @celery_app1.task(name='tasks.enqueue_query_sms')
 def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):
@@ -517,11 +588,44 @@ def populate_search_thumbs(username,ids_with_urls):
 def sanitize_erroneous_notif(notif_name, user_id):
 	remove_erroneous_notif(notif_name, user_id)
 
+@celery_app1.task(name='tasks.document_administrative_activity')
+def document_administrative_activity(group_id, main_sentence, history_type):
+	"""
+	Logs an action in a mehfil's administrative activity
+
+	Moreover, acts as a helper function for construct_administrative_activity()
+	"""
+	add_to_universal_group_activity(group_id, main_sentence, history_type)
+
+@celery_app1.task(name='tasks.construct_administrative_activity')
+def construct_administrative_activity(punisher_id, target_id, time_now, group_id, history_type, reply_id=None):
+	"""
+	Logs 'hide' and 'unhide' activity in publc mehfil administrative history
+
+	A more involved version of document_administrative_activity() since it constructs the main sentence itself
+	In the end, it calls document_administrative_activity() to get the job done
+	"""    
+	username_dictionary = retrieve_bulk_unames([punisher_id,target_id],decode=True)
+	text = retrieve_single_group_submission(group_id, reply_id, text_only=True)
+	if history_type == 'hide':
+		partial_sentence = username_dictionary[punisher_id]+" ne "+username_dictionary[int(target_id)]+\
+		" ki baat hide ki at {0}".format(exact_date(time_now))
+	elif history_type == 'unhide':
+		partial_sentence = username_dictionary[punisher_id]+" ne "+username_dictionary[int(target_id)]+\
+		" ki baat unhide ki at {0}".format(exact_date(time_now))
+	main_sentence = partial_sentence+". Text: "+text if text else partial_sentence
+	document_administrative_activity(group_id, main_sentence, history_type)
+
 
 #used to calculate group ranking
 # @celery_app1.task(name='tasks.public_group_vote_tasks')
 # def public_group_vote_tasks(group_id,priority):
 # 	public_group_vote_incr(group_id,priority)
+
+@celery_app1.task(name='tasks.rank_mehfils')
+def rank_mehfils():
+	rank_mehfil_active_users()
+
 
 @celery_app1.task(name='tasks.rank_public_groups')
 def rank_public_groups(group_id,writer_id):
@@ -537,40 +641,121 @@ def public_group_ranking_clean_up_task():
 def public_group_attendance_tasks(group_id,user_id):
 	public_group_attendance(group_id,user_id)
 
+@celery_app1.task(name='tasks.group_attendance_tasks')
+def group_attendance_tasks(group_id,user_id, time_now):#, private=False):
+	"""
+	Tracking user presence in a group so that we can show online users in a group or show their 'online' dots
+	"""
+	inactive_user_ids = group_attendance(group_id,user_id, time_now)
+	if inactive_user_ids:
+		remove_inactive_members(inactive_user_ids, group_id, time_now)
+
+@celery_app1.task(name='tasks.update_group_topic')
+def update_group_topic(group_id, topic):
+	"""
+	Updates group topic in notification object
+	"""
+	update_group_topic_in_obj(group_id, topic)
+
+#####################################################################################################
+
+# execute every 2 days
+@celery_app1.task(name='tasks.empty_idle_public_and_private_groups')
+def empty_idle_public_and_private_groups():
+	"""
+	Deletes all chat within an 'empty' group
+
+	Idle groups are those that don't have any activity for 7 days (activity includes refreshes!)
+	"""
+	empty_idle_groups()
+
+
+# execute every 4 days
+@celery_app1.task(name='tasks.delete_idle_public_and_private_groups')
+def delete_idle_public_and_private_groups():
+	"""
+	Deleting 'ghost' groups for good (when it's been idle for 30 days, we call it a 'ghost' group)
+	"""
+	# grp_ids_and_members is a dict of the sort { group_id:[member_ids] }
+
+	grp_ids_and_members = delete_ghost_groups()#redis6
+	bulk_remove_multiple_group_notifications(grp_ids_and_members)#redis2
+	cleanse_public_and_private_groups_data(grp_ids_and_members)#redis1 (DEPRECATE THIS ENTIRE FUNCTIONALITY)
+	# marking postgresql Group object as deleted (deprecate this later)
+	group_ids = grp_ids_and_members.keys()
+	if group_ids:
+		Group.objects.filter(id__in=group_ids).update(category='99')#'99' implies deleted
+
+
+@celery_app1.task(name='tasks.trim_group_submissions')
+def trim_group_submissions(group_id):
+	"""
+	Trims down mehfil submissions once it attains a certain size
+	"""
+	del_overflowing_group_submissions(group_id,NUM_TO_DELETE)
+
+
 #bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
-	slug,image_url,priority,from_unseen, reply_id):
-	if from_unseen:
-		update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-			lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
+	image_url,priority,from_unseen, reply_id, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
+	if txt_type == 'join':
+		# own self has seen this, and no need to show a notification to other users
+		###############################
+		updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+			unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+		if not updated:
+			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+				unseen_activity=True, check_parent_obj=True)# matka notif won't be created if original object doesn't exist
+		set_latest_group_reply(group_id,reply_id)# used to populate grouppageview()
+		if priv == '1':
+			increment_convo_counter(group_id, sender_id, group_type='pm')
+			increment_session(str(group_id), sender_id, group_type='pm')
+			# set_latest_group_reply(group_id,reply_id)# adding to grouppageview() for private mehfils only
 	else:
-		created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
-			lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
-			group_privacy=priv,slug=slug, lt_res_wid=sender_id)
-		if not created:
+		if from_unseen:
+			# i.e. from unseen_group() in views.py
 			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-				lt_res_sub_name=poster_username,reply_photourl=image_url, object_desc=topic, lt_res_wid=sender_id)
-	all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
-	all_group_member_ids.remove(sender_id)
-	if all_group_member_ids:
-		bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
-			updated_at=reply_time,single_notif=True,unseen_activity=True,priority=priority)
-	updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-		unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
-	if not updated:
-		create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-			unseen_activity=True)
-	set_latest_group_reply(group_id,reply_id)
-	if priv == '1':
-		increment_convo_counter(group_id, sender_id, group_type='pm')
-		increment_session(str(group_id), sender_id, group_type='pm')
-
+				lt_res_sub_name=poster_username,reply_photourl=image_url,lt_res_wid=sender_id)
+		else:
+			created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
+				lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
+				group_privacy=priv,slug=slug, lt_res_wid=sender_id)
+			if not created:
+				update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
+					lt_res_sub_name=poster_username,reply_photourl=image_url, lt_res_wid=sender_id)
+		###############################
+		# updating notification for single target or bulk targets
+		if notify_single_user and single_target_id:
+			# notify just a single targeted user (i.e. used in a direct response in mehfils)
+			update_notification(viewer_id=single_target_id,object_id=group_id,object_type='3',seen=False,updated_at=reply_time,\
+				unseen_activity=True,single_notif=True,priority=priority,bump_ua=True)
+		else:
+			all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
+			all_group_member_ids.remove(sender_id)
+			if all_group_member_ids:
+				# this does NOT update notifications for users whose notification object was deleted (or wasn't created in the first place)
+				bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
+					updated_at=reply_time,single_notif=True,unseen_activity=True,priority=priority)
+		###############################
+		# updating notification for sender
+		updated = update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+			unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+		if not updated:
+			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+				unseen_activity=True)
+		set_latest_group_reply(group_id,reply_id)# used to populate grouppageview(), replace with 'submission_id' later
+		if priv == '1':
+			increment_convo_counter(group_id, sender_id, group_type='pm')
+			increment_session(str(group_id), sender_id, group_type='pm')
+			log_group_chatter(group_id, sender_id)# redis 6
+			if image_url:
+				increment_pic_count(group_id, sender_id)#redis 6			
 
 @celery_app1.task(name='tasks.log_private_mehfil_session')
-def log_private_mehfil_session(group_id,user_id):
+def log_private_mehfil_session(group_id,user_id):# called every time a private mehfil is refreshed
 	increment_session(str(group_id), user_id, group_type='pm')
-
+	
 
 @celery_app1.task(name='tasks.rank_home_posts')
 def rank_home_posts():
@@ -580,23 +765,27 @@ def rank_home_posts():
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
-	previous_best_photo_id = get_previous_best_photo()
-	current_best_photo_id = get_best_photo()
-	if current_best_photo_id is not None:
-		if previous_best_photo_id is not None:
-			if previous_best_photo_id == current_best_photo_id:
-				pass
-			else:
-				# print "uploading %s to Facebook..." % current_best_photo_id
-				set_best_photo(current_best_photo_id)
-				photo = Photo.objects.get(id=current_best_photo_id)
-				photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-		else:
-			set_best_photo(current_best_photo_id)
-			photo = Photo.objects.get(id=current_best_photo_id)
-			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-	else:
-		pass
+	"""
+	Function used to post photos to facebook fanpage
+	"""
+	# previous_best_photo_id = get_previous_best_photo()
+	# current_best_photo_id = get_best_photo()
+	# if current_best_photo_id is not None:
+	# 	if previous_best_photo_id is not None:
+	# 		if previous_best_photo_id == current_best_photo_id:
+	# 			pass
+	# 		else:
+	# 			# print "uploading %s to Facebook..." % current_best_photo_id
+	# 			set_best_photo(current_best_photo_id)
+	# 			photo = Photo.objects.get(id=current_best_photo_id)
+	# 			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
+	# 	else:
+	# 		set_best_photo(current_best_photo_id)
+	# 		photo = Photo.objects.get(id=current_best_photo_id)
+	# 		photo_poster(photo.image_file, photo.caption, current_best_photo_id)
+	# else:
+	# 	pass
+	pass
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
@@ -668,13 +857,6 @@ def rank_photos():
 			pass
 	add_photos_to_best(photo_id_and_scr)
 
-@celery_app1.task(name='tasks.whoseonline')
-def whoseonline():
-	user_ids = get_recent_online()
-	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 67,
-		})
-	cache_mem.set('online', user_ids)
 
 @celery_app1.task(name='tasks.fans')
 def fans():

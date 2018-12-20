@@ -51,9 +51,6 @@ pggrrl:<group_id>:<own_id> 'personal_group_group_restoration_rate_limit' rate li
 pgrl:<group_id>:<blob_id>:<target_index> 'response_list' containing all response IDs to a specific msg. Used in deletion
 
 pgrp:<own_id>:<target_id> 'personal_group' contains the group ID associated with the two people in the key name
-pgil:<user_id> 'personal_group_invite_list' contains all interactive invites sent by and to user_id
-ilt:<user_id> 'invite_list_trimming' is a key that cools off the rate of trimming the invites sorted set
-pgirl:<user_id> 'personal_group_invite_rate_limit' is a key that cools off excessive invite-sending behavior
 
 pgii:<own_id>:<their_id> 'personal_group_ignore_invite' means they invited me and I ignore it. This key lives till the original invite was supposed to live
 pgiia:<own_id>:<their_id> 'personal_group_ignore_invite' means they invited me anonymously, and I just ignored it
@@ -76,6 +73,18 @@ rlfs:<user_id> 'rate_limit_photo_sharing' is a key that rate limits sharing beha
 
 ###########
 '''
+
+#########################################
+PERSONAL_GROUP_INVITES_SENT = "pgis:" # personal group invites sent - this is a sorted set containing invites sent by a user
+PERSONAL_GROUP_INVITES_RECEIVED = "pgir:" # personal group invites received - this is a sorted set containing invites received by a user
+
+PERSONAL_GROUP_INVITES_RATE_LIMITED = 'pgirl:' # this key cools off excessive invite-sending behavior
+
+SENT_LIST_TRIMMING_RATE_LIMITED = 'siltrl:' # sent invite list trimming rate limited - key that rate limits trimming of said list
+RECEIVED_LIST_TRIMMING_RATE_LIMITED = 'riltrl:' # received invite list trimming rate limited - key that rate limits trimming of said list
+
+PERSONAL_GROUP_INVITE_COUNT = 'pgic' #this key holds the cached value of received invites by a user id
+#########################################
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC5, db=0)
 
@@ -1274,7 +1283,7 @@ def set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, typ
 		if urls:
 			url = urls[0]
 			is_yt = '1' if ('youtube.com/watch' in url or 'youtu.be/' in url) else '0'# detect youtube url
- 			components = urlparse(url)
+			components = urlparse(url)
 			# first search in cache, else fall back to BeautifulSoup
 			location = components.netloc+components.path+components.query+components.fragment
 			url = url if components.netloc else 'http://'+url
@@ -1371,7 +1380,8 @@ def get_suspension_details(own_id, target_id, group_id):
 	can_rejoin = True if time_diff > PERSONAL_GROUP_REJOIN_RATELIMIT else False
 	return suspended_by, suspension_time, can_rejoin, None if can_rejoin else ONE_DAY-time_diff
 
-def suspend_personal_group(suspended_by_id, their_id, group_id):
+
+def suspend_personal_group(suspended_by_id, their_id, group_id, override_rl=False):
 	"""
 	Suspend personal group when a user uses the 'exit' feature
 	"""
@@ -1383,9 +1393,7 @@ def suspend_personal_group(suspended_by_id, their_id, group_id):
 	elif already_suspended_by_self == '1':
 		return None, None
 	else:
-		if my_server.exists('pggrrl:'+group_id+":"+suspended_by_id):
-			return True, my_server.ttl('pggrrl:'+group_id+":"+suspended_by_id)
-		else:
+		if override_rl:
 			# exit personal group and reset all sharing permissions
 			exit_time = time.time()
 			mapping = {'susgrp'+suspended_by_id:'1','is_sus':'1','sus_time':exit_time,'smsrec'+suspended_by_id:'0','smsrec'+their_id:'0',\
@@ -1399,6 +1407,23 @@ def suspend_personal_group(suspended_by_id, their_id, group_id):
 			pipeline1.zadd("pgfgm:"+their_id,group_id+":"+suspended_by_id,exit_time)
 			pipeline1.execute()
 			return True, None
+		else:
+			if my_server.exists('pggrrl:'+group_id+":"+suspended_by_id):
+				return True, my_server.ttl('pggrrl:'+group_id+":"+suspended_by_id)
+			else:
+				# exit personal group and reset all sharing permissions
+				exit_time = time.time()
+				mapping = {'susgrp'+suspended_by_id:'1','is_sus':'1','sus_time':exit_time,'smsrec'+suspended_by_id:'0','smsrec'+their_id:'0',\
+				'phrec'+suspended_by_id:'0','phrec'+their_id:'0','svprm'+suspended_by_id:'0','svprm'+their_id:'0','lt_msg_t':exit_time,\
+				'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
+				'lt_msg_id':''}
+				pipeline1 = my_server.pipeline()
+				pipeline1.hmset("pgah:"+group_id,mapping)
+				pipeline1.zadd('exited_personal_groups',group_id,exit_time)
+				pipeline1.zadd("pgfgm:"+suspended_by_id,group_id+":"+their_id,exit_time)
+				pipeline1.zadd("pgfgm:"+their_id,group_id+":"+suspended_by_id,exit_time)
+				pipeline1.execute()
+				return True, None
 
 
 def unsuspend_personal_group(own_id, target_id,group_id):
@@ -1426,6 +1451,19 @@ def unsuspend_personal_group(own_id, target_id,group_id):
 		return True
 	else:
 		return False
+
+def exit_user_from_targets_priv_chat(own_id,target_id):
+	"""
+	Called when user has triggered a block on target
+
+	If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them and shit is serious now
+	"""
+	own_id, target_id = str(own_id), str(target_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, group_exists = personal_group_already_exists(own_id, target_id, server=my_server)
+	if group_exists:
+		# suspend group, overriding any rate limits. This won't suspend if group already suspended (we'll handle those cases in re-entry)
+		suspend_personal_group(own_id, target_id, group_id, override_rl=True)
 
 
 ########################################## Personal Group SMS Settings ###########################################
@@ -1484,13 +1522,13 @@ def get_user_sms_setting(target_id, group_id, with_cred=False):
 		allwd = False if my_server.hget("pgah:"+group_id,'smsrec'+target_id) == '0' else True
 		return allwd
 
-
 def lock_sms_sending(user_id,target_id):
 	"""
 	Locking sms sending in personal groups
 	"""
-	return redis.Redis(connection_pool=POOL).setex("ssl:"+str(user_id)+":"+target_id,time.time(),PERSONAL_GROUP_SMS_LOCK_TTL)
-
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.incr("twilio_private_chat_sms_count")
+	return my_server.setex("ssl:"+str(user_id)+":"+target_id,time.time(),PERSONAL_GROUP_SMS_LOCK_TTL)
 
 def sms_sending_locked(user_id,target_id):
 	"""
@@ -1873,7 +1911,7 @@ def personal_group_hard_deletion():
 		count, groups_and_participants = 0, []
 		for group_id in group_ids:
 			try:
-				participants = user_ids_pairs[count].split(":")
+				participants = user_id_pairs[count].split(":")
 				groups_and_participants.append((group_id,participants[0],participants[1]))
 			except (AttributeError, IndexError):
 				pass
@@ -2015,6 +2053,18 @@ def set_personal_group_target_id_and_csrf(own_id, target_id, csrf):
 	pipeline1.setex("pgmvcsrf:"+own_id,csrf,ONE_DAY)
 	pipeline1.execute()
 
+def get_personal_group_target_id(own_id):
+	"""
+	Getting temporarily saved "tid" to redirect user back to group after mobile number verification
+	"""
+	return redis.Redis(connection_pool=POOL).get("pgmvtid:"+str(own_id))
+
+def set_personal_group_target_id(own_id, target_id):
+	"""
+	Temporarily saving 'tid' while user verifies their mobile number from a personal group
+	"""
+	redis.Redis(connection_pool=POOL).setex("pgmvtid:"+str(own_id),target_id,ONE_DAY)
+
 
 def set_personal_group_mobile_num_cooloff(own_id):
 	"""
@@ -2037,10 +2087,12 @@ def reset_ttl(sorted_set, server=None):
 	"""
 	Sets the TTL of the invite list to the TTL of the latest item in it
 	"""
-	if not server:
-		server = redis.Redis(connection_pool=POOL)
-	invite_and_expiry = server.zrange(sorted_set,-1,-1,withscores=True)[0]
-	server.expireat(sorted_set,int(invite_and_expiry[1]))
+	server = server if server else redis.Redis(connection_pool=POOL)
+	latest_item = server.zrange(sorted_set,-1,-1,withscores=True)
+	if latest_item:
+		invite_and_expiry = latest_item[0]
+		if invite_and_expiry:
+			server.expireat(sorted_set,int(invite_and_expiry[1]))
 
 
 def personal_group_invite_status(own_id, own_username, target_id, target_username):
@@ -2053,28 +2105,33 @@ def personal_group_invite_status(own_id, own_username, target_id, target_usernam
 	Returning '2' means 'they_already_invited_me'
 	Returning '3' means 'they_already_invited_me_anonymously'
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id, target_id = str(own_id), str(target_id)
-	sorted_set = "pgil:"+str(own_id)
+	################ Invite strings if invite sent by self ################
 	i_invited_them = own_id+":"+own_username+":"+target_id+":"+target_username
 	i_invited_them_anonymously = own_id+":*"+own_username[:1].upper()+own_username+":"+target_id+":"+target_username
-	they_invited_me = target_id+":"+target_username+":"+own_id+":"+own_username
-	they_invited_me_anonymously = target_id+":*"+target_username[:1].upper()+target_username+":"+own_id+":"+own_username
+	#######################################################################
+	own_sent_sorted_set = PERSONAL_GROUP_INVITES_SENT+own_id
+	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
-	pipeline1.zscore(sorted_set,i_invited_them)
-	pipeline1.zscore(sorted_set,i_invited_them_anonymously)
+	pipeline1.zscore(own_sent_sorted_set,i_invited_them)# gets time of sending of invite by self
+	pipeline1.zscore(own_sent_sorted_set,i_invited_them_anonymously)# gets time of sending of invite by self
 	expiry_time = pipeline1.execute()
 	if expiry_time[0]:
 		return '0', expiry_time[0] - TWO_DAYS, False
 	elif expiry_time[1]:
 		return '1', expiry_time[1] - TWO_DAYS, False
 	else:
-		# they already invited me:
-		pipeline2 = my_server.pipeline()
+		# now let's check if they already invited me:
+		their_sent_sorted_set = PERSONAL_GROUP_INVITES_SENT+target_id
 		key_name1 = "pgii:"+own_id+":"+target_id
 		key_name2 = "pgiia:"+own_id+":"+target_id#'personal_group_ignore_invite' means they invited me 'anonymously', and I declined it
-		pipeline2.zscore(sorted_set,they_invited_me)
-		pipeline2.zscore(sorted_set,they_invited_me_anonymously)
+		################ Invite strings if invite sent by them ################
+		they_invited_me = target_id+":"+target_username+":"+own_id+":"+own_username
+		they_invited_me_anonymously = target_id+":*"+target_username[:1].upper()+target_username+":"+own_id+":"+own_username
+		#######################################################################
+		pipeline2 = my_server.pipeline()
+		pipeline2.zscore(their_sent_sorted_set,they_invited_me)
+		pipeline2.zscore(their_sent_sorted_set,they_invited_me_anonymously)
 		pipeline2.get(key_name1)
 		pipeline2.get(key_name2)
 		expiry_time = pipeline2.execute()
@@ -2096,94 +2153,124 @@ def personal_group_invite_status(own_id, own_username, target_id, target_usernam
 			return 'nothing', None, False
 
 
-
-def return_invite_list(own_id, start_idx, end_idx):
+def return_invite_list(own_id, inv_type, start_idx, end_idx):
 	"""
 	Displays invites from previous two days.
 
-	It trims the list of any extraneous invites before returning it.
+	'inv_type' can be 'received' or 'sent', and relevant sorted sets are accessed depending on this value.
+	It also trims the returned list of any extraneous invites before returning it. This way displayed data is always up-to-date.
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id = str(own_id)
-	sorted_set, rate_limit_key = "pgil:"+own_id, "ilt:"+own_id
-	# trim list before returning
+	if inv_type == 'received':
+		sorted_set = PERSONAL_GROUP_INVITES_RECEIVED + own_id
+		rate_limit_key = RECEIVED_LIST_TRIMMING_RATE_LIMITED + own_id
+	elif inv_type == 'sent':
+		sorted_set = PERSONAL_GROUP_INVITES_SENT + own_id
+		rate_limit_key = SENT_LIST_TRIMMING_RATE_LIMITED + own_id
+	else:
+		# inv_type is incorrect, send result that is equivalent to 'None'
+		return [], TWO_DAYS, 0
+	###############################################################################################
+	my_server = redis.Redis(connection_pool=POOL)
+	# trim relevant list before returning
 	if not my_server.exists(rate_limit_key):
-		pipeline1 = my_server.pipeline()
-		pipeline1.zremrangebyscore(sorted_set,'-inf',time.time()-1.0)
-		# ratelimiting trimming call
-		pipeline1.setex("ilt:"+own_id,1,EIGHT_MINS)
-		pipeline1.execute()
+		trim_invites(sorted_set, rate_limit_key, my_server)
 	return my_server.zrevrange(sorted_set,start_idx,end_idx,withscores=True), TWO_DAYS, my_server.zcard(sorted_set)
- 
+
+
+def trim_invites(sorted_set, rate_limit_key, my_server=None):
+	"""
+	Trims invite list via removing expired personal group received invitations
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	my_server.zremrangebyscore(sorted_set,'-inf',time.time())
+	# ratelimiting trimming call
+	my_server.setex(rate_limit_key,1,EIGHT_MINS)
 
 
 def interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible):
 	"""
-	Anonymizing own invite.
+	Anonymizing own invite (after already having sent it with your name).
 
-	This happens after user accesses privacy settings right after sending an invite.
+	This happens in the flow after user accesses 'privacy settings' (right after sending an invite).
+	'visible' contains a Boolean decision parameter that determine whether the invite is to be anonymized or not.
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	own_id, target_id = str(own_id), str(target_id)
-	invite = own_id+":"+own_username+":"+target_id+":"+target_username
-	new_invite = own_id+":*"+own_username[:1].upper()+own_username+":"+target_id+":"+target_username
 	if visible == '0':
-		expiry_time = my_server.zscore("pgil:"+str(target_id), invite)
+		own_id, target_id = str(own_id), str(target_id)
+		################### invite strings of self ###################
+		invite = own_id+":"+own_username+":"+target_id+":"+target_username
+		new_invite = own_id+":*"+own_username[:1].upper()+own_username+":"+target_id+":"+target_username
+		##############################################################
+		own_sent_sorted_set = PERSONAL_GROUP_INVITES_SENT + own_id
+		my_server = redis.Redis(connection_pool=POOL)
+		expiry_time = my_server.zscore(own_sent_sorted_set, invite)
 		if expiry_time:
+			# 'sent' invite actually exists, proceed
+			their_received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED + target_id
 			pipeline1 = my_server.pipeline()
-			pipeline1.zadd("pgil:"+target_id, new_invite, expiry_time)
-			pipeline1.zadd("pgil:"+own_id, new_invite, expiry_time)
-			pipeline1.zrem("pgil:"+target_id, invite)
-			pipeline1.zrem("pgil:"+own_id, invite)
+			pipeline1.zadd(own_sent_sorted_set, new_invite, expiry_time)
+			pipeline1.zadd(their_received_sorted_set, new_invite, expiry_time)
+			pipeline1.zrem(own_sent_sorted_set, invite)
+			pipeline1.zrem(their_received_sorted_set, invite)
 			pipeline1.execute()
-			reset_ttl("pgil:"+target_id,my_server)
-			reset_ttl("pgil:"+own_id,my_server)
+			reset_ttl(own_sent_sorted_set,my_server)
+			reset_ttl(their_received_sorted_set,my_server)
 
 
 def ignore_invite(own_id, own_username, their_id, their_username):
 	"""
-	Ignoring incoming invite from invite list
+	Ignoring incoming invite from invite 'received' list
 
-	This removes the invite from own list, but maintains it in the senders list so that they still run into a rate limit
+	This removes the invite from own list, but maintains it in the senders list so that they can't immediately double-invite you
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id, their_id = str(own_id), str(their_id)
+	########################## Their invite strings represented as a list ##########################
 	they_invited_me = their_id+":"+their_username+":"+own_id+":"+own_username
 	they_invited_me_anonymously = their_id+":*"+their_username[:1].upper()+their_username+":"+own_id+":"+own_username
 	invites = [they_invited_me, they_invited_me_anonymously]
-	sorted_set = "pgil:"+own_id
+	################################################################################################
+	own_received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED + own_id
+	their_sent_sorted_set = PERSONAL_GROUP_INVITES_SENT + their_id
 	# setting personal_group_ignore_invite key and its expiry
+	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
-	pipeline1.zscore(sorted_set,they_invited_me)
-	pipeline1.zscore(sorted_set,they_invited_me_anonymously)
+	pipeline1.zscore(their_sent_sorted_set,they_invited_me)
+	pipeline1.zscore(their_sent_sorted_set,they_invited_me_anonymously)
 	expiry_time = pipeline1.execute()
+	expiry_of_their_invite, expiry_of_their_anon_invite = expiry_time[0], expiry_time[1]# any of these values would be 'None' if invite doesn't exist
+	######################### 'Ignore' keys that prevent the other party from inviting you again #########################
+	ignore_key1 = 'pgii:'+own_id+":"+their_id # they invite me, and I just ignored it
+	ignore_key2 = 'pgiia:'+own_id+":"+their_id # they invite me anonymously, and I just ignored it
+	######################################################################################################################
 	pipeline2 = my_server.pipeline()
-	key_name1 = 'pgii:'+own_id+":"+their_id # they invite me, and I just ignored it
-	key_name2 = 'pgiia:'+own_id+":"+their_id # they invite me anonymously, and I just ignored it
-	if expiry_time[0]:
-		pipeline2.set(key_name1,expiry_time[0])
-		pipeline2.expireat(key_name1,int(expiry_time[0]))
-	elif expiry_time[1]:
-		pipeline2.set(key_name2,expiry_time[1])
-		pipeline2.expireat(key_name2,int(expiry_time[1]))
+	if expiry_of_their_invite:
+		# i.e. they invited me (not not anonymously). Set the relevant 'ignore' key along with the required TTL
+		pipeline2.set(ignore_key1, expiry_of_their_invite)
+		pipeline2.expireat(ignore_key1, int(expiry_of_their_invite))
+	elif expiry_of_their_anon_invite:
+		# i.e. they invited me anonymously. Set the relevant 'ignore' key along with the required TTL
+		pipeline2.set(ignore_key2, expiry_of_their_anon_invite)
+		pipeline2.expireat(ignore_key2, int(expiry_of_their_anon_invite))
 	else:
-		# can this happen?
+		# can this happen? this is an error, set nothing
 		pass
 	pipeline2.execute()
-	# removing invites
-	my_server.zrem(sorted_set,*invites)
-	# reseting invite list TTL
-	if my_server.exists(sorted_set):
-		reset_ttl(sorted_set, my_server)
+	# now remove the 'ignored' invite from solely own sorted set (keep it in theirs)
+	my_server.zrem(own_received_sorted_set,*invites)
+	# reseting own received invite list TTL
+	if my_server.exists(own_received_sorted_set):
+		reset_ttl(own_received_sorted_set, my_server)
 
 
 def process_invite_sending(own_id, own_username, target_id, target_username):
 	"""
 	This processes a sent invite, adding it to relevant tables and setting expire times.
+
+	This step always occurs before the invite anonymization step.
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id, target_id = str(own_id), str(target_id)
-	rate_limit_key = "pgirl:"+own_id
+	rate_limit_key = PERSONAL_GROUP_INVITES_RATE_LIMITED + own_id
+	my_server = redis.Redis(connection_pool=POOL)
 	invites_left = my_server.get(rate_limit_key)
 	if invites_left is None:
 		# proceed with the invite and set the rate_limit_key to have 4 invites
@@ -2192,42 +2279,123 @@ def process_invite_sending(own_id, own_username, target_id, target_username):
 		# proceed with the invite and subtract 1 invite from rate_limit_key
 		my_server.incrby(rate_limit_key,amount=-1)
 	else:
+		# invite is rate limited (for as long as the amount of time in PERSONAL_GROUP_INVITES_COOLOFF)
 		cooloff_time = my_server.ttl(rate_limit_key)
 		return False, cooloff_time
-	# invite is rate limited for as long as PERSONAL_GROUP_INVITES_COOLOFF
+	######################################################################################################
+	###################### Invite string (invite remains unanonymized in this step) ######################
 	invite = own_id+":"+own_username+":"+target_id+":"+target_username
-	target_sorted_set, own_sorted_set, expiry_time = "pgil:"+target_id, "pgil:"+own_id, int(time.time() + TWO_DAYS)
+	######################################################################################################
+	expiry_time = int(time.time() + TWO_DAYS)
+	own_sent_sorted_set = PERSONAL_GROUP_INVITES_SENT + own_id
+	their_received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED + target_id
+	################################# Process the actual invite sending ##################################
 	pipeline1 = my_server.pipeline()
-	pipeline1.zadd(target_sorted_set, invite, expiry_time)
-	pipeline1.zadd(own_sorted_set, invite, expiry_time)
-	pipeline1.expireat(target_sorted_set, expiry_time)
-	pipeline1.expireat(own_sorted_set, expiry_time)
+	pipeline1.zadd(their_received_sorted_set, invite, expiry_time)
+	pipeline1.zadd(own_sent_sorted_set, invite, expiry_time)
+	pipeline1.expireat(their_received_sorted_set, expiry_time)
+	pipeline1.expireat(own_sent_sorted_set, expiry_time)
 	pipeline1.execute()
 	return True, None
 
 
 def sanitize_personal_group_invites(own_id, own_username, target_id, target_username):
 	"""
-	Run once personal group has been created
+	This removes (or sanitizes) all traces of invite strings once a personal group is actually created
+	
+	This function is always called AFTER personal group has been created
+	Caveat: moreover, it's only called in situations where 'they invited me' (anonymously or not)
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	own_id, target_id = str(own_id), str(target_id)
-	target_sorted_set, own_sorted_set = "pgil:"+target_id, "pgil:"+own_id
+	###################### Their invite strings in list format ###########################
 	their_invite = [target_id+":"+target_username+":"+own_id+":"+own_username, \
 	target_id+":*"+target_username[:1].upper()+target_username+":"+own_id+":"+own_username]
-	key_name1 = "pgii:"+own_id+":"+target_id
-	key_name2 = "pgiia:"+own_id+":"+target_id
+	######################################################################################
+	##################################### Ignore keys ####################################
+	ignore_key1 = "pgii:"+own_id+":"+target_id
+	ignore_key2 = "pgiia:"+own_id+":"+target_id
+	######################################################################################
+	own_received_sorted_set = PERSONAL_GROUP_INVITES_RECEIVED + own_id
+	their_sent_sorted_set = PERSONAL_GROUP_INVITES_SENT + target_id
+	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
-	pipeline1.zrem(target_sorted_set, *their_invite)	
-	pipeline1.zrem(own_sorted_set, *their_invite)
-	pipeline1.delete(key_name1)
-	pipeline1.delete(key_name2)
+	pipeline1.zrem(their_sent_sorted_set, *their_invite)    
+	pipeline1.zrem(own_received_sorted_set, *their_invite)
+	################# also deleting 'ignore' keys (in case they existed) #################
+	pipeline1.delete(ignore_key1)
+	pipeline1.delete(ignore_key2)
+	######################################################################################
 	pipeline1.execute()
-	if my_server.exists(target_sorted_set):
-		reset_ttl(target_sorted_set, my_server)
-	if my_server.exists(own_sorted_set):
-		reset_ttl(own_sorted_set, my_server)
+	if my_server.exists(their_sent_sorted_set):
+		reset_ttl(their_sent_sorted_set, my_server)
+	if my_server.exists(own_received_sorted_set):
+		reset_ttl(own_received_sorted_set, my_server)
 
+
+######################################## Calculating count of invites received ########################################
+
+
+def extract_most_short_lived_ttl(sorted_set, my_server=None):
+	"""
+	Extracts ttl of most short-lived item in sorted-set containing invites received by a user
+	
+	Useful when setting the ttl of "pgic:" (i.e. user's invites counter)
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	oldest_item = my_server.zrange(sorted_set,0,0,withscores=True)
+	if oldest_item:
+		invite_and_expiry = oldest_item[0]
+		if invite_and_expiry:
+			return invite_and_expiry[1]
+		else:
+			return None
+	else:
+		return None
+
+
+def retrieve_personal_group_invite_count(invitee_id):
+	"""
+	Retrieves count of invites received to be displayed in templates
+	"""
+	invitee_id = str(invitee_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	invite_count = my_server.get(PERSONAL_GROUP_INVITE_COUNT + invitee_id)
+	if invite_count is None or invite_count < 0:
+		# invite_count is None implies calculation has not been done yet, OR calculated invite key has expired - thus time to recalculate
+		# invite_count < 0 should never happen - but if it does (e.g. because of an error), just recalculate the number
+		return calculate_personal_group_invite_count(invitee_id)
+	else:
+		return invite_count
+
+
+def calculate_personal_group_invite_count(invitee_id):
+	"""
+	This calculates and returns how many personal 1-on-1 chat invites a user has in the 'received' section
+
+	It's a utility for retrieve_personal_group_invite_count()
+	"""
+	invitee_id = str(invitee_id)
+	sorted_set = PERSONAL_GROUP_INVITES_RECEIVED + invitee_id
+	rate_limit_key = RECEIVED_LIST_TRIMMING_RATE_LIMITED + invitee_id
+	my_server = redis.Redis(connection_pool=POOL)
+	######## run trim_invites BEFORE calculating the number of invites received ########
+	trim_invites(sorted_set, rate_limit_key, my_server)
+	####################################################################################
+	latest_invite_count = my_server.zcard(sorted_set)
+	expiry = extract_most_short_lived_ttl(sorted_set) if latest_invite_count else None
+	if expiry > time.time():
+		my_server.set(PERSONAL_GROUP_INVITE_COUNT+invitee_id,latest_invite_count)
+		my_server.expireat(PERSONAL_GROUP_INVITE_COUNT+invitee_id, int(expiry))
+	else:
+		my_server.setex(PERSONAL_GROUP_INVITE_COUNT+invitee_id,latest_invite_count,TWO_DAYS)
+	return latest_invite_count
+
+
+def reset_invite_count(invitee_id):
+	"""
+	Deletes the invite count so it can be recalculated
+	"""		
+	redis.Redis(connection_pool=POOL).delete(PERSONAL_GROUP_INVITE_COUNT+str(invitee_id))
 
 
 ######################################## Personal Group Creation & Existence ########################################
@@ -2288,3 +2456,30 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		#########################################################################################
 		pipeline1.execute()
 		return group_id, False
+
+
+############################################ test for post invite accept split test #########################
+
+
+def log_invite_accepted(user_id, group_id):
+	"""
+	Records a group of users who accepted an friend request after the split test went live 
+	"""
+	bucket_type = 'Active' if user_id % 2 != 0 else 'Control'
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	pipeline1.sadd(bucket_type,group_id)
+	pipeline1.incr("Invites_Accepted_"+bucket_type)
+	pipeline1.execute()
+
+
+def log_message_sent(user_id,group_id):
+	"""
+	Records the number of messages sent in chats created after the split test went live
+	"""
+	bucket_type = 'Active' if user_id % 2 != 0 else 'Control'
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.sismember(bucket_type,group_id): 
+		my_server.incr("Messages_"+bucket_type)
+		my_server.zincrby(bucket_type+"_Median",group_id,amount=1)
+
+

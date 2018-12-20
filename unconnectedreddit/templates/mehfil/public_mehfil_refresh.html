@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Mehfil refreshing tutorial | Damadam.pk</title></head>
+<br>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp"><a href="{% url 'public_group' unique %}"><img height="23" width="23" src="{{ STATIC_URL }}img/refresh.svg" class="mrs" alt="pic"></a> Ye button press kar ke ap mehfil refresh kar saktey hain</div>
+ <hr size=1 COLOR="#E9EBEE">
+<div class="cs sp cgy lsp mbs">Agar koi new jawab aya ho tou woh nazar aa jai ga</div>
+<a href="{% url 'public_group' unique %}"><button class="btn bcp bm mbs pg_ok_res sp" style="height:26px">OK</button></a>
+</div>
+<br><br>
+{% endblock %}

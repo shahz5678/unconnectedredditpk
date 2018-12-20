@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Account not verified | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl lsp clb" style="text-align:center">Please verify your account!</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+{% if logout %}
+<div class="cxl lsp mbs">Sorry! Ye sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif share_on_home %}
+<div class="cxl lsp mbs">Sorry! Share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif reply %}
+<div class="cxl lsp mbs">Sorry! Jawab dene ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif fan %}
+<div class="cxl lsp mbs">Sorry! Fan banney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif comment %}
+<div class="cxl lsp mbs">Sorry! Comment karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif vote %}
+<div class="cxl lsp mbs">Sorry! Vote karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif join_public_mehfil %}
+<div class="cxl lsp mbs">Sorry! Public mehfil join karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif create_public_mehfil %}
+<div class="cxl lsp mbs">Sorry! Public mehfil bananey ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif join_private_mehfil %}
+<div class="cxl lsp mbs">Sorry! Private mehfil join karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif create_private_mehfil %}
+<div class="cxl lsp mbs">Sorry! Private mehfil bananey ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif ban_user %}
+<div class="cxl lsp mbs">Sorry! Block ki sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif upload_public_photo %}
+<div class="cxl lsp mbs">Sorry! Foto share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% endif %}
+	
+	{% include "verification/verification_button.html" with is_user_verified='1' static_url=STATIC_URL %}
+
+</div>
+<br><br>
+{% endblock %}

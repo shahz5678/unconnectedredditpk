@@ -3,11 +3,11 @@
 {% load truncap %}
 {% block content %}
 <head><title>Instructions | Damadam.pk</title></head>
-<style type="text/css">
-	body{background: #E9EBEE}
-</style>
-<div class="bizcard clb" style="border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:300px;width:95%;padding:10px">
+<style type="text/css">body{background: #E9EBEE}</style>
 
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Invite sent!</span></h1>
+	
+	<div class="bizcard clb" style="border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:300px;width:95%;padding:10px">
 		{% if personal_group_invite_privacy %}
 
 			<div class="cxl mbs">Khufiya invite bhej dia gya!</div>
@@ -16,13 +16,29 @@
 				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ko apke invite mein <a href="{% url 'profile' oun %}"><b class="cb">{{ oun }}</b></a> ke bajai sirf <a href="{% url 'profile' oun %}"><b class="cb">{{ oun|truncap }}</b></a> nazr aye ga
 			</div>
 
-			<div class="mtl" style="text-align:center">
+		{% elif personal_group_invite_sent %}
+
+			<div class="cxl lsp"><img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="vertical-align: sub;border-radius: 50%;">&nbsp;{{ tun|truncatechars:15 }} ko private chat ka invite bhej dia gya!</div>
+
+		{% else %}
+
+			<div class="cxl lsp"><img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="vertical-align: sub;border-radius: 50%;">&nbsp;{{ tun|truncatechars:15 }} ko private chat ka invite bhej dia gya!</div>
+
+		{% endif %}
+
+			<div class="mt" style="text-align:center">
 				{% if org == 'publicreply' %}
-				<form method="POST" class="mtl mbs" action="{% url 'publicreply_view' %}">
-				{% csrf_token %}
-					<input type="hidden" name="lid" value="{{ poid }}">
-					<button class="btn bcb bm" style="height:30px">OK</button>
-				</form>
+					<form method="POST" class="mtl mbs" action="{% url 'publicreply_view' %}">
+					{% csrf_token %}
+						<input type="hidden" name="lid" value="{{ poid }}">
+						<button class="btn bcb bm pg_ok_res sp" style="height:30px">wapis</button>
+					</form>
+				{% elif org == 'private' %}
+					<form method="POST" class="mtl mbs" action="{% url 'priv_group' %}">
+					{% csrf_token %}
+						<input type="hidden" name="private_uuid" value="{{ poid }}">
+						<button class="btn bcb bm pg_ok_res sp" style="height:30px">wapis</button>
+					</form>
 				{% else %}
 					{% if org == 'home' or org == 'home_reply' %}
 					<a href="{% url 'home_loc_pk' poid %}">
@@ -43,17 +59,16 @@
 					{% else %}
 					<a href="{% url 'home' %}">
 					{% endif %}
-					<button class="btn bcb bm mtl mbs" style="height:30px">OK</button>
+					<button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:30px">wapis</button>
 					</a>
 				{% endif %}
 
-				<form method="POST" class="mts" action="{% url 'show_personal_group_invite_list' %}">
+				<form method="POST" class="mts" action="{% url 'show_personal_group_invite_list' 'sent' %}">
 				{% csrf_token %}
 				<input type="submit" class="cs sp cgy" style="background:0 0;border-top:0;border-left:0;border-right:0;border-bottom:1px dotted #A9A9A9;padding:0" value="see all invites">
 				</form>
 			</div>
-		{% endif %}
-
+	</div>
 
 </div>
 <br><br>

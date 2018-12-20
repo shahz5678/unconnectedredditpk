@@ -46,7 +46,7 @@
 	    	<span class="pinkstar"><b>*</b></span>
 	    {% endif %}
 		: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs mrl">, {{ link.submitted_on|naturaltime }}
-		</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk 'history:link' STATIC_URL %}
+		</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk '8' STATIC_URL %}
 		{% group_button ident link.submitter_id link.pk 'link' 'history' username %}
 	</div>
 

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Invite users to private mehfil | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/closed_group_invite_navbar.html" with static_url=STATIC_URL section='invite' guid=unique %}
+
+{% if group %}
+	<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+	<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden;margin:0">Invite to&nbsp;<span class="cg">{% emoticons %}{{ group_topic|truncatechars:'80' }}{% endemoticons %}</span></h1>
+	</div>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+
+	{% if show_instr %}
+		<div style="padding:8px;background-color:ivory" class="bizcard mbs lsp">
+			{% if instr_type == 'owner' %}
+				<div class="cxl lsp">Private mehfil owner {{ max_invites }} users invite kar sakta hai</div>
+				<hr size=1 COLOR="#E9EBEE">
+				<div class="cm sp cr" style="text-align:left">Note:</div>
+				<div class="cs sp" style="text-align:left">&#x25CF;&nbsp;Agar ap ne 1 user invite kiya tou apkey <b>{{ one_less }}</b> invites reh jaien ge</div>
+				<div class="cs sp" style="text-align:left">&#x25CF;&nbsp;Agar invited user ne mehfil join kar li tou invites dubara <b>{{ max_invites }}</b> ho jaien ge</div>
+				<div class="cs sp" style="text-align:left">&#x25CF;&nbsp;Jab mehfil ke {{ private_max_members }} members ho jaien tou mazeed users ko invite kar ke member nahi banaya ja sakta</div>
+			{% else %}
+				<div class="cxl lsp">Invite karney se pehlay invites ka <form method="POST" action="{% url 'private_group_invite_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="guid" value="{{ unique }}"><button type="submit" class="cm cb pg_ok_res" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">help section</button></form> zarur dekh lein</div>
+			{% endif %}
+		</div>
+	{% else %}
+		<div class="cxl lsp sp">{{ invites_remaining }} invite(s) remaining</div>
+		<hr size=1 COLOR="#E9EBEE">
+	{% endif %}
+
+	<form method="POST" class="mbl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+
+	<div class="mbs cs sp"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></div>
+	<ul style="display:inline-block;padding: 0;list-style:none">
+	{% if no_more_invites %}
+		{% for visitor in object_list %}
+			<li class="mbl" style="text-align:left;padding-bottom:10px;border-bottom:1px dashed lightgray">
+			<span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+			<img src="{{ visitor.avurl|s3:'thumb' }}" alt="pic" style="vertical-align:sub;border-radius:50%">{% if visitor.username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ visitor.username }}</bdi>
+			</li>
+		{% endfor %}
+	{% else %}
+		{% for visitor in object_list %}
+			<li class="mbl" style="text-align:left;border-bottom:1px dashed lightgray">
+			<span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
+			<img src="{{ visitor.avurl|s3:'thumb' }}" alt="pic" style="vertical-align:sub;border-radius:50%">{% if visitor.username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ visitor.username }}</bdi>
+			<form method="POST" action="{% url 'process_private_group_invite' %}" style="display:inline">
+				{% csrf_token %}
+				<input type="hidden" name="puid" value="{{ unique }}">
+				<button type="submit" name="vid" class="btn bcg bm mbl mls pg_ok_res sp" value="{{ visitor.id }}" style="height:23px">invite</button>
+			</form>
+			</li>
+		{% endfor %}
+	{% endif %}
+	</ul>
+
+	<form method="POST" class="mbs" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	</div>
+{% else %}
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Cannot invite to mehfil</h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+	{% if no_online %}
+	<div class="cm cgy lsp sp">- invite karney ke liye koi nahi hai -</div>
+	<form method="POST" class="mbs mts" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	{% elif cant_invite %}
+	<div class="cxl lsp">Ap ye nahi kar saktey</div>
+	<form method="POST" class="mbs mts" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	{% elif no_group %}
+	<div class="cxl lsp">Ye is terah nahi chalta!</div>
+	<form method="POST" class="mbs mts" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	{% elif banned %}
+	<div class="cxl lsp">Ap ye nahi kar saktey</div>
+	<form method="POST" class="mbs mts" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	{% else %}
+	<div class="cxl lsp">Ye is terah nahi chalta!</div>
+	<form method="POST" class="mbs mts" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	{% endif %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block pagination %}
+	<div class="mtl mbl">
+	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+		{% if page_obj.has_previous %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
+	    {% if page_obj.has_next %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
+	</div>
+	</div>
+	
+{% endblock %}

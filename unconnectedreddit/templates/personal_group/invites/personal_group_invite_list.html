@@ -1,5 +1,4 @@
 {% extends "base_pg.html" %}
-{% load get_private_chat_navbar %}
 {% load emoticons_tags %}
 {% load human_time %}
 {% load next_page %}
@@ -45,21 +44,32 @@
 			</div>
 		</div>
 	{% else %}
-		{% private_chat_navbar static_url=STATIC_URL section='invites' %}
+
+        {% if list_type == 'received' %}
+                {% include "personal_group/navbars/1_on_1_navbar.html" with section='2' static_url=STATIC_URL inv_count=invite_count %}
+            
+		{% elif list_type == 'sent' %}
+				{% include "personal_group/navbars/1_on_1_navbar.html" with section='3' static_url=STATIC_URL inv_count=invite_count %}
+		{% endif %}
+
 		{% if num_pages < 2 %}
-		<h1 class="cxl">Chat invites</h1>
+			{% if list_type == 'received' %} 
+				<h1 class="cxl">Chat invites received</h1>
+			{% else %}
+					<h1 class="cxl">Chat invites sent</h1>
+			{% endif %}		
 		{% else %}
 		<div class="mtl fx fxjscn fxaicn">
 			<div>
-			<form style="display:inline" method="GET" action="{% url 'show_personal_group_invite_list' %}">
+			<form style="display:inline" method="GET" action="{% url 'show_personal_group_invite_list' list_type %}">
 			<button style="background:0 0;border:none" type="submit" name="page" value="{{ current_page|prev_page:num_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
 			</form>
 			</div>
 			<!--  -->
-			<div><h1 style="display:inline" class="mls mrs cxl">Chat invites</h1></div>
+			<div><h1 style="display:inline" class="mls mrs cxl">{% if list_type == 'received' %}Chat invites received{% else %}Chat invites sent{% endif %}</h1></div>
 			<!--  -->
 			<div>
-			<form style="display:inline" method="GET" action="{% url 'show_personal_group_invite_list' %}">
+			<form style="display:inline" method="GET" action="{% url 'show_personal_group_invite_list' list_type %}">
 			<button  style="background:0 0;border:none" type="submit" name="page" value="{{ current_page|next_page:num_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
 			</form>
 			</div>
@@ -69,22 +79,22 @@
 </div>
 
 <div class="bizcard mbl" style="background-color:white;width:95%;padding:10px;">
-{% for id_1, uname_1, id_2, uname_2, creation_time in invites %}
+{% for id_1, uname_1, uname_2, creation_time in invites %}
 	
 	<div class="mt cl lsp" style="text-align:left">
 
-		{% if own_id == id_1 %}
+		{% if list_type == 'sent' %}
 			{% if forloop.counter != 1 %}<hr size=1 COLOR="#f2f2f2">{% endif %}
 			<div class="fx fxjssb fxaibl" style="color:#009973">	
 			{% if uname_1|slice:":1" == '*' %}
-			<div style="color:#808080">Ap ne nickname khufiya rakh ke <a href="{% url 'profile' uname_2 %}" style="color:#808080"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
+			<div class="clb">Ap ne nickname khufiya rakh ke <a href="{% url 'profile' uname_2 %}" class="cb"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
 			<div class="sp cxs" style="text-align:right;color:#808080">- {{ creation_time|human_time }}</div>
 			{% else %}
-			<div style="color:#808080">Ap ne <a href="{% url 'profile' uname_2 %}" style="color:#808080"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
+			<div class="clb">Ap ne <a href="{% url 'profile' uname_2 %}" class="cb"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
 			<div class="sp cxs" style="text-align:right;color:#808080">- {{ creation_time|human_time }}</div>
 			{% endif %}
 			</div>
-		{% elif own_id == id_2 %}
+		{% elif list_type == 'received' %}
 			{% if forloop.counter != 1 %}<hr size=1 COLOR="#BFFFEF">{% endif %}
 			<div class="fx fxjssb fxaibl" style="color:#009973">	
 				{% if uname_1|slice:":1" == '*' %}
@@ -110,27 +120,27 @@
 	</div>
 	{% empty %}
 		{% if invite_accepted %}
-		<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
-		<span class="cxl cgy">Invite list khali ho geyi</span>
-		</div>
+			<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
+			<span class="cxl cgy">Invite list khali ho geyi</span>
+			</div>
 		{% else %}
-		<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
-		<span class="cxl">Ye khali hai</span>
-		<hr size=1 COLOR="#f2f2f2">
-		<span class="cl cgy">Kisi bhi user ko friend bana ke private chat mein invite karney ke liye uskay nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
-						<div id="line"></div>
-						<div id="line"></div>
-						<div id="line" style="width: 8px"></div>
-						</button> button dabain</span>
-		<div class="mtl mbs"><a href="{% url 'home' %}"><button class="bcb btn bm sp" style="height:23px">wapis</button></a></div>
-		</div>
+			<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
+			<span class="cxl">Ye khali hai</span>
+			<hr size=1 COLOR="#f2f2f2">
+			<span class="cl cgy">Kisi bhi user ko friend bana ke private chat mein invite karney ke liye uskay nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
+							<div id="line"></div>
+							<div id="line"></div>
+							<div id="line" style="width: 8px"></div>
+							</button> button dabain</span>
+			<div class="mtl mbs"><a href="{% url 'home' %}"><button class="bcb btn bm sp" style="height:23px">wapis</button></a></div>
+			</div>
 		{% endif %}
 
 {% endfor %}
 </div>
 	{% if num_pages > 1 %}
 		<div style="text-align:center">
-		<form method="GET" action="{% url 'show_personal_group_invite_list' %}">
+		<form method="GET" action="{% url 'show_personal_group_invite_list' list_type %}">
 		{% for page_num in pages %}
 			{% if current_page == page_num %}
 			<button class="mrs curr_page cl" name="page" value="{{ page_num }}" style="display:inline-block;font-weight:bold">{{ page_num }}</button>

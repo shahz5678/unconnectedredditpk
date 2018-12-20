@@ -55,7 +55,7 @@ def verify_forgetter_number(request,*args,**kwargs):
 		mob_nums = get_user_verified_number(user_id)
 		if MN_data['national_number'] in mob_nums:
 			# prompt user to change password
-			return render(request,"set_new_password.html",{'user_id':user_id,'form':ResetForgettersPasswordForm()})
+			return render(request,"unauth/set_new_password.html",{'user_id':user_id,'form':ResetForgettersPasswordForm()})
 		else:
 			return render(request,"unverified_number.html",{'referrer':'login','from_ecomm':False})
 	elif user_id == 'generic' or user_id == 'used' or user_id == 'expired' or user_id == 'invalid':
@@ -81,7 +81,7 @@ def verify_user_number(request,*args,**kwargs):
 				else:
 					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
-					return render(request,"reward_earned.html",{})
+					return render(request,"verification/reward_earned.html",{})
 			elif AK_ID == 'generic' or AK_ID == 'used' or AK_ID == 'expired' or AK_ID == 'invalid':
 				return render(request,"unverified_number.html",{'referrer':'home','reason':AK_ID,'from_ecomm':False})
 			elif err['status'] == "NOT_AUTHENTICATED":

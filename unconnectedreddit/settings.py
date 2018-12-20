@@ -71,7 +71,7 @@ USE_TZ = False
 GOOGLE_ANALYTICS_PROPERTY_ID = 'UA-68289796-1'
 
 GOOGLE_ANALYTICS = {
-    'google_analytics_id': 'UA-121366807-1',
+	'google_analytics_id': 'UA-121366807-1',
 }
 
 
@@ -361,87 +361,103 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_photos': {
 		'task': 'tasks.rank_photos',
-		'schedule': timedelta(seconds=12*60), #execute every 12 mins
+		'schedule': timedelta(seconds=12*60), #execute every 12 mins, ranks photos from the feed
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',
-		'schedule': timedelta(seconds=5*60), #execute every 5 mins
+		'schedule': timedelta(seconds=5*60), #execute every 5 mins, trims online users' list
 	},
 	'tasks.rank_all_photos': {
 		'task': 'tasks.rank_all_photos',
-		'schedule': timedelta(seconds=5*60), #execute every 5 mins
+		'schedule': timedelta(seconds=11*60), #execute every 11 mins, spew best photo on Facebook's Fan Page
 	},
 	'tasks.rank_all_photos1': {
 		'task': 'tasks.rank_all_photos1',
-		'schedule': timedelta(seconds=45), #execute every 45 seconds
+		'schedule': timedelta(seconds=60), #execute every 60 seconds, cricket score enqueuing is managed through this
 	},
 	'tasks.calc_photo_quality_benchmark': {
 		'task': 'tasks.calc_photo_quality_benchmark',
-		'schedule': timedelta(seconds=86400), # execute every 24 hours
+		'schedule': timedelta(seconds=86400), # execute every 24 hours, setting top photo uploaders list
 	},
 	'tasks.calc_ecomm_metrics': {
 		'task': 'tasks.calc_ecomm_metrics',
-		'schedule': timedelta(seconds=86400), # execute every 24 hours
+		'schedule': timedelta(seconds=86400), # execute every 24 hours, calculates ecomm metrics
 	},
 	'tasks.calc_gibberish_punishment': {
 		'task': 'tasks.calc_gibberish_punishment',
-		'schedule': timedelta(seconds=45*60), # execute every 45 mins
+		'schedule': timedelta(seconds=45*60), # execute every 45 mins, calculates punishment meted out to gibberish writers
 	},
 	'tasks.sanitize_unused_ecomm_photos': {
 		'task': 'tasks.sanitize_unused_ecomm_photos',
-		'schedule': timedelta(seconds=15*10*60), # execute every 2.5 hours
+		'schedule': timedelta(seconds=15*10*60), # execute every 2.5 hours, deletes unused ecomm photos from the S3 bucket
 	},
 	'tasks.expire_classifieds': {
 		'task': 'tasks.expire_classifieds',
-		'schedule': timedelta(seconds=55*60), # execute every 55 mins
+		'schedule': timedelta(seconds=55*60), # execute every 55 mins, processes ad_expiry of ecomm ads
 	},
 	'tasks.delete_expired_classifieds': {
 		'task': 'tasks.delete_expired_classifieds',
-		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days
+		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days, processes expiry of classified ads
 	},
 	'tasks.rank_home_posts': {
 		'task': 'tasks.rank_home_posts',
-		'schedule': timedelta(seconds=5*60), # execute every 5 mins
+		'schedule': timedelta(seconds=5*60), # execute every 5 mins, home post ordering tasks
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',
-		'schedule': timedelta(seconds=86400*7*2), # execute every two weeks
+		'schedule': timedelta(seconds=86400*7*2), # execute every two weeks, currently unused
 	},
 	'tasks.whoseonline': {
 		'task': 'tasks.whoseonline',
-		'schedule': timedelta(seconds=60),  # execute every 60 seconds
+		'schedule': timedelta(seconds=60),  # execute every 60 seconds, calculates who all is online
 		'args': (),
 	},
 	'tasks.fans': {
 		'task': 'tasks.fans',
-		'schedule': timedelta(seconds=1200),  # execute every 20 mins
+		'schedule': timedelta(seconds=1200),  # execute every 20 mins, displays correct num fans in top photos list
 		'args': (),
 	},
 	'tasks.salat_streaks': {
 		'task': 'tasks.salat_streaks',
-		'schedule': timedelta(seconds=110),  # execute every 110 seconds
+		'schedule': timedelta(seconds=280),  # execute every 280 seconds, calculates salat streaks for users
 		'args': (),
 	},
 	'tasks.public_group_ranking_clean_up_task': {
 		'task': 'tasks.public_group_ranking_clean_up_task',
-		'schedule': timedelta(seconds=25*60),  # execute every 25 mins
+		'schedule': timedelta(seconds=25*60),  # execute every 25 mins, cleans up "chatter-based" ranking of groups
 		'args': (),
 	},
 		'tasks.salat_info': {
 		'task': 'tasks.salat_info',
-		'schedule': timedelta(seconds=60), #execute every 60 seconds
-	},
-	'tasks.delete_chat_from_idle_personal_group': {
-		'task': 'tasks.delete_chat_from_idle_personal_group',
-		'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days
-	},
-	'tasks.delete_idle_personal_group': {
-		'task': 'tasks.delete_idle_personal_group',
-		'schedule': timedelta(seconds=6*24*60*60), # execute every 6 days
+		'schedule': timedelta(seconds=120), #execute every 120 seconds, calculates which salat is next, which was previous, etc.
 	},
 	'tasks.delete_exited_personal_group': {
 		'task': 'tasks.delete_exited_personal_group',
-		'schedule': timedelta(seconds=24*60*60), # execute daily
+		'schedule': timedelta(seconds=24*60*60), # execute every 24 hours (hard deletion called on 1-on-1 groups which were exited)
+	},
+	'tasks.rank_mehfils': {
+		'task': 'tasks.rank_mehfils',
+		'schedule': timedelta(seconds=24*60*60), # execute every 24 hours (ranks mehfils with highest DAU/Bi-weekly AU)
+	},
+	'tasks.empty_idle_public_and_private_groups': {
+		'task': 'tasks.empty_idle_public_and_private_groups',
+		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days (cleans out the chats in idle public and private mehfils)
+	},
+	'tasks.delete_chat_from_idle_personal_group': {
+		'task': 'tasks.delete_chat_from_idle_personal_group',
+		'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days (cleans out the chat in idle 1-on-1 groups)
+	},
+	# 'tasks.cleanse_complainers': {
+	# 	'task': 'tasks.cleanse_complainers',
+	# 	'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days (cleanses content complainers who no longer lodge complaints)
+	# },
+	'tasks.delete_idle_public_and_private_groups': {
+		'task': 'tasks.delete_idle_public_and_private_groups',
+		'schedule': timedelta(seconds=4*24*60*60), # execute every 4 days (deletes public and private mehfils that have gone idle)
+	},
+	'tasks.delete_idle_personal_group': {
+		'task': 'tasks.delete_idle_personal_group',
+		'schedule': timedelta(seconds=6*24*60*60), # execute every 6 days (hard deletion called on 1-on-1 groups that have gone idle)
 	},
 }
 

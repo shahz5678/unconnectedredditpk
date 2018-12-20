@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import redis, time, ast
+from pytz import timezone
 from location import REDLOC3
 from datetime import datetime
 from operator import itemgetter
@@ -9,7 +10,7 @@ from templatetags.s3 import get_s3_object
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
-from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD
+from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT
 
 '''
 ##########Redis 3 Namespace##########
@@ -64,8 +65,10 @@ user_thumbs = "upt:"+owner_uname
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
 TEN_MINS = 10*60
+TWENTY_MINS = 20*60
 FIFTEEN_MINS = 15*60
 FORTY_FIVE_MINS = 60*45
+ONE_HOUR = 60*60
 TWO_HOURS = 2*60*60
 SIX_HOURS = 6*60*60
 ONE_DAY = 24*60*60
@@ -96,6 +99,27 @@ def first_letter_upper(string):
 	first_letter_in_upper_case = string.split()[0][0:1].upper()
 	return first_letter_in_upper_case+string[1:]
 
+
+def exact_date(time_now, in_bulk=False):
+	"""
+	Returns exact date when given epoch time
+
+	Run from pytz import common_timezones in python shell, then print common_timezones
+	"""
+	if in_bulk:
+		if time_now:
+			# time_now is a list of epoch times
+			list_of_times = []
+			for time_ in time_now:
+				list_of_times.append(datetime.fromtimestamp(time_*ONE_DAY, tz=timezone('Asia/Karachi')).strftime("%d-%m-%Y %I:%M %p"))
+			return list_of_times
+		else:
+			return []
+	else:
+		if time_now:
+			return datetime.fromtimestamp(time_now, tz=timezone('Asia/Karachi')).strftime("%d-%m-%Y %I:%M %p")# use %H:%M:%S for 24 hour style clock time
+		else:
+			return ''
 #####################Process Nick#######################
 
 def decode_nick(nickname):
@@ -400,8 +424,8 @@ def ensure_removability(own_id, id_list, server):
 
 
 def delete_ban_target_credentials(own_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.delete('tc:'+str(own_id))
+	redis.Redis(connection_pool=POOL).delete('tc:'+str(own_id))
+
 
 def get_ban_target_credentials(own_id, username_only=False, id_only=False, destroy=False):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -429,13 +453,13 @@ def get_ban_target_credentials(own_id, username_only=False, id_only=False, destr
 			return credentials
 
 
-def save_ban_target_credentials(own_id, target_id, target_username, object_id=None, origin=None, id_only=False, username_only=False):
-	my_server = redis.Redis(connection_pool=POOL)
+def save_ban_target_credentials(own_id, target_id, target_username, id_only=False, username_only=False):
+	"""
+	Temporarily saves credentials of a target a user is intending to ban
+	"""
 	key = 'tc:'+str(own_id)
-	if object_id and origin:
-		mapping = {'target_id':target_id, 'target_username':target_username, 'object_id':object_id, 'origin':origin}
-	else:
-		mapping = {'target_id':target_id, 'target_username':target_username}
+	mapping = {'target_id':target_id, 'target_username':target_username}
+	my_server = redis.Redis(connection_pool=POOL)
 	my_server.hmset(key,mapping)
 	my_server.expire(key,FORTY_FIVE_MINS)
 
@@ -443,6 +467,7 @@ def save_ban_target_credentials(own_id, target_id, target_username, object_id=No
 def get_banned_users_count(own_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.zcard("bl:"+str(own_id))
+
 
 def get_banned_users(own_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -490,17 +515,36 @@ def remove_single_ban(own_id, target_id):
 	own_id = str(own_id)
 	if banned_by == own_id:
 		# remove ban
-		pipeline1 = my_server.pipeline()
-		pipeline1.delete(key_name)
-		pipeline1.zrem("bl:"+own_id,target_id)
-		pipeline1.setex("blrl:"+own_id+":"+target_id,'1',ONE_DAY)
-		pipeline1.execute()
-		return True
+		block_rl = "brl:"+str(own_id)+":"+str(target_id)
+		ttl = my_server.ttl(block_rl)
+		if ttl > 0:
+			return False, ttl
+		else:
+			pipeline1 = my_server.pipeline()
+			pipeline1.delete(key_name)
+			pipeline1.zrem("bl:"+own_id,target_id)
+			pipeline1.setex("blrl:"+own_id+":"+target_id,'1',USER_REBAN_ACTION_RATELIMIT)
+			pipeline1.execute()
+			return True, None
 	else:
 		# don't have the right to remove this ban, since you didn't place this ban
-		return False
+		return False, None
+
+
+def ratelimit_banner_from_unbanning_target(own_id,target_id):
+	"""
+	Can't unban someone immediately, so that no one bans in vain
+	"""
+	block_rate_limit = "brl:"+str(own_id)+":"+str(target_id) # set this key so that user can't immediately unblock the blocked target
+	redis.Redis(connection_pool=POOL).setex(block_rate_limit,'1',USER_UNBAN_ACTION_RATELIMIT)
+
 
 def is_already_banned(own_id, target_id, key_name=None, server=None, return_banner=False):
+	"""
+	Retrieves whether there's a block underway between own_id and target_id
+
+	Can optionally send the ID of the banner
+	"""
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
 	if not key_name:
@@ -524,7 +568,8 @@ def is_already_banned(own_id, target_id, key_name=None, server=None, return_bann
 			# key exists but has no associated expire time
 			return False
 
-def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban, recent_joiner):
+
+def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_unban):
 	"""
 	Bans a given target user by setting relevant data in redis
 	"""
@@ -538,40 +583,36 @@ def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_un
 		existing_ttl = is_already_banned(own_id=own_id, target_id=target_id, key_name=key_name, server=my_server)
 		if existing_ttl is None or existing_ttl is False or can_unban == '1':
 			pipeline1 = my_server.pipeline()
-			# a 'solitary' key, to help make quick decision on whether an interaction is to be allowed or not
+			# a key to help make quick decision on whether an interaction is to be allowed or not
 			pipeline1.setex(key_name,own_id,ttl)
 			# combined with 'solitary' keys above, this helps populate a list of all banned people for the user to see
 			pipeline1.zadd("bl:"+str(own_id),target_id, time_now)
 			# only add to the global list if it was NOT a re-ban
-			if not can_unban and recent_joiner:
-				#if list consistently shows ugly nicks, can 'auto-ban' top 10 from this list. Trim and update a copy of this list after every 5 mins
-				#pipeline1.zincrby("global_inter_user_ban_list",target_id, amount=(time_now/1200)) #1200 seconds are worth 4 ban 'votes'
-				pipeline1.zincrby("malicious_user_list",target_id,amount=1)
 			pipeline1.execute()
 			return True, None
 		else:
 			return False, None
 
 
-def get_global_ban_leaderboard():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrange("global_inter_user_ban_list",-50,-1,withscores=True)
+# def get_global_ban_leaderboard():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.zrange("global_inter_user_ban_list",-50,-1,withscores=True)
 
 ########################################################################################################
 # def populate_ad_list(which_list="photos"):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	live_ad_ids = my_server.lrange("global_ads_list",0,-1)
-# 	if which_list == "photos":
-# 		pipeline1 = my_server.pipeline()
-# 		for ad_id in live_ad_ids:
-# 			pipeline1.hmget("ad:"+ad_id,"photo_count","city")
-# 		result1 = pipeline1.execute()
-# 		counter = 0
-# 		for ad_id in live_ad_ids:
-# 			if int(result1[counter][0]) > 0:
-# 				my_server.rpush("global_photo_ads_list",ad_id)
-# 				my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
-# 			counter += 1
+#   my_server = redis.Redis(connection_pool=POOL)
+#   live_ad_ids = my_server.lrange("global_ads_list",0,-1)
+#   if which_list == "photos":
+#       pipeline1 = my_server.pipeline()
+#       for ad_id in live_ad_ids:
+#           pipeline1.hmget("ad:"+ad_id,"photo_count","city")
+#       result1 = pipeline1.execute()
+#       counter = 0
+#       for ad_id in live_ad_ids:
+#           if int(result1[counter][0]) > 0:
+#               my_server.rpush("global_photo_ads_list",ad_id)
+#               my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
+#           counter += 1
 ##########################################Classifieds#################################################
 
 
@@ -784,11 +825,29 @@ def get_and_reset_weekly_ecomm_clicks():
 	return gross_string_clicks
 
 
+def retrieve_mobile_unverified_in_bulk(user_ids):
+	"""
+	Returns list of users (from given user_ids) which are NOT verified
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for user_id in user_ids:
+		pipeline1.exists("um:"+str(user_id))
+	result_list, counter = pipeline1.execute(), 0
+	unverified_ids = []
+	for user_id in user_ids:
+		if not result_list[counter]:
+			unverified_ids.append(user_id)
+		counter += 1
+	return unverified_ids
+
+
 # return True if user has any number on file
 def is_mobile_verified(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	return True if my_server.exists("um:"+str(user_id)) else False
-
+	"""
+	return True if user has any number on file
+	"""
+	return True if redis.Redis(connection_pool=POOL).exists("um:"+str(user_id)) else False
 
 def someone_elses_number(national_number, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -867,9 +926,9 @@ def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
 		pipeline1.lpush("global_photo_ads_list",ad_id) # used for global photo ad view
 		pipeline1.lpush("afa:"+ad_city,ad_id) # used for city-wide photo ad view
 	# if ad_hash["categ"] in ECOMM_CATEGORY_MAPPING:
-	# 	pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],ad_id)
-	# 	pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]]+":"+ad_city,ad_id)
-	# 	pipeline1.zincrby("top_categories",ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],amount=1)
+	#   pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],ad_id)
+	#   pipeline1.lpush(ECOMM_CATEGORY_MAPPING[ad_hash["categ"]]+":"+ad_city,ad_id)
+	#   pipeline1.zincrby("top_categories",ECOMM_CATEGORY_MAPPING[ad_hash["categ"]],amount=1)
 	pipeline1.hmset("ad:"+ad_id,ad_hash)
 	pipeline1.zremrangebyscore("unc:"+str(seller_id),ad_id,ad_id) # sanitizing unapproved ad queue
 	pipeline1.lpush("uaa:"+str(seller_id),ad_id) # used for seller's own view
@@ -1053,7 +1112,7 @@ def check_status_of_temporarily_saved_ad(user_id,check_step_one=False,check_step
 	# change these steps if step_one changes
 	if check_step_two and check_step_one:
 		desc_exists = True if my_server.hget(key_name,"basic_item_description") else False
-	 	is_new_exists = True if my_server.hget(key_name,"basic_item_new") else False
+		is_new_exists = True if my_server.hget(key_name,"basic_item_new") else False
 		is_barter_exists = True if my_server.hget(key_name, "basic_item_barter") else False
 		ask_exists = True if my_server.hget(key_name,"basic_item_ask") else False
 		if desc_exists and is_new_exists and is_barter_exists and ask_exists:
@@ -1069,7 +1128,7 @@ def check_status_of_temporarily_saved_ad(user_id,check_step_one=False,check_step
 		return check_step_one, check_step_two
 	if check_step_one:
 		desc_exists = True if my_server.hget(key_name,"basic_item_description") else False
-	 	is_new_exists = True if my_server.hget(key_name,"basic_item_new") else False
+		is_new_exists = True if my_server.hget(key_name,"basic_item_new") else False
 		is_barter_exists = True if my_server.hget(key_name, "basic_item_barter") else False
 		ask_exists = True if my_server.hget(key_name,"basic_item_ask") else False
 		if desc_exists and is_new_exists and is_barter_exists and ask_exists:
@@ -1240,7 +1299,7 @@ def get_approved_ad_ids(exchange=False,photos=False):
 	elif exchange:
 		return my_server.lrange("global_exchange_ads_list",0,-1)
 	# elif mobile:
-	# 	return my_server.lrange("global_mobile_ads_list",0,-1)
+	#   return my_server.lrange("global_mobile_ads_list",0,-1)
 	else:
 		return my_server.lrange("global_ads_list",0,-1)
 
@@ -1252,7 +1311,7 @@ def get_city_ad_ids(city_name, exchange=False, photos=False):
 	elif exchange:
 		return my_server.lrange("aea:"+city_name, 0, -1) # used for city-wide view
 	# elif mobile:
-	# 	return my_server.lrange("ama:"+city_name, 0, -1) # used for city-wide view
+	#   return my_server.lrange("ama:"+city_name, 0, -1) # used for city-wide view
 	else:
 		return my_server.lrange("aa:"+city_name, 0, -1) # used for city-wide view
 
@@ -1595,29 +1654,29 @@ def retrieve_erroneous_passwords():
 #####################################################Optimizely Experiment###################################################
 
 # def get_user_type(user_id, best=False, algo=False):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	key_name = "ob:"+str(user_id)
-# 	if my_server.exists(key_name):
-# 		if best and algo:
-# 			 data = my_server.hgetall(key_name)
-# 			 if data:
-# 			 	return data["best"], data["algo"]
-# 			 else:
-# 			 	return None
-# 		elif best:
-# 			return my_server.hget(key_name, 'best')
-# 		elif algo:
-# 			return my_server.hget(key_name, 'algo')
-# 	else:
-# 		return None
+#   my_server = redis.Redis(connection_pool=POOL)
+#   key_name = "ob:"+str(user_id)
+#   if my_server.exists(key_name):
+#       if best and algo:
+#            data = my_server.hgetall(key_name)
+#            if data:
+#               return data["best"], data["algo"]
+#            else:
+#               return None
+#       elif best:
+#           return my_server.hget(key_name, 'best')
+#       elif algo:
+#           return my_server.hget(key_name, 'algo')
+#   else:
+#       return None
 
 
 # def set_user_type(var_value, user_id, best, algo):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	key_name = "ob:"+str(user_id)
-# 	mapping = {'best':best,'algo':algo,'var':var_value}
-# 	my_server.hmset(key_name,mapping)
-# 	my_server.expire(key_name,ONE_WEEK)
+#   my_server = redis.Redis(connection_pool=POOL)
+#   key_name = "ob:"+str(user_id)
+#   mapping = {'best':best,'algo':algo,'var':var_value}
+#   my_server.hmset(key_name,mapping)
+#   my_server.expire(key_name,ONE_WEEK)
 
 #############################################################################################################################
 #####################################################Notifying Damadam Outage###############################################
@@ -1738,11 +1797,9 @@ def del_from_rankings(group_id):
 
 def get_ranked_public_groups():
 	"""
-	Returns top 10 public groups
+	Returns top 20 public groups
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrevrange("public_group_rank",0,49,withscores=True) # returning highest 50 groups
-
+	return redis.Redis(connection_pool=POOL).zrevrange("public_group_rank",0,19,withscores=True) # returning highest 20 groups
 
 ###################### First Time User Tutorials #########################
 
@@ -1753,6 +1810,41 @@ def get_ranked_public_groups():
 '4' 'visiting shared photos listing'
 
 def tutorial_unseen(user_id, which_tut, renew_lease=False):
+	"""
+	Gives a tutorial if the user is visiting a section for the first time
+	
+	'0' 'personal group anonymous invite'
+	'1' 'personal group sms settings'
+	'2' 'granting permission to save posts'
+	'3' 'sharing internal photo in personal groups'
+	'4' 'visiting shared photos listing'
+	'5' 'first time home publicreplier'
+	'6' 'first time Damadam defender'
+	'7' 'first time object reporter'
+	'8' 'first time object culler'
+	'9' 'first time banner'
+	'10' 'first time user-reported content judger'
+	'11' 'first time home sharer'
+	'12' 'first time voting judger'
+	'13' 'first time fanner'
+	'14' 'first time refresher of private mehfil, public mehfil, matka, jawabs'
+	'15' 'first time public mehfil online list viewer'
+	'16' 'first time private mehfil online list viewer'
+	'17' 'first time public mehfil creator'
+	'18' 'first time visitor of officer activity in public mehfils'
+	'19' 'first time instruction viewer in invited users list'
+	'20' 'first time unseen matka'
+	'21' 'first time public mehfil feedback viewer'
+	'22' 'first time public mehfil feedback giver'
+	'23' 'first time instruction viewer in private mehfil invited users list'
+	'24' 'first time visitor of member activity in private mehfils'
+	'25' 'first time viewer of sharing tutorial'
+	'26' 'first time foto sharer'
+	'27' 'first time password change'
+	'28' 'first time officership applier'
+	'29' 'first time officer applications list viewer'
+	'30' 'first time officer dashboard viewing'
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	key_name = "tk:"+str(user_id)+":"+str(which_tut)
 	if my_server.exists(key_name):
@@ -1781,3 +1873,270 @@ def retrieve_numbers_with_country_codes(list_of_user_ids):
 	for user_id in list_of_user_ids:
 		pipeline1.lrange("um:"+str(user_id), 0, -1)
 	return pipeline1.execute()
+
+
+###################### setting user's world age ######################
+
+def set_world_age(user_id):
+	"""
+	Increments user's age on the platform
+
+	A hit increments the counter by 1 and the sets a six-hour rate limit
+	If user returns after those six hours, the counter goes up again
+	This way, a person with age 4 has at least visited the website in 4 different intervals separated by at least 6 hours
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if not my_server.exists('warl:'+user_id):
+		my_server.zincrby('world_age',user_id,amount=1)
+		my_server.setex('warl:'+user_id,'1',SIX_HOURS)
+
+
+################################ Self-written mobile verification ################################
+
+
+def create_random_pool(my_server=None):
+	"""
+	Create a random pool of 5 digit numbers, append leading 0's, store in a list
+	"""
+	import random
+	pin_codes = []
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	pool_ver = str(my_server.incr("pin_code_pool_ver"))
+	for rand_num in random.sample(xrange(1,100001),100000):# generates 100000 random numbers between 1 and 100000
+		pin_codes.append("%05d" % rand_num)
+	my_server.lpush('pin_codes_pool:'+pool_ver,*pin_codes)
+	return pool_ver
+
+def retrieve_random_pin(target_user_id):
+	"""
+	Generates a random 5 digit pin
+	
+	If an already-bound pin exists, it returns that, otherwise it generates a new one
+	"""
+	target_user_id = str(target_user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	current_pool_version = str(my_server.get('pin_code_pool_ver'))
+	existing_pin = my_server.get('pcb:'+target_user_id)
+	pool_exists = my_server.exists("pin_codes_pool:"+current_pool_version)
+	if pool_exists:
+		if existing_pin:
+			data = existing_pin.split(":")
+			if data[1] == current_pool_version:
+				return data[0]
+			else:
+				my_server.delete('pcb:'+target_user_id)
+		rand_pin = my_server.lpop('pin_codes_pool:'+current_pool_version)
+		my_server.setex('pcb:'+target_user_id,rand_pin+":"+current_pool_version,TEN_MINS)
+		return rand_pin
+	else:
+		# pool does not exist
+		new_pool_ver = create_random_pool(my_server=my_server)
+		rand_pin = my_server.lpop('pin_codes_pool:'+new_pool_ver)
+		my_server.setex('pcb:'+target_user_id,rand_pin+":"+new_pool_ver,TEN_MINS)
+		return rand_pin
+
+def verify_user_pin(target_user_id, entered_pin_code):
+	"""
+	Verifies that the entered pin is indeed the one that belongs to the user, i.e. the user is not 'fluking' their way to verification
+	"""
+	target_user_id = str(target_user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	current_pool_version = str(my_server.get('pin_code_pool_ver'))
+	pool_exists = my_server.exists("pin_codes_pool:"+current_pool_version)
+	if pool_exists:
+		data = my_server.get('pcb:'+target_user_id)
+		if data:
+			try:
+				payload = data.split(":")
+			except AttributeError:
+				return False, 'pin_invalid'
+			pin, pool_ver = payload[0], payload[1]
+			if str(entered_pin_code) == pin:
+				if pool_ver == current_pool_version:
+					invalidate_user_pin(target_user_id,my_server)
+					return True, 'pin_matched'
+				else:
+					# pool expired - the pool versions didn't match
+					return False, 'pin_invalid'
+			else:
+				return False, 'pin_incorrect'
+		else:
+			# pin does not exist, meaning it's too late
+			return False, 'pin_expired'
+	else:
+		# pool doesn't - the pool versions didn't match
+		return False, 'pin_invalid'
+
+
+def is_sms_sending_rate_limited(target_user_id):
+	"""
+	Retrieves the ttl in case sms sending is rate limited (for verification purposes)
+	"""
+	ttl = redis.Redis(connection_pool=POOL).ttl('pcb:'+str(target_user_id))
+	if ttl > 2:
+		return ttl
+	else:
+		return None
+
+
+def invalidate_user_pin(user_id, my_server=None):
+	"""
+	Invalidates (deletes) rate limit on user mobile entry
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	my_server.delete('pcb:'+str(user_id))
+
+def log_pin_attempt(user_id):
+	"""
+	Log the fact that pin is entered - if it happens way too many times, rate-limit the user
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	# check if user already rate-limited
+	ttl = my_server.ttl('rlpa:'+user_id)
+	if ttl > 1:
+		return False, ttl
+	else:
+		# log the attempt
+		attempts = my_server.incr('pa:'+user_id)
+		my_server.expire('pa:'+user_id,TEN_MINS)
+		if attempts > 12:
+			my_server.setex('rlpa:'+user_id,'1',TWO_HOURS)
+			return False, TWO_HOURS
+		else:
+			return True, None
+
+
+def set_forgot_password_rate_limit(user_id):
+	"""
+	Once password has been retrieved via "forgot password", rate-limit user from immediately trying again
+	"""
+	redis.Redis(connection_pool=POOL).setex("prrl:"+str(user_id),'1',TWO_HOURS)
+
+def is_forgot_password_rate_limited(user_id):
+	"""
+	Checks if user already recently reset their password, and stops them from doing it again so soon
+	"""
+	ttl = redis.Redis(connection_pool=POOL).ttl("prrl:"+str(user_id))
+	if ttl > 3:
+		return ttl
+	else:
+		return None
+
+################################################### Twilio usage related loggers ###########################
+
+def twiliolog_pin_sms_sent(forgot_pass=False):
+	"""
+	this function logs the number of smses sent out for verification
+	"""
+	if forgot_pass:
+		redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_sms_count") 
+	else:
+		redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
+
+
+def twiliolog_user_verified(forgot_pass=False):
+	"""
+	this function logs the number of verified users through twilio
+	"""
+	if forgot_pass:
+		redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_verified_count")
+	else:
+		redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
+
+
+def twiliolog_reverification_pin_sms_sent(forgot_pass=False):
+	"""
+	This function logs the number of smses sent out for reverification
+	"""
+	redis.Redis(connection_pool=POOL).incr("twilio_reverified_sms_count") 
+
+
+def twiliolog_user_reverified(forgot_pass=False):
+	"""
+	This function logs the number of reverified users through twilio
+	"""
+	redis.Redis(connection_pool=POOL).incr("twilio_reverified_count")
+
+def log_fbs_please_wait(user_id, expire_at):
+	"""
+	Logging all users shown a prompt (only does it once for each user_id) 
+
+	verified_on_data_after_being_prompted_on_fbs_before_rl_expiry' / 'prompted_on_fbs_to_wait' yields conversion rate of people who go to paid internet from fbs
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	was_key_set = my_server.setnx("uvfbs:"+user_id,expire_at)
+	if was_key_set:
+		my_server.expire("uvfbs:"+user_id,ONE_WEEK)
+		my_server.incr("prompted_on_fbs_to_wait") # but not YET told that via "paid" internet, the user can verify right away
+	
+def log_fbs_user_verification(user_id, on_fbs, time_now):
+	"""
+	Logging users' mobile verification
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	expire_at = my_server.get('uvfbs:'+str(user_id))
+	if expire_at:
+		# this user was prompted on FBS
+		if int(expire_at) > time_now:
+			# blocked from verifying on FBS
+			if on_fbs:
+				my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_before_rl_expiry')# should not happen, should be 0
+			else:
+				my_server.incr('verified_on_data_after_being_prompted_on_fbs_before_rl_expiry')# these people converted to paid internet from FBS for verification purposes
+		else:
+			# allowed to verify on FBS (i.e. waited the requisite time)
+			if on_fbs:
+				my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_after_rl_expiry')
+			else:
+				# this user chose to verify on data even though they could have verified on FBS
+				my_server.incr('verified_on_data_after_being_prompted_on_fbs_after_rl_expiry')# should be a very rare occurence
+		# get rid of the key
+		my_server.delete('uvfbs:'+str(user_id))
+	else:
+		# this user was never prompted on FBS
+		if on_fbs:
+			my_server.incr('verified_on_fbs_after_waiting_one_day_without_prompt')# these users opt to wait a day instead of going on paid internet
+		else:
+			my_server.incr('verified_on_data_without_prompt')# these users verified on data (and never received the FBS prompt)
+
+#########################################Invalid Nickname Logger##################################
+
+def invalid_nick_logger(banned_word,nick):
+	"""
+	this function logs the nicks that were filtered by abuse.py
+
+	Works both for new nick creation and forgotten nicks
+	"""
+	myserver = redis.Redis(connection_pool=POOL)
+	myserver.lpush("invalid_nicks",nick+":"+banned_word)
+	myserver.ltrim("invalid_nicks",0,999)
+	
+def log_post_banned_username(username):
+	"""
+	This function logs a username that has been created after the user has atleast ONCE hit the "abuse" dictionary
+	"""
+	myserver = redis.Redis(connection_pool=POOL)
+	myserver.lpush("post_abuse_nicks",username)
+	myserver.ltrim("post_abuse_nicks",0,999)
+
+#########################################Invalid Topic & Rules Logger##################################
+
+def invalid_topic_logger(banned_word,topic):
+	"""
+	This function logs the topics that were filtered by abuse.py
+	"""
+	myserver = redis.Redis(connection_pool=POOL)
+	myserver.lpush("invalid_topics",topic+":"+banned_word)
+	myserver.ltrim("invalid_topics",0,999)
+
+def invalid_rules_logger(banned_word,rules):
+	"""
+	This function logs the topics that were filtered by abuse.py
+	"""
+	myserver = redis.Redis(connection_pool=POOL)
+	myserver.lpush("invalid_rules",rules+":"+banned_word)
+	myserver.ltrim("invalid_rules",0,999)	
+

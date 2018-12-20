@@ -1,0 +1,7 @@
+{% if possible %}
+<form method="POST" action="{% url 'unfan' %}" style="display:inline">
+  {% csrf_token %}
+  <input type="hidden" name="tunm" value="{{ target_username }}">
+  <button style="background:0 0;border:none;padding:0" value="{{ target_user_id }}" name="tuid" type="submit"><img src="{{ static_url }}img/x_gy.svg" width="13" height="13" style="vertical-align:middle"></button>
+</form>
+{% endif %}

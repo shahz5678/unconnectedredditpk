@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Public mehfil invite help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/open_group_invite_navbar.html" with static_url=STATIC_URL section='invite_help' guid=guid %}
+
+<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">Public mehfil invite help:</h1>
+</div>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+
+		
+	<div class="cxl lsp">Public mehfil ke invites limited hotay hain</div>
+	<hr size=1 COLOR="#e5e7e9">
+
+	<div class="mbl mts"><a href="{% url 'public_group' guid %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+	<div class="mt mbl">
+	<div style="text-align:left;font-weight:bold;margin-top:0;margin-bottom:0" class="cp sp cxl">Mehfil owner:</div>
+	<ul style="display:inline-block;padding-left:15px;margin:0;list-style:disc;max-width:520px" class="lsp sp">
+		<li style="text-align:left" class="mts"><b>{{ owner_max }} invites allowed:</b>&nbsp;Mehfil owner {{ owner_max }} users invite kar sakta hai</li>
+		<li style="text-align:left" class="mt">1 user invite karney pe invites {{ owner_max }} se gir ke {{ one_less_owner }} ho jatey hain</li>
+		<li style="text-align:left" class="mt">Agar user accept kar le tou invites wapis {{ owner_max }} tak increase ho jatey hain</li>
+		<li style="text-align:left" class="mt"><b>10 days limit:</b>&nbsp;Agar invited user 10 days tak accept nahi karey tou ap invite cancel kar saktey hain (officers ke pas ye power nahi)</li>
+	</ul>
+	</div>
+
+	<div style="text-align:left;font-weight:bold;margin:0" class="cp sp cxl">Mehfil officers:</div>
+	<ul style="display:inline-block;padding-left:15px;margin:0;list-style:disc;max-width:520px" class="lsp sp">
+		<li style="text-align:left" class="mts"><b>{{ officer_max }} invites allowed:</b>&nbsp;Mehfil officers {{ officer_max }} users invite kar saktey hain</li>
+		<li style="text-align:left" class="mt">Ye {{ officer_max }} invites poori officers ki team ke total invites hain (har officer ko {{ officer_max }} nahi miltey)</li>
+		<li style="text-align:left" class="mt">In {{ officer_max }} invites pe wohi rules apply hotay hain jo mehfil owner ke invites pe hotay hain</li>
+	</ul><br>
+
+	<div class="mbs mtl"><a href="{% url 'public_group' guid %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+</div>
+<br><br>
+{% endblock %}

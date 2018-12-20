@@ -1,5 +1,7 @@
 /*
 
+Using https://cssminifier.com/ to minify
+
 Section 1 is html styling: name components as they are defined in html code i.e. html,body etc.;
 
 Section 2 is text formatting:
@@ -83,10 +85,10 @@ S1: Html styling
     }
 
     .header {
-    background-color: #00c853;
+    background-color: #2de0ae;
     font-family: arial;
-    font-weight: lighter;
-    letter-spacing: 1px;
+    font-weight: bold;
+    letter-spacing: 2px;
     width: 100%;
     color: #FFF;
     text-align: center;
@@ -116,7 +118,7 @@ S1: Html styling
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #ff9933;
+    background-color: #FF9C00;
     font-size: 90%;
     text-align: center;
     }
@@ -2003,4 +2005,26 @@ button.cp:hover{
 }
 .cp{
     border-style:none;
+}
+
+
+
+/*styles the hover and focus states of transparent bg buttons on home, photos etc*/
+
+button.vt{
+    background: 0 0;
+}
+
+button.vt:focus,button.vt:hover{
+    background-color:#f6f6f6;
+ }
+
+/*styles the hover and focus states of white buttons e.g. in mehfils info page*/
+
+button.wt{
+background: #FFF;
+}
+
+button.wt:focus,button.wt:hover{
+background-color:#f6f6f6;
 }

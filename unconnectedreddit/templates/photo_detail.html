@@ -9,8 +9,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     {% include "favicons.html" %}
-        
-        <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v2.css">
+    {% include "css.html" %}    
        <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -36,7 +35,7 @@
 {% load search_unlocked %}
 {% check_notif_count as notif_count %}
 {% khoji_unlocked as ku %}
-<div class="header cxl">Damadam pe gup shup aur fotos</div>
+<div class="header cxl" style="text-shadow:1px 1px #009940">Damadam.pk</div>
 <ul class="navbar">
 
 {% if user.is_authenticated %}
@@ -165,7 +164,7 @@
 </ul>
 
 <div style="text-align:center" class="mtl sp cxs cgy">
-|<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
+|<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|
 </div>
 
 <script type="text/javascript">

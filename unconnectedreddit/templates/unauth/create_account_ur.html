@@ -1,0 +1,33 @@
+{% extends "base_signup.html" %}
+{% block content %}
+
+<head><title>Confirm username and password (Urdu) | Damadam.pk</title></head>
+<div style="margin-top: 5%;">
+{% include "unauth/title.html" with lang='ur' translate='0' %}
+
+<div class="bizcard" style="margin: 0 auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+
+	<form method="post" action="{% url 'create_account' 'ur' uhex ulen phex plen %}#section0" class="mt">
+		{% csrf_token %}
+		{% if form.username.errors %}
+			<div style="color:#f9ef6c;text-shadow:1px 1px #009940;padding:10px" class="cxl mt" ><b>{{ form.username.errors.0 }}</b></div>
+			<input type="hidden" name="err" value="1">
+		{% elif form.password.errors %}
+			<div style="color:#f9ef6c;text-shadow:1px 1px #009940;padding:10px" class="cxl mt" ><b>{{ form.password.errors.0 }}</b></div>
+			<input type="hidden" name="err" value="1">
+		{% else %}
+			<div style="padding:10px;border-bottom:1px dashed #c0f4d5;border-top-right-radius:6px;border-top-left-radius:6px;background-color:#26d5ab">
+				<b style="text-shadow:1px 1px #009940;color:white;font-size:23px"><bdo dir="rtl"><bdo dir="ltr">{{ username }}</bdo> آپکا پاس ورڈ <bdo dir="ltr" class="sp" style="color:#f9ef6c;text-shadow:1px 1px #009940;word-wrap:break-word;">{{ password }}</bdo> ہے</bdo></b>
+			</div>
+
+			<div class="cxl sp mts" style="padding:0 10px;color:white;text-shadow:1px 1px #009940;"><b>اپنا پاس ورڈ نوٹ کر لیں تاکہ آپکو یاد رھے</b></div>
+			<input type="hidden" name="username" value="{{ username }}">
+			<input type="hidden" name="password" value="{{ password }}">
+		{% endif %}
+		<button class="mts mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button>	
+	</form>
+
+</div>
+
+</div>
+{% endblock %}

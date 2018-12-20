@@ -1,5 +1,5 @@
 from links.export_website_feedback import export_error_feedback, export_website_feedback
-from links.user_feedback import website_feedback, see_website_feedback, website_choices_feedback
+from links.user_feedback import website_feedback, see_website_feedback, website_choices_feedback, export_nicknames_csv
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
@@ -7,6 +7,8 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	############################################# Nicknames ##########################################
+	url(r'^export-nicknames-csv/$', auth(export_nicknames_csv), name='export_nicknames_csv'),
 	#############################################Ads##########################################
 	url(r'^see_website_feedback/$', auth(see_website_feedback), name='see_website_feedback'),
 	url(r'^feedback/$', auth(website_feedback), name='website_feedback'),

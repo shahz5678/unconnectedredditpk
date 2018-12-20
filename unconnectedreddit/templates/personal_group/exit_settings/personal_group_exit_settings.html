@@ -3,7 +3,7 @@
 {% load future_time %}
 {% load truncap %}
 {% block content %}
-<head><title>Exit private messaging | Damadam.pk</title></head>
+<head><title>Exit private chat | Damadam.pk</title></head>
 <div class="nos margin clb" style="max-width:420px;width:92%;">
 
 	<div style="text-align:center">
@@ -21,7 +21,7 @@
 			<div class="mbl mtl">
 				<b class="lsp cl">Hamey afsos hai ap ye private chat chorney pe majboor huay</b>
 				<div class="mts">
-				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh chat hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh private chat hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -51,13 +51,43 @@
 				<button class="btn bcgy cl bl mbl" style="border:none;height:30px;">wapis</button>
 			</form>
 
+		{% elif ban_underway %}
+
+			{% if banned_by_self %}
+				<div class="mbl mtl">
+					<b  class="lsp cl"><b>Sorry!</b> Block ki wajah se ap is private chat mein wapis nahi a saktey</b>
+					<div class="mts">
+					<span class="sp cs cgy">Block khatam karney ke liye <a href="{% url 'banned_users_list' %}" class="cgy" style="border-bottom:1px solid gray">ye dabain</a></span>
+					</div>
+				</div>
+
+				<form method="POST" class="mbl" action="{% url 'enter_personal_group' %}" style="text-align:center">
+					{% csrf_token %}
+					<input type="hidden" name="tid" value="{{ tid }}">
+					<button class="btn bcgy cl bl mbl" style="border:none;height:30px;">wapis</button>
+				</form>
+			{% else %}
+				<div class="mbl mtl">
+					<b  class="lsp cl"><b>Sorry!</b> Block ki wajah se ap is private chat mein wapis nahi a saktey</b>
+					<div class="mts">
+					<span class="sp cs cgy">Block khatam hotay hi ap dubara join kar sakein ge</span>
+					</div>
+				</div>
+
+				<form method="POST" class="mbl" action="{% url 'enter_personal_group' %}" style="text-align:center">
+					{% csrf_token %}
+					<input type="hidden" name="tid" value="{{ tid }}">
+					<button class="btn bcgy cl bl mbl" style="border:none;height:30px;">wapis</button>
+				</form>
+			{% endif %}
+
 
 		{% elif you_already_exited %}
 
 			<div class="mbl mtl">
 				<b class="lsp cl">Ap is private chat ko chore chukey hain</b>
 				<div class="mts">
-				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh chat hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye tuo yeh private chat hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -76,7 +106,7 @@
 			<div class="mbl mtl">
 				<b class="lsp cl">Is private chat ko {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ke chorney ki wajah se pehley hi suspend kiya ja chuka hai</b>
 				<div class="mts">
-				<span class="sp cs cgy">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} <b> day</b> baad is mein wapis a sakein ge. Agar woh <b>7 days</b> tak wapis na aye tou yeh chat hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} <b> day</b> baad is mein wapis a sakein ge. Agar woh <b>7 days</b> tak wapis na aye tuo yeh private chat hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -118,7 +148,7 @@
 			<div class="mbs mtl">
 			<span class="lsp cl cr"><b>Exit</b>: Kya ap is private chat ko hamesha ke liye chorna chahtey hain?</span>
 				<div class="mts">
-				<span class="lsp cl"><b>Warning:</b> Ap ke jatey hi yahan se apki sari chat aur fotos mita di jaien gi. Apki aur {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ki sari saved chat bhi khatam ho jaye gi. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se private chat karni hui tou apko <b>1 day</b> wait karna ho ga. Agar ap is private chat mein <b>7 days</b> tak wapis na aye tou ye hamesha ke liye khatam ho jaye gi</span>
+				<span class="lsp cl"><b>Warning:</b> Apke jatey hi yahan se apkey tamam messages aur fotos mita diye jaien ge. Apkey ke tamam saved messages bhi khatam ho jaien ge. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se private chat karni hui tuo apko <b>1 day</b> wait karna ho ga. Agar ap is chat mein <b>7 days</b> tak wapis na aye tuo ye hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 

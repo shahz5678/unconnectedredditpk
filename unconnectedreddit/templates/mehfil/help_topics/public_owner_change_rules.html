@@ -2,7 +2,7 @@
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
 	<form method="POST" action="{% url 'public_mehfil_oversight_dashboard' %}" class="mt" style="text-align:center;border-bottom:1px dashed darkgray;padding-bottom:12px">{% csrf_token %}<button type="submit" class="cb sp pg_ok_res" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to settings</button><input type="hidden" name="guid" value="{{ guid }}"></form>
-	<div class="description">
+	<div class="clb description">
 		<div class="cl mts mbs lsp sp">'Change rules' se mehfil owner rules change kar sakta hai. Owner ye bhi choose kar sakta hai ke rules phir se tamam members se accept karwaney hain ke nahi. Rules change honay ke kuch time baad tak dubara change nahi ho saktey</div>
 		<div class="cl mts mbs lsp sp">Agar har rule 'new line' se start ho, tou system har rule ke sath khud bakhud aik number laga deta hai (e.g. 1, 2, 3 etc)</div>
 	</div>

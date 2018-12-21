@@ -2,7 +2,7 @@
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
 	<form method="POST" action="{% url 'public_mehfil_oversight_dashboard' %}" class="mt" style="text-align:center;border-bottom:1px dashed darkgray;padding-bottom:12px">{% csrf_token %}<button type="submit" class="cb sp pg_ok_res" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to settings</button><input type="hidden" name="guid" value="{{ guid }}"></form>
-	<div class="description">
+	<div class="clb description">
 		<div class="cl mts mbs lsp sp">'Invite' ke page mein top pe 3 options hain: <img src="{{ static_url }}img/add-cp.svg" width="20" height="20" class="mrs"><img src="{{ static_url }}img/members-cp.svg" width="22" height="22" class="mrs" style="vertical-align:center"><img src="{{ static_url }}img/help_invite-cp.svg" width="20" height="20"></div>
 		<div class="cl mts mbs lsp sp"><img src="{{ static_url }}img/add-cp.svg" width="20" height="20" style="vertical-align:sub" class="mrs">Is option ke zariye ap mehfil mein users ko invite kar saktey hain. Owner ke pas {{ max_owner_invites }} invites hotay hain. Accept honay par bhejay huay invites refill ho jatey hain (yani dubara use ho saktey hain). Is liye aisey users ko invite karein jinka accept karney ka chance ziyada ho. Owner and officers ke ilawa aur koi invite nahi kar sakta</div>
 		<div class="cl mts mbs lsp sp"><img src="{{ static_url }}img/members-cp.svg" width="22" height="22" style="vertical-align:sub" class="mrs">Is option ke zariye agar invited user 10 days tak invite accept nahi karey tou owner invite cancel kar ke refill kar sakta hai. Officers ke pas invite refill karney ki power nahi</div>

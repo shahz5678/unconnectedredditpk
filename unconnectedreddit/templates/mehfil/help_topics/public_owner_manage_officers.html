@@ -2,7 +2,7 @@
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
 	<form method="POST" action="{% url 'public_mehfil_oversight_dashboard' %}" class="mt" style="text-align:center;border-bottom:1px dashed darkgray;padding-bottom:12px">{% csrf_token %}<button type="submit" class="cb sp pg_ok_res" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to settings</button><input type="hidden" name="guid" value="{{ guid }}"></form>
-	<div class="description">
+	<div class="clb description">
 		<div class="cl mts mbs lsp sp">'Manage officers' ke page mein top pe 3 options hain: <img src="{{ static_url }}img/shield_y.svg" width="20" height="20" class="mrs"><img src="{{ static_url }}img/shield_x.svg" width="20" height="20" class="mrs"><img src="{{ static_url }}img/history.svg" width="20" height="20"></div>
 		<div class="cl mts mbs lsp sp"><img src="{{ static_url }}img/shield_y.svg" width="20" height="20" class="mrs">Is option ke zariye members ko officer banaya ja sakta hai. Officers owner ko hide, kick and topic changing mein help kartey hain. Officer banney ke liye members ko apply karna parta hai. New members forun apply nahi kar saktey</div>
 		<div class="cl mts mbs lsp sp"><img src="{{ static_url }}img/shield_x.svg" width="20" height="20" class="mrs">Is option ke zariye officers remove kiye ja saktey hain. Jo officers mehfil ko ziyada time nahi dete hon, unko remove kar dein</div>

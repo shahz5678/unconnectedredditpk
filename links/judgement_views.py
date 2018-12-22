@@ -239,33 +239,6 @@ def enter_inter_user_ban(request,*args,**kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def change_ban_time(request):
-	if request.method == "POST":
-		banned_user_id, banned_username = request.POST.get("buid",None), request.POST.get("bun",None)
-		if banned_user_id and banned_username:
-			save_ban_target_credentials(own_id=request.user.id, target_id=banned_user_id, target_username=banned_username)
-			return render(request,"judgement/inter_user_ban.html",{'target_username':banned_username,'decide_time':True, 'can_unban':True})
-		else:
-			return redirect("banned_users_list")
-	else:
-		return redirect("banned_users_list")
-
-
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def user_ban_help(request):
-	if request.method == 'POST':
-		target_username = request.POST.get('tunm',None)
-		return render(request,"user_ban_help.html",{'target_username':target_username,'decide_time':True})
-	else:
-		return render(request,"user_ban_help.html",{})
-
-
-
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def change_ban_time(request):
 	"""
 	Setting or editing the time of an inter user ban
 	"""
@@ -296,7 +269,10 @@ def user_ban_help(request):
 	else:
 		# not a POST request
 		return render(request,"judgement/user_ban_help.html",{})
-########################################################Admin Banning#######################################################
+
+
+######################################################## Defender Banning and Reported Content #######################################################
+
 
 def find_time_to_go(photo_owner_id):
 	banned, time_remaining = check_photo_upload_ban(photo_owner_id)

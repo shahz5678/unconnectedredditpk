@@ -4255,7 +4255,7 @@ def rank_mehfil_active_users():
 	BWAU - Biweekly active users
 	Rules:
 	1) Only consider mehfils that have been in existence since two weeks (via GROUP_LIST)
-	2) Only consider mehfils once their size is above 75th percentile (via GROUP_SIZE_LIST)
+	2) Only consider mehfils once their size is above 95th percentile (via GROUP_SIZE_LIST)
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	# get groups above size percentile limit
@@ -4267,23 +4267,23 @@ def rank_mehfil_active_users():
 		#retrieve all group_ids from GROUP_SIZE_LIST
 		num_groups_to_consider = int((1-(GROUP_SIZE_PERCENTILE_CUTOFF/100))*num_public_grps)
 		big_enough_group_ids = my_server.zrevrange(GROUP_SIZE_LIST,0,num_groups_to_consider)# sorted set contains only public mehfils
-		# do an intersection of the two:
-		final_group_ids = [group_id for group_id in big_enough_group_ids if group_id in old_enough_group_ids]# contains only public mehfils
 		# now calculate stickiness of final groups
-		if final_group_ids:
+		if big_enough_group_ids:
 			stickiness = []
-			for group_id in final_group_ids:
-				BWAU = retrieve_active_user_count(group_id, time_now, duration='biweekly')
-				DAU = retrieve_active_user_count(group_id, time_now, duration='daily')
-				stickiness.append(group_id)
-				if BWAU:
-					stickiness.append((DAU*1.0)/BWAU)
-				else:
-					stickiness.append(-1.0)
-			my_server.delete(GROUP_BIWEEKLY_STICKINESS)
-			my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
-			# removed cached data
-			my_server.delete(CACHED_RANKED_GROUPS)
+			for group_id in big_enough_group_ids:
+				if group_id in old_enough_group_ids:# the group is old enough, thus qualifies
+					BWAU = retrieve_active_user_count(group_id, time_now, duration='biweekly')
+					DAU = retrieve_active_user_count(group_id, time_now, duration='daily')
+					stickiness.append(group_id)
+					if BWAU:
+						stickiness.append((DAU*1.0)/BWAU)
+					else:
+						stickiness.append(-1.0)
+			if stickiness:
+				my_server.delete(GROUP_BIWEEKLY_STICKINESS)
+				my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
+				# removed cached data
+				my_server.delete(CACHED_RANKED_GROUPS)
 
 
 def get_ranked_mehfils():

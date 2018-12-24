@@ -58,6 +58,7 @@ GROUP_LIST = "group_list"#sorted set containing all groups created along with cr
 GROUP_SIZE_LIST = "group_size_list"#sorted set containing public groups sorted by the number of their members
 SUBMISSION_COUNTER = "sc:"#key that creates reply id for a given reply to be saved for a given group
 GROUP_SUBMISSION_HASH = "gh:"#hash containing relevant data regarding a reply in a group
+UNHIDE_RATELIMITED = "unrl:"# key that rate limits how fast a reply can be unhidden in a group
 GROUP_SUBMISSION_LIST = "gl:"#sorted set containing all the latest replies submitted into a group
 GROUP = "g:"#hash containing group details
 GROUP_USER_AGE_LIST = "gual:"#sorted set containing joining dates of all members of a group (in epoch time)
@@ -1342,24 +1343,33 @@ def hide_private_group_submission(group_id, submission_id, unhide=False, action_
 			return True
 
 
-def hide_group_submission(group_id, submission_id,unhide=False,return_writer_id=True):
+def hide_group_submission(group_id, officer_id,submission_id,unhide=False):
 	"""
 	Hiding a group submission (because it was offensive, etc)
 
 	Return writer ID of submitter by default
 	"""
-	key = GROUP_SUBMISSION_HASH+str(group_id)+":"+str(submission_id)
+	action_successful = False
+	group_id, offcer_id = str(group_id), str(officer_id)
+	key = GROUP_SUBMISSION_HASH+group_id+":"+str(submission_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	# public group hiding
 	current_val = my_server.hget(key,'c')
 	if unhide:
-		if current_val == '3':
-			my_server.hset(key,'c','0')
+		ttl = my_server.ttl(UNHIDE_RATELIMITED+group_id+":"+offcer_id)
+		if ttl > 0:
+			pass
+		else:
+			if current_val == '3':
+				my_server.hset(key,'c','0')
+				action_successful = True
 	else:
+		my_server.setex(UNHIDE_RATELIMITED+group_id+":"+offcer_id,'1',6)
+		ttl = None
 		if current_val == '0':
 			my_server.hset(key,'c','3')#setting category to '3' in order to hide
-	if return_writer_id:
-		return my_server.hget(key,'wi')
+			action_successful = True
+	return my_server.hget(key,'wi'), action_successful, ttl
 
 
 

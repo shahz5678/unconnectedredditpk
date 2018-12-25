@@ -190,7 +190,7 @@ GET_PROFILE_REPORT_HELP_LABEL = {'0':'','1':'username_vulgar','2':'username_abus
 
 EXIT_DISCOUNT = 1
 KICK_DISCOUNT = 0.5
-GROUP_SIZE_PERCENTILE_CUTOFF = 95#what percentile of groups to consider when ranking public groups
+GROUP_SIZE_PERCENTILE_CUTOFF = 0.95#what percentile of groups to consider when ranking public groups
 ###############################################################################################################
 ON_FBS_PHOTO_THRESHOLD = 200000
 OFF_FBS_PHOTO_THRESHOLD = 10000000

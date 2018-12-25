@@ -2330,7 +2330,6 @@ def private_group_hide_submission(request):
 		return redirect("private_group_reply")
 
 
-
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def group_hide_submission(request, *args, **kwargs):
@@ -2353,15 +2352,16 @@ def group_hide_submission(request, *args, **kwargs):
 			submission_exists = group_submission_exists(gid,pk)
 			if submission_exists and (is_group_officer(gid,own_id) or owner_id == str(own_id)):
 				# hide the submission:
-				writer_id = hide_group_submission(gid,pk)#hides group submission and returns writer ID by default
-				if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-					# cut points only if the writer was NOT a group owner or a group officer
-					UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
-				invalidate_cached_mehfil_replies(gid)
-				invalidate_presence(gid)
-				####### construct and add to administrative activity #######
-				construct_administrative_activity.delay(own_id, writer_id, time.time(), gid, 'hide', pk)
-				############################################################
+				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk)#hides group submission and returns writer ID by default
+				if action_successful:
+					if not is_group_officer(gid,writer_id) and owner_id != writer_id:
+						# cut points only if the writer was NOT a group owner or a group officer
+						UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
+					invalidate_cached_mehfil_replies(gid)
+					invalidate_presence(gid)
+					####### construct and add to administrative activity #######
+					construct_administrative_activity.delay(own_id, writer_id, time.time(), gid, 'hide', pk)
+					############################################################
 				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
 				return redirect(url)
 			elif not submission_exists:
@@ -2384,15 +2384,19 @@ def group_hide_submission(request, *args, **kwargs):
 			submission_exists = group_submission_exists(gid,pk)
 			if submission_exists and (is_group_officer(gid,own_id) or owner_id == str(own_id)):
 				# unhide the submission:
-				writer_id = hide_group_submission(gid,pk,unhide=True)
-				if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-					# return points only if the writer was NOT a group owneror a group officer
-					UserProfile.objects.filter(user_id=writer_id).update(score=F('score')+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
-				invalidate_cached_mehfil_replies(gid)
-				invalidate_presence(gid)
-				####### construct and add to administrative activity #######
-				construct_administrative_activity.delay(own_id, writer_id, time.time(), gid, 'unhide', pk)
-				############################################################
+				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk,unhide=True)
+				if ttl:
+					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide':True,'unique':data['u'],'is_public':True,\
+						'ttl':ttl})
+				elif action_successful:
+					if not is_group_officer(gid,writer_id) and owner_id != writer_id:
+						# return points only if the writer was NOT a group owner or a group officer
+						UserProfile.objects.filter(user_id=writer_id).update(score=F('score')+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
+					invalidate_cached_mehfil_replies(gid)
+					invalidate_presence(gid)
+					####### construct and add to administrative activity #######
+					construct_administrative_activity.delay(own_id, writer_id, time.time(), gid, 'unhide', pk)
+					############################################################
 				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
 				return redirect(url)
 			elif not submission_exists:
@@ -2408,6 +2412,7 @@ def group_hide_submission(request, *args, **kwargs):
 	else:
 		# not a POST request
 		return redirect("public_group")
+
 
 ############################## Mehfil online list ##############################
 

@@ -1,11 +1,12 @@
 # coding=utf-8
 MAX_HOME_SUBMISSION_SIZE = 500
 MAX_HOME_REPLY_SIZE = 250
+MAX_PHOTO_COMMENT_SIZE = 250
 MAX_PHOTO_CAPTION_SIZE = 100
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
-NUM_SUBMISSION_ALLWD_PER_DAY = 20#num of home and photo posts allowed in one day
+NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
@@ -130,7 +131,7 @@ MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC = 2# how many times can '.' or '-' (
 GROUP_MEMBERS_PER_PAGE = 50 #num of group members per page, shown in a mehfil's group members page
 GROUP_VISITORS_PER_PAGE = 50 #num of group members per page, shown in a mehfil's group members page
 
-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN = 10
+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN = 2
 PRIVATE_GROUP_COST = 500 # cost of buying a private group
 PUBLIC_GROUP_MAX_SELLING_PRICE = (PUBLIC_GROUP_COST*2)-1
 PUBLIC_GROUP_MIN_SELLING_PRICE = PUBLIC_GROUP_COST#PUBLIC_GROUP_COST*0.3

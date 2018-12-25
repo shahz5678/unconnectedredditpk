@@ -58,6 +58,7 @@ GROUP_LIST = "group_list"#sorted set containing all groups created along with cr
 GROUP_SIZE_LIST = "group_size_list"#sorted set containing public groups sorted by the number of their members
 SUBMISSION_COUNTER = "sc:"#key that creates reply id for a given reply to be saved for a given group
 GROUP_SUBMISSION_HASH = "gh:"#hash containing relevant data regarding a reply in a group
+UNHIDE_RATELIMITED = "unrl:"# key that rate limits how fast a reply can be unhidden in a group
 GROUP_SUBMISSION_LIST = "gl:"#sorted set containing all the latest replies submitted into a group
 GROUP = "g:"#hash containing group details
 GROUP_USER_AGE_LIST = "gual:"#sorted set containing joining dates of all members of a group (in epoch time)
@@ -1342,24 +1343,33 @@ def hide_private_group_submission(group_id, submission_id, unhide=False, action_
 			return True
 
 
-def hide_group_submission(group_id, submission_id,unhide=False,return_writer_id=True):
+def hide_group_submission(group_id, officer_id,submission_id,unhide=False):
 	"""
 	Hiding a group submission (because it was offensive, etc)
 
 	Return writer ID of submitter by default
 	"""
-	key = GROUP_SUBMISSION_HASH+str(group_id)+":"+str(submission_id)
+	action_successful = False
+	group_id, offcer_id = str(group_id), str(officer_id)
+	key = GROUP_SUBMISSION_HASH+group_id+":"+str(submission_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	# public group hiding
 	current_val = my_server.hget(key,'c')
 	if unhide:
-		if current_val == '3':
-			my_server.hset(key,'c','0')
+		ttl = my_server.ttl(UNHIDE_RATELIMITED+group_id+":"+offcer_id)
+		if ttl > 0:
+			pass
+		else:
+			if current_val == '3':
+				my_server.hset(key,'c','0')
+				action_successful = True
 	else:
+		my_server.setex(UNHIDE_RATELIMITED+group_id+":"+offcer_id,'1',6)
+		ttl = None
 		if current_val == '0':
 			my_server.hset(key,'c','3')#setting category to '3' in order to hide
-	if return_writer_id:
-		return my_server.hget(key,'wi')
+			action_successful = True
+	return my_server.hget(key,'wi'), action_successful, ttl
 
 
 
@@ -4255,7 +4265,7 @@ def rank_mehfil_active_users():
 	BWAU - Biweekly active users
 	Rules:
 	1) Only consider mehfils that have been in existence since two weeks (via GROUP_LIST)
-	2) Only consider mehfils once their size is above 75th percentile (via GROUP_SIZE_LIST)
+	2) Only consider mehfils once their size is above 95th percentile (via GROUP_SIZE_LIST)
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	# get groups above size percentile limit
@@ -4267,23 +4277,23 @@ def rank_mehfil_active_users():
 		#retrieve all group_ids from GROUP_SIZE_LIST
 		num_groups_to_consider = int((1-(GROUP_SIZE_PERCENTILE_CUTOFF/100))*num_public_grps)
 		big_enough_group_ids = my_server.zrevrange(GROUP_SIZE_LIST,0,num_groups_to_consider)# sorted set contains only public mehfils
-		# do an intersection of the two:
-		final_group_ids = [group_id for group_id in big_enough_group_ids if group_id in old_enough_group_ids]# contains only public mehfils
 		# now calculate stickiness of final groups
-		if final_group_ids:
+		if big_enough_group_ids:
 			stickiness = []
-			for group_id in final_group_ids:
-				BWAU = retrieve_active_user_count(group_id, time_now, duration='biweekly')
-				DAU = retrieve_active_user_count(group_id, time_now, duration='daily')
-				stickiness.append(group_id)
-				if BWAU:
-					stickiness.append((DAU*1.0)/BWAU)
-				else:
-					stickiness.append(-1.0)
-			my_server.delete(GROUP_BIWEEKLY_STICKINESS)
-			my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
-			# removed cached data
-			my_server.delete(CACHED_RANKED_GROUPS)
+			for group_id in big_enough_group_ids:
+				if group_id in old_enough_group_ids:# the group is old enough, thus qualifies
+					BWAU = retrieve_active_user_count(group_id, time_now, duration='biweekly')
+					DAU = retrieve_active_user_count(group_id, time_now, duration='daily')
+					stickiness.append(group_id)
+					if BWAU:
+						stickiness.append((DAU*1.0)/BWAU)
+					else:
+						stickiness.append(-1.0)
+			if stickiness:
+				my_server.delete(GROUP_BIWEEKLY_STICKINESS)
+				my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
+				# removed cached data
+				my_server.delete(CACHED_RANKED_GROUPS)
 
 
 def get_ranked_mehfils():

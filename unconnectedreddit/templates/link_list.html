@@ -35,6 +35,7 @@
 {% endif %}
 
 {% for link in link_list %}
+{% if forloop.counter == 7 %}{% include "announcement/coming_soon_notice.html" with static_url=STATIC_URL %}{% endif %}
 {% with replyforms|get_item:link.l as replyform %}
 
 	{% if forloop.counter == 1 %}

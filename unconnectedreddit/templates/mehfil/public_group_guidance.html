@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Group guidance | Damadam.pk</title></head>
+
+{% if guide_type == 'owner' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Mehfil owner help:</h1>
+
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden">
+
+		<div class="mbl mt" style="text-align:center;border-bottom:1px dashed lightgray;padding-bottom:15px"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/settings-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki setting hai. Yahan se ap mehfil control kar saktey hain. Setting mein har option ke sath uski 'help' bhi mojood hai
+		</div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/online-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> mein mehfil ke visitors nazar atey hain. Ye tamam members dekh saktey hain
+		</div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/info-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki information hai. Ye tamam members dekh saktey hain
+		</div>
+
+		<h2 style="border-top:1px dashed lightgray;padding-top:15px">Tips:</h2>
+		<ol>
+			<li class="sp cl lsp mbs">
+			Agar mehfil new banai hai tou start mein friends ko invite karein. Strangers pe invites zaya nahi karein
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Kuch days wait ke baad ap officers bana sakein ge. Sirf aise officers banaien jo mehfil ko ziyada time dete hain
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Setting mein <img src="{{ STATIC_URL }}img/history.svg" width="20" height="20" style="vertical-align:sub"> is option ke zariye officers pe nazar rakhein
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Daily news ke lehaz se new topic set karein, takey members pe paas roz gup shup karney ke liye fresh topic mojood ho
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Mehfil se larai karney waley members ko bahir rakhein. Setting mein <img src="{{ STATIC_URL }}img/read.svg" width="20" height="20" style="vertical-align:sub"> is option se members ki complain zarur check karein
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Hamesha new members ko welcome karein. Unsey dosti lagaien. Mehfil mein ziyada members interest lein tou mehfil top pe ja sakti hai
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Mehfil se kick karney ke baad kick ki wajah poochi jaye gi. Woh zarur likhein takey kick honay waley ko apni ghalti ka ehsas ho
+			</li>
+
+		</ol>
+
+		<div style="text-align:center;border-top:1px dashed lightgray;padding:15px 0 10px 0"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+
+	</div>
+
+{% elif guide_type == 'officer' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Mehfil officer help:</h1>
+
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden">
+
+		<div class="mbl mt" style="text-align:center;border-bottom:1px dashed lightgray;padding-bottom:15px"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/settings-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki setting hai. Setting mein har option ke sath uski 'help' bhi mojood hai
+		</div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/online-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> mein mehfil ke visitors nazar atey hain. Ye tamam members dekh saktey hain
+		</div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/info-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki information hai. Ye tamam members dekh saktey hain
+		</div>
+
+		<h2 style="border-top:1px dashed lightgray;padding-top:15px">Tips:</h2>
+		<ol>
+
+			<li class="sp cl lsp mbs">
+			New members ko welcome karein aur unsey dosti lagaien
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Mehfil mein larai rokein aur narmi se members ko samjhaien. Jo nahi samjhey, unko bahir ka rasta dikha dein
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Setting mein <img src="{{ STATIC_URL }}img/history.svg" width="20" height="20" style="vertical-align:sub"> is option ke zariye actions pe nazar rakhein
+			</li>
+
+			{% if can_kick %}
+			<li class="sp cl lsp mbs">
+			Mehfil se kick karney ke baad kick ki wajah poochi jaye gi. Woh zarur likhein takey kick honay waley ko apni ghalti ka ehsas ho
+			</li>
+			{% endif %}
+
+			{% if can_topic %}
+			<li class="sp cl lsp mbs">
+			Daily news ke lehaz se new topic set karein, takey members pe paas roz gup shup karney ke liye fresh topic mojood ho
+			</li>
+			{% endif %}
+
+			<li class="sp cl lsp mbs">
+			Agar mehfil ko ziyada time nahi de saktey tou owner se kahien ke apko officer se remove kar de
+			</li>
+
+		</ol>
+
+		<div style="text-align:center;border-top:1px dashed lightgray;padding:15px 0 10px 0"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+	</div>
+
+{% elif guide_type == 'member' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Mehfil member help:</h1>
+
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden">
+
+		<div class="mbl mt" style="text-align:center;border-bottom:1px dashed lightgray;padding-bottom:15px"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/settings-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki setting hai. Setting mein har option ke sath uski 'help' bhi mojood hai
+		</div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/online-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> mein mehfil ke visitors nazar atey hain
+		</div>
+
+		<div class="sp cl lsp mbs">
+		<img src="{{ STATIC_URL }}img/info-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki information hai
+		</div>
+
+		<h2 style="border-top:1px dashed lightgray;padding-top:15px">Tips:</h2>
+		<ol>
+
+			<li class="sp cl lsp mbs">
+			Mehfil join karney ke kuch days baad ap setting se <img src="{{ STATIC_URL }}img/shield_y.svg" width="20" height="20" style="vertical-align:sub"> is option ke zariye officer banney ke liye apply kar saktey hain
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Agar koi complain ho tou setting ke <img src="{{ STATIC_URL }}img/complain.svg" width="20" height="20" style="vertical-align:sub"> is option se mehfil owner ko batain. Apki complain koi aur nahi dekh sakey ga
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Agar mehfil fazool ya boring ho tou forun exit karein takey apkey matkey mein nahi aye. Exit ke liye setting se <img src="{{ STATIC_URL }}img/exit.svg" width="20" height="20" style="vertical-align:sub"> ye option use karein
+			</li>
+
+			<li class="sp cl lsp mbs">
+			Agar ap apni mehfil banana chahtey hain tou pehlay kuch friends bana lein. Friends ke sath mil ke public mehfil achi terah se chalti hai
+			</li>
+
+		</ol>
+
+		<div style="text-align:center;border-top:1px dashed lightgray;padding:15px 0 10px 0"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+	</div>
+
+{% endif %}
+
+
+<br><br>
+{% endblock %}

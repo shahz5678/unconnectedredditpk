@@ -1,5 +1,11 @@
 <div class="bizcard mts mbl" style="text-align:center;overflow:hidden;border-radius: 10px;background-color:#f0f3f4;padding-bottom:3px;">
 
+<form method="POST" class="mrs" action="{% url 'public_group_guidance' %}" style="display:inline">
+{% csrf_token %}
+<input type="hidden" name="guid" value="{{ uuid }}">
+<button class="cp cp-bg" type="submit" style="background:0 0;padding:0;border:none"><img src="{{ static_url }}img/help_invite-cp.svg" height="25" width="25" style="vertical-align:sub"></button>
+</form>
+
 <form method="POST" class="mls mrs" action="{% url 'display_group_info_page' %}" style="display:inline">
 {% csrf_token %}
 <input type="hidden" name="guid" value="{{ uuid }}">
@@ -8,7 +14,7 @@
 
 <a href="{% url 'display_group_users_list' 'public' 'visitors' %}" class="cs cb mls mrs"><button class="cp cp-bg" style="background:0 0;padding:0;border:none"><img height="25" width="25" src="{{ static_url }}img/online-cp.svg" style="vertical-align:sub"></button></a>
 
-<form method="POST" class="mls mrs" action="{% url 'public_mehfil_oversight_dashboard' %}" style="display:inline">
+<form method="POST" class="mls" action="{% url 'public_mehfil_oversight_dashboard' %}" style="display:inline">
 {% csrf_token %}
 <button name="guid" class="cp cp-bg" type="submit" style="background:0 0;padding:0;border:none" value="{{ uuid }}"><img src="{{ static_url }}img/settings-cp.svg" height="25" width="25" style="vertical-align:sub"></button>
 </form>

@@ -4982,6 +4982,35 @@ class GroupHelpView(FormView):
 		return context
 
 
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def public_group_guidance(request):
+	"""
+	Displays helpful instructions inside a public group
+	"""
+	if request.method == "POST":
+		group_uuid = request.POST.get("guid",None)
+		own_id = request.user.id
+		group_owner_id, group_id = retrieve_group_owner_id(group_uuid=group_uuid, with_group_id=True)
+		if str(own_id) == group_owner_id:
+			# show owner instructions
+			return render(request,"mehfil/public_group_guidance.html",{'guid':group_uuid,'guide_type':'owner'})
+		elif is_group_officer(group_id,own_id):
+			# show officer instructions
+			can_hide, can_kick, can_topic = retrieve_group_officer_perms(group_id, own_id)
+			return render(request,"mehfil/public_group_guidance.html",{'guid':group_uuid,'guide_type':'officer',\
+				'can_kick':False if can_kick == '0' else True,'can_topic':False if can_topic == '0' else True,\
+				'can_hide':can_hide})
+		elif group_member_exists(group_id, own_id):
+			# show member instructions
+			return render(request,"mehfil/public_group_guidance.html",{'guid':group_uuid,'guide_type':'member'})
+		else:
+			raise Http404("This user is not authorized to view this")
+	else:
+		# not a POST request
+		return redirect("public_group")
+
+
 ########################## Popular mehfil list #########################
 
 def get_ranked_groups(request):

@@ -4272,13 +4272,13 @@ def rank_mehfil_active_users():
 	time_now = time.time()
 	num_public_grps = my_server.zcard(GROUP_SIZE_LIST)
 	if num_public_grps:
-		# get groups beyond creation_time cutoff
-		old_enough_group_ids = my_server.zrangebyscore(GROUP_LIST,'-inf',time_now-TWO_WEEKS)# sorted set contains both public and private mehfils
 		#retrieve all group_ids from GROUP_SIZE_LIST
 		num_groups_to_consider = int((1-(GROUP_SIZE_PERCENTILE_CUTOFF/100))*num_public_grps)
 		big_enough_group_ids = my_server.zrevrange(GROUP_SIZE_LIST,0,num_groups_to_consider)# sorted set contains only public mehfils
 		# now calculate stickiness of final groups
 		if big_enough_group_ids:
+			# get groups beyond creation_time cutoff
+			old_enough_group_ids = my_server.zrangebyscore(GROUP_LIST,'-inf',time_now-TWO_WEEKS)# sorted set contains both public and private mehfils
 			stickiness = []
 			for group_id in big_enough_group_ids:
 				if group_id in old_enough_group_ids:# the group is old enough, thus qualifies

@@ -4273,7 +4273,7 @@ def rank_mehfil_active_users():
 	num_public_grps = my_server.zcard(GROUP_SIZE_LIST)
 	if num_public_grps:
 		#retrieve all group_ids from GROUP_SIZE_LIST
-		num_groups_to_consider = int((1-(GROUP_SIZE_PERCENTILE_CUTOFF/100))*num_public_grps)
+		num_groups_to_consider = int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
 		big_enough_group_ids = my_server.zrevrange(GROUP_SIZE_LIST,0,num_groups_to_consider)# sorted set contains only public mehfils
 		# now calculate stickiness of final groups
 		if big_enough_group_ids:

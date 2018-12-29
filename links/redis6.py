@@ -54,6 +54,7 @@ ONE_AND_A_HALF_MONTHS = 60*60*24*45
 
 GROUPS_OWNED_BY_USER = 'uog:' # sorted set containing group_ids user has created
 CACHED_USER_OWNERSHIP_PUBLIC_GROUPS = 'cuowg:'# key holding cached ownership data related to a particular user
+GROUP_MAU = "group_mau"#sorted set containg all public groups and their respective MAU counts
 GROUP_LIST = "group_list"#sorted set containing all groups created along with creation times
 GROUP_SIZE_LIST = "group_size_list"#sorted set containing public groups sorted by the number of their members
 SUBMISSION_COUNTER = "sc:"#key that creates reply id for a given reply to be saved for a given group
@@ -2547,6 +2548,13 @@ def group_invite_exists(group_id, user_id):
 	return redis.Redis(connection_pool=POOL).zscore(USER_INVITES+str(user_id), group_id)
 
 
+# def retrieve_user_group_invites(user_id):
+# 	"""
+# 	Retrieves all groups user has been invited to
+# 	"""
+# 	return redis.Redis(connection_pool=POOL).zrange(USER_INVITES+str(user_id),0,-1)   
+
+
 def cancel_invite(group_id, member_id, is_public, time_now):
 	"""
 	Invite cancelation triggered by owner of the open (or closed) group
@@ -2609,8 +2617,7 @@ def invalidate_all_group_invites(group_id, is_public, my_server=None, member_ids
 	Useful when deleting the entire group
 	"""
 	invite_key = GROUP_INVITES+group_id
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)	
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)	
 	invited_users_who_didnt_accept = my_server.zrange(invite_key,0,-1)
 	pipeline1 = my_server.pipeline()
 	for user_id in invited_users_who_didnt_accept:
@@ -4003,6 +4010,7 @@ def permanently_delete_group(group_id, group_type, return_member_ids=False):
 		pipeline1.zrem(UNIVERSAL_GROUP_ATTENDANCE_LIST,group_id)
 		# removing group from stickiness ranking & removing cached ranked groups #
 		pipeline1.zrem(GROUP_BIWEEKLY_STICKINESS,group_id)
+		pipeline1.zrem(GROUP_MAU,group_id)
 		##########################################################################
 		# pipeline1.zrem(OFFICER_APP_TRIM_TIME_OF_GROUPS,group_id)
 		pipeline1.delete(CACHED_USER_OWNERSHIP_PUBLIC_GROUPS+owner_id)
@@ -4266,29 +4274,66 @@ def rank_mehfil_active_users():
 	Rules:
 	1) Only consider mehfils that have been in existence since two weeks (via GROUP_LIST)
 	2) Only consider mehfils once their size is above 95th percentile (via GROUP_SIZE_LIST)
+
+	The Algo:
+	Step 1) Get all pub-grps
+	Step 2) Then filter out young groups (i.e. keep groups older than TWO_WEEKS)
+	Step 3) Sort these pub-grps by MAU (MAU is harder to game via fake sybils - i.e. fakers would get beaten by real groups more easily)
+	Step 4) Sort top 95th percentile MAU pub-grps by DAU/BWAU and present to users
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	# get groups above size percentile limit
 	time_now = time.time()
-	num_public_grps = my_server.zcard(GROUP_SIZE_LIST)
-	if num_public_grps:
-		#retrieve all group_ids from GROUP_SIZE_LIST
-		num_groups_to_consider = int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
-		big_enough_group_ids = my_server.zrevrange(GROUP_SIZE_LIST,0,num_groups_to_consider)# sorted set contains only public mehfils
-		# now calculate stickiness of final groups
-		if big_enough_group_ids:
-			# get groups beyond creation_time cutoff
-			old_enough_group_ids = my_server.zrangebyscore(GROUP_LIST,'-inf',time_now-TWO_WEEKS)# sorted set contains both public and private mehfils
+	two_weeks_ago = time_now - TWO_WEEKS
+	my_server = redis.Redis(connection_pool=POOL)
+
+	# Calculating step 1: All public groups
+	all_public_group_ids = my_server.zrange(GROUP_SIZE_LIST,0,-1)
+
+	pipeline1 = my_server.pipeline()
+	for gid in all_public_group_ids:
+		pipeline1.zrange(GROUP_MEMBERS+gid,0,0,withscores=True)
+	oldest_member_and_joining_time = pipeline1.execute()# a list of list of tuples is returned (e.g. [[('2', 1540199393.074807)]])
+
+	counter, all_old_enough_public_group_ids = 0, []
+	for gid in all_public_group_ids:
+		if oldest_member_and_joining_time[counter]:
+			try:
+				oldest_member_joining_time = oldest_member_and_joining_time[counter][0][1]# float value
+			except IndexError:
+				# first member joining time not found, skip this group entirely
+				oldest_member_joining_time = None
+			counter += 1
+			# Calculating step 2: Filtering out young groups, keeping only mature groups (i.e. more than 2 weeks old)
+			if oldest_member_joining_time and oldest_member_joining_time < two_weeks_ago:
+				all_old_enough_public_group_ids.append(gid)
+
+	if all_old_enough_public_group_ids:
+		groupmau = []
+		for gid in all_old_enough_public_group_ids:
+			grp_MAU = retrieve_active_user_count(gid, time_now, duration='monthly')
+			groupmau.append(gid)
+			groupmau.append(grp_MAU)
+
+		# Calculating step 3: Old enough public groups sorted by highest MAU
+		my_server.delete(GROUP_MAU)
+		my_server.zadd(GROUP_MAU,*groupmau)
+
+		num_public_grps = my_server.zcard(GROUP_MAU)
+
+		# only consider groups beyond the 95th percentile
+		num_grps_to_consider = int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
+		big_enough_MAU_group_ids = my_server.zrevrange(GROUP_MAU,0,num_grps_to_consider)
+
+		if big_enough_MAU_group_ids:
 			stickiness = []
-			for group_id in big_enough_group_ids:
-				if group_id in old_enough_group_ids:# the group is old enough, thus qualifies
-					BWAU = retrieve_active_user_count(group_id, time_now, duration='biweekly')
-					DAU = retrieve_active_user_count(group_id, time_now, duration='daily')
-					stickiness.append(group_id)
-					if BWAU:
-						stickiness.append((DAU*1.0)/BWAU)
-					else:
-						stickiness.append(-1.0)
+			# Calculating step 4: Ranking old enough and big enough MAU groups by DAU/BWAU
+			for rankable_group_id in big_enough_MAU_group_ids:
+				BWAU = retrieve_active_user_count(rankable_group_id, time_now, duration='biweekly')
+				DAU = retrieve_active_user_count(rankable_group_id, time_now, duration='daily')
+				stickiness.append(rankable_group_id)
+				if BWAU:
+					stickiness.append((DAU*1.0)/BWAU)
+				else:
+					stickiness.append(-1.0)
 			if stickiness:
 				my_server.delete(GROUP_BIWEEKLY_STICKINESS)
 				my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
@@ -4483,6 +4528,26 @@ def retrieve_user_officership(user_id, with_officership_start_time=False, my_ser
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	return my_server.zrange(GROUPS_IN_WHICH_USER_IS_OFFICER+str(user_id),0,-1, withscores=with_officership_start_time)
 
+
+# def retrieve_user_group_membership(user_id, group_type='public', my_server=None):
+# 	"""
+# 	Returns IDs of public and/or private groups a user is a member of
+# 	"""
+# 	user_id = str(user_id)
+# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 	if group_type == 'public':
+# 		# group_type is 'public'
+# 		return my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+# 	elif group_type == 'private':
+# 		# group_type is 'private'
+# 		return my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+# 	elif group_type == 'both':
+# 		# group_type is 'both'
+# 		pub_grp_ids = my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+# 		prv_grp_ids = my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+# 		return pub_grp_ids, prv_grp_ids
+# 	else:
+# 		return []
 
 
 def update_user_membership_set(user_id, group_id, group_type, time_now=None, remove=False, my_server=None):

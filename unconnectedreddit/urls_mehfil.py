@@ -12,7 +12,7 @@ processing_group_ownership_transfer, private_mehfil_oversight_dashboard, join_pr
 display_detailed_info, display_group_users_list, send_request_to_owner, cancel_ownership_request, private_group_invite_help, unaccepted_private_mehfil_invites, \
 cancel_closed_group_invite, leave_private_group, private_group_hide_submission, private_group_request_denied, apply_for_officer, display_officer_application, \
 get_ranked_groups, del_public_group, view_officer_app_help, view_officer_application_form, view_officer_app_history, display_officer_app_detailed_info,\
-group_list, group_page, DirectMessageView, GroupTypeView, ClosedGroupHelpView, PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, \
+group_list, group_page, public_group_guidance, DirectMessageView, GroupTypeView, ClosedGroupHelpView, PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, \
 ChangeGroupTopicView, PrivateGroupView, GroupHelpView, DirectMessageCreateView, ReinvitePrivateView, ClosedGroupCreateView, InviteUsersToGroupView, \
 InviteUsersToPrivateGroupView, GroupTypeView, OpenGroupHelpView, ReinviteView
 
@@ -54,6 +54,7 @@ urlpatterns = patterns('',
 	url(r'^mehfil/your-mehfil-list/$', auth(group_list), name='group_list'),
 	################################# Mehfil help #############################################
 	url(r'^mehfil/help/$', auth(GroupHelpView.as_view()), name='group_help'),
+	url(r'^mehfil/public/guidance/$', auth(public_group_guidance), name='public_group_guidance'),
 	################################# Popular mehfils #############################################
 	url(r'^mehfil/popular-list/$', auth(get_ranked_groups), name='get_ranked_groups'),
 	################################# Mehfil administration #############################################

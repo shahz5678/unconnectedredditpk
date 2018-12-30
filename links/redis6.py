@@ -4301,10 +4301,10 @@ def rank_mehfil_active_users():
 			except IndexError:
 				# first member joining time not found, skip this group entirely
 				oldest_member_joining_time = None
-			counter += 1
 			# Calculating step 2: Filtering out young groups, keeping only mature groups (i.e. more than 2 weeks old)
 			if oldest_member_joining_time and oldest_member_joining_time < two_weeks_ago:
 				all_old_enough_public_group_ids.append(gid)
+		counter += 1
 
 	if all_old_enough_public_group_ids:
 		groupmau = []

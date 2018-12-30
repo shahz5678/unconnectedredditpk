@@ -2,6 +2,7 @@
 
 # import arabic_reshaper
 # from bidi.algorithm import get_display
+import imagehash
 import StringIO
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from PIL import Image, ImageFont, ImageDraw, ImageFile, ImageEnhance, ExifTags
@@ -19,13 +20,23 @@ def enhance_image(image):
     enhancer3 = ImageEnhance.Color(enhancer2)
     return enhancer3.enhance(1.10)
 
+# def compute_avg_hash(image):
+#     small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
+#     pixels = list(small_image_bw.getdata())
+#     avg = sum(pixels) / len(pixels)
+#     bits = "".join(map(lambda pixel: '1' if pixel > avg else '0', pixels)) #turning the image into string of 0s and 1s
+#     photo_hash = int(bits, 2).__format__('16x').upper()
+#     return photo_hash
+
 def compute_avg_hash(image):
-    small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
-    pixels = list(small_image_bw.getdata())
-    avg = sum(pixels) / len(pixels)
-    bits = "".join(map(lambda pixel: '1' if pixel > avg else '0', pixels)) #turning the image into string of 0s and 1s
-    photo_hash = int(bits, 2).__format__('16x').upper()
-    return photo_hash
+    # small_image_bw = image.resize((8,8), Image.ANTIALIAS).convert("L")
+    # pixels = list(small_image_bw.getdata())
+    # avg = sum(pixels) / len(pixels)
+    # bits = "".join(map(lambda pixel: '1' if pixel > avg else '0', pixels)) #turning the image into string of 0s and 1s
+    # photo_hash = int(bits, 2).__format__('16x').upper()
+    # return photo_hash
+    h = str(imagehash.dhash(image))
+    return h
 
 def resize_image(image, max_width=None):
     if not max_width:

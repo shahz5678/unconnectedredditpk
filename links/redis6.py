@@ -106,6 +106,7 @@ GROUP_VISITOR_PRUNING_LOCK = 'gvpl:'# key that locks re-pruning of group visitor
 
 GROUP_BIWEEKLY_STICKINESS = 'gbws'# sorted set containing groups alongwith their stickiness values (used for popularity sorting)
 CACHED_RANKED_GROUPS = 'crg'# key holding cached json object used to populate popular groups page with a list of top 20 public mehfils
+RANKING_LAST_UPDATE_TIME = 'rlu'# key holding last time ranking was calculated (in epoch time format)
 
 ######################### Caching mehfil messaging data #########################
 
@@ -4238,7 +4239,7 @@ def del_overflowing_group_submissions(group_id, num_to_del ,my_server=None):
 ###################################### Calculating group active users and ranking #######################################
 
 
-def retrieve_active_user_count(group_id, time_now, duration):
+def retrieve_active_user_count(group_id, time_now, duration, exclude_exits=False):
 	"""
 	Retrieves active user count for mehfil with given group_id
 
@@ -4258,10 +4259,15 @@ def retrieve_active_user_count(group_id, time_now, duration):
 	else:
 		return 0
 	my_server = redis.Redis(connection_pool=POOL)
-	active_members = my_server.zcount(GROUP_VISITORS+group_id,time_ago,'+inf')
-	active_exits = my_server.zcount(GROUP_EXIT_TRACKER+group_id,time_ago,'+inf')
-	active_kicks = my_server.zcount(GROUP_KICK_TRACKER+group_id,time_ago,'+inf')
-	total = active_members + EXIT_DISCOUNT*(active_exits) + KICK_DISCOUNT*(active_kicks)
+	if exclude_exits:
+		active_members = my_server.zcount(GROUP_VISITORS+group_id,time_ago,'+inf')
+		active_kicks = my_server.zcount(GROUP_KICK_TRACKER+group_id,time_ago,'+inf')
+		total = active_members + KICK_DISCOUNT*(active_kicks)
+	else:
+		active_members = my_server.zcount(GROUP_VISITORS+group_id,time_ago,'+inf')
+		active_exits = my_server.zcount(GROUP_EXIT_TRACKER+group_id,time_ago,'+inf')
+		active_kicks = my_server.zcount(GROUP_KICK_TRACKER+group_id,time_ago,'+inf')
+		total = active_members + EXIT_DISCOUNT*(active_exits) + KICK_DISCOUNT*(active_kicks)
 	return total
 
 
@@ -4309,7 +4315,7 @@ def rank_mehfil_active_users():
 	if all_old_enough_public_group_ids:
 		groupmau = []
 		for gid in all_old_enough_public_group_ids:
-			grp_MAU = retrieve_active_user_count(gid, time_now, duration='monthly')
+			grp_MAU = retrieve_active_user_count(gid, time_now, duration='monthly', exclude_exits=True)# penalizing groups when they have too many exits
 			groupmau.append(gid)
 			groupmau.append(grp_MAU)
 
@@ -4339,6 +4345,8 @@ def rank_mehfil_active_users():
 				my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
 				# removed cached data
 				my_server.delete(CACHED_RANKED_GROUPS)
+				# record time of ranking
+				my_server.set(RANKING_LAST_UPDATE_TIME,time_now)
 
 
 def get_ranked_mehfils():

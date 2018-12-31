@@ -4910,7 +4910,7 @@ class WelcomeMessageView(CreateView):
 # 					return redirect("home")
 
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(field='sk',ip=False,rate='3/s')
 def unseen_group(request, pk=None, *args, **kwargs):
 	"""
 	Handles replying to a mehfil message from a single notification or from unseen activity
@@ -5019,7 +5019,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 
 #called when replying from unseen_activity
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(field='sk',ip=False,rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	"""
 	Processes comment under photo from unseen activity (or single notification)
@@ -5134,7 +5134,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 
 #called when replying from unseen_activity
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(field='sk',ip=False,rate='3/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	"""
 	Handles replying as a 'jawab' from a single notification or from unseen activity
@@ -5248,7 +5248,7 @@ def get_object_list_and_forms(request, notif=None):
 
 
 # @ratelimit(rate='22/38s')
-@ratelimit(rate='3/s')
+@ratelimit(rate='10/s')
 def unseen_activity(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:

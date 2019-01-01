@@ -1,16 +1,18 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load future_time %}
 {% block content %}
-<head><title>Unable to upload photo | Damadam.pk</title></head>
-<div class="margin">
-New photo <b style="color:#ff8000;">{{ time }}</b> seconds baad lagey gi
-<div class="mtl mbl"><a href="{% url 'upload_public_photo' %}"><button class="btn bm bco">wapis</button></a></div>
-<hr size=1 COLOR="#ff9933">
-<h2>Photos lagane ke rules:</h2>
-1) Baar baar aik hi photo nahi lagain<br>
-2) Barhana (nude) photos nahi lagain<br>
-3) Kisi ki zaati photos nahi lagain<br>
-4) 2 mins mien aik photo lagti hai
+<head><title>Unable to submit content | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Please wait!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="cxl lsp">Ye ho ga {{ time|future_time }}...</div>
+<hr size=1 COLOR="#E9EBEE">
+{% if tp == 'long' %}<div class="sp cl lsp">One day mein {{ sharing_limit }} se ziyada items share nahi hotay. Sirf behtareen cheezain share karein!</div>{% else %}<div class="sp lsp cl">Ap itni fast cheezain share nahi kar saktey</div>{% endif %}
+{% if origin == '1' %}
+<div class="mtl mbs"><a href="{% url 'link_create_pk' %}"><button class="btn bm bct pg_ok_res" style="height:26px">wapis</button></a></div>
+{% else %}
+<div class="mtl mbs"><a href="{% url 'upload_public_photo' %}"><button class="btn bm bco pg_ok_res" style="height:26px">wapis</button></a></div>
+{% endif %}
 </div>
 <br><br>
 {% endblock %}

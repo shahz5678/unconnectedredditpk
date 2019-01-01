@@ -1,18 +1,18 @@
 CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc','phvk','sex','seks','s-e-x','s_e_x','s.e.x','s.e_x','s.e-x','s-e.x',\
 's_e.x','s-e_x','s_e-x','pusy','pussy','pssy','dick','penis','cock','vagina','vulva','boob','breast','pimp','whore','asshole','bastard','pubic','piss',\
-'shit','idiot','bitch','jackass','balls','testicle','sekks','cunt','fart','clit','asswhole','a_s_s','a-s-s','b00b','blowjob','blojob','booob',\
+'shit','idiot','bitch','jackass','balls','testicle','sekks','cunt','fart','clit','asswhole','a_s_s','a-s-s','b00b','blowjob','blojob','booob','3some',\
 'boooob','booooob','booooooob','c0ck','cumshot','cumsh0t','d1ck','dildo','dlck','f4nny','faggot','fcuk','f_u_c_k','gangbang','nigga','s_3-x',\
-'n1gga','n1gger','nigger','poop','p00p','p0op','po0p','rectum','semen','sh1t','shemale','titties','viagra','turd','wanker','erotic','hooker','incest',\
-'intercourse','milf','m1lf','nipple','pig','rape','rapist','rap1st','rap!st','raping','rap1ng','sodom','threesome','topless','upskirt','vibrator','tits',\
-'vibrater','vibratur','vibrat0r','douche','doosh','d00sh','se-x','s-ex','se.x','se.x','h0m0','shema1e','c1it','b1owjob','b000b','xx','x-x',\
+'n1gga','n1gger','nigger','poop','p00p','p0op','po0p','rectum','sh1t','shemale','titties','viagra','turd','wanker','erotic','hooker','incest',\
+'intercourse','milf','m1lf','nipple','pig','rape','rapist','rap1st','rap!st','raping','rap1ng','sodom','threesome','topless','upskirt','vibrator',\
+'vibrater','vibratur','vibrat0r','douche','doosh','d00sh','se-x','s-ex','se.x','se.x','h0m0','shema1e','c1it','b1owjob','b000b','xx','x-x','tits',\
 'x_x','x.x','nude','naked','n!gger','b!tch','pen!s','d!ck','b0ob','bo0b','buub','h00ker','h0mo','hom0','cl!t','rektum','v!agra','assho1e','assh0le',\
-'assh01e','n!gga','ballz','bawls','bawlz','vag1na','vag!na','pen1s','pinis','peenus','p1g','p!g','shema!e','shimale','shima1e','top1ess','top!ess','3some',\
+'assh01e','n!gga','ballz','bawls','bawlz','vag1na','vag!na','pen1s','pinis','peenus','p1g','p!g','shema!e','shimale','shima1e','top1ess','top!ess',\
 'b1tch','brest','vu1va','p1mp','sh!t','p!mp','wh0re','porkistan','p0rkistan','pork!stan','p0rk!stan','porkistaan','p0rkistaan','pork!staan','p0rk!staan'\
 'porkystan','p0rkystan','porkystaan','p0rkystaan','puup','kock','licker','1icker','l!cker','1!cker','n1pple','nipp1e','n1pp1e','n!pp1e','n!pp!e','f-ck',\
 'f_ck','f.ck','porki-stan','porki.stan','porki_stan','fack','feck','porkies','p0rkies','pork!es','p0rk!es','s3x','s3ks','s-3-x','s_3_x','s.3.x','s.3_x',\
-'s.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','bobs','sixy','sx','x.xx','leon','romentic','lesb',\
-'sax','s@x','f.u.k','vegina','se_x','leso','vigina','pen@is','ediut','kiss','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck',\
-'sperm','xnx','penes','s+e+x+y','sucker','girlfriend','boyfriend','couple','romance']#'anus',butt','kok','anal','ana1','hot','fanny','qhus'
+'s.3-x','s-3.x','s_3.x','s-3_x','sxsy','pron','romantic','rommantic','naughty','bobs','sixy','sx','x.xx','leon','romentic','lesb','sax','s@x','f.u.k',\
+'vegina','se_x','leso','vigina','pen@is','ediut','kiss','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck','sperm','xnx','penes','s+e+x+y','sucker',\
+'girlfriend','boyfriend','couple','romance','klss']#'semen','anus',butt','kok','anal','ana1','hot','fanny','qhus'
 
 
 CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga',\
@@ -35,7 +35,7 @@ CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','l
 'chadwa','pyase','l0n','ghand','gndo','dewani','dewana','uff','uuf','phuud','chdwa','ghsti','iun','knnjr','gnnd','gasht','gsht','barwy','l_u_n','ch0s','-l-','.l.','_l_'\
 ,'@l@','-l_','_l-','.l_','_l.','.l-','-l.','@l.','@l_','@l-','.l@','_l@','-l@','lool','lauda','gaaram','chosn','gaasht','chudo','puda','bhond','b-0-0-b','r-a-n-d-i',\
 'lolla','raaaand','phouuuudi','phar','c.h.u.d.a.i','p0ddi','c.u.d.a.i','gaaaand','ghhashti','c.h.u.t','phuti','ch_ut','ga-nddo','l-esbo','bnd','chdi','gannnd','choso',\
-'leooon','chooopa','chuddakr','gondo','chuuut','peenis','chudaye','ph.udi','thrki','kmeni','chusti','codu','gan.do','cho0t','thuko']#salle,lanti,lant,soor,ph0di,ph0de
+'leooon','chooopa','chuddakr','gondo','chuuut','peenis','chudaye','ph.udi','thrki','kmeni','chusti','codu','gan.do','cho0t','thuko','tharak']#salle,lanti,lant,soor,ph0di,ph0de
 
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\
@@ -51,16 +51,16 @@ MISC_POLITICALLY_SENSITIVE_WORDS = ['india','america','amreeka','amrika','bharat
 CORE_RELIGIOUSLY_SENSITIVE_WORDS = ['bhagwan','kafir','qafir','kafr','qafr','kfir','qfir','kaphir','qaphir','kaf1r','kaf!r','a11ah','bhagvan',\
 'kafur','bhagwaan','bagwan','bagwaan','bagvaan','jesus','ahmedi','haraam','haaraam','haraaam','ka-fir','ka-f!r','ka_f!r','ka-ph!r','ka-ph1r','yazeed',\
 'qa-fir','qa-f!r','qa-f1r','athiest','atheist','atheism','athiesm','sipah','taliban','ta1iban','talibaan','tal!baan','tal!ban','talyban','talybaan','god',\
-'taaliban','taa1iban','allaah','blasphemy','kufr','qufr','sippa','s!ppa','s!pah','fatwa','fatva','ftwa','ftva','bhagvaan','k.a.f.i.r','q.a.f.i.r','k.a.f.r',\
+'taaliban','taa1iban','allaah','blasphemy','kufr','qufr','sippa','s!ppa','s!pah','fatwa','fatva','ftva','bhagvaan','k.a.f.i.r','q.a.f.i.r','k.a.f.r',\
 'k.f.i.r','q.a.f.r','q.f.i.r','k.a.p.h.i.r','q.a.p.h.i.r','k.a.f.!.r','q.a.f.!.r','k.a.f.u.r','kafer','qafer','kaffer','qaffer','kaffur','qaffur',\
-'h.a.r.a.m','h.a.r.a.a.m']#haram, ahmadi
+'h.a.r.a.m','h.a.r.a.a.m']#haram, ahmadi, ftwa
 
 
 MISC_SENSITIVE_WORDS = ['fahashi','jinsi','garam','kartoot','qartoot','kart00t','qart00t','kartut','qartut','karto0t','kart0ot','qart0ot','qarto0t',\
 'krtut','qrtut','kertut','kert00t','kertoot','qertoot','qert00t','idiot','idi0t','id!ot','id!0t','1diot','damn','kat!l','scandal','scandle','scendel',\
 'skendel','skendl','scandl','scendl','sharmnaak','sharamnaak','sharamnaaq','sharmnaaq','shrmnaak','shrmnaaq','jinsy','j!nsy','j!nsi','porn','p0rn',\
 'sharamnak','p-o-r-n','p_o_r_n','p.o.r.n','p-o_r-n','p_o-r_n','p-o_r_n','p_o_r-n','mhb','m_h_b','m-h-b','m.h.b','m-h_b','m_h-b','m.h_b','m_h.b','m-h.b',\
-'m.h-b','mh.b','m.h@b','murdabad','mrdabad']
+'m.h-b','mh.b','m.h@b','murdabad','mrdabad','kharish']
 
 SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook','facebuk','facebok','telenor','mobilink','zong','ufone','warid',\
 'telen0r','m0bilink','z0ng','facbook']

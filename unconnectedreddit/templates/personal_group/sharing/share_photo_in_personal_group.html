@@ -5,7 +5,7 @@
 {% load show_error %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Share photo in personal group | Damadam.pk</title></head>
+<head><title>Share photo in 1 on 1 messaging | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
 {% if edit_caption %}
@@ -31,7 +31,7 @@
 	{% if show_first_time_tutorial %}
 	
 		<div class="bizcard clb cxl" style="background-color:#FFFAF0;padding:10px;max-width:600px;width:93%;margin:0 auto 0.5em auto;overflow:hidden;text-align:center">
-		<img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" class="mrs" style="vertical-align:middle">button daba ke ap koi bhi foto apney dostoon ki private chat mein share kar saktey hain!
+		<img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" class="mrs" style="vertical-align:middle">button daba ke ap koi bhi foto apney dostoon ki 1 on 1 mein share kar saktey hain!
 		<hr size=1 COLOR="#E9EBEE">
 		<span class="cgy lsp cxs sp"><b>Limit:</b> aik waqt mein {{ limit }} se ziyada friends ko foto nahi bheji ja sakti</span>
 		</div>
@@ -63,37 +63,41 @@
 			Ap ke friends hi nahi, is liye ye foto share nahi ho sakti!
 			</div>
 			
-			<span class="cl lsp cgy">Kisi bhi user ko friend bana ke private chat karney ke liye nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
+			<span class="cl lsp cgy">Kisi bhi user ko 1 on 1 messaging karney ke liye nickname ya post ke agey bana <button style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none">
 				<div id="line"></div>
 				<div id="line"></div>
 				<div id="line" style="width: 8px"></div>
 				</button> button dabain</span><br>
 			
-			<a href="{% url 'home' %}"><button class="mtl mbl btn bcb bm" style="height:25px">wapis</button></a>
+			<form method="POST" class="mtl mbl" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}
+				<input type="hidden" name="obid" value="{{ photo_id }}">
+				<input type="hidden" name="orig" value="{{ origin }}">
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="oun" value="{{ owner_username }}">
+				<button class="btn bcb bm sp pg_ok_res" style="height:26px">wapis</button>
+			</form>
 			</div>
 
 		{% else %}
 			
-			<div style="text-align:center" class="cl mt mbs">
-			{% if origin == '1' %}
-			<a href="{% url 'home' %}" class="cgy cs sp" style="border-bottom:1px dotted gray">wapis</a>
-			{% elif origin == '2' %}
-			<a href="{% url 'best_photo_loc_pk' photo_id %}" class="cgy cs sp" style="border-bottom:1px dotted gray">wapis</a>
-			{% elif origin == '3' %}
-			<a href="{% url 'see_photo_pk' photo_id %}" class="cgy cs sp" style="border-bottom:1px dotted gray">wapis</a>
-			{% elif origin == '4' %}
-			<a href="{% url 'user_profile_photo' owner_username photo_id %}" class="cgy cs sp" style="border-bottom:1px dotted gray">wapis</a>
-			{% elif origin == '5' %}
-			<a href="{% url 'unseen_activity' user.username %}" class="cgy cs sp" style="border-bottom:1px dotted gray">wapis</a>
-			{% else %}
-			<a href="{% url 'home' %}" class="cgy cs sp" style="border-bottom:1px dotted gray">wapis</a>
-			{% endif %}
+			<div style="text-align:center" class="cl mts mbs">
+
+			<form method="POST" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}
+			<input type="hidden" name="obid" value="{{ photo_id }}">
+			<input type="hidden" name="orig" value="{{ origin }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ owner_username }}">
+			<button type="submit" class="cgy sp cs" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray">wapis</button>
+			</form>
+
 			</div>
 
 			<hr size=1 COLOR="#E9EBEE">
 			<div style="text-align:center">
 			<div class="cl lsp">
-			Ye foto kin dostoon ki private chat mein share karni hai?
+			Ye foto kin friends ke sath 1 on 1 mein share karni hai?
 			</div>
 			<form method="POST" action="{% url 'share_photo_in_personal_group' %}">
 				{% csrf_token %}

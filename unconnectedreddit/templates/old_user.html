@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Not permitted to welcome user | Damadam.pk</title></head>
-<div class="margin clb">
-<b class="ct">{{ username }}</b> purana ho gaya hai<br>
-<span class="cs cgy">Isko mithai nahi bheji ja sakti...</span><br>
-<a href="{% url 'home' %}"><button class="btn bct bm mlt mbl">wapis</button></a>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb lsp" style="text-align:center">This user is old!</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="cxl lsp"><b>{{ username }}</b> purana ho gaya hai</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mtl">Isko mithai nahi bheji ja sakti...</div>
+	<a href="{% url 'home' %}"><button class="btn bct bm mt mbl sp pg_ok_res" style="height:26px">wapis</button></a>
 </div>
+
 <br><br>
 {% endblock %}

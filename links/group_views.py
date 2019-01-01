@@ -35,8 +35,8 @@ PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER,
 PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
-from image_processing import process_personal_group_image
-from views import get_page_obj, get_object_list_and_forms
+from image_processing import process_group_image
+from views import get_page_obj, get_object_list_and_forms, return_to_content
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
 from models import Photo
@@ -479,7 +479,7 @@ def post_to_personal_group(request, *args, **kwargs):
 							reoriented = request.POST.get('reoriented',None)
 							resized = request.POST.get('resized',None)
 							quality = None if on_fbs else True
-							image_to_upload, img_width, img_height = process_personal_group_image(image=image_file, quality=quality, already_resized=resized, \
+							image_to_upload, img_width, img_height = process_group_image(image=image_file, quality=quality, already_resized=resized, \
 								already_reoriented=reoriented)
 							if not image_to_upload and img_height == 'too_high':
 								request.session["personal_group_form_error"] = PERSONAL_GROUP_ERR['too_high']
@@ -1919,10 +1919,11 @@ def render_personal_group_invite(request):
 	"""
 	if request.method == "POST":
 		own_id, target_id = request.user.id, request.POST.get('tid',None)
-		if own_id == target_id:
-			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True})
+		parent_object_id, object_type, origin = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None)
+		if str(own_id) == target_id:
+			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
+				'lid':request.POST.get('hh',None)})
 		else:
-			parent_object_id, object_type, origin = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None)
 			group_id, already_exists = personal_group_already_exists(own_id, target_id)
 			if already_exists:
 				request.session["personal_group_tid_key"] = target_id
@@ -1935,11 +1936,12 @@ def render_personal_group_invite(request):
 					target_id, target_username)
 				if state in ('0','1'):
 					context = {'already_invited':True, 'target_av_url':target_av_url, 'tun':target_username,'it':invite_sending_time,\
-					'poid':parent_object_id, 'org':origin}
+					'poid':parent_object_id, 'org':origin, 'lid':request.POST.get('hh',None)}
 					return render(request,"personal_group/invites/personal_group_status.html",context)
 				elif state in ('2','3'):
 					context ={'show_invite':True,'recently_declined':True if recently_declined else False,'target_av_url':target_av_url,\
-					'tun':target_username,'it':invite_sending_time,'poid':parent_object_id,'org':origin,'is_anon':True if state == '3' else False}
+					'tun':target_username,'it':invite_sending_time,'poid':parent_object_id,'org':origin,'is_anon':True if state == '3' else False,\
+					'lid':request.POST.get('hh',None)}
 					request.session["personal_group_invitation_sent_by_username"] = target_username
 					request.session["personal_group_invitation_sent_by_id"] = target_id
 					request.session["personal_group_invitation_sent_by_anon"] = True if state == '3' else False
@@ -1952,7 +1954,7 @@ def render_personal_group_invite(request):
 					target_username, parent_object_id, object_type, origin, target_id, target_av_url
 					request.session.modified = True
 					return render(request,"personal_group/invites/personal_group_status.html",{'invited':True,'tun':target_username,'target_av_url':\
-						target_av_url,'org':origin,'poid':parent_object_id})
+						target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
 	raise Http404("Please do not refresh page when inviting users to 1 on 1")
 
 
@@ -1975,7 +1977,7 @@ def accept_personal_group_invite(request):
 				target_username = username_dictionary[int_tid]
 				banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 				if banned_by:
-					request.session["where_from"] = 'priv_chat_list'
+					request.session["where_from"] = '17'
 					request.session["banned_by_yourself"] = banned_by == str(own_id)
 					request.session["target_username"] = target_username
 					request.session["ban_time"] = ban_time
@@ -1995,7 +1997,8 @@ def accept_personal_group_invite(request):
 					request.session.modified = True
 					return redirect("enter_personal_group")
 			else:
-				origin, poid, target_username = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None)
+				origin, poid, target_username, home_hash = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None),\
+				request.POST.get('lid',None)
 				if origin == 'publicreply':
 					if poid:
 						request.session["link_pk"] = poid
@@ -2004,7 +2007,8 @@ def accept_personal_group_invite(request):
 					else:
 						return redirect("home")
 				else:
-					return return_to_source(origin,poid,target_username)
+					# return return_to_source(origin,poid,target_username)
+					return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
 		return redirect("home")
 
@@ -2019,10 +2023,11 @@ def send_personal_group_invite(request):
 		invite_decision = request.POST.get('invite_dec',None)
 		if invite_decision == '1':
 			context = {'set_privacy':True,'target_av_url':request.session.get("personal_group_invite_target_av_url",None),\
-			'tun':request.session.get("personal_group_invite_target_username",None)}
+			'tun':request.session.get("personal_group_invite_target_username",None),'lid':request.POST.get('lid',None)}
 			return render(request,"personal_group/invites/personal_group_status.html",context)
 		else:
-			origin, poid, target_username = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None)
+			origin, poid, target_username, home_hash = request.POST.get('org',None), request.POST.get('poid',None), request.POST.get('nickname',None),\
+			request.POST.get('lid',None)
 			if origin == 'publicreply':
 				if poid:
 					request.session["link_pk"] = poid
@@ -2031,7 +2036,8 @@ def send_personal_group_invite(request):
 				else:
 					return redirect("home")
 			else:
-				return return_to_source(origin,poid,target_username)
+				# return return_to_source(origin,poid,target_username)
+				return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
 		return redirect("home")
 
@@ -2059,7 +2065,10 @@ def change_personal_group_invite_privacy(request):
 				own_username, target_username = get_target_username(str(own_id)),request.session.get("personal_group_invite_target_username",None)
 				banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 				if banned_by:
-					request.session["where_from"] = 'priv_chat_invite_list'
+					obj_id = request.session.get("personal_group_invite_parent_object_id",None)
+					request.session["obj_id"] = obj_id
+					request.session["where_from"] = request.session.get("personal_group_invite_origin",'1')
+					request.session["lid"] = 'tx:'+str(obj_id) if request.session.get("personal_group_invite_object_type",None) == 'link' else 'img:'+str(obj_id)
 					request.session["banned_by_yourself"] = banned_by == str(own_id)
 					request.session["target_username"] = target_username
 					request.session["ban_time"] = ban_time
@@ -2092,7 +2101,8 @@ def change_personal_group_invite_privacy(request):
 						context = {'tun':target_username,'tid':target_id,'poid':parent_object_id,'org':origin,'ot':object_type,'target_av_url':target_av_url}
 						sent, cooloff_time = process_invite_sending(own_id, own_username, target_id, target_username)
 						if sent is False:
-							context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username}
+							context = {'rate_limited':True,'time_remaining':cooloff_time,'org':origin,'poid':parent_object_id,'tun':target_username,\
+							'lid':request.POST.get("lid",None)}
 							return render(request,"personal_group/invites/personal_group_status.html",context)
 						else:
 							# if decision == '0':
@@ -2108,10 +2118,11 @@ def change_personal_group_invite_privacy(request):
 								context["oun"] = own_username
 								context["personal_group_invite_privacy"] = True
 							context["personal_group_invite"] = True
-							# context["personal_group_invite_sent"] = True
+							context["lid"] = request.POST.get("lid",None)
 							return render(request,"helpful_instructions.html",context)
 	else:
 		return redirect("home")
+
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -2131,7 +2142,7 @@ def process_personal_group_invite(request):
 				if request.user_banned:
 					return redirect("error") #errorbanning
 				elif banned_by:
-					request.session["where_from"] = 'priv_chat_invite_list'
+					request.session["where_from"] = '18'
 					request.session["banned_by_yourself"] = banned_by == str(own_id)
 					request.session["target_username"] = target_username
 					request.session["ban_time"] = ban_time
@@ -2229,7 +2240,7 @@ def post_js_reply_to_personal_group(request):
 								reoriented = request.POST.get('reoriented',None)
 								resized = request.POST.get('resized',None)
 								quality = None if on_fbs else True
-								image_to_upload, img_width, img_height = process_personal_group_image(image=image_file, quality=quality, already_resized=resized, \
+								image_to_upload, img_width, img_height = process_group_image(image=image_file, quality=quality, already_resized=resized, \
 									already_reoriented=reoriented)
 								if not image_to_upload and img_height == 'too_high':
 									request.session["personal_group_form_error"] = PERSONAL_GROUP_ERR['too_high']
@@ -2442,7 +2453,7 @@ def cant_share_photo(request, ttl=None,*args, **kwargs):
 	photo_caption = request.session.get("personal_group_shared_photo_caption",None)
 	photo_owner_username = request.session.get("personal_group_shared_photo_owner_username",None)
 	return render(request,"personal_group/sharing/photo_not_shared.html",{'photo_caption':photo_caption,'photo_id':photo_id,'photo_url':photo_url,\
-		'photo_owner_username':photo_owner_username,'origin':origin,'ttl':ttl})
+		'photo_owner_username':photo_owner_username,'origin':origin,'ttl':ttl,'lid':'img:'+photo_id})
 
 
 def photo_shared(request):
@@ -2458,7 +2469,8 @@ def photo_shared(request):
 	photo_owner_username = request.session.get("personal_group_shared_photo_owner_username",None)
 	return render(request,"personal_group/sharing/photo_shared.html",{'allwd_friends':allwd_friends,'disallwd_friends':disallwd_friends,\
 		'own_uname':retrieve_uname(request.user.id,decode=True),'origin':origin,'photo_caption':photo_caption,'num_sent':len(allwd_friends),\
-		'num_unsent':len(disallwd_friends),'photo_url':photo_url,'photo_id':photo_id,'photo_owner_username':photo_owner_username})
+		'num_unsent':len(disallwd_friends),'photo_url':photo_url,'photo_id':photo_id,'photo_owner_username':photo_owner_username,\
+		'lid':'img:'+photo_id})
 
 
 def post_shared_photo_to_personal_groups(group_ids,photo_url,photo_caption,photo_id,photo_owner_username,own_id, photo_owner_id):
@@ -2617,7 +2629,7 @@ def share_photo_in_personal_group(request):
 			request.session["personal_group_shared_photo_owner_username"] = owner_username
 			request.session.modified = True
 			context = {'photo_url':photo_url,'photo_caption':photo_caption,'limit':PHOTO_SHARING_FRIEND_LIMIT,'origin':origin,'photo_id':photo_id,\
-			'owner_username':owner_username}
+			'owner_username':owner_username,'lid':request.POST.get("hh",None)}
 			if tutorial_unseen(user_id=user_id, which_tut='3', renew_lease=True):
 				context["show_first_time_tutorial"] = True
 			group_and_friend = get_user_friend_list(user_id)

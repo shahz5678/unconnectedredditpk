@@ -7,7 +7,7 @@
 {% load subtract %}
 {% load s3 %}
 {% block content %}
-<head><title>{{ user.username }}'s private chat list | Damadam.pk</title></head>
+<head><title>{{ user.username }}'s friend list | Damadam.pk</title></head>
 <style type="text/css">
 	body{background: #E9EBEE}
 	.pages{
@@ -32,7 +32,7 @@
 		<div class="mbl" style="text-align:center">
 		{% include "personal_group/navbars/1_on_1_navbar.html" with section='1' static_url=STATIC_URL inv_count=invite_count %}    
 			{% if num_pages < 2 %}
-			<h1 class="cxl">Chat with friends</h1>
+			<h1 class="cxl">1 on 1 messaging:</h1>
 			{% else %}
 			<div class="mtl fx fxjscn fxaicn">
 				<div>
@@ -40,7 +40,7 @@
 				<button style="background:0 0;border:none" type="submit" name="page" value="{{ current_page|prev_page:num_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
 				</form>
 				</div>
-				<div><h1 style="display:inline" class="mls mrs cxl">Chat with friends</h1></div>
+				<div><h1 style="display:inline" class="mls mrs cxl">1 on 1 messaging:</h1></div>
 				<div>
 				<form style="display:inline" method="GET" action="{% url 'personal_group_user_listing' %}">
 				<button  style="background:0 0;border:none" type="submit" name="page" value="{{ current_page|next_page:num_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
@@ -110,50 +110,50 @@
 		        			{% if data.lt_msg_time|add:"0" > data.own_last_seen|add:"0" %}
 		        				<button type="submit" class="lsp cl" style="background:0 0;border:none;margin:0;padding:0;width:100%;text-align:left;border-right:1px solid #00CC99;border-radius:0"><b>
 		        				{% if data.lt_msg_type == 'text' %}
-								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}<span class="cgy">Chat mita di geyi</span>{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
+								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}<span class="cgy">Msg mita dia gya</span>{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
 								{% elif data.lt_msg_type == 'action' %}
 								<img src="{{ STATIC_URL }}img/sticker.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Apke liye big sticker aya
 								{% elif data.lt_msg_type == 'text_res' %}
-								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}<span class="cgy">Chat mita di geyi</span>{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
+								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}<span class="cgy">Msg mita dia gya</span>{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
 								{% elif data.lt_msg_type == 'img' %}
-								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Chat mita di geyi</span>{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Ap ne foto hide kar di</span>{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Msg mita dia gya</span>{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Ap ne foto hide kar di</span>{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 								{% elif data.lt_msg_type == 'img_res' %}
-								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Chat mita di geyi</span>{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Ap ne foto hide kar di</span>{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Msg mita dia gya</span>{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Ap ne foto hide kar di</span>{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 								{% elif data.lt_msg_type == 'shared_img' %}
-								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Chat mita di geyi</span>{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Ap ne foto hide kar di</span>{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Msg mita dia gya</span>{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;<span class="cgy">Ap ne foto hide kar di</span>{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 								{% elif data.lt_msg_type == 'notif' %}
 								<img src="{{ STATIC_URL }}img/key.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap se ijazat mangi geyi
 								{% elif data.lt_msg_type == 'creation' %}
 								<img src="{{ STATIC_URL }}img/wassap_small.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Apka invite qabool kar liya gaya
 								{% elif data.lt_msg_type == 'suspend' %}
-								<span style="color:#F71600"><img src="{{ STATIC_URL }}img/exit.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye private chat chore di geyi</span>
+								<span style="color:#F71600"><img src="{{ STATIC_URL }}img/exit.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye 1 on 1 chore di geyi</span>
 								{% elif data.lt_msg_type == 'unsuspend' %}
-								<img src="{{ STATIC_URL }}img/enter.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye private chat phir se join kar li geyi
+								<img src="{{ STATIC_URL }}img/enter.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye 1 on 1 phir se join kar li geyi
 								{% endif %}
 								<div class="mts sp cs" style="color:#808080">{{ data.lt_msg_time|human_time }}</div>
 								</b></button>
 		        			{% else %}
 		        				<button type="submit" class="lsp cl" style="background:0 0;border:none;margin:0;padding:0;width:100%;text-align:left;border-right:1px solid #D9D9D9;border-radius:0"><span style="color:#808080">
 		        				{% if data.lt_msg_type == 'text' %}
-								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Chat mita di geyi{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
+								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Msg mita dia gya{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
 								{% elif data.lt_msg_type == 'action' %}
 								<img src="{{ STATIC_URL }}img/sticker.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Apke liye big sticker aya
 								{% elif data.lt_msg_type == 'text_res' %}
-								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Chat mita di geyi{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
+								<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Msg mita dia gya{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
 								{% elif data.lt_msg_type == 'img' %}
-								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Chat mita di geyi{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne foto hide kar di{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Msg mita dia gya{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne foto hide kar di{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 								{% elif data.lt_msg_type == 'img_res' %}
-								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Chat mita di geyi{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne foto hide kar di{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Msg mita dia gya{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne foto hide kar di{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 								{% elif data.lt_msg_type == 'shared_img' %}
-								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Chat mita di geyi{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne foto hide kar di{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+								{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Msg mita dia gya{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne foto hide kar di{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 								{% elif data.lt_msg_type == 'notif' %}
 								<img src="{{ STATIC_URL }}img/key.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap se ijazat mangi geyi
 								{% elif data.lt_msg_type == 'creation' %}
 								 <img src="{{ STATIC_URL }}img/wassap_small.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Apka invite qabool kar liya gaya
 								{% elif data.lt_msg_type == 'suspend' %}
-								<img src="{{ STATIC_URL }}img/exit.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye private chat chore di geyi
+								<img src="{{ STATIC_URL }}img/exit.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye 1 on 1 chore di geyi
 								{% elif data.lt_msg_type == 'unsuspend' %}
-								<img src="{{ STATIC_URL }}img/enter.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye private chat phir se join kar li geyi
+								<img src="{{ STATIC_URL }}img/enter.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ye 1 on 1 phir se join kar li geyi
 								{% endif %}
 								<div class="mts sp cs">{{ data.lt_msg_time|human_time }}</div>
 								</span></button>
@@ -161,25 +161,25 @@
 		        		{% else %}
 			        		<button type="submit" class="lsp cl" style="background:0 0;border:none;margin:0;padding:0;width:100%;text-align:left;border-right:1px solid #D9D9D9;border-radius:0"><span style="color:#808080">
 			        		{% if data.lt_msg_type == 'text' %}
-							<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Ap ne chat mita di{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
+							<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Ap ne msg mita dia{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
 							{% elif data.lt_msg_type == 'action' %}
 							<img src="{{ STATIC_URL }}img/sticker.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne big sticker send kiya
 							{% elif data.lt_msg_type == 'text_res' %}
-							<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Ap ne chat mita di{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
+							<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Ap ne msg mita dia{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
 							{% elif data.lt_msg_type == 'img' %}
-							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne chat mita di{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 							{% elif data.lt_msg_type == 'img_res' %}
-							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne chat mita di{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 							{% elif data.lt_msg_type == 'shared_img' %}
-							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne chat mita di{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 							{% elif data.lt_msg_type == 'notif' %}
 							<img src="{{ STATIC_URL }}img/key.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne ijazat mangi
 							{% elif data.lt_msg_type == 'creation' %}
 							<img src="{{ STATIC_URL }}img/wassap_small.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne invite qabool kar lia
 							{% elif data.lt_msg_type == 'suspend' %}
-							<img src="{{ STATIC_URL }}img/exit.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne private chat chore di
+							<img src="{{ STATIC_URL }}img/exit.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne 1 on 1 chore di
 							{% elif data.lt_msg_type == 'unsuspend' %}
-							<img src="{{ STATIC_URL }}img/enter.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne ye private chat phir se join kar li
+							<img src="{{ STATIC_URL }}img/enter.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne ye 1 on 1 phir se join kar li
 							{% endif %}
 							<div class="mts sp cs">{{ data.lt_msg_time|human_time }}</div>
 							</span></button>
@@ -198,11 +198,11 @@
 				</form>
 				<form method="POST" class="mt mbs" action="{% url 'enter_personal_group' %}">
 					{% csrf_token %}
-					<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
-					<div id="line"></div>
-					<div id="line"></div>
-					<div id="line" style="width: 8px"></div>
-					</button>
+					<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
+                    <div id="line"></div>
+                    <div id="line"></div>
+                    <div id="line" style="width: 8px"></div>
+                    </button>
 				</form>
 				</div>
 			</div>
@@ -215,12 +215,12 @@
 	<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
 	<span class="cxl">Ye khali hai</span>
 	<hr size=1 COLOR="#f2f2f2">
-	<span class="cl cgy">Kisi bhi user ko friend bana ke private chat karney ke liye nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
-					<div id="line"></div>
-					<div id="line"></div>
-					<div id="line" style="width: 8px"></div>
-					</button> button dabain</span>
-	<div class="mtl mbs"><a href="{% url 'home' %}"><button class="bcb btn bm sp" style="height:23px">wapis</button></a></div>
+	<span class="cl cgy">Kisi bhi user se 1 on 1 messaging karney ke liye nickname ke agey bana <button name="tid" style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none" value="{{ data.friend_id }}">
+                    <div id="line"></div>
+                    <div id="line"></div>
+                    <div id="line" style="width: 8px"></div>
+                    </button> button dabain</span>
+	<div class="mtl mbs"><a href="{% url 'home' %}"><button class="bcb btn bm sp pg_ok_res" style="height:23px">home</button></a></div>
 	</div>
 	</div>
 	{% endfor %}

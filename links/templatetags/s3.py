@@ -10,14 +10,14 @@ def get_s3_object(filename,category='img'):
 		if category == 'thumb':
 			return static('img/default-avatar-min.jpg')
 		else:
-			return None
+			return static('img/broken.svg')
 	else:
 		filename = str(filename)
 		if filename == 'empty':
 			if category == 'thumb':
 				return static('img/default-avatar-min.jpg')
 			else:
-				return None
+				return static('img/broken.svg')
 		elif "photos/" in filename:
 			split_by = "photos/"
 		elif "personal_groups/" in filename:
@@ -40,4 +40,4 @@ def get_s3_object(filename,category='img'):
 			try:
 				return "//s3.eu-central-1.amazonaws.com/damadam/"+split_by+filename.split(split_by)[1]
 			except IndexError:
-				return None
+				return static('img/broken.svg')

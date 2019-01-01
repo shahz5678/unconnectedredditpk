@@ -1,46 +1,67 @@
 {% extends "base.html" %}
+{% load get_transparent_buttons_js %}
+{% load get_user_profile_navbar %}
+{% load emoticons_tags %}
 {% load humanize %}
-{% load get_group_button %}
+{% load s3 %}
 {% block content %}
-<head><title>{{ object.username }}'s profile | Damadam.pk</title></head>
+<head><title>{{ username }}'s profile | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
-{{ block.super }}
+
+{% user_profile_navbar static_url=STATIC_URL section='profile' uname=username is_own_profile=is_own_profile %}
 
 <div style="text-align:center" class="mbl">  
-  {% if object.username == user.username %}
- {% group_button user.id user.id user.username 'profile' 'profile' user.username %}<h1 class="cl clb" style="display:inline">Your profile:</h1>
-  {% else %}
- {% group_button user.id object.id object.username 'profile' 'profile' object.username %}<h1 class="cl clb" style="display:inline">{{ object.username }}'s{% if object.username in ratified %}<span class="pinkstar">*</span>{% endif %} profile:</h1>
-  {% endif %}
+{% if is_own_profile %}
+<h1 class="cxl clb lsp" style="display:inline">Your profile:</h1>
+{% else %}
+{% load get_group_button %}
+ {% group_button user.id star_id username 'profile' '10' username %}&nbsp;{% if username in ratified %}<img src="{{ STATIC_URL }}img/pstar.svg" height="16" width="16">&nbsp;{% endif %}<h1 class="cxl clb lsp" style="display:inline">{{ username }}'s profile:</h1>
+{% endif %}
  </div>
 
-<div class="clb bizcard" style="background-color:white;margin: 0 auto;max-width:600px;width:98%;padding:10px 7px">
+<div class="clb bizcard" style="background-color:white;margin: 0 auto;max-width:600px;width:93%;padding:10px 7px">
 
-{% if object.username == user.username %}
-<a href="{% url 'edit_profile' %}#section0"><button class="btn bcg bxl mts mbl" style="height:25px">Edit Profile</button></a><br>
-<a href="{% url 'user_activity' slug=object.username %}#section0"><button class="btn bcg bxl mbl" style="height:25px">Home history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
-{% else %}
-	{% if mehfil_creation_ttl %}
-	    {% load future_time %}
-	    <div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cl cr mt mbs lsp">
-	    Ap {{ object.username }} ke sath mehfil bana sakein ge {{ mehfil_creation_ttl|future_time }}
-	    </div>
-	{% endif %}
-<a href="{% url 'direct_message' pk=object.id %}"><button class="btn bcg bxl mts mbl" style="height:25px">Private mehfil</button></a>
-<br><a href="{% url 'user_activity' slug=object.username %}#section0"><button class="btn bcg bxl mbl" style="height:25px">Home history</button></a> &nbsp;(<a href="{% url 'history_help' %}#section0">?</a>)<br>
+{% if mehfil_creation_ttl %}
+	{% load future_time %}
+	<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cl cr mt mbs lsp">
+	Ap {{ username }} ke sath mehfil bana sakein ge {{ mehfil_creation_ttl|future_time }}
+	</div>
 {% endif %}
-<hr size=1 COLOR="#b3e6b3">
-	<b class="profile">Profile photo:</b>
-	{% if object.userprofile.avatar %}
-	{% load s3 %}
-		<br><img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="photo"><br>
-	{% elif object.username == user.username %}
-		<br><img src="{{ STATIC_URL }}img/default-avatar2.jpg" style="border-radius:12px" alt="photo"><br>
+
+	<div class="fx fxjssb fxaibl">
+		<div class="cl sp lsp" style="font-weight:bold">Profile foto:</div>
+		<form method="POST" action="{% url 'report_or_block' %}">
+			{% csrf_token %}
+			<button type="submit" class="report" name="report" style="background:0 0;border:none;padding:0" value="pf#{{ origin }}#{{ star_id }}#{{ username }}#{{ star_av_url|s3:'thumb' }}"><img src="{{ STATIC_URL }}img/warn_g.svg" height="16" width="16"></button>
+		</form>
+	</div>
+	{% if not is_profile_banned and object.userprofile.avatar %}
+	<img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="avatar"><br>
 	{% else %}
-		<span class="cgy" style="font:85%;">isse kahein ek photo toh laga le...</span><hr size=1 COLOR="#b3e6b3">
+		{% if time_remaining %}
+
+			<div class="cr">
+	        {% if time_remaining == '-1' %}
+	          <b>BANNED:</b> Is profile ki fotos banned hain <b>hamesha</b> ke liye
+	        {% else %}
+	          <b>BANNED:</b> Is profile ki fotos ka ban khatam ho ga <b>{{ time_remaining|future_time }}</b>
+	        {% endif %}
+	        </div>
+
+		{% elif is_own_profile %}
+			<img src="{{ STATIC_URL }}img/broken.svg" style="border-radius:12px;max-width:{{image_base_width}}px" alt="avatar"><br>
+		{% else %}
+			<span style="font-weight:lighter" class="cgy cm sp">in sey kahein aik profile foto tou laga lein ...</span><hr size=1 COLOR="#E9EBEE">
+		{% endif %}
 	{% endif %}
+
+	
+	{% if not is_own_profile %}
+		<a href="{% url 'direct_message' pk=object.id %}"><button class="btn bcg bxl mts mbl pg_ok_res" style="height:26px">Private mehfil</button></a><br>
+	{% endif %}
+
 	<b class="profile">Joined {{ object.date_joined|naturaltime }}</b>
-	<hr size=1 COLOR="#b3e6b3">
+	<hr size=1 COLOR="#E9EBEE">
 	<b class="profile">Chat score:</b>
 	<a class="info">
 	{% if object.userprofile.score %}
@@ -52,33 +73,34 @@
 	{% else %}
 		<b class="cg">1</b>
 	{% endif %}
-	</a>&nbsp;(<a href="{% url 'score_help' %}#section0">?</a>)<br>
-	<hr size=1 COLOR="#b3e6b3">
+	</a>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">help</a><br>
+	<hr size=1 COLOR="#E9EBEE">
 	
 	<div style="overflow:hidden">
 	<b class="profile">About:</b>
 		{% if object.userprofile.bio %}
-		{% load emoticons_tags %}{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
+		{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
 		{% endif %}
 	</div>
-	<hr size=1 COLOR="#b3e6b3">
+	<hr size=1 COLOR="#E9EBEE">
 	
 	<b class="profile">Age:</b>
 		{% if object.userprofile.age %}
 		{{ object.userprofile.age }}
 		{% endif %}
-	<hr size=1 COLOR="#b3e6b3">
+	<hr size=1 COLOR="#E9EBEE">
 
 	<b class="profile">Gender:</b>
 		{% if object.userprofile.gender == '1' %}
+			{% if username in ratified %}
+	    	<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="13" width="13">&nbsp;<span style="color:#ff4d4d">Girl</span>
+	    	{% else %}
 			Girl
-			{% if object.username in ratified %}
-	    		<span class="pinkstar"><b>*</b></span><span style="color:deeppink;">asli</span>
-	    	{% endif %}
+			{% endif %}
 		{% else %}
 			Boy
 		{% endif %}
-	<hr size=1 COLOR="#b3e6b3">
+	<hr size=1 COLOR="#E9EBEE">
 
 	<b class="profile">Shaadi shuda:</b>
 		{% if object.userprofile.shadi_shuda == '1' %}
@@ -86,7 +108,7 @@
 		{% else %}
 			No
 		{% endif %}
-	<hr size=1 COLOR="#b3e6b3">
+	<hr size=1 COLOR="#E9EBEE">
 
 	<b class="profile">Shakal soorat:</b>
 	{% if object.userprofile.attractiveness == '0' %}
@@ -96,6 +118,26 @@
 	{% else %}
 		Shakal pe mat ja
 	{% endif %}
+
+	{% if star_owner_mehfils %}
+	<hr size=1 COLOR="#E9EBEE">
+	{% load human_time %}
+	<div style="font-weight:bold" class="mbs">Public mehfil(s) owned:</div>
+		{% for group_id, uuid, topic, ownership_time in star_owner_mehfils %}
+			<div style="text-align:center">
+			<a href="{% url 'public_group' slug=uuid %}">
+			<button class="bizcard mts vt" style="width:95%;padding:10px 7px 5px 7px;border:1px solid #e3cfdc">
+				<div class="cp cl sp lsp" style="font-weight:bold">{% emoticons %}{{ topic }}{% endemoticons %}</div>
+				<div class="mts cs sp cgy lsp">owner since {{ ownership_time|human_time }}</div>
+			</button>
+			</a>
+			</div>
+		{% endfor %}
+
+	{% endif %}
+
 </div>
 <br><br>
+
+{% transparent_buttons_js ident=own_id static_url=STATIC_URL %}
 {% endblock %}

@@ -80,11 +80,6 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 				context["notification"] = 1
 				context["parent"] = freshest_reply
 				context["parent_pk"] = freshest_reply['oi']
-				# print user.username == parent_link_writer_username
-				# print user.username
-				# print isinstance(user.username,unicode)
-				# print unicode(parent_link_writer_username,"utf-8")
-				# print isinstance(unicode(parent_link_writer_username,"utf-8"),unicode)
 				if user.username==unicode(parent_link_writer_username,"utf-8") and any(freshest_reply['lrtx'] in s for s in WELCOME_MESSAGES):
 					context["first_time_user"] = True
 				else:

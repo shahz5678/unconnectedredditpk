@@ -1,106 +1,82 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load mathfilters %}
-{% load get_group_button %}
 {% load s3 %}
-{% load get_votes %}
+{% load humanize %}
+{% load get_text_object %}
+{% load get_big_group_button %}
+{% load get_big_points_button %}
+{% load get_user_profile_navbar %}
+{% load get_transparent_buttons_js %}
+{% load get_big_home_reply_button %}
 {% load emoticons_tags %}
-{% load get_block_button %}
 {% block content %}
-<head><title>{{ username }}'s home history | Damadam.pk</title></head>
-{{ block.super }}
+<head><title>{{ uname }}'s home posts | Damadam.pk</title></head>
 
-<div class="clb lsp" style="margin-left:-1.3em">
-{% if is_paginated %}
-<ul start="{{ page_obj.start_index }}">
+<style>body{background: #E9EBEE}</style>
+
+{% user_profile_navbar static_url=STATIC_URL section='posts' uname=uname is_own_profile=is_own_profile %}
+
+{% if is_own_profile %}
+<h1 class="cxl clb lsp" style="text-align:center">Your shared posts:</h1>
 {% else %}
-<ul>
+<h1 class="cxl clb lsp" style="text-align:center">{% if verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="15" height="15">&nbsp;{% endif %}{{ uname|truncatechars:12 }}'s shared posts:</h1>
 {% endif %}
 
-<h1 class="cm">{{ username|truncatechars:12 }}'s home history:</h1>
+<div style="max-width:600px;margin:0 auto;width:93%;position:relative;">
 
 {% for link in object_list %}
-	{% if link.image_file %}
-    	<img src="{{ link.image_file.url }}"><br>
-	{% endif %}
-	<div style="overflow:hidden">
-		<a href="{% url 'profile' slug=link.submitter %}#section0">
-	    {% if link.submitter.userprofile.avatar %}
-			
-			<img src="{{ link.submitter.userprofile.avatar|s3:'thumb' }}" style="border-radius:50%" alt="pic">
-			
-		{% else %}
-			
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="pic">
-			
-		{% endif %}
-		<bdi>{{ username }}</bdi></a>
-		{% if user.is_authenticated and user.userprofile.score > 25 %}
-			{% if link.submitter.userprofile.score < 0 %}
-		    	<span class="cg cs">(1)</span>
-		    {% else %}
-		    	<span class="cg cs">({{ link.submitter.userprofile.score }})</span>
-			{% endif %}
-		{% endif %}
-		{% if username in verified %}
-	    	<span class="pinkstar"><b>*</b></span>
-	    {% endif %}
-		: <bdi class="clb">{% emoticons %}{{ link.description }}{% endemoticons %}</bdi><span class="cgy cs mrl">, {{ link.submitted_on|naturaltime }}
-		</span><a name="section{{ forloop.counter }}"></a>{% block_button link.submitter_id username ident link.pk '8' STATIC_URL %}
-		{% group_button ident link.submitter_id link.pk 'link' 'history' username %}
+	<div class="clb bizcard" style="background-color:white;padding:3px;margin-top:15px;margin-bottom:20px">
+	
+	{% text_object obid=link.id ooid=link.submitter_id text=link.description|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on|naturaltime oun=uname av_url=link.submitter.userprofile.avatar|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_pinkstar=verified score=score block_time_remaining=time_remaining %}
+
+	<div style="flex-wrap:wrap" class="mls mtl fx fxjsfs fxaicn cxs sp cgy">
+	{% big_group_button own_id=ident target_id=link.submitter_id parent_object_id=link.pk object_type='link' origin='8' target_username=uname %}
+
+	{% big_home_reply_button link_id=link.pk comm_count=link.reply_count static_url=STATIC_URL home_history=True %}
+	{% big_points_button obj_id=link.id owner_id=link.submitter_id is_pht=0 origin='8' net_votes=link.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
 	</div>
 
-		<form action="{% url 'publicreply_view' %}" method="POST">
-		{% csrf_token %}
-		{% if link.reply_count > 0 %}
-		<button name="lid" type="submit" class="btn nw bl bct mts mbs" value="{{ link.pk }}" style="height:22px"><b>{{ link.reply_count }}</b>&nbsp;jawab</button>
-		{% else %}
-		<button name="lid" type="submit" class="btn nw bxl bct mts mbs" value="{{ link.pk }}" style="height:22px">jawab dein</button>
-		{% endif %}
-		</form>
+	</div>
 
-	{% if can_vote %}
-	
-		{% for key,value in link.id|get_votes %}
-				<a href="{% url 'profile' key %}#section0" style="font-size:80%;font-weight:bold;">{{ key }}</a>{% if key in checked %}<span class="pinkstar">*</span>{% endif %}
-				{% if value == 1 %}
-					<span style="font-size:80%;color:green;">ne barri si <b>jhappi</b> di</span>
-				{% elif value == -1 %}
-					<span style="font-size:80%;color:#FF1A1A;">ne bhare bazar me <b>chupair</b> mari</span>
-				{% elif value == 2 %}
-					<span style="font-size:80%;color:green;">ne zordar <b>jhappi</b> di <b>(+20)</b></span> 
-				{% elif value == -2 %}
-					<span style="font-size:80%;color:#FF1A1A;">ne <b>chupair</b> mr mr kr nani yad kara di <b>(-20)</b></span>
-				{% elif value == 4 %}
-					<span style="font-size:80%;color:green;"> ne shot pe <b>taliyan</b> bajaien</span>
-				{% elif value == -4 %}
-					<span style="font-size:80%;color:#FF1A1A;"> ne ghuma ke <b>balla</b> mara</span>
-				{% elif value == 5 %}
-					<span style="font-size:80%;color:green;"> ne iske <b>six</b> pe chalangein lagaien <b>(+20)</b></span>
-				{% elif value == -5 %}
-					<span style="font-size:80%;color:#FF1A1A;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span>
-				{% endif %}<br>
-		{% endfor %}
-	{% endif %}
-	<hr size=1 color="#229ec3" >
 	{% empty %}
-	<span class="cgy">Ye chat history khali hai...</span>
-	<hr size=1 color="#229ec3" >
+  <div class="bizcard mbl clb" style="background-color:white;padding:10px;text-align:center">
+    {% if is_own_profile %}
+    <div class="cxl lsp">Ap ne Damadam pe koi post share nahi ki</div>
+      <hr size=1 COLOR="#E9EBEE">
+      <div class="mbs">
+      <div class="cgy mbl sp">Share karney ke liye neechay 'share' dabain:</div>
+      <a href="{% url 'share_content' %}#section0"><button class="btn bct sp pg_ok_res bl" style="height:26px">Share</button></a>
+    </div>
+    {% else %}
+    <div class="cxl lsp"><b>{{ uname }}</b> ne Damadam pe koi post nahi share ki</div>
+      <hr size=1 COLOR="#E9EBEE">
+      <div class="mbs">
+      <div class="cgy mbl sp">Dusrey users ki posts view karein:</div>
+      <a href="{% url 'home' %}#section0"><button class="btn bct bl sp pg_ok_res" style="height:26px">Posts</button></a></div>
+    </div>
+    {% endif %}
+  </div>
 {% endfor %}
-</ul>
+
 </div>
+
 {% endblock %}
 
 {% block pagination %}
 {% if is_paginated %}
-<div style="text-align: center;">
-	{% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
-    {% endif %}
-    &nbsp;&nbsp;
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
-    {% endif %}
-</div>
-{% endif %}<br><br>
+
+	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+		{% if page_obj.has_previous %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
+	    {% if page_obj.has_next %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
+	</div>
+
+{% endif %}<br>
+{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 {% endblock %}

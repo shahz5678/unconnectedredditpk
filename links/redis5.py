@@ -730,6 +730,8 @@ def permanently_delete_entire_personal_group(group_id, my_server=None):
 		pipeline1.delete("pgrp:"+user_2+":"+user_1)
 		pipeline1.zrem("pgfgm:"+user_1,group_with_user_2)
 		pipeline1.zrem("pgfgm:"+user_2,group_with_user_1)
+		pipeline1.delete("pgfl:"+user_1)
+		pipeline1.delete("pgfl:"+user_2)
 		pipeline1.execute()
 		user_1_saved_list = 'pgsl:'+group_with_user_1
 		user_2_saved_list = 'pgsl:'+group_with_user_2

@@ -6,8 +6,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     {% include "favicons.html" %}
-
-    <link rel="stylesheet" type="text/css" href="{{ STATIC_URL }}css/damadam-v2.css">
+    {% include "css.html" %}
     
    <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -405,14 +404,14 @@ body {
 
 <ul class="navbar">
 {% if user.is_authenticated %}
-<li><a href="/">Home</a></li><li><a href="{% url 'link_create_pk' %}#section0">Likho</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+<li><a href="/">Home</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
 {% else %}
 <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 {% endif %}
 </ul>
 
 <div style="text-align:center" class="mtl sp cxs cgy">
-|<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
+|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
 </div>
 
 </body>

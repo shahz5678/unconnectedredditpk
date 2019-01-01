@@ -10,14 +10,14 @@
 {% load get_personal_group_hidden_pht_small %}
 {% load get_personal_group_deleted_post_message %}
 {% block content %}
-<head><title>Saving posts in private messaging | Damadam.pk</title></head>    
+<head><title>Saving messages in 1 on 1 | Damadam.pk</title></head>    
     <div class="nos margin clb" style="max-width:600px;width:92%;">
       {% if new_save_perm %}
         <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
-          <span class="cxl">{% if new_perm == '1' %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apki chat save karney ki ijazat de di geyi{% else %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se apki chat save karney ki ijazat wapis le li geyi{% endif %}</span>
+          <span class="cxl">{% if new_perm == '1' %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apke messages save karney ki ijazat de di geyi{% else %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se apke messages save karney ki ijazat wapis le li geyi{% endif %}</span>
           <hr size=1 COLOR="#E6E6E6">
           <div class="mt cl cgy">
-            Chat mein janey ke liye OK dabain:<br>
+            1 on 1 mein janey ke liye OK dabain:<br>
             <form method="POST" action="{% url 'enter_personal_group' %}">
               {% csrf_token %}
               <input type="hidden" name="tid" value="{{ tid }}">
@@ -29,11 +29,11 @@
         <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
           <span class="cxl"><b>{% if save_status%}Saved:&nbsp;{% else %}Not Saved:&nbsp;{% endif %}</b>{{ msg }}{% if not save_status and ttl %}{{ ttl|future_time }}{% endif %}</span>
           {% if save_status %}
-            <br><span class="sp cs mts mbl cgy">Ap dubara chat save kar sakein ge <b>{{ ttl|future_time }}</b></span>
+            <br><span class="sp cs mts mbl cgy">Ap dubara message save kar sakein ge <b>{{ ttl|future_time }}</b></span>
           {% endif %}
           <hr size=1 COLOR="#E6E6E6">
           <div class="mt cl cgy">
-            Chat mein janey ke liye OK dabain:<br>
+            1 on 1 mein janey ke liye OK dabain:<br>
             <form method="POST" action="{% url 'enter_personal_group' %}">
               {% csrf_token %}
               <input type="hidden" name="tid" value="{{ tid }}">
@@ -43,10 +43,10 @@
         </div>  
       {% elif deleted %}
         <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
-          <span class="cxl">Saved chat delete kar di geyi</span>
+          <span class="cxl">Saved message delete kar dia gya</span>
           <hr size=1 COLOR="#E6E6E6">
           <div class="mt cl cgy">
-            Chat mein janey ke liye OK dabain:<br>
+            1 on 1 mein janey ke liye OK dabain:<br>
             <form method="POST" action="{% url 'enter_personal_group' %}">
               {% csrf_token %}
               <input type="hidden" name="tid" value="{{ tid }}">
@@ -56,10 +56,10 @@
         </div>  
       {% elif deleted %}
         <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
-          <span class="cxl">Tamam saved chat delete kar di geyi</span>
+          <span class="cxl">Tamam saved messages delete kar diye gaye</span>
           <hr size=1 COLOR="#E6E6E6">
           <div class="mt cl cgy">
-            Chat mein janey ke liye OK dabain:<br>
+            1 on 1 mein janey ke liye OK dabain:<br>
             <form method="POST" action="{% url 'enter_personal_group' %}">
               {% csrf_token %}
               <input type="hidden" name="tid" value="{{ tid }}">
@@ -70,9 +70,9 @@
       {% endif %}
        <div style="text-align:center">
         {% if their_anon %}
-          <span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+          <span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
         {% else %}
-          <span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+          <span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
         {% endif %}
        </div>
        <hr size=1 COLOR="#ffeb3b">
@@ -80,14 +80,14 @@
 
       <div class="lsp mbs mtl">
           {% if curr_perm == '1' %}
-            <span class="cl"><b>Disallow saving</b>: Kya {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apki chat save karney se rok diya jaye?</span>
+            <span class="cl"><b>Disallow saving</b>: Kya {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apke messages save karney se rok dia jaye?</span>
             <div class="mt">
-            <span class="sp cgy cs">Jo chat {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} pehley save kar chuka hai, woh save hi rehay gi</span>
+            <span class="sp cgy cs">Jo messages {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} pehley save kar chuka hai, woh saved hi rahain ge</span>
             </div>
           {% else %}
-            <span class="cl"><b>Allow saving</b>: Is waqt {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} apki chat nahi save kar sakta. Kya usko save karney ki ijazat deni hai?</span>
+            <span class="cl"><b>Allow saving</b>: Is waqt {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} apke messages nahi save kar sakte. Kya unko save karney ki ijazat deni hai?</span>
             <div class="mt">
-            <span class="sp cgy cs">Ap bhi {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ki chat ijazat ke beghair save nahi kar saktey</span>
+            <span class="sp cgy cs">Ap bhi {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ke messages ijazat ke beghair save nahi kar saktey</span>
             </div>
           {% endif %}
         </div>
@@ -105,7 +105,7 @@
       {% if all_saved_posts %}
 
         <div class="lsp mbs mtl">
-          <span class="cl"><b>Delete</b>: Kya apki sari saved chat hamesha ke liye delete kar di jai?</span>
+          <span class="cl"><b>Delete</b>: Kya apke tamam saved messages hamesha ke liye delete kar diye jain?</span>
         </div>
 
         <form action="{% url 'personal_group_delete_saved_post' %}" method="POST" class="mts mbl" style="text-align:center">
@@ -119,8 +119,8 @@
       {% else %}
 
         <div class="lsp mbl mtl" style="text-align:center">
-          <b class="cl">Is waqt koi chat saved nahi ...</b><br>
-          <div class="sp cs cgy">Chat save karney ke liye uskey neechay <b><img src="{{ STATIC_URL }}img/sv_trans.svg" style="vertical-align:middle;width:12px;height:12px;"></b> button dabain</div>
+          <b class="cl">Is waqt koi message saved nahi ...</b><br>
+          <div class="sp cs cgy">Message save karney ke liye uskey neechay <b><img src="{{ STATIC_URL }}img/sv_trans.svg" style="vertical-align:middle;width:12px;height:12px;"></b> button dabain</div>
             <form method="POST" action="{% url 'enter_personal_group' %}" class="mts mbl" style="text-align:center">
             {% csrf_token %}
             <input type="hidden" name="tid" value="{{ tid }}">

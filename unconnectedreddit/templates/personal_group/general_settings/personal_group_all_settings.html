@@ -2,15 +2,15 @@
 {% load s3 %}
 {% load truncap %}
 {% block content %}
-<head><title>All settings for private messaging | Damadam.pk</title></head>
+<head><title>All settings for 1 on 1 messaging | Damadam.pk</title></head>
 <div class="margin clb" style="max-width:420px;width:92%;">
 
 
 	<div style="text-align:center">
 		{% if their_anon %}
-			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
 		{% endif %}
 	</div>
 	<hr size=1 COLOR="#ffeb3b">
@@ -30,7 +30,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/un_anon.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain apna nickname aur profile foto is chat mein dikhaney le liye</div></td>
+		<td><div class="lsp">Ye dabain apna nickname aur profile foto is 1 on 1 mein dikhaney le liye</div></td>
 		{% else %}
 		<td>
 			<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
@@ -38,7 +38,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/anon.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain apna nickname aur profile foto is chat se ghayeb karney ke liye</div></td>
+		<td><div class="lsp">Ye dabain apna nickname aur profile foto is 1 on 1 se ghayeb karney ke liye</div></td>
 		{% endif %}
 		</tr>
 		<tr>
@@ -48,7 +48,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/photo.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain is chat mein foto options dekhne ke liye</div></td>
+		<td><div class="lsp">Ye dabain is 1 on 1 mein foto options dekhne ke liye</div></td>
 		</tr>
 		<tr>
 		<td>
@@ -57,7 +57,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/delundel.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain apni sari chat mitaney ya bahal karney ke liye</div></td>
+		<td><div class="lsp">Ye dabain apney sarey messages mitaney ya bahal karney ke liye</div></td>
 		</tr>
 		<tr>
 		<td>
@@ -66,7 +66,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/sv.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain apni saved chat dekhney ke liye</div></td>
+		<td><div class="lsp">Ye dabain apney saved messages dekhney ke liye</div></td>
 		</tr>
 		<tr>
 		<td>
@@ -75,7 +75,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/sms.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain is chat mein SMS options dekhne ke liye</div></td>
+		<td><div class="lsp">Ye dabain is 1 on 1 mein SMS options dekhne ke liye</div></td>
 		</tr>
 		<tr>
 		<td>
@@ -84,7 +84,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/exit.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain is chat se hamesha ke liye bahir janey ke liye</div></td>
+		<td><div class="lsp">Ye dabain is 1 on 1 se hamesha ke liye bahir janey ke liye</div></td>
 		</tr>
 		<tr>
 		<td>
@@ -93,7 +93,7 @@
 			<button type="submit" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/help.svg" width="60" height="60"></button>
 			</form>
 		</td>
-		<td><div class="lsp">Ye dabain private chat pe help hasil karney ke liye</div></td>
+		<td><div class="lsp">Ye dabain 1 on 1 pe help hasil karney ke liye</div></td>
 		</tr>
 		</table>
 

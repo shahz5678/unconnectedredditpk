@@ -3,8 +3,8 @@
   {% csrf_token %}
   <input type="hidden" name="lid" value="{{ link_id }}">
   <input type="hidden" name="tunm" value="{{ target_username }}">
-  <input type="hidden" name="orig" value="{{ referrer }}">
-  <input type="hidden" name="obid" value="{{ object_id }}">
+  <input type="hidden" name="orig" value="{{ origin }}">
+  <input type="hidden" name="obid" value="{{ obj_id }}">
   <button style="background:0 0;border:none;padding:0" value="{{ target_user_id }}" name="tuid" type="submit"><img src="{{ static_url }}img/block.svg" width="17" height="17" style="vertical-align:middle"></button>
 </form>
 {% endif %}

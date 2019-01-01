@@ -117,7 +117,8 @@
             <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:sub"></button>
             </form>
 
-            {% group_button own_id reply.wid unique 'group' 'private' reply.writer_uname %}
+            {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='15' target_username=reply.writer_uname %}
+            
             </div>
         {% endif %}
             

@@ -31,7 +31,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 # 6,000,000,000 is most important priority wise
 #PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
-PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':5000000000,'photo_tabsra':5000000000,'public_mehfil':5000000000,'photo_fan':5000000000,'namaz_invite':1000000000}
+PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':5000000000,'photo_tabsra':5000000000,'public_mehfil':4000000000,'photo_fan':5000000000,'namaz_invite':1000000000}
 # Weightage of 'seen' status, used to find notification count for each user
 SEEN={True:2000000000,False:4000000000}
 
@@ -677,9 +677,6 @@ def sanitize_eachothers_unseen_activities(user1_id, user2_id):
 	uar1, uar2 = "uar:"+user1_id, "uar:"+user2_id
 	sn1, sn2 = 'sn:'+user1_id, 'sn:'+user2_id
 	
-	print "cleansing user ID {0}'s notif list: {1}".format(user1_id, notifs1_to_del)
-	print "cleansing user ID {0}'s notif list: {1}".format(user2_id, notifs2_to_del)
-
 	if notifs1_to_del:
 		# clean out ua, uar and sn for respective users
 		my_server.zrem(ua1,*notifs1_to_del)
@@ -1085,6 +1082,30 @@ def is_fan(photo_owner_id, fan_id):
 	else:
 		return False
 
+
+def bulk_is_fan(star_id_list, fan_id):
+    """
+    Determines all the ids a user is a fan of (from a given list of stars)
+    """
+    my_server, stars = redis.Redis(connection_pool=POOL), []
+    if len(star_id_list) > 0:
+        pipeline1 = my_server.pipeline()
+        for star_id in star_id_list:
+            key = "f:"+star_id
+            pipeline1.zscore(key,fan_id)
+        result1, counter = pipeline1.execute(), 0
+        for star_id in star_id_list:
+            if result1[counter]:
+                stars.append(star_id)
+            counter += 1
+    elif star_id_list:
+        for star_id in star_id_list:
+            key = "f:"+star_id
+            if my_server.zscore(key,fan_id):
+                stars.append(star_id)
+    return stars
+
+
 def get_all_fans(photo_owner_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	fans = "f:"+str(photo_owner_id)
@@ -1131,14 +1152,13 @@ def set_benchmark(benchmark):
 	my_server.delete(photos_benchmark)
 	my_server.zadd(photos_benchmark,*benchmark)
 
+
 def set_uploader_score(user_id,benchmark_score):
-	"""
-	Sets avg score of the user's prev 5 photos
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	user_score_hash = "us:"+str(user_id)
-	mapping = { 'b':benchmark_score }
-	my_server.hmset(user_score_hash, mapping)
+    """
+    Sets avg vote score of the user's prev 5 photos
+    """
+    redis.Redis(connection_pool=POOL).hset("us:"+str(user_id),'b',benchmark_score)
+
 
 def get_uploader_percentile(user_id):
 	my_server = redis.Redis(connection_pool=POOL)

@@ -770,7 +770,7 @@ Photos
 
 .pht {
 
-    width:100%;max-width:400px;
+    width:100%;max-width:450px;
     margin-bottom:0.3em;border:1px solid lightgrey
 
 }
@@ -1108,7 +1108,7 @@ MARGINS
 }
 
 .pol{
-  background-color:#fff;
+  background-color:#FEFCFC;
   padding:5px;
   display:inline-block;
   border-radius: 6px;
@@ -1303,7 +1303,7 @@ label.pg_ok{
     background-color:#59A5F5;
 }
 
-label.pg_label:hover{
+img.pg_label:focus{
   opacity: 0.75;
 }
 
@@ -2006,8 +2006,6 @@ button.cp:hover{
 .cp{
     border-style:none;
 }
-
-
 
 /*styles the hover and focus states of transparent bg buttons on home, photos etc*/
 

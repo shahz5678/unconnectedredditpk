@@ -20,22 +20,14 @@
 	<div class="cl lsp">Ye foto share nahi ki ja sakti kiyun ke isko upload karney waley ki fotos banned hain</div>
 	{% endif %}
 
-	{% if origin == '1' %}
-	<a href="{% url 'home' %}">
-	{% elif origin == '2' %}
-	<a href="{% url 'best_photo_loc_pk' photo_id %}">
-	{% elif origin == '3' %}
-	<a href="{% url 'see_photo_pk' photo_id %}">
-	{% elif origin == '4' %}
-	<a href="{% url 'user_profile_photo' photo_owner_username photo_id %}">
-	{% elif origin == '5' %}
-	<a href="{% url 'unseen_activity' user.username %}">
-	{% elif origin == '6' %}
-	<a href="{% url 'show_shared_photo_metrics' photo_owner_username %}">
-	{% else %}
-	<a href="{% url 'home' %}">
-	{% endif %}
-	<button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:27px">wapis</button>
+	<form method="POST" class="mtl mbs" action="{% url 'redirect_to_content' %}">
+	{% csrf_token %}
+	<input type="hidden" name="obid" value="{{ photo_id }}">
+	<input type="hidden" name="orig" value="{{ origin }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="oun" value="{{ photo_owner_username }}">
+	<button class="btn bcb bm sp pg_ok_res" style="height:27px">wapis</button>
+	</form>
 
 </div>
 <br><br>

@@ -1,21 +1,26 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load emoticons_tags %}
 {% block content %}
 <head><title>Photo report tutorial | Damadam.pk</title></head>
-<div class="margin cg cl"> 
-<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;&nbsp;Ye daba kr ap kisi bhi photo ke upload karney wale ko, ya us photo pe vote karne waley ko report kr sakte hain&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic">&nbsp;<img src="{{ STATIC_URL }}img/curate-big.png" width="20" height="24" alt="no pic"><br><br>
-<form method="POST" action="{% url 'curate_photo' %}">
-	{% csrf_token %}
-	<input type="hidden" name="curate" value="{{ pid }}">
-	<input type="hidden" name="cap" value="{{ cap }}">
-	<input type="hidden" name="purl" value="{{ purl }}">
-	<input type="hidden" name="orig" value="{{ orig }}">
-	<input type="hidden" name="oid" value="{{ poid }}">
-	<input type="hidden" name="oun" value="{{ oun }}">
-	<input type="hidden" name="lid" value="{{ lid }}">
-	<button type="submit" class="btn bl bcg mbs pg_ok_res" style="height:26px">Samajh lia</button>
-</form>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Report bad fotos:</h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+
+	<div class="cxl lsp">
+		<img src="{{ STATIC_URL }}img/warn_g.svg" width="24" height="24" alt="no pic">&nbsp;&nbsp;Ye daba kr ap kisi bhi foto ko report kar sakte hain
+	</div>
+	<form method="POST" class="mbl mtl" action="{% url 'report_content' %}">
+		{% csrf_token %}
+		<input type="hidden" name="report" value="{{ pid }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="oid" value="{{ poid }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<button type="submit" class="btn bl bcb sp pg_ok_res" style="height:26px">Next</button>
+	</form>
+
 </div>
 <br><br>
 {% endblock %}

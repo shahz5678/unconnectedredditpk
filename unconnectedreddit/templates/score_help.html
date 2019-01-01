@@ -1,44 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Score help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
 {% load cache %}
-{% cache 3600 scores_help_fragment %}
+{% cache 3 score_help_fragment %}
 
-<span class="score">
-<div class="clb" style="margin-left:20px">
-<h3>Score kaise barhta hai:</h3>
-1) Home pe likhne se score <b style="color:green;">+1</b> barhta hai<br>
-2) Home pe jawab dene se score <b style="color:green;">+2</b> barhta hai<br>
-3) Welcome mithai bhejne se score <b style="color:green;">+1</b> barhta hai<br>
-4) Kisi photo pe <b style="color:green;">pehli dafa</b> tabsra krney se score <b style="color:green;">+2</b> barhta hai<br>
-5) Koi tumhari photo pe <b style="color:green;">pehli dafa</b> tabsra kare ga toh score <b style="color:green;">+2</b> barhey ga<br>
-6) Private (zaati) mehfil mien likhne se score <b style="color:green;">+1</b> barhta hai<br>
-7) Awami (open) mehfil mien likhne se score <b style="color:green;">+2</b> barhta hai<br>
-8) Tum ne jo likha hai, agar usay <b style="color:green;">jhappee</b> milay toh score <b style="color:green;">+3</b> ho jaye ga<br>
-9) Tumhe <a href="{% url 'verify_help' %}">verify</a> female<span style="font-size:120%;color:deeppink;"><b>*</b></span> ne <b style="color:green;">jhappee</b> mari toh score <b style="color:green;">+20</b> ho jaye ga<br>
-10) Tumhe <a href="{% url 'verify_help' %}">verify</a> female<span style="font-size:120%;color:deeppink;"><b>*</b></span> ne <b style="color:red;">chupair</b> mri, toh score <b style="color:red;">-20</b> ho jaye ga<br>
-11) Photo charhaney se score <b style="color:red;">-5</b> ho jaye ga<br>
-12) Jo home pe likha hai, agr us pe <b style="color:red;">chupair</b> paray toh score <b style="color:red;">-3</b> ho jaye ga<br>
-13) Agr tumhe kisi mehfil se <b style="color:red;">nikal</b> diya gaya toh score <b style="color:red;">-50</b> ho jaye ga<br>
-14) Agr tumhari baat ko open mehfil mein <b style="color:red;">report</b> kar diya gaya, toh score <b style="color:red;">-5</b> ho jaye ga<br>
-15) Agr home pe tumharey jawab ko <b style="color:red;">report</b> kar diya gaya, toh score <b style="color:red;">-3</b> ho jaye ga<br>
+<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="clb cxl lsp">Score help:</h1>
 </div>
-</span>
+
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp" style="padding-bottom:10px;border-bottom:1px dashed lightgray">Damadam pe har user ka score hota hai. Score increase karney ke liye ye sab karein:</div>
+	<div style="text-align:left" class="lsp sp cl mts">
+		1) Home pe text share karney se score <b style="color:mediumseagreen;">+1</b> barhta hai<br>
+		2) Home pe jawab dene se score <b style="color:mediumseagreen;">+2</b> barhta hai<br>
+		3) Kisi foto pe first time tabsra karney se score <b style="color:mediumseagreen;">+2</b> barhta hai<br>
+		4) Koi apki foto pe first time tabsra kare tou score <b style="color:mediumseagreen;">+2</b> barhta hai<br>
+		5) Private mehfil mien likhne se score <b style="color:mediumseagreen;">+2</b> barhta hai<br>
+		6) Public mehfil mien likhne se score <b style="color:mediumseagreen;">+2</b> barhta hai<br>
+		7) Apke shared text pe up vote milay tou score <b style="color:mediumseagreen;">+3</b> ho jaye ga<br>
+		8) Apke shared text pe down vote miley tou score <b style="color:tomato;">-3</b> ho jaye ga<br>
+		10) Agr apki baat public mehfil mein hide ho geyi tou score <b style="color:tomato;">-2</b> ho jaye ga<br>
+	</div>
+</div>
 
 {% endcache %}
-
-<div class="mtl" style="text-align:center">
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- Damadam Test Ad -->
-<ins class="adsbygoogle"
-     style="display:block"
-     data-ad-client="ca-pub-2568547635306983"
-     data-ad-slot="9730443228"
-     data-ad-format="auto"></ins>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-</div>
 
 <br><br>
 {% endblock %}

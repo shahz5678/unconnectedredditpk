@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Points summary | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Points summary:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if pht == '1' %}
+
+	{% if orig == '1' %}
+		<a href="{% url 'see_photo_pk' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+	{% elif orig == '2' %}
+		<a href="{% url 'best_photo_loc_pk' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+	{% elif orig == '3' %}
+		<a href="{% url 'home_loc' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+	{% elif orig == '4' %}
+		<a href="{% url 'user_profile_photo' obj.owner obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+	{% elif orig == '5' %}
+		<a href="{% url 'photo_detail' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+	{% else %}
+	{% endif %}
+wapis</a><br>
+{% else %}
+	{% if orig == '3' %}
+		<a href="{% url 'home_loc' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+	{% elif orig == '8' %}
+		<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+	{% endif %}wapis</a><br>
+{% endif %}
+
+		<hr size=1 COLOR="#e5e7e9">
+
+		<div class="mtl">
+		{% if pht == '1' %}
+			<div class="cs sp">"{% emoticons %}{{ obj.caption|truncatechars:'45' }}{% endemoticons %}"</div>
+			<img class="mts cxs sp" src="{{ purl|s3:'thumb' }}" alt="{{ obj.caption }}" height="38" style="border-radius:5px;overflow:hidden;background-color:#E9EBEE">
+			<div class="cs mts sp cgy">foto by {% if is_pinkstar %}<img src="{{ STATIC_URL }}img/pstar.svg" height="13" width="13" alt="*">&nbsp;{% endif %}<b class="clb">{{ obj.owner }}</b></div>
+		{% else %}
+			<div class="cl">"{% emoticons %}{{ obj.description|truncatechars:'45' }}{% endemoticons %}"</div>
+			<div class="cs mts sp cgy">submitted by {% if is_pinkstar %}<img src="{{ STATIC_URL }}img/pstar.svg" height="13" width="13" alt="*">&nbsp;{% endif %}<b class="clb">{{ obj.submitter }}</b></div>
+		{% endif %}
+		</div>
+
+		{% if exists %}
+		<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+		
+			<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
+			<hr size=1 COLOR="#e5e7e9">
+			<div style="color:limegreen" class="mts"><img src="{{ STATIC_URL }}img/jhappi_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ uv }}</div>
+			<div style="color:tomato" class="mt"><img src="{{ STATIC_URL }}img/chupair_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ dv }}</div>
+			<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
+
+		</div>
+		{% else %}
+		<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+			<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
+			<div class="cxs sp cgy mtl">- voting closed -</div>
+		</div>
+		{% endif %}
+
+
+</div>
+<br><br>
+{% endblock %}

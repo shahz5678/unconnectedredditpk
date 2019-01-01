@@ -1,55 +1,32 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load emoticons_tags %}
 {% block content %}
 <head><title>Photo sharing | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:98%;padding:10px 7px;background-color:white"> 
+
+<h1 class="cxl clb lsp" style="text-align:center">Sharing link:</h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:98%;padding:10px 7px;background-color:white;text-align:center"> 
 {% if not no_id %}
-	<h1 class="cl">Jis se photo share karni hai, kya woh <b class="co">freebasics</b> pe hai?</h1>
 	
-	<div class="mbl">Agar <span class="cp">nahi</span>, toh ye link share karein:<br>
+	<div class="cxl mbl">Ye link share karein:<br>
 	<blockquote class="lsp mbl mts cl cp bizcard" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ regular_url }}</blockquote>
 	</div>
 
-	<div class="mbl">Agar <span class="co">haan</span>, toh ye link share karein:<br>
-	<blockquote class="lsp mbl mts cl co bizcard" style="background-color:#FFFAF0;padding:10px;text-align:center">{{ freebasics_url }}</blockquote>
-	</div>
+	<form method="POST" class="mbl" action="{% url 'redirect_to_content' %}">
+	{% csrf_token %}
+	<input type="hidden" name="obid" value="{{ ident }}">
+	<input type="hidden" name="orig" value="{{ loc }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="oun" value="{{ username }}">
+	<button type="submit" class="btn bco bm sp pg_ok_res" style="height:27px">wapis</button>
+	</form>
 
-	{% if loc == '1' %}
-		{% if authenticated %}
-		<a href="{% url 'see_photo_pk' ident %}">
-		{% else %}
-		<a href="{% url 'unauth_photo_loc_pk' ident %}">
-		{% endif %}
-	{% elif loc == '2' %}
-		{% if authenticated %}
-		<a href="{% url 'best_photo_loc_pk' ident %}">
-		{% else %}
-		<a href="{% url 'unauth_best_photo_loc_pk' ident %}">
-		{% endif %}
-	{% elif loc == '3' %}
-	<a href="{% url 'user_profile_photo' username ident %}">
-	{% elif loc == '4' %}
-	<a href="{% url 'home_loc' %}">
-	{% elif loc == '5' %}
-    <a href="{% url 'photo_detail' ident %}">
-    {% elif loc == '6' %}
-    <a href="{% url 'unseen_activity' user.username %}">
-	{% else %}
-	<a href="{% url 'best_photo' %}#section0">
-	{% endif %}
-	<button class="btn bco bs mbl" style="height:22px">wapis</button></a>
 
-	<hr size=1 COLOR="#ff9933">
-	Agr link copy kar ke bhejna nahi ata, toh button dabain:</span><br>
-	<a href="sms:+03?body=Yar ye photo check kro: {{ regular_url }}"><button class="btn nw bcp bxl mtl mbl" style="height:25px">normal SMS</button></a><br>
-	<a href="sms:+03?body=Yar ye photo check kro: {{ freebasics_url }}"><button class="btn nw bco bxl mbl" style="height:25px">freebasics SMS</button></a>
 {% else %}
-		<b>Ye photo kahien chup gaye hai {% emoticons %}:P{% endemoticons %}</b><br>
-        Hum dhoondne ki koshish kr rahe hain<br>
-        <a href="{% url 'best_photo' %}#section0"><button class="btn bco bs mtl mbl">wapis</button></a>
-        <br>
+		<b>Ye photo kahien chup gaye hai</b><br>
+		Hum dhoondne ki koshish kr rahe hain<br>
+		<a href="{% url 'best_photo' %}#section0"><button class="btn bco bs mtl mbl" style="height:27px">wapis</button></a>
+		<br>
 {% endif %}
 </div><br><br>
 {% endblock %}

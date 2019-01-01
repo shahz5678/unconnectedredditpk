@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load future_time %}
+{% block content %}
+<head><title>Unable to vote | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div class="mbs clb cxl" style="text-align:center;font-weight:bold">Please wait...</div>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+    <div class="cxl mt mbs">Ap vote kar sakain ge <b>{{ time_remaining|future_time }}</b></div>
+    
+    <form method="POST" class="mbs" action="{% url 'redirect_to_content' %}">
+    {% csrf_token %}
+    <input type="hidden" name="obid" value="{{ obid }}">
+    <input type="hidden" name="orig" value="{{ orig }}">
+    <input type="hidden" name="lid" value="{{ lid }}">
+    <input type="hidden" name="oun" value="{{ oun }}">
+    <button class="cl pg_ok_res sp cb" style="background:0 0;padding:0;border:none;border-bottom:1px dotted mediumblue">wapis</button>
+    </form>
+
+    <hr size=1 COLOR="#E6E6E6">
+    <div class="cgy">
+        <b class="cl sp lsp">Voting guide:</b><br>
+        <div class="sp lsp" style="text-align:left">
+        <div class="mt">1) Mayari, mazedar aur malumati posts pe jhappi dein</div>
+        <div class="mts">2) Fazool, boring, gandi aur na-mukammal posts pe chpair maarien</div>
+        <div class="mts">3) Voting mein nickname secret rehta hai, lehaza dabao mein aye beghair imandari se vote karien</div>
+        </div>
+    </div>
+</div>
+<br><br>
+{% endblock %}

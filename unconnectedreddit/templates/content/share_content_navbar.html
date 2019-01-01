@@ -1,0 +1,12 @@
+{% if section == 'text' %}
+	<div class="fx fxjscn fxaicn">
+		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/share_text_reversed.svg" width="24" height="24" style="vertical-align:middle"></button>
+		<a href="{% url 'upload_public_photo' %}#section0"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0;border-top-right-radius:5px;border-bottom-right-radius:5px"><img src="{{ static_url }}img/share_photo_cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	</div>
+{% elif section == 'photo' %}
+	<div class="fx fxjscn fxaicn">
+		<a href="{% url 'link_create_pk' %}#section0"><button name="dec" type="submit" value="2" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/share_text_cgy.svg" width="18" height="18" style="vertical-align:middle"></button></a>
+		<button type="submit" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;"><img src="{{ static_url }}img/share_photo_reversed.svg" width="24" height="24" style="vertical-align:middle"></button>
+	</div>
+{% else %}
+{% endif %}

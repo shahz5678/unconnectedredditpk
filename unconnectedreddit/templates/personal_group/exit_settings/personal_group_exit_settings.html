@@ -3,14 +3,14 @@
 {% load future_time %}
 {% load truncap %}
 {% block content %}
-<head><title>Exit private chat | Damadam.pk</title></head>
+<head><title>Exit 1 on 1 messaging | Damadam.pk</title></head>
 <div class="nos margin clb" style="max-width:420px;width:92%;">
 
 	<div style="text-align:center">
 		{% if their_anon %}
-			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
 		{% endif %}
 	</div>
 
@@ -19,9 +19,9 @@
 		{% if were_sorry %}
 
 			<div class="mbl mtl">
-				<b class="lsp cl">Hamey afsos hai ap ye private chat chorney pe majboor huay</b>
+				<b class="lsp cl">Hamey afsos hai ap ye 1 on 1 chorney pe majboor huay</b>
 				<div class="mts">
-				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh private chat hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -39,9 +39,9 @@
 
 
 			<div class="mbl mtl">
-				<b  class="lsp cl">Ap ye private chat chore sakein ge {{ time_to_suspend|future_time }}</b>
+				<b  class="lsp cl">Ap ye 1 on 1 chore sakein ge {{ time_to_suspend|future_time }}</b>
 				<div class="mts">
-				<span class="sp cs cgy">Abhi apko ye private chat dubara join kiye huay ziyada time nahi guzra</span>
+				<span class="sp cs cgy">Abhi apko ye 1 on 1 dubara join kiye huay ziyada time nahi guzra</span>
 				</div>
 			</div>
 
@@ -55,7 +55,7 @@
 
 			{% if banned_by_self %}
 				<div class="mbl mtl">
-					<b  class="lsp cl"><b>Sorry!</b> Block ki wajah se ap is private chat mein wapis nahi a saktey</b>
+					<b  class="lsp cl"><b>Sorry!</b> Block ki wajah se ap is 1 on 1 mein wapis nahi a saktey</b>
 					<div class="mts">
 					<span class="sp cs cgy">Block khatam karney ke liye <a href="{% url 'banned_users_list' %}" class="cgy" style="border-bottom:1px solid gray">ye dabain</a></span>
 					</div>
@@ -68,7 +68,7 @@
 				</form>
 			{% else %}
 				<div class="mbl mtl">
-					<b  class="lsp cl"><b>Sorry!</b> Block ki wajah se ap is private chat mein wapis nahi a saktey</b>
+					<b  class="lsp cl"><b>Sorry!</b> Block ki wajah se ap is 1 on 1 mein wapis nahi a saktey</b>
 					<div class="mts">
 					<span class="sp cs cgy">Block khatam hotay hi ap dubara join kar sakein ge</span>
 					</div>
@@ -85,9 +85,9 @@
 		{% elif you_already_exited %}
 
 			<div class="mbl mtl">
-				<b class="lsp cl">Ap is private chat ko chore chukey hain</b>
+				<b class="lsp cl">Ap is 1 on 1 ko chore chukey hain</b>
 				<div class="mts">
-				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye tuo yeh private chat hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye tuo yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -104,9 +104,9 @@
 		{% elif they_already_exited %}
 
 			<div class="mbl mtl">
-				<b class="lsp cl">Is private chat ko {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ke chorney ki wajah se pehley hi suspend kiya ja chuka hai</b>
+				<b class="lsp cl">Is 1 on 1 ko {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ke chorney ki wajah se pehley hi suspend kiya ja chuka hai</b>
 				<div class="mts">
-				<span class="sp cs cgy">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} <b> day</b> baad is mein wapis a sakein ge. Agar woh <b>7 days</b> tak wapis na aye tuo yeh private chat hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} <b> day</b> baad is mein wapis a sakein ge. Agar woh <b>7 days</b> tak wapis na aye tuo yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -119,9 +119,9 @@
 		{% elif reentry_too_soon %}
 
 			<div class="mbs mtl">
-				<b class="lsp cl">Ap is private chat mein wapis a sakein ge {{ time_remaining|future_time }}</b>
+				<b class="lsp cl">Ap is 1 on 1 mein wapis a sakein ge {{ time_remaining|future_time }}</b>
 				<div class="mts">
-				<span class="sp cs cgy"><b>7 days</b> tak wapis na aney pe private chat hamesha ke liye khatam kar di jati hai</span>
+				<span class="sp cs cgy"><b>7 days</b> tak wapis na aney pe 1 on 1 hamesha ke liye khatam kar di jati hai</span>
 				</div>
 			</div>
 
@@ -134,7 +134,7 @@
 		{% elif reentry_denied %}
 
 			<div class="mbl mtl">
-				<b class="lsp cl">Ap is private chat mein ye nahi kar saktey</b>
+				<b class="lsp cl">Ap is 1 on 1 mein ye nahi kar saktey</b>
 			</div>
 
 			<form method="POST" class="mt mbl" action="{% url 'enter_personal_group' %}" style="text-align:center">
@@ -146,9 +146,9 @@
 		{% else %}
 
 			<div class="mbs mtl">
-			<span class="lsp cl cr"><b>Exit</b>: Kya ap is private chat ko hamesha ke liye chorna chahtey hain?</span>
+			<span class="lsp cl cr"><b>Exit</b>: Kya ap is 1 on 1 ko hamesha ke liye chorna chahtey hain?</span>
 				<div class="mts">
-				<span class="lsp cl"><b>Warning:</b> Apke jatey hi yahan se apkey tamam messages aur fotos mita diye jaien ge. Apkey ke tamam saved messages bhi khatam ho jaien ge. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se private chat karni hui tuo apko <b>1 day</b> wait karna ho ga. Agar ap is chat mein <b>7 days</b> tak wapis na aye tuo ye hamesha ke liye khatam ho jaye gi</span>
+				<span class="lsp cl"><b>Warning:</b> Apke jatey hi yahan se apkey tamam messages aur fotos mita diye jaien ge. Apkey ke tamam saved messages bhi khatam ho jaien ge. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se 1 on 1 karni hui tuo apko <b>1 day</b> wait karna ho ga. Agar ap is 1 on 1 mein <b>7 days</b> tak wapis na aye tuo ye hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 

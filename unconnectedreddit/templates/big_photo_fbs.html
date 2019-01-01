@@ -1,13 +1,33 @@
 {% extends "base.html" %}
-{% load emoticons_tags %}
 {% block content %}
 
-<head><title>Photo above Freebasics upload limit (error) | Damadam.pk</title></head>
+<head><title>Foto upload prohibited in Freebasics (error) | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
 
-<div class="margin clb">
-<b class="cxl">Freebasics ne 200KB se barri photos mana ki hui hain {% emoticons %}:({% endemoticons %}</b><br>
-Lekin internet bundle se Damadam pr barri photo aram se lagti hai<br>
-<b style="color:#ff9933;">damadam.pk</b> browser mein type karein, barri photo lagain, phir beshak Freebasics pe wapis a jaein {% emoticons %};){% endemoticons %}<br>
+<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden">Unable to upload foto:</h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+	
+	{% if rate_limited %}
+		
+		{% load future_time %}
+		<div class="cxl lsp">Sorry! Freebasics pe abhi foto nahi lag sakti, {{ ttl|future_time }} try karein</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts"><a href="https://damadam.pk" target="_blank" style="border-bottom:1px dotted blue" class="cb sp">https://damadam.pk</a> ke zariye Damadam pe foto lagain, phir beshak Freebasics pe wapis a jaein</div>
+
+	{% else %}
+		
+		{% load emoticons_tags %}
+		<div class="cxl lsp">Sorry! Freebasics pe 200KB se barri fotos mana hain {% emoticons %}:({% endemoticons %}</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div class="sp lsp mts"><a href="https://damadam.pk" target="_blank" style="border-bottom:1px dotted blue" class="cb sp">https://damadam.pk</a> ke zariye Damadam use karein, foto lagain, phir beshak Freebasics pe wapis a jaein</div>
+
+	{% endif %}
+
+	<a href="{% url 'share_content' %}#section0"><button class="btn bco bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+
+	<div style="border-top:1px dashed lightgray;padding-top:10px;text-align:left" class="lsp cs sp"><span class="cgy"><b>Note:</b> Mobile data ya WiFi se Damadam pe asani se barri aur high-quality fotos upload ho jati hain</span></div>
+
 </div>
 <br><br>
 {% endblock %}

@@ -12,7 +12,7 @@ if ON_MAC == '1':
 	REDLOC4 = '/usr/local/var/run/redis/redis4.sock'
 	REDLOC5 = '/usr/local/var/run/redis/redis5.sock'
 	REDLOC6 = '/usr/local/var/run/redis/redis6.sock'
-	# REDLOC7 = '/usr/local/var/run/redis/redis7.sock'
+	REDLOC7 = '/usr/local/var/run/redis/redis7.sock'
 	# REDLOC8 = '/usr/local/var/run/redis/redis8.sock'
 	# REDLOC9 = '/usr/local/var/run/redis/redis9.sock'
 elif ON_AZURE == '1':
@@ -23,7 +23,7 @@ elif ON_AZURE == '1':
 	REDLOC4 = '/var/run/redis4.sock'
 	REDLOC5 = '/var/run/redis5.sock'
 	REDLOC6 = '/var/run/redis6.sock'
-	# REDLOC7 = '/var/run/redis7.sock'
+	REDLOC7 = '/var/run/redis7.sock'
 	# REDLOC8 = '/var/run/redis8.sock'
 	# REDLOC9 = '/var/run/redis9.sock'
 else:
@@ -34,6 +34,6 @@ else:
 	REDLOC4 = '/var/run/redis/redis4.sock'
 	REDLOC5 = '/var/run/redis/redis5.sock'
 	REDLOC6 = '/var/run/redis/redis6.sock'
-	# REDLOC7 = '/var/run/redis/redis7.sock'
+	REDLOC7 = '/var/run/redis/redis7.sock'
 	# REDLOC8 = '/var/run/redis/redis8.sock'
 	# REDLOC9 = '/var/run/redis/redis9.sock'

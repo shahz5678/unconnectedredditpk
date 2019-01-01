@@ -1,0 +1,6 @@
+<form method="POST" style="margin-bottom:4px;margin-right:4px" action="{% url 'share_photo_in_personal_group' %}">
+{% csrf_token %}
+<input type="hidden" name="hh" value="{{ home_hash }}">
+<input type="hidden" name="pl" value="{{ owner_uname }}:{{ pid }}:{{ origin }}:{{ oid }}:{{ caption }}">
+<button name="purl" class="vt" style="border:1px solid {{ border_color }};width:50px;height:42px;padding:0;text-align:center" value="{{ img_url }}"><img src="{{ static_url }}img/send.svg" width="15" height="15" style="vertical-align:middle"><br><div style="font-size:8.2px;color:#3b7af7" class="mts">SHARE</div></button>
+</form>

@@ -4,7 +4,7 @@
 {% load s3 %}
 {% load truncap %}
 {% block content %}
-<head><title>Invitation for private messaging | Damadam.pk</title></head>
+<head><title>Invitation for 1 on 1 messaging | Damadam.pk</title></head>
 <style type="text/css">
 	body{background: #E9EBEE}
 </style>
@@ -13,37 +13,19 @@
 
 {% if own_invite %}
 
-			<span class="lsp cl">Ap apne ap ko private chat mein invite nahi kar saktey</span><br>
-			
-			{% if org == 'publicreply' %}
-			<form method="POST" class="mtl mbs" action="{% url 'publicreply_view' %}">
+			<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
+
+			<span class="cxl">Ap apne ap ko 1 on 1 mein invite nahi kar saktey</span><br>
+
+			<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
 			{% csrf_token %}
-				<input type="hidden" name="lid" value="{{ poid }}">
-				<button class="btn bcb bm" style="height:30px">OK</button>
+			<input type="hidden" name="obid" value="{{ poid }}">
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ tun }}">
+			<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
 			</form>
-			{% else %}
-				{% if org == 'home' or org == 'home_reply' %}
-				<a href="{% url 'home_loc_pk' poid %}">
-				{% elif org == 'history' %}
-				<a href="{% url 'user_activity' user.username %}">
-				{% elif org == 'public' %}
-				<a href="{% url 'public_group' poid %}">
-				{% elif org == 'profile' %}
-				<a href="{% url 'user_profile' poid %}">
-				{% elif org == 'profile_photos' %}
-				<a href="{% url 'profile' poid %}">
-				{% elif org == 'best_photos' %}
-				<a href="{% url 'best_photo_loc_pk' poid %}">
-				{% elif org == 'fresh_photos' %}
-				<a href="{% url 'see_photo_pk' poid %}">
-				{% elif org == 'photo_comments' %}
-				<a href="{% url 'comment' poid %}">
-				{% else %}
-				<a href="{% url 'home' %}">
-				{% endif %}
-				<button class="btn bcb bm mtl mbs" style="height:30px">OK</button>
-				</a>
-			{% endif %}
+
 
 {% elif rate_limited %}
 			
@@ -51,110 +33,69 @@
 			<hr size=1 COLOR="#ffeb3b">
 			<span class="cgy sp">Apke invites recharge hon ge <b>{{ time_remaining|future_time }}</b></span>
 			<br>
-			
-			{% if org == 'publicreply' %}
-			<form method="POST" class="mtl mbs" action="{% url 'publicreply_view' %}">
+
+			<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
 			{% csrf_token %}
-				<input type="hidden" name="lid" value="{{ poid }}">
-				<button class="btn bcb bm" style="height:30px">OK</button>
+			<input type="hidden" name="obid" value="{{ poid }}">
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ tun }}">
+			<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
 			</form>
-			{% else %}
-				{% if org == 'home' or org == 'home_reply' %}
-				<a href="{% url 'home_loc_pk' poid %}">
-				{% elif org == 'history' %}
-				<a href="{% url 'user_activity' user.username %}">
-				{% elif org == 'public' %}
-				<a href="{% url 'public_group' poid %}">
-				{% elif org == 'profile' %}
-				<a href="{% url 'user_profile' poid %}">
-				{% elif org == 'profile_photos' %}
-				<a href="{% url 'profile' poid %}">
-				{% elif org == 'best_photos' %}
-				<a href="{% url 'best_photo_loc_pk' poid %}">
-				{% elif org == 'fresh_photos' %}
-				<a href="{% url 'see_photo_pk' poid %}">
-				{% elif org == 'photo_comments' %}
-				<a href="{% url 'comment' poid %}">
-				{% else %}
-				<a href="{% url 'home' %}">
-				{% endif %}
-				<button class="btn bcb bm mtl mbs" style="height:30px">OK</button>
-				</a>
-			{% endif %}
 
 {% elif already_invited %}
 
-			<img src="{{ STATIC_URL }}img/chat_bubb.svg" width="121" height="97"><br><br>
+			<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
 
-			<span class="cxl">Ap&nbsp;<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko private chat mein invite kar chukay hain<br><span class="cgy">({{ it|human_time }})</span></span><br>
-			
-			{% if org == 'publicreply' %}
-			<form method="POST" class="mtl mbs" action="{% url 'publicreply_view' %}">
+			<span class="cxl">Ap&nbsp;<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 mein invite kar chukay hain<br><span class="cgy">({{ it|human_time }})</span></span><br>
+
+			<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
 			{% csrf_token %}
-				<input type="hidden" name="lid" value="{{ poid }}">
-				<button class="btn bcb bm" style="height:30px">OK</button>
+			<input type="hidden" name="obid" value="{{ poid }}">
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ tun }}">
+			<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
 			</form>
-			{% else %}
-				{% if org == 'home' or org == 'home_reply' %}
-				<a href="{% url 'home_loc_pk' poid %}">
-				{% elif org == 'history' %}
-				<a href="{% url 'user_activity' user.username %}">
-				{% elif org == 'public' %}
-				<a href="{% url 'public_group' poid %}">
-				{% elif org == 'profile' %}
-				<a href="{% url 'user_profile' poid %}">
-				{% elif org == 'profile_photos' %}
-				<a href="{% url 'profile' poid %}">
-				{% elif org == 'best_photos' %}
-				<a href="{% url 'best_photo_loc_pk' poid %}">
-				{% elif org == 'fresh_photos' %}
-				<a href="{% url 'see_photo_pk' poid %}">
-				{% elif org == 'photo_comments' %}
-				<a href="{% url 'comment' poid %}">
-				{% else %}
-				<a href="{% url 'home' %}">
-				{% endif %}
-				<button class="btn bcb bm mtl mbs" style="height:30px">OK</button>
-				</a>
-			{% endif %}
 
 
 {% elif show_invite %}
 
 			<div class="mbl cxl">
 				{% if is_anon %}
-					<a href="{% url 'profile' tun %}"><div class="av_btn sbb" style="width:26px;height:26px;line-height: 27px;color:#01579B;">{{ tun|truncap }}</div></a>&nbsp;ne apko {{ it|human_time }} private chat mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
+					<a href="{% url 'profile' tun %}"><div class="av_btn sbb" style="width:26px;height:26px;line-height: 27px;color:#01579B;">{{ tun|truncap }}</div></a>&nbsp;ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
 				{% else %}
-					<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ne apko {{ it|human_time }} private chat mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
+					<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
 				{% endif %}<br>
 				<hr size=1 COLOR="#ffeb3b">
 			</div>
 			
-			<span class="sp cgy">Kya ap ne <b>{% if is_anon %}{{ tun|truncap }}{% else %}{{ tun|truncatechars:15 }}{% endif %}</b> se private chat karni hai?</span><br>
+			<span class="sp cgy">Kya ap ne <b>{% if is_anon %}{{ tun|truncap }}{% else %}{{ tun|truncatechars:15 }}{% endif %}</b> se 1 on 1 karni hai?</span><br>
 			
 			<form method="POST" action="{% url 'accept_personal_group_invite' %}" class="mtl" style="display:inline">
 			{% csrf_token %}
 				<input type="hidden" name="org" value="{{ org }}">
 		        <input type="hidden" name="poid" value="{{ poid }}">
+		        <input type="hidden" name="lid" value="{{ lid }}">
 		        <input type="hidden" name="nickname" value="{{ tun }}">
-				<button class="btn bm bcb mbs mtl mrl" name="dec" style="height:30px;" value="1" type="submit">Haan</button>
-				<button class="btn bcgy bm mts" name="dec" style="height:30px;" value="0">Nahi</button>
+				<button class="btn bm bcb mbs mtl mrl pg_ok_res" name="dec" style="height:30px;" value="1" type="submit">Haan</button>
+				<button class="btn bcgy bm mts pg_ok_res" name="dec" style="height:30px;" value="0">Nahi</button>
 			</form>
 
 {% elif invited %}
 
-			<img src="{{ STATIC_URL }}img/chat_bubb.svg" width="120" height="98"><br><br>
+			<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
 
-
-			<div class="mbl cxl">Kya ap <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko private chat ke liye invite karna chahtey hain?</div>
+			<div class="mbl cxl">Kya ap <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 messaging ke liye invite karna chahtey hain?</div>
 
 			<form action="{% url 'send_personal_group_invite' %}" method="POST" class="mbl" style="display:inline">
 		        {% csrf_token %}
 		        <input type="hidden" name="org" value="{{ org }}">
 		        <input type="hidden" name="poid" value="{{ poid }}">
 		        <input type="hidden" name="nickname" value="{{ tun }}">
-		        <button class="btn bcb bm mrl" style="height:30px;" name="invite_dec" value="1">Haan</button>
-		        <button class="btn bcgy bm mbl" style="height:30px;">Nahi</button>
+		        <input type="hidden" name="lid" value="{{ lid }}">
+		        <button class="btn bcb bm mrl pg_ok_res" style="height:30px" name="invite_dec" value="1">Haan</button>
+		        <button class="btn bcgy bm mbl pg_ok_res" style="height:30px">Nahi</button>
 		    </form>
 
 {% elif set_privacy %}
@@ -162,9 +103,10 @@
 
 			<div style="text-align:center;" class="mts cl">
 				
-				Jab <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">	<b>{{ tun|truncatechars:15 }}</b> ko private chat ka invite bheja jai, tou invite mein apka poora nickname dikhaya jai?
+				Jab <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">	<b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 ka invite bheja jai, tou invite mein apka poora nickname dikhaya jai?
 				<form method="POST" action="{% url 'change_personal_group_invite_privacy' %}">
 				{% csrf_token %}
+					<input type="hidden" name="lid" value="{{ lid }}">
 					<div class="radbut" style="margin: 0 auto;width: auto;text-align: left;display: table;">
 						<div class="mt">
 						<input class="mbl mtl" type="radio" name="dec" value="1" id="opt1" checked><label for="opt1"><span class="ct">&nbsp;Haan dikha dou&nbsp;</span></label><br>
@@ -173,7 +115,7 @@
 						<input class="mbl" type="radio" name="dec" value="0" id="opt2"><label for="opt2"><span class="ct">&nbsp;Nahi khufiya rakho&nbsp;</span></label><br>
 						</div>
 					</div>
-					<button class="btn bm bcb mbs mtl cs" type="submit" style="height:30px;">OK</button>
+					<button class="btn bm bcb mbs mtl cs pg_ok_res" type="submit" style="height:30px;">OK</button>
 				</form>
 			</div>
 

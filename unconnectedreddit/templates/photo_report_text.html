@@ -6,7 +6,7 @@
 <h2>Photo ka masla apne alfaz mein biyan karein:</h2>
 {% if form.description.errors %}<span class="cr">{{ form.description.errors.0 }}</span>{% else %}<span class="cgy">(tip: 250 characters se ziyada nahi likh sakte)</span>{% endif %}
 <br>
-		<form method="post" action="{% url 'curate_photo' %}">
+		<form method="post" action="{% url 'report_content' %}">
 			{% csrf_token %}
 			<input type="hidden" name="scr" value="2">
 			<input type="hidden" name="cap" value="{{ cap }}">

@@ -18,7 +18,8 @@ from redis4 import return_referrer_logs, retrieve_uname
 from page_controls import ITEMS_PER_PAGE
 from views import get_price, get_addendum, get_page_obj, convert_to_epoch, return_to_content
 from score import PERMANENT_RESIDENT_SCORE, PHOTO_REPORT_PROMPT,PHOTO_CASE_COMPLETION_BONUS
-from tasks import process_reporter_payables, sanitize_photo_report, sanitize_expired_bans, post_banning_tasks
+from tasks import process_reporter_payables, sanitize_photo_report, sanitize_expired_bans, post_banning_tasks, \
+remove_target_users_posts_from_all_feeds
 from redis3 import set_inter_user_ban, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
 save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, tutorial_unseen
 from redis1 import set_photo_complaint, get_photo_complaints, get_complaint_details, delete_photo_report,remove_from_photo_upload_ban, \
@@ -26,7 +27,7 @@ remove_from_photo_vote_ban, get_num_complaints,add_photo_culler,first_time_photo
 first_time_photo_curator,add_photo_curator, resurrect_home_photo, in_defenders, first_time_photo_defender, check_photo_upload_ban,\
 get_photo_votes, ban_photo, add_to_photo_upload_ban, add_user_to_photo_vote_ban, add_to_photo_vote_ban, add_photo_defender_tutorial, \
 add_banner
-
+from redis7 import retrieve_user_content_and_vote_ban_dictionary
 
 SEVEN_MINS = 7*60
 TWENTY_MINS = 20*60
@@ -46,11 +47,14 @@ def ban_underway(request):
 	ban_time = request.session.pop("ban_time",None)
 	origin = request.session.pop("where_from",None)
 	uname = request.session.pop("own_uname",None)
-	if origin == 'fan':
-		return render(request,"judgement/cant_fan.html",{'own_id':str(request.user.id),'target_username':target_username,'ban_time':ban_time,\
-			'banned_by_yourself':banned_by_yourself})
-	else:
-		return render(request,"judgement/ban_system_check.html",{'own_id':str(request.user.id),'banned_by':banned_by,'ban_time':ban_time, 'origin':origin,'uname':uname})
+	obid = request.session.pop("obj_id",None)
+	lid = request.session.pop('lid',None)
+	# if origin == '12':#this is outdated now
+	# 	return render(request,"judgement/cant_fan.html",{'own_id':str(request.user.id),'target_username':target_username,'ban_time':ban_time,\
+	# 		'banned_by_yourself':banned_by_yourself})
+	# else:
+	return render(request,"judgement/ban_system_check.html",{'own_id':str(request.user.id),'banned_by':banned_by,'ban_time':ban_time, \
+		'origin':origin,'uname':uname,'target_username':target_username,'obid':obid,'lid':lid})
 
 
 def banned_users_list(request):
@@ -271,7 +275,99 @@ def user_ban_help(request):
 		return render(request,"judgement/user_ban_help.html",{})
 
 
+##############################################Report/Block button (page shows both blocking and reporting)###############################################
+
+
+def report_or_block(request):
+	"""
+	Processes content report or user block (i.e. "Do you want to report content, or block this user?")
+
+	This is called in the absense of JS modal
+	"""
+	if request.method == "POST":
+		payload = request.POST.get("report",None)
+		if payload:
+			## added extra parameter at the start of the string 'img' or 'txt'.
+			try:
+				prefix = payload[:2]
+			except (TypeError,NameError):
+				return redirect("missing_page")
+			if prefix == "tx":
+				report_type = "tx"
+			elif prefix == "im":
+				report_type = "img"
+			elif prefix == "pf":
+				report_type = "pf"
+			else:
+				# no 4th type of content
+				return redirect("missing_page")
+			if report_type == 'pf':
+				# if profile is reported
+				data = payload.split("#",4)
+				target_id, own_id = int(data[2]), request.user.id
+				if target_id == own_id:
+					return render(request,"judgement/report_or_block.html",{'type':report_type, 'allwd':False,'org':data[1],'oun':data[3],\
+						'obid':data[2],'thumb_url':data[4]})
+				else:
+					return render(request,"judgement/report_or_block.html",{'type':report_type,'allwd':True,'org':data[1],'oun':data[3],\
+						'ooid':data[2],'thumb_url':data[4],'obid':data[2],'hid':'7f'+hex(target_id)+":a"})
+			elif report_type == 'tx':
+				# text type report
+				data = payload.split("#",7)
+				target_id, own_id = int(data[4]), request.user.id
+				if target_id == own_id:
+					return render(request,"judgement/report_or_block.html",{'type':report_type, 'allwd':False,'cap':data[7],'oun':data[3],\
+						'org':data[1],'obid':data[2],'lid':data[6]})
+				else:
+					return render(request,"judgement/report_or_block.html",{'type':report_type,'allwd':True,'org':data[1],'lid':data[6],'oun':data[3],\
+						'ooid':data[4],'cap':data[7],'av_url':data[5],'obid':data[2],'hid':'7f'+hex(target_id)+":a"})
+			elif report_type == 'img':
+				# photo type report
+				data = payload.split("#",7)
+				target_id, own_id = int(data[4]), request.user.id
+				if target_id == own_id:
+					return render(request,"judgement/report_or_block.html",{'type':report_type,'allwd':False,'thumb_url':data[5],'oun':data[3],\
+						'org':data[1],'obid':data[2],'lid':data[6]})
+				else:
+					context = {'type':report_type,'allwd':True,'org':data[1],'lid':data[6],'oun':data[3],'ooid':data[4],\
+					'cap':data[7],'thumb_url':data[5],'obid':data[2],'hid':'7f'+hex(target_id)+":a"}
+					return render(request,"judgement/report_or_block.html",context)
+			else:
+				# no other report type exists within this loop (mehfils aren't part of this reporting loop - they have their own loop - they can be absorbed here for better maintenance)
+				return redirect("missing_page")
+		else:
+			return redirect("missing_page")    
+	else:
+		return redirect("missing_page")
+
+
 ######################################################## Defender Banning and Reported Content #######################################################
+
+
+def get_usernames(vote_id_and_values, ban_status=False):
+	"""
+	Retrieves usernames of voters
+
+	if ban_status is True, also reverts ban status of users
+	"""
+	voter_ids = [i[0] for i in vote_id_and_values]
+	voter_names = User.objects.filter(id__in=voter_ids).values('id','username')
+	voter_name_dict = {}
+	for data in voter_names:
+		voter_name_dict[data["id"]] = data["username"]
+	if ban_status:
+		# return (username, ban_status and vote_value) tuple
+		users_with_bans_dict = retrieve_user_content_and_vote_ban_dictionary(voter_ids)#returns { voter_id : ban_status }
+		voter_username_ban_status_and_vote_values = []
+		for id_,vote_val in vote_id_and_values:
+			voter_username_ban_status_and_vote_values.append((id_,voter_name_dict[int(id_)],users_with_bans_dict[id_],vote_val))
+		return voter_username_ban_status_and_vote_values
+	else:
+		# return (username, vote_value) tuple
+		voter_usernames_and_values = []
+		for id_,vote_val in vote_id_and_values:
+			voter_usernames_and_values.append((id_,voter_name_dict[int(id_)],vote_val))
+		return voter_usernames_and_values
 
 
 def find_time_to_go(photo_owner_id):
@@ -286,16 +382,18 @@ def process_photo_punishment_options(user_id,decision,photo_url,photo_id,photo_o
 			'already_banned':find_time_to_go(photo_owner_id),'origin':origin,'link_id':link_id,'dec':decision}
 		elif decision == '2':
 			# edit the vote ban
-			photovote_usernames_and_values = get_photo_votes(photo_id)
-			number_of_voters = len(photovote_usernames_and_values)
-			context={'nameandval':photovote_usernames_and_values,'purl':photo_url,'oun':photo_owner_username,'num':number_of_voters,\
-			'pid':photo_id,'origin':origin,'link_id':link_id,'dec':decision}
+			pass
+			# photovote_usernames_and_values = get_photo_votes(photo_id)
+			# number_of_voters = len(photovote_usernames_and_values)
+			# context={'nameandval':photovote_usernames_and_values,'purl':photo_url,'oun':photo_owner_username,'num':number_of_voters,\
+			# 'pid':photo_id,'origin':origin,'link_id':link_id,'dec':decision}
 		elif decision == '3':
 			# edit both photo uploading and vote ban together in one giant screen!
-			photovote_usernames_and_values = get_photo_votes(photo_id)
-			number_of_voters = len(photovote_usernames_and_values)
-			context={'already_banned':find_time_to_go(photo_owner_id),'nameandval':photovote_usernames_and_values,'num':number_of_voters,\
-			'poid':photo_owner_id,'oun':photo_owner_username,'pid':photo_id,'purl':photo_url,'origin':origin,'link_id':link_id,'dec':decision}
+			pass
+			# photovote_usernames_and_values = get_photo_votes(photo_id)
+			# number_of_voters = len(photovote_usernames_and_values)
+			# context={'already_banned':find_time_to_go(photo_owner_id),'nameandval':photovote_usernames_and_values,'num':number_of_voters,\
+			# 'poid':photo_owner_id,'oun':photo_owner_username,'pid':photo_id,'purl':photo_url,'origin':origin,'link_id':link_id,'dec':decision}
 		elif decision == '0':
 			#resurrect photo
 			Photo.objects.filter(id=photo_id).update(vote_score=0, visible_score=0)
@@ -320,6 +418,7 @@ def process_photo_upload_ban(duration,photo_id,photo_owner_id,ban_time,unban=Fal
 		ban_photo(photo_id=photo_id,ban=True)
 		add_to_photo_upload_ban(photo_owner_id, ban_time) #to impede from adding more photos
 		add_user_to_photo_vote_ban(photo_owner_id, ban_time) #to impede from voting on other photos
+		remove_target_users_posts_from_all_feeds.delay(target_user_id=photo_owner_id,post_type='img',cleanse_feeds='1')
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -580,34 +679,161 @@ def cull_single_photo(request,*args,**kwargs):
 	else:
 		return render(request,'404.html',{})
 
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @csrf_protect
+# def curate_photo(request,*args,**kwargs):
+# 	if request.method == 'POST':
+# 		own_id = request.user.id
+# 		defender = in_defenders(own_id)
+# 		if defender:
+# 			if first_time_photo_defender(own_id):
+# 				add_photo_defender_tutorial(own_id)
+# 				context = {'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
+# 				'oid':request.POST.get("oid",None),'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),\
+# 				'vsc':request.POST.get("vsc",None)}
+# 				return render(request, 'photo_defender_tutorial.html', context)
+# 			else:
+# 				poid = request.POST.get("oid",None)
+# 				if poid == str(request.user.id):
+# 					return render(request,'reporting_own_photo.html',{'purl':request.POST.get("purl",None),'orig':request.POST.get("orig",None),\
+# 						'pid':request.POST.get("curate",None),'lid':request.POST.get("lid",None),'oun':request.POST.get("oun",None),\
+# 						'complaints':get_num_complaints()})
+# 				context={'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
+# 				'poid':poid,'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),'already_banned':find_time_to_go(poid),\
+# 				'single_photo':True,'complaints':get_num_complaints(),'vsc':request.POST.get("vsc",None)}
+# 				return render(request,'photo_case_punishment.html',context)
+# 		else:
+# 			posted_from_screen = request.POST.get("scr",None)
+# 			if first_time_photo_curator(request.user.id):
+# 				add_photo_curator(request.user.id)
+# 				return render(request,'photo_curator_tutorial.html',{'pid':request.POST.get("curate",None),'cap':request.POST.get("cap",None),\
+# 					'purl':request.POST.get("purl",None),'orig':request.POST.get("orig",None),'poid':request.POST.get("oid",None),\
+# 					'oun':request.POST.get("oun",None),'lid':request.POST.get("lid",None)})
+# 			elif posted_from_screen == '1':
+# 			# progress user to screen 2. Include variables gotten from screen 1
+# 				dec = request.POST.get("dec",None) #decision (radio button number)
+# 				if dec == '0':
+# 					#nevermind
+# 					return return_to_photo(request,request.POST.get("orig",""),request.POST.get("pid",""),\
+# 						request.POST.get("lid",""),request.POST.get("oun",""))
+# 				else:
+# 					orig = request.POST.get("orig","") #origin 
+# 					cap = request.POST.get("cap","") #caption
+# 					isr = request.POST.get("isr","") #is_resident flag
+# 					prc = request.POST.get("prc","") #price of reporting
+# 					pid = request.POST.get("pid","") #photo_id
+# 					lid = request.POST.get("lid","") #link_id (if originating from home)
+# 					oun = request.POST.get("oun","") #username (if originating from a profile)
+# 					purl = request.POST.get("purl","") #photo_url
+# 					form = PhotoReportForm()
+# 					context={'dec':dec, 'orig':orig, 'isr':isr, 'prc':prc, 'pid':pid, 'lid':lid, 'oun':oun, 'form':form, 'purl':purl,\
+# 					'cap':cap}
+# 					return render(request,'photo_report_text.html',context)
+# 			elif posted_from_screen == '2':
+# 			# finalize user report. Get all variables
+# 				form = PhotoReportForm(request.POST)
+# 				if form.is_valid():
+# 					isr = request.POST.get("isr","") #is_resident flag
+# 					purl = request.POST.get("purl","") #photo_url
+# 					orig = request.POST.get("orig","") #origin
+# 					pid = request.POST.get("pid","") #photo_id
+# 					cap = request.POST.get("cap","") #caption
+# 					lid = request.POST.get("lid","") #link_id (if originating from home)
+# 					oun = request.POST.get("oun","") #username (if originating from a profile)
+# 					if isr == 'False':
+# 						return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
+# 					else:	
+# 						decision = request.POST.get("dec",None) #decision (radio button number)
+# 						prc = request.POST.get("prc","") #price of reporting
+# 						description = form.cleaned_data.get("description")
+# 						try:
+# 							ttl = set_photo_complaint(PHOTO_REPORT_PROMPT[decision], description, cap, purl, pid, prc, request.user.id)
+# 							if ttl:
+# 								return render(request,'cant_photo_report.html',{'orig':orig,'pid':pid,'lid':lid,'oun':oun,'ttl':ttl})
+# 							else:
+# 								UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-int(prc))
+# 								return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
+# 						except:
+# 							return return_to_photo(request,orig,pid,lid,oun)
+# 				else:
+# 					# form is invalid, reload
+# 					dec = request.POST.get("dec","") #decision (radio button number)
+# 					orig = request.POST.get("orig","") #origin 
+# 					isr = request.POST.get("isr","") #is_resident flag
+# 					prc = request.POST.get("prc","") #price of reporting
+# 					pid = request.POST.get("pid","") #photo_id
+# 					lid = request.POST.get("lid","") #link_id (if originating from home)
+# 					oun = request.POST.get("oun","") #username (if originating from a profile)
+# 					purl = request.POST.get("purl","") #photo_url
+# 					context={'dec':dec, 'orig':orig, 'isr':isr, 'prc':prc, 'pid':pid, 'lid':lid, 'oun':oun, 'form':form, 'purl':purl}
+# 					return render(request,'photo_report_text.html',context)
+# 			else:
+# 			# show options with radio buttons to user (screen 1)
+# 				score = request.user.userprofile.score
+# 				price_of_report = get_price(request.user.userprofile.score)
+# 				photo_id = request.POST.get("curate","")
+# 				orig = request.POST.get("orig","") #origin 
+# 				caption = request.POST.get("cap","")
+# 				purl = request.POST.get("purl","") #photo_url
+# 				reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
+# 				if price_of_report > score:
+# 					#disallow reporting
+# 					context={'is_resident':False,'pid':photo_id,'orig':orig,'oun':request.POST.get("oun",None),'lid':request.POST.get("lid",None),\
+# 					'purl':purl}
+# 					return render(request,'photo_rep_scr_req.html',context)
+# 				elif score > PERMANENT_RESIDENT_SCORE:
+# 					#give options 
+# 					context={'is_resident':True,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
+# 					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
+# 					'purl':purl, 'cap':caption}
+# 					return render(request,"photo_report.html",context)
+# 				else:
+# 					# give options, but report doesn't count
+# 					context={'is_resident':False,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
+# 					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
+# 					'purl':purl, 'cap':caption}
+# 					return render(request,"photo_report.html",context)
+# 	else:
+# 		return render(request,'404.html',{})
+
+
+
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-def curate_photo(request,*args,**kwargs):
+# def curate_photo(request,*args,**kwargs):
+def report_content(request,*args,**kwargs):
 	if request.method == 'POST':
 		own_id = request.user.id
 		defender = in_defenders(own_id)
 		if defender:
-			if first_time_photo_defender(own_id):
+			type_of_obj = request.POST.get('tp','')
+			if type_of_obj != 'img':
+				return render(request,'unreleased_reporting_feature.html',{})
+			elif first_time_photo_defender(own_id):
 				add_photo_defender_tutorial(own_id)
-				context = {'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
-				'oid':request.POST.get("oid",None),'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),\
-				'vsc':request.POST.get("vsc",None)}
+				context = {'pid':request.POST.get("report",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
+				'oid':request.POST.get("ooid",None),'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),\
+				'vsc':request.POST.get("vsc",'0')}
 				return render(request, 'photo_defender_tutorial.html', context)
 			else:
-				poid = request.POST.get("oid",None)
+				poid = request.POST.get("ooid",None)# photo owner id
 				if poid == str(request.user.id):
-					return render(request,'reporting_own_photo.html',{'purl':request.POST.get("purl",None),'orig':request.POST.get("orig",None),\
-						'pid':request.POST.get("curate",None),'lid':request.POST.get("lid",None),'oun':request.POST.get("oun",None),\
-						'complaints':get_num_complaints()})
-				context={'pid':request.POST.get("curate",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
+					context = {'purl':request.POST.get("purl",None),'orig':request.POST.get("orig",None),\
+					'pid':request.POST.get("report",None),'lid':request.POST.get("lid",None),'oun':request.POST.get("oun",None),\
+					'complaints':get_num_complaints()}
+					return render(request,'reporting_own_photo.html',context)
+				lid = request.POST.get("lid",None)
+				context={'pid':request.POST.get("report",None),'purl':request.POST.get("purl",None),'oun':request.POST.get("oun",None),\
 				'poid':poid,'orig':request.POST.get("orig",None),'lid':request.POST.get("lid",None),'already_banned':find_time_to_go(poid),\
-				'single_photo':True,'complaints':get_num_complaints(),'vsc':request.POST.get("vsc",None)}
+				'single_photo':True,'complaints':get_num_complaints(),'vsc':request.POST.get("vsc",'0')}
+				if lid:
+					request.session["target_id"] = lid
 				return render(request,'photo_case_punishment.html',context)
 		else:
 			posted_from_screen = request.POST.get("scr",None)
 			if first_time_photo_curator(request.user.id):
 				add_photo_curator(request.user.id)
-				return render(request,'photo_curator_tutorial.html',{'pid':request.POST.get("curate",None),'cap':request.POST.get("cap",None),\
+				return render(request,'photo_curator_tutorial.html',{'pid':request.POST.get("report",None),'cap':request.POST.get("cap",None),\
 					'purl':request.POST.get("purl",None),'orig':request.POST.get("orig",None),'poid':request.POST.get("oid",None),\
 					'oun':request.POST.get("oun",None),'lid':request.POST.get("lid",None)})
 			elif posted_from_screen == '1':
@@ -618,7 +844,7 @@ def curate_photo(request,*args,**kwargs):
 					return return_to_photo(request,request.POST.get("orig",""),request.POST.get("pid",""),\
 						request.POST.get("lid",""),request.POST.get("oun",""))
 				else:
-					orig = request.POST.get("orig","") #origin 
+					orig = request.POST.get("orig","") #origin
 					cap = request.POST.get("cap","") #caption
 					isr = request.POST.get("isr","") #is_resident flag
 					prc = request.POST.get("prc","") #price of reporting
@@ -643,23 +869,24 @@ def curate_photo(request,*args,**kwargs):
 					oun = request.POST.get("oun","") #username (if originating from a profile)
 					if isr == 'False':
 						return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
-					else:	
+					else:   
 						decision = request.POST.get("dec",None) #decision (radio button number)
 						prc = request.POST.get("prc","") #price of reporting
 						description = form.cleaned_data.get("description")
-						try:
-							ttl = set_photo_complaint(PHOTO_REPORT_PROMPT[decision], description, cap, purl, pid, prc, request.user.id)
-							if ttl:
-								return render(request,'cant_photo_report.html',{'orig':orig,'pid':pid,'lid':lid,'oun':oun,'ttl':ttl})
-							else:
-								UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-int(prc))
-								return render(request,'photo_report_sent.html',{'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun})
-						except:
-							return return_to_photo(request,orig,pid,lid,oun)
+						# try:
+						ttl = set_photo_complaint(PHOTO_REPORT_PROMPT.get(decision,None), description, cap, purl, pid, prc, request.user.id)
+						if ttl:
+							return render(request,'cant_photo_report.html',{'orig':orig,'pid':pid,'lid':lid,'oun':oun,'ttl':ttl})
+						else:
+							UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-int(prc))
+							context = {'purl':purl,'orig':orig,'pid':pid,'lid':lid,'oun':oun}
+							return render(request,'photo_report_sent.html',context)
+						# except:
+						# 	return return_to_photo(request,orig,pid,lid,oun)
 				else:
 					# form is invalid, reload
 					dec = request.POST.get("dec","") #decision (radio button number)
-					orig = request.POST.get("orig","") #origin 
+					orig = request.POST.get("orig","") #origin
 					isr = request.POST.get("isr","") #is_resident flag
 					prc = request.POST.get("prc","") #price of reporting
 					pid = request.POST.get("pid","") #photo_id
@@ -670,32 +897,37 @@ def curate_photo(request,*args,**kwargs):
 					return render(request,'photo_report_text.html',context)
 			else:
 			# show options with radio buttons to user (screen 1)
-				score = request.user.userprofile.score
-				price_of_report = get_price(request.user.userprofile.score)
-				photo_id = request.POST.get("curate","")
-				orig = request.POST.get("orig","") #origin 
-				caption = request.POST.get("cap","")
-				purl = request.POST.get("purl","") #photo_url
-				reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
-				if price_of_report > score:
-					#disallow reporting
-					context={'is_resident':False,'pid':photo_id,'orig':orig,'oun':request.POST.get("oun",None),'lid':request.POST.get("lid",None),\
-					'purl':purl}
-					return render(request,'photo_rep_scr_req.html',context)
-				elif score > PERMANENT_RESIDENT_SCORE:
-					#give options 
-					context={'is_resident':True,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
-					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
-					'purl':purl, 'cap':caption}
-					return render(request,"photo_report.html",context)
+				type_of_obj = request.POST.get('tp','')
+				if type_of_obj != 'img':
+					return render(request,'unreleased_reporting_feature.html',{})
 				else:
-					# give options, but report doesn't count
-					context={'is_resident':False,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
-					'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
-					'purl':purl, 'cap':caption}
-					return render(request,"photo_report.html",context)
+					score = request.user.userprofile.score
+					price_of_report = get_price(request.user.userprofile.score)
+					photo_id = request.POST.get("report","")#request.POST.get("curate","")
+					orig = request.POST.get("orig","") #origin
+					caption = request.POST.get("cap","")
+					purl = request.POST.get("purl","") #photo_url
+					reporting_self = (True if str(request.user.id) == request.POST.get("oid","") else False)
+					if price_of_report > score:
+						#disallow reporting
+						context={'is_resident':False,'pid':photo_id,'orig':orig,'oun':request.POST.get("oun",None),'lid':request.POST.get("lid",None),\
+						'purl':purl}
+						return render(request,'photo_rep_scr_req.html',context)
+					elif score > PERMANENT_RESIDENT_SCORE:
+						#give options
+						context={'is_resident':True,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
+						'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
+						'purl':purl, 'cap':caption}
+						return render(request,"photo_report.html",context)
+					else:
+						# give options, but report doesn't count
+						context={'is_resident':False,'price':price_of_report,'photo_id':photo_id,'reporting_self':reporting_self,'orig':orig,\
+						'owner_uname':request.POST.get("oun",None),'link_id':request.POST.get("lid",None),'reporting_cooldown':None,\
+						'purl':purl, 'cap':caption}
+						return render(request,"photo_report.html",context)
 	else:
-		return render(request,'404.html',{})
+		# not a POST request
+		raise Http404("Not a POST request")
 
 #################################################################################################################
 #################################################################################################################

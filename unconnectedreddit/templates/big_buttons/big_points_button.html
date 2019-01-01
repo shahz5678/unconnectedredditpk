@@ -1,0 +1,4 @@
+<form action="{% url 'cast_vote' %}" class="fx fxjsfs" style="margin-bottom:4px;margin-right:4px;padding:0" method="POST">
+{% csrf_token %}
+<button name="vote" class="vt" style="width:50px;height:42px;font-size:8.2px;border:1px solid {{ border_color }};text-align:center;color:{{ pts_color }}" value="2:{{ obid }}:{{ ooid }}:{{ is_pht }}:{{ from }}"><div class="mt mbs cxl">{% if net_votes > 999 %}999+{% elif net_votes < -999 %}-999{% else %}{{ net_votes }}{% endif %}</div><div class="mt">{% if net_votes == 1 %}POINT{% else %}POINTS{% endif %}</div></button>
+</form>

@@ -496,7 +496,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		description, user_id, section_id, section, secret_key_from_form = data.get("description"), self.user_id, '1', 'home', data.get("sk")
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1','likho')
 		description = description.strip() if description else None
-		if not description:
+		if not description or description.isspace():
 			raise forms.ValidationError('Likhna zaruri hai')
 		elif secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('Sirf aik dafa button dabain')

@@ -5213,7 +5213,7 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 	Renders the inbox functionality
 	"""
 	if getattr(request, 'limits', False):
-		return Http404("You cannot view the inbox")
+		raise Http404("You cannot view the inbox")
 	else:
 		user_id = request.user.id
 		username = retrieve_uname(user_id,decode=True)
@@ -5353,7 +5353,7 @@ def public_reply_view(request,*args,**kwargs):
 def post_public_reply(request,*args,**kwargs):
 	context = {}
 	if getattr(request, 'limits', False):
-		return Http404("You cannot post this reply")
+		raise Http404("You cannot post this reply")
 	elif request.user_banned:
 		return redirect("error")
 	elif request.method == "POST":
@@ -5534,7 +5534,7 @@ def sharing_help(request):
 	Renders a page about sharing ettiquette
 	"""
 	if getattr(request, 'limits', False):
-		return Http404("You cannot view sharing help")
+		raise Http404("You cannot view sharing help")
 	else:
 		return render(request,"content/share_content_help.html",{})
 
@@ -5547,7 +5547,7 @@ def share_content(request):
 	Redirects to text or foto sharing pages accordingly
 	"""
 	if getattr(request, 'limits', False):
-		return Http404("You cannot share")
+		raise Http404("You cannot share")
 	else:
 		return render(request,"content/share_content.html",{'first_time':True if tutorial_unseen(user_id=request.user.id, which_tut='25', renew_lease=True) \
 			else False})

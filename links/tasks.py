@@ -13,8 +13,6 @@ from send_sms import process_sms, bind_user_to_twilio_notify_service, process_bu
 process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
 SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE
-
-
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan, Group
@@ -34,15 +32,17 @@ from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_not
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
 remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, sanitize_eachothers_unseen_activities,\
-update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif, update_group_topic_in_obj, bulk_remove_multiple_group_notifications
-from redis1 import add_filtered_post, add_unfiltered_post, all_photos, add_video, save_recent_video, add_to_deletion_queue, \
-delete_queue, photo_link_mapping, add_home_link, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
+update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif, update_group_topic_in_obj, \
+bulk_remove_multiple_group_notifications, set_uploader_score
+from redis1 import add_video, save_recent_video, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
-update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos,get_photo_link_mapping,\
-delete_photo_report, insert_hash, delete_avg_hash, add_home_rating_ingredients, cleanse_public_and_private_groups_data
+update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos, delete_photo_report, \
+cleanse_public_and_private_groups_data
+# photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
 from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members
-
+from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
+cleanse_all_feeds_of_user_content
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -101,7 +101,7 @@ def convert_to_epoch(time):
 
 def set_rank(netvotes,upload_time):
 	# Based on reddit ranking algo at https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9
-	if netvotes == None:
+	if netvotes is None:
 		netvotes = 0
 	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
 	sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
@@ -562,6 +562,15 @@ def trim_top_group_rankings():
 def trim_whose_online():
 	expire_online_users()
 
+
+@celery_app1.task(name='tasks.remove_target_users_posts_from_all_feeds')
+def remove_target_users_posts_from_all_feeds(target_user_id, post_type, cleanse_feeds):
+	"""
+	If defender bans a user, remove said users' content from all current feeds
+	"""
+	cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds)
+
+
 #ensuring photo reports dont have photo_id related complaints
 @celery_app1.task(name='tasks.sanitize_photo_report')
 def sanitize_photo_report(photo_id):#return price paid (as a default)
@@ -838,24 +847,25 @@ def set_input_rate_and_history(section,section_id,text,user_id,time_now):
 	log_input_text(section, section_id,text,user_id)
 	log_input_rate(section,user_id,time_now)
 
+
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
-	photos = retrieve_photo_posts(all_photos())
-	# num_of_photos = len(photos)
-	# num_of_pages = int(num_of_photos/PHOTOS_PER_PAGE)
-	# for page_num in range(num_of_pages+1):
-	# 	cache.delete('best_photos'+str(page_num))
-	# 	cache.delete('best_photos_page_obj'+str(page_num))
+	"""
+	Runs every 12 mins from settings.py
+	"""
+	photos = retrieve_obj_feed(get_photo_feed())
 	photo_id_and_scr = []
 	for photo in photos:
 		try:
-			if int(photo['vo']) > -2:
-				rank = set_rank(int(photo['vi']),float(photo['t']))
-				photo_id_and_scr.append(photo['i'])
-				photo_id_and_scr.append(rank)
-		except:
-			pass
-	add_photos_to_best(photo_id_and_scr)
+			object_id = photo['i']
+			net_votes = photo['nv']
+			submission_time = photo['t']
+		except (TypeError,KeyError):
+			net_votes, submission_time, object_id = None, None, None
+		if net_votes and submission_time and object_id:
+			photo_id_and_scr.append("img:"+object_id)
+			photo_id_and_scr.append(set_rank(int(net_votes),float(submission_time)))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo
+	add_photos_to_best_photo_feed(photo_id_and_scr)
 
 
 @celery_app1.task(name='tasks.fans')
@@ -921,40 +931,29 @@ def salat_streaks():
 	})
 	status = cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
 
-@celery_app1.task(name='tasks.queue_for_deletion')
-def queue_for_deletion(link_id_list):
-	llen = add_to_deletion_queue(link_id_list)
-	if llen > 200:
-		delete_queue()
+# @celery_app1.task(name='tasks.queue_for_deletion')
+# def queue_for_deletion(link_id_list):
+# 	llen = add_to_deletion_queue(link_id_list)
+# 	if llen > 200:
+# 		delete_queue()
+
 
 @celery_app1.task(name='tasks.photo_upload_tasks')
-def photo_upload_tasks(banned, user_id, photo_id, timestring, device):
+def photo_upload_tasks(user_id, photo_id, username, temp_photo_obj,number_of_photos, total_score):
+	"""
+	Tasks fired when a photo is uploaded in the photos section (for public viewing)
+	"""
 	photo = Photo.objects.get(id=photo_id)
-	user = User.objects.get(id=user_id)
-	timeobj = datetime.strptime(timestring, "%Y-%m-%dT%H:%M:%S.%f")
 	updated = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
 	if not updated:
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
-	stream = PhotoStream.objects.create(cover_id = photo_id, show_time = timeobj)
-	photo.which_stream.add(stream) # CAN REMOVE? m2m field, thus 'append' a stream to the "which_stream" attribute
-	UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
-	hotuser = HotUser.objects.filter(which_user_id=user_id).latest('id')
-	add_search_photo(photo.image_file.url,photo_id,user.username)
-	if hotuser.allowed and hotuser.hot_score > PHOTO_HOT_SCORE_REQ:
-		link = Link.objects.create(description=photo.caption, submitter_id=user_id, device=device, cagtegory='6', which_photostream_id=stream.id)#
-		photo_link_mapping(photo_id, link.id)
-		try:
-			av_url = user.userprofile.avatar.url
-		except:
-			av_url = None
-		add_home_link(link_pk=link.id, categ='6', nick=user.username, av_url=av_url, desc=photo.caption, awld='1', hot_sc=hotuser.hot_score, \
-			img_url=photo.image_file.url, v_sc=photo.vote_score, ph_pk=photo_id, ph_cc=photo.comment_count, scr=user.userprofile.score, \
-			cc=0, writer_pk=user_id, device=device)
-		if banned == '1':
-			add_unfiltered_post(link.id)
-		else:
-			add_filtered_post(link.id)
-			add_unfiltered_post(link.id)
+	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
+	add_search_photo(photo.image_file.url,photo_id,username)
+	if total_score > PHOTO_HOT_SCORE_REQ:
+		add_obj_to_home_feed(temp_photo_obj)
+	if number_of_photos:
+		set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))
+
 
 @celery_app1.task(name='tasks.unseen_comment_tasks')
 def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
@@ -1079,51 +1078,63 @@ def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_incre
 	Video.objects.filter(id=video_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
 
-@celery_app1.task(name='tasks.photo_vote_tasks')
-def photo_vote_tasks(photo_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase, voter_id):
-	Photo.objects.filter(id=photo_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
-	v_scr = Photo.objects.get(id=photo_id).vote_score
-	update_object(object_id=photo_id,object_type='0',vote_score=v_scr, just_vote=True)
-	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
-	if is_fan(user_id,voter_id):
-		add_to_photo_owner_activity(user_id, voter_id)
 
 @celery_app1.task(name='tasks.vote_tasks')
-def vote_tasks(own_id, target_user_id,target_link_id,vote_value):
-	target_userprofile = UserProfile.objects.get(user_id=target_user_id)
-	target_link = Link.objects.get(id=target_link_id)
+def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_name,revert_prev,is_pht):
+	"""
+	Processes vote on a post by a user
+
+	Handles both textual or photo voting
+	"""
+	target_userprofile_score = UserProfile.objects.only('score').get(user_id=target_user_id).score
+	old_net_votes = Photo.objects.only('vote_score').get(id=target_obj_id).vote_score if is_pht == '1' \
+	else Link.objects.only('net_votes').get(id=target_obj_id).net_votes
 	#simply hellban the user in case their score is too low, and that's all
-	if target_userprofile.score < -25:
+	if target_userprofile_score < -25:
 		if not HellBanList.objects.filter(condemned_id=target_user_id).exists(): #only insert user in hell-ban list if she isn't there already
 			HellBanList.objects.create(condemned_id=target_user_id) #adding user to hell-ban list
-			target_userprofile.score = random.randint(10,71)
-			target_userprofile.save()		
-	elif vote_value == '1':
-		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
-		target_userprofile.score = target_userprofile.score + UPVOTE
-		target_link.net_votes = target_link.net_votes + 1
-		target_userprofile.save()
-		target_link.save()
-	elif vote_value == '2':
-		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
-		target_userprofile.score = target_userprofile.score + SUPER_UPVOTE
-		target_link.net_votes = target_link.net_votes + 1
-		target_userprofile.save()
-		target_link.save()
-	elif vote_value == '-1':
-		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
-		target_userprofile.score = target_userprofile.score + DOWNVOTE
-		target_link.net_votes = target_link.net_votes - 1
-		target_userprofile.save()
-		target_link.save()
-	elif vote_value == '-2':
-		# Vote.objects.create(voter_id=own_id, link_id=target_link_id, value=vote_value)
-		target_userprofile.score = target_userprofile.score + SUPER_DOWNVOTE
-		target_link.net_votes = target_link.net_votes - 1
-		target_userprofile.save()
-		target_link.save()
+			UserProfile.objects.filter(user_id=target_user_id).update(score=random.randint(10,71))
+	# elif target_userprofile_score > 0:
 	else:
-		pass
+		if vote_value == '1':
+			# is an upvote
+			net_votes = old_net_votes + 1
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht)
+			if added:
+				# vote added
+				if is_pht == '1':
+					# is a photo object
+					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE,media_score=F('media_score')+1)
+					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
+					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
+				else:
+					# is a link object
+					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE)
+					Link.objects.filter(id=target_obj_id).update(net_votes=net_votes)
+			else:
+				# vote not added, do nothing
+				pass
+		elif vote_value == '0':
+			# is a downvote
+			net_votes = old_net_votes - 1
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht)
+			if added:
+				# vote added
+				if is_pht == '1':
+					# is a photo object
+					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE,media_score=F('media_score')-1)
+					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
+					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
+				else:
+					# is a link object
+					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+DOWNVOTE)
+					Link.objects.filter(id=target_obj_id).update(net_votes=net_votes)
+			else:
+				# vote not added, do nothing
+				pass
+		else:
+			# neither an upvote nor a downvote, do nothing
+			pass
 
 @celery_app1.task(name='tasks.registration_task')
 def registration_task(ip,username,user_id):
@@ -1154,12 +1165,12 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 	video.save()
 	user.userprofile.save()	
 
-@celery_app1.task(name='tasks.home_photo_tasks')
-def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo_id=None):
-	if not link_id:
-		link_id = get_photo_link_mapping(photo_id)
-	if link_id:
-		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time, link_writer_id=photo_owner_id, photo_post=True)
+# @celery_app1.task(name='tasks.home_photo_tasks')
+# def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo_id=None):
+# 	if not link_id:
+# 		link_id = get_photo_link_mapping(photo_id)
+# 	if link_id:
+# 		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time, link_writer_id=photo_owner_id, photo_post=True)
 
 
 @celery_app1.task(name='tasks.publicreply_tasks')
@@ -1167,9 +1178,10 @@ def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_som
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 	# set_prev_replies(user_id,description)
-	if is_someone_elses_post:
-		# ensuring self commenting doesn't add anything to a post's rating
-		add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)
+	# if is_someone_elses_post:
+	#     # ensuring self commenting doesn't add anything to a post's rating
+	#     add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)
+
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\

@@ -7,6 +7,8 @@ PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
+CONTENT_SHARING_SHORT_RATELIMIT = 60# 
+CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
@@ -36,6 +38,7 @@ VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jha
 THUMB_HEIGHT = 38
 ###############################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
+FBS_PUBLIC_PHOTO_UPLOAD_RL = 600#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT
 ###############################################################################################################
 VOTE_SPREE_ALWD = 6# number of votes allowed on link objects within a small time window before cooldown begins (applied separately to photo voting too)
 UPVOTE = 3#number to add to user score
@@ -159,7 +162,7 @@ PHOTOS_WITH_SEARCHED_NICKNAMES = 5
 REPORTED_CASE_COMPLETION_BONUS = 15
 PHOTO_REPORT_PROMPT = {'1':'Photo buhut gandi hai','2':'Photo mazhabi fasad phela rahi hai',\
 '3':'Photo mein buhut ziyada tashadud hai','4':'Photo takhreeb karoon ki wakalat kr rahi hai',\
-'5':'Photo pe fake accounts ke zariye vote daley gaye hain','6':'Kuch aur masla hai'}
+'5':'Kuch aur masla hai'}
 GET_PHOTO_REPORT_HELP_LABEL = {'0':'','1':'photo_nudity_or_sex','2':'photo_firqa_wariyat','3':'photo_bloodshed','4':'photo_terrorism',\
 '5':'photo_screenshot','6':'photo_low_quality','7':'photo_wrong_title','8':'photo_title_solicitation','9':'photo_plagiarism',\
 '10':'photo_double_posting'}
@@ -208,7 +211,7 @@ PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'
 ###############################################################################################################
 PERSONAL_GROUP_ERR = {'too_high':'Ye foto buhut lambi hai, koi aur chunein',\
 'mismatch':'Rabta munqata ho gaya, phir se karien','generic':'Internet ka rabta munqata ho gaya, phir se karien'}
-PERSONAL_GROUP_DEFAULT_SMS_TXT = ' ne apko Damadam ki private chat mein bulaya'
+PERSONAL_GROUP_DEFAULT_SMS_TXT = ' ne apko Damadam ki 1 on 1 mein bulaya'
 EXTRA_PADDING = 20 #used to adjust image sizes in cases where CSS uses box-sizing:border-box property
 PERSONAL_GROUP_SAVE_MSGS = {'err2':'Ye msg mita diye janey ki waja se save nahi ho saka',\
 'err3':'Ye msg hide honay ki waja se save nahi ho saka','err4':'Ye msg apkey save karney se pehlay delete ho gya',\

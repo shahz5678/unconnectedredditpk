@@ -9,7 +9,6 @@
 <a name="section{{ forloop.counter }}"></a>
 <b class="cxl cb">{% emoticons %}{{ complaint.c }}{% endemoticons %}</b><br>
 <img src="{{ complaint.url }}" class="mts pht" width="400px"></img><br>
-<a href="{% url 'photo_izzat' complaint.pid 6 %}"><button class="btn bcgy bm mts mbs"><b>votes</b></button></a>&nbsp;&nbsp;&nbsp;
 <a href="{% url 'photo_detail' complaint.pid 6 %}"><button class="btn bco bm mts mbl"><b>details</b></button></a><br>
 <span class="cr cxl"><b>{{ complaint.nc }}</b> complaint(s):</span><br>
 <div class="mls">{{ complaint.tx|safe }}</div>

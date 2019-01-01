@@ -1,83 +1,45 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>100 trending photo and meme uploaders | Damadam.pk</title></head>
-<style>
+<head><title>100 trending photo uploaders | Damadam.pk</title></head>
+ 
+<style>body{background: #E9EBEE}</style>
 
-.secondary-nav {
-    text-align: center;
+{% include "photos_navbar.html" with section='top_list' static_url=STATIC_URL %}
 
-}
+<h1 style="text-align:center" class="cxl lsp clb">Top stars:</h1>
 
-.circular-button {
+<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 
-    border-radius: 17px 17px 17px 17px; 
-    height:65px; 
-    width:65px; 
-    border-style:none; 
-    margin-left:25px;
-
-}
-    
-
-.secondary-nav .circular-button:hover  {
-    background-color:#FF9800 !important;
-    color:white !important;
-}
-
-
-@media only screen and (max-width: 260px) {
-  
-
-.circular-button {
-
-    height:40px; 
-    width:41px; 
-    border-style:none; 
-    margin-left:1px;
-    font-size: 10px;
-    margin:2%;
-
-}
-
-.secondary-nav hr {
-
-    color:white;
-}
-
-</style>
-
-<div class="margin clb">
-
-<div class="secondary-nav mbl mtl">
-<a href="{% url 'best_photo' %}#section0"><button class="circular-button" style="color:#808080; background-color:#CCCCCC;margin-left:0px;">Best<br>fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style=" color:#808080; background-color:#CCCCCC;">Latest<br>fotos</button></a><button class="circular-button" style="color:#FF8F00; background-color:#FFECB3;">Top<br>stars</button>
-<hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
+    <div class="mbs" style="text-align:center">
+        <span class="mrs cgy sp">List updated every 2 days</span><a href="{% url 'top_photo_help' %}#section0"><button style="background:0 0;padding:0;border:none;border-bottom:1px dotted dodgerblue" class="sp cb">help</button></a>
+    </div>
+    <div class="mt" style="text-align:center">
+        <ul style="display:inline-block;padding: 0;list-style:none;margin-top:0px">
+        {% for row in object_list %}
+            <li style="text-align:left;border-bottom:1px dashed lightgray;padding:15px 0" class="sp">
+                <div style="word-break:break-all">
+                    <span class="cgy cxs sp">{{ forloop.counter }}.</span>
+                    <a href="{% url 'profile' slug=row.username %}#section0" class="clb">
+                	<img src="{{ row.user_profile.avatar|s3:"thumb" }}" width="22" height="22" alt="pic" style="border-radius:50%">
+                    <b>{{ row.username }}</b></a>{% if row.username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" style="color:deeppink" alt="*">{% endif %}
+                	{% if row.user_profile.media_score %}
+                		{% if row.user_profile.media_score < 0 %}
+                	    	<span class="cxs sp" style="color:#9900cc;">(1)</span>
+                	    {% else %}
+                	    	<span class="cxs sp" style="color:#9900cc;">({{ row.user_profile.media_score }})</span>
+                		{% endif %}
+                    {% else %}
+                    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=row.username %}#section0" class="co">{{ row.fan_count }} fans</a></b>
+                    <span class="co cs">({{ row.photo_count }} photos)</a></span><br>
+                    <div class="mtl">
+                    {{ row.thumbs|safe }}
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+        </ul>
+    </div>
 </div>
-
-    <a href="{% url 'top_photo_help' %}#section0"><button class="btn bco cs bxs">?</button></a>&nbsp;&nbsp;<b>Pichle 2 days ke mashoor stars:</b><br><br>
-    {% for row in object_list %}
-    <b class="co cs">{{ forloop.counter }}.</b>
-    <a href="{% url 'profile' slug=row.username %}#section0" class="cb">
-	{% if row.user_profile.avatar %}
-		<img src="{{ row.user_profile.avatar|s3:"thumb" }}" width="22" height="22" alt="no pic"></img>
-	{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic"></img>
-	{% endif %}
-    {{ row.username }}</a>{% if row.username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="no pic">{% endif %}
-	{% if row.user_profile.media_score %}
-		{% if row.user_profile.media_score < 0 %}
-	    	<span class="cs" style="color:#9900cc;">(1)</span>
-	    {% else %}
-	    	<span class="cs" style="color:#9900cc;">({{ row.user_profile.media_score }})</span>
-		{% endif %}
-    {% else %}
-    {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=row.username %}#section0" class="co">{{ row.fan_count }} fans</a></b>
-    <span class="co cs">({{ row.photo_count }} photos)</a></span><br>
-    <div class="mtl">
-    {{ row.thumbs|safe }}
-    </div>
-    <hr size=1 COLOR="#E0E0E0">
-    {% endfor %}
-    </div>
 <br><br>
 {% endblock %}

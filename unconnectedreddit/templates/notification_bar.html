@@ -59,9 +59,9 @@
 		{% csrf_token %}
 		{% if ident|slugify == parent.id1 %}
 			{% if parent.id2 == parent.anon1 or parent.id2 == parent.anon2 %}
-				<button type="submit" name="tid" class="cl mrs" value="{{ parent.id2 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname2|truncap }}</b>&nbsp;se private chat</button>
+				<button type="submit" name="tid" class="cl mrs" value="{{ parent.id2 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname2|truncap }}</b>&nbsp;se 1 on 1</button>
 			{% else %}
-				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id2 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname2|truncatechars:15 }}</b> se private chat</button>
+				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id2 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname2|truncatechars:15 }}</b> se 1 on 1</button>
 			{% endif %}
 			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none;" value="{{ parent.id2 }}">
 			<div id="line"></div>
@@ -70,9 +70,9 @@
 			</button>
 		{% else %}
 			{% if parent.id1 == parent.anon1 or parent.id1 == parent.anon2 %}
-				<button type="submit" name="tid" class="cl mrs" value="{{ parent.id1 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname1|truncap }}</b>&nbsp;se private chat</button>
+				<button type="submit" name="tid" class="cl mrs" value="{{ parent.id1 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname1|truncap }}</b>&nbsp;se 1 on 1</button>
 			{% else %}
-				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id1 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname1|truncatechars:15 }}</b> se private chat</button>
+				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id1 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname1|truncatechars:15 }}</b> se 1 on 1</button>
 			{% endif %}
 			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none;" value="{{ parent.id1 }}">
 			<div id="line"></div>
@@ -94,11 +94,11 @@
 			</div>
 		{% else %}
 			{% if parent.type == 'exited' %}
-				<div class="cs sp mbs">{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}{{ parent.lrsn|truncap }}{% else %}{{ parent.lrsn|truncatechars:12 }}{% endif %} ne private chat chore di</div>
+				<div class="cs sp mbs">{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}{{ parent.lrsn|truncap }}{% else %}{{ parent.lrsn|truncatechars:12 }}{% endif %} ne 1 on 1 chore di</div>
 			{% elif parent.type == 'reentry' %}
-				<div class="cs sp mbs">{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}{{ parent.lrsn|truncap }}{% else %}{{ parent.lrsn|truncatechars:12 }}{% endif %} chori hui private chat mein wapis aa gaya</div>
+				<div class="cs sp mbs">{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}{{ parent.lrsn|truncap }}{% else %}{{ parent.lrsn|truncatechars:12 }}{% endif %} chori hui 1 on 1 mein wapis aa gaya</div>
 			{% elif parent.type == 'creation' %}
-				<div class="cs sp mbs">Chat start karney ke liye neechay likhein:</div>
+				<div class="cs sp mbs">1 on 1 start karney ke liye neechay likhein:</div>
 			{% elif parent.type == 'notif' %}
 				<div class="cs sp mbl">New permission:</div>
 				<div class="mbs" style="overflow:hidden">
@@ -267,7 +267,7 @@
 		<div class="bizcard box dby mbl" style="padding:5px">
 		
 		<div class="mbl" style="overflow:hidden">
-		<a href="{% url 'comment_pk' parent_pk 6 %}" class="cb">
+		<a href="{% url 'comment_pk' parent_pk origin %}" class="cb">
 		{% if parent.v|add:"0" < VDC %}
 			<img src="{{ static_url }}img/broken_pic_small.png" class="cxs sp" alt="pic" style="border-radius:4px" width="38" height="38">
 		{% elif parent.v|add:"0" < VDP %}

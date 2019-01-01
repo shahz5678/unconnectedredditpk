@@ -1,15 +1,15 @@
 {% extends "base_pg.html" %}
-{% load s3 %}
 {% load truncap %}
 {% block content %}
-<head><title>SMS settings for private messaging | Damadam.pk</title></head>
+<head><title>SMS settings for 1 on 1 messaging | Damadam.pk</title></head>
 <div class="margin clb" style="max-width:420px;width:92%;">
 
 	<div style="text-align:center">
 		{% if their_anon %}
-			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+			{% load s3 %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
 		{% endif %}
 	</div>
 	<hr size=1 COLOR="#ffeb3b">

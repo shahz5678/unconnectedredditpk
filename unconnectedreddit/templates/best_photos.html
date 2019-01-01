@@ -3,62 +3,26 @@
 {% load s3 %}
 {% load human_time %}
 {% load show_error %}
+{% load get_photo_object %}
 {% load mathfilters %}
 {% load emoticons_tags %}
-{% load get_fan_button %}
-{% load get_voting %}
-{% load get_curate_photo %}
+{% load get_big_fan_button %}
+{% load get_big_send_button %}
+{% load get_transparent_buttons_js %}
+{% load get_big_group_button %}
+{% load get_big_vote_button %}
+{% load get_big_photo_comment_button %}
 {% load get_notification_bar %}
+{% load get_big_external_share_button %}
 {% load get_photo_comment_bar %}
 {% load get_photo_comments_section %}
 {% block content %}
 
-<head><title>Trending photos and memes | Damadam.pk</title></head>
+<head><title>Best photos and memes | Damadam.pk</title></head>
 
-<style>
+<style>body{background: #E9EBEE}</style>
 
-
-body{background: #E9EBEE}
-
-.secondary-nav {
-	text-align: center;
-
-}
-
-.circular-button {
-
-	border-radius: 17px 17px 17px 17px; 
-	height:65px; 
-	width:65px;  
-	border:none;
-	margin-left:25px
-
-}
-	
-
-.secondary-nav .circular-button:hover  {
-    background-color:#FF9800 !important;
-    color:white !important;
-}
-
-
-@media only screen and (max-width: 260px) {
-  
-
-.circular-button {
-
-	height:40px; 
-	width:41px; 
-	border-style:none; 
-	margin-left:1px;
-	font-size:10px;
-	margin:2%;
-
-}
-}
-</style>
-
-<div class="margin">
+<div style="max-width:600px;margin:0 auto;width:92%">
 {% if newbie_flag %}
 	{% load get_newbie_rules %}
 	<div class="mbs mts">
@@ -66,149 +30,64 @@ body{background: #E9EBEE}
 	</div>
 	<br>
 {% else %}
-	<!-- -->
-
-	<!-- -->
-	{% if home_rules %}{{ home_rules|safe }}{% endif %}
 	
-	{% include "verification/mobile_verification_bar.html" with is_user_verified=mobile_verified static_url=STATIC_URL %}
+	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
 	{% notification_bar notification=process_notification origin='2' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
 
-	{% if score >= threshold and not banned %}
-	{% include "upload_photo_button.html" %}
-	<br>
+	{% include "photos_navbar.html" with section='best' static_url=STATIC_URL %}
 
-	{% elif banned %}
-	{% elif first_time_user %}
-	{% else %}
-	<span class="co cm">Foto charhane ke liye apna <a href="{% url 'score_help' %}"><button class="btn nw bxl bco mbs"><b>score barhao</b></button></a></span><br>
-	{% endif %}
-
-<div class="secondary-nav mbl mts">
-<button class="circular-button" style="color:#FF8F00; background-color:#FFECB3; margin-left:0px;">Best<br>fotos</button><a href="{% url 'photo' %}#section0"><button class="circular-button" style="color:#808080; background-color:#CCCCCC">Latest<br>fotos</button></a><a href="{% url 'top_photo' %}#section0" ><button class="circular-button" style="color:#808080; background-color:#CCCCCC">Top<br>stars</button></a>
-<hr size=1 style="border-color:#ffa726;margin-top:-1.9em; margin-left:0" ><br>
-</div>
+	<h1 style="text-align:center" class="cxl lsp clb">Best fotos:</h1>
 
 {% endif %}	
 
 {% for photo in object_list %}
-<div class="bizcard" style="background-color:white;position: relative; margin-bottom:35px; margin-top:10px; padding:3px;padding-bottom:10px;">
-
+	
+<div class="bizcard" style="background-color:white;position:relative;padding:3px;margin-top:15px;margin-bottom:20px">
 	<a name="section{{ forloop.counter }}"></a>
 	
-	<div itemscope itemtype="http://schema.org/CreativeWork">
-	<span itemprop="creator">
-	<a href="{% url 'profile' photo.o %}#section0"  class="mrl mtl">
-	{% if photo.oa != 'None' and username == photo.o %}
-		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:50%;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #00B800;">&nbsp;</button>
-	{% elif photo.oa != 'None' %}
-		<button class="mbs" alt="{{ photo.ca }}" style="background-image: url({{ photo.oa|s3:"thumb" }});border-radius:50%;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border: 1px solid #A9A9A9;">&nbsp;</button>
-	{% else %}
-		
-		<button class="mbs" alt="no avatar" style="background-image: url({{ STATIC_URL }}img/default-avatar-min.jpg);border-radius:50%;background-repeat: no-repeat;background-position: center;width:24px;height:24px;border:1px solid #E0E0E0;">&nbsp;</button>
-	{% endif %}
-	</a></span>
+	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=2 upload_time=photo.t|human_time vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p score=photo.sc %}
 
-	{% if photo.vo|add:"0" < -50 %}
-		<span class="co">&nbsp;{{ photo.o|truncatechars:15 }} ko buri fotos lagane se ban kr diya gaya&nbsp;{% emoticons %}.h1{% endemoticons %}</span>
-		<hr size=1 COLOR="#ff9933">
-	{% else %}
-		{% if photo.co|default_if_none:"0"|add:"0" > 6 %}
-			<a href="{% url 'comment_pk' photo.i 2 %}" class="cl cb">
-			<button class="btn nw bl cs mbs mts mrl" style="color:#ff8000;background-color:#F8F8F8;border:1px solid #B8B8B8;height:22px">
-			<span itemprop="commentCount"><b>{{ photo.co }}</b></span> tabsrey</button></a>
+	<div class="mls">
+	<div style="flex-wrap:wrap" class="fx fxjsfs fxaicn cxs sp cgy">
+	{% big_vote_button vote_type='photo_vote' obid=photo.i origin=2 net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL %}
+	{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin='2' fan_list=fanned static_url=STATIC_URL %}
+	{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin='2' target_username=photo.su %}
+	{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin='2' img_url=photo.iu static_url=STATIC_URL %}
+	{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin='2' static_url=STATIC_URL %}
+	{% big_photo_comment_button photo_id=photo.i origin='2' comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+	</div>
 
-		{% endif %}
-			
-		<div style="display:inline-block">
-		{% fan_button own_user_id=ident target_user_id=photo.oi object_id=photo.i origin=3 fan_list=fanned static_url=STATIC_URL %}
-		</div>
+	{% photo_comments_section raw_comments=photo.comms static_url=STATIC_URL self_user_id=ident origin='2' score=score %}
 
-		<div style="display:inline-block">
-		{% curate_photo pid=photo.i vsc=photo.vo oun=photo.o caption=photo.ca oid=photo.oi purl=photo.u|s3:"thumb" origin=2 static_url=STATIC_URL %}
-		</div>
+	<div class="mts mrs mbs">
+	{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form '2' sk %}
+	</div>
+	</div>
 
-		<br>	
-		
-
-
-{% if photo.vo|add:"0" < -2 %}
-		<span class="cgy">--- --- ---</span><br>
-		{% else %}
-		<div itemscope itemtype="http://schema.org/ImageObject">
-		<div style="overflow:hidden"><span itemprop="caption"><b class="cl clb"><bdi>{% emoticons %}{{ photo.ca }}{% endemoticons %}</bdi></b></span></div>
-		{% endif %}
-			<span itemprop="contentUrl">
-			{% if photo.vo|add:"0" < -2 %}
-				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png" style="border-radius:12px">
-			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px">
-			{% else %}
-				<img class="pht" src="{{ photo.u|s3 }}" alt="{{ photo.ca }}" style="border-radius:12px">
-			{% endif %}<br>
-			</span>
-			</div>
-			
-			<div class="cgy cxs sp">
-			<span class="mrs">uploaded {{ photo.t|human_time }} {% if photo.fbs == '1' %}(fbs){% endif %}</span>
-			<form method="POST" action="{% url 'share_photo_in_personal_group' %}" style="display:inline">
-			{% csrf_token %}
-			<input type="hidden" name="pl" value="{{ photo.o }}:{{ photo.i }}:2:{{ photo.oi }}:{{ photo.ca }}">
-			<button name="purl" class="pg_ok_res" style="background:0 0;border:none;padding:0;margin:0" value="{{ photo.u }}"><img src="{{ STATIC_URL }}img/send.svg" width="18" height="18" style="vertical-align:middle"></button>
-			</form>
-			</div>
-
-			{% if can_vote and photo.i not in voted and photo.o != username %}
-				{% vote_buttons vote_type='photo_vote' pid=photo.i origin=2 oun=photo.o static_url=STATIC_URL %}
-			{% endif %}
-
-
-			<span itemprop="contentRating">
-			<a href="{% url 'photo_izzat' photo.i 2 %}">
-			{% if photo.vi|add:"0" > 1 %}
-			<button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">{{ photo.vi }}&nbsp;points</span></button>
-			{% elif photo.vi|add:"0" == 1 %}
-			<button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#00C853"><span style="vertical-align: middle">1&nbsp;point</span></button>
-			{% else %}
-			<button class="btn bl mts mbs mrl sp" style="background-color:#F8F8F8;height:34px;border:1px solid #B8B8B8;color:#F44336"><span style="vertical-align: middle">{{ photo.vi }}&nbsp;points</span></button>
-			{% endif %}
-			</a></span>
-
-			{% if is_mob %}
-			<a rel="nofollow" target="_blank" href="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-link="whatsapp://send?text=https://damadam.pk/photo_detail/{{ photo.i }}" data-action="share/whatsapp/share">
-			<button class="btn bl mts mbs" style="height:34px;background-color:#26CC66"><img src="{{ STATIC_URL }}img/whatsapp_small.svg" style="vertical-align: middle; display: inline"><span class="mls sp" style="color:white;font-weight:bold;vertical-align: middle">Share</span></button>
-			</a>
-			{% endif %}
-
-			</div>
-
-			{% if photo.comments %}
-				{% photo_comments_section photo.comments STATIC_URL ident '2' score %}
-			{% endif %}
-
-			<div class="mts">{% photo_comment_bar photo.i photo.oi lang sort_by ident comment_form '2' sk %}</div>
 </div>
-	{% endif %}
-	{% empty %}
+{% empty %}
 
-	<span class="clb">Top fotos kuch time mein nazr aien gi!</span>
-	<p><hr size=1 COLOR="#ff9933"></p>
+<div class="clb bizcard sp" style="text-align:center;background:white;padding:10px">Top fotos kuch time mein nazr aien gi!</div>
 
 {% endfor %}
 
-<br><div style="text-align: center;">
+	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
 		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button class="btn bm bcr mbl"><bdi>wapis</bdi></button></a>
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+	    </div>
 	    {% endif %}
-	    &nbsp;&nbsp;
 	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="btn bm bcg"><bdi>aagey</bdi></button></a>
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+	    </div>
 	    {% endif %}
 	</div>
-</div>
-<br><br>
 
+</div>
+<br>
+{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 {% endblock %}
 

@@ -11,22 +11,22 @@
 {% load get_personal_group_hidden_pht_small %}
 {% load get_personal_group_deleted_post_message %}
 {% block content %}
-<head><title>Saving posts in private messaging | Damadam.pk</title></head>
+<head><title>Saving messages in 1 on 1 | Damadam.pk</title></head>
 
 	<div class="margin clb nos" style="max-width:420px;width:92%;">
 
 		<div style="text-align:center">
         {% if their_anon %}
-          <span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+          <span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
         {% else %}
-          <span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+          <span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
         {% endif %}
        </div>
        <hr size=1 COLOR="#ffeb3b">
 
        	<div class="lsp mbs mtl">
-            <span class="cl"><b>Important</b>: Ye ijazat milney par {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} apki is private chat ki koi bhi baat hamesha ke liye save kar sakey ga</span><br>
-            <div class="cl mtl mbs">Kya phir bhi {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apki chat save karney ki ijazat deni hai?</div>
+            <span class="cl"><b>Important</b>: Ye ijazat milney par {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} apki is 1 on 1 ka koi bhi message hamesha ke liye save kar sakey ga</span><br>
+            <div class="cl mtl mbs">Kya phir bhi {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apke messages save karney ki ijazat deni hai?</div>
         </div>
 
         <form action="{% url 'personal_group_grant_chat_saving_perm' %}" method="POST" class="mts mbl" style="text-align:center">

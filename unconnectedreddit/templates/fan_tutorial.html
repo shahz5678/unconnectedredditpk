@@ -13,6 +13,7 @@
  	{% csrf_token %}
 	<input type="hidden" name="oid" value="{{ obj_id }}">
 	<input type="hidden" name="org" value="{{ origin }}">
+	<input type="hidden" name="hh" value="{{ home_hash }}">
 	<button type="submit" name="sid_btn" class="mbs mts bm pg_ok_res sp" style="height:26px;background-color:#FFCD00;color:white;border:none;font-weight:bold" value="{{ star_id }}">OK</button>
 </form>
 </div>

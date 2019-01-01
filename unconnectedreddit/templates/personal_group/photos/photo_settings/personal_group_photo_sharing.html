@@ -3,7 +3,7 @@
 {% load truncap %}
 {% load get_personal_group_hidden_pht_from_settings %}
 {% block content %}
-<head><title>Shared photo settings for private messaging | Damadam.pk</title></head>
+<head><title>Shared photo settings for 1 on 1 messaging | Damadam.pk</title></head>
 <div class="margin clb" style="max-width:420px;width:92%;">
 
 {% if new_phrec_value == '1' %}
@@ -12,7 +12,7 @@
 		<span class="cxl">Ap ne {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko fotos bhejney ki ijazat de di</span>
 		<hr size=1 COLOR="#E6E6E6">
 		<div class="mt cl cgy">
-			Chat mein janey ke liye OK dabain:<br>
+			1 on 1 mein janey ke liye OK dabain:<br>
 			<form method="POST" action="{% url 'enter_personal_group' %}">
 				{% csrf_token %}
 				<input type="hidden" name="tid" value="{{ tid }}">
@@ -27,7 +27,7 @@
 		<span class="cxl">Ab {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} apko fotos nahi bhej sakta</span>
 		<hr size=1 COLOR="#E6E6E6">
 		<div class="mt cl cgy">
-			Chat mein janey ke liye OK dabain:<br>
+			1 on 1 mein janey ke liye OK dabain:<br>
 			<form method="POST" action="{% url 'enter_personal_group' %}">
 				{% csrf_token %}
 				<input type="hidden" name="tid" value="{{ tid }}">
@@ -42,7 +42,7 @@
 		<span class="cxl">Apki tamam fotos mita di gien</span>
 		<hr size=1 COLOR="#E6E6E6">
 		<div class="mt cl cgy">
-			Chat mein janey ke liye OK dabain:<br>
+			1 on 1 mein janey ke liye OK dabain:<br>
 			<form method="POST" action="{% url 'enter_personal_group' %}">
 				{% csrf_token %}
 				<input type="hidden" name="tid" value="{{ tid }}">
@@ -58,7 +58,7 @@
 		<span class="cxl">Apki miti hui tamam fotos bahal kar di gien</span>
 		<hr size=1 COLOR="#E6E6E6">
 		<div class="mt cl cgy">
-			Chat mein janey ke liye OK dabain:<br>
+			1 on 1 mein janey ke liye OK dabain:<br>
 			<form method="POST" action="{% url 'enter_personal_group' %}">
 				{% csrf_token %}
 				<input type="hidden" name="tid" value="{{ tid }}">
@@ -72,9 +72,9 @@
 
 	<div style="text-align:center">
 		{% if their_anon %}
-			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se private chat</span>
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se private chat</span>
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
 		{% endif %}
 	</div>
 	<hr size=1 COLOR="#ffeb3b">

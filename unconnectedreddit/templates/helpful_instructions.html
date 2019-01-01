@@ -10,7 +10,7 @@
 	<div class="bizcard clb" style="border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:300px;width:95%;padding:10px">
 		{% if personal_group_invite_privacy %}
 
-			<div class="cxl mbs">Khufiya invite bhej dia gya!</div>
+			<div class="cxl mbs">1 on 1 ka khufiya invite bhej dia gya!</div>
 			<hr size=1 COLOR="#ffeb3b">
 			<div class="lsp cl mbs">
 				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ko apke invite mein <a href="{% url 'profile' oun %}"><b class="cb">{{ oun }}</b></a> ke bajai sirf <a href="{% url 'profile' oun %}"><b class="cb">{{ oun|truncap }}</b></a> nazr aye ga
@@ -18,56 +18,27 @@
 
 		{% elif personal_group_invite_sent %}
 
-			<div class="cxl lsp"><img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="vertical-align: sub;border-radius: 50%;">&nbsp;{{ tun|truncatechars:15 }} ko private chat ka invite bhej dia gya!</div>
+		<div class="cxl lsp"><img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="vertical-align: sub;border-radius: 50%;">&nbsp;{{ tun|truncatechars:15 }} ko 1 on 1 ka invite bhej dia gya!</div>
 
 		{% else %}
 
-			<div class="cxl lsp"><img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="vertical-align: sub;border-radius: 50%;">&nbsp;{{ tun|truncatechars:15 }} ko private chat ka invite bhej dia gya!</div>
+		<div class="cxl lsp"><img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="vertical-align: sub;border-radius: 50%;">&nbsp;{{ tun|truncatechars:15 }} ko 1 on 1 ka invite bhej dia gya!</div>
 
 		{% endif %}
 
-			<div class="mt" style="text-align:center">
-				{% if org == 'publicreply' %}
-					<form method="POST" class="mtl mbs" action="{% url 'publicreply_view' %}">
-					{% csrf_token %}
-						<input type="hidden" name="lid" value="{{ poid }}">
-						<button class="btn bcb bm pg_ok_res sp" style="height:30px">wapis</button>
-					</form>
-				{% elif org == 'private' %}
-					<form method="POST" class="mtl mbs" action="{% url 'priv_group' %}">
-					{% csrf_token %}
-						<input type="hidden" name="private_uuid" value="{{ poid }}">
-						<button class="btn bcb bm pg_ok_res sp" style="height:30px">wapis</button>
-					</form>
-				{% else %}
-					{% if org == 'home' or org == 'home_reply' %}
-					<a href="{% url 'home_loc_pk' poid %}">
-					{% elif org == 'history' %}
-					<a href="{% url 'user_activity' user.username %}">
-					{% elif org == 'public' %}
-					<a href="{% url 'public_group' poid %}">
-					{% elif org == 'profile' %}
-					<a href="{% url 'user_profile' poid %}">
-					{% elif org == 'profile_photos' %}
-					<a href="{% url 'profile' poid %}">
-					{% elif org == 'best_photos' %}
-					<a href="{% url 'best_photo_loc_pk' poid %}">
-					{% elif org == 'fresh_photos' %}
-					<a href="{% url 'see_photo_pk' poid %}">
-					{% elif org == 'photo_comments' %}
-					<a href="{% url 'comment' poid %}">
-					{% else %}
-					<a href="{% url 'home' %}">
-					{% endif %}
-					<button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:30px">wapis</button>
-					</a>
-				{% endif %}
+		<form method="POST" class="mtl mbl" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}
+			<input type="hidden" name="obid" value="{{ poid }}">
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ tun }}">
+			<button type="submit" class="btn bcb bm pg_ok_res sp" style="height:30px">wapis</button>
+		</form>
 
-				<form method="POST" class="mts" action="{% url 'show_personal_group_invite_list' 'sent' %}">
-				{% csrf_token %}
-				<input type="submit" class="cs sp cgy" style="background:0 0;border-top:0;border-left:0;border-right:0;border-bottom:1px dotted #A9A9A9;padding:0" value="see all invites">
-				</form>
-			</div>
+		<form method="POST" class="mts" action="{% url 'show_personal_group_invite_list' 'sent' %}">
+			{% csrf_token %}
+			<input type="submit" class="cs sp cgy" style="background:0 0;border-top:0;border-left:0;border-right:0;border-bottom:1px dotted #A9A9A9;padding:0" value="see all invites">
+		</form>
 	</div>
 
 </div>

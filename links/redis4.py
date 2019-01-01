@@ -6,7 +6,7 @@ from datetime import datetime
 from django.contrib.auth.models import User
 from location import REDLOC4
 from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD, \
-SHARED_PHOTOS_CEILING, PHOTO_DELETION_BUFFER
+SHARED_PHOTOS_CEILING, PHOTO_DELETION_BUFFER, NUM_SUBMISSION_ALLWD_PER_DAY, CONTENT_SHARING_SHORT_RATELIMIT, CONTENT_SHARING_LONG_RATELIMIT
 from models import UserProfile, Photo
 
 '''
@@ -248,6 +248,54 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return '1'
 
 
+######################## Rate limiting content sharing on feeds ########################
+
+
+def rate_limit_content_sharing(user_id):
+	"""
+	Rate limits users from sharing content too fast
+	"""
+	user_id = str(user_id)
+	content_submission_attempts = 'csa:'+user_id
+	long_rate_limit_key = 'lcsrl:'+user_id
+	short_rate_limit_key = 'scsrl:'+user_id
+	my_server = redis.Redis(connection_pool=POOL)
+	# SETTING SHORT RATE LIMIT KEY
+	my_server.setex(short_rate_limit_key,'1',CONTENT_SHARING_SHORT_RATELIMIT)
+	# SETTING LONG RATE LIMIT KEY
+	# first set attempts for the day
+	is_set = my_server.setnx(content_submission_attempts,1)
+	if is_set:
+		# key didn't hitherto exist, now set its ttl
+		my_server.expire(content_submission_attempts,CONTENT_SHARING_LONG_RATELIMIT)
+	else:
+		# key already exists, log attempt
+		total_attempts = my_server.incr(content_submission_attempts)
+		if total_attempts > (NUM_SUBMISSION_ALLWD_PER_DAY-1):
+			# this person has submitted content 20 times in ONE_DAY and is trying to submit a 21st piece, rate limit them
+			remaining_time_in_one_day = my_server.ttl(content_submission_attempts)
+			my_server.setex(long_rate_limit_key,total_attempts,remaining_time_in_one_day)
+
+
+def content_sharing_rate_limited(user_id):
+	"""
+	Returns ttl if content sharing is rate limited
+	"""
+	user_id = str(user_id)
+	long_rate_limit_key = 'lcsrl:'+user_id
+	short_rate_limit_key = 'scsrl:'+user_id
+	my_server = redis.Redis(connection_pool=POOL)
+	# first check long rate limit key
+	lttl = my_server.ttl(long_rate_limit_key)
+	# then check short rate limit key
+	sttl = my_server.ttl(short_rate_limit_key)
+	if lttl > 4:
+		return lttl, 'long'
+	elif sttl > 4:
+		return sttl, 'short'
+	else:
+		return None, ''
+
 ######################## Shared urls caching (for private chat) ########################
 
 def cache_meta_data(url, mapping, time_timen_to_sniff, time_taken_to_parse, is_youtube, deg_of_comp):
@@ -324,20 +372,20 @@ def retrieve_photo_data(photo_ids, owner_id):
 
 
 def rate_limit_unfanned_user(own_id,target_id):
-    """
-    Rate limit to ensure unfanned user doesn't refan the star immediately after
-    """
-    redis.Redis(connection_pool=POOL).setex('rlf:'+str(own_id)+":"+str(target_id),'1',TWO_WEEKS)
+	"""
+	Rate limit to ensure unfanned user doesn't refan the star immediately after
+	"""
+	redis.Redis(connection_pool=POOL).setex('rlf:'+str(own_id)+":"+str(target_id),'1',TWO_WEEKS)
 
 
 def is_potential_fan_rate_limited(star_id,own_id):
-    """
-    Checking if allowed to fan the star, or is rate-limited due to a previous unfanning event
-    """
-    if redis.Redis(connection_pool=POOL).ttl('rlf:'+str(star_id)+":"+str(own_id)) > 0:
-        return True
-    else:
-        return False
+	"""
+	Checking if allowed to fan the star, or is rate-limited due to a previous unfanning event
+	"""
+	if redis.Redis(connection_pool=POOL).ttl('rlf:'+str(star_id)+":"+str(own_id)) > 0:
+		return True
+	else:
+		return False
 
 
 ###################### User credentials caching ######################

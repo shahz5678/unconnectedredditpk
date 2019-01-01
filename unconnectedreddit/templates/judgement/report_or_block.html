@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+
+<head><title>Report or block | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb lsp" style="text-align:center">Take action:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+	<img src="{{ STATIC_URL }}img/warn_g.svg" alt="report" style="overflow:hidden" class="mbs mts" width="50" height="50">
+	<div style="border-bottom:1px solid #BEEEF7;max-width:180px;margin:0 auto"></div>
+	
+	{% if type == 'img' %}
+		
+		<img src="{{ thumb_url }}" alt="pic" class="mtl mrs" height="38" style="overflow:hidden;border-radius:5px"><div class="cxs cgy mbl sp">uploaded by <b>{{ oun|truncatechars:'13' }}</b></div>
+		{% if allwd %}
+			<div class="fx fxjscn">
+			<form method="POST" style="padding:10px" action="{% url 'report_content' %}">
+				{% csrf_token %}
+				<input type="hidden" name="orig" value="{{ org }}">
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="purl" value="{{ thumb_url }}">
+				<input type="hidden" name="ooid" value="{{ ooid }}">
+				<input type="hidden" name="cap" value="{{ cap }}">
+				<input type="hidden" name="oun" value="{{ oun }}">
+				<input type="hidden" name="tp" value="{{ type }}">
+				<button value="{{ obid }}" style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" name="report" type="submit"><img src="{{ STATIC_URL }}img/report_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><br><div style="font-size:10.2px" class="mts cgy lsp">REPORT<br>FOTO</div></button>
+			</form>
+			<form method="POST" style="padding:10px" action="{% url 'enter_inter_user_ban' %}">
+			  {% csrf_token %}
+			  <input type="hidden" name="tunm" value="{{ oun }}">
+			  <input type="hidden" name="orig" value="{{ org }}">
+			  <input type="hidden" name="lid" value="{{ lid }}">
+			  <input type="hidden" name="obid" value="{{ obid }}">
+			  <button style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" value="{{ hid }}" name="tuid" type="submit"><img src="{{ STATIC_URL }}img/block_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><div class="mts cgy lsp" style="font-size:10.2px">BLOCK<br>USER</div></button>
+			</form>
+			</div>
+			<div class="mtl sp" style="border-top:1px dashed #C0C0C0;padding-top:10px">
+				<form method="POST" action="{% url 'redirect_to_content' %}">
+				{% csrf_token %}
+				<input type="hidden" name="orig" value="{{ org }}">
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="oun" value="{{ oun }}">
+				<button type="submit" name="obid" class="cgy cl pg_ok_res sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" value="{{ obid }}">wapis</button>
+				</form>
+			</div>
+		{% else %}
+			<div class="cl lsp cr mbs" style="max-width:400px;margin:0 auto"><b>Sorry!</b> Ap apni foto ko report nahi kar saktey, na hi apney ap ko block kar saktey hain</div>
+
+			<form method="POST" class="mtl mbs" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<button type="submit" name="obid" class="btn bm bcb pg_ok_res sp" style="height:26px" value="{{ obid }}">OK</button>
+			</form>
+			
+		{% endif %}
+
+	{% elif type == 'tx' %}
+
+		<div class="mts cm clb sp">"{% emoticons %}{{ cap|truncatechars:'50' }}{% endemoticons %}"</div><div class="cxs cgy mts mbl sp">submitted by <b>{{ oun|truncatechars:'13' }}</b></div>
+		{% if allwd %}
+			<div class="fx fxjscn">
+			<form method="POST" style="padding:10px" action="{% url 'report_content' %}">
+				{% csrf_token %}
+				<input type="hidden" name="orig" value="{{ org }}">
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="purl" value="{{ av_url }}">
+				<input type="hidden" name="ooid" value="{{ ooid }}">
+				<input type="hidden" name="cap" value="{{ cap }}">
+				<input type="hidden" name="oun" value="{{ oun }}">
+				<input type="hidden" name="tp" value="{{ type }}">
+				<button value="{{ obid }}" style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" name="report" type="submit"><img src="{{ STATIC_URL }}img/report_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><br><div style="font-size:10.2px" class="mts cgy lsp">REPORT<br>TEXT</div></button>
+			</form>
+			<form method="POST" style="padding:10px" action="{% url 'enter_inter_user_ban' %}">
+			  {% csrf_token %}
+			  <input type="hidden" name="tunm" value="{{ oun }}">
+			  <input type="hidden" name="orig" value="{{ org }}">
+			  <input type="hidden" name="lid" value="{{ lid }}">
+			  <input type="hidden" name="obid" value="{{ obid }}">
+			  <button style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" value="{{ hid }}" name="tuid" type="submit"><img src="{{ STATIC_URL }}img/block_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><div class="mts cgy lsp" style="font-size:10.2px">BLOCK<br>USER</div></button>
+			</form>
+			</div>
+			<div class="mtl sp" style="border-top:1px dashed #C0C0C0;padding-top:10px">
+				<form method="POST" action="{% url 'redirect_to_content' %}">
+				{% csrf_token %}
+				<input type="hidden" name="orig" value="{{ org }}">
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="oun" value="{{ oun }}">
+				<button type="submit" name="obid" class="cgy cl pg_ok_res sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" value="{{ obid }}">wapis</button>
+				</form>
+			</div>
+		{% else %}
+			<div class="cl lsp cr mbs" style="max-width:400px;margin:0 auto"><b>Sorry!</b> Ap apney text ko report nahi kar saktey, na hi apney ap ko block kar saktey hain</div>
+
+			<form method="POST" class="mtl mbs" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<button type="submit" name="obid" class="btn bm bcb pg_ok_res sp" style="height:26px" value="{{ obid }}">OK</button>
+			</form>
+
+		{% endif %}
+	{% elif type == 'pf' %}
+
+		<img src="{{ thumb_url }}" alt="pic" class="mtl mrs" height="38" style="overflow:hidden;border-radius:5px"><div class="cs mbl sp"><span class="cgy">profile:&nbsp;<b>{{ oun }}</b></span></div>
+		{% if allwd %}
+			<div class="fx fxjscn">
+			<form method="POST" style="padding:10px" action="{% url 'report_content' %}">
+				{% csrf_token %}
+				<input type="hidden" name="orig" value="{{ org }}">
+				<input type="hidden" name="purl" value="{{ thumb_url }}">
+				<input type="hidden" name="ooid" value="{{ ooid }}">
+				<input type="hidden" name="oun" value="{{ oun }}">
+				<input type="hidden" name="tp" value="{{ type }}">
+				<button value="{{ obid }}" style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" name="report" type="submit"><img src="{{ STATIC_URL }}img/report_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><br><div style="font-size:10.2px" class="mts cgy lsp">REPORT<br>USER</div></button>
+			</form>
+			<form method="POST" style="padding:10px" action="{% url 'enter_inter_user_ban' %}">
+			  {% csrf_token %}
+			  <input type="hidden" name="tunm" value="{{ oun }}">
+			  <input type="hidden" name="orig" value="{{ org }}">
+			  <input type="hidden" name="obid" value="{{ obid }}">
+			  <button style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" value="{{ hid }}" name="tuid" type="submit"><img src="{{ STATIC_URL }}img/block_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><div class="mts cgy lsp" style="font-size:10.2px">BLOCK<br>USER</div></button>
+			</form>
+			</div>
+			<div class="mtl sp" style="border-top:1px dashed #C0C0C0;padding-top:10px">
+				<form method="POST" action="{% url 'redirect_to_content' %}">
+				{% csrf_token %}
+				<input type="hidden" name="orig" value="{{ org }}">
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<input type="hidden" name="oun" value="{{ oun }}">
+				<button type="submit" name="obid" class="cgy cl pg_ok_res sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" value="{{ obid }}">wapis</button>
+				</form>
+			</div>
+		{% else %}
+			<div class="cl lsp cr mbs" style="max-width:400px;margin:0 auto"><b>Sorry!</b> Ap apni profile ko report nahi kar saktey, na hi apney ap ko block kar saktey hain</div>
+
+			<form method="POST" class="mtl mbs" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<button type="submit" name="obid" class="btn bm bcb pg_ok_res sp" value="{{ obid }}" style="height:26px">OK</button>
+			</form>
+		{% endif %}
+
+	{% endif %}
+
+</div>
+
+<br><br>
+{% endblock %}

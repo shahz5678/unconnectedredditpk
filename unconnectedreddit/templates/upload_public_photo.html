@@ -1,45 +1,58 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load future_time %}
+{% load emoticons_tags %}
 {% block content %}
 <head><title>Upload public photo or meme | Damadam.pk</title></head>
-<div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
-<div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+<style>body{background: #E9EBEE}</style>
+{% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
+<div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
+<div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye foto kharab hai, koi aur chunein</span></div>
 
-
-<div class="margin clb">
-{% if forbidden and time_remaining == '-1' %}
-    <b>Apko photo lagane ki ijazat nahi!</b><br><br>
-    <span class="cgy cs">Damadam ka mahol saf rakhna ham sab ka kam hai. Is bat ka khyal rakhein</span><br><br>
-    <a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
-{% elif forbidden %}
-    Ap ko photo lagane ki ijazat miley gi&nbsp;&nbsp;<b class="co">{{ time_remaining|naturaltime }}</b><br><br>
-    <span class="cgy cs">Aesi photos lagana jo log pasand karein aur apki profile pe bar bar aien<br><br></span>
-    <a href="{% url 'best_photo' %}#section0"><button class="btn bm bco mts mbs">wapis</button></a>
-{% elif score < threshold %}
-    Photo upload karney ke liye apna <a href="{% url 'score_help' %}"><b>score barhain</b></a>
+{% if forbidden %}
+<h1 class="cxl clb lsp" style="text-align:center">Share foto on Damadam:</h1>
+    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+        <div class="mts mbs cxl lsp cr">Sorry! Ap foto upload nahi kar saktey</div>
+    </div>
 {% else %}
-    <form action="{% url 'upload_public_photo' %}" id="public_photo_form" method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
-    <input type="hidden" name="opt" value="0">
-    <span class="co"><b>Photo</b> ka intikhab karein:</span><br>
-    {% if form.image_file.errors %}
-    <span id="pub_img_upload" class="cr">{{ form.image_file.errors.0 }}</span><br>
-    {% endif %}
-    {{ form.image_file }}<br><br>
-    <span class="co">Photo pe <b>kuch likhein</b>:</span><br>
-    {% if form.caption.errors %}
-    <span class="cr">{{ form.caption.errors.0 }}</span><br>
-    {% endif %}
-    {{ form.caption }}<br>
+<h1 class="cxl clb lsp" style="text-align:center">Share foto on Damadam:</h1>
+    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:left">
+        {% if show_instructions %}
+            <div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
+            <div style="text-align:center" class="cxl lsp">Welcome! Damadam pe purey Pakistan se users atey hain. Unke sath koi interesting foto share karein!</div>
+            <hr size=1 COLOR="#E9EBEE">
+            <div class="mt sp lsp">1) Maslan poetry, paheliyan (riddles), quotes, jokes, latest news, sports, politics, religion, celebrities, fashion, nature or philosophy</div>
+            <div class="mts sp lsp">2) Apki shared fotos users voting ke zariye like ya dislike karein ge</div>
+            <div class="mts sp lsp">3) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            </div>
+        {% endif %}
+        <div style="font-weight:bold;text-align:center" class="cl sp">{% emoticons %}Don't be boring .e4{% endemoticons %}</div>
+        <hr size=1 COLOR="#E9EBEE">
+        <form action="{% url 'upload_public_photo' %}" id="public_photo_form" class="mtl" method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
+        <input type="hidden" name="opt" value="0">
+        
+        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr sp">{{ form.image_file.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 1: Foto select karein</b></div>{% endif %}
+        <div class="mts mbl">{{ form.image_file }}</div>
+        {% if form.caption.errors %}<div class="cr sp">{{ form.caption.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 2: Foto ka title likhein:</b></div>{% endif %}
+        <div class="mts mbs" style="padding-right:5px">{{ form.caption }}</div>
 
-    <button id="pub_img_subform" class="btn bco bs mts mbs" style="height:25px" type="submit">OK</button><br>
-    <span class="cgy">Photo ki qeemat: <b>3</b> points</span>
+        <button id="pub_img_subform" class="btn bco bl mt pg_ok_res sp" style="height:28px" type="submit">Share</button>
 
-    </form>
+        </form>
+
+        {% if not show_instructions %}
+        <div class="cgy lsp sp cs mbl mtl" style="text-align:left">
+            <div class="mt" style="font-weight:bold">Note:</div>
+            <div class="mts" style="text-align:left">1) One day mein {{ sharing_limit }} se ziyada items share nahi hotay. Sirf apney pasandeeda items share karein</div>
+            <div class="mts" style="text-align:left">2) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mts" style="text-align:left">3) In categories ki fotos share karein: poetry, paheliyan (riddles), jokes, quotes, latest news, sports, politics, religion, celebrities, fashion, nature and philosophy</div>
+        </div>
+        {% endif %}
+
+    </div>
 {% endif %}
 
-</div>
 <br><br>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.8.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.12.js"></script>
 {% endblock %}

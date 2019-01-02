@@ -3,7 +3,7 @@
 	<div class="mbs">
 	  
 	  <a href="{% url 'profile' oun %}" style="text-decoration: none;">
-	  <span itemprop="image"><img src="{{ av_url }}" alt="{{ oun|slice:':1' }}" style="border:1px solid #DCDCDC;position:absolute;margin-left:-16px;margin-top:-16px" width="22" height="22" class="av_btn"></span>
+	  <span itemprop="image"><img src="{{ av_url }}" alt="{{ oun }}" style="border:1px solid #DCDCDC;position:absolute;margin-left:-16px;margin-top:-16px" width="22" height="22" class="av_btn"></span>
 	  </a>
 	  <div class="fx fxjssb">
 	  <div style="padding-left:22px"><a href="{% url 'profile' oun %}" style="text-decoration: none">{% if is_pinkstar %}<img src="{{ static_url }}img/pstar.svg" alt="*" style="color:deeppink" height="13" width="13">&nbsp;{% endif %}<b class="clb cs sp" itemprop="author">{{ oun }}</b>&nbsp;<span class="cxs sp cg">({{ score }})</span></a>&nbsp;<span class="sp cxs cgy" itemprop="datePublished">- {{ upload_time }}</span></div>

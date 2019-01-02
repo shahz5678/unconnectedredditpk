@@ -87,8 +87,8 @@ def cast_vote(request,*args,**kwargs):
 	4) Can't double-vote
 	5) Can't vote if not verified
 	"""	
+	is_ajax = request.is_ajax()
 	if request.method == 'POST':
-		is_ajax = request.is_ajax()
 		if request.user_banned:
 			if is_ajax:
 				request.session["vote_result"] = '11'

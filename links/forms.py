@@ -498,6 +498,8 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		description = description.strip() if description else None
 		if not description or description.isspace():
 			raise forms.ValidationError('Likhna zaruri hai')
+		elif len(description.split('\n')) > 4:
+			raise forms.ValidationError('Itni ziyada new lines nahi dalein!')
 		elif secret_key_from_form != secret_key_from_session:
 			raise forms.ValidationError('Sirf aik dafa button dabain')
 		elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):

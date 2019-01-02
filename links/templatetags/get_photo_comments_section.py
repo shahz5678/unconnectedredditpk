@@ -1,5 +1,5 @@
 from django import template
-from links.redis1 import get_raw_comments
+from links.redis7 import get_raw_comments
 
 register = template.Library()
 

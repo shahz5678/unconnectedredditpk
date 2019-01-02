@@ -277,7 +277,7 @@ def cast_vote(request,*args,**kwargs):
 			return HttpResponse(json.dumps({'success':False,'message':reverse('vote_result'),'type':'redirect'}),\
 				content_type='application/json',)
 		else:
-			return return_to_content(request,origin,obj_id,'img:'+obj_id if is_pht=='1' else 'tx:'+obj_id)
+			return redirect('vote_result')
 
 
 @ratelimit(rate='3/s')

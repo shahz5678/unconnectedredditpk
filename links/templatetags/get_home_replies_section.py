@@ -12,7 +12,7 @@ def home_replies_section(raw_replies, static_url, self_user_id, score, home_hash
 			components = raw_reply.split("#",5)
 			reply = {}
 			reply["is_pinkstar"], reply["epoch_time"], reply["replier_id"], reply['replier_username'], reply["link_id"], reply["text"]  = components[0], \
-			float(components[1]), components[2], components[3], components[4], components[5]
+			float(components[1]), components[2], components[3].decode('utf-8'), components[4], components[5].decode('utf-8')
 			replies.append(reply)
 			counter += 1
 			if counter > 5:

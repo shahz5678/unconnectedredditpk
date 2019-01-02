@@ -280,7 +280,7 @@ def cast_vote(request,*args,**kwargs):
 			return redirect('vote_result')
 
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='5/s')
 def show_voting_summary(request,pk,orig,pht):
 	"""
 	Displays for each home link: net_votes, num of upvotes, num of downvotes, and num of votes by pinkstars

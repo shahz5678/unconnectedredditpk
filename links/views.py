@@ -939,7 +939,7 @@ class SalatSuccessView(ListView):
 
 
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def hide_comment(request,comment_id,photo_id,origin,*args,**kwargs):
 	"""
 	Processing hiding a 'tabsra' of a photo post
@@ -965,7 +965,7 @@ def hide_comment(request,comment_id,photo_id,origin,*args,**kwargs):
 
 
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 	"""
 	Processing hiding a 'jawab' of a home post
@@ -1293,7 +1293,7 @@ def process_salat(request, offered=None, *args, **kwargs):
 @csrf_protect
 # @ratelimit(rate='3/s')
 # @ratelimit(field='user_id',ip=False,rate='22/38s')
-@ratelimit(field='user_id',ip=False,rate='3/s')
+@ratelimit(field='user_id',ip=False,rate='4/s')
 def home_reply(request,pk=None,*args,**kwargs):
 	if getattr(request, 'limits', False):
 		raise Http404("Cannot post home reply")
@@ -3084,7 +3084,7 @@ class VideoCommentView(CreateView):
 # 		except:
 # 			return redirect("best_photo")
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -3591,7 +3591,7 @@ class VideoView(ListView):
 #########################Views for fresh photos#########################
 
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(field='user_id',ip=False,rate='4/s')
 # @ratelimit(field='user_id',ip=False,rate='22/38s')
 def photo_comment(request,pk=None,*args,**kwargs):
 	"""
@@ -4732,7 +4732,7 @@ def first_time_cricket_refresh(request, *args, **kwargs):
 		else:
 			return redirect("cricket_comment")
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def first_time_unseen_refresh(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -5348,7 +5348,7 @@ def public_reply_view(request,*args,**kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-@ratelimit(rate='3/s')
+@ratelimit(field='sk',ip=False,rate='3/s')
 # @ratelimit(field='user_id',ip=False,rate='22/38s')
 def post_public_reply(request,*args,**kwargs):
 	context = {}
@@ -5528,7 +5528,7 @@ class UserSettingsEditView(UpdateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def sharing_help(request):
 	"""
 	Renders a page about sharing ettiquette
@@ -5539,7 +5539,7 @@ def sharing_help(request):
 		return render(request,"content/share_content_help.html",{})
 
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def share_content(request):
 	"""
 	Renders content sharing page, from where would-be sharer can select 'foto' or 'text' type sharing
@@ -5553,7 +5553,7 @@ def share_content(request):
 			else False})
 
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def link_create_pk(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
@@ -6003,7 +6003,7 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		return render(request, 'salat_invite_error.html', context)
 
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def unfan(request):
 	"""
 	Unfans target user, provided target is provably a fan of own_id

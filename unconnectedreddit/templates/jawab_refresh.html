@@ -1,16 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
+<style>body{background: #E9EBEE}</style>
 <head><title>Home reply refreshing tutorial | Damadam.pk</title></head>
-<div class="margin clb">
-	
-	<form method="POST" action="{% url 'publicreply_view' %}">
-	{% csrf_token %}
-	<input type="hidden" name="lid" value="{{ lid }}">
-	<img src="{{ STATIC_URL }}img/rfrsh1.png" style="margin-right:0.6em;" alt="no pic" height="26" width="26"></a>
-	Ye button daba ke yahan pe agar new jawab aye hain toh woh dekhe ja sakte hain
-	<br>
-	<button class="btn bct bl mbs mtl">Theek hai</button>
-	</form>
-
-</div><br><br>
+<br>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp"><img height="23" width="23" src="{{ STATIC_URL }}img/refresh.svg" class="mrs" alt="pic" style="vertical-align:sub"> Is button se ap page refresh kar saktey hain!</div>
+ <hr size=1 COLOR="#E9EBEE">
+<div class="cs sp cgy lsp mbl">Agar koi new jawab aye huay tou woh nazar aa jayein gey</div>
+<form method="POST" action="{% url 'publicreply_view' %}" class="mbs mtl">{% csrf_token %}<input type="hidden" name="lid" value="{{ lid }}"><button class="btn bct bl pg_ok_res sp" style="height:26px">OK</button></form>
+</div>
+<br><br>
 {% endblock %}
+

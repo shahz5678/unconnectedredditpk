@@ -3325,7 +3325,7 @@ class PrivateGroupView(CreateView):
 
 ############################## Rendering and posting to public mehfil ##############################
 
-@ratelimit(rate='3/s')
+@ratelimit(rate='7/s')
 def public_group(request, slug=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if not slug:

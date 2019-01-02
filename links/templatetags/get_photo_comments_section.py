@@ -1,5 +1,5 @@
 from django import template
-from links.redis7 import get_raw_comments
+from links.redis1 import get_raw_comments
 
 register = template.Library()
 
@@ -17,7 +17,7 @@ def photo_comments_section(raw_comments, static_url, self_user_id, origin=None, 
 				components = raw_comment.split("#",5)
 				comment = {}
 				comment["is_pinkstar"], comment["writer_uname"], comment["epoch_time"], comment["commenter_id"], comment["photo_id"],comment["text"] = \
-				components[0], components[1], float(components[2]), components[3], components[4], components[5]
+				components[0], components[1], components[2], components[3], components[4], components[5]
 				comments.append(comment)
 			counter += 1
 			if counter > 5:

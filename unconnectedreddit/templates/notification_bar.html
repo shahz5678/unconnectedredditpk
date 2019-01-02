@@ -24,14 +24,12 @@
 				New jawab:
 				</span>
 				<p style="margin-top:.3em;"></p>
-			{% endif %}	
+			{% endif %}    
 			
 			<div class="mbl" style="overflow:hidden">
 			<a href="{% url 'profile' parent.lrsn %}" class="cb">
 			<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 			{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}
-
-
 			<bdi>{{ parent.lrsn }}</bdi></a>
 			:<bdi class="clb lsp">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cxs sp mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 			</span>
@@ -63,7 +61,7 @@
 			{% else %}
 				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id2 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname2|truncatechars:15 }}</b> se 1 on 1</button>
 			{% endif %}
-			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none;" value="{{ parent.id2 }}">
+			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none;" value="{{ parent.id2 }}">
 			<div id="line"></div>
 			<div id="line"></div>
 			<div id="line" style="width: 8px;"></div>
@@ -74,7 +72,7 @@
 			{% else %}
 				<button type="submit" class="cl mrs" name="tid" value="{{ parent.id1 }}" style="background:0 0;border:none;padding:0;color:#306654"><b>{{ parent.uname1|truncatechars:15 }}</b> se 1 on 1</button>
 			{% endif %}
-			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:3px 5px;border-radius:10px;vertical-align:middle;border:none;" value="{{ parent.id1 }}">
+			<button name="tid" style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none;" value="{{ parent.id1 }}">
 			<div id="line"></div>
 			<div id="line"></div>
 			<div id="line" style="width: 8px;"></div>
@@ -328,11 +326,10 @@
 			<input type="hidden" name="oid" value="{{ parent.oi }}">
 			<input type="hidden" name="org" value="{{ origin }}">
 		{% if fanned %}
-            <button name="sid_btn" class="wt" style="border:1px solid darkgray" type="submit" value="{{ parent.ooi }}"><img src="{{ static_url }}img/unfan.svg" width="16" height="18" alt="fan" class="cxs"></button>
-        {% else %}
-            <button name="sid_btn" class="wt" style="border:1px solid gold" type="submit" value="{{ parent.ooi }}"><img src="{{ static_url }}img/fan.svg" width="16" height="18" alt="unfan" class="cxs"></button>
-        {% endif %}
-
+			<button name="sid_btn" class="wt" style="border:1px solid silver;height:30px;width:30px;padding:0" type="submit" value="{{ parent.ooi }}"><img src="{{ static_url }}img/unfan.svg" width="18" height="18" alt="fan" class="cxs" style="vertical-align:middle"></button>
+		{% else %}
+			<button name="sid_btn" class="wt" style="border:1px solid gold;height:30px;width:30px;padding:0" type="submit" value="{{ parent.ooi }}"><img src="{{ static_url }}img/fan.svg" width="18" height="18" alt="unfan" class="cxs" style="vertical-align:middle"></button>
+		{% endif %}
 		</form>
 		</div>
 		<p style="margin-top:.5em;"></p>

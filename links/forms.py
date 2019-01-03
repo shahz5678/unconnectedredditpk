@@ -619,10 +619,7 @@ class PublicreplyForm(forms.ModelForm):
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,self.link_id,'home_rep')
 		if secret_key_from_form != secret_key_from_session:
-			if self.user_id == 1362004:
-				raise forms.ValidationError('{0} in main form does not match {1}'.format(secret_key_from_form,secret_key_from_session))
-			else:
-				raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		return secret_key_from_form
 
 	def clean_description(self):
@@ -673,10 +670,7 @@ class PublicreplyMiniForm(PublicreplyForm):
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')
 		if secret_key_from_form != secret_key_from_session:
-			if self.user_id == 1362004:
-				raise forms.ValidationError('{0} in mini form does not match {1}'.format(secret_key_from_form,secret_key_from_session))
-			else:
-				raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		return secret_key_from_form
 
 class SearchNicknameForm(forms.Form):
@@ -823,10 +817,7 @@ class PhotoCommentForm(forms.Form):
 				org = 'best_photos'
 			secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
 			if secret_key_from_form != secret_key_from_session:
-				if user_id == 1362004:
-					raise forms.ValidationError('{0} in photo form does not match {1}'.format(secret_key_from_form,secret_key_from_session))
-				else:
-					raise forms.ValidationError('Sirf aik dafa button dabain')
+				raise forms.ValidationError('Sirf aik dafa button dabain')
 			comment = comment.strip() if comment else comment
 			if not comment:
 				raise forms.ValidationError('Pehlay yahan kuch likhein, phir "tabsra kro" button dabain')

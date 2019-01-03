@@ -3964,8 +3964,6 @@ def best_photos_list(request,*args,**kwargs):
 		context["mobile_verified"] = request.mobile_verified
 		secret_key = uuid.uuid4()
 		context["sk"] = secret_key
-		if user_id in (1410395,1362004):
-			print secret_key
 		set_text_input_key(user_id, '1', 'best_photos', secret_key)
 		############################################# Home Rules #################################################
 		# context["home_rules"] = spammer_punishment_text(user_id)

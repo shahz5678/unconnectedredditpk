@@ -1426,10 +1426,6 @@ class HistoryHelpForm(forms.Form):
 	class Meta:
 		pass
 
-class WhoseOnlineForm(forms.Form):
-	class Meta:
-		pass
-
 class HelpForm(forms.Form):
 	class Meta:
 		pass

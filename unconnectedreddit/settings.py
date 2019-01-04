@@ -424,7 +424,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.public_group_ranking_clean_up_task': {
 		'task': 'tasks.public_group_ranking_clean_up_task',
-		'schedule': timedelta(seconds=25*60),  # execute every 25 mins, cleans up "chatter-based" ranking of groups
+		'schedule': timedelta(seconds=10*25*60),  # unused task - available for something new
 		'args': (),
 	},
 		'tasks.salat_info': {

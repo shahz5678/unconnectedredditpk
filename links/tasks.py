@@ -19,8 +19,8 @@ Video, HotUser, PhotoStream, HellBanList, UserFan, Group
 from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
-public_group_ranking_clean_up,set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
+process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, \
+set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -30,10 +30,10 @@ retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_sessi
 log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, public_group_attendance, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
+get_active_fans, skip_private_chat_notif, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
 remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, sanitize_eachothers_unseen_activities,\
-update_private_chat_notif_object, update_private_chat_notifications, skip_private_chat_notif, update_group_topic_in_obj, \
-bulk_remove_multiple_group_notifications, set_uploader_score
+update_private_chat_notif_object, update_private_chat_notifications, set_uploader_score, bulk_remove_multiple_group_notifications, \
+update_group_topic_in_obj
 from redis1 import add_video, save_recent_video, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
 add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
 update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos, delete_photo_report, \
@@ -495,21 +495,21 @@ def calc_gibberish_punishment():
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
 def calc_photo_quality_benchmark():
 	two_days = datetime.utcnow()-timedelta(hours=24*2)
-	photos_total_score_list = Photo.objects.filter(upload_time__gte=two_days).values_list('owner_id','visible_score')
+	photos_total_score_list = Photo.objects.filter(upload_time__gte=two_days).values_list('owner_id','vote_score')#list of tuples
 	# print photos_total_score_list
 	if photos_total_score_list:
 		total_photos_per_user = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})
 		# print "total photos per user: %s" % total_photos_per_user
-		total_scores_per_user = defaultdict(int)
+		total_scores_per_user = defaultdict(int)# a python dictionary that doesn't give KeyError if key doesn't exist when dict is accessed
 		for key,val in photos_total_score_list:
-			total_scores_per_user[key] += val
+			total_scores_per_user[key] += val #ends with with {owner_id:total_photo_score}
 		# print "total scores per user: %s" % total_scores_per_user
 		uploader_scores = []
 		for key,val in total_scores_per_user.items():
 			uploader_scores.append(key)
-			uploader_scores.append(float(val)/total_photos_per_user[key])
+			uploader_scores.append(float(val)/total_photos_per_user[key])#avg score per photo
 		# print uploader_scores
-		set_benchmark(uploader_scores)
+		set_benchmark(uploader_scores)# sets own_ids and avg score per photo in a huge sorted set called photos_benchmark
 
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, caption):
@@ -636,19 +636,13 @@ def rank_mehfils():
 	rank_mehfil_active_users()
 
 
-@celery_app1.task(name='tasks.rank_public_groups')
-def rank_public_groups(group_id,writer_id):
-	public_group_ranking(group_id,writer_id)
-
-
 @celery_app1.task(name='tasks.public_group_ranking_clean_up_task')
 def public_group_ranking_clean_up_task():
-	public_group_ranking_clean_up()
+	"""
+	Legacy scheduled task - unused at the moment
+	"""
+	pass
 
-
-@celery_app1.task(name='tasks.public_group_attendance_tasks')
-def public_group_attendance_tasks(group_id,user_id):
-	public_group_attendance(group_id,user_id)
 
 @celery_app1.task(name='tasks.group_attendance_tasks')
 def group_attendance_tasks(group_id,user_id, time_now):#, private=False):
@@ -962,7 +956,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo_owner_id = photo.owner_id
 	try:
 		owner_url = photo.owner.userprofile.avatar.url
-	except:
+	except ValueError:
 		owner_url = None
 	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
 		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
@@ -1005,7 +999,7 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 		if is_citizen:
 			photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
 			photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
-			photo.visible_score = photo.visible_score + 2
+			#photo.visible_score = photo.visible_score + 2000000
 			photo.owner.userprofile.save()
 	photo.save()
 	user.userprofile.save()

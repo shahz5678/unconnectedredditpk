@@ -26,12 +26,11 @@ from image_processing import process_group_image
 
 from group_views import retrieve_user_env, get_indices
 
-from models import Group, Reply, HellBanList, UserProfile, GroupBanList
+from models import Group, Reply, HellBanList, UserProfile
 
 from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price
 
-from redis3 import del_from_rankings, retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, get_ranked_public_groups,\
-exact_date
+from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users
@@ -39,7 +38,7 @@ get_most_recent_online_users
 from redis2 import update_notification, remove_group_notification, remove_group_object, get_replies_with_seen,create_notification, create_object, \
 bulk_remove_group_notification
 
-from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, rank_public_groups,\
+from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks,\
 construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity
 
 from redis1 import bulk_check_group_invite, bulk_check_group_membership, get_group_members, add_group_member, remove_group_invite, add_user_group,\
@@ -2862,7 +2861,7 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						remove_group_object(group_id)
 
 						# removing from popular group list that contains top 20 ranked groups (redis 3)
-						del_from_rankings(group_id)
+						#del_from_rankings(group_id)
 
 						# removing the group member set (redis 1)
 						remove_all_group_members(group_id)
@@ -3578,7 +3577,7 @@ class PublicGroupView(CreateView):
 					trim_group_submissions.delay(group_id)
 				############################
 				############################
-				rank_public_groups.delay(group_id=group_id,writer_id=user_id)# legacy ranking redis3 function - please review_ownership_transfer_requests
+				#rank_public_groups.delay(group_id=group_id,writer_id=user_id)# legacy ranking redis3 function - please review_ownership_transfer_requests
 				group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=group_data['oi'], topic=topic, \
 					reply_time=reply_time, poster_url=own_avurl, poster_username=own_uname, reply_text=notif_text, priv='0', \
 					slug=public_uuid,image_url=uploaded_img_loc,priority='public_mehfil',from_unseen=False,reply_id=reply.id,\
@@ -4303,6 +4302,7 @@ def process_public_group_invite(request,*args, **kwargs):
 						partial_sentence = own_uname+" ne "+invitee_username
 						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time.time()))
 						document_administrative_activity.delay(group_id, main_sentence, 'public_invite')
+						invalidate_cached_mehfil_pages(pk)# so that the invitee can view the invite immediately
 						###################################
 						return redirect("invite")
 				else:
@@ -4371,6 +4371,7 @@ def process_private_group_invite(request, *args, **kwargs):
 						partial_sentence = own_uname+" ne "+invitee_username
 						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time_now))
 						document_administrative_activity.delay(group_id, main_sentence, 'private_invite')
+						invalidate_cached_mehfil_pages(pk)# so that the invitee can view the invite immediately
 						##############################
 						##############################
 						set_latest_group_reply(group_id,reply_id)# populates grouppageview()
@@ -5013,25 +5014,17 @@ def public_group_guidance(request):
 
 ########################## Popular mehfil list #########################
 
+
 def get_ranked_groups(request):
 	"""
-	Displays top public mehfils, sorted by 'stickiness'
-	"""
-	"""
-	('5',12) does not exist in test_list (used for testing purposes)
-	
-	test_list = [('12',12),('54',11),('78',54),('11',12),('53',11),('77',54),('13',12),('55',11),('79',54),\
-	('4',12),('56',11),('80',54),('5',12),('50',11),('81',54),('2',12),('44',11),('72',54),('1',12),('45',11)\
-	,('10',54),('34',12),('35',11),('36',54),('39',54),('37',12),('38',11)]
-	
-	group_ids_list = test_list
+	Displays top public mehfils, sorted by 'stickiness' (DAU/BWAU)
 	"""
 	groups_data = retrieve_cached_ranked_groups()
 	if groups_data:
 		trending_groups = json.loads(groups_data)
 	else:
 		trending_groups = []
-		group_ids_list = get_ranked_public_groups()#get_ranked_mehfils()
+		group_ids_list = get_ranked_mehfils()
 		group_ids_dict = dict(group_ids_list)
 		group_ids = map(itemgetter(0), group_ids_list)
 		groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
@@ -5042,6 +5035,7 @@ def get_ranked_groups(request):
 		trending_groups.sort(key=itemgetter(4), reverse=True)
 		cache_ranked_groups(json.dumps(trending_groups))
 	return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
+
 
 ########################## Mehfil creation #########################
 
@@ -5325,7 +5319,7 @@ def create_open_group(request):
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='0',slug=str(unique_id),image_url=None,\
 							priority='public_mehfil',from_unseen=False, reply_id=reply.id)
-						rank_public_groups.delay(group_id=group_id,writer_id=own_id)# legacy ranking redis3 function - please revert
+						#rank_public_groups.delay(group_id=group_id,writer_id=own_id)# legacy ranking redis3 function - please revert
 						group_attendance_tasks.delay(group_id=group_id, user_id=own_id, time_now=reply_time)
 						# rate limit further public mehfil creation by this user (for 1 day)
 						rate_limit_group_creation(own_id, which_group='public')

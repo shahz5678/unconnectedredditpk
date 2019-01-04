@@ -19,8 +19,8 @@ Video, HotUser, PhotoStream, HellBanList, UserFan, Group
 from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, public_group_ranking, \
-public_group_ranking_clean_up,set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
+process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, \
+set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -636,14 +636,12 @@ def rank_mehfils():
 	rank_mehfil_active_users()
 
 
-@celery_app1.task(name='tasks.rank_public_groups')
-def rank_public_groups(group_id,writer_id):
-	public_group_ranking(group_id,writer_id)
-
-
 @celery_app1.task(name='tasks.public_group_ranking_clean_up_task')
 def public_group_ranking_clean_up_task():
-	public_group_ranking_clean_up()
+	"""
+	Legacy scheduled task - unused at the moment
+	"""
+	pass
 
 
 @celery_app1.task(name='tasks.public_group_attendance_tasks')

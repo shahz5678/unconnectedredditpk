@@ -61,7 +61,7 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
-video_upload_tasks, video_tasks, video_vote_tasks, VOTE_WEIGHT, rank_public_groups, \
+video_upload_tasks, video_tasks, video_vote_tasks, VOTE_WEIGHT, \
 public_group_attendance_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs, \
 sanitize_erroneous_notif, set_input_rate_and_history, log_private_mehfil_session, log_profile_view,group_attendance_tasks\
 #, log_organic_attention, home_photo_tasks, queue_for_deletion, 
@@ -4942,7 +4942,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='public_mehfil'
 						UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-						rank_public_groups.delay(group_id=pk,writer_id=user_id)
+						#rank_public_groups.delay(group_id=pk,writer_id=user_id)
 						# public_group_attendance_tasks.delay(group_id=pk, user_id=user_id)
 					#######################################################
 					try:

@@ -66,7 +66,6 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 TEN_MINS = 10*60
 TWENTY_MINS = 20*60
-FIFTEEN_MINS = 15*60
 FORTY_FIVE_MINS = 60*45
 ONE_HOUR = 60*60
 TWO_HOURS = 2*60*60
@@ -1729,62 +1728,6 @@ def return_all_ad_data():
 ###################### Public Group Ranking System #######################
 
 
-def public_group_ranking_clean_up():
-	"""
-	Periodically clean up dormant public groups from the ranking system
-
-	Run every 30 mins
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	group_ids = my_server.zrange("public_group_rank",0,-1)
-	pipeline1 = my_server.pipeline()
-	for group_id in group_ids:
-		last_public_group_writer = "lpubgw:"+group_id 
-		pipeline1.exists(last_public_group_writer)
-	exists = pipeline1.execute()
-	counter = 0
-	pipeline2 = my_server.pipeline()
-	for group_id in group_ids:
-		if not exists[counter]:
-			pipeline2.delete("pugbs:"+group_id)
-			pipeline2.zrem("public_group_rank",group_id)
-		counter += 1
-	pipeline2.execute()
-
-
-
-def public_group_ranking(group_id,writer_id):
-	"""
-	Ascertains whether the group earned a ranking vote or not
-	
-	Based on unique switchover pairs within a given time
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	group_id, current_time = str(group_id), time.time()
-	last_public_group_writer = "lpubgw:"+group_id
-	recent_writer_id = my_server.get(last_public_group_writer)
-	if recent_writer_id:
-		if recent_writer_id != str(writer_id):
-			public_group_last_cull_time = "pubglct:"+group_id
-			culled_recently = my_server.exists(public_group_last_cull_time)
-			# ensuring only last 10 mins are counted
-			public_group_switchovers = "pubgs:"+group_id
-			if not culled_recently:
-				# ensures only culls once in a 10 min window
-				pipeline1 = my_server.pipeline()
-				pipeline1.zremrangebyscore(public_group_switchovers,'-inf',current_time-TEN_MINS)
-				pipeline1.setex(public_group_last_cull_time,1,TEN_MINS)
-				pipeline1.execute()
-			added = my_server.zadd(public_group_switchovers,str(recent_writer_id)+":"+str(writer_id),current_time)
-			if added:
-				# it was a unique switchover in the last 10 mins
-				sorted_set = "public_group_rank"
-				my_server.zincrby(name=sorted_set, value=group_id,amount=1)
-				# only increase ttl if it was a unique switchover
-				my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
-	else:
-		my_server.setex(last_public_group_writer,writer_id,FIFTEEN_MINS)
-
 def del_from_rankings(group_id):
 	"""
 	Used when group owner deletes public group
@@ -1795,11 +1738,6 @@ def del_from_rankings(group_id):
 	pipeline1.zrem("public_group_rank",group_id)
 	pipeline1.execute()
 
-def get_ranked_public_groups():
-	"""
-	Returns top 20 public groups
-	"""
-	return redis.Redis(connection_pool=POOL).zrevrange("public_group_rank",0,19,withscores=True) # returning highest 20 groups
 
 ###################### First Time User Tutorials #########################
 

@@ -1721,20 +1721,6 @@ def return_all_ad_data():
 	return result1, result2
 
 
-###################### Public Group Ranking System #######################
-
-
-def del_from_rankings(group_id):
-	"""
-	Used when group owner deletes public group
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	pipeline1.delete("pugbs:"+str(group_id))
-	pipeline1.zrem("public_group_rank",group_id)
-	pipeline1.execute()
-
-
 ###################### First Time User Tutorials #########################
 
 '0' 'personal group anonymous invite'

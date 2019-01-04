@@ -1618,10 +1618,6 @@ def get_gibberish_punishment_amount(user_id):
 	else:
 		return None
 
-def retire_gibberish_punishment_amount(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	punishment_text = "pt:"+str(user_id)
-	my_server.delete(punishment_text)
 
 #####################################################
 

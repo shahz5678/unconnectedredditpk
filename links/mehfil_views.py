@@ -26,7 +26,7 @@ from image_processing import process_group_image
 
 from group_views import retrieve_user_env, get_indices
 
-from models import Group, Reply, HellBanList, UserProfile, GroupBanList
+from models import Group, Reply, HellBanList, UserProfile
 
 from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price
 
@@ -4302,6 +4302,7 @@ def process_public_group_invite(request,*args, **kwargs):
 						partial_sentence = own_uname+" ne "+invitee_username
 						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time.time()))
 						document_administrative_activity.delay(group_id, main_sentence, 'public_invite')
+						invalidate_cached_mehfil_pages(pk)# so that the invitee can view the invite immediately
 						###################################
 						return redirect("invite")
 				else:
@@ -4370,6 +4371,7 @@ def process_private_group_invite(request, *args, **kwargs):
 						partial_sentence = own_uname+" ne "+invitee_username
 						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time_now))
 						document_administrative_activity.delay(group_id, main_sentence, 'private_invite')
+						invalidate_cached_mehfil_pages(pk)# so that the invitee can view the invite immediately
 						##############################
 						##############################
 						set_latest_group_reply(group_id,reply_id)# populates grouppageview()

@@ -292,6 +292,22 @@ def repetition_found(section,section_id,user_id, target_text):
 		return False
 
 
+def strip_zero_width_characters(string):
+	"""
+	Strips out 'zero-width' characters from given string - disallowing users from successfully submitting blank enteries
+
+	List of easily copy-able zero-width characters can be found at https://coolsymbol.com/zero-width-space-joiner-non-joiner-ltr-rtl-lrm-rlm-characters-symbols.html
+	u"\u200B" - Zero Width Space
+	u"\u200C" - Zero Width Non-Joiner
+	u"\u200D" - Zero Width Joiner
+	u"\u200E" - Left-To-Right Mark
+	u"\u200F" - Right-To-Left Mark
+	u"\u2060" - Word Joiner
+	u"\uFEFF" - Zero Width No-Break Space
+	"""
+	return ''.join( c for c in string if c not in (u"\u200B",u"\u200C",u"\u200D",u"\u200E",u"\u200F",u"\u2060",u"\uFEFF"))
+
+
 def uniform_string(text,n=8):
 	text = text.lower()
 	for i, c in enumerate(text):
@@ -496,6 +512,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		description, user_id, section_id, section, secret_key_from_form = data.get("description"), self.user_id, '1', 'home', data.get("sk")
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1','likho')
 		description = description.strip() if description else None
+		description = strip_zero_width_characters(description)
 		if not description or description.isspace():
 			raise forms.ValidationError('Likhna zaruri hai')
 		elif len(description.split('\n')) > 4:

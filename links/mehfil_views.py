@@ -4972,8 +4972,6 @@ class GroupHelpView(FormView):
 	template_name = "mehfil/group_help.html"
 
 	def get_context_data(self, **kwargs):
-		from redis6 import rank_mehfil_active_users
-		rank_mehfil_active_users()
 		context = super(GroupHelpView, self).get_context_data(**kwargs)
 		context["private_price"] = PRIVATE_GROUP_COST
 		context["public_price"] = PUBLIC_GROUP_COST

@@ -2961,11 +2961,14 @@ class CommentView(CreateView):
 	form_class = CommentForm
 	template_name = "comments.html"
 
+
 	def get_form_kwargs( self ):
 		kwargs = super(CommentView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
+		kwargs['mobile_verified'] = self.request.mobile_verified
 		kwargs['photo_id'] = self.kwargs['pk']
 		return kwargs
+
 
 	def get_context_data(self, **kwargs):
 		context = super(CommentView, self).get_context_data(**kwargs)

@@ -574,12 +574,13 @@ class CommentForm(forms.ModelForm):
 		self.fields['text'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean(self):
-		if not self.mob_verified:
+		user_id = self.user_id
+		if user_id and not self.mob_verified:
 			raise forms.ValidationError('Mobile number verify kiye beghair ap yahan nahi likh saktey')
 		else:
 			data = self.cleaned_data
-			text, user_id, photo_id, section, secret_key_from_form = data.get("text"), self.user_id, self.photo_id, 'pht_comm', data.get("sk")
-			secret_key_from_session = get_and_delete_text_input_key(self.user_id,self.photo_id,'pht_comm')
+			text, photo_id, section, secret_key_from_form = data.get("text"), self.photo_id, 'pht_comm', data.get("sk")
+			secret_key_from_session = get_and_delete_text_input_key(user_id, self.photo_id,'pht_comm')
 			if secret_key_from_form != secret_key_from_session:
 				raise forms.ValidationError('tip: sirf aik dafa button dabain')
 			text = text.strip() if text else text
@@ -601,7 +602,6 @@ class CommentForm(forms.ModelForm):
 					elif text_len > 250:
 						raise forms.ValidationError('tip: inta bara tabsra nahi likh sakte')
 					return data
-
 
 class VideoCommentForm(forms.ModelForm):
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))

@@ -48,7 +48,7 @@
 	{% big_photo_comment_button photo_id=photo.i origin='1' comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
 	</div>
 
-	{% photo_comments_section raw_comments=photo.comms static_url=STATIC_URL self_user_id=ident origin='1' score=score %}
+	{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin='1' score=score %}
 
 	<div class="mts mrs mbs">
 	{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form '1' sk %}

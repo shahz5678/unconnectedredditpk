@@ -305,8 +305,10 @@ def strip_zero_width_characters(string):
 	u"\u2060" - Word Joiner
 	u"\uFEFF" - Zero Width No-Break Space
 	"""
-	return ''.join( c for c in string if c not in (u"\u200B",u"\u200C",u"\u200D",u"\u200E",u"\u200F",u"\u2060",u"\uFEFF"))
-
+	if string:
+		return ''.join( c for c in string if  c not in (u"\u200B",u"\u200C",u"\u200D",u"\u200E",u"\u200F",u"\u2060",u"\uFEFF"))
+	else:
+		return string
 
 def uniform_string(text,n=8):
 	text = text.lower()

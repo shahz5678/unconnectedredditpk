@@ -43,10 +43,14 @@
     <div class="mts">
     {% for reply in replies %}
     
-    {% if forloop.counter != 1 %}
-    <hr size=1 COLOR="#E9EBEE">
+    {% if forloop.counter != 1 %}<hr size=1 COLOR="#E9EBEE">{% endif %}
+
+    {% if user_id == reply.submitted_by_id %}
+        <div style="overflow:hidden;background-color:ivory">
+    {% else %}
+        <div style="overflow:hidden">
     {% endif %}
-    <div style="overflow:hidden">
+
         {% if reply.abuse %}
             <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' slug=reply.submitted_by %}" class="clb"><bdi>{{ reply.submitted_by }}</bdi></a></b>&nbsp;ka jawab hide kar dia gya</span>
         {% else %}

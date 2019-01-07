@@ -981,12 +981,6 @@ def del_attendance(group_id):
 	group_attendance = "ga:"+str(group_id)
 	my_server.delete(group_attendance)
 
-#save attendance history for each public group
-
-def public_group_attendance(group_id,user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	group_attendance = "ga:"+str(group_id)
-	my_server.zadd(group_attendance,user_id,time.time())
 
 # sanitize group from rankings if group owner wants to delete it
 

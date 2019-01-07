@@ -1,5 +1,6 @@
 import redis
 from random import random
+import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL
@@ -109,12 +110,12 @@ def update_comment_in_home_link(reply,writer,is_pinkstar,time,writer_id,link_pk)
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(hash_name):
 		#################################Saving latest publicreply################################
-		existing_payload = my_server.hget(hash_name,'comms')
-		payload = is_pinkstar+"#"+str(time)+"#"+str(writer_id)+"#"+writer+"#"+str(link_pk)+"#"+reply+"#el#"
-		if existing_payload:
-			existing_payload = truncate_payload(existing_payload)
-			payload = existing_payload.decode('utf-8')+payload
-		my_server.hset(hash_name,'comms',payload)
+		comment_blob = my_server.hget(hash_name,'cb')
+		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
+		payload = {'is_pinkstar':is_pinkstar,'replier_username':writer,'link_id':link_pk,'text':reply,'replier_id':writer_id,\
+		'epoch_time':time}
+		comment_blob.append(payload)
+		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
 		return amnt
 	else:
@@ -332,33 +333,30 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(hash_name):
 		#################################Saving latest photo comment################################
-		existing_payload = my_server.hget(hash_name,'comms')
-		payload = is_pinkstar+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+str(latest_comm_writer_id)+"#"+str(photo_id)+"#"+\
-		latest_comm_text+"#el#" #el# signifies an end-of-line character
-		if existing_payload:
-			existing_payload = truncate_payload(existing_payload)
-			payload = existing_payload.decode('utf-8')+payload
-		my_server.hset(hash_name,'comms',payload)
-		my_server.hincrby(hash_name,'cc',amount=1)
+		comment_blob = my_server.hget(hash_name,'cb')
+		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
+		payload = {'is_pinkstar':is_pinkstar,'writer_uname':latest_comm_writer_uname,'text':latest_comm_text,'epoch_time':time,\
+		'commenter_id':latest_comm_writer_id,'photo_id':photo_id}
+		comment_blob.append(payload)
+		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
+		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
 
 
 def get_raw_comments(photo_id):
 	"""
 	Returns comments associated to an image (if its redis object exists)
 	"""
-	return redis.Redis(connection_pool=POOL).hget("img:"+str(photo_id),"comms")
+	return redis.Redis(connection_pool=POOL).hget("img:"+str(photo_id),"cb")
 
 	
-def truncate_payload(payload):
+def truncate_payload(comment_blob):
 	"""
 	Helper function for add_photo_comment and update_comment_in_home_link
 	
-	On average, truncate this after 10 messages have been aggregated
+	On average, truncate this after 14 comments have been aggregated
+	A 'comment_blob' is a list of lists stored as a JSON string
 	"""
-	if random() < 0.1:
-		raw_text_set = filter(None,payload.split('#el#'))[-5:] #just keeping the latest 5 entries
-		payload = '#el#'.join(raw_text_set)+"#el#" #reforming the payload
-	return payload
+	return comment_blob[-5:] if (random() < 0.07 and comment_blob) else comment_blob
 
 
 def get_photo_owner(photo_id):

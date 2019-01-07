@@ -2460,28 +2460,28 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		return group_id, False
 
 
-############################################ test for post invite accept split test #########################
+# ############################################ test for post invite accept split test #########################
 
 
-def log_invite_accepted(user_id, group_id):
-	"""
-	Records a group of users who accepted an friend request after the split test went live 
-	"""
-	bucket_type = 'Active' if user_id % 2 != 0 else 'Control'
-	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-	pipeline1.sadd(bucket_type,group_id)
-	pipeline1.incr("Invites_Accepted_"+bucket_type)
-	pipeline1.execute()
+# def log_invite_accepted(user_id, group_id):
+# 	"""
+# 	Records a group of users who accepted an friend request after the split test went live 
+# 	"""
+# 	bucket_type = 'Active' if user_id % 2 != 0 else 'Control'
+# 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+# 	pipeline1.sadd(bucket_type,group_id)
+# 	pipeline1.incr("Invites_Accepted_"+bucket_type)
+# 	pipeline1.execute()
 
 
-def log_message_sent(user_id,group_id):
-	"""
-	Records the number of messages sent in chats created after the split test went live
-	"""
-	bucket_type = 'Active' if user_id % 2 != 0 else 'Control'
-	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.sismember(bucket_type,group_id): 
-		my_server.incr("Messages_"+bucket_type)
-		my_server.zincrby(bucket_type+"_Median",group_id,amount=1)
+# def log_message_sent(user_id,group_id):
+# 	"""
+# 	Records the number of messages sent in chats created after the split test went live
+# 	"""
+# 	bucket_type = 'Active' if user_id % 2 != 0 else 'Control'
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if my_server.sismember(bucket_type,group_id): 
+# 		my_server.incr("Messages_"+bucket_type)
+# 		my_server.zincrby(bucket_type+"_Median",group_id,amount=1)
 
 

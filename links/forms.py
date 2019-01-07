@@ -292,6 +292,24 @@ def repetition_found(section,section_id,user_id, target_text):
 		return False
 
 
+def strip_zero_width_characters(string):
+	"""
+	Strips out 'zero-width' characters from given string - disallowing users from successfully submitting blank enteries
+
+	List of easily copy-able zero-width characters can be found at https://coolsymbol.com/zero-width-space-joiner-non-joiner-ltr-rtl-lrm-rlm-characters-symbols.html
+	u"\u200B" - Zero Width Space
+	u"\u200C" - Zero Width Non-Joiner
+	u"\u200D" - Zero Width Joiner
+	u"\u200E" - Left-To-Right Mark
+	u"\u200F" - Right-To-Left Mark
+	u"\u2060" - Word Joiner
+	u"\uFEFF" - Zero Width No-Break Space
+	"""
+	if string:
+		return ''.join( c for c in string if  c not in (u"\u200B",u"\u200C",u"\u200D",u"\u200E",u"\u200F",u"\u2060",u"\uFEFF"))
+	else:
+		return string
+
 def uniform_string(text,n=8):
 	text = text.lower()
 	for i, c in enumerate(text):
@@ -496,6 +514,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		description, user_id, section_id, section, secret_key_from_form = data.get("description"), self.user_id, '1', 'home', data.get("sk")
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1','likho')
 		description = description.strip() if description else None
+		description = strip_zero_width_characters(description)
 		if not description or description.isspace():
 			raise forms.ValidationError('Likhna zaruri hai')
 		elif len(description.split('\n')) > 4:
@@ -552,43 +571,39 @@ class CommentForm(forms.ModelForm):
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		self.photo_id = kwargs.pop('photo_id',None)
+		self.mob_verified = kwargs.pop('mobile_verified',None)
 		super(CommentForm, self).__init__(*args,**kwargs)
 		self.fields['text'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean(self):
-		data = self.cleaned_data
-		text, user_id, photo_id, section, secret_key_from_form = data.get("text"), self.user_id, self.photo_id, 'pht_comm', data.get("sk")
-		secret_key_from_session = get_and_delete_text_input_key(self.user_id,self.photo_id,'pht_comm')
-		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
-		text = text.strip() if text else text
-		if not text:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=text):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+		user_id = self.user_id
+		if user_id and not self.mob_verified:
+			raise forms.ValidationError('Mobile number verify kiye beghair ap yahan nahi likh saktey')
 		else:
-			rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap photos pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+			data = self.cleaned_data
+			text, photo_id, section, secret_key_from_form = data.get("text"), self.photo_id, 'pht_comm', data.get("sk")
+			secret_key_from_session = get_and_delete_text_input_key(user_id, self.photo_id,'pht_comm')
+			if secret_key_from_form != secret_key_from_session:
+				raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			text = text.strip() if text else text
+			if not text:
+				raise forms.ValidationError('tip: likhna zaruri hai')
+			elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=text):
+				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
 			else:
-				text_len = len(text)
-				# if text_len < 2:
-				#   raise forms.ValidationError('tip: tabsre mein itna chota lafz nahi likh sakte')
-				if text_len < 6:
-					if many_short_messages(user_id,section,photo_id):
-						raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
-					else:
-						log_short_message(user_id,section,photo_id)
-				elif text_len > 250:
-					raise forms.ValidationError('tip: inta bara tabsra nahi likh sakte')
-				# text = clear_zalgo_text(text)
-				# uni_str = uniform_string(text)
-				# if uni_str:
-				#   if uni_str.isspace():
-				#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
-				#   else:
-				#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return data
+				rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
+				if rate_limited > 0:
+					raise forms.ValidationError('Ap photos pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+				else:
+					text_len = len(text)
+					if text_len < 6:
+						if many_short_messages(user_id,section,photo_id):
+							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+						else:
+							log_short_message(user_id,section,photo_id)
+					elif text_len > 250:
+						raise forms.ValidationError('tip: inta bara tabsra nahi likh sakte')
+					return data
 
 class VideoCommentForm(forms.ModelForm):
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
@@ -619,10 +634,7 @@ class PublicreplyForm(forms.ModelForm):
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,self.link_id,'home_rep')
 		if secret_key_from_form != secret_key_from_session:
-			if self.user_id == 1362004:
-				raise forms.ValidationError('{0} in main form does not match {1}'.format(secret_key_from_form,secret_key_from_session))
-			else:
-				raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		return secret_key_from_form
 
 	def clean_description(self):
@@ -673,10 +685,7 @@ class PublicreplyMiniForm(PublicreplyForm):
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')
 		if secret_key_from_form != secret_key_from_session:
-			if self.user_id == 1362004:
-				raise forms.ValidationError('{0} in mini form does not match {1}'.format(secret_key_from_form,secret_key_from_session))
-			else:
-				raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			raise forms.ValidationError('tip: sirf aik dafa button dabain')
 		return secret_key_from_form
 
 class SearchNicknameForm(forms.Form):
@@ -823,10 +832,7 @@ class PhotoCommentForm(forms.Form):
 				org = 'best_photos'
 			secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
 			if secret_key_from_form != secret_key_from_session:
-				if user_id == 1362004:
-					raise forms.ValidationError('{0} in photo form does not match {1}'.format(secret_key_from_form,secret_key_from_session))
-				else:
-					raise forms.ValidationError('Sirf aik dafa button dabain')
+				raise forms.ValidationError('Sirf aik dafa button dabain')
 			comment = comment.strip() if comment else comment
 			if not comment:
 				raise forms.ValidationError('Pehlay yahan kuch likhein, phir "tabsra kro" button dabain')
@@ -1432,10 +1438,6 @@ class SmsInviteForm(forms.Form):
 		pass
 
 class HistoryHelpForm(forms.Form):
-	class Meta:
-		pass
-
-class WhoseOnlineForm(forms.Form):
 	class Meta:
 		pass
 

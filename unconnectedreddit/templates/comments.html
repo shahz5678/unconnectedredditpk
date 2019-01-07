@@ -72,7 +72,11 @@
 		<span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' slug=comment.submitted_by.username %}" class="clb"><bdi>{{ comment.submitted_by }}</bdi></a></b>&nbsp;ke tabsrey ko hide kar dia gya</span>
 	{% else %}
 
-	<div style="overflow:hidden">
+	{% if user_id == comment.submitted_by_id %}
+        <div style="overflow:hidden;background-color:ivory">
+    {% else %}
+        <div style="overflow:hidden">
+    {% endif %}
    
 		{% if authenticated and unseen %}
 			{% if not comment_time %}

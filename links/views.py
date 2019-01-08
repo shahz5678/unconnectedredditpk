@@ -88,7 +88,7 @@ check_group_invite, remove_group_invite, add_user_group, remove_user_group, all_
 all_filtered_urdu_posts, all_photos, all_best_photos, all_videos, video_uploaded_too_soon, add_vote_to_video, voted_for_video, \
 get_video_votes, save_recent_video, save_recent_photo, get_recent_photos, get_recent_videos, voted_for_photo, first_time_refresher, \
 add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, can_vote_on_photo, \
-first_time_inbox_visitor, add_photo_comment, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs, \
+first_time_inbox_visitor, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs, \
 add_home_replier, add_video,add_inbox, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, set_inactives,\
 add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
 current_match_unfiltered_comments, current_match_comments, first_time_home_replier, get_inactives, unlock_uname_search, \
@@ -3666,21 +3666,8 @@ def photo_list(request,*args, **kwargs):
 		context["comment_form"] = request.session.pop("comment_form") if "comment_form" in request.session else PhotoCommentForm() 
 		if request.user_banned:
 			context["process_notification"] = False
-		else:	
-			#########################################Logging empty objects causing error##########################
-			######################################################################################################
-			submitter_ids = set()
-			for obj in context["object_list"]:
-				submitter_id = obj.get('si',None)
-				if submitter_id:
-					submitter_ids.add(submitter_id)
-				else:
-					from redis3 import log_submitter_error
-					log_submitter_error(obj,context["ident"])
-			context["fanned"] = bulk_is_fan(submitter_ids, context["ident"])
-			#context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
-			######################################################################################################
-			######################################################################################################
+		else:
+			context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
 			context["salat_timings"] = {}#cache_mem.get('salat_timings')
 			if "notif_form" in request.session:
 				context["notif_form"] = request.session["notif_form"]

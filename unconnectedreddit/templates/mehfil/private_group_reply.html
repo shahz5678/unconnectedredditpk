@@ -86,9 +86,14 @@
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.writer_uname %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> inactivity ki wajah se exit ho gya</span></div>
         {% else %}
             {% if reply.image %}
-            <img src="{{ reply.image|s3 }}" style="border-radius:12px;max-width:100%" alt="foto"><br>
+            <div style="text-align:center"><img src="{{ reply.image|s3 }}" style="border-radius:12px;max-width:100%" alt="foto"></div>
             {% endif %}
+
+            {% if reply.wid == own_id|slugify %}
+            <div class="lsp" style="overflow:hidden;background:ivory">
+            {% else %}
             <div class="lsp" style="overflow:hidden">
+            {% endif %}
 
             {% if status == 'green' %}
                 <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
@@ -118,7 +123,6 @@
             </form>
 
             {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='15' target_username=reply.writer_uname %}
-            
             </div>
         {% endif %}
             

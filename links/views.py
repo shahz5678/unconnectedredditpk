@@ -324,6 +324,7 @@ def return_to_photo(request,origin,photo_id=None,link_id=None,target_uname=None)
 #   else:
 #       return None
 
+
 def get_price(points):
 	"""
 	Determines price of anything, in accordance to how many points a user has
@@ -347,6 +348,7 @@ def get_price(points):
 		base = 71
 		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
 	return int(price)
+
 
 def valid_passcode(user,num):
 	if user.is_authenticated():
@@ -3657,9 +3659,6 @@ def photo_list(request,*args, **kwargs):
 		secret_key = uuid.uuid4()
 		context["sk"] = secret_key
 		set_text_input_key(context["ident"], '1', 'fresh_photos', secret_key)
-		############################################# Home Rules #################################################
-		# context["home_rules"] = spammer_punishment_text(context["ident"])
-		##########################################################################################################
 		context["lang"] = None
 		context["sort_by"] = None
 		if request.is_feature_phone or request.is_phone or request.is_mobile:
@@ -3667,10 +3666,21 @@ def photo_list(request,*args, **kwargs):
 		context["comment_form"] = request.session.pop("comment_form") if "comment_form" in request.session else PhotoCommentForm() 
 		if request.user_banned:
 			context["process_notification"] = False
-		else:
-			context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
-			# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			# 'LOCATION': MEMLOC, 'TIMEOUT': 70,})
+		else:	
+			#########################################Logging empty objects causing error##########################
+			######################################################################################################
+			submitter_ids = set()
+			for obj in context["object_list"]:
+				submitter_id = obj.get('si',None)
+				if submitter_id:
+					submitter_ids.add(submitter_id)
+				else:
+					from redis3 import log_submitter_error
+					log_submitter_error(obj,context["ident"])
+			context["fanned"] = bulk_is_fan(submitter_ids, context["ident"])
+			#context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
+			######################################################################################################
+			######################################################################################################
 			context["salat_timings"] = {}#cache_mem.get('salat_timings')
 			if "notif_form" in request.session:
 				context["notif_form"] = request.session["notif_form"]
@@ -5750,7 +5760,7 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		context = {'invitee':user, 'namaz':salat_timings['namaz']}
 		return render(request, 'salat_invite_error.html', context)
 
-
+@csrf_protect
 @ratelimit(rate='7/s')
 def unfan(request):
 	"""
@@ -5783,8 +5793,8 @@ def unfan(request):
 		raise Http404("Not a POST request")
 
 
-
-@ratelimit(rate='3/s')
+@csrf_protect
+@ratelimit(rate='7/s')
 def fan(request,*args,**kwargs):
 	"""
 	Responsible for processing fanning and unfanning request
@@ -5834,78 +5844,6 @@ def fan(request,*args,**kwargs):
 			return return_to_content(request,origin,object_id,home_hash,star_username)#PUT 'tx:<link_id>' IN 'NONE'
 	else:
 		raise Http404("Not a POST request")
-
-# @ratelimit(rate='3/s')
-# def fan(request,*args,**kwargs):
-#   was_limited = getattr(request, 'limits', False)
-#   user_id = request.user.id
-#   if was_limited:
-#       # UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-#       # return redirect("best_photo")
-#       return redirect("missing_page")
-#   if request.method == "POST":
-#       origin, object_id, star_id = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None)
-#       if int(user_id) == int(star_id):
-#           # penalize this user - she's trying to fan herself!
-#           UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-#           return render(request,'penalty_fan.html',{'unique':request.user.username})
-#       else:
-#           star = User.objects.get(id=star_id)
-#           star_username = star.username
-#           try:
-#               # allow unfanning even if never posted photo
-#               UserFan.objects.get(fan_id=user_id, star_id=star_id).delete()
-#               remove_from_photo_owner_activity(star_id, user_id)
-#           except:
-#               if never_posted_photo(user_id):
-#                   # show "please first upload at least 1 photo" to be eligible for becomming a fan
-#                   return render(request, 'fan_requirement.html', {'unique': request.user.username})
-#               else:
-#                   #if not shown tutorial of what 'fan' is, show tutorial
-#                   if first_time_fan(user_id):
-#                       # show fan tutorial first, then do the rest
-#                       add_fan(user_id) #adding fan tutorial flag
-#                       context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username}
-#                       return render(request, 'fan_tutorial.html', context)
-#                   else:
-#                       banned_by, ban_time = is_already_banned(own_id=user_id,target_id=star_id, return_banner=True)
-#                       if banned_by:
-#                           request.session["where_from"] = 'fan'
-#                           request.session["banned_by_yourself"] = banned_by == str(user_id)
-#                           request.session["target_username"] = star_username
-#                           request.session["ban_time"] = ban_time
-#                           request.session.modified = True
-#                           return redirect("ban_underway") 
-#                       UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
-#                       add_to_photo_owner_activity(star_id, user_id, new=True)
-#           """
-#           origin codes:
-#               (un)fanned from starlist: '0'
-#               (un)fanned from starprofile: '1'
-#               (un)fanned from fresh photos: '2'
-#               (un)fanned from best photos: '3'
-#               (un)fanned from home: '4'
-#           """
-#           if origin == '0':
-#               return redirect("star_list")
-#           elif origin == '1':
-#               return redirect("profile", star_username)
-#           elif origin == '2':
-#               request.session["target_photo_id"] = object_id
-#               request.session.modified = True
-#               return redirect("photo_loc")
-#           elif origin == '3':
-#               request.session["target_best_photo_id"] = object_id
-#               request.session.modified = True
-#               return redirect("best_photo_loc")
-#           elif origin == '4':
-#               request.session['target_id'] = object_id
-#               request.session.modified = True
-#               return redirect("home_loc")
-#           else:
-#               return redirect("home")
-#   else:
-#       return redirect("missing_page")
 
 
 class SalatTutorialView(FormView):

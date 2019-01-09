@@ -198,7 +198,7 @@
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ko join kiya</span></div>
         {% else %}
             {% if reply.image %}
-            <img class="pht" src="{{ reply.image|s3 }}" style="border-radius:12px;" alt="foto"><br>
+            <div style="text-align:center"><img class="pht" src="{{ reply.image|s3 }}" style="border-radius:12px;" alt="foto"></div>
             {% endif %}
             <div class="lsp" style="overflow:hidden">
 

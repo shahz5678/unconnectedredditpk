@@ -1098,7 +1098,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				# vote added
 				if is_pht == '1':
 					# is a photo object
-					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE,media_score=F('media_score')+1)
+					UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+UPVOTE)
 					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
 					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
 				else:
@@ -1116,7 +1116,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				# vote added
 				if is_pht == '1':
 					# is a photo object
-					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE,media_score=F('media_score')-1)
+					UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+DOWNVOTE)
 					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
 					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
 				else:

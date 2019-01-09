@@ -41,8 +41,8 @@ FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person 
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 600#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT
 ###############################################################################################################
 VOTE_SPREE_ALWD = 6# number of votes allowed on link objects within a small time window before cooldown begins (applied separately to photo voting too)
-UPVOTE = 3#number to add to user score
-DOWNVOTE = -3#number to subtract from user score
+UPVOTE = 2#number to add to user score
+DOWNVOTE = -2#number to subtract from user score
 VOTING_DRIVEN_CENSORSHIP = -5# at what total vote count should a photo be completely disappeared
 VOTING_DRIVEN_PIXELATION = -3# at what total vote count should a photo be pixellated
 ###############################################################################################################

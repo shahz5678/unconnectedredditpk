@@ -1061,9 +1061,9 @@ class UploadPhotoReplyForm(forms.ModelForm):
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 
 class UploadPhotoForm(forms.ModelForm):
-	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
+	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Foto ka intekhab sahi nahi hua'})
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;','spellcheck':'false','maxlength':MAX_PHOTO_CAPTION_SIZE}),\
-		error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
+		error_messages={'required': 'Foto ke barey mien likhna zaroori hai'})
 	class Meta:
 		model = Photo
 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
@@ -1098,29 +1098,6 @@ class PicsChatUploadForm(forms.ModelForm):
 		self.fields['image'].widget.attrs['style'] = 'width:95%;'
 		# self.fields['image'].widget.attrs['accept'] = 'image/*'
 
-
-class PhotoReportForm(forms.Form):
-	description = forms.CharField(widget=forms.Textarea(attrs=\
-		{'style':'max-width:90%;background-color:#F8F8F8;border: 1px solid red;border-radius:5px;color: #404040;'}),\
-		validators=[validators.RegexValidator(regex="^[A-Za-z0-9._~()'!*:@, ;+?-]*$")],error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)"),\
-		'required':_("(tip: report ko khali nahi chore sakte)")})
-	class Meta:
-		fields = ("description",)
-
-	def __init__(self, *args, **kwargs):
-		super(PhotoReportForm, self).__init__(*args, **kwargs)
-		self.fields['description'].widget.attrs['class'] = 'cxl'
-		self.fields['description'].widget.attrs['autofocus'] = 'autofocus'
-
-	def clean_description(self):
-		description = self.cleaned_data.get("description")
-		description = description.strip()
-		if len(description) < 5:
-			raise forms.ValidationError('(tip: itni choti report nahi likh sakte)')
-		elif len(description) > 250:
-			raise forms.ValidationError('(tip: inti barri report nahi likh sakte)')
-		# description = clear_zalgo_text(description)
-		return description
 
 class HomeLinkListForm(forms.Form):
 	reply = forms.CharField(max_length=250)

@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load show_error %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_banning_history %}
+{% block content %}
+<head><title>Defender's feedback | Damadam.pk</title></head>
+
+<style>body{background: #E9EBEE}</style>
+
+<div class="clb" style="margin: 0 auto;max-width:600px;width:93%">
+  <div class="bizcard" style="background-color:white;padding:10px">
+    <div class="cxl lsp" style="text-align:center">{% if action == 'undo_content_ban' %}<b>{{ oun|truncatechars:'13' }}</b> ki saza khatam karney ka reason likhein:{% elif action == 'banned_content_submitter' %}<b>{{ oun|truncatechars:'13' }}</b> ko saza dene ka reason batain:{% elif action == 'banned_voter' %}Ye vote ban laganey ka reason batain:{% endif %}</div>
+    <hr size=1 COLOR="#E9EBEE">
+    <div class="cgy sp" style="font-weight:bold">Instructions:</div>
+    <div class="cgy cm sp mtl">
+    {% if action == 'undo_content_ban' %}
+    <div>1) Ye reason likhein takey Damadam note kar le ke {{ oun|truncatechars:'13' }} ko unban kyun kiya gaya</div>
+    <div class="mts">2) Ye reason apki banning history mein bhi nazr aye ga</div>
+    <div class="mts">3) Sachai se kaam lein, ghalat beyani pe apke khilaf karawaee ho sakti hai</div>
+    {% elif action == 'banned_content_submitter' %}
+    <div>1) Apke alfaz <b>{{ oun|truncatechars:'13' }}</b> ko nazr aien ge (apka nickname khufiya rehay ga)</div>
+    <div class="mts">2) Reason mein saaf saaf likhein ke ban kyun kiya gya</div>
+    <div class="mts">3) Naram lehja rakhein, 'ap' likh kar user ko mukhatib karein</div>
+    {% elif action == 'banned_voter' %}
+    <div>1) Apke alfaz banned voting waley user(s) ko nazr aien ge (apka nickname khufiya rehay ga)</div>
+    <div class="mts">2) Reason mein saaf saaf likhein ke ban kyun kiya gya</div>
+    <div class="mts">3) Naram lehja rakhein, 'ap' likh kar user ko mukhatib karein</div>
+    {% endif %}
+    </div>
+    {% if form.errors %}<span class="cr lsp cl">{{ form.errors|show_error }}</span>{% else %}<div style="text-align:center" class="cl clb sp">REASON:</div>{% endif %}
+    <form class="mt" method="POST" action="{% url 'log_banning_reason_given_by_defender' %}">
+    {% csrf_token %}
+    <input type="hidden" name="orig" value="{{ orig }}">
+    <input type="hidden" name="lid" value="{{ lid }}">
+    <input type="hidden" name="ooid" value="{{ ooid }}">
+    <input type="hidden" name="purl" value="{{ purl }}">
+    <input type="hidden" name="oun" value="{{ oun }}">
+    <input type="hidden" name="dur" value="{{ dur }}">
+    <input type="hidden" name="action" value="{{ action }}">
+    <input type="hidden" name="tp" value="{{ tp }}">
+    <input type="hidden" name="cap" value="{{ cap }}">
+    <input type="hidden" name="bt" value="{{ bt }}">
+    {{ form.text }}
+    <button type="submit" name="obid" class="mts btn bcr bm pg_ok_res" style="height:26px" value="{{ obid }}">OK</button>
+    </form>
+    {% if previous_reasons %}
+    <hr size=1 COLOR="#E9EBEE">
+    <div class="cxl mbs mts" style="font-weight:bold;text-align:center">Your previous bans:</div>
+        
+
+    {% banning_history banning_data=previous_reasons static_url=STATIC_URL without_hyperlinks='1' %}
+      
+
+      {% for data in previous_reasons %}
+        <div style="padding-top:5px;margin-top:5px">
+        {% if data.act == 'banned_voter' %}
+         <div style="padding:5px;background-color:#fff2f2;border-radius:5px">
+            <div class="mbs lsp"><b>{% for tunm in data.tunm %}<a href="{% url 'profile' tunm %}" class="mrs cb">{{ tunm }}</a>{% endfor %}</b><span class="cgy">- {% if data.dur == '1' %} voting blocked for 3 hours{% elif data.dur == '2' %} voting blocked for 1 day{% elif data.dur == '3' %} voting blocked for 3 days{% elif data.dur == '4' %} voting blocked for 1 week{% elif data.dur == '5' %} voting blocked for 1 month{% elif data.dur == '6' %} voting blocked forever{% elif data.dur == '0' %} voting unblocked{% else %}{% endif %}</span></div>
+            {% if data.p and data.dur != '0' %}<div class="lsp"><b>Voted on:</b> <img src="{{ data.p }}" style="border-radius:4px" alt="pic"></div>{% endif %}
+            <div class="lsp"><b>Reason:</b> {% emoticons %}{{ data.rsn }}{% endemoticons %}</div>
+            <div style="text-align:right" class="mts cgy cxs sp">{{ data.t|human_time }}</div>
+        </div>
+        {% elif data.act == 'undo_content_ban' %}
+        <div style="padding:5px;background-color:#e6faff;border-radius:5px">
+            <div class="mbs lsp"><b><a href="{% url 'profile' data.tunm %}" class="cb">{{ data.tunm }}</a></b> <span class="cgy">- posts unblocked</span></div>
+            <div class="lsp"><b>Reason:</b> {% emoticons %}{{ data.rsn }}{% endemoticons %}</div>
+            <div style="text-align:right" class="mts cgy cxs sp">{{ data.t|human_time }}</div>
+        </div>
+        {% elif data.act == 'banned_submitter' %}
+        <div style="padding:5px;background-color:#fff2f2;border-radius:5px">
+            <div class="mbs lsp"><b><a href="{% url 'profile' data.tunm %}" class="cb">{{ data.tunm }}</a></b> <span class="cgy">- {% if data.dur == '1' %} posts blocked for 3 hours{% elif data.dur == '2' %} posts blocked for 1 day{% elif data.dur == '3' %} posts blocked for 3 days{% elif data.dur == '4' %} posts blocked for 1 month{% elif data.dur == '5' %} posts blocked forever{% else %}{% endif %}</span></div>
+            <div class="lsp sp"><b>Target:</b> <a href="{% url 'user_activity' data.tunm %}" class="cb">"{% emoticons %}{{ data.c|linebreaksbr }}{% endemoticons %}"</a></div>
+            <div class="lsp"><b>Reason:</b> {% emoticons %}{{ data.rsn }}{% endemoticons %}</div>
+            <div style="text-align:right" class="mts cgy cxs sp">{{ data.t|human_time }}</div>
+        </div>
+        {% elif data.act == 'banned_uploader' %}
+        <div style="padding:5px;background-color:#fff2f2;border-radius:5px">
+            <div class="mbs lsp"><b><a href="{% url 'profile' data.tunm %}" class="cb">{{ data.tunm }}</a></b> <span class="cgy">- {% if data.dur == '1' %} fotos blocked for 3 hours{% elif data.dur == '2' %} fotos blocked for 1 day{% elif data.dur == '3' %} fotos blocked for 3 days{% elif data.dur == '4' %} fotos blocked for 1 month{% elif data.dur == '5' %} fotos blocked forever{% else %}{% endif %}</span></div>
+            <div class="lsp"><b>Target:</b> <a href="{% url 'user_profile_photo' data.tunm data.obj_id %}"><img src="{{ data.p }}" style="border-radius:4px;border:2px solid dodgerblue" alt="pic"></a></div>
+            <div class="lsp"><b>Reason:</b> {% emoticons %}{{ data.rsn }}{% endemoticons %}</div>
+            <div style="text-align:right" class="mts cgy cxs sp">{{ data.t|human_time }}</div>
+        </div>
+        {% endif %}
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+<br><br>
+{% endblock %}
+
+

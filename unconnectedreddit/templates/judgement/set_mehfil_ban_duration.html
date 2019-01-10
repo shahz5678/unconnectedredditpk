@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on mehfil | Damadam.pk</title></head>
+
+<h1 class="cxl clb lsp" style="text-align:center">Set duration:</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+<div style="padding:8px;background-color:ivory" class="bizcard mbs sp lsp">
+	<div class="cl sp" style="font-weight:bold">Topic:</div>
+	<div class="cl sp mt lsp">{% emoticons %}{{ topic|linebreaksbr }}{% endemoticons %}</div>
+	<div class="cl sp mts" style="font-weight:bold">Rules:</div>
+	<div style="display:inline-block;border-bottom:1px dashed lightgray;padding-bottom:10px">
+		<div class="cl sp mt lsp" style="text-align:left">{% emoticons %}{{ rules|linebreaksbr }}{% endemoticons %}</div>
+	</div>
+	<br>
+	<ul style="display:inline-block;padding: 0;list-style:none;margin-bottom:0">
+		<li style="text-align:left" class="mbs sp"><b>Created:</b> {{ group_info.ct|human_time }}</li>
+		<li style="text-align:left" class="mbs sp"><b>Members:</b> {{ group_info.m }} users</li>
+		<li style="text-align:left" class="mbs sp"><b>Size:</b> {{ group_info.sz }}</li>
+		{% if group_info.pr %}<li style="text-align:left" class="mbs sp"><b>Popularity rank:</b> {{ group_info.pr }}</li>{% endif %}
+	</ul>
+
+</div>
+
+<div class="mtl cxl lsp">Is mehfil ke khilaf ye actions liye jaien ge:</div>
+
+<ul class="clb" style="display:inline-block;padding: 0;font-weight:bold">
+	<li style="text-align:left" class="mbs"><div class="mt sp">Not part of popular mehfils</div></li>
+	<li style="text-align:left" class="mbs"><div class="mt sp">New members cannot join mehfil</div></li>
+	<li style="text-align:left" class="mbs"><div class="mt sp">Topic and rules are cleaned and locked</div></li>
+	<li style="text-align:left" class="mbs"><div class="mt sp">Invites are not allowed</div></li>
+</ul>
+
+<div class="cxl lsp">Decide karein ke ye actions kitney time ke liye hon:</div>
+
+<form method="POST" action="{% url 'judge_mehfil' %}" class="mt sp">
+{% csrf_token %}
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="from_cull" value="{{ from_cull }}">
+	<ul style="display:inline-block;padding: 0;list-style:none">
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="1" type="radio" name="dur" value="1"><label for="1"><span class="cr">4 days</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="2" type="radio" name="dur" value="2"><label for="2"><span class="cr">1 week</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="3" type="radio" name="dur" value="3"><label for="3"><span class="cr">2 weeks</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="4" type="radio" name="dur" value="4"><label for="4"><span class="cr">1 month</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="4" type="radio" name="dur" value="4"><label for="4"><span class="cr">2 months</span></label></li>
+		<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" id="0" type="radio" name="dur" value="0" checked><label for="0"><b class="cb sp">Cancel</b></label></li>
+	</ul><br>
+	<button type="submit" name="obid" class="btn bcr bm pg_ok_res mbl sp" value="{{ obid }}" style="height:26px">OK</button>
+</form>
+
+</div><br><br>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% load show_error %}
+{% load human_time %}
+{% load get_super_defender_navbar %}
+{% load get_thumb_to_img_url %}
+{% load get_banning_history %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Banning history | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% super_defender_navbar static_url=STATIC_URL section='ledger' %}
+
+<h1 class="cxl clb lsp" style="text-align:center">Damadam banning history:</h1>
+<div class="clb" style="margin: 0 auto;max-width:650px;width:93%">
+  <div class="bizcard" style="background-color:white;padding:10px 10px 2px 10px">
+    {% if block_data %}
+       {% banning_history banning_data=block_data static_url=STATIC_URL super_admin=super_admin %}
+    {% else %}
+    <div class="cl cgy sp mbs mt" style="text-align:center">- no banning yet -</div>
+    {% endif %}
+  </div>
+  <div class="mtl fx fxjscn fxaicn">
+      {% if prev_page %}
+      <div>
+        <form style="display:inline" method="GET" action="{% url 'show_blocking_history_of_defenders' %}">
+        <button class="pg_ok_res" style="background:0 0;border:none" type="submit" name="page" value="{{ prev_page }}"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40" style="vertical-align:text-bottom"></button>
+        </form>
+      </div>
+      {% endif %}
+      {% if num_items > items_per_page and num_displayed == items_per_page %}
+      <div>
+        <form style="display:inline" method="GET" action="{% url 'show_blocking_history_of_defenders' %}">
+        <button class="pg_ok_res" style="background:0 0;border:none" type="submit" name="page" value="{{ next_page }}"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40" style="vertical-align:text-bottom"></button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+</div>
+<br><br>
+{% endblock %}

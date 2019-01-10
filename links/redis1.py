@@ -192,55 +192,55 @@ def delete_photo_report(photo_id, return_points=False):
 	else:
 		return [], None #'None' signifies case was already closed by someone else!
 
-def get_complaint_details(complaint_list):
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	complaints_with_details = []
-	for complaint in complaint_list:
-		pipeline1.hgetall(complaint)
-	result1 = pipeline1.execute()
-	for complaint in result1:
-		complaints_with_details.append(complaint)
-	return complaints_with_details
+# def get_complaint_details(complaint_list):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	pipeline1 = my_server.pipeline()
+# 	complaints_with_details = []
+# 	for complaint in complaint_list:
+# 		pipeline1.hgetall(complaint)
+# 	result1 = pipeline1.execute()
+# 	for complaint in result1:
+# 		complaints_with_details.append(complaint)
+# 	return complaints_with_details
 
-def get_num_complaints():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zcard("reported_photos")
+# def get_num_complaints():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.zcard("reported_photos")
 
 def get_photo_complaints():
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.zrevrange("reported_photos",0,-1)
 
-def set_photo_complaint(rep_type,text,caption,purl,photo_id,price_paid,reporter_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	#is reporter_id allowed to report?
-	cant_photo_report = "cpr:"+str(reporter_id)
-	if my_server.exists(cant_photo_report):
-		return my_server.ttl(cant_photo_report)
-	else:
-		#photo report hash - contains all complaints, appended together
-		photo_report = "phr:"+str(photo_id)
-		report_text = '<b class="clb">'+rep_type+'</b>:<br>'+'<span class="bw cgy">'+text+'</span><br>'
-		if my_server.exists(photo_report):
-			existing_reports = my_server.hget(photo_report,'tx')
-			my_server.hset(photo_report,'tx',report_text+existing_reports)
-			nc = my_server.hincrby(photo_report,'nc',amount=1)
-		else:
-			nc = 1
-			mapping = {'tx':report_text,'url':purl,'pid':photo_id,'nc':nc,'c':caption}
-			my_server.hmset(photo_report,mapping)
-		#photo payables sorted set - contains all point amounts owed to all reporter ids - triggered when photo's fate is decided
-		photo_payables = "pp:"+str(photo_id)
-		prev_payable = my_server.zscore(photo_payables,reporter_id)
-		new_amnt_owed = (price_paid if prev_payable is None else prev_payable+int(price_paid))
-		my_server.zadd(photo_payables,reporter_id,new_amnt_owed)
-		#sorted set containing all reported photos
-		reported_photos = "reported_photos"
-		pipeline1 = my_server.pipeline()
-		pipeline1.zadd(reported_photos,photo_report,nc)
-		pipeline1.setex(cant_photo_report,1,TEN_MINS)
-		pipeline1.execute()
-		return None
+# def set_photo_complaint(rep_type,text,caption,purl,photo_id,price_paid,reporter_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	#is reporter_id allowed to report?
+# 	cant_photo_report = "cpr:"+str(reporter_id)
+# 	if my_server.exists(cant_photo_report):
+# 		return my_server.ttl(cant_photo_report)
+# 	else:
+# 		#photo report hash - contains all complaints, appended together
+# 		photo_report = "phr:"+str(photo_id)
+# 		report_text = '<b class="clb">'+rep_type+'</b>:<br>'+'<span class="bw cgy">'+text+'</span><br>'
+# 		if my_server.exists(photo_report):
+# 			existing_reports = my_server.hget(photo_report,'tx')
+# 			my_server.hset(photo_report,'tx',report_text+existing_reports)
+# 			nc = my_server.hincrby(photo_report,'nc',amount=1)
+# 		else:
+# 			nc = 1
+# 			mapping = {'tx':report_text,'url':purl,'pid':photo_id,'nc':nc,'c':caption}
+# 			my_server.hmset(photo_report,mapping)
+# 		#photo payables sorted set - contains all point amounts owed to all reporter ids - triggered when photo's fate is decided
+# 		photo_payables = "pp:"+str(photo_id)
+# 		prev_payable = my_server.zscore(photo_payables,reporter_id)
+# 		new_amnt_owed = (price_paid if prev_payable is None else prev_payable+int(price_paid))
+# 		my_server.zadd(photo_payables,reporter_id,new_amnt_owed)
+# 		#sorted set containing all reported photos
+# 		reported_photos = "reported_photos"
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.zadd(reported_photos,photo_report,nc)
+# 		pipeline1.setex(cant_photo_report,1,TEN_MINS)
+# 		pipeline1.execute()
+# 		return None
 
 #####################Cricket Widget#####################
 
@@ -337,13 +337,13 @@ def account_created(ip,username):
 
 #######################Defenders#######################
 
-def in_defenders(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "defenders" # set of all Damadam defenders
-	if my_server.sismember(set_name, user_id):
-		return True
-	else:
-		return False
+# def in_defenders(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	set_name = "defenders" # set of all Damadam defenders
+# 	if my_server.sismember(set_name, user_id):
+# 		return True
+# 	else:
+# 		return False
 
 def ban_time_remaining(ban_time, ban_type):
 	current_time = time.time()
@@ -374,24 +374,24 @@ def ban_time_remaining(ban_time, ban_type):
 			return False, None
 
 
-def check_photo_upload_ban(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
-	hash_contents = my_server.hgetall(hash_name)
-	if hash_contents:
-		ban_type = hash_contents["b"]
-		if ban_type == '-1':
-			return True, '-1'
-		elif ban_type == '1':
-			ban_time = hash_contents["t"]
-			return ban_time_remaining(ban_time, ban_type)
-		elif ban_type == '7':
-			ban_time = hash_contents["t"]
-			return ban_time_remaining(ban_time, ban_type)
-		else:
-			return False, None
-	else:
-		return False, None
+# def check_photo_upload_ban(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	hash_name = "pub:"+str(user_id) #pub is 'photo upload ban'
+# 	hash_contents = my_server.hgetall(hash_name)
+# 	if hash_contents:
+# 		ban_type = hash_contents["b"]
+# 		if ban_type == '-1':
+# 			return True, '-1'
+# 		elif ban_type == '1':
+# 			ban_time = hash_contents["t"]
+# 			return ban_time_remaining(ban_time, ban_type)
+# 		elif ban_type == '7':
+# 			ban_time = hash_contents["t"]
+# 			return ban_time_remaining(ban_time, ban_type)
+# 		else:
+# 			return False, None
+# 	else:
+# 		return False, None
 
 def remove_from_photo_upload_ban(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -766,11 +766,11 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 
 
 
-def get_raw_comments(photo_id):
-	"""
-	Returns comments associated to a photo
-	"""
-	return redis.Redis(connection_pool=POOL).hget("ph:"+str(photo_id),"comments")
+# def get_raw_comments(photo_id):
+# 	"""
+# 	Returns comments associated to a photo
+# 	"""
+# 	return redis.Redis(connection_pool=POOL).hget("ph:"+str(photo_id),"comments")
 
 
 def ban_photo(photo_id,ban):
@@ -1181,10 +1181,10 @@ def cleanse_public_and_private_groups_data(grp_ids_and_members):
 		bulk_remove_latest_group_replies(grp_ids_and_members.keys(),my_server)# removing lgr: (used to show the mehfil in group_list)
 
 
-def get_home_link_votes(link_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "v:"+str(link_id)
-	return my_server.zrange(sorted_set, 0, -1, withscores=True)
+# def get_home_link_votes(link_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "v:"+str(link_id)
+# 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
 
 def all_best_photos():

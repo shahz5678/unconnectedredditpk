@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load get_super_defender_navbar %}
+{% block content %}
+<head><title>Add defender | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% super_defender_navbar static_url=STATIC_URL section='add' %}
+
+<h1 class="cxl clb lsp" style="text-align:center">With great power comes great responsibility!</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;width:92%;margin:0 auto;overflow:hidden;text-align:left">
+{% if successful %}
+<div class="cxl lsp mbs" style="text-align:center;font-weight:bold">...{{ added_username }} is now super powered!</div>
+{% endif %}
+<form method="POST" class="mbl" action="{% url 'add_new_defender' %}">
+	{% csrf_token %}
+	{% if form.errors %}{% load show_error %}<div class="cr mbs cl">{{ form.errors|show_error }}</div>{% endif %}
+	{{ form.defender_id }}<br>
+	<div class="mtl mbl"><input type="checkbox" id="sup" name="is_sup" class="mrs" style="vertical-align:middle" value="1"><label for="sup"><span class="cs sp lsp">with super privileges</span></label></div>
+	<button type="submit" class="btn bcb bl mts sp pg_ok_res" style="height:26px">Submit</button>
+</form>
+
+<div class="mtl mbs bizcard" style="background-color:ivory;padding:10px">
+	<div class="cl sp">Existing:</div>
+	{% for def,start_time,priv in curr_defenders %}
+	<div class="mts sp"><b>{{ def }}</b><span class="mls mrs cgy sp cs">{{ start_time|human_time }}</span>{% if priv == '1' %}<img src="{{ STATIC_URL }}img/super_defender.svg" width="20" height="20" style="vertical-align:sub">{% endif %}</div>
+	{% endfor %}
+	<br>
+	<div class="cl sp">Expired:</div>
+	{% for def,start_time in old_defenders %}
+	<div class="mts sp"><b>{{ def }}</b><span class="mls cgy sp cs">originally hired {{ start_time|human_time }}</span></div>
+	{% endfor %}
+</div>
+
+<div class="mtl">
+	<div class="lsp cs sp cgy">
+	<b>Super privileges:</b><br>
+	i) edit/remove other defenders' banning actions<br>
+	ii) access the global ledger<br>
+	iii) add/remove defenders<br>
+	iv) view top reporters<br>
+</div>
+</div>
+
+</div><br><br>
+{% endblock %}

@@ -16,8 +16,7 @@ from redis3 import tutorial_unseen
 from judgement_views import get_usernames
 from views import secs_to_mins, return_to_content
 from redis7 import get_photo_owner, get_link_writer, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
-check_content_and_voting_ban#, in_defenders, get_votes, 
-
+in_defenders, get_votes, check_content_and_voting_ban#, get_vote_ban_details, check_vote_ban
 
 def vote_result(request):
 	"""
@@ -30,15 +29,15 @@ def vote_result(request):
 		return render(request, 'verification/unable_to_submit_without_verifying.html', {'vote':True})
 	elif which_msg == '2':
 		# was trying to vote for self
-		obid = request.session.pop("vote_obj_id",None)
 		orig = request.session.pop("vote_origin",None)
+		obid = request.session.pop("vote_obj_id",None)
 		lid = request.session.pop("vote_lid",None)
 		return render(request, 'voting/penalty_self_vote.html', {'lid':lid,'obid':obid,'orig':orig})
 	elif which_msg == '3':
+		#trying to double vote (already voted)
+		lid = request.session.pop("vote_lid",None)
 		obid = request.session.pop("vote_obj_id",None)
 		orig = request.session.pop("vote_origin",None)
-		lid = request.session.pop("vote_lid",None)
-		#trying to double vote (already voted)
 		return render(request,'voting/already_voted.html',{'lid':lid,'obid':obid,'orig':orig})
 	elif which_msg == '4':
 		lid = request.session.pop("vote_lid",None)
@@ -86,7 +85,7 @@ def cast_vote(request,*args,**kwargs):
 	3) Can't vote on self posts
 	4) Can't double-vote
 	5) Can't vote if not verified
-	"""	
+	"""    
 	is_ajax = request.is_ajax()
 	if request.method == 'POST':
 		if request.user_banned:
@@ -105,7 +104,7 @@ def cast_vote(request,*args,**kwargs):
 		if value == '2':
 			# show points page
 			if is_ajax:
-				return HttpResponse(json.dumps({'success':True,'message':reverse("show_voting_summary", kwargs={"pk": obj_id,"orig":origin,'pht':is_pht}),\
+				return HttpResponse(json.dumps({'success':True,'message':reverse("show_voting_summary", kwargs={"pk": obj_id, "orig":origin,'pht':is_pht}),\
 					'type':'redirect'}),content_type='application/json',)
 			else:
 				return redirect("show_voting_summary",pk=obj_id,orig=origin,pht=is_pht)
@@ -229,6 +228,9 @@ def cast_vote(request,*args,**kwargs):
 									else:
 										return redirect('vote_result')
 								else:
+									request.session["vote_origin"] = origin
+									request.session["vote_obj_id"] = obj_id
+									request.session["vote_lid"] = 'img:'+obj_id if is_pht=='1' else 'tx:'+obj_id
 									request.session["vote_result"] = '5'
 									request.session.modified = True
 									if is_ajax:
@@ -337,12 +339,12 @@ def show_voting_summary(request,pk,orig,pht):
 			upvotes = upvotes if upvotes else 0
 			downvotes = downvotes if downvotes else 0
 			pink_votes = pink_votes if pink_votes else 0
-			# if own_id != ooid:
+			if own_id != ooid:
 				# not own content, so can show voter details and banning options (otherwise strictly prohibited)
-				# defender = in_defenders(own_id)
-				# voters_and_votes = get_votes(pk,tp)
-				# voter_id_names_status_and_votes = get_usernames(voters_and_votes, ban_status=True) if defender else []
-				# show_banning_prompt = True if request.session.pop('show_banning_prompt',None) == '1' else False
+				defender = in_defenders(own_id)
+				voters_and_votes = get_votes(pk,tp)
+				voter_id_names_status_and_votes = get_usernames(voters_and_votes, ban_status=True) if defender else []
+				show_banning_prompt = True if request.session.pop('show_banning_prompt',None) == '1' else False
 		return render(request,"voting/voting_summary.html",{'obj':obj,'exists':exists,'nv':net_votes,'uv':upvotes,'dv':downvotes,'pv':pink_votes,\
 			'obj_id':pk,'pht':pht,'is_pinkstar':is_pinkstar,'defender':defender,'voter_id_names_status_and_votes':voter_id_names_status_and_votes,\
 			'tp':tp,'first_time_voting_judger':tutorial_unseen(user_id=own_id, which_tut='12', renew_lease=True) if exists else False, 'ooid':ooid,\

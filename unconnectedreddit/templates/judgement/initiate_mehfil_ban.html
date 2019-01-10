@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load human_time %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on mehfil | Damadam.pk</title></head>
+
+<h1 class="cxl clb lsp" style="text-align:center">Mehfil punishment options:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if first_time_cull_list_judger %}
+	<div style="padding:8px;background-color:ivory" class="bizcard mbs cxl cb lsp">
+	Ab punishment decide karein!
+	</div>
+{% endif %}
+
+<div style="padding:8px;background-color:ivory" class="bizcard mbs sp lsp">
+	<div class="cl sp" style="font-weight:bold">Topic:</div>
+	<div class="cl sp mt lsp">{% emoticons %}{{ topic|linebreaksbr }}{% endemoticons %}</div>
+	<div class="cl sp mts" style="font-weight:bold">Rules:</div>
+	<div style="display:inline-block;border-bottom:1px dashed lightgray;padding-bottom:10px">
+		<div class="cl sp mt lsp" style="text-align:left">{% emoticons %}{{ rules|linebreaksbr }}{% endemoticons %}</div>
+	</div>
+	<br>
+	<ul style="display:inline-block;padding: 0;list-style:none;margin-bottom:0">
+		<li style="text-align:left" class="mbs sp"><b>Created:</b> {{ group_info.ct|human_time }}</li>
+		<li style="text-align:left" class="mbs sp"><b>Members:</b> {{ group_info.m }} users</li>
+		<li style="text-align:left" class="mbs sp"><b>Size:</b> {{ group_info.sz }}</li>
+		{% if group_info.pr %}<li style="text-align:left" class="mbs sp"><b>Popularity rank:</b> {{ group_info.pr }}</li>{% endif %}
+	</ul>
+
+</div>
+
+<div class="cxl mts lsp">Ap kya qadam uthana chahtey hain?</div>
+
+<form method="post" action="{% url 'judge_mehfil' %}" style="max-width:430px;margin:0 auto">
+	{% csrf_token %}
+	
+	<input type="hidden" name="rules" value="{{ rules }}">
+	<input type="hidden" name="topic" value="{{ topic }}">
+	<input type="hidden" name="tp" value="{{ obj_type }}">
+	<input type="hidden" name="ooid" value="{{ ooid }}">
+	<input type="hidden" name="obid" value="{{ obid }}">
+	<input type="hidden" name="from_cull" value="{{ from_cull }}">
+
+	<ul style="display:inline-block;padding: 0;list-style:none">
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="2" name="dec" value="2"><label for="2"><span class="sp lsp clb"><b class="cl">Lock mehfil:</b>&nbsp;<span class="cm">ye option pick karein agar mehfil ka jurm aisa ho ke saza deni ho, lekin mehfil ko delete nahi karna ho</span></span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="1" name="dec" value="1"><label for="1"><span class="sp lsp clb"><b class="cl">Delete mehfil:</b>&nbsp;<span class="cm">ye option pick karein agar mehfil ka jurm itna bara ho ke mehfil ko delete karna hi behtar ho</span></span></label></li>
+		<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="0" name="dec" value="0" checked><label for="0"><span class="clb sp lsp"><b class="cl">Do nothing:</b>&nbsp;<span class="cm">ye option pick karein agar kuch bhi change kiye behgair wapis jana ho</span></span></label></li>
+	</ul><br>
+
+	<button class="btn bcb bm mbl pg_ok_res sp" type="submit" style="height:26px">Submit</button>
+
+</form>
+
+
+</div><br><br>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Voting ban | Damadam.pk</title></head>
+
+<h1 class="cxl clb lsp" style="text-align:center">Voting ban:</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if obj_type == 'tx' %}
+	<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">
+	<div style="text-align:left">{% emoticons %}"{{ cap }}"{% endemoticons %}</div>
+	<div class="cs mts" style="font-weight:bold">submitted by <a href="{% url 'profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}</a></div>
+	</div>
+{% else %}
+	<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">
+	<div class="cl sp lsp">'{% emoticons %}{{ cap|truncatechars:'20' }}{% endemoticons %}'</div>
+	<img src="{{ purl }}" style="border-radius:5px" class="mt"><br>
+	<div class="cs mts" style="font-weight:bold">uploaded by <a href="{% url 'profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}</a></div>
+	</div>
+{% endif %}
+
+	{% include "judgement/judge_content_voters.html" with pht=pht nv=nv from_cull=from_cull tp=obj_type obid=obj_id ooid=ooid oun=oun purl=purl orig=orig lid=lid cap=cap voter_id_names_status_and_votes=voter_id_names_status_and_votes first_time_voting_judger=first_time_voting_judger section='post_submission_ban' %}
+
+</div><br><br>
+{% endblock %}

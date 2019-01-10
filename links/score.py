@@ -36,7 +36,7 @@ VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jha
 '-5': '<span style="font-size:80%;color:#F4511E;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span><br>'}#REMOVE
 ###############################################################################################################
 THUMB_HEIGHT = 38
-MIN_PUBLIC_IMG_WIDTH = 315# minimum width requirement (in pixels) for public image upload
+MIN_PUBLIC_IMG_WIDTH = 315# this number must belong to this interval: [450, 405, 360, 315, 270, 225, 180, 135, 90] (equal to resize_ranges in image_processing.py)
 ###############################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 600#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT
@@ -160,15 +160,13 @@ CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni','Mult
 'Sri Lanka':'slk','England':'eng','World-XI':'wxi','Australia':'aus'}
 ###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
-REPORTED_CASE_COMPLETION_BONUS = 15
-PHOTO_REPORT_PROMPT = {'1':'Photo buhut gandi hai','2':'Photo mazhabi fasad phela rahi hai',\
-'3':'Photo mein buhut ziyada tashadud hai','4':'Photo takhreeb karoon ki wakalat kr rahi hai',\
-'5':'Kuch aur masla hai'}
-# PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Foto mein nudity ya sex hai','2':'Foto mein firqa wariyat hai',\
-# '3':'Foto mein khoon kharaba ya aziyat hai','4':'Foto dehshat gardi ki himayat kar rahi hai',\
-# '7':'Title ka foto se taluq nahi hai','8':'Title mein vote or comments ki bheek hai',\
-# '5':'Foto Damadam ki screenshot hai','6':'Foto quality buhut ziyada dhundhli hai','9':'Apki recent foto copy ki hai',\
-# '10':'Isne apni recent foto dubara lagai hai'}# 9 and 10 keys of this dictionary MUST MATCH 9 and 10 keys of TEXT_REPORT_PROMPT
+REPORTED_CASE_COMPLETION_BONUS = 0#15#turning case completion bonus to '0' for now (revert if defenders complain)
+
+PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Foto mein nudity ya sex hai','2':'Foto mein firqa wariyat hai',\
+'3':'Foto mein khoon kharaba ya aziyat hai','4':'Foto dehshat gardi ki himayat kar rahi hai',\
+'7':'Title ka foto se taluq nahi hai','8':'Title mein vote or comments ki bheek hai',\
+'5':'Foto Damadam ki screenshot hai','6':'Foto quality buhut ziyada dhundhli hai','9':'Apki recent foto copy ki hai',\
+'10':'Isne apni recent foto dubara lagai hai'}# 9 and 10 keys of this dictionary MUST MATCH 9 and 10 keys of TEXT_REPORT_PROMPT
 GET_PHOTO_REPORT_HELP_LABEL = {'0':'','1':'photo_nudity_or_sex','2':'photo_firqa_wariyat','3':'photo_bloodshed','4':'photo_terrorism',\
 '5':'photo_screenshot','6':'photo_low_quality','7':'photo_wrong_title','8':'photo_title_solicitation','9':'photo_plagiarism',\
 '10':'photo_double_posting'}

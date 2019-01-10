@@ -31,8 +31,8 @@ best_photos_list, best_photo_location, see_best_photo_pk, photo_list, cricket_da
 manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, \
 missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, search_uname_unlocking_dec, search_username, \
 go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, website_rules, photo_comment, public_reply_view, \
-post_public_reply, public_photo_upload_denied, hide_jawab, hide_comment, logout_rules
-from links.judgement_views import cull_single_photo,cull_photo,cull_photo_loc,ban_photo_upload_and_voters#curate_photo,comment_chat_pk
+post_public_reply, public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
+ #cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
 from links.number_verification import verify_user_number
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -161,6 +161,7 @@ urlpatterns = patterns('',
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
 	url(r'^photo_detail/(?P<pk>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^photo_detail/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
+	url(r'^text/detail/(?P<link_id>\d+)/$', auth(display_link_detail), name='display_link_detail'),
 	url(r'^fan/$', auth(fan), name='fan'),
 	url(r'^unfan/$', auth(unfan), name='unfan'),
 	url(r'^fanlist/(?P<pk>\d+)/$', auth(fan_list), name='fan_list'),
@@ -268,11 +269,9 @@ urlpatterns = patterns('',
 	# url(r'^kick/$', auth(KickView.as_view()), name='kick'),
 	# url(r'^tfrs/$', auth(test_functional_redis_server), name='test_functional_redis_server'),
 	##########################################Photo Reporting########################################
-	url(r'^bpuv/$', auth(ban_photo_upload_and_voters), name='ban_photo_upload_and_voters'),
 	#url(r'^curate_photo/$', auth(curate_photo), name='curate_photo'),
-	url(r'^cull_photo/$', auth(cull_photo), name='cull_photo'),
-	url(r'^cull_single_photo/$', auth(cull_single_photo), name='cull_single_photo'),
-	url(r'^cull_photo_loc/(?P<photo_id>\d+)/$', auth(cull_photo_loc), name='cull_photo_loc'),
+	#url(r'^cull_photo/$', auth(cull_photo), name='cull_photo'),
+	
 	#################################################################################################
 	##########################################Cricket Related########################################
 	url(r'^cricket_dashboard/$',auth(cricket_dashboard),name='cricket_dashboard'),

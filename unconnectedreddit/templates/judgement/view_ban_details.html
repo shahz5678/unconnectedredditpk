@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load get_render_single_ban %}
+{% block content %}
+<head><title>Expired ban detail | Damadam.pk</title></head>
+
+<style>body{background: #E9EBEE}</style>
+
+<div class="cxl clb mbl mtl" style="font-weight:bold;text-align:center">{% if removed_or_edited == 'removed' %}Original ban details:{% else %}Previous ban details:{% endif %}</div>
+<div class="clb" style="margin: 0 auto;max-width:600px;width:93%">
+  <div class="bizcard" style="padding:10px;background-color:white">
+    <div class="cl lsp sp mbs mt" style="text-align:center">
+      Neechay dia gya ban {% if removed_or_edited == 'removed' %}remove{% else %}change{% endif %} ho gya <b>{{ rt|human_time }}</b>
+    </div>
+      {% render_single_ban time=t|human_time sin=sin oun=oun tp=tp txt=txt obid=obid pu=pu utunm=utunm oeunm=oeunm oeid=oeid dunm=dunm did=did remark=remark dur=b static_url=STATIC_URL %}
+  </div>
+</div>
+<br><br>
+{% endblock %}
+
+

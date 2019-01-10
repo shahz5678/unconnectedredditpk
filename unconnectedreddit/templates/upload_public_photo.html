@@ -4,14 +4,19 @@
 {% block content %}
 <head><title>Upload public photo or meme | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
+
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
+
 <div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
 <div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye foto kharab hai, koi aur chunein</span></div>
 
 {% if forbidden %}
 <h1 class="cxl clb lsp" style="text-align:center">Share foto on Damadam:</h1>
     <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-        <div class="mts mbs cxl lsp cr">Sorry! Ap foto upload nahi kar saktey</div>
+        {% load get_display_ban_msg %}
+        <div class="mtl">
+        {% display_ban_msg static_url=STATIC_URL is_banned=forbidden is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=uname ban_detail=ban_details %}
+        </div>
     </div>
 {% else %}
 <h1 class="cxl clb lsp" style="text-align:center">Share foto on Damadam:</h1>

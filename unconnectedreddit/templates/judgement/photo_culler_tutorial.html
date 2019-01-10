@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<head><title>Content judgement instructions | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Defender instructions:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:left">
+
+	<div class="mbs bizcard" style="background-color:#ffffe6;padding:4px 10px 10px 10px;border-radius:8px">
+		<div style="text-align:center;font-weight:bold;text-decoration:underline" class="mbl cl sp">Instructions:</div>
+		<div class="mt lsp">1) Har reported item ke sath munsalik aik (ya ziyada) reports hain</div>
+		<div class="mt lsp">2) Report kartey waqt users apne points ko qeemat ke taur pe ada kartey hain</div>
+		<div class="mt lsp">3) Ye points report correct honay pe wapis ho jatey hain</div>
+		<div class="mt lsp">4) Lekin agar incorrect report ho tou apki marzi points wapis karney hain ya nahi</div>
+		<div class="mt lsp">5) Points wapis nahi karein jab report karney waley ki neeyat kharab ho (maslan mazaq mein report), warna kar dein</div>
+		<div class="mt lsp">6) Aik item pe decision dene ke liye sirf us item ki reports ko correct ya incorrect select karein</div>
+		<div class="mt lsp">7) Apna decision final karney ke liye 'Submit' dabain</div>
+	</div>
+
+<div style="text-align:center"><a href="{% url 'cull_content' %}"><button class="btn bl bcb mtl mbs pg_ok_res sp" style="height:26px">wapis</button></a></div>
+
+</div>
+<br><br>
+{% endblock %}

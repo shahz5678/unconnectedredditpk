@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="456 456 64.95 50">
+  <linearGradient id="a" x1="-541.22" x2="-536.22" y1="-1054.8" y2="-1054.8" gradientTransform="matrix(10 0 0 -10 5868.22 -10067)" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#20FDC2"/>
+    <stop offset="1" stop-color="#88D1FF"/>
+  </linearGradient>
+  <path fill="url(#a)" d="M499.8 456h-37.6a6.3 6.3 0 0 0-6.2 6.3v37.4c0 3.5 2.8 6.3 6.3 6.3h37.4c3.5 0 6.3-2.8 6.3-6.3v-37.4c0-3.5-2.8-6.3-6.3-6.3h.1zm2 43.8c0 1.1-1 2-2 2h-37.6a2 2 0 0 1-2-2v-37.6c0-1.1.9-2 2-2h37.6a2 2 0 0 1 2 2v37.6z"/>
+  <linearGradient id="b" x1="-708.18" x2="-705.26" y1="229.55" y2="229.55" gradientTransform="matrix(10 0 0 10 7548.22 -1827)" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#20FDC2"/>
+    <stop offset="1" stop-color="#88D1FF"/>
+  </linearGradient>
+  <path fill="url(#b)" d="M470.6 468.5a2.1 2.1 0 1 1-4.2 0 2.1 2.1 0 1 1 4.2 0zm25 0c0 1.1-1 2-2.1 2h-16.7c-1.1 0-2-.9-2-2s.9-2 2-2h16.7c1.1 0 2 .8 2 2h.1z"/>
+  <linearGradient id="c" x1="-708.18" x2="-705.26" y1="230.8" y2="230.8" gradientTransform="matrix(10 0 0 10 7548.22 -1827)" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#20FDC2"/>
+    <stop offset="1" stop-color="#88D1FF"/>
+  </linearGradient>
+  <path fill="url(#c)" d="M470.6 481a2.1 2.1 0 1 1-4.2 0 2.1 2.1 0 1 1 4.2 0zm22.9-2c1.1 0 2 .9 2 2s-.9 2-2 2h-16.7c-1.1 0-2-.9-2-2s.9-2 2-2h16.7z"/>
+  <linearGradient id="d" x1="-708.18" x2="-705.26" y1="232.05" y2="232.05" gradientTransform="matrix(10 0 0 10 7548.22 -1827)" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#20FDC2"/>
+    <stop offset="1" stop-color="#88D1FF"/>
+  </linearGradient>
+  <path fill="url(#d)" d="M470.6 493.5a2.1 2.1 0 1 1-4.2 0 2.1 2.1 0 1 1 4.2 0zm22.9-2c1.1 0 2 .9 2 2s-.9 2-2 2h-16.7c-1.1 0-2-.9-2-2s.9-2 2-2h16.7z"/>
+  <path fill="#FD003A" d="M500.95 456c-11.02 0-20 8.98-20 20s8.98 20 20 20 20-8.98 20-20-8.98-20-20-20z"/>
+  <path fill="#E50027" d="M520.95 476c0 11.02-8.98 20-20 20v-40c11.02 0 20 8.98 20 20z"/>
+  <path fill="#FFF" d="M503.18 467.1v8.9c0 1.25-.97 2.23-2.23 2.23s-2.23-.97-2.23-2.23v-8.9c0-1.22.98-2.19 2.23-2.19s2.23.97 2.23 2.19zM503.18 484.9c0 1.22-.97 2.19-2.23 2.19s-2.23-.98-2.23-2.19c0-1.25.98-2.23 2.23-2.23s2.23.98 2.23 2.23z"/>
+</svg>

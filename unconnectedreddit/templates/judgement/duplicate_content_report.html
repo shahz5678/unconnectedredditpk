@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load humanize %}
+{% load s3 %}
+{% block content %}
+<head><title>Duplicate content report | Damadam.pk</title></head>
+<style>
+body{background: #E9EBEE}
+</style>
+<h1 class="cxl clb" style="text-align:center">Report {{ oun|truncatechars:'13' }}'s item:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+{% if tp == 'tx' %}
+	<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">
+	{% emoticons %}{{ cap }}{% endemoticons %}
+	<br><span class="cgy sp cs">Report price: {{ prc }} points</span>
+	</div>
+	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apka konsa item copy kiya gaya hai?{% else %}Isne apna konsa item dubara lagaya hai?{% endif %}</div>
+	<div class="cgy mt sp mbs lsp">Sirf recent items mein se pick karein:</div>
+
+	<form method="post" action="{% url 'report_content' %}" class="mts lsp sp">
+	{% csrf_token %}
+	<input type="hidden" name="ooid" value="{{ ooid }}">
+	<input type="hidden" name="scr" value="3">
+	<input type="hidden" name="prc" value="{{ prc }}">						
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="cap" value="{{ cap }}">
+	<input type="hidden" name="tp" value="{{ tp }}">
+	<input type="hidden" name="obid" value="{{ obid }}">
+	{% for obj in object_list %}
+		<hr size=1 COLOR="#e6e6e6">
+		<div style="text-align:left" class="fx fxjsfs">
+			<input style="vertical-align:sub" id="{{ obj.2 }}" class="mrs" type="radio" name="oobid" value="{{ obj.2 }}">
+			<label for="{{ obj.2 }}">{{ obj.0|linebreaksbr }}<label for="{{ obj.2 }}">
+		</div>
+		<div style="text-align:right;color:darkgray" class="cxs sp">{{ obj.1|naturaltime }}</div>
+	{% empty %}
+		<div class="cr">Recent items mojood nahi!</div>
+	{% endfor %}
+	<button class="btn bm bcr mbs mtl mrs pg_ok_res" name="dec" style="height:26px" value="{{ dec }}" type="submit">Submit</button>
+	<button class="mbs cgy mtl mls pg_ok_res" name="dec" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray" value="0" type="submit">Cancel</button>
+	</form>
+
+{% else %}
+	<img src="{{ purl }}" alt="pic" style="border: 1px solid #A9A9A9;border-radius:5px">
+	<div class="mbs cgy sp cxs">Report price: {{ prc }} points</div>
+	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apki kaunsi foto copy ki geyi hai?{% else %}Isne apni kaunsi foto dubara lagai hai?{% endif %}</div>
+	<div class="cgy mt sp mbs cl lsp">Sirf recent fotos mein se pick karein:</div>
+
+	<form method="post" action="{% url 'report_content' %}" class="mts lsp sp">
+	{% csrf_token %}
+	<input type="hidden" name="ooid" value="{{ ooid }}">
+	<input type="hidden" name="scr" value="3">
+	<input type="hidden" name="prc" value="{{ prc }}">						
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="cap" value="{{ cap }}">
+	<input type="hidden" name="tp" value="{{ tp }}">
+	<input type="hidden" name="obid" value="{{ obid }}">
+	{% for obj in object_list %}
+		<hr size=1 COLOR="#e6e6e6">
+		<div style="text-align:left" class="fx fxjsfs">
+			<input style="vertical-align:sub" id="{{ obj.2 }}" class="mrs" type="radio" name="oobid" value="{{ obj.2 }}">
+			<label for="{{ obj.2 }}"><img src="{{ obj.0|s3 }}" style="border-radius:12px" alt='foto'></label>
+		</div>
+		<div style="text-align:right;color:darkgray" class="mts cxs sp">{{ obj.1|naturaltime }}</div>
+	{% empty %}
+		<div class="cr">Recent fotos mojood nahi!</div>
+	{% endfor %}
+	<button class="btn bm bcr mbs mrs mtl pg_ok_res" name="dec" style="height:26px" value="{{ dec }}" type="submit">Submit</button>
+	<button class="mbs cgy mtl mls cl pg_ok_res" name="dec" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray" value="0" type="submit">Cancel</button>
+	</form>
+
+{% endif %}
+<hr size=1 COLOR="#e6e6e6">
+<span class="cgy cs sp">Agar apki report sach sabit hui tou apkey points wapis ho jaien ge</span><br>
+</div><br><br>
+{% endblock %}

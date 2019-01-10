@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load get_super_defender_navbar %}
+{% block content %}
+<head><title>Top 50 reporters | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% super_defender_navbar static_url=STATIC_URL section='top50' %}
+
+<h1 class="cxl clb lsp" style="text-align:center">Top 50 reporters:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:650px;width:93%;margin:0 auto;overflow: hidden;">
+<div class="cs sp cgy" style="text-align:center">{{ total_correct }} reporters with at least 1 correct report</div>
+<hr size=1 COLOR="#E9EBEE">
+{% for reporter_id,rep_uname,num_correct,num_total,ratio in top_50_reporters %}
+	<div class="mts cl lsp">
+	<span class="cxs sp mrs">{{ forloop.counter }}.</span><a href="{% url 'profile' rep_uname %}" class="cb mrs" style="border-bottom:1px dotted blue;font-weight:bold">{{ rep_uname|truncatechars:'12' }}</a><b class="mrs cs sp">{{ num_correct }} correct report(s),</b><span class="mrs cs sp"><a href="{% url 'get_reporter_history' reporter_id %}" class="cb" style="border-bottom:1px dotted blue">{{ num_total }} total report(s)</a>,</span><span class="sp cgy cs">{{ ratio }} success ratio</span>
+	</div>
+{% empty %}
+<div class="sp cl mts mbs" style="text-align:center;font-weight:bold">List empty... check back after 30 mins</div>
+{% endfor %}
+
+<hr size=1 COLOR="#E9EBEE">
+<div class="cgy lsp sp cxs">Note:</div>
+<div class="cgy lsp sp cxs" style="text-align:left">1: List is updated once every 30 minutes</div>
+<div class="cgy lsp sp cxs" style="text-align:left">2: Users are added to this list only if they have at least 1 correct report</div>
+<div class="cgy lsp sp cxs" style="text-align:left">3: Users who haven't filed a report in 2 months are removed from the list</div>
+</div><br><br>
+{% endblock %}

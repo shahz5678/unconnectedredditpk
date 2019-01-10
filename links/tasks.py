@@ -11,8 +11,8 @@ from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
 process_user_pin_sms
-from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE, SUPER_DOWNVOTE,\
-SUPER_UPVOTE, GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE
+from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE,\
+GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan, Group
@@ -42,7 +42,7 @@ cleanse_public_and_private_groups_data
 from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
-cleanse_all_feeds_of_user_content
+cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -271,7 +271,7 @@ def post_banning_tasks(own_id, target_id):
 	sanitize_eachothers_unseen_activities(user1_id=own_id, user2_id=target_id)
 	################################################################################
 	# 1) Exit yourself if group is non-exited
-	# 2) If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them=
+	# 2) If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them!
 	# 3) No notifications will be generated since we already sanitized each user's activity
 	# this ensures they can't private chat with eachother
 	exit_user_from_targets_priv_chat(own_id,target_id)
@@ -571,20 +571,20 @@ def remove_target_users_posts_from_all_feeds(target_user_id, post_type, cleanse_
 	cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds)
 
 
-#ensuring photo reports dont have photo_id related complaints
-@celery_app1.task(name='tasks.sanitize_photo_report')
-def sanitize_photo_report(photo_id):#return price paid (as a default)
-	payables,case_closed = delete_photo_report(photo_id,True)
-	if case_closed and payables:
-		for user_id,payable_score in payables:
-			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+@celery_app1.task(name='tasks.delete_temporarily_saved_content_data')
+def delete_temporarily_saved_content_data(own_id):
+	"""
+	Delete temporarily saved data
+	"""
+	delete_temporarily_saved_content_details(own_id)
 
 
 #paying back points spent by photo reporters
 @celery_app1.task(name='tasks.process_reporter_payables')
 def process_reporter_payables(payables):
-	for user_id,payable_score in payables:
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+	if payables:
+		for user_id,payable_score in payables:
+			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
 
 #auto-populating photo thumbs in search results (triggered whenever a user profile is visited)
@@ -630,6 +630,11 @@ def construct_administrative_activity(punisher_id, target_id, time_now, group_id
 # @celery_app1.task(name='tasks.public_group_vote_tasks')
 # def public_group_vote_tasks(group_id,priority):
 # 	public_group_vote_incr(group_id,priority)
+
+@celery_app1.task(name='tasks.cleanse_complainers')
+def cleanse_complainers():
+    cleanse_inactive_complainers()
+
 
 @celery_app1.task(name='tasks.rank_mehfils')
 def rank_mehfils():
@@ -1129,6 +1134,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		else:
 			# neither an upvote nor a downvote, do nothing
 			pass
+
 
 @celery_app1.task(name='tasks.registration_task')
 def registration_task(ip,username,user_id):

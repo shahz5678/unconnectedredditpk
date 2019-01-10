@@ -1,0 +1,93 @@
+
+{% if section == 'voting_summary' %}
+
+	{% if first_time_voting_judger %}
+
+		<div class="cl mts mbs lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:left">
+			<div class="cxl lsp" style="text-align:center">Welcome Defender! Ap ne 2 types ke voters pe ban lagana hai. Woh yeh hain:</div>
+			<hr size=1 COLOR="#cccccc">
+			<div style="text-align:center;font-weight:bold" class="sp">BAN FAKE VOTERS:</div>
+			<div class="mt"><b class="cs">1)</b> Fake voting miltey jultey nicks se hoti hai. Maslan 'hacker0', 'hacker1', 'hacker2', 'hacker3'</div>
+			<div class="mt"><b class="cs">2)</b> Ban fake voters 'forever'</div>
+			<div class="mt"><b class="cs">3)</b> Agar nicks miltey jultey nahi tou shaq ka faida de kar chore dein</div>
+			<div style="text-align:center;font-weight:bold" class="sp">BAN BAD VOTERS:</div>
+			<div class="mt"><b class="cs">1)</b> Sex, nudity (topless or full) aur mazhabi fasad pe jhappi dene waley voters bhi ban karein (lekin 'forever' nahi)</div>
+			<div class="mt"><b class="cs">2)</b> Ban bad voters for a short time</div>
+		</div>
+
+	{% else %}
+
+		<div class="cl mts mbs lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
+			<div class="cl sp lsp" style="text-align:center">Is item ke voter(s) ko ban karney ki decision lein:</div>
+		</div>
+
+	{% endif %}
+
+{% elif section == 'post_submission_ban' %}
+
+	{% if first_time_voting_judger %}
+
+		<div class="cl mts mbs lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:left">
+			<div class="cxl lsp" style="text-align:center">Welcome Defender! Ab ap is item ke voter(s) ko ban karney ki decision lein:</div>
+			<hr size=1 COLOR="#cccccc">
+			<div style="text-align:center;font-weight:bold" class="sp">BAN FAKE VOTERS:</div>
+			<div class="mt"><b class="cs">1)</b> Fake voting miltey jultey nicks se hoti hai. Maslan 'hacker0', 'hacker1', 'hacker2', 'hacker3'</div>
+			<div class="mt"><b class="cs">2)</b> Ban fake voters 'forever'</div>
+			<div class="mt"><b class="cs">3)</b> Agar nicks miltey jultey nahi tou shaq ka faida de kar chore dein</div>
+			<div style="text-align:center;font-weight:bold" class="sp">BAN BAD VOTERS:</div>
+			<div class="mt"><b class="cs">1)</b> Sex, nudity (topless or full) aur mazhabi fasad pe jhappi dene waley voters bhi ban karein (lekin 'forever' nahi)</div>
+			<div class="mt"><b class="cs">2)</b> Ban bad voters for a short time</div>
+		</div>
+
+	{% else %}
+
+		<div class="cl mts mbs lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
+			<div class="cl cb sp lsp" style="text-align:center">Ab ap is item ke voter(s) ko ban karney ki decision lein:</div>
+		</div>
+
+	{% endif %}
+
+{% endif %}
+
+	<form method="POST" action="{% url 'judge_content_voters' %}">
+		{% csrf_token %}
+		<input type="hidden" name="from_cull" value="{{ from_cull }}">
+		<input type="hidden" name="pht" value="{{ pht }}">
+		<input type="hidden" name="nv" value="{{ nv }}">
+		<input type="hidden" name="tp" value="{{ tp }}">
+		<input type="hidden" name="obid" value="{{ obid }}">
+		<input type="hidden" name="ooid" value="{{ ooid }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+
+		<ul style="display:inline-block;padding: 0;list-style:none">
+			{% for user_id,username,ban_status,vote_value in voter_id_names_status_and_votes %}
+				<li style="text-align:left" class="mbs sp">
+				{% if ban_status == '1' %}
+				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				{% elif own_id == user_id %}
+				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				{% else %}
+				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'profile' username %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				{% endif %}
+				</li>
+			{% endfor %}
+		</ul>
+
+		<div class="cm lsp sp">Jin IDs ko ban karna hai, uper unko select karein aur phir unki <b>saza ka time</b> select karein:</div>
+
+		<ul style="display:inline-block;padding: 0;list-style:none">
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="1" name="vdur" value="1"><label for="1"><span class="cr">3 hours</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="2" name="vdur" value="2"><label for="2"><span class="cr">1 day</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="3" name="vdur" value="3"><label for="3"><span class="cr">3 days</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="4" name="vdur" value="4"><label for="4"><span class="cr">1 week</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="5" name="vdur" value="5"><label for="5"><span class="cr">1 month</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="6" name="vdur" value="6"><label for="6"><span class="cr">Forever</span></label></li>
+			<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="0" name="vdur" value="0" checked><label for="0"><b class="cb sp">Cancel</b></label></li>
+		</ul><br>
+
+		<button type="submit" name="dec" class="btn bcr bm pg_ok_res mbs" style="height:26px" value="1">OK</button>
+	</form>

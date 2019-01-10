@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Not permitted | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Not permitted!</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center"> 
+{% if purl %}
+	<div class="bizcard" style="background-color:ivory;padding:10px 0px;text-align:center">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Foto reported</span></div>
+		<img src="{{ purl }}" alt="foto" class="mtl cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
+	</div>
+{% elif text %}
+	<div class="bizcard" style="background-color:ivory;padding:10px;">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px;text-align:center"><span class="cgy">Text reported</span></div>
+		<div class="cl sp mts lsp">{% emoticons %}{{ text|linebreaksbr }}{% endemoticons %}</div>
+	</div>
+{% elif tgt_uname %}
+	{% load s3 %}
+	<div class="bizcard" style="background-color:ivory;text-align:center;padding:10px 0px;">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Profile reported</span></div>
+		<div class="cl sp mts" style="font-weight:bold">Nickname:</div>
+		<div class="cl sp mt lsp">{{ tgt_uname }}</div>
+		<div class="cl sp mts" style="font-weight:bold">Profile foto:</div>
+		<img src="{{ tgt_avurl|s3 }}" alt="pic" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200">
+	</div>
+{% else %}
+	<div class="bizcard" style="background-color:ivory;text-align:center;padding:10px 0px;">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Mehfil reported</span></div>
+		<div class="cl sp mts" style="font-weight:bold">Topic:</div>
+		<div class="cl sp mt lsp">{% emoticons %}{{ group_topic|linebreaksbr }}{% endemoticons %}</div>
+		<div class="cl sp mts" style="font-weight:bold">Rules:</div>
+		<div style="display:inline-block">
+		<div class="cl sp mt lsp" style="text-align:left">{% emoticons %}{{ group_rules|linebreaksbr }}{% endemoticons %}</div>
+		</div>
+	</div>
+{% endif %}
+
+<div class="cxl mts mbs">Sorry! Ap apni cheez pe faisla nahi kar saktey</div>
+<a href="{% url 'cull_content_loc' obid tp %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:26px">wapis</button></a>
+</div><br><br>
+
+{% endblock %}

@@ -1013,7 +1013,7 @@ def log_banning(target_uname,reason_of_ban,action, dur_of_ban,time_of_ban,banned
 	banning_data["did"] = banned_by_id
 	banning_data['dunm'] = banned_by_uname
 	my_server.lpush(GLOBAL_ADMINS_LEDGER,json.dumps(banning_data))#global admin's ledger
-	my_server.ltrim(GLOBAL_ADMINS_LEDGER, 0, (ADMIN_LEDGERS_SIZE-1))# keeps most recent 3000 blocks/unblocks
+	my_server.ltrim(GLOBAL_ADMINS_LEDGER, 0, (GLOBAL_ADMIN_LEDGERS_SIZE-1))# keeps most recent 3000 blocks/unblocks
 
 
 ####################### Cleanse feed of content posted by punished user #######################

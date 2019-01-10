@@ -4353,7 +4353,7 @@ def get_ranked_mehfils():
 	"""
 	Returns groups ranked by their active user counts
 	"""
-	return redis.Redis(connection_pool=POOL).zrange(GROUP_BIWEEKLY_STICKINESS,0,-1,withscores=True)
+	return redis.Redis(connection_pool=POOL).zrevrange(GROUP_BIWEEKLY_STICKINESS,0,9,withscores=True)
 
 
 def cache_ranked_groups(json_data):

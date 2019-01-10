@@ -3,16 +3,24 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Online users | Damadam.pk</title></head>
-    <div class="margin">
-    <a href="{% url 'top_photo' %}#section0" class="cp cxs" ><b>high photo score</b></a>&nbsp;<span class="cs">|</span>
+<style type="text/css">body{background: #E9EBEE}</style>
+
+    <h1 class="clb cxl lsp" style="text-align:center">Online users:</h1>
+
+    <div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
+
+    <div class="sp" style="text-align:center;padding-bottom:10px;border-bottom:1px dashed lightgray">
+    <a href="{% url 'top_photo' %}#section0" class="cp cxs" ><b>high foto score</b></a>&nbsp;<span class="cs">|</span>
     <a href="{% url 'top' %}#section0" class="cg cxs" ><b>high chat score</b></a>&nbsp;<span class="cs" >|</span>
-    <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a><br>
+    <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a>
+    </div>
+
         {% if not whose_online %}
             <br>
-            <span class="cgy">-- Ye abhi khali hai --</span><br>
+            <span class="cgy">- Ye abhi khali hai -</span><br>
         {% elif with_thumbs %}
             <br>
-            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
+            <span class="cgy sp cs"><b>{{ page_obj.paginator.count }}</b> user(s) online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                  <a href="{% url 'profile' slug=obj.username %}#section0">
@@ -23,7 +31,7 @@
                 {% endif %}
                 <b class="cb">{{ obj.username }}</b>
                 {% if obj.username in legit %}
-                    <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="pic">
+                    <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink">
                 {% endif %}
                 </a>
                 {% if obj.userprofile__score %}
@@ -38,12 +46,12 @@
                 {{ obj.thumbs|safe }}
                 </form>
                 {% endif %}
-                <hr size=1 COLOR="#b3e6b3">
+                <hr size=1 COLOR="#E9EBEE">
             {% endfor %}
-            <span class="cs">Nickname forun online nazr nahi aa jata, thora time lagta hai</span>
+            <span class="cs cgy sp">Note: nickname forun online nazr nahi aa jata, thora time lagta hai</span>
         {% else %}
             <br>
-            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> log online</span><br><br>
+            <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> users online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                         <a href="{% url 'profile' slug=obj.username %}#section0">
@@ -54,7 +62,7 @@
                         {% endif %}
                         {{ obj.username }}
                             {% if obj.username in legit %}
-                                <img src="{{ STATIC_URL }}img/pstar.png" width="13" height="13" alt="pic">
+                                <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink">
                             {% endif %}
                         </a>
                         {% if obj.userprofile__score %}
@@ -66,33 +74,29 @@
                         {% endif %}
                 <br>
             {% endfor %}
-        <hr size=1 COLOR="#b3e6b3">
+        <hr size=1 COLOR="#E9EBEE">
         <span class="cs">Nickname forun online nazr nahi aa jata, thora time lagta hai</span>
         {% endif %}
 
-    {% if show_locked_search %}
-    <br>
-        <form action="{% url 'feature_unlocked' %}" method="POST" enctype="multipart/form-data" style="display:inline;">
-                {% csrf_token %}
-                <button style="background-image: url({{ STATIC_URL }}img/locked.png);background-color: white;border:none;background-size: 38px 38px;background-repeat: no-repeat;background-position: center;width:38px;height:38px;margin-top:1em;" type="submit" name="fid" value="1">&nbsp;</button>
-        </form>
-    </div>
-    {% endif %}
-<br>
+</div><br>
 {% endblock %}
 
 {% block pagination %}
 {% if is_paginated %}
-<div class="pagination" style="text-align: center;">
-    {% if page_obj.has_previous %}
-    &nbsp;&nbsp;&nbsp;<a href="?page={{ page_obj.previous_page_number }}#section0"><button class="btn bcr bm"><bdi>wapis</bdi></button></a>
-    {% endif %}
-    &nbsp;&nbsp;&nbsp;&nbsp;
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="btn bcg bm"><bdi>aagey</bdi></button></a>
-    {% endif %}
-</div><br>
-<br>
+
+    <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+        {% if page_obj.has_previous %}
+        <div style="padding:0 10px">
+        <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+        </div>
+        {% endif %}
+        {% if page_obj.has_next %}
+        <div style="padding:0 10px">
+        <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+        </div>
+        {% endif %}
+    </div>
+
 {% endif %}
 <br>
 {% endblock %}

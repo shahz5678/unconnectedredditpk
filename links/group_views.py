@@ -29,7 +29,7 @@ toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,uns
 get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
-cache_photo_shares, priv_msg_sent_logger, priv_invite_accepted_logger
+cache_photo_shares
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
 PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
@@ -457,13 +457,6 @@ def post_to_personal_group(request, *args, **kwargs):
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 				form = PersonalGroupPostForm(request.POST,request.FILES,on_fbs = on_fbs)
 				if form.is_valid():
-					########################################################
-					######################### Alpha ########################
-					########################################################
-					priv_msg_sent_logger.delay(user_id=own_id,group_id=group_id)
-					########################################################
-					########################################################
-					########################################################
 					image_file = request.FILES.get('image')
 					reply = form.cleaned_data.get("reply")
 					if (image_file and reply) or image_file:
@@ -1018,13 +1011,6 @@ def post_chat_action_in_personal_group(request):
 				return render(request,"personal_group/general_settings/personal_group_all_settings.html",{'their_anon':their_anon_status,\
 					'avatar':their_avurl,'name':their_uname,'own_anon':own_anon_status,'tid':target_id})
 			elif option in ('1','2','3','4','5'):
-				########################################################
-				######################### Alpha ########################
-				########################################################
-				priv_msg_sent_logger.delay(user_id=own_id,group_id=group_id)
-				########################################################
-				########################################################
-				########################################################
 				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=option, type_='action', \
 					writer_id=own_id, group_id=group_id)
 				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_EMOTEXT[option],\
@@ -2159,22 +2145,11 @@ def process_personal_group_invite(request):
 							hidden='no')
 					request.session["personal_group_tid_key"] = target_id
 					request.session["personal_group_gid_key:"+target_id] = group_id
-					###################################################
-					#################### Alpha ########################
-					###################################################
-					priv_invite_accepted_logger.delay(own_id, group_id)
-					if own_id % 2 != 0:
-						request.session.modified = True
-						return redirect("enter_personal_group")
-					###################################################
-					###################################################
-					###################################################
-					else:	
-						request.session["personal_group_invite_accepted"] = True
-						request.session["personal_group_invite_accepted_is_anon"] = True if state == '3' else False
-						request.session["personal_group_invite_accepted_username"] = target_username
-						request.session["personal_group_invite_accepted_av_url"] = target_av_url
-						request.session.modified = True
+					request.session["personal_group_invite_accepted"] = True
+					request.session["personal_group_invite_accepted_is_anon"] = True if state == '3' else False
+					request.session["personal_group_invite_accepted_username"] = target_username
+					request.session["personal_group_invite_accepted_av_url"] = target_av_url
+					request.session.modified = True
 			else:
 				ignore_invite(own_id, own_username, target_id, target_username)
 				reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
@@ -2218,13 +2193,6 @@ def post_js_reply_to_personal_group(request):
 					on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 					form = PersonalGroupReplyPostForm(request.POST,request.FILES,on_fbs = on_fbs)
 					if form.is_valid():
-						########################################################
-						######################### Alpha ########################
-						########################################################
-						priv_msg_sent_logger.delay(user_id=own_id, group_id=group_id)
-						########################################################
-						########################################################
-						########################################################
 						image_file = request.FILES.get('rep_image')
 						reply = form.cleaned_data.get("rep_reply")
 						if (image_file and reply) or image_file:

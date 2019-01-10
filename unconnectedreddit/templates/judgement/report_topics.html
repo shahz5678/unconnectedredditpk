@@ -1,0 +1,153 @@
+{% if section == 'text_fan_to_fan' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">"Fan to fan" ya "1 on 1" ki post</div>
+	<div style="text-align:left" class="mts lsp sp">Fan-to-fan ya 1-on-1 ki posts share karney waley users ko report karein, kiyun ke aisi posts <a href="{% url 'spamming_definition' %}#section0" class="cb" style="border-bottom:1px dotted blue" target="_blank">'spamming'</a> ke zumrey mein ati hain.</div>
+	<div style="text-align:left" class="mts lsp sp">Damadam pe spam share nahi karien, sirf dilchusp topics pe high quality posts lagain jin pe users discussion kar sakein</div>
+
+{% elif section == 'text_abuse' %}	
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Galiyan ya dhamkiyan</div>
+	<div style="text-align:left" class="mts lsp sp">Damadam pe abusive words use karna ya dhamkiyan dena bura samjha jata hai, aisa karney se gurez karein.</div>
+	<div style="text-align:left" class="mts lsp sp">Apki post pe apko koi gali ya dhamki de tou usey forun <img src="{{ STATIC_URL }}img/block_dark.svg" height="17" width="17" style="vertical-align:sub"> press kar ke block karein. Lekin agar koi home pe aisi post lagaye jis mein abuse ho tou usko report karein.</div>
+{% elif section == 'username_abuse' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Nickname abusive hai</div>
+	<div style="text-align:left" class="mts lsp sp">Nickname mein abusive words hona ghalat hai. Aisey nicknames ko forun report karein takey woh ban kiye ja sakein. Aisey nicknames rakhney waley users ki hamari community me koi jagah nahi.</div>
+{% elif section == 'mehfil_topic_abuse' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil topic abusive hai</div>
+	<div style="text-align:left" class="mts lsp sp">Mehfil topic mein abusive words likhna mana hai. Aisi mehfils ko forun report karein aur unko exit bhi kar dein. Aisey topics wali mehfils aur unkey admins ki hamari community me koi jagah nahi.</div>
+{% elif section == 'mehfil_rules_abuse' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil rules abusive hain</div>
+	<div style="text-align:left" class="mts lsp sp">Mehfil rules mein abusive words likhna mana hai. Aisi mehfils ko forun report karein aur unko exit bhi kar dein. Aisey rules wali mehfils aur unkey admins ki hamari community me koi jagah nahi.</div>
+
+{% elif section == 'text_vulgar' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Sexual ya vulgar post</div>
+	<div style="text-align:left" class="mts lsp sp">Sexual, vulgar or dirty posts chahey text hon, fotos hon ya links hon, har lehaz se Damadam ki rooh ke khilaf hain. Aisi posts nahi karein.</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi apki post pe aisa kuch lagaye, tou usko forun <img src="{{ STATIC_URL }}img/block_dark.svg" height="17" width="17" style="vertical-align:sub"> press kar ke block karein. Agar koi home pe aisi post lagaye ya gandi foto post karey, tou usko forun report karein.</div>
+{% elif section == 'username_vulgar' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Nickname ganda hai</div>
+	<div style="text-align:left" class="mts lsp sp">Ganday ya vulgar nickname pe forun profile ko report karein. Aise nicknames Damadam ka mahol kharab kartey hain aur unko ban kar dia jaye ga. Aisey users ki hamari community me koi jagah nahi.</div>
+{% elif section == 'profile_pic_vulgar' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Profile foto gandi hai</div>
+	<div style="text-align:left" class="mts lsp sp">Gandi ya vulgar profile fotos pe forun profile report karein. Aisi tamam profiles ko ban kar dia jaye ga. Aisi fotos laganey waley users ki hamari community me koi jagah nahi.</div>
+{% elif section == 'mehfil_topic_vulgar' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil topic ganda hai</div>
+	<div style="text-align:left" class="mts lsp sp">Sexual and vulgar topics wali mehfils ko forun report karein aur un se exit bhi kar dein. Aisi tamam mehfils ke khilaf action lia jaye ga. Aisi mehfils ke liye hamari community me koi jagah nahi.</div>
+{% elif section == 'mehfil_rules_vulgar' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil rules gandey hain</div>
+	<div style="text-align:left" class="mts lsp sp">Sexual and vulgar rules wali mehfils ko forun report karein aur un se exit bhi kar dein. Aisi tamam mehfils ke khilaf action lia jaye ga. Aisi mehfils ke liye hamari community me koi jagah nahi.</div>
+
+
+{% elif section == 'text_crap' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Betukki cheez likhna</div>
+	<div style="text-align:left" class="mts lsp sp">Bar bar repeat honay wali posts, "asdfadsf", "s for some", "hehe haha", is kissam ki betukki posts ko report karein takey inko share karney waloon ki sharing block ki ja sakey. Is terah Damadam ki quality mein izafa ho ga.</div>
+	<div style="text-align:left" class="mts lsp sp">Damadam pe share ki hui posts aisi nahi honi chahiyen jo users ko bore karein, unka time waste karein, unko betukki ya adhoori lagein, ya low quality ki hon. Aise sab shared items <a href="{% url 'spamming_definition' %}#section0" class="cb" style="border-bottom:1px dotted blue" target="_blank">'spamming'</a> ke zumrey mein atey hain.</div>
+{% elif section == 'text_repeating' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Repeated posts</div>
+	<div style="text-align:left" class="mts lsp sp">"Hello hello hello", {% load emoticons_tags %}"{% emoticons %}:) :) :) :){% endemoticons %}", "سلام, سلام, سلام, سلام", is kissam ki repeating posts ko report karein takey inko share karney waloon ki sharing block ki ja sakey. Is terah Damadam ki quality mein izafa ho ga.</div>
+	<div style="text-align:left" class="mts lsp sp">Damadam pe share ki hui posts aisi nahi honi chahiyen jo users ko bore karein, unka time waste karein, unko betukki ya adhoori lagein, ya low quality ki hon. Aise sab shared items <a href="{% url 'spamming_definition' %}#section0" class="cb" style="border-bottom:1px dotted blue" target="_blank">'spamming'</a> ke zumrey mein atey hain.</div>
+{% elif section == 'text_chat' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Sharing chat on home</div>
+	<div style="text-align:left" class="mts lsp sp">Home pe dilchusp items share karien. In items ke comments mein chatting ki ja sakti hai, lekin home pe directly chat share nahi karien, ye <a href="{% url 'spamming_definition' %}#section0" class="cb" style="border-bottom:1px dotted blue" target="_blank">'spamming'</a> ke zumrey mein ata hai.</div>
+	<div style="text-align:left" class="mts lsp sp">"Hello how are you?", "Assalam ualaikum all", "Ap kaisey hain" aisi posts hain jo chatting ke liye theek hain, lekin home pe sharing ya foto titles ke liye nahi. Aisi posts share karney waloon ko report karein.</div>
+
+{% elif section == 'text_firqa_wariyat' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Firqa wariyat</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi bhi firqa wariyat wali post share ki jaye, tou usko forun report kar dein. Apney mazhab ki beshaq tareef karein. Lekin dusroon ke mazhab ke khilaf kuch bhi share nahi karein.</div>
+{% elif section == 'photo_firqa_wariyat' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Firqa wariyat</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi bhi firqat wariyat wali foto share ki jaye, tou usko forun report kar dein. Apney mazhab ki beshaq tareef karein. Lekin dusroon ke mazhab ke khilaf kuch bhi share nahi karein.</div>
+{% elif section == 'username_firqa_wariyat' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Firqa wariyat</div>
+	<div style="text-align:left" class="mts lsp sp">Agar kisi ke nickname mein firqa wariyat ho tou usko forun report karein. Aisi profiles ko ban kar dia jaye ga. Apney mazhab ki beshaq tareef karein. Dusroon ke mazhab ke khilaf baat karney ki ijazat nahi.</div>
+{% elif section == 'profile_pic_firqa_wariyat' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Profile foto mein firqa wariyat</div>
+	<div style="text-align:left" class="mts lsp sp">Kisi aur firqay, mazhab ya deen ke khilaf profile foto lagana ghalat hai. Aisi profiles ko forun report karein takey unko ban kia ja sakey. Apney mazhab ki beshaq tareef karein. Dusroon ke mazhab ke khilaf fotos laganey ki ijazat nahi.</div>
+{% elif section == 'mehfil_topic_firqa_wariyat' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil topic mein firqa wariyat</div>
+	<div style="text-align:left" class="mts lsp sp">Kisi aur firqay, mazhab ya deen ke khilaf mehfil topic rakhna ghalat hai. Aisi mehfils ko forun report karein aur unko exit bhi kar dein. Apney mazhab ki beshaq tareef karein. Dusroon ke mazhab ke khilaf baat karney ki ijazat nahi.</div>
+{% elif section == 'mehfil_rules_firqa_wariyat' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil rules mein firqa wariyat</div>
+	<div style="text-align:left" class="mts lsp sp">Kisi aur firqay, mazhab ya deen ke khilaf mehfil rules likhna ghalat hai. Aisi mehfils ko forun report karein aur unko exit bhi kar dein. Apney mazhab ki beshaq tareef karein. Dusroon ke mazhab ke khilaf baat karney ki ijazat nahi.</div>
+
+{% elif section == 'text_terrorism' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Dehshat gardi ki himayat</div>
+	<div style="text-align:left" class="mts lsp sp">Social media pe aisi ghalat posts karney waloon ko ISI, FIA aur deegar agencies tafteesh ke liye utha sakti hain. Terrorism, anti-state aur criminal activities sakhti se mana hain. Lehaza aisi posts report karein jo ISIS, Taliban, TLP, Mumtaz Qadri waghera ki himayat mein ki geyi hon. Ham peace and unity chahtey hain. Ham nafrat, revenge and qatal-o-gharat ko support nahi kartey.</div>
+	<div style="text-align:left" class="mts lsp sp">Agar ap mein buhut jazba hai, tou usko larai aur khoon-kharabey mein nikalney ke bajai mehnat aur parhai mein laga ke dekhein. Jab ap successful insan ban gaye tou ap duniya ko behtar bana sakein ge. Hatred aur khoon bahaney se yeh duniya behtar nahi hogi. Damadam ka pegham yehi hai.</div>
+	<div style="text-align:left" class="mts lsp sp">Ham ghalat users ke IP and data government agencies ko dene se gurez nahi karein ge.</div>
+{% elif section == 'photo_terrorism' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Dehshat gardi ki himayat</div>
+	<div style="text-align:left" class="mts lsp sp">Social media pe aisi ghalat fotos post karney waloon ko ISI, FIA aur deegar agencies tafteesh ke liye utha sakti hain. Terrorism, anti-state aur criminal activities sakhti se mana hain. Lehaza aisi fotos report karein jo ISIS, Taliban, TLP, Mumtaz Qadri waghera ki himayat kar rahi hon. Ham peace and unity chahtey hain. Ham nafrat, revenge and qatal-o-gharat ko support nahi kartey.</div>
+	<div style="text-align:left" class="mts lsp sp">Agar ap mein buhut jazba hai, tou usko larai aur khoon-kharabey mein nikalney ke bajai mehnat aur parhai mein laga ke dekhein. Jab ap successful insan ban gaye tou ap duniya ko behtar bana sakein ge. Hatred aur khoon bahaney se yeh duniya behtar nahi hogi. Damadam ka pegham yehi hai.</div>
+	<div style="text-align:left" class="mts lsp sp">Ham ghalat users ke IP and data government agencies ko dene se gurez nahi karein ge.</div>
+
+{% elif section == 'text_plagiarism' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apki post copy karna</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi user apki recent post copy kar ke home pe share karey tou usko report karein. Report mein apni copied post select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
+	<div style="text-align:left" class="mts lsp sp">Posts copy karna ghalat hai. Users ka time waste hota hai jab woh aik jesi posts ko bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid posts lagein. Abhi ye rule sirf recent posts pe apply kia jata hai.</div>
+{% elif section == 'photo_plagiarism' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apki foto copy karna</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi user apki recent foto copy kar ke home pe share karey tou usko report karein. Report mein apni copied foto select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
+	<div style="text-align:left" class="mts lsp sp">Fotos copy karna ghalat hai. Users ka time waste hota hai jab woh aik jesi fotos ko bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid fotos lagein, aik jesi nahi. Abhi ye rule sirf recent fotos pe apply kia jata hai.</div>
+
+{% elif section == 'text_double_posting' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apni post dubara lagana</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi user apni recent post dubara share karey tou usko report karein. Report mein is user ki copied post select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
+	<div style="text-align:left" class="mts lsp sp">Same post bar bar share karna ghalat hai. Users ka time waste hota hai jab woh aik jesi posts bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid posts lagein. Abhi ye rule sirf recent posts pe apply kia jata hai.</div>
+{% elif section == 'photo_double_posting' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apni foto dubara lagana</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi user apni recent foto dubara share karey tou usko report karein. Report mein is user ki copied foto select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
+	<div style="text-align:left" class="mts lsp sp">Same foto bar bar share karna ghalat hai. Users ka time waste hota hai jab woh aik jesi fotos bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid fotos lagein, aik jesi nahi.</div>
+
+{% elif section == 'text_romantic_solicitation' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Romance ki bheek</div>
+	<div style="text-align:left" class="mts lsp sp">Damadam pe love or sad poetry and fotos ki ijazat zarur hai, lekin harassment and indecency ki nahi. Aisi home posts forun report karein jin mein romance ki bheek mangi ja rehi ho.</div>
+	<div style="text-align:left" class="mts lsp sp">"Please call me on whatsapp", "Koi girl hai?", "Koi aunty hai?", "Koi boy private mein aye ga?". Aisi tamam posts mahol kharab karti hain. Agar koi user chatting mein ap se romance ki bheek mangey tou usko block kar dein.</div>
+{% elif section == 'photo_title_solicitation' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Foto title mein bheek</div>
+	<div style="text-align:left" class="mts lsp sp">Foto ke title mein comments, fans and votes ki bheek mangna ghalat hai. Aisi fotos ko forun report karein takey Damadam ka system unko ban kar sakey. Is se Damadam ki quality high ho gi.</div>
+
+{% elif section == 'text_rumor' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Ghalat afwahein phelana</div>
+	<div style="text-align:left" class="mts lsp sp">Jin posts mein afwahein (rumors) phelai ja rahe hon, unko forun report karein. Hamey Damadam ko fake news and rumors se paak rakhna hai. Aisi koi bhi baat jis mein share karney wala apko dara ke bewaqquf bana raha ho, aur jis mein real saboot na ho, woh fake hoti hai.</div>
+	<div style="text-align:left" class="mts lsp sp">"Admin mobile numbers leak karta hai", "Woh girl buhut gandi hai", "Woh user kisi ko bhi hack kar leta hai", aisi tamam posts afwahein hai jinki Damadam pe koi jagah nahi.</div>
+{% elif section == 'profile_pic_rumor' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Profile foto mein jhooti afwah</div>
+	<div style="text-align:left" class="mts lsp sp">Profile foto mein jhooti afwah (rumor) ya fake news nahi honi chahiye. Aisi profiles ko forun report karein takey unko ban kia ja sakey.</div>
+	<div style="text-align:left" class="mts lsp sp">Fake news and rumors logoon ko dara ke unka faida uthaney ke liye phelai jatey hain. In cheezoon ke peechay kabhi real saboot nahi hota.</div>
+{% elif section == 'mehfil_topic_rumor' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil topic mein jhooti afwah</div>
+	<div style="text-align:left" class="mts lsp sp">Jin mehfil topics mein afwahein (rumors) phelai ja rahe hon, unko forun report karein aur aisi mehfils ko exit bhi kar dein. Hamey Damadam ko fake news and rumors se paak rakhna hai.</div>
+{% elif section == 'mehfil_rules_rumor' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Mehfil rules mein jhooti afwah</div>
+	<div style="text-align:left" class="mts lsp sp">Jin mehfil rules mein afwahein (rumors) phelai ja rahe hon, unko forun report karein aur aisi mehfils ko exit bhi kar dein. Hamey Damadam ko fake news and rumors se paak rakhna hai.</div>
+
+{% elif section == 'text_multi_new_line' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Bar bar new lines dalna</div>
+	<div style="text-align:left" class="mts lsp sp">New line dalney ka matlab sentence type kartey huay mobile keyboard ka <img src="{{ STATIC_URL }}img/enter_key.svg" width="17" height="17" style="vertical-align:sub">&nbsp;button dabana hai.</div> 
+	<div style="text-align:left" class="mts lsp sp">Is se sentence agli line pe chala jata hai. Hadd se ziyada new lines dalney se parhney mein rukawat hoti hai. Agar home pe aisi posts share hon tou unko report karein. New lines sirf new paragraph start kartey huay, ya phir poetry mein use karein. Maslan:<br>
+	<div class="mts cgy" style="text-align:center">Jis Tarah Khwab Mere Ho Gaye Raiza Raiza<br>Is Tarah Se Na Kabi Tot Ke Bikhre Koyi</div></div>
+	<div style="text-align:left" class="mts lsp sp">Agar uper shair mein 1st misray ke baad <img src="{{ STATIC_URL }}img/enter_key.svg" width="17" height="17" style="vertical-align:sub">&nbsp;new line nahi dali jati tou woh aik hi line pe nazar ata.</div> 
+
+{% elif section == 'profile_pic_screenshot' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Damadam ki screenshot</div>
+	<div style="text-align:left" class="mts lsp sp">Kisi user ko sharminda karney ke liye uski screenshot profile foto ke taur pe lagana ghalat hai. Aisi tamam profiles ko report karein takey unko forun ban kia ja sakey. Damadam ko hassad and bullying se paak karein.</div>
+{% elif section == 'photo_screenshot' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Damadam ki screenshot</div>
+	<div style="text-align:left" class="mts lsp sp">Kisi user ko sharminda karney ke liye uski screenshot share nahi karein. Agar kisi user ne apkey sath chat mein kuch ghalat kiya hai tou usko block karein. Agar us ne home pe kuch ghalat share kiya hai tou usko report karein. Screenshots share karney se ye dono cheezain behtar hain.</div>
+	<div style="text-align:left" class="mts lsp sp">Un tamam screenshots ko report karein jo kisi user ko sharminda karney ke liye share ki jaien. Damadam ko hassad aur bullying se paak karein.</div>
+
+{% elif section == 'photo_nudity_or_sex' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Nude or sexual fotos</div>
+	<div style="text-align:left" class="mts lsp sp">Aisi koi foto share nahi karein jo ap apni family ke sath nahi dekh saktey. Nudity or sexual fotos share karney waloon ko ban kia jaye ga. Aisi fotos forun report karein.</div>
+	<div style="text-align:left" class="mts lsp sp">Damadam pe females or couples ki fotos ki ijazat hai. Lekin agar aisi fotos indecent hon aur mahol kharab karein, tou unki bilkul ijazat nahi.</div>
+{% elif section == 'photo_bloodshed' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Khoon kharaba ya aziyat</div>
+	<div style="text-align:left" class="mts lsp sp">Aisi fotos ki ijazat nahi jin mein khoon kharaba ho, aziyat ho, ya human body ko cut kiya gaya ho. Aisi fotos ko forun ban kia jaye ga, chahey woh sad poetry mein use ho rahi hon ya religious post mein.</div>
+	<div style="text-align:left" class="mts lsp sp">Na aisi fotos khud upload karein, aur na hi kisi aur ki aisi fotos ki hosla afzai karein. Aisi fotos se demagh pe bura asar par sakta hai, is liye inko Damadam pe ban kia jata hai.</div>
+{% elif section == 'photo_low_quality' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Low quality foto</div>
+	<div style="text-align:left" class="mts lsp sp">Agar foto itni dhundli ho ke sahi se nazr nahi aa rahi ho, tou usko report karein. Is terah Damadam pe sirf high quality fotos ko yaqeeni banaya jaye ga.</div>
+{% elif section == 'photo_wrong_title' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Wrong or unrelated foto title</div>
+	<div style="text-align:left" class="mts lsp sp">Foto ka title foto se related hona chahiye. Unrelated ya betukkey titles foto ko low quality banatey hain. Aik relevant aur dilchusp title kisi bhi foto mein jaan daal deta hai.</div>
+	<div style="text-align:left" class="mts lsp sp">Woh fotos report karein jinkey titles ka foto se taluq nahi ho. For example: "Aj mosam acha hai" title ho, aur foto mein unrelated sad poetry ho. Or "Apun se panga na lena" title ho, aur pic mein samundar bana hua ho. Unrelated fotos khatam honay se Damadam ki quality high ho gi.</div>
+{% else %}
+{% endif %}

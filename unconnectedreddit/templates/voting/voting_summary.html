@@ -5,6 +5,10 @@
 <head><title>Points summary | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
+{% if defender %}
+	{% load get_voting_defender_navbar %}
+	{% voting_defender_navbar is_pht=pht orig=orig obid=obj_id vote_score=nv static_url=STATIC_URL section='voting' %}
+{% endif %}
 <h1 class="cxl clb lsp" style="text-align:center">Points summary:</h1>
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 
@@ -30,6 +34,12 @@ wapis</a><br>
 		<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% endif %}wapis</a><br>
 {% endif %}
+	
+	{% if defender and voter_id_names_status_and_votes %}
+		
+		{% include "judgement/judge_content_voters.html" with pht=pht nv=nv from_cull=from_cull tp=tp obid=obj_id ooid=ooid oun=oun purl=purl|s3:'thumb' orig=orig lid=lid cap=obj.description|truncatechars:'60' voter_id_names_status_and_votes=voter_id_names_status_and_votes first_time_voting_judger=first_time_voting_judger section='voting_summary' %}
+		
+	{% else %}
 
 		<hr size=1 COLOR="#e5e7e9">
 
@@ -60,6 +70,9 @@ wapis</a><br>
 			<div class="cxs sp cgy mtl">- voting closed -</div>
 		</div>
 		{% endif %}
+
+	{% endif %}
+
 
 
 </div>

@@ -74,8 +74,8 @@ retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credent
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, cache_photo_dim
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
-purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, \
-get_banned_users_count, is_already_banned, is_mobile_verified, tutorial_unseen#, log_erroneous_passwords
+purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
+is_already_banned, is_mobile_verified, tutorial_unseen#, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, \
@@ -86,20 +86,19 @@ from .redis1 import remove_key, document_publicreply_abuse, publicreply_allowed,
 document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, TEN_MINS, \
 check_group_invite, remove_group_invite, add_user_group, remove_user_group, all_unfiltered_posts, all_filtered_posts, \
 all_filtered_urdu_posts, all_photos, all_best_photos, all_videos, video_uploaded_too_soon, add_vote_to_video, voted_for_video, \
-get_video_votes, save_recent_video, save_recent_photo, get_recent_photos, get_recent_videos, voted_for_photo, first_time_refresher, \
-add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, can_vote_on_photo, \
-first_time_inbox_visitor, add_photo_comment, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs, \
-add_home_replier, add_video,add_inbox, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, set_inactives,\
-add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
-current_match_unfiltered_comments, current_match_comments, first_time_home_replier, get_inactives, unlock_uname_search, \
-is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, website_feedback_given, first_time_log_outter, add_log_outter, \
-all_best_posts, all_best_urdu_posts
-#, set_prev_retorts, retrieve_home_links, add_photo, add_home_link 
+get_video_votes, save_recent_video, get_recent_videos, voted_for_photo, first_time_refresher, first_time_photo_defender, \
+add_photo_defender_tutorial, can_vote_on_photo, first_time_inbox_visitor, retrieve_photo_posts, first_time_password_changer, \
+add_password_change, voted_for_photo_qs, add_home_replier, add_video,add_inbox, first_time_photo_uploader, add_photo_uploader, \
+first_time_psl_supporter, set_inactives, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
+incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, first_time_home_replier, \
+get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, website_feedback_given, \
+first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, add_refresher
 from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, invalidate_cached_mehfil_pages, \
 retrieve_latest_user_owned_mehfils
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
-update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, rate_limit_fbs_public_photo_uploaders
+update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders,\
+rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -324,6 +323,7 @@ def return_to_photo(request,origin,photo_id=None,link_id=None,target_uname=None)
 #   else:
 #       return None
 
+
 def get_price(points):
 	"""
 	Determines price of anything, in accordance to how many points a user has
@@ -347,6 +347,7 @@ def get_price(points):
 		base = 71
 		price = (((points/base)+9)//10)*10 #roundup the number to nearest 10
 	return int(price)
+
 
 def valid_passcode(user,num):
 	if user.is_authenticated():
@@ -991,6 +992,29 @@ class ReportreplyView(FormView):
 				context["link_id"] = None
 				context["authorized"] = False
 		return context
+
+
+def display_link_detail(request, link_id):
+	"""
+	Displays a given Link object in a separate page
+
+	Useful for defender who've banned a 'link' and consequently it's been censored
+	"""
+	try:
+		obj = Link.objects.get(id=link_id)
+	except Link.DoesNotExist:
+		obj = None
+	own_id = request.user.id
+	if obj.submitter_id == own_id or in_defenders(own_id):
+		pass
+	else:
+		# do NOT show this detail page to unrelated users
+		obj = None
+	if obj:
+		return render(request,"link_detail.html",{'obj':obj})
+	else:
+		return redirect("missing_page")
+
 
 class PhotoDetailView(DetailView):
 	model = Photo
@@ -1704,7 +1728,7 @@ class UserProfilePhotosView(ListView):
 		star_id = subject.id
 		if self.request.user:
 			user_id = self.request.user.id
-			is_defender = False#in_defenders(user_id)
+			is_defender = in_defenders(user_id)
 			own_profile = star_id == user_id
 			context["own_profile"] = own_profile
 		else:
@@ -1714,20 +1738,12 @@ class UserProfilePhotosView(ListView):
 			context["own_profile"] = False
 		context["mobile_verified"] = self.request.mobile_verified if own_profile else is_mobile_verified(star_id)
 		###########
-		# banned, time_remaining, ban_details = check_content_and_voting_ban(star_id, with_details=True)
-		# context["ban_detail"] = ban_details
-		# context["is_profile_banned"] = banned
-		# context["time_remaining"] = time_remaining
-		# context["is_mob"] = False if banned else (self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile)
-		banned, time_remaining = check_photo_upload_ban(star_id)
-		if banned:
-			context["is_profile_banned"] = True
-			context["time_remaining"] = time_remaining
-		else:
-			context["is_profile_banned"] = False
-			context["time_remaining"] = None
-			if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
-				context["is_mob"] = True
+		banned, time_remaining, ban_details = check_content_and_voting_ban(star_id, with_details=True)
+		context["ban_detail"] = ban_details
+		context["is_profile_banned"] = banned
+		context["noindex"] = True if banned else False
+		context["time_remaining"] = time_remaining
+		context["is_mob"] = False if banned else (self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile)
 		###########
 		context["subject"] = subject
 		context["star_id"] = star_id
@@ -1736,7 +1752,7 @@ class UserProfilePhotosView(ListView):
 		total_fans, recent_fans = get_photo_fan_count(star_id)
 		context["fans"] = total_fans if total_fans else 0
 		context["recent_fans"] = recent_fans if recent_fans else 0
-		# context["manageable"] = False
+		context["manageable"] = False
 		if context["object_list"] and search_thumbs_missing(slug):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(slug,ids_with_urls)
@@ -1745,8 +1761,8 @@ class UserProfilePhotosView(ListView):
 			context["authenticated"] = True
 			context["user_id"] = user_id
 			username = retrieve_uname(user_id,decode=True)
-			# if is_defender:
-			#     context["manageable"] = True
+			if is_defender:
+				context["manageable"] = True
 			context["not_fan"] = False if is_fan(star_id, user_id) else True
 			if username == slug:
 				context["allowed_fan"] = False
@@ -1762,6 +1778,7 @@ class UserProfilePhotosView(ListView):
 			context["not_fan"] = True
 			context["allowed_fan"] = False
 		return context
+
 
 	def get(self, request, *args, **kwargs):
 		self.object_list = self.get_queryset()
@@ -2196,28 +2213,19 @@ class UserProfileDetailView(FormView):
 		except User.DoesNotExist:
 			raise Http404("User ID does not compute")
 		if star_id:
-
-			banned, time_remaining = check_photo_upload_ban(star_id)
-			if banned:
-				context["is_profile_banned"] = True
-				context["time_remaining"] = time_remaining
-			else:
-				context["is_profile_banned"] = False
-				context["time_remaining"] = None
-
 			user_id = self.request.user.id
 			context["own_id"] = self.request.user.id
 			context["star_id"] = star_id
 			user_id = str(user_id) if user_id else None
-			is_own_profile = user_id == star_id
-			# is_defender, ban_detail = in_defenders(user_id), None
-			# banned, time_remaining, ban_detail = check_content_and_voting_ban(star_id, with_details=True)
+			is_defender, is_own_profile, ban_detail = in_defenders(user_id), user_id == star_id, None
+			banned, time_remaining, ban_detail = check_content_and_voting_ban(star_id, with_details=True)
 			context["star_av_url"] = retrieve_avurl(star_id)
-			# context["is_profile_banned"] = banned
+			context["is_profile_banned"] = banned
+			context["noindex"] = True if banned else False
 			context["is_own_profile"] = is_own_profile
-			# context["ban_detail"] = ban_detail
-			# context["is_defender"] = is_defender
-			# context["time_remaining"] = time_remaining
+			context["ban_detail"] = ban_detail
+			context["is_defender"] = is_defender
+			context["time_remaining"] = time_remaining
 			context["origin"] = '10'#helps redirect back to this page if a user enter the "report" funnel
 			context["mehfil_creation_ttl"] = self.request.session.pop("mehfil_creation_rate_limited",None)
 			context["star_owner_mehfils"] = retrieve_latest_user_owned_mehfils(star_id)
@@ -2227,6 +2235,7 @@ class UserProfileDetailView(FormView):
 			# user does not exist
 			raise Http404("User ID does not exist")
 		return context
+
 
 class ExternalSalatInviteView(FormView):
 	template_name = "salat_sms.html"
@@ -3657,9 +3666,6 @@ def photo_list(request,*args, **kwargs):
 		secret_key = uuid.uuid4()
 		context["sk"] = secret_key
 		set_text_input_key(context["ident"], '1', 'fresh_photos', secret_key)
-		############################################# Home Rules #################################################
-		# context["home_rules"] = spammer_punishment_text(context["ident"])
-		##########################################################################################################
 		context["lang"] = None
 		context["sort_by"] = None
 		if request.is_feature_phone or request.is_phone or request.is_mobile:
@@ -3667,10 +3673,8 @@ def photo_list(request,*args, **kwargs):
 		context["comment_form"] = request.session.pop("comment_form") if "comment_form" in request.session else PhotoCommentForm() 
 		if request.user_banned:
 			context["process_notification"] = False
-		else:
+		else:	
 			context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
-			# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			# 'LOCATION': MEMLOC, 'TIMEOUT': 70,})
 			context["salat_timings"] = {}#cache_mem.get('salat_timings')
 			if "notif_form" in request.session:
 				context["notif_form"] = request.session["notif_form"]
@@ -3911,12 +3915,12 @@ class UploadVideoView(FormView):
 
 ##################################################################
 
+
 def public_photo_upload_denied(request):
 	"""
 	Helper view for upload_public_photo
 	"""
 	which_msg = request.session.pop("public_photo_upload_denied",None)
-	
 	if which_msg == '0':
 		ttl = request.session.pop("public_photo_upload_fbs_ttl",None)
 		return render(request,'big_photo_fbs.html',{'rate_limited':True,'ttl':ttl})
@@ -3925,10 +3929,10 @@ def public_photo_upload_denied(request):
 	elif which_msg == '2':
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'upload_public_photo':True})
 	elif which_msg in ('3','4'):
-		
+		ban_details = request.session.pop('public_photo_upload_denied_details',None)
 		time_remaining = request.session.pop("public_photo_upload_denied_time_togo",None)
-		return render(request, 'forbidden_photo.html', {'time_remaining': time_remaining})
-
+		return render(request, 'upload_public_photo.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,'defender':None,\
+			'own_profile':True})
 	elif which_msg == '5':
 		time_remaining = request.session.pop("public_photo_upload_rate_limit_ttl",None)
 		type_of_rate_limit = request.session.pop("public_photo_upload_rate_limit_torl",None)
@@ -3951,6 +3955,8 @@ def public_photo_upload_denied(request):
 		return render(request, 'mehfil/notify_and_redirect.html',{'is_pub_photo':True,'img_too_big':True})
 	elif which_msg == '10':
 		return redirect("error")
+	elif which_msg == '11':
+		return render(request,'big_photo_regular.html',{'too_narrow':True})
 	else:
 		raise Http404("Unknown photo upload error")
 
@@ -4004,7 +4010,7 @@ def upload_public_photo(request,*args,**kwargs):
 					return redirect("error") #errorbanning
 			else:
 				ttl, type_of_rate_limit = content_sharing_rate_limited(user_id)
-				banned, time_remaining = check_photo_upload_ban(user.id)
+				banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
 				if ttl:
 					request.session["public_photo_upload_rate_limit_ttl"] = ttl
 					request.session["public_photo_upload_rate_limit_torl"] = type_of_rate_limit
@@ -4015,15 +4021,15 @@ def upload_public_photo(request,*args,**kwargs):
 					else:
 						return redirect('public_photo_upload_denied')
 				elif banned:
-					to_go = time_remaining if time_remaining == '-1' else timezone.now()+timedelta(seconds=time_remaining)
-					request.session["public_photo_upload_denied_time_togo"] = to_go
+					request.session["public_photo_upload_denied_details"] = ban_details
+					request.session["public_photo_upload_denied_time_togo"] = time_remaining
 					request.session["public_photo_upload_denied"] = '3'
 					request.session.modified = True
 					if is_ajax:
 						return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
 					else:
 						return redirect('public_photo_upload_denied')
-				else:        
+				else:    
 					form = UploadPhotoForm(request.POST,request.FILES)
 					if form.is_valid():
 						image_file = request.FILES['image_file']
@@ -4053,7 +4059,7 @@ def upload_public_photo(request,*args,**kwargs):
 									return redirect('public_photo_upload_denied')
 						reoriented = request.POST.get('reoriented',None)
 						resized = request.POST.get('resized',None)
-						image_file_new, img_height, dup_photo_id, avghash = process_public_image(image=image_file, quality=None if on_fbs else True,already_resized=resized,\
+						image_file_new, img_height, dup_photo_id, avghash = process_public_image(image=image_file, quality=None if on_fbs else True,already_resized=resized, \
 						already_reoriented=reoriented)#, caption=request.POST.get('caption',None))
 						if isinstance(dup_photo_id,float):
 							request.session["public_photo_upload_denied"] = '8'
@@ -4070,10 +4076,18 @@ def upload_public_photo(request,*args,**kwargs):
 								return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
 							else:
 								return redirect('public_photo_upload_denied')
+						elif img_height == 'too_narrow':
+							# this image is too narrow, don't upload it since it's probably low quality
+							request.session["public_photo_upload_denied"] = '11'
+							request.session.modified = True
+							if is_ajax:
+								return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+							else:
+								return redirect('public_photo_upload_denied')
 						else:
 							image_file = image_file_new if image_file_new else None
 					else:
-						request.session["public_photo_upload_denied"] = '11'
+						request.session["public_photo_upload_denied"] = '12'
 						request.session.modified = True
 						if is_ajax:
 							return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
@@ -4115,13 +4129,13 @@ def upload_public_photo(request,*args,**kwargs):
 	else:
 		# if it's a GET request
 		context, own_id = {}, request.user.id
-		banned, time_remaining = check_photo_upload_ban(request.user.id)
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
 		if banned:
 			context["defender"] = None
 			context["own_profile"] = True
 			context["forbidden"] = True
-			to_go = time_remaining if time_remaining == '-1' else timezone.now()+timedelta(seconds=time_remaining)
-			context["time_remaining"] = to_go
+			context["ban_details"] = ban_details
+			context["time_remaining"] = time_remaining
 			return render(request,"upload_public_photo.html",context)
 		else:
 			if on_fbs:
@@ -5160,24 +5174,18 @@ class UserActivityView(ListView):
 		context["is_profile_banned"] = False
 		if self.request.user.is_authenticated():
 			own_id = self.request.user.id
-			is_own_profile = str(own_id) == target_id
-			is_defender, ban_detail = in_defenders(own_id), None
-			# banned, time_remaining, ban_detail = check_content_and_voting_ban(target_id, with_details=True)
-			# if is_own_profile or is_defender:
-			#     # either defender, or own profile
-			#     banned, time_remaining, ban_detail = check_content_and_voting_ban(target_id, with_details=True)
-			# else:
-			#     # regular user
-			#     banned, time_remaining = check_content_and_voting_ban(target_id)
-			#     ban_detail = None
-			# context["is_profile_banned"] = banned
+			is_defender, is_own_profile, ban_detail = in_defenders(own_id), str(own_id) == target_id, None
+			banned, time_remaining, ban_detail = check_content_and_voting_ban(target_id, with_details=True)
+			context["is_profile_banned"] = banned
+			context["noindex"] = True if banned else False
 			context["is_own_profile"] = is_own_profile
-			# context["ban_detail"] = ban_detail
-			# context["time_remaining"] = time_remaining
+			context["ban_detail"] = ban_detail
+			context["time_remaining"] = time_remaining
 			context["ident"] = own_id
-			# context["is_defender"] = is_defender
+			context["is_defender"] = is_defender
 			context["uname"] = username
 		return context
+
 
 class UserSettingDetailView(DetailView):
 	model = get_user_model()
@@ -5324,96 +5332,82 @@ class LinkCreateView(CreateView):
 		context = super(LinkCreateView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			own_id = self.request.user.id
-			secret_key = uuid.uuid4()
-			context["sk"] = secret_key
-			context["sharing_limit"] = NUM_SUBMISSION_ALLWD_PER_DAY
-			context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='11', renew_lease=True) else False
-			set_text_input_key(own_id, '1', 'likho', secret_key)
-			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188        
-			context["feature_phone"] = True if self.request.is_feature_phone else False
+			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			if banned:
+				context["time_remaining"] = time_remaining
+				context["ban_details"] = ban_details
+				context["forbidden"] = True
+				context["own_profile"] = True
+				context["defender"] = None
+				context["is_profile_banned"] = True
+			else:
+				secret_key = uuid.uuid4()
+				context["sk"] = secret_key
+				context["sharing_limit"] = NUM_SUBMISSION_ALLWD_PER_DAY
+				context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='11', renew_lease=True) else False
+				set_text_input_key(own_id, '1', 'likho', secret_key)
+				context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
+				context["feature_phone"] = True if self.request.is_feature_phone else False
 		return context
-
-	# def form_invalid(self, form):
-	#     """
-	#     If the form is invalid, re-render the context data with the
-	#     data-filled form and errors.
-	#     """
-	#     description = self.request.POST.get("description",None)
-	#     description = 'specificity' if description == '' else description
-	#     error_string = str(dict(form.errors)["description"]).split('<li>')[1].split('</li>')[0]
-	#     log_erroneous_passwords(description,error_string)
-	#     return self.render_to_response(self.get_context_data(form=form))
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		token = self.request.session.pop("link_create_token",None)
 		user = self.request.user
 		user_id = user.id
-		mobile_verified = self.request.mobile_verified
-		ttl, type_of_rate_limit = content_sharing_rate_limited(user_id)
-		if not mobile_verified:
-			return render(self.request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
-		elif self.request.user_banned:
-			return redirect("error")
-		elif ttl:
-			return render(self.request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
+		banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+		if banned:
+			return render(self.request, 'links/link_form.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,\
+				'own_profile':True,'defender':None,'is_profile_banned':True})
 		else:
-			if valid_uuid(str(token)) and mobile_verified:
-				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-				time_now = time.time()
-				set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time.time())
-				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-				if user.userprofile.score < -25:
-					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-						user.userprofile.score = random.randint(10,71)
-						f.submitter = user
-					else:
-						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-				else:
-					f.submitter = user
-					f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
-				if self.request.is_feature_phone:
-					f.device = '1'
-				elif self.request.is_phone:
-					f.device = '2'
-				elif self.request.is_tablet:
-					f.device = '4'
-				elif self.request.is_mobile:
-					f.device = '5'
-				else:
-					f.device = '3'
-				try:
-					av_url = user.userprofile.avatar.url
-				except ValueError:
-					av_url = None
-				# if is_urdu(text=f.description):
-				#     category = '17'
-				# else:
-				#     category = '1'
-				category = '1'
-				f.cagtegory = category
-				f.save()
-				add_text_post(obj_id=f.id, categ=category, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
-					submitter_score=f.submitter.userprofile.score, is_pinkstar=(True if user.username in FEMALES else False),submission_time=time_now,\
-					text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=True)
-				# if self.request.user_banned:
-				#     extras = add_unfiltered_post(f.id)
-				#     if extras:
-				#         queue_for_deletion.delay(extras)
-				# else:
-				#     add_filtered_post(f.id, is_ur=True if category == '17' else False)
-				#     extras = add_unfiltered_post(f.id)
-				#     if extras:
-				#         queue_for_deletion.delay(extras)
-				f.submitter.userprofile.save()
-				##############################################################################################
-				##############################################################################################
-				rate_limit_content_sharing(user_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
-				##############################################################################################
-				##############################################################################################
-				return super(CreateView, self).form_valid(form) #saves the link automatically
+			mobile_verified = self.request.mobile_verified
+			ttl, type_of_rate_limit = content_sharing_rate_limited(user_id)
+			if not mobile_verified:
+				return render(self.request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
+			elif self.request.user_banned:
+				return redirect("error")
+			elif ttl:
+				return render(self.request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
 			else:
-				return redirect("home")
+				if valid_uuid(str(token)) and mobile_verified:
+					f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+					time_now = time.time()
+					set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time_now)
+					f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
+					if user.userprofile.score < -25:
+						if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+							HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+							user.userprofile.score = random.randint(10,71)
+							f.submitter = user
+						else:
+							f.submitter = user # ALWAYS set this ID to unregistered_bhoot
+					else:
+						f.submitter = user
+						f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
+					if self.request.is_feature_phone:
+						f.device = '1'
+					elif self.request.is_phone:
+						f.device = '2'
+					elif self.request.is_tablet:
+						f.device = '4'
+					elif self.request.is_mobile:
+						f.device = '5'
+					else:
+						f.device = '3'
+					try:
+						av_url = user.userprofile.avatar.url
+					except ValueError:
+						av_url = None
+					category = '1'
+					f.cagtegory = category
+					f.save()
+					add_text_post(obj_id=f.id, categ=category, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
+						submitter_score=f.submitter.userprofile.score, is_pinkstar=(True if user.username in FEMALES else False),submission_time=time_now,\
+						text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=True)
+					f.submitter.userprofile.save()
+					rate_limit_content_sharing(user_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
+					return super(CreateView, self).form_valid(form) #saves the link automatically
+				else:
+					return redirect("home")
 
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("home")
@@ -5750,7 +5744,7 @@ def salat_notification(request, pk=None, *args, **kwargs):
 		context = {'invitee':user, 'namaz':salat_timings['namaz']}
 		return render(request, 'salat_invite_error.html', context)
 
-
+@csrf_protect
 @ratelimit(rate='7/s')
 def unfan(request):
 	"""
@@ -5783,8 +5777,8 @@ def unfan(request):
 		raise Http404("Not a POST request")
 
 
-
-@ratelimit(rate='3/s')
+@csrf_protect
+@ratelimit(rate='7/s')
 def fan(request,*args,**kwargs):
 	"""
 	Responsible for processing fanning and unfanning request
@@ -5834,78 +5828,6 @@ def fan(request,*args,**kwargs):
 			return return_to_content(request,origin,object_id,home_hash,star_username)#PUT 'tx:<link_id>' IN 'NONE'
 	else:
 		raise Http404("Not a POST request")
-
-# @ratelimit(rate='3/s')
-# def fan(request,*args,**kwargs):
-#   was_limited = getattr(request, 'limits', False)
-#   user_id = request.user.id
-#   if was_limited:
-#       # UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-#       # return redirect("best_photo")
-#       return redirect("missing_page")
-#   if request.method == "POST":
-#       origin, object_id, star_id = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None)
-#       if int(user_id) == int(star_id):
-#           # penalize this user - she's trying to fan herself!
-#           UserProfile.objects.filter(user_id=user_id).update(score=F('score')-50)
-#           return render(request,'penalty_fan.html',{'unique':request.user.username})
-#       else:
-#           star = User.objects.get(id=star_id)
-#           star_username = star.username
-#           try:
-#               # allow unfanning even if never posted photo
-#               UserFan.objects.get(fan_id=user_id, star_id=star_id).delete()
-#               remove_from_photo_owner_activity(star_id, user_id)
-#           except:
-#               if never_posted_photo(user_id):
-#                   # show "please first upload at least 1 photo" to be eligible for becomming a fan
-#                   return render(request, 'fan_requirement.html', {'unique': request.user.username})
-#               else:
-#                   #if not shown tutorial of what 'fan' is, show tutorial
-#                   if first_time_fan(user_id):
-#                       # show fan tutorial first, then do the rest
-#                       add_fan(user_id) #adding fan tutorial flag
-#                       context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username}
-#                       return render(request, 'fan_tutorial.html', context)
-#                   else:
-#                       banned_by, ban_time = is_already_banned(own_id=user_id,target_id=star_id, return_banner=True)
-#                       if banned_by:
-#                           request.session["where_from"] = 'fan'
-#                           request.session["banned_by_yourself"] = banned_by == str(user_id)
-#                           request.session["target_username"] = star_username
-#                           request.session["ban_time"] = ban_time
-#                           request.session.modified = True
-#                           return redirect("ban_underway") 
-#                       UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
-#                       add_to_photo_owner_activity(star_id, user_id, new=True)
-#           """
-#           origin codes:
-#               (un)fanned from starlist: '0'
-#               (un)fanned from starprofile: '1'
-#               (un)fanned from fresh photos: '2'
-#               (un)fanned from best photos: '3'
-#               (un)fanned from home: '4'
-#           """
-#           if origin == '0':
-#               return redirect("star_list")
-#           elif origin == '1':
-#               return redirect("profile", star_username)
-#           elif origin == '2':
-#               request.session["target_photo_id"] = object_id
-#               request.session.modified = True
-#               return redirect("photo_loc")
-#           elif origin == '3':
-#               request.session["target_best_photo_id"] = object_id
-#               request.session.modified = True
-#               return redirect("best_photo_loc")
-#           elif origin == '4':
-#               request.session['target_id'] = object_id
-#               request.session.modified = True
-#               return redirect("home_loc")
-#           else:
-#               return redirect("home")
-#   else:
-#       return redirect("missing_page")
 
 
 class SalatTutorialView(FormView):

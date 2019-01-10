@@ -1,6 +1,7 @@
-{% extends "base.html" %}
+{% extends noindex|yesno:"base_noindex.html,base.html" %}
 {% load get_transparent_buttons_js %}
 {% load get_user_profile_navbar %}
+{% load get_display_ban_msg %}
 {% load emoticons_tags %}
 {% load humanize %}
 {% load s3 %}
@@ -26,35 +27,24 @@
 	<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cl cr mt mbs lsp">
 	Ap {{ username }} ke sath mehfil bana sakein ge {{ mehfil_creation_ttl|future_time }}
 	</div>
+{% else %}
+	{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=username ban_detail=ban_detail %}
 {% endif %}
 
-	<div class="fx fxjssb fxaibl">
+	{% if not is_profile_banned %}
+		
 		<div class="cl sp lsp" style="font-weight:bold">Profile foto:</div>
-		<form method="POST" action="{% url 'report_or_block' %}">
-			{% csrf_token %}
-			<button type="submit" class="report" name="report" style="background:0 0;border:none;padding:0" value="pf#{{ origin }}#{{ star_id }}#{{ username }}#{{ star_av_url|s3:'thumb' }}"><img src="{{ STATIC_URL }}img/warn_g.svg" height="16" width="16"></button>
-		</form>
-	</div>
-	{% if not is_profile_banned and object.userprofile.avatar %}
-	<img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="avatar"><br>
-	{% else %}
-		{% if time_remaining %}
-
-			<div class="cr">
-	        {% if time_remaining == '-1' %}
-	          <b>BANNED:</b> Is profile ki fotos banned hain <b>hamesha</b> ke liye
-	        {% else %}
-	          <b>BANNED:</b> Is profile ki fotos ka ban khatam ho ga <b>{{ time_remaining|future_time }}</b>
-	        {% endif %}
-	        </div>
-
-		{% elif is_own_profile %}
-			<img src="{{ STATIC_URL }}img/broken.svg" style="border-radius:12px;max-width:{{image_base_width}}px" alt="avatar"><br>
+		
+		{% if object.userprofile.avatar %}
+		<img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="avatar"><br>
 		{% else %}
+			{% if is_own_profile %}
+			<img src="{{ STATIC_URL }}img/broken.svg" style="border-radius:12px;max-width:{{ image_base_width }}px" alt="avatar"><br>
+			{% else %}
 			<span style="font-weight:lighter" class="cgy cm sp">in sey kahein aik profile foto tou laga lein ...</span><hr size=1 COLOR="#E9EBEE">
+			{% endif %}
 		{% endif %}
 	{% endif %}
-
 	
 	{% if not is_own_profile %}
 		<a href="{% url 'direct_message' pk=object.id %}"><button class="btn bcg bxl mts mbl pg_ok_res" style="height:26px">Private mehfil</button></a><br>

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Content report submitted | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb lsp" style="text-align:center">Report sent!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+<div style="text-align:center">
+
+	{% if tp == 'tx' %}<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">"{{ payload|truncatechars:'32' }}"</div>{% else %}<img src="{{ payload }}" alt="pic" style="border: 1px solid #A9A9A9;border-radius:5px">{% endif %}
+	<div class="cxl lsp sp" style="font-weight:bold">Thank you!</div>
+</div>
+
+<div class="sp cl lsp mts">Agar apki report sach sabit hui tou apkey {{ prc }} points wapis ho jaien ge</div>
+
+
+<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
+{% csrf_token %}
+<input type="hidden" name="obid" value="{{ obid }}">
+<input type="hidden" name="orig" value="{{ orig }}">
+<input type="hidden" name="lid" value="{{ lid }}">
+<input type="hidden" name="oun" value="{{ oun }}">
+<button type="submit" class="btn bm bcb pg_ok_res sp" style="height:26px">wapis</button>
+</form>
+
+<hr size=1 COLOR="#f2f2f2">
+<div class="mts cgy cs sp">Tamam reports khufiya rakhi jati hain</div>
+</div><br><br>
+{% endblock %}

@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+{% load get_report_navbar %}
+{% block content %}
+{% load cache %}
+<head><title>Report help | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% if tp == 'tx' %}
+	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Text report help:</h1>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		<div class="cxl lsp"><span class="cgy">Damadam pe shared text ki quality high karney ke liye following cheezoon ka khayal rakhein</span></div>
+		<hr size=1 COLOR="#E9EBEE">
+		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
+		{% csrf_token %}
+			<input type="hidden" name="tp" value="{{ tp }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="ooid" value="{{ oid }}">
+			<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
+		</form>
+	</div>
+	<br>
+	{% cache 5000 text_report_help %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_fan_to_fan' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_abuse' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_vulgar' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_crap' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_repeating' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_chat' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_firqa_wariyat' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_terrorism' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_plagiarism' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_double_posting' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_romantic_solicitation' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_rumor' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='text_multi_new_line' %}
+	</div>
+	<br>
+	{% endcache %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
+	{% csrf_token %}
+		<input type="hidden" name="tp" value="{{ tp }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="ooid" value="{{ oid }}">
+		<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
+	</form>
+{% elif tp == 'mf' %}
+	{% report_navbar categ='mehfil' topic=topic rules=rules guid=group_uuid obid=gid oid=ooid static_url=STATIC_URL section='help' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Mehfil report help:</h1>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		<div class="cxl lsp"><span class="cgy">Damadam pe mehfils ki quality behtar bananey ke liye following cheezoon ka khayal rakhein</span></div>
+		<hr size=1 COLOR="#E9EBEE">
+		<form class="mt" method="POST" action="{% url 'report_mehfil' %}#section0">
+		{% csrf_token %}
+			<input type="hidden" name="guid" value="{{ group_uuid }}">
+			<input type="hidden" name="topic" value="{{ topic }}">
+			<input type="hidden" name="rules" value="{{ rules }}">
+			<button name="gid" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ gid }}">back to report</button>
+		</form>
+	</div>
+	<br>
+	{% cache 5000 mehfil_report_help %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_topic_vulgar' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_topic_abuse' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_topic_firqa_wariyat' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_topic_rumor' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_rules_vulgar' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_rules_abuse' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_rules_firqa_wariyat' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='mehfil_rules_rumor' %}
+	</div>
+	<br>
+	{% endcache %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<form class="mt" method="POST" action="{% url 'report_mehfil' %}#section0">
+	{% csrf_token %}
+		<input type="hidden" name="guid" value="{{ group_uuid }}">
+		<input type="hidden" name="topic" value="{{ topic }}">
+		<input type="hidden" name="rules" value="{{ rules }}">
+		<button name="gid" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ gid }}">back to report</button>
+	</form>
+{% elif tp == 'pf' %}
+	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Profile report help:</h1>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		<div class="cxl lsp"><span class="cgy">Damadam ki community behtar bananey ke liye following cheezoon ka khayal rakhein</span></div>
+		<hr size=1 COLOR="#E9EBEE">
+		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
+		{% csrf_token %}
+			<input type="hidden" name="tp" value="{{ tp }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="ooid" value="{{ oid }}">
+			<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
+		</form>
+	</div>
+	<br>
+	{% cache 5000 profile_report_help %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='username_vulgar' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='username_abuse' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='username_firqa_wariyat' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='profile_pic_vulgar' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='profile_pic_screenshot' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='profile_pic_firqa_wariyat' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='profile_pic_rumor' %}
+	</div>
+	<br>
+	{% endcache %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
+	{% csrf_token %}
+		<input type="hidden" name="tp" value="{{ tp }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="ooid" value="{{ oid }}">
+		<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
+	</form>
+{% elif tp == 'img' %}
+	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Foto report help:</h1>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		<div class="cxl lsp"><span class="cgy">Damadam ki shared fotos ki quality high karney ke liye following cheezoon ka khayal rakhein</span></div>
+		<hr size=1 COLOR="#E9EBEE">
+		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
+		{% csrf_token %}
+			<input type="hidden" name="tp" value="{{ tp }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="ooid" value="{{ oid }}">
+			<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
+		</form>
+	</div>
+	<br>
+	{% cache 5000 foto_report_help %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_nudity_or_sex' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_firqa_wariyat' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_bloodshed' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_terrorism' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_screenshot' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_low_quality' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_wrong_title' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_title_solicitation' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_plagiarism' %}
+	</div>
+	<br>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+		{% include "judgement/report_topics.html" with section='photo_double_posting' %}
+	</div>
+	<br>
+	{% endcache %}
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
+	{% csrf_token %}
+		<input type="hidden" name="tp" value="{{ tp }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="ooid" value="{{ oid }}">
+		<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
+	</form>
+{% endif %}
+
+<hr size=1 COLOR="#E9EBEE">
+<div class="cs sp lsp"><span class="cgy">Damadam ki quality high karney mein hamari help karein</span></div>
+</div>
+<br><br>
+{% endblock %}

@@ -644,6 +644,24 @@ def get_aurl(user_id):
 	return redis.Redis(connection_pool=POOL).ttl('aurl:'+str(user_id))
 
 
+def freeze_critical_profile_functionality(user_id):
+	"""
+	Freeze profile display pic functionality when a profile is reported
+
+	'dpcf' means display_pic_change_frozen
+	"""
+	redis.Redis(connection_pool=POOL).setex('dpcf:'+str(user_id),'1',TWO_WEEKS)
+	
+
+def is_user_profile_frozen(user_id):
+	"""
+	Retrieve whether profile display pic change is frozen
+	"""
+	if redis.Redis(connection_pool=POOL).exists('dpcf:'+str(user_id)):
+		return True
+	else:
+		return False
+
 #####################Retention Logger#####################
 def log_retention(server_instance, user_id):
 	time_now = time.time()

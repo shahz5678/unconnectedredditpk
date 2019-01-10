@@ -13,6 +13,12 @@ DAILY_ECOMM_METRICS_HISTORY_LIMIT = 60
 ########################
 MOBILE_NUM_CHG_COOLOFF = 7776000 #3 months
 ########################
+DEFENDER_BLOCK_REASON_LEN = 500#character length of reason given by defenders
+DEFENDER_LEDGERS_SIZE = 40
+GLOBAL_ADMIN_LEDGERS_SIZE = 3000
+########################
+ITEMS_PER_PAGE_IN_ADMINS_LEDGER = 50
+########################
 PERSONAL_GROUP_OBJECT_CEILING = 27#size after which the personal group could be trimmed
 PERSONAL_GROUP_OBJECT_FLOOR = 21#size to which the group is trimmed down
 PERSONAL_GROUP_BLOB_SIZE_LIMIT = 10

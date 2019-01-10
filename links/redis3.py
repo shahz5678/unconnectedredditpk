@@ -75,6 +75,7 @@ ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 ONE_MONTH = 30*24*60*60
 
+
 def string_tokenizer(string):
 	return string.replace("_"," ")
 

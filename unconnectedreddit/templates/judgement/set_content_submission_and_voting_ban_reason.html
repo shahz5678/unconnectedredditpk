@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% load show_error %}
+{% load get_banning_history %}
+{% load emoticons_tags %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on {{ oun }} | Damadam.pk</title></head>
+
+<h1 class="cxl clb" style="text-align:center">Give ban reason:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden">
+
+{% if sin == 'bad_voting' %}
+
+	<div class="mt cxl lsp" style="text-align:center">In voter(s) ko saza ka reason batain:</div>
+
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cgy sp mtl" style="font-weight:bold">Note:</div>
+	<div class="cgy cm sp mts">
+		<div class="lsp">1) Apke alfaz banned voter(s) ko nazr aien ge (apka nickname khufiya rehay ga)</div>
+		<div class="mts lsp">2) Reason mein saaf saaf likhein ke ban kyun kiya gya</div>
+		<div class="mts lsp">3) Reason is terah likhein jaisey sirf 1 user ke liye likha gya ho. For example:</div>
+		<div class="mls mt cs sp lsp">&#8226;<span class="cb">&nbsp;Correct:</span> "Apki ghalti ye hai ke ..."</div>
+		<div class="mls mt cs sp lsp">&#8226;<span class="cr">&nbsp;Wrong:</span> "Ap sab ki ghalti ye hai ke ..."</div>
+		<div class="mts lsp">4) Naram lehja rakhein, aur koshish karein ke apkey alfaz ke zariye ye voter(s) sudhar jaein</div>
+	</div>
+
+    {% if form.errors %}<span class="cr lsp cl sp">{{ form.errors|show_error }}</span>{% else %}<div style="text-align:center;font-weight:bold" class="cl clb sp">REASON:</div>{% endif %}
+	<form class="mt" method="POST" style="text-align:center" action="{% url 'judge_content_voters' %}">
+	{% csrf_token %}
+	<input type="hidden" name="from_cull" value="{{ from_cull }}">
+	<input type="hidden" name="nv" value="{{ nv }}">
+	<input type="hidden" name="pht" value="{{ pht }}">
+	<input type="hidden" name="obid" value="{{ obid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="cap" value="{{ cap }}">
+	<input type="hidden" name="tp" value="{{ tp }}">
+	<input type="hidden" name="sin" value="{{ sin }}">
+	{{ form.text }}
+	<button type="submit" name="rsn" class="mts btn bcr bm pg_ok_res mrs" value="1" style="height:26px">Submit</button><button type="submit" name="rsn" class="mls cgy cl pg_ok_res" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray" value="0">Cancel</button>
+	</form>
+
+{% else %}
+
+	{% if tp == 'tx' %}
+		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard mt mbs sp lsp">
+		<div style="text-align:left" class="bw">{% emoticons %}"{{ cap }}"{% endemoticons %}</div>
+		<div class="cs mts" style="font-weight:bold">submitted by <a href="{% url 'profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}</a></div>
+		</div>
+	{% else %}
+		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard mt mbs sp lsp">
+		<div class="cl sp lsp">'{% emoticons %}{{ cap|truncatechars:'20' }}{% endemoticons %}'</div>
+		<img src="{{ purl }}" style="border-radius:5px" class="mt"><br>
+		<div class="cs mts" style="font-weight:bold">uploaded by <a href="{% url 'profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}</a></div>
+		</div>
+	{% endif %}
+
+	<div class="mtl cxl lsp" style="text-align:center"><b>{{ oun|truncatechars:'13' }}</b> ko saza ka reason batain:</div>
+
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cgy sp" style="font-weight:bold">Note:</div>
+	<div class="cgy cm sp mtl">
+		<div class="lsp">1) Apke alfaz <b>{{ oun|truncatechars:'13' }}</b> ko nazr aien ge (apka nickname khufiya rehay ga)</div>
+		<div class="mts lsp">2) Reason mein saaf saaf likhein ke ban kyun kiya gya</div>
+		<div class="mts lsp">3) Naram lehja rakhein, aur koshish karein ke apkey alfaz ke zariye <b>{{ oun|truncatechars:'13' }}</b> sudhar jaye</div>
+	</div>
+
+	{% if form.errors %}<div style="text-align:center" class="cr lsp cl">{{ form.errors|show_error }}</div>{% else %}<div style="text-align:center;font-weight:bold" class="cl clb sp">REASON:</div>{% endif %}
+	<form class="mt" method="POST" style="text-align:center" action="{% url 'judge_content_submitters' %}">
+	{% csrf_token %}
+	<input type="hidden" name="from_cull" value="{{ from_cull }}">
+	<input type="hidden" name="obid" value="{{ obid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="cap" value="{{ cap }}">
+	<input type="hidden" name="tp" value="{{ tp }}">
+	<input type="hidden" name="sin" value="{{ sin }}">
+	{{ form.text }}
+	<button type="submit" name="rsn" class="mts btn bcr bm pg_ok_res mrs" value="1" style="height:26px">Submit</button><button type="submit" name="rsn" class="mls cgy cl pg_ok_res" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray" value="0">Cancel</button>
+	</form>
+
+{% endif %}
+
+</div>
+
+{% if previous_reasons %}
+<div class="bizcard clb mtl" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin-left:auto;margin-right:auto;overflow: hidden">
+<div class="cxl mbs mt" style="font-weight:bold;text-align:center">Your previous bans:</div>
+	{% banning_history banning_data=previous_reasons static_url=STATIC_URL without_hyperlinks=no_hyperlinks %}
+</div>
+{% endif %}
+
+<br><br>
+{% endblock %}

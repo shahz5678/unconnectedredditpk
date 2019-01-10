@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load get_defender_instructions %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Defender tutorial | Damadam.pk</title></head>
+<h1 style="text-align:center" class="clb cxl sp">Welcome Defender!</h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+<div class="lsp" style="text-align:center">
+	<div class="cxl lsp" style="text-align:center;padding-bottom:10px;border-bottom:1px solid #DFE3E8">Ap Damadam ke <b>Defender</b> hain. Apka kaam Damadam ke mahol ki quality improve karna aur good users ki tadaad barhana hai</div>
+	<div class="cl sp mts" style="text-align:left">Posts ke agey <img src="{{ STATIC_URL }}img/warn_g.svg" alt="report" style="overflow:hidden" width="16" height="16"> nishan daba kar ap kharab posts ko remove kar saktey hain.</div>
+	{% defender_instructions with_warning='1' %}
+</div>
+<div class="mtl" style="text-align:center">
+	<form method="POST" class="mbs" style="display:inline" action="{% url 'defender_instruction_failure' %}">
+		{% csrf_token %}
+		<button type="submit" class="btn bm bcg mbs pg_ok_res sp mrs" style="height:26px">OK</button>
+	</form>
+	<form method="POST" class="mt" style="display:inline" action="{% url 'report_content' %}">
+		{% csrf_token %}
+		<input type="hidden" name="report" value="{{ obid }}">
+		<input type="hidden" name="ooid" value="{{ ooid }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="tp" value="{{ obj_type }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+		<button type="submit" name="lid" value="{{ lid }}" class="btn bm bcgy mbs pg_ok_res sp mls" style="height:26px">Cancel</button>
+	</form>
+</div>
+</div>
+<br><br>
+{% endblock %}

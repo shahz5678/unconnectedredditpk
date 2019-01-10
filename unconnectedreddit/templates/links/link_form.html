@@ -5,12 +5,14 @@
 {% block content %}
 <head><title>Share text on Damadam | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
-{% include "content/share_content_navbar.html" with static_url=STATIC_URL section='text' %}
-<h1 class="cxl clb lsp" style="text-align:center">Share text on Damadam:</h1>
-    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden">
 
-    {% if show_instructions %}
-	    <div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
+{% include "content/share_content_navbar.html" with static_url=STATIC_URL section='text' %}
+
+<h1 class="cxl clb lsp" style="text-align:center">Share text on Damadam:</h1>
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden">
+
+	{% if show_instructions %}
+		<div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
 		<div style="text-align:center" class="cxl lsp">Welcome! Damadam pe purey Pakistan se users atey hain. Unke sath koi interesting cheez share karein!</div>
 		<hr size=1 COLOR="#E9EBEE">
 		<div class="mt sp lsp">1) Maslan poetry, latest news, paheliyan (riddles), quotes, jokes and stories, sports, politics, religion, celebrities, fashion, nature or philosophy</div>
@@ -19,12 +21,21 @@
 		</div>
 	{% endif %}
 
+	{% if forbidden %}
+		
+		{% load get_display_ban_msg %}
+		<div class="mtl">
+		{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=uname ban_detail=ban_details %}
+		</div>
+
+	{% else %}
+
 		{% if form.errors %}<div style="text-align:center" class="cr cxl">{{ form.errors|show_error }}</div>{% else %}<div style="font-weight:bold;text-align:center" class="cl sp">{% emoticons %}Don't be boring .e4{% endemoticons %}</div>{% endif %}
 		<form method="post" class="mbs" action="" enctype="multipart/form-data">
 		  {% csrf_token %}
 		  <input type="hidden" name="sk" value="{{ sk }}">
 		  <div class="mt mbs">{{ form.description }}</div>
-		  	<button class="btn bl bct mt mbs sp pg_ok_res" style="height:28px" name="btn" value="1" type="submit">Share</button>
+			<button class="btn bl bct mt mbs sp pg_ok_res" style="height:28px" name="btn" value="1" type="submit">Share</button>
 		</form>
 
 		{% if not show_instructions %}
@@ -52,6 +63,8 @@
 		<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="cm">{{ emoticons.0 }}</b></p>
 		{% endif %}
 		{% endfor %}
+
+	{% endif %}
 
 </div>
 <br><br>

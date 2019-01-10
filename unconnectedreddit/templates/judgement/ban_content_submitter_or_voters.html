@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on {{ oun }}'s content | Damadam.pk</title></head>
+<h1 class="cxl lsp clb" style="text-align:center">Banning options:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if first_time_user_reported_content_judger %}
+	<div class="cxl mbs lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
+	Ab decide karein ke is user ki fotos and voting kitney time ke liye ban ki jaye
+	</div>
+{% endif %}
+
+<img src="{{ purl }}" alt="pic" class="mts mbs" style="border: 1px solid #A9A9A9;border-radius:5px">
+
+{% if dec == '1' %}
+	
+	{% if already_banned == '0' %}
+	<div class="cl sp lsp"><b>{{ oun|truncatechars:'13' }}</b> ki banning kitney time ke liye ho?</div>
+	{% elif already_banned == '-1' %}
+	<div class="cl sp lsp"><b>{{ oun|truncatechars:'13' }}</b> forever banned hai. Iski saza ka new time kia rakhna hai?</div>
+	{% else %}
+	<div class="cl sp lsp"><b>{{ oun|truncatechars:'13' }}</b> ka ban end ho ga {{ already_banned|naturaltime }}. Iski saza ka new time kia rakhna hai?</div>
+	{% endif %}
+	<form method="POST" style="text-align:center" action="{% url 'ban_content_submitter_or_voters' %}" class="mt sp">
+	{% csrf_token %}
+		<input type="hidden" name="dec" value="{{ dec }}">
+		<input type="hidden" name="tp" value="{{ tp }}">
+		<input type="hidden" name="obid" value="{{ obid }}">
+		<input type="hidden" name="ooid" value="{{ ooid }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="orig" value="{{ origin }}">
+		<input type="hidden" name="lid" value="{{ link_id }}">
+		<input type="hidden" name="bt" value="{{ bt }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+		<ul style="display:inline-block;padding: 0;list-style:none">
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="1" type="radio" name="dur" value="1" checked><label for="1"><span class="cr">3 hours</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="2" type="radio" name="dur" value="2"><label for="2"><span class="cr">1 day</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="3" type="radio" name="dur" value="3"><label for="3"><span class="cr">3 days</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="4" type="radio" name="dur" value="4"><label for="4"><span class="cr">1 week</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="5" type="radio" name="dur" value="5"><label for="5"><span class="cr">1 month</span></label></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="6" type="radio" name="dur" value="6"><label for="6"><span class="cr">Forever</span></label></li>
+			<li style="text-align:left" class="mbs">
+			{% if already_banned != '0' %}
+			<input style="margin:-2px 10px 0 0;vertical-align:middle;" id="7" type="radio" name="dur" value="0"><label for="7"><b class="cb sp">Saza end karo</b></label>
+			{% else %}
+			<input style="margin:-2px 10px 0 0;vertical-align:middle;" id="7" type="radio" name="dur" value="-1"><label for="7"><b class="cb sp">Cancel</b></label>
+			{% endif %}
+			</li>
+		</ul><br>
+		<button type="submit" class="btn bcr bm pg_ok_res mbl" style="height:26px">OK</button>
+	</form>
+
+{% elif dec == '2' %}
+
+	{% if num|add:"0" < 1 %}
+	<div class="cl sp"><b>{{ oun }}</b> ki is foto ko kisi ne vote nahi diya</div>
+		{% if origin == '1' %}
+		<a href="{% url 'see_photo_pk' obid %}">
+		{% elif origin == '2' %}
+		<a href="{% url 'best_photo_loc_pk' obid %}">
+		{% elif origin == '3' %}
+		<a href="{% url 'home_loc' %}">
+		{% elif origin == '4' %}
+		<a href="{% url 'profile_pk' oun obid %}">
+		{% elif origin == '6' %}
+		<a href="{% url 'cull_content' %}">
+		{% else %}
+		<a href="{% url 'best_photo' %}">
+		{% endif %}
+		<button class="btn bco bm mtl pg_ok_res" style="height:26px">wapis</button></a>
+
+		<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
+		{% csrf_token %}
+		<input type="hidden" name="obid" value="{{ obid }}">
+		<input type="hidden" name="orig" value="{{ origin }}">
+		<input type="hidden" name="lid" value="{{ link_id }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<button type="submit" class="btn bm bcb pg_ok_res sp" style="height:26px">wapis</button>
+		</form>
+
+	{% else %}
+	<div class="cl sp"><b>{{ oun }}</b> ki is foto ko <b>{{ num }}</b> user(s) ne vote diye:</div>
+		<form method="POST" action="{% url 'ban_content_submitter_or_voters' %}" class="mtl">
+		{% csrf_token %}
+
+			<ul style="display:inline-block;padding: 0;list-style:none">
+			{% for user_id,username,status,vote_value in voter_payload %}
+				<li style="text-align:left" class="mbl">
+				{% if status == '1' %}
+				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				{% else %}
+				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'profile' username %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				{% endif %}
+				</li>
+			{% endfor %}
+			</ul>
+
+			<div class="cl lsp sp">In sab ki voting kitney time ke liye ban karein?</div>
+			<div class="cgy cs sp mts">Jisko saza nahi deni, uske box ka tick mark hata dein</div>
+			<input type="hidden" name="dec" value="{{ dec }}">
+			<input type="hidden" name="obid" value="{{ obid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="tp" value="{{ tp }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="ooid" value="{{ ooid }}">
+			<input type="hidden" name="orig" value="{{ origin }}">
+			<input type="hidden" name="lid" value="{{ link_id }}">
+
+			<ul style="display:inline-block;padding: 0;list-style:none">
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="1" checked><span class="cr">3 hours</span></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="2"><span class="cr">1 day</span></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="3"><span class="cr">3 days</span></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="4"><span class="cr">1 week</span></li>
+			<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="5"><span class="cr">1 month</span></li>
+			<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" name="vdur" value="0"><b class="sp cb">Cancel</b></li>
+			</ul><br>
+
+			<button type="submit" class="btn bcr bm pg_ok_res mbs" style="height:26px">OK</button>
+		</form>
+	{% endif %}
+
+{% else %}
+- ye khali hai -
+{% endif %}
+
+
+</div><br><br>
+{% endblock %}

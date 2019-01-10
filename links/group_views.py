@@ -10,7 +10,6 @@ from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
-from redis1 import check_photo_upload_ban
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
 from redis2 import skip_private_chat_notif
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
@@ -27,6 +26,7 @@ suspend_personal_group, save_personal_group_content, retrieve_personal_group_sav
 delete_single_personal_group_saved_content, delete_all_personal_group_saved_content, is_save_permission_granted_by_target, own_save_permission_status,\
 toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,unsuspend_personal_group, can_change_number, get_target_username,\
 get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count
+from redis7 import check_content_and_voting_ban
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares
@@ -2488,7 +2488,7 @@ def share_photo_in_personal_group(request):
 		if new_title:
 			# before processing, ensure this user's all photos aren't banned:
 			photo_owner_id = request.session.get("personal_group_shared_photo_owner_id",None)
-			banned, time_remaining = check_photo_upload_ban(photo_owner_id)
+			banned, time_remaining = check_content_and_voting_ban(photo_owner_id)
 			if banned:
 				return redirect("cant_share_photo")
 			elif not banned:

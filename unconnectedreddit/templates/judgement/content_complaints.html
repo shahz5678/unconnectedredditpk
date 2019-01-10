@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load human_time %}
+{% block content %}
+
+<head><title>{% if total %}{{ total }}{% else %}0{% endif %} reported content | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='cull_content' num_complaints=total obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
+
+<h1 class="cxl clb lsp" style="text-align:center">{{ total }} item(s):</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
+
+	{% if total > 0 %}
+
+		{% if instr_unseen %}
+			<div class="bizcard" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
+			<div style="text-align:center;font-weight:bold;text-decoration:underline" class="cl sp">Instructions:</div>
+			<div class="mt lsp">1) Neechay reported items nazr aien ge</div>
+			<div class="mt lsp">2) Har reported item ke sath munsalik aik (ya ziyada) complaints hain</div>
+			<div class="mt lsp">3) Report kartey waqt users apne points ko qeemat ke taur pe ada kartey hain</div>
+			<div class="mt lsp">4) Ye points report correct honay pe wapis ho jatey hain</div>
+			<div class="mt lsp">5) Lekin agar incorrect report ho tou apki marzi points wapis karney hain ya nahi</div>
+			<div class="mt lsp">6) Points wapis nahi karein jab report karney waley ki neeyat kharab ho (maslan mazaq mein report), warna kar dein</div>
+			<div class="mt lsp">7) Aik item pe decision dene ke liye sirf us item ki complaints ko correct ya incorrect select karein</div>
+			<div class="mt lsp">8) Apna decision final karney ke liye 'Submit' dabain</div>
+			</div>
+		{% elif already_handled %}
+			<div class="cxl cb lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
+			Sorry! Ap se pehlay kisi aur ne is pe decision le liya
+			</div>
+		{% elif force_into_list %}
+			<div class="cxl cb lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
+			Neechay is cheez pe report pehlay se mojood hai
+			</div>
+		{% elif cannot_edit %}
+			<div class="cxl cb lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
+			Sorry! Is item ka submitter ban ho gya hai, aur ap kisi aur ke lagaye huay ban pe aik aur ban nahi laga saktey
+			</div>
+		{% elif report_judged %}
+			<div class="cxl cb lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
+			{% if do_nothing %}
+				Thank you! Apna waqt dene ka shukriya
+			{% elif no_corrective_action %}
+				Thank you! Apna waqt dene ka shukriya
+			{% elif temp_data_missing %}
+				Sorry! Ban nahi ho saka
+			{% elif cannot_ban_self %}
+				Sorry! Ap apni cheez pe decision nahi le saktey
+			{% elif multi_ban_imposed or ban_imposed %}
+				Thank you! Action le liya gya
+			{% elif multi_already_banned %}
+				Thank you! Ye user(s) pehlay se hi banned hain
+			{% elif already_banned %}
+				Sorry! Is user ko kisi aur ne ban kar dia
+			{% elif ban_removed %}
+				Thank you! Ban remove kar dia gya
+			{% elif ban_edited %}
+				Thank you! Ban change kar dia gya
+			{% elif locked_by_super %}
+				Sorry! Ye ban ap se higher level ke defender ne change kar dia
+			{% elif not_your_ban %}
+				Sorry! Ap kisi aur defender ka lagaya hua ban khud change nahi kar saktey
+			{% endif %}
+			</div>
+		{% else %}
+			<div class="cs sp" style="text-align:center;font-weight:bold"><a href="{% url 'content_culling_instructions' %}" rel="nofollow" class="cb" style="border-bottom:1px dotted blue">INSTRUCTIONS</a></div>
+		{% endif %}
+
+	{% else %}
+		
+		<div class="cs sp" style="text-align:center;font-weight:bold"><a href="{% url 'content_culling_instructions' %}" rel="nofollow" class="cb" style="border-bottom:1px dotted blue">INSTRUCTIONS</a></div>
+
+	{% endif %}
+
+</div>
+
+<br>
+
+{% for complaint in complaints %}
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
+<a name="section{{ forloop.counter }}"></a>
+{% if complaint.tp == 'mf' %}
+	<div class="bizcard" style="background-color:ivory;text-align:center;padding:10px">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Mehfil reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
+		<div class="cl sp mts" style="font-weight:bold">Topic:</div>
+		<div class="cl sp mt lsp">{% emoticons %}{{ complaint.c|linebreaksbr }}{% endemoticons %}</div>
+		<div class="cl sp mts" style="font-weight:bold">Rules:</div>
+		<div style="display:inline-block">
+			<div class="cl sp mt lsp" style="text-align:left">{% emoticons %}{{ complaint.r|linebreaksbr }}{% endemoticons %}</div>
+		</div>
+		<div class="cxs mts sp cgy" style="text-align:right">created {{ complaint.ct|human_time }}</div>
+	</div>
+{% elif complaint.tp == 'pf' %}
+	<div class="bizcard" style="background-color:ivory;text-align:center;padding:10px;">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px;text-align:center"><span class="cgy">Profile reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
+		<div class="cl sp mts" style="font-weight:bold">Nickname:</div>
+		<div class="cl sp mt lsp">{% emoticons %}{{ complaint.nick }}{% endemoticons %}</div>
+		<div class="cl sp mts" style="font-weight:bold">Profile foto:</div>
+		<img src="{{ complaint.av_img }}" alt="pic" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
+		<a href="{% url 'profile' complaint.nick %}" target="_blank"><button class="mts cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see profile</button></a><br>
+		<div class="cxs mts sp cgy" style="text-align:right">profile created {{ complaint.ct|human_time }}</div>
+	</div>
+{% elif complaint.tp == 'tx' %}
+	<div class="bizcard" style="background-color:ivory;padding:10px;">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px;text-align:center"><span class="cgy">Text reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
+		<div class="cl sp mts lsp">{% emoticons %}{{ complaint.c|linebreaksbr }}{% endemoticons %}</div>
+		<div class="cxs mts sp cgy" style="text-align:right">submitted {{ complaint.ct|human_time }}</div>
+	</div>
+{% else %}
+	<div class="bizcard" style="background-color:ivory;padding:10px;text-align:center">
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Foto reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
+		{% if complaint.pl.0.rt == '10' or complaint.pl.0.rt == '9' %}<!-- this just looks at the first complaint -->
+			<img src="{{ complaint.url }}" alt="{{ complaint.c }}" class="mtl cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
+			<a href="{% url 'photo_detail' complaint.obid 6 %}" target="_blank"><button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see foto details</button></a><br>
+		{% else %}
+			<div class="cl mts" style="font-weight:bold">{% emoticons %}{{ complaint.c }}{% endemoticons %}</div>
+			<img src="{{ complaint.url }}" alt="{{ complaint.c }}" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
+			<a href="{% url 'photo_detail' complaint.obid 6 %}" target="_blank"><button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see foto details</button></a><br>
+		{% endif %}
+		<div class="cxs mts sp cgy" style="text-align:right">uploaded {{ complaint.ct|human_time }}</div>
+	</div>
+{% endif %}
+
+	{% if complaint.cant_ban %}
+
+	<div style="text-align:center;font-weight:bold;background-color:#cccccc;padding:10px;color:white" class="mtl bizcard sp lsp cl">
+	Is report ko apkey bajai koi aur defender handle karey ga
+	</div>
+
+	{% else %}
+
+	<form method="post" style="padding:10px 5px 0 5px" action="{% url 'cull_content' %}" class="mt">
+	{% csrf_token %}
+		<input type="hidden" name="tp" value="{{ complaint.tp }}">
+		<input type="hidden" name="obid" value="{{ complaint.obid }}">
+		{% if complaint.tp == 'tx' %}<input type="hidden" name="txt" value="{{ complaint.c }}">{% elif complaint.tp == 'mf' %}<input type="hidden" name="topic" value="{{ complaint.c }}"><input type="hidden" name="rules" value="{{ complaint.r }}">{% elif complaint.tp == 'pf' %}<input type="hidden" name="nick" value="{{ complaint.nick }}"><input type="hidden" name="avurl" value="{{ complaint.av_img }}">{% else %}<input type="hidden" name="purl" value="{{ complaint.url }}"><input type="hidden" name="txt" value="{{ complaint.c }}">{% endif %}
+		{% for dict in complaint.pl %}
+			{% if dict.rt == '9' or dict.rt == '10' %}
+				<!-- copying -->
+				{% if complaint.tp == 'tx' %}
+					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Meri ye wali post copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Is ne apni recent post copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
+					<div style="padding:8px;background-color:ivory" class="bizcard mt cm mbs sp lsp">{{ dict.otxt }}</div>
+				{% else %}
+					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Ye dekhain meri foto copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Ye dekhain is ne apni recent foto dubara lagai hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
+					<img src="{{ dict.ourl }}" style="border-radius:12px" class="pht mt" alt="foto">
+				{% endif %}
+			{% else %}
+				<div class="mbs">
+				<div class="lsp bw"><b class="cs">{{ forloop.counter }})</b><b class="mls mrs sp">{{ dict.h|safe }}:</b><span class="sp">{% emoticons %}{{ dict.d }}{% endemoticons %}</span></div>
+				</div>
+			{% endif %}
+			<input type="hidden" name="rt{{ dict.i }}" value="{{ dict.rt }}">
+
+			<div class="mt sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}1{{ dict.i }}" name="{{ dict.i }}" value="1"><label for="{{forloop.parentloop.counter}}1{{ dict.i }}"><span class="cg cs sp"><b>Correct complaint</b></span>&nbsp;<span class="cgy cs">(points wapis)</span></label></div>
+				
+			<div class="mts sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}2{{ dict.i }}" name="{{ dict.i }}" value="2" checked><label for="{{forloop.parentloop.counter}}2{{ dict.i }}"><span class="cr cs sp">Incorrect complaint</span>&nbsp;<span class="cgy cs">(points wapis)</span></label></div>
+			
+			<div class="mts mbl sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}3{{ dict.i }}" name="{{ dict.i }}" value="3"><label for="{{forloop.parentloop.counter}}3{{ dict.i }}"><span class="cr cs sp">Incorrect complaint</span>&nbsp;<span class="cgy cs">(wapis <span class="cr">nahi</span>)</span></label></div>
+
+		{% endfor %}
+		<div style="text-align:center"><button class="btn bl bcb mt mbs sp pg_ok_res" type="submit" style="height:26px">Submit</button></div>
+	</form>
+
+	{% endif %}
+
+</div>
+<br>
+
+{% empty %}
+	
+	<div class="bizcard clb sp cl mts mbs" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">Ye list khali hai... abhi rest karein</div>
+
+{% endfor %}
+
+<br>
+	
+<div class="mbl fx fxjscn">
+	
+	{% if page.has_previous %}
+      <div style="padding:0 10px">
+      <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+      </div>
+    {% endif %}
+    {% if page.has_next %}
+      <div style="padding:0 10px">
+      <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+      </div>
+    {% endif %}
+
+</div>
+
+</div><br>
+{% endblock %}

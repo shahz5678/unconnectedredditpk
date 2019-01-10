@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% load show_error %}
+{% load get_banning_history %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on {{ oun }} | Damadam.pk</title></head>
+
+<h1 class="cxl clb lsp" style="text-align:center">Give reason:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden">
+
+	{% if removing_ban %}<div class="cxl lsp" style="text-align:center"><b>{{ oun|truncatechars:'13' }}</b> ka ban remove karney ka reason likhein:</div>{% else %}<div class="cxl lsp" style="text-align:center"><b>{{ oun|truncatechars:'13' }}</b> ke ban ka time change karney ka reason likhein:</div>{% endif %}
+
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cgy sp" style="font-weight:bold">Note:</div>
+	<div class="cgy cm sp mtl">
+		{% if removing_ban %}
+			{% if prev_ban_by_self %}
+				<div class="lsp">1) Reason mein saaf saaf likhein ke ban kyun remove kar rehain hain</div>
+				<div class="mts lsp">2) Apke alfaz Damadam ke system mein save ho jain ge</div>
+				<div class="mts lsp">3) Save karney ka maqsad ye hai ke baad mein koi ghalat fehmi na ho</div>
+			{% else %}
+				<div class="lsp">1) Reason mein saaf saaf likhein ke ban kyun remove kar rahey hain</div>
+				<div class="mts lsp">2) Apke alfaz woh <b>defender</b> dekh sakey ga jis ne ye ban lagaya</div>
+				<div class="mts lsp">3) Alfaz dikhaney ka maqsad ye hai ke koi ghalat fehmi paida na ho</div>
+			{% endif %}
+		{% else %}
+			{% if prev_ban_by_self %}
+				<div class="lsp">1) Reason mein saaf saaf likhein ke ban kyun change kar rehain hain</div>
+				<div class="mts lsp">2) Apke alfaz Damadam ke system mein save ho jain ge</div>
+				<div class="mts lsp">3) Save karney ka maqsad ye hai ke baad mein koi ghalat fehmi na ho</div>
+			{% else %}
+				<div class="lsp">1) Reason mein saaf saaf likhein ke ban kyun change kar rahey hain</div>
+				<div class="mts lsp">2) Apke alfaz woh <b>defender</b> dekh sakey ga jis ne ye ban lagaya</div>
+				<div class="mts lsp">3) Alfaz dikhaney ka maqsad ye hai ke koi ghalat fehmi paida na ho</div>
+			{% endif %}
+		{% endif %}
+	</div>
+
+	{% if form.errors %}<div style="text-align:center" class="cr lsp sp cl">{{ form.errors|show_error }}</div>{% else %}<div style="text-align:center;font-weight:bold" class="cl clb sp">REASON:</div>{% endif %}
+	<form class="mt" method="POST" style="text-align:center" action="{% url 'edit_content_submission_and_voting_ban' %}">
+	{% csrf_token %}
+	{% if removing_ban %}<input type="hidden" name="rb" value="a">{% else %}<input type="hidden" name="rb" value="0">{% endif %}
+	<input type="hidden" name="ooid" value="{{ ooid }}">
+	<input type="hidden" name="obid" value="{{ obid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="cap" value="{{ cap }}">
+	<input type="hidden" name="tp" value="{{ tp }}">
+	<input type="hidden" name="from_cull" value="{{ from_cull }}">
+	{{ form.text }}
+	<button type="submit" name="ersn" class="mts btn bcr bm pg_ok_res mrs" value="1" style="height:26px">Submit</button><button type="submit" name="ersn" class="mls cgy cl" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray" value="0">Cancel</button>
+	</form>
+
+</div>
+
+	{% if previous_reasons %}
+	<div class="bizcard clb mtl" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin-left:auto;margin-right:auto;overflow: hidden">
+	<div class="cxl mbs mt" style="font-weight:bold;text-align:center">Your previous bans:</div>
+		{% banning_history banning_data=previous_reasons static_url=STATIC_URL without_hyperlinks=no_hyperlinks %}
+	</div>
+	{% endif %}
+
+
+<br><br>
+{% endblock %}

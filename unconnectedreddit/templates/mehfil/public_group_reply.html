@@ -58,7 +58,6 @@
         {% for reply,status in replies %}
 
             {% if not on_fbs and forloop.counter == 7 %}
-
                 <div style="text-align:center;background:snow">
                     <ins class="adsbygoogle"
                         style="display:inline-block;vertical-align: middle;width:320px;height:100px"
@@ -91,9 +90,14 @@
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.writer_uname %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil ko join kiya</span></div>
         {% else %}
             {% if reply.image %}
-            <img src="{{ reply.image|s3 }}" style="border-radius:12px;max-width:100%" alt="foto"><br>
+                <div style="text-align:center"><img src="{{ reply.image|s3 }}" style="border-radius:12px;max-width:100%" alt="foto"></div>
             {% endif %}
+            
+            {% if reply.wid == own_id|slugify %}
+            <div class="lsp" style="overflow:hidden;background:ivory">
+            {% else %}
             <div class="lsp" style="overflow:hidden">
+            {% endif %}
 
             {% if status == 'green' %}
                 <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
@@ -136,7 +140,7 @@
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
 
     <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
-    
+
         {% if only_pinkstars %}
         <div class="sp mbs lsp" style="border-bottom:1px dotted #FFAFAA;padding:5px;border-radius:0;font-weight:bold">Ye mehfil sirf pink stars ke <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink"> liye hai</div>
         {% endif %}
@@ -194,7 +198,7 @@
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ko join kiya</span></div>
         {% else %}
             {% if reply.image %}
-            <img class="pht" src="{{ reply.image|s3 }}" style="border-radius:12px;" alt="foto"><br>
+            <div style="text-align:center"><img class="pht" src="{{ reply.image|s3 }}" style="border-radius:12px;" alt="foto"></div>
             {% endif %}
             <div class="lsp" style="overflow:hidden">
 

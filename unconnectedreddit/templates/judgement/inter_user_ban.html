@@ -12,6 +12,7 @@
 	<div class="cxl lsp" style="text-align:center">Kya <span class="ct">{{ target_username|truncatechars:15 }}</span> ko apki posts and fotos pe likhne se block karna hai?</div>
 	<hr size=1 COLOR="#e5e7e9">
 	<div class="sp lsp mts mbl">Block karney se ap bhi <span class="ct">{{ target_username|truncatechars:15 }}</span> ki posts aur fotos pe nahi likh sakein ge, aur agar ap dono ki 1 on 1 hai tou woh bhi khatam ho jaye gi</div>
+
 		<form action="{% url 'enter_inter_user_ban' %}" style="text-align:center" method="POST">
 		{% csrf_token %}
 		<input type="hidden" name="tuid" value="{{ target_user_id }}">
@@ -28,7 +29,7 @@
 
 	<div class="cxl lsp" style="text-align:center"><span class="ct">{{ target_username|truncatechars:15 }}</span> ko kitney time ke liye block karna hai?</div>
 	<hr size=1 COLOR="#e5e7e9">
-	<div class="sp lsp mts mbl"><span class="ct">{{ target_username|truncatechars:15 }}</span> kisi aur user ki post, foto ya mehfils mein ap se phir bhi bat kar sakey ga. Ap dono aik dusrey ko jhappi chpair bhi mar sakein ge&nbsp;<form method="POST" action="{% url 'user_ban_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="orig" value="{{ orig }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="lid" value="{{ lid }}"><button name="tunm" class="cb cxs sp" type="submit" style="padding:0;background:0 0;border:none;border-bottom:1px dotted blue;border-radius:0" value="{{ target_username }}">(kiyun?)</button></form></div>
+	<div class="sp lsp mts mbl"><span class="ct">{{ target_username|truncatechars:15 }}</span> kisi aur user ki post, foto ya mehfils mein ap se phir bhi bat kar sakey ga. Ap dono aik dusrey ko jhappi chpair bhi mar sakein ge&nbsp;<form method="POST" action="{% url 'user_ban_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="orig" value="{{ orig }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="lid" value="{{ lid }}"><button name="tunm" class="cb cxs sp" type="submit" style="padding:0;background:0 0;border:none;border-bottom:1px dotted blue;border-radius:0" value="{{ target_username }}">(help)</button></form></div>
 
 	<form action="{% url 'enter_inter_user_ban' %}" style="text-align:center" method="POST">
 	{% csrf_token %}

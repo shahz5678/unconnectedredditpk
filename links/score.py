@@ -36,7 +36,7 @@ VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jha
 '-5': '<span style="font-size:80%;color:#F4511E;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span><br>'}#REMOVE
 ###############################################################################################################
 THUMB_HEIGHT = 38
-MIN_PUBLIC_IMG_WIDTH = 300# minimum width requirement (in pixels) for public image upload
+MIN_PUBLIC_IMG_WIDTH = 315# minimum width requirement (in pixels) for public image upload
 ###############################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 600#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT

@@ -86,20 +86,20 @@ from .redis1 import remove_key, document_publicreply_abuse, publicreply_allowed,
 document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, TEN_MINS, \
 check_group_invite, remove_group_invite, add_user_group, remove_user_group, all_unfiltered_posts, all_filtered_posts, \
 all_filtered_urdu_posts, all_photos, all_best_photos, all_videos, video_uploaded_too_soon, add_vote_to_video, voted_for_video, \
-get_video_votes, save_recent_video, save_recent_photo, get_recent_photos, get_recent_videos, voted_for_photo, first_time_refresher, \
-add_refresher, in_defenders, first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, can_vote_on_photo, \
-first_time_inbox_visitor, retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs, \
-add_home_replier, add_video,add_inbox, first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, set_inactives,\
-add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, \
-current_match_unfiltered_comments, current_match_comments, first_time_home_replier, get_inactives, unlock_uname_search, \
-is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, website_feedback_given, first_time_log_outter, add_log_outter, \
-all_best_posts, all_best_urdu_posts
+get_video_votes, save_recent_video, get_recent_videos, voted_for_photo, first_time_refresher, add_refresher, in_defenders, \
+first_time_photo_defender, add_photo_defender_tutorial, check_photo_upload_ban, can_vote_on_photo, first_time_inbox_visitor, \
+retrieve_photo_posts, first_time_password_changer, add_password_change, voted_for_photo_qs, add_home_replier, add_video,add_inbox, \
+first_time_photo_uploader, add_photo_uploader, first_time_psl_supporter, set_inactives, add_psl_supporter, create_cricket_match, \
+get_current_cricket_match, del_cricket_match, incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, \
+current_match_comments, first_time_home_replier, get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, \
+get_ad_feedback, website_feedback_given, first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts
 #, set_prev_retorts, retrieve_home_links, add_photo, add_home_link 
 from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, invalidate_cached_mehfil_pages, \
 retrieve_latest_user_owned_mehfils
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
-update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, rate_limit_fbs_public_photo_uploaders
+update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, rate_limit_fbs_public_photo_uploaders,\
+save_recent_photo, get_recent_photos
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -3948,6 +3948,8 @@ def public_photo_upload_denied(request):
 		return render(request, 'mehfil/notify_and_redirect.html',{'is_pub_photo':True,'img_too_big':True})
 	elif which_msg == '10':
 		return redirect("error")
+	elif which_msg == '11':
+		return render(request,'big_photo_regular.html',{'too_narrow':True})
 	else:
 		raise Http404("Unknown photo upload error")
 
@@ -4067,10 +4069,18 @@ def upload_public_photo(request,*args,**kwargs):
 								return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
 							else:
 								return redirect('public_photo_upload_denied')
+						elif img_height == 'too_narrow':
+							# this image is too narrow, don't upload it since it's probably low quality
+							request.session["public_photo_upload_denied"] = '11'
+							request.session.modified = True
+							if is_ajax:
+								return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+							else:
+								return redirect('public_photo_upload_denied')
 						else:
 							image_file = image_file_new if image_file_new else None
 					else:
-						request.session["public_photo_upload_denied"] = '11'
+						request.session["public_photo_upload_denied"] = '12'
 						request.session.modified = True
 						if is_ajax:
 							return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)

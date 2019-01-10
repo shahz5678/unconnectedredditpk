@@ -7,7 +7,7 @@ PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
-CONTENT_SHARING_SHORT_RATELIMIT = 60# 
+CONTENT_SHARING_SHORT_RATELIMIT = 80# 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 ################################################ Judgement Related Variables ##################################
@@ -36,11 +36,12 @@ VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jha
 '-5': '<span style="font-size:80%;color:#F4511E;"> ne isko <b>andey</b> pe out kr diya <b>(-20)</b></span><br>'}#REMOVE
 ###############################################################################################################
 THUMB_HEIGHT = 38
+MIN_PUBLIC_IMG_WIDTH = 300# minimum width requirement (in pixels) for public image upload
 ###############################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 600#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT
 ###############################################################################################################
-VOTE_SPREE_ALWD = 6# number of votes allowed on link objects within a small time window before cooldown begins (applied separately to photo voting too)
+VOTE_SPREE_ALWD = 10# number of votes allowed on link objects within a small time window before cooldown begins (applied separately to photo voting too)
 UPVOTE = 2#number to add to user score
 DOWNVOTE = -2#number to subtract from user score
 VOTING_DRIVEN_CENSORSHIP = -5# at what total vote count should a photo be completely disappeared
@@ -163,6 +164,11 @@ REPORTED_CASE_COMPLETION_BONUS = 15
 PHOTO_REPORT_PROMPT = {'1':'Photo buhut gandi hai','2':'Photo mazhabi fasad phela rahi hai',\
 '3':'Photo mein buhut ziyada tashadud hai','4':'Photo takhreeb karoon ki wakalat kr rahi hai',\
 '5':'Kuch aur masla hai'}
+# PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Foto mein nudity ya sex hai','2':'Foto mein firqa wariyat hai',\
+# '3':'Foto mein khoon kharaba ya aziyat hai','4':'Foto dehshat gardi ki himayat kar rahi hai',\
+# '7':'Title ka foto se taluq nahi hai','8':'Title mein vote or comments ki bheek hai',\
+# '5':'Foto Damadam ki screenshot hai','6':'Foto quality buhut ziyada dhundhli hai','9':'Apki recent foto copy ki hai',\
+# '10':'Isne apni recent foto dubara lagai hai'}# 9 and 10 keys of this dictionary MUST MATCH 9 and 10 keys of TEXT_REPORT_PROMPT
 GET_PHOTO_REPORT_HELP_LABEL = {'0':'','1':'photo_nudity_or_sex','2':'photo_firqa_wariyat','3':'photo_bloodshed','4':'photo_terrorism',\
 '5':'photo_screenshot','6':'photo_low_quality','7':'photo_wrong_title','8':'photo_title_solicitation','9':'photo_plagiarism',\
 '10':'photo_double_posting'}
@@ -173,7 +179,7 @@ TEXT_REPORT_PROMPT = {'0':'Report rehne dein','1':'Fan to fan ya 1 on 1 ki post 
 '7':'Firqa wariyat wali post ki hai','8':'Dehshat gardi ki himayat ki hai','9':'Apki recent post copy ki hai',\
 '10':'Isne apni recent post dubara lagai hai','11':'Romance ki bheek mangi hai',\
 '12':'Ghalat afwahein phelai hain (e.g. "Admin users ke phone number bech raha hai")',\
-'13':'Bar bar new-lines dali hui hain: <div style="text-align:center">(e.g.<br>"malik ne<br>nokar se<br>poocha")</div>'}
+'13':'Kam alfaz mein ziyada new-lines hain: <div style="text-align:center">(e.g.<br>"malik ne<br>nokar se<br>poocha")</div>'}
 GET_TEXT_REPORT_HELP_LABEL = {'0':'','1':'text_fan_to_fan','2':'text_abuse','3':'text_vulgar','4':'text_crap','5':'text_repeating',\
 '6':'text_chat','7':'text_firqa_wariyat','8':'text_terrorism','9':'text_plagiarism','10':'text_double_posting',\
 '11':'text_romantic_solicitation','12':'text_rumor','13':'text_multi_new_line'}

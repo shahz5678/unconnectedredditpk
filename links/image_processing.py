@@ -9,6 +9,7 @@ from PIL import Image, ImageFont, ImageDraw, ImageFile, ImageEnhance, ExifTags
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from redis7 import already_exists
 from page_controls import PERSONAL_GROUP_IMG_WIDTH
+from score import MIN_PUBLIC_IMG_WIDTH
 
 
 
@@ -157,7 +158,10 @@ def process_public_image(image, quality=None, already_resized=None, already_reor
 	Used by upload_public_photo() in views.py
 	"""
 	image = Image.open(image)
-	if float(image.height)/image.width > 7.0:
+	img_width = image.width
+	if img_width < MIN_PUBLIC_IMG_WIDTH:
+		return None, 'too_narrow', None, None
+	elif float(image.height)/img_width > 7.0:
 		return None, 'too_high', None, None
 	else:
 		image = image if already_reoriented else reorient_image(image)

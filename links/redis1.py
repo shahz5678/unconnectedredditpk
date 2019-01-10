@@ -868,24 +868,6 @@ def can_vote_on_photo(user_id):
 		pipeline1.execute()
 		return None, True
 
-
-def get_recent_photos(user_id):
-	"""
-	Contains last 5 photos
-
-	This list self-deletes if user doesn't upload a photo for more than 4 days
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("phts:"+str(user_id), 0, -1)
-
-def save_recent_photo(user_id, photo_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	pipeline1.lpush("phts:"+str(user_id), photo_id)
-	pipeline1.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos'
-	pipeline1.expire("phts:"+str(user_id),FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
-	pipeline1.execute()
-
 #####################Video objects#####################
 
 def get_recent_videos(user_id):

@@ -1,17 +1,28 @@
 {% extends "base.html" %}
-{% load emoticons_tags %}
 {% block content %}
 
-<head><title>Photo above upload limit (error) | Damadam.pk</title></head>
+<head><title>Photo size error | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Cannot upload foto!</h1>
 
-<div class="margin clb">
-<b class="cl">10MB se barri photo Damadam pe nahi lgti {% emoticons %}:({% endemoticons %}</b><br>
-<span class="cgy">Damadam ke pait me itni jaga nahi</span><br>
-{% if origin == 'pub_grp' %}
-<a href="{% url 'public_group' %}">
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+{% if too_narrow %}
+	<div class="cxl lsp">Sorry! Apki foto ka size chota hai jiski wajah se ye Damadam pe low quality ki nazar aye gi</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp cgy lsp mts">Better quality ki fotos upload karein. Thank you!</div>
+	<a href="{% url 'upload_public_photo' %}#section0"><button class="btn bco bm mbl mtl pg_ok_res sp" style="height:27px">wapis</button></a>
 {% else %}
-<a href="{% url 'upload_public_photo' %}#section0">
-{% endif %}<button class="btn bco bs mtl mbs">wapis</button></a>
+	<div class="cxl lsp">Sorry! 10MB se bigger foto Damadam pe nahi lag sakti</div>
+	{% if origin == 'pub_grp' %}
+	<a href="{% url 'public_group' %}">
+	{% elif origin == 'prv_grp' %}
+	<a href="{% url 'private_group_reply' %}">
+	{% else %}
+	<a href="{% url 'upload_public_photo' %}#section0">
+	{% endif %}<button class="btn bco bm mtl mbl sp pg_ok_res" style="height:27px">wapis</button></a>
+{% endif %}
+
 </div>
+
 <br><br>
 {% endblock %}

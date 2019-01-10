@@ -1,0 +1,51 @@
+{% if categ == 'content' %}
+	{% if section == 'report' %}
+	<div class="fx fxjscn fxaicn">
+		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/warn_g.svg" width="24" height="24" style="vertical-align:middle"></button>
+		<form method="POST" action="{% url 'report_content_help' %}" style="display:inline">{% csrf_token %}
+			<input type="hidden" name="tp" value="{{ tp }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="oid" value="{{ oid }}">
+			<button name="obid" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0;border-top-right-radius:5px;border-bottom-right-radius:5px" value="{{ obid }}"><img src="{{ static_url }}img/help_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button>
+		</form>
+	</div>
+	{% elif section == 'help' %}
+	<div class="fx fxjscn fxaicn">
+		<form method="POST" action="{% url 'report_content' %}" style="display:inline">{% csrf_token %}
+			<input type="hidden" name="tp" value="{{ tp }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="ooid" value="{{ oid }}">
+			<button name="report" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0" value="{{ obid }}"><img src="{{ static_url }}img/warn_disabled.svg" width="20" height="20" style="vertical-align:middle"></button>
+		</form>
+		<button type="submit" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px"><img src="{{ static_url }}img/report_help.svg" width="24" height="24" style="vertical-align:middle"></button>
+	</div>
+	{% endif %}
+{% elif categ == 'mehfil' %}
+	{% if section == 'report' %}
+	<div class="fx fxjscn fxaicn">
+		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/warn_cp.svg" width="24" height="24" style="vertical-align:middle"></button>
+		<form method="POST" action="{% url 'report_mehfil_help' %}" style="display:inline">{% csrf_token %}
+		<input type="hidden" name="topic" value="{{ topic }}">
+		<input type="hidden" name="rules" value="{{ rules }}">
+		<input type="hidden" name="gid" value="{{ obid }}">
+		<button name="guid" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0;border-top-right-radius:5px;border-bottom-right-radius:5px" value="{{ guid }}"><img src="{{ static_url }}img/help_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></form>
+	</div>
+	{% elif section == 'help' %}
+	<div class="fx fxjscn fxaicn">
+		<form method="POST" action="{% url 'report_mehfil' %}" style="display:inline">{% csrf_token %}
+		<input type="hidden" name="topic" value="{{ topic }}">
+		<input type="hidden" name="rules" value="{{ rules }}">
+		<input type="hidden" name="gid" value="{{ obid }}">
+		<button name="guid" type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0" value="{{ guid }}"><img src="{{ static_url }}img/warn_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></form>
+		<button type="submit" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px"><img src="{{ static_url }}img/help_invite-cp.svg" width="24" height="24" style="vertical-align:middle"></button>
+	</div>
+	{% endif %}
+{% endif %}

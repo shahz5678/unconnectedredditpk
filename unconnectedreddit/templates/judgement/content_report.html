@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% load get_report_navbar %}
+{% block content %}
+<head><title>Report content | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=owner_uname obid=obj_id oid=oid static_url=STATIC_URL section='report' %}
+
+<h1 class="cxl clb lsp" style="text-align:center">Report {{ owner_uname|truncatechars:'13' }}'s {% if tp == 'tx' %}text{% elif tp == 'pf' %}profile{% else %}foto{% endif %}:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if tp == 'tx' %}<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">"{{ cap }}"</div>{% elif tp == 'pf' %}<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px"><div class="cs mbl sp"><span class="cgy">profile:&nbsp;<b>{{ owner_uname }}</b></span></div>{% else %}<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px">{% endif %}
+
+<div class="cxl lsp mt">Isko kiyun report karna hai?</div>
+<span class="cs sp">Report price: {{ price }} points</span><br>
+
+		<form method="post" class="mts lsp" action="{% url 'report_content' %}">
+			{% csrf_token %}
+				<input type="hidden" name="scr" value="1">
+				<input type="hidden" name="tp" value="{{ tp }}">
+				<input type="hidden" name="ooid" value="{{ oid }}">
+				<input type="hidden" name="orig" value="{{ orig }}">
+				<input type="hidden" name="purl" value="{{ purl }}">
+				<input type="hidden" name="prc" value="{{ price }}">
+				<input type="hidden" name="oun" value="{{ owner_uname }}">
+				{% if tp == 'tx' or tp == 'img' %}
+					<input type="hidden" name="cap" value="{{ cap }}">
+					<input type="hidden" name="lid" value="{{ lid }}">
+				{% endif %}
+			<ul style="display:inline-block;padding: 0;list-style:none;max-width:400px">
+			{% for key, value in rep_opt %}
+				<li style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px" class="mbl">
+				{% if forloop.counter == 1 %}
+					<input id="{{ key }}" style="margin:-2px 10px 0 0;vertical-align:middle" type="radio" name="dec" value="{{ key }}" checked><span class="cgy mrl"><label for="{{ key }}">{{ value|safe }}</label></span></li>
+				{% else %}
+					<input id="{{ key }}" style="margin:-2px 10px 0 0;vertical-align:middle" type="radio" name="dec" value="{{ key }}"><span class="cr mrl"><label for="{{ key }}">{{ value|safe }}</label></span><div style="display:inline" class="cs sp"><a href="{% url 'show_report_help' tp key %}" target="_blank" class="cb" style="border-bottom:1px dotted blue">help</a></div></li>
+				{% endif %}
+			{% endfor %}
+			</ul><br>
+			<button type="submit" name="obid" class="btn bm bcr mbs pg_ok_res" style="height:26px" value="{{ obj_id }}">OK</button>
+		</form>
+<hr size=1 COLOR="#D3D3D3">
+<span class="cgy cs sp">Agar report sach sabit hui tou points wapis kar diye jaien ge</span><br>
+
+</div><br><br>
+{% endblock %}

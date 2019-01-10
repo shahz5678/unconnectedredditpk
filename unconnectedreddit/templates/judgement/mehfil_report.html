@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load get_report_navbar %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Report mehfil | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% report_navbar categ='mehfil' topic=topic rules=rules guid=group_uuid obid=gid static_url=STATIC_URL section='report' %}
+
+<h1 class="cxl lsp clb" style="text-align:center">Report mehfil:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">
+<b class="cp">{% emoticons %}{{ topic|truncatechars:'28' }}{% endemoticons %}</b><br>
+{% emoticons %}{{ rules|truncatechars:'28' }}{% endemoticons %}<br>
+</div>
+
+<div class="cxl lsp mt">Is mehfil ko kiyun report karna hai?</div>
+<span class="cs sp">Report price: {{ price }} points</span><br>
+
+		<form method="post" class="mts lsp" action="{% url 'report_mehfil' %}">
+			{% csrf_token %}
+			<input type="hidden" name="rep" value="1">
+			<input type="hidden" name="topic" value="{{ topic }}">
+			<input type="hidden" name="prc" value="{{ price }}">
+			<input type="hidden" name="rules" value="{{ rules }}">
+			<input type="hidden" name="guid" value="{{ group_uuid }}">
+			<ul style="display:inline-block;padding: 0;list-style:none;max-width:400px">
+			{% for key, value in rep_opt %}
+				<li style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px" class="mbl">
+				{% if forloop.counter == 1 %}
+					<input id="{{ key }}" style="margin:-2px 10px 0 0;vertical-align:middle" type="radio" name="dec" value="{{ key }}" checked><span class="cgy"><label for="{{ key }}">{{ value|safe }}</label></span></li>
+				{% else %}
+					<input id="{{ key }}" style="margin:-2px 10px 0 0;vertical-align:middle" type="radio" name="dec" value="{{ key }}"><span class="cr mrl"><label for="{{ key }}">{{ value|safe }}</label></span><div style="display:inline" class="cs sp"><a href="{% url 'show_report_help' 'mf' key %}" target="_blank" class="cb" style="border-bottom:1px dotted blue">help</a></div></li>
+				{% endif %}
+			{% endfor %}
+			</ul><br>
+			<button type="submit" name="obid" class="btn bm bcr mbs pg_ok_res" style="height:26px" value="{{ gid }}">OK</button>
+		</form>
+<hr size=1 COLOR="#D3D3D3">
+<span class="cgy cs sp">Agar report sach sabit hui tou points wapis kar diye jaien ge</span><br>
+
+</div><br><br>
+{% endblock %}

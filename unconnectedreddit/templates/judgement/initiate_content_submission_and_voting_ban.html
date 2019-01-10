@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on {{ oun }} | Damadam.pk</title></head>
+
+{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='ban_post' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
+
+<h1 class="cxl clb lsp" style="text-align:center">Banning options:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if not_enough_data %}
+
+	<div class="cxl lsp">Sorry! Is time koi bhi item banning ke liye selected nahi</div>
+	<hr size=1 COLOR="#e5e5e5">
+	<div class="cm mts sp cgy lsp mbl">Ap home pe ja ke items select karein</div>
+	<div>
+	<a href="{% url 'home' %}#section0"><button class="btn bcgy bm sp pg_ok_res mbs" style="height:26px">home</button></a>
+	</div>
+
+{% else %}
+
+	{% if first_time_cull_list_judger %}
+		<div style="padding:8px;background-color:ivory" class="bizcard mt mbs cxl cb lsp">
+		Ab punishment decide karein!
+		</div>
+	{% endif %}
+
+	{% if obj_type == 'tx' %}
+		<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">
+		<div style="text-align:left" class="bw">{% emoticons %}"{{ cap }}"{% endemoticons %}</div>
+		<div class="cs mts" style="font-weight:bold">submitted by <a href="{% url 'profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}</a></div>
+		</div>
+	{% else %}
+		<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">
+		<div class="cl sp lsp">'{% emoticons %}{{ cap|truncatechars:'20' }}{% endemoticons %}'</div>
+		<img src="{{ purl }}" style="border-radius:5px" class="mt"><br>
+		<div class="cs mts" style="font-weight:bold">uploaded by <a href="{% url 'profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}</a></div>
+		</div>
+	{% endif %}
+
+	<div class="mtl cxl lsp"><b>{{ oun|truncatechars:'13' }}</b> ke khilaf ye actions liye jaien ge:</div>
+
+	<ul class="clb" style="display:inline-block;padding: 0;font-weight:bold">
+		<li style="text-align:left" class="mbs"><div class="mt sp">Ban home and foto submission</div></li>
+		<li style="text-align:left" class="mbs"><div class="mt sp">Censor home history and fotos</div></li>
+		<li style="text-align:left" class="mbs"><div class="mt sp">Ban home and foto voting</div></li>
+	</ul>
+
+	<div class="cl sp">Kya ye tamam qadam utha dein?</div>
+
+	<form method="post" action="{% url 'judge_content_submitters' %}" class="mtl">
+		{% csrf_token %}
+		<input type="hidden" name="obid" value="{{ obid }}">
+		<input type="hidden" name="ooid" value="{{ ooid }}">
+		<input type="hidden" name="tid" value="{{ ooid }}">
+		<input type="hidden" name="purl" value="{{ purl }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="oun" value="{{ oun }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="cap" value="{{ cap }}">
+		<input type="hidden" name="tp" value="{{ obj_type }}">
+		<input type="hidden" name="from_cull" value="{{ from_cull }}">
+		<button type="submit" name="dec" value="1" class="btn bcr mrs mbs bm pg_ok_res sp" style="height:26px">Yes</button><button type="submit" name="dec" value="0" class="btn bcgy mls mbs bm pg_ok_res sp" style="height:26px">No</button>
+	</form>
+	<hr size=1 COLOR="#e5e5e5">
+	<span class="cgy sp cs">Agli screen pe ban time select ho ga</a>
+
+{% endif %}
+</div><br><br>
+{% endblock %}

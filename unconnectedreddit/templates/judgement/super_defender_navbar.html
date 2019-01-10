@@ -1,0 +1,30 @@
+{% if section == 'add' %}
+	<div class="fx fxjscn fxaicn">
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/add_defender.svg" width="24" height="24" style="vertical-align:middle"></button>
+	<a href="{% url 'remove_current_defender' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/remove_defender_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'show_blocking_history_of_defenders' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/history_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'get_top_50_reporters' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	</div>
+{% elif section == 'remove' %}
+	<div class="fx fxjscn fxaicn">
+	<a href="{% url 'add_new_defender' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/add_defender_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/remove_defender.svg" width="24" height="24" style="vertical-align:middle"></button>
+	<a href="{% url 'show_blocking_history_of_defenders' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/history_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'get_top_50_reporters' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	</div>
+{% elif section == 'ledger' %}
+	<div class="fx fxjscn fxaicn">
+	<a href="{% url 'add_new_defender' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/add_defender_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'remove_current_defender' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/remove_defender_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/history-cr.svg" width="24" height="24" style="vertical-align:middle"></button>
+	<a href="{% url 'get_top_50_reporters' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	</div>
+{% elif section == 'top50' %}
+	<div class="fx fxjscn fxaicn">
+	<a href="{% url 'add_new_defender' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/add_defender_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'remove_current_defender' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/remove_defender_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<a href="{% url 'show_blocking_history_of_defenders' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/history_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-right-radius:6px;border-bottom-right-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/top50.svg" width="24" height="24" style="vertical-align:middle"></button>
+	</div>	
+{% else %}
+{% endif %}

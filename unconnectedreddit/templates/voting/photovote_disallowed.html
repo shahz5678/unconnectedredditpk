@@ -1,23 +1,33 @@
 {% extends "base.html" %}
-{% load humanize %}
+{% load future_time %}
+{% load get_display_ban_msg %}
+{% load emoticons_tags %}
 {% block content %}
 <head><title>Unable to vote | Damadam.pk</title></head>
-<div class="margin clb">
-{% if time_remaining == '-1' %}
-	Apko vote karney ki ijazat nahi!<br><br>
-	<span class="cgy cs sp">Damadam pe insaf aur pakeezgi ka khyal rakhein aur kisi ke sath bura salook nahi karein. Shukriya!</span><br><br>
-{% else %}
-	Apko vote karney ki ijazat miley gi <b class="co cl">{{ time_remaining|naturaltime }}</b><br><br>
-	<span class="cgy cs sp">Damadam pe insaf aur pakeezgi ka khyal rakhein aur kisi ke sath bura salook nahi karein. Shukriya!</span><br><br>
-{% endif %}
-	{% if origin == '1' %}
-	<a href="{% url 'see_photo_pk' pk %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
-	{% elif origin == '2' %}
-	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
-	{% elif origin == '3' %}
-	<a href="{% url 'home_loc_pk' lid %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
-	{% else %}
-	<a href="{% url 'best_photo_loc_pk' pk %}"><button class="btn bco bm mtl mbs pg_ok_res" style="height:26px">wapis</button></a>
-	{% endif %}
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Cannot vote!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+
+<form method="POST" class="mt mbl" action="{% url 'redirect_to_content' %}">
+{% csrf_token %}
+<input type="hidden" name="obid" value="{{ pk }}">
+<input type="hidden" name="orig" value="{{ origin }}">
+<input type="hidden" name="lid" value="{{ lid }}">
+<input type="hidden" name="oun" value="{{ photo_owner_username }}">
+<button class="cl pg_ok_res sp cgy" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray">wapis</button>
+</form>
+
+{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=uname ban_detail=ban_details %}
+
+<form method="POST" action="{% url 'redirect_to_content' %}">
+{% csrf_token %}
+<input type="hidden" name="obid" value="{{ pk }}">
+<input type="hidden" name="orig" value="{{ origin }}">
+<input type="hidden" name="lid" value="{{ lid }}">
+<input type="hidden" name="oun" value="{{ photo_owner_username }}">
+<button class="cl pg_ok_res sp cgy" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray">wapis</button>
+</form>
+
 </div><br>
 {% endblock %}

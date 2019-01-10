@@ -1,0 +1,12 @@
+{% if section == 'voting' %}
+<div class="fx fxjscn fxaicn">
+	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><span class="cxl" style="font-weight:bold;color:{{ color }}">{{ sign }}{{ vsc }}</span></button>
+	<form method="POST" action="{% url 'voting_ban_defender_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="vsc" value="{{ vsc }}"><input type="hidden" name="is_pht" value="{{ is_pht }}"><input type="hidden" name="orig" value="{{ orig }}"><input type="hidden" name="obid" value="{{ obid }}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0;border-top-right-radius:5px;border-bottom-right-radius:5px"><img src="{{ static_url }}img/help_mehfil_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></form>
+</div>
+{% elif section == 'help' %}
+<div class="fx fxjscn fxaicn">
+	<a href="{% url 'show_voting_summary' obid orig is_pht %}"><button name="dec" type="submit" value="2" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><span class="cxl" style="font-weight:bold;color:#a9a9a9">{{ sign }}{{ vsc }}</span></button></a>
+	<button type="submit" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;"><img src="{{ static_url }}img/{{ img }}" width="24" height="24" style="vertical-align:middle"></button>
+</div>
+{% else %}
+{% endif %}

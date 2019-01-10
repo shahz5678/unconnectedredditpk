@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% load get_render_single_ban %}
+{% load human_time %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on {{ oun }} | Damadam.pk</title></head>
+
+{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='ban_post' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=tp cap=cap from_cull=from_cull %}
+
+<h1 class="cxl clb lsp" style="text-align:center">Banning options:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if first_time_cull_list_judger %}
+	<div style="padding:8px;background-color:ivory" class="bizcard mt mbs cxl cb lsp">
+	Ab punishment decide karein!
+	</div>
+{% endif %}
+
+{% if can_edit %}
+
+	<div class="mbs cxl cr lsp"><b>Already banned!</b>&nbsp;{% if time_remaining == '-1' %}{{ oun|truncatechars:'13' }} banned hai forever ke liye{% else %}{% load future_time %}{{ oun|truncatechars:'13' }} ka ban end hoga {{ time_remaining|future_time }}{% endif %}</div>
+
+	<div style="text-align:left;margin:0 8px">
+	{% render_single_ban time=ban_data.t|human_time sin=ban_data.sin oun=ban_data.oun tp=ban_data.tp txt=ban_data.txt obid=ban_data.obid pu=ban_data.pu utunm=target_uname oeunm='' oeid='' dunm='' did='' remark=ban_data.remark dur=ban_data.b static_url=STATIC_URL %}
+	</div>
+
+	{% if ban_creator %}
+
+		<br><div class="mt cgy cs sp">- ye apka apna lagaya hua ban hai -</div>
+		<div class="cxl mts lsp">Ap kya qadam uthana chahtey hain?</div>
+
+		<form method="post" action="{% url 'edit_content_submission_and_voting_ban' %}" style="max-width:430px;margin:0 auto">
+			{% csrf_token %}
+			<input type="hidden" name="obid" value="{{ obid }}">
+			<input type="hidden" name="ooid" value="{{ ooid }}">
+			<input type="hidden" name="tid" value="{{ ooid }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="tp" value="{{ obj_type }}">
+			<input type="hidden" name="from_cull" value="{{ from_cull }}">
+
+			<ul style="display:inline-block;padding: 0;list-style:none">
+				<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="2" name="edec" value="2"><label for="2"><span class="sp lsp clb"><b class="cl">Change ban time:</b>&nbsp;<span class="cm">ye option pick karein agar ban ka time change karna ho (e.g. ban ke time mein narmi ya sakhti karni ho)</span></span></label></li>
+				<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="1" name="edec" value="1"><label for="1"><span class="sp lsp clb"><b class="cl">Remove ban:</b>&nbsp;<span class="cm">ye option pick karein agar ban remove karna ho (e.g. is user ne buhut saza kaat li ho aur isko maaf karna ho)</span></span></label></li>
+				<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="0" name="edec" value="0" checked><label for="0"><span class="clb sp lsp"><b class="cl">Do nothing:</b>&nbsp;<span class="cm">ye option pick karein agar kuch bhi change kiye behgair wapis jana ho</span></span></label></li>
+			</ul><br>
+
+			<button class="btn bcb bm mbl pg_ok_res sp" type="submit" style="height:26px">Submit</button>
+
+		</form>
+
+	{% elif is_super %}
+
+		<div class="cxl mtl lsp"><b>Super defender!</b> Ap kya qadam uthana chahtey hain?</div>
+
+		<form method="post" action="{% url 'edit_content_submission_and_voting_ban' %}" style="max-width:430px;margin:0 auto">
+			{% csrf_token %}
+			<input type="hidden" name="obid" value="{{ obid }}">
+			<input type="hidden" name="ooid" value="{{ ooid }}">
+			<input type="hidden" name="tid" value="{{ ooid }}">
+			<input type="hidden" name="purl" value="{{ purl }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="cap" value="{{ cap }}">
+			<input type="hidden" name="tp" value="{{ obj_type }}">
+			<input type="hidden" name="from_cull" value="{{ from_cull }}">
+
+			<ul style="display:inline-block;padding: 0;list-style:none">
+				<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="2" name="edec" value="2"><label for="2"><span class="sp lsp clb"><b class="cl">Change ban time:</b>&nbsp;<span class="cm">ye option pick karein agar ban ka time change karna ho (e.g. ban ke time mein narmi ya sakhti karni ho)</span></span></label></li>
+				<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="1" name="edec" value="1"><label for="1"><span class="sp lsp clb"><b class="cl">Remove ban:</b>&nbsp;<span class="cm">ye option pick karein agar ban remove karna ho (e.g. is user ne buhut saza kaat li ho aur isko maaf karna ho)</span></span></label></li>
+				<li style="text-align:left" class="mbs"><input style="margin:-2px 10px 0 0;vertical-align:middle;" type="radio" id="0" name="edec" value="0" checked><label for="0"><span class="clb sp lsp"><b class="cl">Do nothing:</b>&nbsp;<span class="cm">ye option pick karein agar kuch bhi change kiye behgair wapis jana ho</span></span></label></li>
+			</ul><br>
+
+			<button class="btn bcb bm mbl pg_ok_res sp" type="submit" style="height:26px">Submit</button>
+
+		</form>
+
+	{% endif %}
+
+{% else %}
+
+	{% if locked_by_super %}
+
+		<div class="mbs cxl cr lsp"><b>Already banned!</b>&nbsp;{% if time_remaining == '-1' %}{{ oun|truncatechars:'13' }} banned hai forever ke liye{% else %}{% load future_time %}{{ oun|truncatechars:'13' }} ka ban end hoga {{ time_remaining|future_time }}{% endif %}</div>
+
+		<div style="text-align:left;margin:0 8px">
+		{% render_single_ban time=ban_data.t|human_time sin=ban_data.sin oun=ban_data.oun tp=ban_data.tp txt=ban_data.txt obid=ban_data.obid pu=ban_data.pu utunm=target_uname oeunm='' oeid='' dunm='' did='' remark=ban_data.remark dur=ban_data.b static_url=STATIC_URL %}
+		</div>
+
+		<div class="cxl mts lsp">Ye ban ap se higher level ke defender ne change kar diya hai</div>
+		<div class="cgy mts lsp cm sp mbs">Sorry! Ab ap is ban ko change ya remove nahi kar saktey</div>
+
+		<form method="post" action="{% url 'edit_content_submission_and_voting_ban' %}" class="mtl">
+			{% csrf_token %}
+			<input type="hidden" name="obid" value="{{ obid }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="from_cull" value="{{ from_cull }}">
+			<button class="btn bcgy bm mbl pg_ok_res sp" type="submit" style="height:26px">wapis</button>
+		</form>
+
+	{% elif not_your_ban %}
+
+		<form method="post" action="{% url 'edit_content_submission_and_voting_ban' %}" class="mt">
+			{% csrf_token %}
+			<input type="hidden" name="obid" value="{{ obid }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="from_cull" value="{{ from_cull }}">
+			<button class="cgy cl sp" type="submit" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray">wapis</button>
+		</form>
+
+		<hr size=1 COLOR="#E9EBEE">
+
+		<div class="mbs cxl cr lsp"><b>Already banned!</b>&nbsp;{% if time_remaining == '-1' %}{{ oun|truncatechars:'13' }} banned hai forever ke liye{% else %}{% load future_time %}{{ oun|truncatechars:'13' }} ka ban end hoga {{ time_remaining|future_time }}{% endif %}</div>
+
+		<div style="text-align:left">
+		{% render_single_ban time=ban_data.t|human_time sin=ban_data.sin oun=ban_data.oun tp=ban_data.tp txt=ban_data.txt obid=ban_data.obid pu=ban_data.pu utunm=target_uname oeunm='' oeid='' dunm='' did='' remark=ban_data.remark dur=ban_data.b static_url=STATIC_URL %}
+		</div>
+
+		<div class="cxl mts lsp">Sorry! Ap is ban ko change ya remove nahi kar saktey</div>
+		<div class="cgy mts lsp cm sp mbs">Ap sirf apna lagaya hua ban change kar saktey hain</div>
+
+		<form method="post" action="{% url 'edit_content_submission_and_voting_ban' %}" class="mtl">
+			{% csrf_token %}
+			<input type="hidden" name="obid" value="{{ obid }}">
+			<input type="hidden" name="orig" value="{{ orig }}">
+			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="from_cull" value="{{ from_cull }}">
+			<button class="btn bcgy bm mbl pg_ok_res sp" type="submit" style="height:26px">wapis</button>
+		</form>
+
+	{% endif %}
+
+{% endif %}
+
+
+</div><br><br>
+{% endblock %}

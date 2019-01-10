@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% load get_render_single_ban %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Judgement on {{ oun }} | Damadam.pk</title></head>
+
+<h1 class="cxl clb lsp" style="text-align:center">Edit ban duration:</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+
+<div class="mbs cxl cr lsp" style="text-align:center"><b>Already banned!</b>&nbsp;{% if time_remaining == '-1' %}{{ oun|truncatechars:'13' }} banned hai forever ke liye{% else %}{% load future_time %}{{ oun|truncatechars:'13' }} ka ban end hoga {{ time_remaining|future_time }}{% endif %}</div>
+
+<div style="text-align:left;margin:0 8px">
+{% render_single_ban time=ban_data.t|human_time sin=ban_data.sin oun=ban_data.oun tp=ban_data.tp txt=ban_data.txt obid=ban_data.obid pu=ban_data.pu utunm=target_uname oeunm='' oeid='' dunm='' did='' remark=ban_data.remark dur=ban_data.b static_url=STATIC_URL %}
+</div>
+
+<div class="mtl cxl lsp">Is ban ka new time set karein:</div>
+
+<form method="POST" action="{% url 'edit_content_submission_and_voting_ban' %}" class="mt sp">
+{% csrf_token %}
+	<input type="hidden" name="obid" value="{{ obid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="cap" value="{{ cap }}">
+	<input type="hidden" name="purl" value="{{ purl }}">
+	<input type="hidden" name="ooid" value="{{ ooid }}">
+	<input type="hidden" name="tp" value="{{ tp }}">
+	<input type="hidden" name="from_cull" value="{{ from_cull }}">
+	<ul style="display:inline-block;padding: 0;list-style:none">
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="1" type="radio" name="dur" value="1"><label for="1"><span class="cr sp">3 hours</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="2" type="radio" name="dur" value="2"><label for="2"><span class="cr sp">1 day</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="3" type="radio" name="dur" value="3"><label for="3"><span class="cr sp">3 days</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="4" type="radio" name="dur" value="4"><label for="4"><span class="cr sp">1 week</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="5" type="radio" name="dur" value="5"><label for="5"><span class="cr sp">1 month</span></label></li>
+		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="6" type="radio" name="dur" value="6"><label for="6"><span class="cr sp">Ban forever</span></label></li>
+	</ul><br>
+	<button type="submit" name="ddec" class="btn bcr bm pg_ok_res mbl mrs sp" style="height:26px" value="1">OK</button><button type="submit" name="ddec" class="mls cgy cl sp" style="background:0 0;border:none;padding:0;height:26px;border-bottom:1px dotted darkgray" value="0">Cancel</button>
+</form>
+
+
+</div><br><br>
+{% endblock %}

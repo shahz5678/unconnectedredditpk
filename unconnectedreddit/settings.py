@@ -447,10 +447,10 @@ CELERYBEAT_SCHEDULE = {
 		'task': 'tasks.delete_chat_from_idle_personal_group',
 		'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days (cleans out the chat in idle 1-on-1 groups)
 	},
-	# 'tasks.cleanse_complainers': {
-	# 	'task': 'tasks.cleanse_complainers',
-	# 	'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days (cleanses content complainers who no longer lodge complaints)
-	# },
+	'tasks.cleanse_complainers': {
+		'task': 'tasks.cleanse_complainers',
+		'schedule': timedelta(seconds=3*24*60*60), # execute every 3 days (cleanses content complainers who no longer lodge complaints)
+	},
 	'tasks.delete_idle_public_and_private_groups': {
 		'task': 'tasks.delete_idle_public_and_private_groups',
 		'schedule': timedelta(seconds=4*24*60*60), # execute every 4 days (deletes public and private mehfils that have gone idle)

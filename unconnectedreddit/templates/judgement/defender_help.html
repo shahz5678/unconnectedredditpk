@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% load get_defender_instructions %}
+{% block content %}
+<style>body{background: #E9EBEE}</style>
+<head><title>Defender help | Damadam.pk</title></head>
+
+{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='help' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
+
+<h1 style="text-align:center" class="clb cxl lsp">Defender help:</h1>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+<div class="lsp" style="text-align:center">
+	<div class="cxl lsp" style="text-align:center;padding-bottom:10px;border-bottom:1px solid #DFE3E8">Ap Damadam ke <b>Defender</b> hain. Apka kaam Damadam ke mahol ki quality improve karna aur good users ki tadaad barhana hai</div>
+	<div class="cl sp mts" style="text-align:left">Posts ke agey <img src="{{ STATIC_URL }}img/warn_g.svg" alt="report" style="overflow:hidden" width="16" height="16"> nishan daba kar ap kharab posts ko remove kar saktey hain.</div>
+	{% defender_instructions %}
+</div>
+</div>
+<br><br>
+{% endblock %}

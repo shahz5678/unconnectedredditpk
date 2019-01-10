@@ -1,0 +1,266 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if temp_data_missing %}
+	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ban nahi kia ja saka, dubara koshish karein</div>
+
+{% elif not_enough_score_to_report_mehfil %}
+	<head><title>Cannot report mehfil | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report mehfil</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Apke paas itna score nahi</div>
+
+{% elif mehfil_does_not_exist %}
+	<head><title>Cannot report mehfil | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report mehfil</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap ye nahi kar saktey</div>
+
+{% elif already_banned %}
+	{% load future_time %}
+	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ban nahi kia ja saka kiyun ke {{ oun }} pehlay se hi banned hai</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Uska ban khatam ho ga {{ time_remaining|future_time }}</div>
+
+{% elif multi_already_banned %}
+
+	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ban nahi kia ja saka kiyun ke ye user(s) pehlay se banned hain</div>
+
+{% elif cannot_ban_self %}
+
+	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap apney apko ban nahi kar saktey</div>
+
+{% elif ban_imposed %}
+	
+	{% load future_time %}
+	<head><title>Ban imposed | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">{{ oun }} banned!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">{{ oun }} ko ban kar dia gya!</div>
+	<hr size=1 COLOR="#e5e7e9">
+	{% if ban_time == '-1' %}<div class="sp lsp mts">Ye ban forever ke liye hai</div>{% else %}<div class="sp lsp mts">Ye ban khatam ho ga {{ ban_time|future_time }}</div>{% endif %}
+
+{% elif ban_removed %}
+	
+	{% load future_time %}
+	<head><title>Ban removed | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Ban removed!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">{{ oun }} ka ban khatam kar dia gya</div>
+	<hr size=1 COLOR="#e5e7e9">
+	{% if old_time_remaining == 'forever' %}<div class="sp lsp mts">Pehlay iska ban forever ke liye tha</div>{% else %}<div class="sp lsp mts">Pehlay iska ban {{ old_time_remaining|future_time }} end hona tha</div>{% endif %}
+
+{% elif ban_edited %}
+	
+	{% load future_time %}
+	<head><title>Ban changed | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Ban time changed!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">{{ oun }} ka ban time change kar dia gaya!</div>
+	<hr size=1 COLOR="#e5e7e9">
+	{% if old_time_remaining == 'forever' and new_time_remaining == 'forever' %}
+	<div class="sp lsp mts">Ye ban pehlay forever ke liye tha, aur ab bhi ye ban forever ke liye hai</div>
+	{% elif new_time_remaining == 'forever' %}
+	<div class="sp lsp mts">Ye ban pehlay {{ old_time_remaining|future_time }} end hona tha, ab ye ban forever ke liye hai</div>
+	{% elif old_time_remaining == 'forever' %}
+	<div class="sp lsp mts">Ye ban pehlay forever ke liye tha, ab ye ban {{ new_time_remaining|future_time }} end hoga</div>
+	{% else %}
+	<div class="sp lsp mts">Ye ban pehlay {{ old_time_remaining|future_time }} end hona tha, ab ye ban {{ new_time_remaining|future_time }} end hoga</div>
+	{% endif %}
+
+{% elif multi_ban_imposed %}
+	
+	{% load future_time %}
+	<head><title>Ban imposed | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">User(s) banned!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if iun %}
+		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}{% if ban_time == '-1' %}ko forever ban kar dia gya!{% else %}ko ban kar dia gya. Ye ban khatam ho ga {{ ban_time|future_time }}{% endif %}</div>
+		<hr size=1 COLOR="#e5e7e9"><div class="sp lsp mts cgy">Ye user(s) ban nahi kiye gaye kiyun ke pehlay se banned thay:&nbsp;{% for ignored_uname in iun %}<a href="{% url 'profile' ignored_uname %}" class="mrs clb" style="font-weight:bold">{{ ignored_uname }}</a>{% endfor %}</div>
+	{% else %}
+		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}ko ban kar dia gya!</div>
+		<hr size=1 COLOR="#e5e7e9">
+		{% if ban_time == '-1' %}<div class="sp lsp mts">Ye ban forever ke liye hai</div>{% else %}<div class="sp lsp mts">Ye ban khatam ho ga {{ ban_time|future_time }}</div>{% endif %}
+	{% endif %}
+
+{% elif not_your_ban %}
+
+	<head><title>Cannot change ban | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to change ban</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap aisa nahi kar saktey</div>
+
+{% elif mehfil_report_ttl %}
+
+	{% load future_time %}
+	<head><title>Cannot report mehfil | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Thank you! Apki taraf se pehlay hi isko report kiya ja chuka hai</div>
+
+{% elif reporting_own_mehfil %}
+
+	<head><title>Cannot report own mehfil | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap apni mehfil ko report nahi kar saktey</div>
+
+{% elif reporting_own_profile %}
+
+	<head><title>Cannot report own profile | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap apni profile ko report nahi kar saktey</div>
+
+{% elif locked_by_super %}
+
+	<head><title>Cannot change ban | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to change ban</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Ye ban ap se higher level ke defender ne change kar diya hai</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Sorry! Ab ap is ban ko change ya remove nahi kar saktey</div>
+
+
+{% elif not_enough_score %}
+
+	<head><title>Cannot report item | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Report karne ke liye apka score ziyada hona chahiye</div>
+
+
+{% elif report_tinkered %}
+
+	<head><title>Cannot report | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Kuch ghalat ho gaya</div>
+
+{% elif reporting_own_content %}
+
+	<head><title>Cannot report own item | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap apney item ya profile ko report nahi kar saktey</div>
+
+{% elif item_already_downgraded %}
+
+	<head><title>Cannot report item | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Is item ko report nahi kia ja sakta</div>
+
+{% elif not_original %}
+
+	<head><title>Cannot report item | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Report nahi kia ja sakta kiyun ke ye post baad mein laggi</div>
+
+{% elif already_reported %}
+
+	<head><title>Cannot report item | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	{% if ttl == '-1' %}
+		<div class="cxl lsp">Ap pehlay ye item report kar chukay, bar bar report nahi karein</div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div style="padding:0 10px">
+		<div class="cl sp lsp mts" style="text-align:left">Report mein khayal rakehin:</div>
+		<ul class="lsp sp">
+			<li style="text-align:left" class="mbl">Aik hi item ko bar bar report nahi karein</li>
+			<li style="text-align:left" class="mbl">Report ka taluq sirf reported item se ho</li>
+			<li style="text-align:left" class="mbl">Report sanjeedgi se ki geyi ho, mazaq mein nahi</li>
+			<li style="text-align:left" class="mbl">Report zaati dushmani ki wajah se nahi ki geyi ho</li>
+			<li style="text-align:left" class="mbl">Agar item apko pasand ho tou usko report nahi karein</li>
+		</ul>
+		</div>
+	{% else %}
+		{% load future_time %}
+		<div class="cxl lsp">Sorry! Ap report kar sakein ge <b>{{ ttl|future_time }}</b></div>
+		<hr size=1 COLOR="#e5e7e9">
+		<div style="padding:0 10px">
+		<div class="cl sp lsp mts" style="text-align:left">Report mein khayal rakehin:</div>
+		<ul class="lsp sp">
+			<li style="text-align:left" class="mbl">Report ka reason wohi ho jo list se select kiya tha</li>
+			<li style="text-align:left" class="mbl">Report ka taluq sirf reported item se ho</li>
+			<li style="text-align:left" class="mbl">Report sanjeedgi se ki geyi ho, mazaq mein nahi</li>
+			<li style="text-align:left" class="mbl">Report zaati dushmani ki wajah se na ki geyi ho</li>
+			<li style="text-align:left" class="mbl">Agar item apko pasand ho tou usko report na karein</li>
+		</ul>
+		</div>
+	{% endif %}
+
+
+{% else %}
+
+	<head><title>Cannot complete action | Damadam.pk</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Please press OK</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Neechay 'OK' button press kar dein:</div>
+
+{% endif %}
+
+{% if from_cull == '1' %}
+
+	<div class="mtl mbl"><a href="{% url 'cull_content' %}"><button type="submit" class="btn bm bcb pg_ok_res" style="height:26px">OK</button></a></div>
+
+{% elif not_enough_score_to_report_mehfil or mehfil_does_not_exist or mehfil_report_ttl or reporting_own_mehfil %}
+
+	<div class="mtl mbl"><a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm pg_ok_res sp" style="height:26px">wapis</button></a></div>
+
+{% elif reporting_own_profile %}
+
+	<div class="mtl mbl"><a href="{% url 'profile' uname %}#section0"><button class="btn bct bm pg_ok_res sp" style="height:26px">wapis</button></a></div>
+
+{% else %}
+
+	<form method="POST" class="mtl mbl" action="{% url 'redirect_to_content' %}">
+	{% csrf_token %}
+	<input type="hidden" name="obid" value="{{ obid }}">
+	<input type="hidden" name="orig" value="{{ orig }}">
+	<input type="hidden" name="lid" value="{{ lid }}">
+	<input type="hidden" name="oun" value="{{ oun }}">
+	<button type="submit" class="btn bm bcb pg_ok_res" style="height:26px">OK</button>
+	</form>
+
+{% endif %}	
+
+	</div>
+	<br>
+{% endblock %}

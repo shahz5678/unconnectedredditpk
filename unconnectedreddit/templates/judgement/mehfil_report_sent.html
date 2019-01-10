@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Mehfil report submitted | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb lsp" style="text-align:center">Report sent!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+
+<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">
+	<b class="cp">{% emoticons %}{{ topic|truncatechars:'28' }}{% endemoticons %}</b><br>
+	{% emoticons %}{{ rules|truncatechars:'28' }}{% endemoticons %}<br>
+</div>
+<div class="cxl lsp sp" style="font-weight:bold">Thank you!</div>
+
+
+
+<div class="sp cl mts lsp">Agar apki report sach sabit hui tou apkey {{ prc }} points wapis ho jaien ge</div>
+
+<div class="mtl"><a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm pg_ok_res sp" style="height:26px">wapis</button></a></div>
+
+<hr size=1 COLOR="#f2f2f2">
+<div class="mts cgy cs sp">Tamam reports khufiya rakhi jati hain</div>
+</div><br><br>
+{% endblock %}

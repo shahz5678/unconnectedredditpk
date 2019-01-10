@@ -60,7 +60,7 @@
 {% if not absent %}
 	
 	{% if defender and from_cull_queue %}
-		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbs mtl pg_ok_res" style="height:26px">wapis</button></a>
+		<a href="{% url 'cull_content_loc' photo.id 'img' %}"><button type="submit" class="btn bcgy bm mbs mtl pg_ok_res" style="height:26px">wapis</button></a>
 
 		<h1 class="cl clb mt mbs"><b><bdi>{% emoticons %}{{ photo.caption }}{% endemoticons %}</bdi></b></h1>
 
@@ -88,7 +88,7 @@
 		<span class="csw co">{{ photo.owner }} ne aur fotos nahi charhain...</span><br>
 		<hr size=1 COLOR="ORANGE">
 		{% endif %}
-		<a href="{% url 'cull_photo_loc' photo.id %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
+		<a href="{% url 'cull_content_loc' photo.id 'img' %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
 	{% else %}
 
 	<div itemscope itemtype="http://schema.org/CreativeWork">

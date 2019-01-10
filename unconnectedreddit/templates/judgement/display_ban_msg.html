@@ -1,0 +1,71 @@
+{% load get_thumb_to_img_url %}
+{% load future_time %}
+{% load emoticons_tags %}
+{% if is_banned %}
+    <div class="cr mbs mbl sp" style="border:2px dashed red;border-radius:10px;padding:5px;text-align:center">
+
+    {% if is_own_profile %}
+
+      {% if time_remaining == '-1' %}
+        <span class="lsp"><b>BANNED:</b> Apki posts and voting <b>forever</b> banned hain</span>
+      {% else %}
+        <span class="lsp"><b>BANNED:</b> Apki posts and voting ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
+      {% endif %}
+      <hr size=1 COLOR="#FF0000">
+      <div class="lsp" style="padding:5px;text-align:left">
+        <div class="mbs">
+        <b class="mrs">Reason:</b>&nbsp;{% if ban_detail.sin == 'bad_voting' %}Ap ne item ko ghalat vote dia{% else %}Apko ghalat item submit karney pe ban kia gya{% endif %}&nbsp;<span class="cb sp cs">(<a href="{% url 'website_rules' %}" class="cb" style="border-bottom:1px dotted blue">rules</a>)</span>
+        </div>
+        <div class="mbs">
+        <b class="mrs">Item:</b>
+          {% if ban_detail.pu %}
+            <a href="{% url 'user_profile_photo' ban_detail.oun ban_detail.obid %}"><img src="{{ ban_detail.pu }}" height="38" style="border-radius:4px;border:2px solid dodgerblue" class="mrs"></a><a rel="nofollow" target="_blank" href="{{ ban_detail.pu|thumb_to_img }}"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:baseline" width="22" height="22"></a>
+          {% else %}
+            <a href="{% url 'user_activity' ban_detail.oun %}" class="cb mrs bw">"{{ ban_detail.txt|linebreaksbr }}"</a><a rel="nofollow" target="_blank" href="{% url 'display_link_detail' ban_detail.obid %}"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:baseline" width="22" height="22"></a>
+          {% endif %}
+        </div>
+        <hr size=1 COLOR="#FF0000">
+        <b class="mrs">Remarks:</b>&nbsp;{% emoticons %}"{{ ban_detail.remark }}"{% endemoticons %}<span class="cs sp" style="font-style: italic">&nbsp;-&nbsp;from system</span>
+      </div>
+      <div class="mts cxs lsp" style="text-align:center">Ye remarks private hain</div>
+    
+    {% elif is_defender %}
+      
+      {% if time_remaining == '-1' %}
+        <span class="lsp"><b>BANNED:</b> {{ uname|truncatechars:'13' }} ki posts and voting <b>forever</b> banned hain</span>
+      {% else %}
+        <span class="lsp"><b>BANNED:</b> {{ uname|truncatechars:'13' }} ki posts and voting ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
+      {% endif %}
+      <hr size=1 COLOR="#FF0000">
+      <div class="lsp" style="padding:5px;text-align:left">
+      	<div class="mbs">
+        <b class="mrs">Reason:</b>&nbsp;{% if ban_detail.sin == 'bad_voting' %}{{ uname|truncatechars:'13' }} ne item pe ghalat vote dala{% else %}{{ uname|truncatechars:'13' }} ko ghalat item submit karney pe ban kia gya{% endif %}&nbsp;<span class="cb sp cs">(<a href="{% url 'website_rules' %}" class="cb" style="border-bottom:1px dotted blue">rules</a>)</span>
+        </div>
+        <div class="mbs">
+        <b class="mrs">Item:</b>
+          {% if ban_detail.pu %}
+            <a href="{% url 'user_profile_photo' ban_detail.oun ban_detail.obid %}"><img src="{{ ban_detail.pu }}" height="38" style="border-radius:4px;border:2px solid dodgerblue" class="mrs"></a><a rel="nofollow" target="_blank" href="{{ ban_detail.pu|thumb_to_img }}"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:baseline" width="22" height="22"></a>
+          {% else %}
+            <a href="{% url 'user_activity' ban_detail.oun %}" class="cb mrs bw">"{{ ban_detail.txt|linebreaksbr }}"</a><a rel="nofollow" target="_blank" href="{% url 'display_link_detail' ban_detail.obid %}"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:baseline" width="22" height="22"></a>
+          {% endif %}
+        </div>
+        <hr size=1 COLOR="#FF0000">
+        <b class="mrs">Remarks:</b>&nbsp;{% emoticons %}"{{ ban_detail.remark }}"{% endemoticons %}<span class="cs sp" style="font-style: italic">&nbsp;-&nbsp;from system</span>
+      </div>
+      <div class="mts cxs lsp" style="text-align:center">Ye remarks private hain</div>
+
+    {% else %}
+      
+      {% if time_remaining == '-1' %}
+        <span class="lsp"><b>BANNED:</b> {{ uname|truncatechars:'13' }} ki posts and voting <b>forever</b> banned hain</span>
+      {% else %}
+        <span class="lsp"><b>BANNED:</b> {{ uname|truncatechars:'13' }} ki posts and voting ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
+      {% endif %}
+      <hr size=1 COLOR="#FF0000">
+      <div class="mbs mts" style="padding:5px;text-align:left">
+	    <b class="mrs">Reason:</b>&nbsp;{% if ban_detail.sin == 'bad_voting' %}{{ uname|truncatechars:'13' }} ko ghalat vote dalney pe ban kia gya{% else %}{{ uname|truncatechars:'13' }} ko ghalat item submit karney pe ban kia gya{% endif %}&nbsp;<span class="cb sp cs">(<a href="{% url 'website_rules' %}" class="cb" style="border-bottom:1px dotted blue">rules</a>)</span>
+	    </div>
+    {% endif %}
+
+    </div>
+  {% endif %}

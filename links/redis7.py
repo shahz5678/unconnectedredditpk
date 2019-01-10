@@ -20,7 +20,7 @@ FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT = 'fbsuprl:'#rate limit key to throttle FBS u
 
 
 
-
+FOUR_DAYS = 4*24*60*60
 TEN_MINS = 10*60
 FORTY_FIVE_SECS = 45
 NINE_SECS = 9

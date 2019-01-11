@@ -1742,6 +1742,7 @@ class UserProfilePhotosView(ListView):
 		context["ban_detail"] = ban_details
 		context["is_profile_banned"] = banned
 		context["noindex"] = True if banned else False
+		context["defender"] = is_defender
 		context["time_remaining"] = time_remaining
 		context["is_mob"] = False if banned else (self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile)
 		###########

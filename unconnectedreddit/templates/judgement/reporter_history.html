@@ -4,18 +4,28 @@
 {% block content %}
 <head><title>{{ target_uname }} reporting history | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
-<h1 class="cxl clb" style="text-align:center">{{ target_uname }}'s reporting history:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">{{ target_uname }}'s reporting history:</h1>
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
 <div class="cs sp" style="text-align:center">
 	{% if num_cases == 0 %}
-		<span class="cgy">No logged cases or case history reset (see footnote)</span>
+		<span class="cgy">No logged cases or case history reset (see footnotes)</span>
 		<hr size=1 COLOR="#E9EBEE">
 	{% else %}
-		<b class="clb">{{ num_cases }} most recent case(s) shown</b>
-		<div style="text-align:center">
-		<a href="{% url 'get_top_50_reporters' %}"><button class="btn bcb bm sp pg_ok_res mtl mbs" style="height:26px">back</button></a>
+		<div style="text-align:center;border-bottom:1px dashed lightgray;padding-bottom:10px">
+			<a href="{% url 'get_top_50_reporters' %}" class="sp"><button class="cb" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back</button></a>
 		</div>
+		<div class="mts cxl lsp" style="font-weight:bold">{{ num_cases }} most recent reports:</div>
 	{% endif %}
+</div>
+
+<div class="mts fx fxjscn">
+	<div style="width:30px;height:20px;border-radius:4px;background:#ebf5fb;border:1px solid lightgray" class="mrs"></div>
+	<div class="cs sp cgy">accepted report</div>
+</div>
+
+<div class="mts fx fxjscn">
+	<div style="width:30px;height:20px;border-radius:4px;background:#fdedec;border:1px solid lightgray" class="mrs"></div>
+	<div class="cs sp cgy">rejected report</div>
 </div>
 {% for case in all_cases %}
 	{% if case.tp == 'img' %}
@@ -49,7 +59,8 @@
 </div>
 
 <hr size=1 COLOR="#E9EBEE">
-<div class="cgy lsp sp cxs">Note:</div>
-<div class="cgy lsp sp cxs" style="text-align:left">All reporters who haven't filed a report in 2 months have their reporting histories reset</div>
+<div class="cgy lsp sp cxs" style="font-weight:bold">Note(s):</div>
+<div class="cgy lsp sp cxs" style="text-align:left">1) If a reporter files too many reports, older reports are periodically deleted (and won't show up here)</div>
+<div class="cgy lsp sp cxs" style="text-align:left">2) All reporters who haven't filed a report in 2 months have their entire reporting histories reset</div>
 </div><br><br>
 {% endblock %}

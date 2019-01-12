@@ -1345,7 +1345,7 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				# sorted set containing all complaints (useful in defender view - 'cull list')
 				pipeline1 = my_server.pipeline()
 				pipeline1.zadd(COMPLAINT_LIST,mehfil_report,num_reports)
-				pipeline1.setex(COMPLAINING_RATE_LIMITED,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
+				pipeline1.setex(COMPLAINING_RATE_LIMITED+reporter_id,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
 
 				# logging attempt and case description
 				pipeline1.zadd(COMPLAINER_TIME_LIST,reporter_id,time_now)
@@ -1357,14 +1357,9 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				pipeline1.zadd(COMPLAINTS_SUBMITTED+reporter_id,complaint_id,time_now)
 				pipeline1.execute()
 
-				# trimming the sorted set to latest 20, nothing more!
-				to_delete = my_server.zrevrange(COMPLAINTS_SUBMITTED+reporter_id,20,-1)
-				if to_delete:
-					pipeline2 = my_server.pipeline()
-					for complaint_id in to_delete:
-						pipeline2.delete(COMPLAINT_HIST_OBJ+reporter_id+":"+complaint_id)
-					pipeline2.zrem(COMPLAINTS_SUBMITTED+reporter_id,*to_delete)
-					pipeline2.execute()
+				#trimming the sorted set every now and then, down to the latest 20 reports, nothing more!
+				if random() < 0.3:
+					trim_reporter_complaints(reporter_id, my_server)
 
 				return None
 			elif obj_type == 'pf':
@@ -1392,7 +1387,7 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				#sorted set containing all reported content (useful in defender view)
 				pipeline1 = my_server.pipeline()
 				pipeline1.zadd(COMPLAINT_LIST,profile_report,num_reports)
-				pipeline1.setex(COMPLAINING_RATE_LIMITED,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
+				pipeline1.setex(COMPLAINING_RATE_LIMITED+reporter_id,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
 
 				# logging attempt and case description
 				pipeline1.zadd(COMPLAINER_TIME_LIST,reporter_id,time_now)
@@ -1404,14 +1399,9 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				pipeline1.zadd(COMPLAINTS_SUBMITTED+reporter_id,complaint_id,time_now)
 				pipeline1.execute()
 
-				#trimming the sorted set to latest 20, nothing more!
-				to_delete = my_server.zrevrange(COMPLAINTS_SUBMITTED+reporter_id,20,-1)
-				if to_delete:
-					pipeline2 = my_server.pipeline()
-					for complaint_id in to_delete:
-						pipeline2.delete(COMPLAINT_HIST_OBJ+reporter_id+":"+complaint_id)
-					pipeline2.zrem(COMPLAINTS_SUBMITTED+reporter_id,*to_delete)
-					pipeline2.execute()
+				#trimming the sorted set every now and then, down to the latest 20 reports, nothing more!
+				if random() < 0.3:
+					trim_reporter_complaints(reporter_id, my_server)
 
 				return None
 			elif obj_type == 'img':
@@ -1446,7 +1436,7 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				#sorted set containing all reported content (useful in defender view)
 				pipeline1 = my_server.pipeline()
 				pipeline1.zadd(COMPLAINT_LIST,public_image_report,num_reports)
-				pipeline1.setex(COMPLAINING_RATE_LIMITED,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
+				pipeline1.setex(COMPLAINING_RATE_LIMITED+reporter_id,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
 
 				# logging attempt and case description
 				pipeline1.zadd(COMPLAINER_TIME_LIST,reporter_id,time_now)
@@ -1457,14 +1447,9 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				pipeline1.zadd(COMPLAINTS_SUBMITTED+reporter_id,complaint_id,time_now)
 				pipeline1.execute()
 
-				#trimming the sorted set to latest 20, nothing more!
-				to_delete = my_server.zrevrange(COMPLAINTS_SUBMITTED+reporter_id,20,-1)
-				if to_delete:
-					pipeline2 = my_server.pipeline()
-					for complaint_id in to_delete:
-						pipeline2.delete(COMPLAINT_HIST_OBJ+reporter_id+":"+complaint_id)
-					pipeline2.zrem(COMPLAINTS_SUBMITTED+reporter_id,*to_delete)
-					pipeline2.execute()
+				#trimming the sorted set every now and then, down to the latest 20 reports, nothing more!
+				if random() < 0.3:
+					trim_reporter_complaints(reporter_id, my_server)
 
 				return None
 			elif obj_type == 'tx':
@@ -1498,7 +1483,7 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				#sorted set containing all reported content (useful in defender view)
 				pipeline1 = my_server.pipeline()
 				pipeline1.zadd(COMPLAINT_LIST,public_text_report,num_reports)
-				pipeline1.setex(COMPLAINING_RATE_LIMITED,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
+				pipeline1.setex(COMPLAINING_RATE_LIMITED+reporter_id,1,FOUR_MINS)# stop user from going on a reporting spree in quick succession
 
 				# logging attempt and case description
 				pipeline1.zadd(COMPLAINER_TIME_LIST,reporter_id,time_now)
@@ -1509,19 +1494,40 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 				pipeline1.zadd(COMPLAINTS_SUBMITTED+reporter_id,complaint_id,time_now)
 				pipeline1.execute()
 
-				#trimming the sorted set to latest 20, nothing more!
-				to_delete = my_server.zrevrange(COMPLAINTS_SUBMITTED+reporter_id,20,-1)
-				if to_delete:
-					pipeline2 = my_server.pipeline()
-					for complaint_id in to_delete:
-						pipeline2.delete(COMPLAINT_HIST_OBJ+reporter_id+":"+complaint_id)
-					pipeline2.zrem(COMPLAINTS_SUBMITTED+reporter_id,*to_delete)
-					pipeline2.execute()
+				#trimming the sorted set every now and then, down to the latest 20 reports, nothing more!
+				if random() < 0.3:
+					trim_reporter_complaints(reporter_id, my_server)
 					
 				return None
 			else:
 				# not entertaining any other reports currently
 				return None
+
+
+def trim_reporter_complaints(reporter_id, my_server=None):
+	"""
+	A record of each reporter's recent reports is kept - this must be periodically trimmed for memory-management purposes
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	overflowing = my_server.zrevrange(COMPLAINTS_SUBMITTED+reporter_id,2,-1)
+	if overflowing:
+		# isolate which overflowing complaints are still unresolved (so we don't accidentally try to delete their HIST objects)
+		pipeline1 = my_server.pipeline()
+		for complaint_id in overflowing:
+			pipeline1.zscore(COMPLAINT_LIST,COMPLAINT+complaint_id)
+		still_outstanding = pipeline1.execute()# these complaints haven't been resolved yet, so do not cull their historical objects
+		################################################
+		counter, deletable_overflowing = 0, []
+		for complaint_id in overflowing:
+			if not still_outstanding[counter]:
+				deletable_overflowing.append(complaint_id)
+			counter += 1
+		if deletable_overflowing:
+			pipeline2 = my_server.pipeline()
+			for complaint_id in deletable_overflowing:
+				pipeline2.delete(COMPLAINT_HIST_OBJ+reporter_id+":"+complaint_id)
+			pipeline2.zrem(COMPLAINTS_SUBMITTED+reporter_id,*overflowing)
+			pipeline2.execute()
 
 
 def get_complainer_ids(obj_id, obj_type, my_server=None):
@@ -1663,22 +1669,23 @@ def log_case_and_incr_reputation(correct_reporter_ids,incorrect_reporter_ids, ma
 			
 			complaint_obj_key = COMPLAINT_HIST_OBJ+reporter_id+":"+complaint_id
 			complaint_obj = my_server.get(complaint_obj_key)#we disallow users from reporting something that already exists in this list, so only 1 such item would be present - hence [0] is what we needed
-			complaint_obj = json.loads(complaint_obj) if complaint_obj else complaint_obj
-			
-			if reporter_id in correct_reporter_ids:
-				# marking the reporter's complaint object
-				complaint_obj['o'] = '1'
-			elif reporter_id in incorrect_reporter_ids:
-				# marking the reporter's complaint object
-				complaint_obj['o'] = '0'
-			elif reporter_id in malicious_reporter_ids:
-				# marking the reporter's complaint object
-				complaint_obj['o'] = '-1'
+			if complaint_obj:
+				complaint_obj = json.loads(complaint_obj)
+				
+				if reporter_id in correct_reporter_ids:
+					# marking the reporter's complaint object
+					complaint_obj['o'] = '1'
+				elif reporter_id in incorrect_reporter_ids:
+					# marking the reporter's complaint object
+					complaint_obj['o'] = '0'
+				elif reporter_id in malicious_reporter_ids:
+					# marking the reporter's complaint object
+					complaint_obj['o'] = '-1'
 
-			# set 'decided by' credentials
-			complaint_obj['dun'] = defender_uname
-			complaint_obj['did'] = defender_id
-			my_server.set(complaint_obj_key,json.dumps(complaint_obj))# and then re-save the enriched complaint_obj
+				# set 'decided by' credentials
+				complaint_obj['dun'] = defender_uname
+				complaint_obj['did'] = defender_id
+				my_server.set(complaint_obj_key,json.dumps(complaint_obj))# and then re-save the enriched complaint_obj
 
 		pipeline1 = my_server.pipeline()
 		for reporter_id in correct_reporter_ids:

@@ -32,9 +32,13 @@
 {% endif %}
 
 	{% if not is_profile_banned %}
-		
-		<div class="cl sp lsp" style="font-weight:bold">Profile foto:</div>
-		
+		<div class="fx fxjssb fxaibl">
+			<div class="cl sp lsp" style="font-weight:bold">Profile foto:</div>
+			<form method="POST" action="{% url 'report_or_block' %}">
+				{% csrf_token %}
+				<button type="submit" class="report" name="report" style="background:0 0;border:none;padding:0" value="pf#{{ origin }}#{{ star_id }}#{{ username }}#{{ star_av_url|s3:'thumb' }}"><img src="{{ STATIC_URL }}img/warn_g.svg" height="16" width="16"></button>
+			</form>
+		</div>
 		{% if object.userprofile.avatar %}
 		<img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="avatar"><br>
 		{% else %}
@@ -68,8 +72,12 @@
 	
 	<div style="overflow:hidden">
 	<b class="profile">About:</b>
-		{% if object.userprofile.bio %}
-		{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
+		{% if is_profile_banned %}
+			<span class="cgy sp">&nbsp;mita diya gya</span>
+		{% else %}
+			{% if object.userprofile.bio %}
+			{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
+			{% endif %}
 		{% endif %}
 	</div>
 	<hr size=1 COLOR="#E9EBEE">
@@ -109,7 +117,7 @@
 		Shakal pe mat ja
 	{% endif %}
 
-	{% if star_owner_mehfils %}
+	{% if star_owner_mehfils and not is_profile_banned %}
 	<hr size=1 COLOR="#E9EBEE">
 	{% load human_time %}
 	<div style="font-weight:bold" class="mbs">Public mehfil(s) owned:</div>

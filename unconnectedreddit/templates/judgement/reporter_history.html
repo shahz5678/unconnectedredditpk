@@ -8,11 +8,11 @@
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
 <div class="cs sp" style="text-align:center">
 	{% if num_cases == 0 %}
-		<span class="cgy">No logged cases or case history reset (see footnotes)</span>
+		<span class="cgy">No logged cases, or case history deleted (see footnotes)</span>
 		<hr size=1 COLOR="#E9EBEE">
 	{% else %}
 		<div style="text-align:center;border-bottom:1px dashed lightgray;padding-bottom:10px">
-			<a href="{% url 'get_top_50_reporters' %}" class="sp"><button class="cb" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back</button></a>
+			<a href="{% url 'get_top_50_reporters' %}"><button class="cb cl sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back</button></a>
 		</div>
 		<div class="mts cxl lsp" style="font-weight:bold">{{ num_cases }} most recent reports:</div>
 	{% endif %}
@@ -20,33 +20,38 @@
 
 <div class="mts fx fxjscn">
 	<div style="width:30px;height:20px;border-radius:4px;background:#ebf5fb;border:1px solid lightgray" class="mrs"></div>
-	<div class="cs sp cgy">accepted report</div>
+	<div class="cs sp cgy">correct report</div>
 </div>
 
 <div class="mts fx fxjscn">
 	<div style="width:30px;height:20px;border-radius:4px;background:#fdedec;border:1px solid lightgray" class="mrs"></div>
-	<div class="cs sp cgy">rejected report</div>
+	<div class="cs sp cgy">incorrect report</div>
 </div>
+
+<div class="mts fx fxjscn">
+	<div style="width:30px;height:20px;border-radius:4px;background:#F0F0F0;border:1px solid lightgray" class="mrs"></div>
+	<div class="cs sp cgy">pending report</div>
+</div>
+
 {% for case in all_cases %}
 	{% if case.tp == 'img' %}
 		
-		{% if case.o == '0' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '1' %}<div class="mts cl lsp bw" style="background-color:#ebf5fb;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '-1' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% endif %}
+		{% if case.o == '0' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '1' %}<div class="mts cl lsp bw" style="background-color:#ebf5fb;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '-1' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% else %}<div class="mts cl lsp bw" style="background-color:#F0F0F0;padding:5px;border-radius:8px;overflow:hidden">{% endif %}
 
 		<div class="mrs"><b>Image</b>: <a href="{% url 'photo_detail' case.obid %}" target="_blank"><img src="{{ case.purl }}" style="border-radius:5px;border:2px solid dodgerblue"></a></div>
 		<div class="mrs"><b>Reason</b>: {{ case.h }}</div>
 		<div class="mrs"><b>User remarks</b>: {{ case.ftx }}</div>
-		<div class="mrs"><b>Defender decision</b>: {% if case.o == '0' %}Incorrect <span class="cg sp cs">(pts returned)</span>{% elif case.o == '1' %}Correct <span class="cg sp cs">(pts returned)</span>{% elif case.o == '-1' %}Incorrect <span class="cr sp cs">(pts impounded)</span>{% endif %}</div>
+		<div class="mrs"><b>Defender decision</b>: {% if case.o == '0' %}Incorrect <span class="cg sp cs">(pts returned)</span>{% elif case.o == '1' %}Correct <span class="cg sp cs">(pts returned)</span>{% elif case.o == '-1' %}Incorrect <span class="cr sp cs">(pts impounded)</span>{% else %}<span class="cgy cs sp">pending</span>{% endif %}</div>
 		<div class="mrs"><b>Defender username</b>: {% if case.dun %}{{ case.dun }} <span class="cs sp"><a href="{% url 'defender_history_super_admin_view' case.did %}" class="cb" style="border-bottom:1px dotted blue">(user id: {{ case.did }})</a></span>{% else %}<span class="cs cgy sp">pending</span>{% endif %}</div>
 		<div class="cxs cgy sp" style="text-align:right">{{ case.t|human_time }}</div>
 		</div>
 	{% elif case.tp == 'tx' %}
-
-		{% if case.o == '0' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '1' %}<div class="mts cl lsp bw" style="background-color:#ebf5fb;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '-1' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% endif %}
+		{% if case.o == '0' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '1' %}<div class="mts cl lsp bw" style="background-color:#ebf5fb;padding:5px;border-radius:8px;overflow:hidden">{% elif case.o == '-1' %}<div class="mts cl lsp bw" style="background-color:#fdedec;padding:5px;border-radius:8px;overflow:hidden">{% else %}<div class="mts cl lsp bw" style="background-color:#F0F0F0;padding:5px;border-radius:8px;overflow:hidden">{% endif %}
 		
 		<div class="mrs"><b>Text</b>: <a href="{% url 'display_link_detail' case.obid %}" class="sp bw cb" target="_blank">"{% emoticons %}{{ case.c|linebreaksbr }}{% endemoticons %}"</a></div>
 		<div class="mrs"><b>Reason</b>: {{ case.h }}</div>
 		<div class="mrs"><b>User remarks</b>: {{ case.ftx }}</div>
-		<div class="mrs"><b>Defender decision</b>: {% if case.o == '0' %}Incorrect <span class="cg sp cs">(pts returned)</span>{% elif case.o == '1' %}Correct <span class="cg sp cs">(pts returned)</span>{% elif case.o == '-1' %}Incorrect <span class="cr sp cs">(pts impounded)</span>{% endif %}</div>
+		<div class="mrs"><b>Defender decision</b>: {% if case.o == '0' %}Incorrect <span class="cg sp cs">(pts returned)</span>{% elif case.o == '1' %}Correct <span class="cg sp cs">(pts returned)</span>{% elif case.o == '-1' %}Incorrect <span class="cr sp cs">(pts impounded)</span>{% else %}<span class="cgy cs sp">pending</span>{% endif %}</div>
 		<div class="mrs"><b>Defender username</b>: {% if case.dun %}{{ case.dun }} <span class="cs sp"><a href="{% url 'defender_history_super_admin_view' case.did %}" class="cb" style="border-bottom:1px dotted blue">(user id: {{ case.did }})</a></span>{% else %}<span class="cs cgy sp">pending</span>{% endif %}</div>
 		<div class="cxs cgy sp" style="text-align:right">{{ case.t|human_time }}</div>
 		</div>

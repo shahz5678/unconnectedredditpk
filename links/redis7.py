@@ -35,6 +35,7 @@ DEFENDERS_FOREVER = 'defs_forever' # sorted set containing data of all defenders
 
 DEFENDERS_LEDGER = "dlg:" #prefix for a list which records the defenders last 40 blocks
 GLOBAL_ADMINS_LEDGER = "ledger" # a global list for super admins, contains latest 3000 blocks
+GLOBAL_ADMINS_REJECTIONS_LEDGER = "rejection_ledger" # a global list for super admins, contains latest 3000 rejected reports
 DEFENDER_CASE_COUNT = "dcn:" #hash prefix for a running counter of how many cases a said defender handled
 
 
@@ -974,22 +975,35 @@ def get_defenders_ledger(defender_id, with_ttl=False):
 		return info
 
 
-def get_global_admins_ledger(page_number):
+def get_global_admins_ledger(page_number, rejection_history=False):
 	"""
 	Retrieves previous banning activity of all defenders
 	"""
 	info, my_server = [], redis.Redis(connection_pool=POOL)
-	data = my_server.lrange(GLOBAL_ADMINS_LEDGER,ITEMS_PER_PAGE_IN_ADMINS_LEDGER*(page_number-1),(ITEMS_PER_PAGE_IN_ADMINS_LEDGER*page_number)-1)#ITEMS_PER_PAGE_IN_ADMINS_LEDGER = 50
-	if data:
-		for block_info in data:
-			credentials = json.loads(block_info)
-			credentials['tunm'] = json.loads(credentials['tunm'])
-			credentials['dunm'] = credentials['dunm'].encode('utf-8')# if 'dunm' in credentials else ''
-			info.append(credentials)
-	if info:
-		return info, my_server.llen(GLOBAL_ADMINS_LEDGER)
+	if rejection_history:
+		data = my_server.lrange(GLOBAL_ADMINS_REJECTIONS_LEDGER,ITEMS_PER_PAGE_IN_ADMINS_LEDGER*(page_number-1),(ITEMS_PER_PAGE_IN_ADMINS_LEDGER*page_number)-1)#ITEMS_PER_PAGE_IN_ADMINS_LEDGER = 50
+		if data:
+			for block_info in data:
+				# credentials = json.loads(block_info)
+				# credentials['oun'] = json.loads(credentials['oun'])
+				# credentials['dun'] = credentials['dun'].encode('utf-8')# if 'dun' in credentials else ''
+				info.append(json.loads(block_info))
+		if info:
+			return info, my_server.llen(GLOBAL_ADMINS_REJECTIONS_LEDGER)
+		else:
+			return [], 0
 	else:
-		return [], 0
+		data = my_server.lrange(GLOBAL_ADMINS_LEDGER,ITEMS_PER_PAGE_IN_ADMINS_LEDGER*(page_number-1),(ITEMS_PER_PAGE_IN_ADMINS_LEDGER*page_number)-1)#ITEMS_PER_PAGE_IN_ADMINS_LEDGER = 50
+		if data:
+			for block_info in data:
+				credentials = json.loads(block_info)
+				credentials['tunm'] = json.loads(credentials['tunm'])
+				credentials['dunm'] = credentials['dunm'].encode('utf-8')# if 'dunm' in credentials else ''
+				info.append(credentials)
+		if info:
+			return info, my_server.llen(GLOBAL_ADMINS_LEDGER)
+		else:
+			return [], 0
 
 
 def log_banning(target_uname,reason_of_ban,action, dur_of_ban,time_of_ban,banned_by_id,banned_by_uname, obj_id, owner_id, oun, \
@@ -1509,7 +1523,7 @@ def trim_reporter_complaints(reporter_id, my_server=None):
 	A record of each reporter's recent reports is kept - this must be periodically trimmed for memory-management purposes
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	overflowing = my_server.zrevrange(COMPLAINTS_SUBMITTED+reporter_id,2,-1)
+	overflowing = my_server.zrevrange(COMPLAINTS_SUBMITTED+reporter_id,20,-1)
 	if overflowing:
 		# isolate which overflowing complaints are still unresolved (so we don't accidentally try to delete their HIST objects)
 		pipeline1 = my_server.pipeline()
@@ -1644,6 +1658,20 @@ def cleanse_inactive_complainers():
 				pipeline2.execute()
 	my_server.delete(TOP_50_CACHED_DATA)
 
+
+def log_case_closure(defender_id, defender_uname, obj_id, obj_type, owner_uname, reporter_data, obj_data, time_now):
+	"""
+	Logging rejected reports so that super defenders can uncover any biases in the defenders
+	"""
+	rejection_data = {'did':defender_id,'dun':defender_uname, 'obj_id':obj_id, 'tp':obj_type, 't':time_now, 'oun':owner_uname,\
+	'reporter_data':reporter_data}# reporter_data_dict is a dictionary of the format {reporter_uname:report_reason}
+	if obj_type == 'tx':
+		rejection_data['txt'] = obj_data
+	else:
+		rejection_data['purl'] = obj_data# add more obj types as required
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.lpush(GLOBAL_ADMINS_REJECTIONS_LEDGER,json.dumps(rejection_data))
+	my_server.ltrim(GLOBAL_ADMINS_REJECTIONS_LEDGER, 0, (GLOBAL_ADMIN_LEDGERS_SIZE-1))# keeps most recent 3000 rejected reports
 
 
 def log_case_and_incr_reputation(correct_reporter_ids,incorrect_reporter_ids, malicious_reporter_ids, time_now, obj_id, defender_id, defender_uname,\

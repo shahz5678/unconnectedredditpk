@@ -106,7 +106,6 @@ condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct(
 
 mp = Mixpanel(MIXPANEL_TOKEN)
 
-TEN_MINS = 10*60
 
 def secs_to_mins(seconds):
 	try:

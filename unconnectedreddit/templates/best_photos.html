@@ -24,11 +24,10 @@
 
 <div style="max-width:600px;margin:0 auto;width:92%">
 {% if newbie_flag %}
-	{% load get_newbie_rules %}
-	<div class="mbs mts">
-	{% newbie_rules 'best_photos' STATIC_URL newbie_lang %}
-	</div>
-	<br>
+	<div class="mbl mts">
+    {% include "newbie_rules.html" with static_url=STATIC_URL location='best_photos' lang=lang %}
+    </div>
+    <br>
 {% else %}
 	
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}

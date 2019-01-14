@@ -29,7 +29,7 @@ log_banning, get_defenders_ledger, get_global_admins_ledger, is_content_voting_c
 temporarily_save_content_details, retrieve_temporary_saved_content_details, enrich_temporarily_saved_content_details_with_duration, \
 complaint_exists, impose_content_and_voting_ban, check_content_and_voting_ban, get_complainer_case_history, log_case_and_incr_reputation, \
 add_defender, filter_ids_with_content_and_voting_ban, retrieve_user_content_and_vote_ban_dictionary, remove_content_and_voting_ban, \
-edit_content_and_voting_ban, is_ban_editing_locked, set_complaint, are_ids_unbannable, COMPLAINT
+edit_content_and_voting_ban, is_ban_editing_locked, set_complaint, are_ids_unbannable,log_case_closure, COMPLAINT
 from redis6 import retrieve_group_reqd_data, freeze_reported_group_functionality, retrieve_group_owner_id, retrieve_group_creation_time, \
 retrieve_group_rules, get_reported_group_info
 from redis4 import return_referrer_logs, retrieve_uname, retrieve_bulk_unames, freeze_critical_profile_functionality, retrieve_credentials
@@ -620,6 +620,7 @@ def cull_content(request,*args,**kwargs):
 				# proceed with handling the report
 				reporter_ids, time_now = get_complainer_ids(obid, tp), time.time()
 				correct_complaints, incorrect_complaints, malicious_complaints = [], [], []
+				reporter_id_and_report_type_dict = {}
 				kill_obj, report_types = False, []
 				for reporter_id in reporter_ids:
 					report_type = request.POST.get("rt"+str(reporter_id),None)
@@ -631,8 +632,10 @@ def cull_content(request,*args,**kwargs):
 						correct_complaints.append(reporter_id)
 					elif dec == '2':
 						incorrect_complaints.append(reporter_id)
+						reporter_id_and_report_type_dict[reporter_id] = report_type
 					elif dec == '3':
 						malicious_complaints.append(reporter_id)
+						reporter_id_and_report_type_dict[reporter_id] = report_type
 				# rate limit malicious complainer (i.e. someone who deliberately submitted a wrong complaint)
 				rate_limit_complainer(malicious_complaints)
 				
@@ -658,10 +661,10 @@ def cull_content(request,*args,**kwargs):
 					#############################################################
 					if tp in ('tx','img'):
 						# for report in report_types:
-						# 	if report not in ('9','10'):
-						# 		# if offense solely of the type '9' or '10', do NOT cleanse feeds - just ban the person without changing anything in the feeds
-						# 		cleanse_feeds = True
-						# 		break
+						#     if report not in ('9','10'):
+						#         # if offense solely of the type '9' or '10', do NOT cleanse feeds - just ban the person without changing anything in the feeds
+						#         cleanse_feeds = True
+						#         break
 						context, template_name = initiate_content_submission_and_voting_ban(obj_owner_id=ooid, obj_id=obid, purl=img_url, caption=text, \
 							obj_type=tp, owner_uname=retrieve_uname(ooid,decode=True), banner_id=own_id, origin='6', link_id='')
 						if context:
@@ -693,6 +696,22 @@ def cull_content(request,*args,**kwargs):
 						# obj_type (tp) doesn't make sense
 						raise Http404("Unrecognized object type")
 				else:
+					# log the cancelled report for super admins to view in their global ledger
+					reporter_uname_report_type_and_result = []# list of tuples of the sort [(repoter_uname, report_reason, report_result), ...]
+					incorrect_and_malicious_unames_dict = retrieve_bulk_unames(reporter_id_and_report_type_dict.keys(),decode=True)
+					for reporter_id, report_type in reporter_id_and_report_type_dict.iteritems():
+						reporter_uname_report_type_and_result.append((incorrect_and_malicious_unames_dict[int(reporter_id)],TEXT_REPORT_PROMPT[report_type] \
+							if tp == 'tx' else PHOTO_REPORT_PROMPT[report_type],'incorrect' if reporter_id in incorrect_complaints else 'malicious'))
+					if tp == 'tx':
+						# type is text
+						payload = Link.objects.only('description').get(id=obid).description
+					elif tp == 'img':
+						# type is 'image'
+						payload = Photo.objects.only('image_file').get(id=obid).image_file.url
+					log_case_closure(defender_id=own_id, defender_uname=retrieve_uname(own_id,decode=True), obj_id=obid, obj_type=tp,\
+						owner_uname=retrieve_uname(ooid,decode=True), reporter_data=reporter_uname_report_type_and_result, obj_data=payload, \
+						time_now=time.time())
+					#######################################################################################################
 					# ensures defender gets the 'thank you' prompt when they eventually return to the cull screen
 					request.session["report_judged"] = '1'
 					request.session["cull_header"] = 'no_corrective_action'
@@ -1366,7 +1385,6 @@ def judge_content_submitters(request):
 			else:
 				# decided not to levy ban - redirect back (and purge temporarily saved data)
 				delete_temporarily_saved_content_data.delay(own_id)
-				print "origin = "+ str(orig)
 				return return_to_content(request,orig,obid,lid,oun)
 		else:
 			# not a defender
@@ -2429,6 +2447,22 @@ def show_blocking_history_of_defenders(request):
 			'prev_page':None if page_num == 1 else page_num-1, 'items_per_page':ITEMS_PER_PAGE_IN_ADMINS_LEDGER,'num_displayed':len(data),'super_admin':True})
 	else:
 		return redirect("missing_page")
+
+
+def show_rejecton_history_of_defenders(request):
+	"""
+	Super admin view that displays which defender rejected what report /from cull-content
+
+	Paginated by 50 objects (ITEMS_PER_PAGE_IN_ADMINS_LEDGER = 50)
+	TODO: export to csv
+	"""
+	if has_super_privilege(request.user.id):
+		page_num = int(request.GET.get('page', '1'))
+		data, total_items = get_global_admins_ledger(page_num,rejection_history=True)
+		return render(request,"judgement/report_rejection_history.html",{'rejection_data':data,'current_page':page_num,'next_page':page_num+1,'num_items':total_items,\
+			'prev_page':None if page_num == 1 else page_num-1, 'items_per_page':ITEMS_PER_PAGE_IN_ADMINS_LEDGER,'num_displayed':len(data),'super_admin':True})
+	else:
+		raise Http404("You are not an authorized defender")
 
 
 def get_top_50_reporters(request):

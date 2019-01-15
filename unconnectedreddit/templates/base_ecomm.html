@@ -39,20 +39,16 @@ start Mixpanel <script type="text/javascript">(function(e,a){if(!a.__SV){var b=w
 0)))}}var d=a;"undefined"!==typeof f?d=a[f]=[]:f="mixpanel";d.people=d.people||[];d.toString=function(b){var a="mixpanel";"mixpanel"!==f&&(a+="."+f);b||(a+=" (stub)");return a};d.people.toString=function(){return d.toString(1)+".people (stub)"};k="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
 for(h=0;h<k.length;h++)e(d,k[h]);a._i.push([b,c,f])};a.__SV=1.2;b=e.createElement("script");b.type="text/javascript";b.async=!0;b.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";c=e.getElementsByTagName("script")[0];c.parentNode.insertBefore(b,c)}})(document,window.mixpanel||[]);
 mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
-
 </head>
 <body>
-{% include "fb_analytics.html" %}
 {% include "ga_user_analytics.html" with my_var=user.id %}
 {% load count %}
-{% load search_unlocked %}
 {% check_notif_count as notif_count %}
-{% khoji_unlocked as ku %}
 <div class="header cxl">Damadam pe Buy and Sell</div>
 <ul class="navbar">
 
 {% if user.is_authenticated %}
-    <!-- bunched HTML removes spaces between <li> elements -->
+    <!-- bunched HTML removes spaces between li elements -->
     <li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagain</b></a></li><li><a class="sharing" href="{% url 'show_user_ads' %}#section0">Meray Ads</a></li><li><a href="{% url 'home' %}">Chat and Fotos</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:blue;"> ({{ notif_count }})</span>{% endif %}</a></li>
 
 {% else %}
@@ -80,15 +76,16 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
 </div>
-
+{% include "amplitude_analytics.html" %}
 <script type="text/javascript">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
   });
 }
+amplitude.getInstance().logEvent('basic_event');
 </script>
-{% include "ga_ss.html" %}
+
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
 </html>

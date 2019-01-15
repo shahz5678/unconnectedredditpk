@@ -59,7 +59,7 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from fuzzywuzzy import fuzz
 from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
-video_upload_tasks, video_tasks, log_private_mehfil_session, group_notification_tasks, publicreply_notification_tasks, \
+video_tasks, log_private_mehfil_session, group_notification_tasks, publicreply_notification_tasks, \
 fan_recount, vote_tasks, populate_search_thumbs, sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, \
 log_profile_view, group_attendance_tasks
 #, log_organic_attention, home_photo_tasks, queue_for_deletion, 
@@ -82,17 +82,12 @@ add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_a
 prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, bulk_is_fan, retrieve_unseen_notifications, \
 get_photo_fan_count, retrieve_object_data
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
-from .redis1 import remove_key, document_publicreply_abuse, publicreply_allowed, document_comment_abuse, comment_allowed, \
-document_report_reason, add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, TEN_MINS, \
-check_group_invite, remove_group_invite, add_user_group, remove_user_group, all_unfiltered_posts, all_filtered_posts, \
-all_filtered_urdu_posts, all_photos, all_best_photos, all_videos, video_uploaded_too_soon, add_vote_to_video, voted_for_video, \
-get_video_votes, save_recent_video, get_recent_videos, voted_for_photo, first_time_refresher, first_time_photo_defender, \
-add_photo_defender_tutorial, can_vote_on_photo, first_time_inbox_visitor, retrieve_photo_posts, first_time_password_changer, \
-add_password_change, voted_for_photo_qs, add_home_replier, add_video,add_inbox, first_time_photo_uploader, add_photo_uploader, \
+from .redis1 import add_group_member, get_group_members, remove_group_member, check_group_member, add_group_invite, \
+check_group_invite, remove_group_invite, add_user_group, remove_user_group, \
+first_time_refresher, add_home_replier, \
 first_time_psl_supporter, set_inactives, add_psl_supporter, create_cricket_match, get_current_cricket_match, del_cricket_match, \
 incr_cric_comm, incr_unfiltered_cric_comm, current_match_unfiltered_comments, current_match_comments, first_time_home_replier, \
-get_inactives, unlock_uname_search, is_uname_search_unlocked, set_ad_feedback, get_ad_feedback, website_feedback_given, \
-first_time_log_outter, add_log_outter, all_best_posts, all_best_urdu_posts, add_refresher
+get_inactives, set_ad_feedback, get_ad_feedback, add_refresher
 from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, invalidate_cached_mehfil_pages, \
 retrieve_latest_user_owned_mehfils
@@ -110,6 +105,7 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
 mp = Mixpanel(MIXPANEL_TOKEN)
+
 
 def secs_to_mins(seconds):
 	try:
@@ -482,17 +478,17 @@ def GetLatest(user):
 # 	else:
 # 		return render(request,"404.html",{})
 
-@csrf_protect
-def search_uname_unlocking_dec(request,*args,**kwargs):
-	if request.method == 'POST':
-		dec = request.POST.get("dec")
-		if dec == '1':
-			unlock_uname_search(request.user.id)
-			return render(request,"uname_search_tutorial_II.html",{})
-		else:
-			return redirect("online_kon")
-	else:
-		return render(request,"404.html",{})        
+# @csrf_protect
+# def search_uname_unlocking_dec(request,*args,**kwargs):
+# 	if request.method == 'POST':
+# 		dec = request.POST.get("dec")
+# 		if dec == '1':
+# 			unlock_uname_search(request.user.id)
+# 			return render(request,"uname_search_tutorial_II.html",{})
+# 		else:
+# 			return redirect("online_kon")
+# 	else:
+# 		return render(request,"404.html",{})        
 
 
 @csrf_protect
@@ -2751,30 +2747,30 @@ class UploadPhotoReplyView(CreateView):
 # 	else:
 # 		return redirect("best_photo")
 
-class VideoScoreView(FormView):
-	form_class = VideoScoreForm
-	template_name = "video_score_breakdown.html"
+# class VideoScoreView(FormView):
+# 	form_class = VideoScoreForm
+# 	template_name = "video_score_breakdown.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(VideoScoreView, self).get_context_data(**kwargs)
-		key = self.kwargs["pk"]
-		context["key"] = key
-		if self.request.user.is_authenticated():
-			context["authenticated"] = True
-		else:
-			context["authenticated"] = False
-		video = Video.objects.get(id=key)
-		context["video"] = video
-		usernames_and_votes = get_video_votes(key)
-		context["votes"] = usernames_and_votes
-		if context["votes"]:
-			context["content"] = True
-			context["visible_score"] = video.visible_score 
-		else:
-			context["content"] = False
-			context["visible_score"] = video.visible_score
-		context["girls"] = FEMALES
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(VideoScoreView, self).get_context_data(**kwargs)
+# 		key = self.kwargs["pk"]
+# 		context["key"] = key
+# 		if self.request.user.is_authenticated():
+# 			context["authenticated"] = True
+# 		else:
+# 			context["authenticated"] = False
+# 		video = Video.objects.get(id=key)
+# 		context["video"] = video
+# 		usernames_and_votes = get_video_votes(key)
+# 		context["votes"] = usernames_and_votes
+# 		if context["votes"]:
+# 			context["content"] = True
+# 			context["visible_score"] = video.visible_score 
+# 		else:
+# 			context["content"] = False
+# 			context["visible_score"] = video.visible_score
+# 		context["girls"] = FEMALES
+# 		return context
 
 
 @ratelimit(rate='3/s')
@@ -3416,38 +3412,38 @@ def non_fbs_vid(request, pk=None, *args, **kwargs):
 	on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 	return redirect("https://damadam.pk/"+"123")
 
-class VideoView(ListView):
-	model = Video
-	paginate_by = 10
-	template_name = "videos.html"
+# class VideoView(ListView):
+# 	model = Video
+# 	paginate_by = 10
+# 	template_name = "videos.html"
 
-	def get_queryset(self):
-		queryset = Video.objects.select_related('owner__userprofile', 'latest_comment__submitted_by', 'second_latest_comment__submitted_by').filter(id__in=all_videos()).order_by('-id')
-		return queryset
+# 	def get_queryset(self):
+# 		queryset = Video.objects.select_related('owner__userprofile', 'latest_comment__submitted_by', 'second_latest_comment__submitted_by').filter(id__in=all_videos()).order_by('-id')
+# 		return queryset
 
-	def get_context_data(self, **kwargs):
-		context = super(VideoView, self).get_context_data(**kwargs)
-		context["girls"] = FEMALES
-		context["authenticated"] = False
-		context["can_vote"] = False
-		context["score"] = None
-		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-		if on_fbs:
-			context["on_fbs"] = True
-		else:
-			context["on_fbs"] = True
-		if self.request.user.is_authenticated():
-			context["authenticated"] = True
-			user = self.request.user
-			context["score"] = user.userprofile.score
-			context["voted"] = []
-			if not self.request.user_banned:
-				if self.request.user.userprofile.score > 9:
-					context["can_vote"] = True
-				else:
-					context["can_vote"] = False
-				context["voted"] = voted_for_video(context["object_list"], user.username)
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(VideoView, self).get_context_data(**kwargs)
+# 		context["girls"] = FEMALES
+# 		context["authenticated"] = False
+# 		context["can_vote"] = False
+# 		context["score"] = None
+# 		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+# 		if on_fbs:
+# 			context["on_fbs"] = True
+# 		else:
+# 			context["on_fbs"] = True
+# 		if self.request.user.is_authenticated():
+# 			context["authenticated"] = True
+# 			user = self.request.user
+# 			context["score"] = user.userprofile.score
+# 			context["voted"] = []
+# 			if not self.request.user_banned:
+# 				if self.request.user.userprofile.score > 9:
+# 					context["can_vote"] = True
+# 				else:
+# 					context["can_vote"] = False
+# 				context["voted"] = voted_for_video(context["object_list"], user.username)
+# 		return context
 
 #########################Views for fresh photos#########################
 
@@ -3555,21 +3551,21 @@ def see_photo_pk(request,pk=None,*args,**kwargs):
 	else:
 		return redirect("register_login")
 
-def unauth_photo_location_pk(request,pk=None,*args,**kwargs):
-	if pk:
-		photo_ids = all_photos()
-		try:
-			index = photo_ids.index(pk)
-		except:
-			index = 0
-		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
-		url = reverse_lazy("unauth_photo")+addendum
-		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
-		request.session['unauth_photos'] = retrieve_photo_posts(page_obj.object_list)
-		request.session['unauth_photo_page'] = page_obj
-		return redirect(url)
-	else:
-		return redirect("unauth_photo")
+# def unauth_photo_location_pk(request,pk=None,*args,**kwargs):
+# 	if pk:
+# 		photo_ids = all_photos()
+# 		try:
+# 			index = photo_ids.index(pk)
+# 		except:
+# 			index = 0
+# 		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
+# 		url = reverse_lazy("unauth_photo")+addendum
+# 		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+# 		request.session['unauth_photos'] = retrieve_photo_posts(page_obj.object_list)
+# 		request.session['unauth_photo_page'] = page_obj
+# 		return redirect(url)
+# 	else:
+# 		return redirect("unauth_photo")
 
 
 def photo_location(request,*args,**kwargs):
@@ -3596,42 +3592,42 @@ def photo_location(request,*args,**kwargs):
 		return redirect(url)
 
 
-@cache_page(15)
-@csrf_protect
-def unauth_photos(request,*args,**kwargs):
-	if request.user.is_authenticated():
-		return redirect("photo")
-	else:
-		context = {}
-		form = PhotosListForm()
-		# newrelic.agent.add_custom_parameter("unauth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
-		if 'unauth_photos' in request.session and 'unauth_photo_page' in request.session:
-			if request.session['unauth_photos'] and request.session['unauth_photo_page']:
-				# called when user has redirect from a photo comment
-				context["object_list"] = request.session['unauth_photos']
-				context["page"] = request.session['unauth_photo_page']
-			else:
-				photo_ids = all_photos()
-				page_num = request.GET.get('page', '1')
-				page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
-				context["page"] = page_obj
-				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-			del request.session['unauth_photos']
-			del request.session['unauth_photo_page']
-		else:
-			photo_ids = all_photos()
-			page_num = request.GET.get('page', '1')
-			page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
-			context["page"] = page_obj
-			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-		new_id = request.session.get('new_id',None)
-		if not new_id:
-			new_id = get_temp_id()
-			request.session['new_id'] = new_id
-		# mp.track(new_id, 'on_photos')
-		form = CreateNickNewForm()
-		context["form"] = form
-		return render(request,'unauth_photos.html',context)
+# @cache_page(15)
+# @csrf_protect
+# def unauth_photos(request,*args,**kwargs):
+# 	if request.user.is_authenticated():
+# 		return redirect("photo")
+# 	else:
+# 		context = {}
+# 		form = PhotosListForm()
+# 		# newrelic.agent.add_custom_parameter("unauth_new photos", request.META.get('X-IORG-FBS-UIP',request.META.get('REMOTE_ADDR')))
+# 		if 'unauth_photos' in request.session and 'unauth_photo_page' in request.session:
+# 			if request.session['unauth_photos'] and request.session['unauth_photo_page']:
+# 				# called when user has redirect from a photo comment
+# 				context["object_list"] = request.session['unauth_photos']
+# 				context["page"] = request.session['unauth_photo_page']
+# 			else:
+# 				photo_ids = all_photos()
+# 				page_num = request.GET.get('page', '1')
+# 				page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+# 				context["page"] = page_obj
+# 				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
+# 			del request.session['unauth_photos']
+# 			del request.session['unauth_photo_page']
+# 		else:
+# 			photo_ids = all_photos()
+# 			page_num = request.GET.get('page', '1')
+# 			page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+# 			context["page"] = page_obj
+# 			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
+# 		new_id = request.session.get('new_id',None)
+# 		if not new_id:
+# 			new_id = get_temp_id()
+# 			request.session['new_id'] = new_id
+# 		# mp.track(new_id, 'on_photos')
+# 		form = CreateNickNewForm()
+# 		context["form"] = form
+# 		return render(request,'unauth_photos.html',context)
 
 
 def photo_list(request,*args, **kwargs):
@@ -3691,22 +3687,22 @@ def photo_list(request,*args, **kwargs):
 
 #########################Views for best photos#########################
 
-def unauth_best_photo_location_pk(request,pk=None, *args,**kwargs):
-	if pk:
-		obj_list = all_best_photos()
-		obj_list_keys = map(itemgetter(0), obj_list)
-		try:
-			index = obj_list_keys.index(pk)
-		except:
-			index = 0
-		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
-		url = reverse_lazy("unauth_best_photo")+addendum
-		page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-		request.session['unauth_best_photos'] = retrieve_photo_posts(page_obj.object_list)
-		request.session['unauth_best_photo_page'] = page_obj
-		return redirect(url)
-	else:
-		return redirect("unauth_best_photo")
+# def unauth_best_photo_location_pk(request,pk=None, *args,**kwargs):
+# 	if pk:
+# 		obj_list = all_best_photos()
+# 		obj_list_keys = map(itemgetter(0), obj_list)
+# 		try:
+# 			index = obj_list_keys.index(pk)
+# 		except:
+# 			index = 0
+# 		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
+# 		url = reverse_lazy("unauth_best_photo")+addendum
+# 		page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+# 		request.session['unauth_best_photos'] = retrieve_photo_posts(page_obj.object_list)
+# 		request.session['unauth_best_photo_page'] = page_obj
+# 		return redirect(url)
+# 	else:
+# 		return redirect("unauth_best_photo")
 
 
 def best_photo_location(request, *args, **kwargs):
@@ -3741,43 +3737,43 @@ def best_photo_location(request, *args, **kwargs):
 		return redirect(url)
 
 
-@cache_page(60)
-@csrf_protect
-def unauth_best_photos(request,*args,**kwargs):
-	if request.user.is_authenticated():
-		return redirect("best_photo")
-	else:
-		context = {}
-		form = BestPhotosListForm()
-		if 'unauth_best_photos' in request.session and 'unauth_best_photo_page' in request.session:
-			if request.session['unauth_best_photos'] and request.session['unauth_best_photo_page']:
-				# called when user has redirect from a photo comment
-				context["object_list"] = request.session['unauth_best_photos']
-				context["page"] = request.session['unauth_best_photo_page']
-			else:
-				obj_list = all_best_photos()
-				obj_list_keys = map(itemgetter(0), obj_list)
-				page_num = request.GET.get('page', '1')
-				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-				context["page"] = page_obj
-				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-			del request.session['unauth_best_photos']
-			del request.session['unauth_best_photo_page']
-		else:
-			obj_list = all_best_photos()
-			obj_list_keys = map(itemgetter(0), obj_list)
-			page_num = request.GET.get('page', '1')
-			page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-			context["page"] = page_obj
-			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
-		form = CreateNickNewForm()
-		context["form"] = form
-		new_id = request.session.get('new_id',None)
-		if not new_id:
-			new_id = get_temp_id()
-			request.session['new_id'] = new_id
-		# mp.track(new_id, 'on_photos')
-		return render(request,'unauth_best_photos.html',context)
+# @cache_page(60)
+# @csrf_protect
+# def unauth_best_photos(request,*args,**kwargs):
+# 	if request.user.is_authenticated():
+# 		return redirect("best_photo")
+# 	else:
+# 		context = {}
+# 		form = BestPhotosListForm()
+# 		if 'unauth_best_photos' in request.session and 'unauth_best_photo_page' in request.session:
+# 			if request.session['unauth_best_photos'] and request.session['unauth_best_photo_page']:
+# 				# called when user has redirect from a photo comment
+# 				context["object_list"] = request.session['unauth_best_photos']
+# 				context["page"] = request.session['unauth_best_photo_page']
+# 			else:
+# 				obj_list = all_best_photos()
+# 				obj_list_keys = map(itemgetter(0), obj_list)
+# 				page_num = request.GET.get('page', '1')
+# 				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+# 				context["page"] = page_obj
+# 				context["object_list"] = retrieve_photo_posts(page_obj.object_list)
+# 			del request.session['unauth_best_photos']
+# 			del request.session['unauth_best_photo_page']
+# 		else:
+# 			obj_list = all_best_photos()
+# 			obj_list_keys = map(itemgetter(0), obj_list)
+# 			page_num = request.GET.get('page', '1')
+# 			page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+# 			context["page"] = page_obj
+# 			context["object_list"] = retrieve_photo_posts(page_obj.object_list)
+# 		form = CreateNickNewForm()
+# 		context["form"] = form
+# 		new_id = request.session.get('new_id',None)
+# 		if not new_id:
+# 			new_id = get_temp_id()
+# 			request.session['new_id'] = new_id
+# 		# mp.track(new_id, 'on_photos')
+# 		return render(request,'unauth_best_photos.html',context)
 
 
 def best_photos_list(request,*args,**kwargs):
@@ -3858,61 +3854,61 @@ def see_best_photo_pk(request,pk=None,*args,**kwargs):
 
 ##################################################################
 
-class UploadVideoView(FormView):
-	# model = Video
-	form_class = UploadVideoForm
-	template_name = "upload_video.html"
+# class UploadVideoView(FormView):
+# 	# model = Video
+# 	form_class = UploadVideoForm
+# 	template_name = "upload_video.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(UploadVideoView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
-			number_of_videos = videos.count()
-			forbidden, time_remaining = check_video_abuse(number_of_videos, videos)
-			if forbidden:
-				context["score"] = None
-				context["forbidden"] = True
-				context["time_remaining"] = time_remaining
-			else:
-				context["score"] = self.request.user.userprofile.score
-				context["forbidden"] = False
-				context["time_remaining"] = None
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(UploadVideoView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
+# 			number_of_videos = videos.count()
+# 			forbidden, time_remaining = check_video_abuse(number_of_videos, videos)
+# 			if forbidden:
+# 				context["score"] = None
+# 				context["forbidden"] = True
+# 				context["time_remaining"] = time_remaining
+# 			else:
+# 				context["score"] = self.request.user.userprofile.score
+# 				context["forbidden"] = False
+# 				context["time_remaining"] = None
+# 		return context
 
-	def form_valid(self, form):
-		if self.request.method == 'POST':
-			status, seconds_to_go = video_uploaded_too_soon(self.request.user.id)
-			if status:
-				m, s = divmod(seconds_to_go, 60)
-				if m and s:
-					context = {"time_remaining":"%s minutes and %s seconds" % (int(m), int(s))}
-				elif s:
-					context= {"time_remaining": "%s seconds" % int(s)}
-				else:
-					context= {"time_remaining": 0}
-				return render(self.request,'video_uploaded_too_soon.html',context)
-			else:
-				videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
-				forbidden, time_remaining = check_video_abuse(videos.count(), videos)
-				if forbidden:
-					context = {'time_remaining':time_remaining}
-					return render(self.request,'forbidden_video.html',context)
-				caption = self.request.POST.get("caption")
-				video = self.request.FILES['video_file']
-				if self.request.is_feature_phone:
-					device = '1'
-				elif self.request.is_phone:
-					device = '2'
-				elif self.request.is_tablet:
-					device = '4'
-				elif self.request.is_mobile:
-					device = '5'
-				else:
-					device = '3'
-				video = Video.objects.create(owner=self.request.user, video_file=video, device=device, comment_count=0, caption=caption)
-				video_upload_tasks.delay(video.video_file.name, video.id, self.request.user.id)
-				context = {'pk':'pk'}
-				return render(self.request,'video_upload.html',context)
+# 	def form_valid(self, form):
+# 		if self.request.method == 'POST':
+# 			status, seconds_to_go = video_uploaded_too_soon(self.request.user.id)
+# 			if status:
+# 				m, s = divmod(seconds_to_go, 60)
+# 				if m and s:
+# 					context = {"time_remaining":"%s minutes and %s seconds" % (int(m), int(s))}
+# 				elif s:
+# 					context= {"time_remaining": "%s seconds" % int(s)}
+# 				else:
+# 					context= {"time_remaining": 0}
+# 				return render(self.request,'video_uploaded_too_soon.html',context)
+# 			else:
+# 				videos = Video.objects.filter(id__in=get_recent_videos(self.request.user.id)).order_by('-id').values_list('vote_score', 'upload_time')
+# 				forbidden, time_remaining = check_video_abuse(videos.count(), videos)
+# 				if forbidden:
+# 					context = {'time_remaining':time_remaining}
+# 					return render(self.request,'forbidden_video.html',context)
+# 				caption = self.request.POST.get("caption")
+# 				video = self.request.FILES['video_file']
+# 				if self.request.is_feature_phone:
+# 					device = '1'
+# 				elif self.request.is_phone:
+# 					device = '2'
+# 				elif self.request.is_tablet:
+# 					device = '4'
+# 				elif self.request.is_mobile:
+# 					device = '5'
+# 				else:
+# 					device = '3'
+# 				video = Video.objects.create(owner=self.request.user, video_file=video, device=device, comment_count=0, caption=caption)
+# 				video_upload_tasks.delay(video.video_file.name, video.id, self.request.user.id)
+# 				context = {'pk':'pk'}
+# 				return render(self.request,'video_upload.html',context)
 
 ##################################################################
 
@@ -5169,23 +5165,26 @@ class UserActivityView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
 		username = self.kwargs['slug']
-		context["verified"] = True if username in FEMALES else False
-		context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
 		target_id = retrieve_user_id(username)
-		context["is_profile_banned"] = False
-		if self.request.user.is_authenticated():
-			own_id = self.request.user.id
-			is_defender, is_own_profile, ban_detail = in_defenders(own_id), str(own_id) == target_id, None
-			banned, time_remaining, ban_detail = check_content_and_voting_ban(target_id, with_details=True)
-			context["is_profile_banned"] = banned
-			context["noindex"] = True if banned else False
-			context["is_own_profile"] = is_own_profile
-			context["ban_detail"] = ban_detail
-			context["time_remaining"] = time_remaining
-			context["ident"] = own_id
-			context["is_defender"] = is_defender
-			context["uname"] = username
-		return context
+		if target_id:
+			context["verified"] = True if username in FEMALES else False
+			context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
+			context["is_profile_banned"] = False
+			if self.request.user.is_authenticated():
+				own_id = self.request.user.id
+				is_defender, is_own_profile, ban_detail = in_defenders(own_id), str(own_id) == target_id, None
+				banned, time_remaining, ban_detail = check_content_and_voting_ban(target_id, with_details=True)
+				context["is_profile_banned"] = banned
+				context["noindex"] = True if banned else False
+				context["is_own_profile"] = is_own_profile
+				context["ban_detail"] = ban_detail
+				context["time_remaining"] = time_remaining
+				context["ident"] = own_id
+				context["is_defender"] = is_defender
+				context["uname"] = username
+			return context
+		else:
+			raise Http404("This user does not exist!")
 
 
 class UserSettingDetailView(DetailView):
@@ -5583,42 +5582,42 @@ def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=
 	else:
 		return redirect("photo")
 
-@ratelimit(rate='3/s')
-def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		# deduction = 3 * -1
-		# request.user.userprofile.media_score = request.user.userprofile.media_score + deduction
-		# request.user.userprofile.score = request.user.userprofile.score + deduction
-		# request.user.userprofile.save()
-		# context = {'unique': pk}
-		# return render(request, 'penalty_videovote.html', context)
-		return redirect("missing_page")
-	else:
-		video = Video.objects.get(id=pk)
-		ident = video.owner.id
-		if request.user.id == ident: #can't vote your own video
-			context = {'unique': pk}
-			return render(request, 'already_videovoted.html', context)
-		else:
-			added = add_vote_to_video(pk, request.user.username, val)
-			if added:
-				if int(val) > 0:
-					vote_score_increase = 1
-					visible_score_increase = 1
-					media_score_increase = 1
-					score_increase = 1
-					video_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
-				else:
-					vote_score_increase = -1
-					visible_score_increase = -1
-					media_score_increase = -1
-					score_increase = -1
-					video_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
-				return redirect("see_video")
-			else:
-				context = {'unique': pk}
-				return render(request, 'already_videovoted.html', context)
+# @ratelimit(rate='3/s')
+# def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):
+# 	was_limited = getattr(request, 'limits', False)
+# 	if was_limited:
+# 		# deduction = 3 * -1
+# 		# request.user.userprofile.media_score = request.user.userprofile.media_score + deduction
+# 		# request.user.userprofile.score = request.user.userprofile.score + deduction
+# 		# request.user.userprofile.save()
+# 		# context = {'unique': pk}
+# 		# return render(request, 'penalty_videovote.html', context)
+# 		return redirect("missing_page")
+# 	else:
+# 		video = Video.objects.get(id=pk)
+# 		ident = video.owner.id
+# 		if request.user.id == ident: #can't vote your own video
+# 			context = {'unique': pk}
+# 			return render(request, 'already_videovoted.html', context)
+# 		else:
+# 			added = add_vote_to_video(pk, request.user.username, val)
+# 			if added:
+# 				if int(val) > 0:
+# 					vote_score_increase = 1
+# 					visible_score_increase = 1
+# 					media_score_increase = 1
+# 					score_increase = 1
+# 					video_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+# 				else:
+# 					vote_score_increase = -1
+# 					visible_score_increase = -1
+# 					media_score_increase = -1
+# 					score_increase = -1
+# 					video_vote_tasks.delay(pk, ident, vote_score_increase, visible_score_increase, media_score_increase, score_increase)
+# 				return redirect("see_video")
+# 			else:
+# 				context = {'unique': pk}
+# 				return render(request, 'already_videovoted.html', context)
 
 def photostream_vote(request, pk=None, val=None, from_best=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)

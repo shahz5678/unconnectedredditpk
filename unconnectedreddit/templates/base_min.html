@@ -35,10 +35,8 @@
 for(h=0;h<k.length;h++)e(d,k[h]);a._i.push([b,c,f])};a.__SV=1.2;b=e.createElement("script");b.type="text/javascript";b.async=!0;b.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";c=e.getElementsByTagName("script")[0];c.parentNode.insertBefore(b,c)}})(document,window.mixpanel||[]);
 mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <!-- end Mixpanel -->
-
 </head>
 <body>
-{% include "fb_analytics.html" %}
 {% include "ga_user_analytics.html" with my_var=user.id %}
 <a name="section0"></a>
 {% block content %}
@@ -56,15 +54,16 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
 </div>
-
+    {% include "amplitude_analytics.html" %}
 <script type="text/javascript">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
   });
 }
+amplitude.getInstance().logEvent('basic_event');
 </script>
-{% include "ga_ss.html" %}
+
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
 </html>

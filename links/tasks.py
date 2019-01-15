@@ -34,9 +34,9 @@ get_active_fans, skip_private_chat_notif, clean_expired_notifications, get_top_1
 remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, sanitize_eachothers_unseen_activities,\
 update_private_chat_notif_object, update_private_chat_notifications, set_uploader_score, bulk_remove_multiple_group_notifications, \
 update_group_topic_in_obj
-from redis1 import add_video, save_recent_video, get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, retrieve_photo_posts, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
-update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, all_best_photos, delete_photo_report, \
+from redis1 import get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
+add_photos_to_best, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
+update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, delete_photo_report, \
 cleanse_public_and_private_groups_data
 # photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
 from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
@@ -1294,20 +1294,20 @@ def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_sub
 # 			reason = report_reason
 # 		Report.objects.create(reporter_id=reporter_id, target_id=target_id, report_origin=report_origin, report_reason=reason)
 
-@celery_app1.task(name='tasks.video_upload_tasks')
-def video_upload_tasks(video_name, video_id, user_id):
-	lst = uploadvid(video_name)
-	low_res_thumb = "//"+lst[0].partition('://')[2]
-	small_thumb = "//"+lst[1].partition('://')[2]
-	low_res_video = "//"+lst[2].partition('://')[2]
-	high_res_video = "//"+lst[3].partition('://')[2]
-	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
-	if video:
-		add_video(video_id)
-		save_recent_video(user_id, video_id)
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
-	else:
-		pass
+# @celery_app1.task(name='tasks.video_upload_tasks')
+# def video_upload_tasks(video_name, video_id, user_id):
+# 	lst = uploadvid(video_name)
+# 	low_res_thumb = "//"+lst[0].partition('://')[2]
+# 	small_thumb = "//"+lst[1].partition('://')[2]
+# 	low_res_video = "//"+lst[2].partition('://')[2]
+# 	high_res_video = "//"+lst[3].partition('://')[2]
+# 	video = Video.objects.filter(id=video_id).update(low_res_thumb=low_res_thumb, small_thumb=small_thumb, low_res_video=low_res_video, high_res_video=high_res_video, processed=True)
+# 	if video:
+# 		add_video(video_id)
+# 		save_recent_video(user_id, video_id)
+# 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-5)
+# 	else:
+# 		pass
 
 @celery_app1.task(name='tasks.fan_recount')
 def fan_recount(owner_id,fan_increment,fan_decrement):

@@ -26,8 +26,7 @@
 
 <div style="max-width:600px;margin:0 auto;width:92%;position:relative;">
 {% if newbie_flag %}
-	{% load get_newbie_rules %}
-	{% newbie_rules 'home' STATIC_URL newbie_lang %}
+	{% include "newbie_rules.html" with static_url=STATIC_URL location='home' lang=lang %}
 {% else %}
 
 	{% load get_notification_bar %}
@@ -44,22 +43,20 @@
 
 {% for link in link_list %}
 
-{% if forloop.counter == 7 %}
-    {% include "announcement/coming_soon_notice.html" with static_url=STATIC_URL %}
-{% endif %}
-
 {% if not on_fbs %}
 	
 	{% if forloop.counter == 3 %}
-
+	
 		<div style="text-align:center;background:#E9EBEE">
 			<ins class="adsbygoogle"
-				style="display:inline-block;width:320px;height:100px"
-				data-ad-client="ca-pub-2568547635306983"
-				data-ad-slot="9571801752"></ins>
+				 style="display:block"
+				 data-ad-client="ca-pub-2568547635306983"
+				 data-ad-slot="2387361554"
+				 data-ad-format="auto"
+				 data-full-width-responsive="true"></ins>
 			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
+				(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>		
 		</div>
 
 	{% elif forloop.counter == 10 %}
@@ -88,7 +85,6 @@
 
 	{% endif %}
 
-
 {% endif %}
 
 {% with replyforms|get_item:link.h as replyform %}
@@ -109,6 +105,7 @@
 	{% big_external_share_button owner_username=link.su is_mobile=is_mob photo_id=link.i origin='3' static_url=STATIC_URL %}
 	{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
 	{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
+
 	</div>
 
 	{% photo_comments_section raw_comments=link.i static_url=STATIC_URL self_user_id=ident origin='3' score=score home_hash=link.h %}
@@ -132,7 +129,6 @@
 		{% big_vote_button vote_type='vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
-
 		<!-- in the end fix cricket match commentary styling -->
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
 		</div>
@@ -158,23 +154,23 @@
 
 {% endfor %}
 
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
 </div>
-<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
-	{% if page.has_previous %}
-	<div style="padding:0 10px">
-	<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
+		{% if page.has_previous %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
+		{% if page.has_next %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
 	</div>
-	{% endif %}
-	{% if page.has_next %}
-	<div style="padding:0 10px">
-	<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-	</div>
-	{% endif %}
-</div>
-<br>
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- separate report_modal, case_vote and copy link into different modules -->
 <!-- report modal required user ident separately -->
 {% endblock %}

@@ -439,18 +439,6 @@ def add_to_photo_vote_ban(user_ids, ban_type): #for multiple users
 
 #username search feature: '1'
 
-def is_uname_search_unlocked(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "unl:"+str(user_id)
-	if my_server.sismember(set_name,'1'):
-		return True
-	else:
-		return False
-
-def unlock_uname_search(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "unl:"+str(user_id)
-	my_server.sadd(set_name, '1')
 
 #######################Tutorials#######################
 
@@ -477,14 +465,6 @@ def first_time_photo_ads_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	if my_server.sismember(set_name,'17'):
-		return False
-	else:
-		return True	
-
-def first_time_log_outter(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name,'16'):
 		return False
 	else:
 		return True	
@@ -553,39 +533,24 @@ def first_time_psl_supporter(user_id):
 	else:
 		return True
 
-def first_time_photo_uploader(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name,'6'):
-		return False
-	else:
-		return True
-
-def first_time_password_changer(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name,'5'):
-		return False
-	else:
-		return True
 
 
-def first_time_inbox_visitor(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name, '3'):
-		return False
-	else:
-		return True
+# def first_time_inbox_visitor(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	set_name = "ftux:"+str(user_id)
+# 	if my_server.sismember(set_name, '3'):
+# 		return False
+# 	else:
+# 		return True
 
 #was it a first-time experience with defending photos?
-def first_time_photo_defender(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	if my_server.sismember(set_name, '9'):
-		return False
-	else:
-		return True
+# def first_time_photo_defender(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	set_name = "ftux:"+str(user_id)
+# 	if my_server.sismember(set_name, '9'):
+# 		return False
+# 	else:
+# 		return True
 
 #was it a first-time interaction with the refresh button in mehfils?
 def first_time_refresher(user_id):
@@ -596,31 +561,10 @@ def first_time_refresher(user_id):
 	else:
 		return True #user is a first-timer
 
-def add_photo_defender_tutorial(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '9')
-
 def add_refresher(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '1')
-
-def add_inbox(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '3')
-
-
-def add_password_change(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '5')
-
-def add_photo_uploader(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '6')
 
 def add_psl_supporter(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -662,10 +606,6 @@ def add_exchange_visitor(user_id):
 	set_name = "ftux:"+str(user_id)
 	my_server.sadd(set_name, '14')
 
-def add_log_outter(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	set_name = "ftux:"+str(user_id)
-	my_server.sadd(set_name, '16')
 
 def add_photo_ad_visitor(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -714,22 +654,22 @@ def add_banner(user_id):
 # 	return payload
 	
 
-def retrieve_photo_posts(photo_id_list):
-	my_server = redis.Redis(connection_pool=POOL)
-	list_of_dictionaries = []
-	photo_ids = []
-	non_photo_link_ids = []
-	pipeline1 = my_server.pipeline()
-	for photo_id in photo_id_list:
-		hash_name="ph:"+str(photo_id)
-		pipeline1.hgetall(hash_name)
-	result1 = pipeline1.execute()
-	count = 0
-	for hash_obj in result1:
-		if 'u' in hash_obj:#'u' is image_url
-			list_of_dictionaries.append(hash_obj)
-		count += 1
-	return list_of_dictionaries 
+# def retrieve_photo_posts(photo_id_list):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	list_of_dictionaries = []
+# 	photo_ids = []
+# 	non_photo_link_ids = []
+# 	pipeline1 = my_server.pipeline()
+# 	for photo_id in photo_id_list:
+# 		hash_name="ph:"+str(photo_id)
+# 		pipeline1.hgetall(hash_name)
+# 	result1 = pipeline1.execute()
+# 	count = 0
+# 	for hash_obj in result1:
+# 		if 'u' in hash_obj:#'u' is image_url
+# 			list_of_dictionaries.append(hash_obj)
+# 		count += 1
+# 	return list_of_dictionaries 
 
 # def add_photo_entry(photo_id=None,owner_id=None,owner_av_url=None,image_url=None,\
 # 	upload_time=None,invisible_score=None,caption=None,photo_owner_username=None,\
@@ -814,75 +754,75 @@ def get_photo_votes(photo_id):
 	sorted_set = "vp:"+str(photo_id)
 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
-def voted_for_photo(photo_lst_of_dict,username):
-	my_server = redis.Redis(connection_pool=POOL)
-	photos_voted = []
-	pipeline1 = my_server.pipeline()
-	for photo in photo_lst_of_dict:
-		sorted_set = "vp:"+photo['i']
-		pipeline1.zscore(sorted_set, username)
-	already_exists_list =  pipeline1.execute()
-	count = 0
-	for already_exists in already_exists_list:
-		if already_exists == 0 or already_exists == 1:
-			# i.e. upvote or downvote already exists, thus this photo.id counts!
-			photos_voted.append(photo_lst_of_dict[count]['i'])
-		count += 1
-	return photos_voted
+# def voted_for_photo(photo_lst_of_dict,username):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	photos_voted = []
+# 	pipeline1 = my_server.pipeline()
+# 	for photo in photo_lst_of_dict:
+# 		sorted_set = "vp:"+photo['i']
+# 		pipeline1.zscore(sorted_set, username)
+# 	already_exists_list =  pipeline1.execute()
+# 	count = 0
+# 	for already_exists in already_exists_list:
+# 		if already_exists == 0 or already_exists == 1:
+# 			# i.e. upvote or downvote already exists, thus this photo.id counts!
+# 			photos_voted.append(photo_lst_of_dict[count]['i'])
+# 		count += 1
+# 	return photos_voted
 
-def voted_for_photo_qs(photo_qs,username):
-	my_server = redis.Redis(connection_pool=POOL)
-	photos_voted = []
-	pipeline1 = my_server.pipeline()
-	for photo in photo_qs:
-		sorted_set = "vp:"+str(photo.id)
-		pipeline1.zscore(sorted_set, username)
-	already_exists_list =  pipeline1.execute()
-	count = 0
-	for already_exists in already_exists_list:
-		if already_exists == 0 or already_exists == 1:
-			# i.e. upvote or downvote already exists, thus this photo.id counts!
-			photos_voted.append(photo_qs[count].id)
-		count += 1
-	return photos_voted
+# def voted_for_photo_qs(photo_qs,username):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	photos_voted = []
+# 	pipeline1 = my_server.pipeline()
+# 	for photo in photo_qs:
+# 		sorted_set = "vp:"+str(photo.id)
+# 		pipeline1.zscore(sorted_set, username)
+# 	already_exists_list =  pipeline1.execute()
+# 	count = 0
+# 	for already_exists in already_exists_list:
+# 		if already_exists == 0 or already_exists == 1:
+# 			# i.e. upvote or downvote already exists, thus this photo.id counts!
+# 			photos_voted.append(photo_qs[count].id)
+# 		count += 1
+# 	return photos_voted
 
 
 #vote blocking algorithm that elegently cools down with time
-def can_vote_on_photo(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	photo_votes_allowed = "pva:"+str(user_id) #photo votes allowed to user_id
-	current_spree = my_server.get(photo_votes_allowed)
-	if current_spree is None:
-		pipeline1 = my_server.pipeline()
-		my_server.incr(photo_votes_allowed)
-		my_server.expire(photo_votes_allowed,FORTY_FIVE_SECS)
-		pipeline1.execute()
-		return None, True
-	elif int(current_spree) > (PHOTO_VOTE_SPREE_ALWD-1):
-		ttl = my_server.ttl(photo_votes_allowed)
-		return ttl, False
-	else:
-		pipeline1 = my_server.pipeline()
-		my_server.incr(photo_votes_allowed)
-		my_server.expire(photo_votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
-		pipeline1.execute()
-		return None, True
+# def can_vote_on_photo(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	photo_votes_allowed = "pva:"+str(user_id) #photo votes allowed to user_id
+# 	current_spree = my_server.get(photo_votes_allowed)
+# 	if current_spree is None:
+# 		pipeline1 = my_server.pipeline()
+# 		my_server.incr(photo_votes_allowed)
+# 		my_server.expire(photo_votes_allowed,FORTY_FIVE_SECS)
+# 		pipeline1.execute()
+# 		return None, True
+# 	elif int(current_spree) > (PHOTO_VOTE_SPREE_ALWD-1):
+# 		ttl = my_server.ttl(photo_votes_allowed)
+# 		return ttl, False
+# 	else:
+# 		pipeline1 = my_server.pipeline()
+# 		my_server.incr(photo_votes_allowed)
+# 		my_server.expire(photo_votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+# 		pipeline1.execute()
+# 		return None, True
 
 #####################Video objects#####################
 
-def get_recent_videos(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("vids:"+str(user_id), 0, -1)
+# def get_recent_videos(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("vids:"+str(user_id), 0, -1)
 
-def save_recent_video(user_id, video_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("vids:"+str(user_id), video_id)
-	my_server.ltrim("vids:"+str(user_id), 0, 4) # save the most recent 5 vids
+# def save_recent_video(user_id, video_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("vids:"+str(user_id), video_id)
+# 	my_server.ltrim("vids:"+str(user_id), 0, 4) # save the most recent 5 vids
 	
-def get_video_votes(video_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
-	return my_server.zrange(sorted_set, 0, -1, withscores=True)
+# def get_video_votes(video_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
+# 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
 # def voted_for_video(video_qs,username):
 # 	my_server = redis.Redis(connection_pool=POOL)
@@ -895,62 +835,62 @@ def get_video_votes(video_id):
 # 			videos_voted.append(video.id)
 # 	return videos_voted
 
-def voted_for_video(video_qs,username):
-	my_server = redis.Redis(connection_pool=POOL)
-	videos_voted = []
-	pipeline1 = my_server.pipeline()
-	for video in video_qs:
-		sorted_set = "vv:"+str(video.id)
-		pipeline1.zscore(sorted_set, username)
-	already_exists_list =  pipeline1.execute()
-	count = 0
-	for already_exists in already_exists_list:
-		if already_exists == 0 or already_exists == 1:
-			# i.e. upvote or downvote already exists, thus this photo.id counts!
-			videos_voted.append(video_qs[count].id)
-		count += 1
-	return videos_voted
+# def voted_for_video(video_qs,username):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	videos_voted = []
+# 	pipeline1 = my_server.pipeline()
+# 	for video in video_qs:
+# 		sorted_set = "vv:"+str(video.id)
+# 		pipeline1.zscore(sorted_set, username)
+# 	already_exists_list =  pipeline1.execute()
+# 	count = 0
+# 	for already_exists in already_exists_list:
+# 		if already_exists == 0 or already_exists == 1:
+# 			# i.e. upvote or downvote already exists, thus this photo.id counts!
+# 			videos_voted.append(video_qs[count].id)
+# 		count += 1
+# 	return videos_voted
 
-def add_vote_to_video(video_id, username, value):
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
-	already_exists = my_server.zscore(sorted_set, username)
-	if already_exists != 0 and already_exists != 1:
-		#add the vote
-		my_server.zadd(sorted_set, username, value)
-		#update last vote time
-		hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
-		current_time = time.time()
-		mapping = {'t':current_time}
-		my_server.hmset(hash_name, mapping)
-		return True
-	else:
-		return False
+# def add_vote_to_video(video_id, username, value):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	sorted_set = "vv:"+str(video_id) #vv is 'voted video'
+# 	already_exists = my_server.zscore(sorted_set, username)
+# 	if already_exists != 0 and already_exists != 1:
+# 		#add the vote
+# 		my_server.zadd(sorted_set, username, value)
+# 		#update last vote time
+# 		hash_name = "lvt:"+str(video_id) #lvt is 'last vote time'
+# 		current_time = time.time()
+# 		mapping = {'t':current_time}
+# 		my_server.hmset(hash_name, mapping)
+# 		return True
+# 	else:
+# 		return False
 
-def video_uploaded_too_soon(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
-	most_recent_time = my_server.hget(hash_name, 't') # get the most recent video upload time
-	current_time = time.time()
-	if most_recent_time and (current_time - float(most_recent_time)) < 300.0:
-		# the next video is being uploaded too soon, so don't allow them to upload it
-		seconds_to_go = 300.0-(current_time-float(most_recent_time))
-		return True, seconds_to_go
-	else:
-		mapping = {'usr':user_id, 't':current_time}
-		my_server.hmset(hash_name, mapping)
-		return False, 0
+# def video_uploaded_too_soon(user_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	hash_name = "rut:"+str(user_id)#ru is 'recent upload time' - stores the last video upload time of user
+# 	most_recent_time = my_server.hget(hash_name, 't') # get the most recent video upload time
+# 	current_time = time.time()
+# 	if most_recent_time and (current_time - float(most_recent_time)) < 300.0:
+# 		# the next video is being uploaded too soon, so don't allow them to upload it
+# 		seconds_to_go = 300.0-(current_time-float(most_recent_time))
+# 		return True, seconds_to_go
+# 	else:
+# 		mapping = {'usr':user_id, 't':current_time}
+# 		my_server.hmset(hash_name, mapping)
+# 		return False, 0
 
-def all_videos():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("videos:1000", 0, -1)
+# def all_videos():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("videos:1000", 0, -1)
 
-def add_video(video_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("videos:1000", video_id)
-	rand = randint(0,9)
-	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
-		my_server.ltrim("videos:1000", 0, 999)
+# def add_video(video_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("videos:1000", video_id)
+# 	rand = randint(0,9)
+# 	if rand == 1: #invoking ltrim only 1/10th of the times this function is hit
+# 		my_server.ltrim("videos:1000", 0, 999)
 
 #####################Link objects#####################
 
@@ -1187,9 +1127,9 @@ def cleanse_public_and_private_groups_data(grp_ids_and_members):
 # 	return my_server.zrange(sorted_set, 0, -1, withscores=True)
 
 
-def all_best_photos():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.zrevrange("bestphotos:1000", 0, -1, withscores=True)
+# def all_best_photos():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.zrevrange("bestphotos:1000", 0, -1, withscores=True)
 
 def add_photos_to_best(photo_scores):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1218,18 +1158,15 @@ def set_best_photo(photo_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.set("best_photo",photo_id)
 
-def all_photos():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("photos:1000", 0, -1)
+# def all_photos():
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	return my_server.lrange("photos:1000", 0, -1)
 
 # def add_photo(photo_id):
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	my_server.lpush("photos:1000", photo_id)
 # 	my_server.ltrim("photos:1000", 0, 999)
 
-def all_unfiltered_posts():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("unfilteredposts:1000", 0, -1)
 
 def set_best_posts_on_home(link_ids,urdu_only=False,exclude_photos=False):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1250,15 +1187,7 @@ def set_best_posts_on_home(link_ids,urdu_only=False,exclude_photos=False):
 			pipeline1.delete("bestposts")
 			pipeline1.lpush("bestposts",*link_ids)
 	pipeline1.execute()
-		
 
-def all_best_urdu_posts():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("besturduposts", 0, -1)
-
-def all_best_posts():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("bestposts", 0, -1)
 
 ###############################################################################################################################
 #########################################################Optimizely Exp########################################################
@@ -1273,14 +1202,6 @@ def all_best_posts():
 
 ###############################################################################################################################
 ###############################################################################################################################
-
-def all_filtered_posts():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("filteredposts:1000", 0, -1)
-
-def all_filtered_urdu_posts():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("filteredurduposts:1000", 0, -1)
 
 def add_filtered_post(link_id, is_ur=False):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1533,280 +1454,7 @@ def get_group_members(group_id):
 
 #####################checking abuse and punishing#####################
 
-def remove_key(name):
-	my_server = redis.Redis(connection_pool=POOL)
-	try:
-		my_server.delete(name)
-	except:
-		pass
 
-def document_report_reason(user_id, user_score, reporter_id, reporter_cost, desc):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "hafs:"+str(user_id)+str(reporter_id) #hafs is 'hash abuse feedback set', it contains strings about the person's wrong doings
-	hash_exists = my_server.exists(hash_name)
-	if hash_exists:
-		return False#already given feedback
-	else:
-		mapping = {'tgt':user_id, 'scr':user_score, 'rep':reporter_id, 'paid':reporter_cost, 'txt':desc}
-		my_server.hmset(hash_name, mapping)
-		my_server.sadd("report_reasons", hash_name)
-		return True
-
-def comment_allowed(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "cah:"+str(user_id)
-	hash_exists = my_server.exists(hash_name)
-	if hash_exists:
-		hash_contents = my_server.hgetall(hash_name)
-		last_hide_time = hash_contents["t"]
-		integrity = int(hash_contents["tgr"])
-		time_now = time.time()
-		if integrity < -1:
-			if (time_now-float(last_hide_time)) < ONE_DAY:
-				time_remaining = (float(last_hide_time)+ONE_DAY)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 0:
-			if (time_now-float(last_hide_time)) < TWELVE_HOURS:
-				time_remaining = (float(last_hide_time)+TWELVE_HOURS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 1:
-			if (time_now-float(last_hide_time)) < SIX_HOURS:
-				time_remaining = (float(last_hide_time)+SIX_HOURS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 2:
-			#if last_vote_time was 1 hour ago, let the person post, else he's banned
-			if (time_now-float(last_hide_time)) < ONE_HOUR:
-				time_remaining = (float(last_hide_time)+ONE_HOUR)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 3:
-			#if last_vote_time was 10 mins ago, let the person post, else he's banned
-			if (time_now-float(last_hide_time)) < TEN_MINS:
-				time_remaining = (float(last_hide_time)+TEN_MINS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 4:
-			##if last_hide_time was 3 mins ago, let the person post, else he's banned
-			#re-affirm integrity after serving ban
-			if (time_now-float(last_hide_time)) < THREE_MINS:
-				time_remaining = (float(last_hide_time)+THREE_MINS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 5:
-			#not refilling integrity for THREE HOURS, since no punishment was served. Keep the person on thin ice
-			if (time_now-float(last_hide_time)) < THREE_HOURS:
-				banned = False
-				time_remaining = 0
-				warned = True
-			else:
-				#refill integrity after 3 hours of not getting a single hide
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		else:
-			#integrity is refilled after 1 hour of no hide, by default
-			if (time_now-float(last_hide_time)) < ONE_HOUR:
-				banned = False
-				time_remaining = 0
-				warned = False
-			else:
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-	else:
-		banned = False
-		time_remaining = 0
-		warned = False
-	return banned, time_remaining, warned
-
-def document_comment_abuse(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "cah:"+str(user_id) #cah is 'comment abuse hash', it contains latest integrity value
-	hash_exists = my_server.exists(hash_name)
-	if hash_exists:
-		hash_contents = my_server.hgetall(hash_name)
-		old_time = hash_contents["t"]
-		new_time = time.time()
-		time_difference = new_time - float(old_time) #in seconds
-		if time_difference < 300.0:
-			#update time and integrity
-			my_server.hincrby(hash_name, "tgr", amount=-1)
-			my_server.hset(hash_name, "t", new_time)
-		else:
-			#just update the time 
-			my_server.hset(hash_name, "t", new_time)
-	else:
-		mapping = {'t': time.time(), 'tgr':5}
-		my_server.hmset(hash_name, mapping)
-
-def publicreply_allowed(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "pah:"+str(user_id)
-	hash_exists = my_server.exists(hash_name)
-	if hash_exists:
-		hash_contents = my_server.hgetall(hash_name)
-		last_hide_time = hash_contents["t"]
-		integrity = int(hash_contents["tgr"])
-		time_now = time.time()
-		if integrity < -1:
-			if (time_now-float(last_hide_time)) < ONE_DAY:
-				time_remaining = (float(last_hide_time)+ONE_DAY)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 0:
-			if (time_now-float(last_hide_time)) < TWELVE_HOURS:
-				time_remaining = (float(last_hide_time)+TWELVE_HOURS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 1:
-			if (time_now-float(last_hide_time)) < SIX_HOURS:
-				time_remaining = (float(last_hide_time)+SIX_HOURS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 2:
-			#if last_vote_time was 1 hour ago, let the person post, else he's banned
-			if (time_now-float(last_hide_time)) < ONE_HOUR:
-				time_remaining = (float(last_hide_time)+ONE_HOUR)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 3:
-			#if last_vote_time was 10 mins ago, let the person post, else he's banned
-			if (time_now-float(last_hide_time)) < TEN_MINS:
-				time_remaining = (float(last_hide_time)+TEN_MINS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 4:
-			##if last_hide_time was 3 mins ago, let the person post, else he's banned
-			#re-affirm integrity after serving ban
-			if (time_now-float(last_hide_time)) < THREE_MINS:
-				time_remaining = (float(last_hide_time)+THREE_MINS)-time_now
-				banned = True
-				warned = False
-			else:
-				#return their integrity since they've served their time
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		elif integrity < 5:
-			#not refilling integrity for THREE HOURS, since no punishment was served. Keep the person on thin ice
-			if (time_now-float(last_hide_time)) < THREE_HOURS:
-				banned = False
-				time_remaining = 0
-				warned = True
-			else:
-				#refill integrity after 3 hours of not getting a single hide
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-		else:
-			#integrity is refilled after 1 hour of no hide, by default
-			if (time_now-float(last_hide_time)) < ONE_HOUR:
-				banned = False
-				time_remaining = 0
-				warned = False
-			else:
-				my_server.hset(hash_name, "tgr", 5)
-				banned = False
-				time_remaining = 0
-				warned = False
-	else:
-		banned = False
-		time_remaining = 0
-		warned = False
-	return banned, time_remaining, warned
-
-def document_publicreply_abuse(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	hash_name = "pah:"+str(user_id) #pah is 'publicreply abuse hash', it contains latest integrity value
-	hash_exists = my_server.exists(hash_name)
-	if hash_exists:
-		hash_contents = my_server.hgetall(hash_name)
-		old_time = hash_contents["t"]
-		new_time = time.time()
-		time_difference = new_time - float(old_time) #in seconds
-		if time_difference < 300.0:
-			#update time and integrity
-			my_server.hincrby(hash_name, "tgr", amount=-1)
-			my_server.hset(hash_name, "t", new_time)
-		else:
-			#just update the time 
-			my_server.hset(hash_name, "t", new_time)
-	else:
-		mapping = {'t': time.time(), 'tgr':5}
-		my_server.hmset(hash_name, mapping)
 
 #####################checking image perceptual hashes#####################
 
@@ -1891,9 +1539,6 @@ def save_website_feedback(data):
 	else:
 		return False
 
-def website_feedback_given(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	return True if my_server.sismember("website_feedback",user_id) else False
 
 def save_website_feedback_user_details(data):
 	my_server = redis.Redis(connection_pool=POOL)

@@ -33,7 +33,6 @@
 		<meta property="og:image:height" content="{{ photo_height }}">
 		<meta property="fb:app_id" content="1758220174446684" />
         {% google_analytics %}
-
 </head>
 <body style="background: #E9EBEE">
 
@@ -125,15 +124,16 @@
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|
 </div>
-
+        {% include "amplitude_analytics.html" %}
 <script type="text/javascript">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
   });
 }
+amplitude.getInstance().logEvent('photo_detail');
 </script>
-{% include "ga_ss.html" %}
+
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 {% transparent_buttons_js ident=user.id static_url=STATIC_URL %}
 </body>

@@ -7,7 +7,7 @@ show_your_banning_history, defender_instruction_failure, log_banning_reason_give
 enter_inter_user_ban, inter_user_ban_not_permitted, first_time_inter_user_banner, change_ban_time, content_culling_instructions, user_ban_help, ban_underway,\
 report_or_block, get_top_50_reporters, get_reporter_history, defender_history_super_admin_view, report_content_help, defender_instructions, \
 voting_ban_defender_help, edit_content_submission_and_voting_ban, render_ban_details, notify_and_redirect, cull_content_post, \
-spamming_definition, show_report_help, judge_content_voters, judge_content_submitters#, judge_mehfil, report_mehfil, report_mehfil_help
+spamming_definition, show_report_help, judge_content_voters, judge_content_submitters, show_rejecton_history_of_defenders#, judge_mehfil, report_mehfil, report_mehfil_help
 
 admin.autodiscover()
 
@@ -38,6 +38,7 @@ urlpatterns = patterns('',
 	url(r'^defender/instructions/submission/$', auth(content_culling_instructions), name='content_culling_instructions'),
 	url(r'^defender/banning/reason/$', auth(log_banning_reason_given_by_defender), name='log_banning_reason_given_by_defender'),
 	url(r'^defender/banning/history/global/$', auth(show_blocking_history_of_defenders), name='show_blocking_history_of_defenders'),
+	url(r'^defender/rejection/history/global/$', auth(show_rejecton_history_of_defenders), name='show_rejecton_history_of_defenders'),
 	url(r'^defender/banning/history/(?P<defender_id>\d+)/$', auth(defender_history_super_admin_view), name='defender_history_super_admin_view'),
 	url(r'^defender/ybh/$', auth(show_your_banning_history), name='your_banning_history'),
 	url(r'^defender/banning/$', auth(ban_content_submitter_or_voters), name='ban_content_submitter_or_voters'),

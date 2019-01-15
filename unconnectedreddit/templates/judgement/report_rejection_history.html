@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% load human_time %}
+{% load get_super_defender_navbar %}
+{% load get_thumb_to_img_url %}
+{% load s3 %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Rejected reports history | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% super_defender_navbar static_url=STATIC_URL section='ledger' %}
+
+<h1 class="cxl clb lsp" style="text-align:center">Damadam report rejection history:</h1>
+
+<div class="clb" style="margin: 0 auto;max-width:650px;width:93%">
+  <div class="bizcard" style="background-color:white;padding:10px 10px 2px 10px">
+    
+    <div class="mbl" style="text-align:center"><a href="{% url 'show_blocking_history_of_defenders' %}" class="cb sp cs" style="border-bottom:1px dotted blue">show banning history</a></div>
+    
+    {% for data in rejection_data %}
+        {% if data.tp == 'tx' %}
+
+          <div style="background:#F0F0F0;padding:5px" class="bizcard mbl">
+
+            <div style="text-align:center" class="mts cxs sp"><span class="cgy">rejected {{ data.t|human_time }}</span></div>
+            <hr size=1 COLOR="#e2e5e9">
+
+            <div class="mt lsp sp"><b>Submission:</b>&nbsp;<a href="{% url 'user_activity' data.oun %}" class="cb bw mrs" target="_blank">"{% emoticons %}{{ data.txt|linebreaksbr }}{% endemoticons %}"</a><a href="{% url 'display_link_detail' data.obj_id %}" target="_blank"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a></div>
+           
+           <div class="mt lsp sp"><b>Submitted by:</b>&nbsp;<a href="{% url 'profile' data.oun %}" class="cb" target="_blank"><b>{{ data.oun }}</b></a></div>
+
+           <div class="mt lsp sp"><b>Rejected by:</b>&nbsp;<a href="{% url 'profile' data.dun %}" class="cb mrs" style="border-bottom:1px dotted blue" target="_blank">{{ data.dun }}</a><a href="{% url 'defender_history_super_admin_view' data.did %}" target="_blank" class="cb"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
+           
+           {% for reporter_uname, report_generic_text, report_result in data.reporter_data %}
+            <div class="mls cs" style="background:whitesmoke">
+            <div class="mt lsp sp" style="border-top:1px dashed silver;padding-top:4px"><b>Reporter:</b>&nbsp;<a href="{% url 'profile' reporter_uname %}" class="cb" target="_blank"><b>{{ reporter_uname }}</b></a></div>
+            <div class="mt lsp sp"><b>Report reason:</b>&nbsp;"{{ report_generic_text }}"</div>
+            <div class="mt lsp sp"><b>Report decision:</b>&nbsp;{% if report_result == 'malicious' %}<span class="cr">{% else %}<span class="cg">{% endif %}{{ report_result }}</span></div>
+            </div>
+           {% endfor %}
+          </div>
+        
+        {% elif data.tp == 'img' %}
+          
+          <div style="background:#F0F0F0;padding:5px" class="bizcard mbl">
+
+          <div style="text-align:center" class="mts cxs sp"><span class="cgy">rejected {{ data.t|human_time }}</span></div>
+          <hr size=1 COLOR="#e2e5e9">
+          
+
+            <div class="mt lsp sp"><b>Submission:</b>&nbsp;<a href="{% url 'user_profile_photo' data.oun data.obj_id %}" target="_blank"><img src="{{ data.purl|s3:'thumb' }}" style="border-radius:4px;border:2px solid dodgerblue" alt="pic"></a><a rel="nofollow" href="{{ data.purl }}" target="_blank"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a></div>
+           
+           <div class="mt lsp sp"><b>Submitted by:</b>&nbsp;<a href="{% url 'profile' data.oun %}" class="cb" target="_blank"><b>{{ data.oun }}</b></a></div>
+
+           <div class="mt lsp sp"><b>Rejected by:</b>&nbsp;<a href="{% url 'profile' data.dun %}" class="cb mrs" style="border-bottom:1px dotted blue" target="_blank">{{ data.dun }}</a><a href="{% url 'defender_history_super_admin_view' data.did %}" target="_blank" class="cb"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
+
+           {% for reporter_uname, report_generic_text, report_result in data.reporter_data %}
+            <div class="mls cs" style="background:whitesmoke">
+            <div class="mt lsp sp" style="border-top:1px dashed silver;padding-top:4px"><b>Reporter:</b>&nbsp;<a href="{% url 'profile' reporter_uname %}" class="cb" target="_blank"><b>{{ reporter_uname }}</b></a></div>
+            <div class="mt lsp sp"><b>Report reason:</b>&nbsp;"{{ report_generic_text }}"</div>
+            <div class="mt lsp sp"><b>Report decision:</b>&nbsp;{% if report_result == 'malicious' %}<span class="cr">{% else %}<span class="cg">{% endif %}{{ report_result }}</span></div>
+            </div>
+           {% endfor %}
+          </div>
+
+        {% endif %}
+    {% empty %}
+    <div class="cl cgy sp mbs mt" style="text-align:center">- no rejected reports yet -</div>
+    {% endfor %}
+  </div>
+
+  <div class="mtl fx fxjscn fxaicn">
+      {% if prev_page %}
+      <div>
+        <form style="display:inline" method="GET" action="{% url 'show_rejecton_history_of_defenders' %}">
+        <button class="pg_ok_res" style="background:0 0;border:none" type="submit" name="page" value="{{ prev_page }}"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40" style="vertical-align:text-bottom"></button>
+        </form>
+      </div>
+      {% endif %}
+      {% if num_items > items_per_page and num_displayed == items_per_page %}
+      <div>
+        <form style="display:inline" method="GET" action="{% url 'show_rejecton_history_of_defenders' %}">
+        <button class="pg_ok_res" style="background:0 0;border:none" type="submit" name="page" value="{{ next_page }}"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40" style="vertical-align:text-bottom"></button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+</div>
+<br><br>
+{% endblock %}

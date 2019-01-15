@@ -33,8 +33,8 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <!-- end Mixpanel -->
     {% include "ga_user_analytics.html" with my_var=user.id %}
 </head>
+
 <body>
-{% include "fb_analytics.html" %}
 {% load count %}
 {% check_notif_count as notif_count %}
 {% load count_priv_invites %}
@@ -69,15 +69,16 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
 </div>
-
+    {% include "amplitude_analytics.html" %}
 <script type="text/javascript">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {
     navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
   });
 }
+amplitude.getInstance().logEvent('basic_event');
 </script>
-{% include "ga_ss.html" %}
+
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
 </html>

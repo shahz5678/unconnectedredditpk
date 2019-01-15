@@ -28,10 +28,9 @@
 <meta name="google" content="notranslate" />
 
 {% google_analytics %}
-
+{% include "amplitude_analytics.html" %}
 </head>
 <body style="position: relative">
-{% include "fb_analytics.html" %}
 {% include "ga_user_analytics.html" with my_var=user.id %}
 {% load count %}
 {% check_notif_count as notif_count %}
@@ -74,8 +73,9 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
   });
 }
+amplitude.getInstance().logEvent('basic_event');
 </script>
-{% include "ga_ss.html" %}
+
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
 </html>

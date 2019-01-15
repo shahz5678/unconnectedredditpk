@@ -46,24 +46,26 @@
 {% if not on_fbs %}
 	
 	{% if forloop.counter == 3 %}
-
+	
 		<div style="text-align:center;background:#E9EBEE">
 			<ins class="adsbygoogle"
-			    style="display:inline-block;width:320px;height:100px"
-			    data-ad-client="ca-pub-2568547635306983"
-			    data-ad-slot="9571801752"></ins>
+				 style="display:block"
+				 data-ad-client="ca-pub-2568547635306983"
+				 data-ad-slot="2387361554"
+				 data-ad-format="auto"
+				 data-full-width-responsive="true"></ins>
 			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
+				(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>		
 		</div>
 
 	{% elif forloop.counter == 10 %}
 
 		<div style="text-align:center;background:#E9EBEE">
 			<ins class="adsbygoogle"
-			     style="display:inline-block;width:320px;height:100px"
-			     data-ad-client="ca-pub-2568547635306983"
-			     data-ad-slot="6326691312"></ins>
+				 style="display:inline-block;width:320px;height:100px"
+				 data-ad-client="ca-pub-2568547635306983"
+				 data-ad-slot="6326691312"></ins>
 			<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
@@ -73,9 +75,9 @@
 
 		<div style="text-align:center;background:#E9EBEE">
 			<ins class="adsbygoogle"
-			     style="display:inline-block;width:320px;height:100px"
-			     data-ad-client="ca-pub-2568547635306983"
-			     data-ad-slot="1018524312"></ins>
+				 style="display:inline-block;width:320px;height:100px"
+				 data-ad-client="ca-pub-2568547635306983"
+				 data-ad-slot="1018524312"></ins>
 			<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
@@ -152,22 +154,23 @@
 
 {% endfor %}
 
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+
 </div>
 	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
 		{% if page.has_previous %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
-	    {% if page.has_next %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
+		{% if page.has_next %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
 	</div>
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- separate report_modal, case_vote and copy link into different modules -->
 <!-- report modal required user ident separately -->
 {% endblock %}

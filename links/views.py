@@ -5165,23 +5165,26 @@ class UserActivityView(ListView):
 	def get_context_data(self, **kwargs):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
 		username = self.kwargs['slug']
-		context["verified"] = True if username in FEMALES else False
-		context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
 		target_id = retrieve_user_id(username)
-		context["is_profile_banned"] = False
-		if self.request.user.is_authenticated():
-			own_id = self.request.user.id
-			is_defender, is_own_profile, ban_detail = in_defenders(own_id), str(own_id) == target_id, None
-			banned, time_remaining, ban_detail = check_content_and_voting_ban(target_id, with_details=True)
-			context["is_profile_banned"] = banned
-			context["noindex"] = True if banned else False
-			context["is_own_profile"] = is_own_profile
-			context["ban_detail"] = ban_detail
-			context["time_remaining"] = time_remaining
-			context["ident"] = own_id
-			context["is_defender"] = is_defender
-			context["uname"] = username
-		return context
+		if target_id:
+			context["verified"] = True if username in FEMALES else False
+			context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
+			context["is_profile_banned"] = False
+			if self.request.user.is_authenticated():
+				own_id = self.request.user.id
+				is_defender, is_own_profile, ban_detail = in_defenders(own_id), str(own_id) == target_id, None
+				banned, time_remaining, ban_detail = check_content_and_voting_ban(target_id, with_details=True)
+				context["is_profile_banned"] = banned
+				context["noindex"] = True if banned else False
+				context["is_own_profile"] = is_own_profile
+				context["ban_detail"] = ban_detail
+				context["time_remaining"] = time_remaining
+				context["ident"] = own_id
+				context["is_defender"] = is_defender
+				context["uname"] = username
+			return context
+		else:
+			raise Http404("This user does not exist!")
 
 
 class UserSettingDetailView(DetailView):

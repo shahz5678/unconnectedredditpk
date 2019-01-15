@@ -33,7 +33,7 @@
 		<meta property="og:image:height" content="{{ photo_height }}">
 		<meta property="fb:app_id" content="1758220174446684" />
         {% google_analytics %}
-
+        {% include "amplitude_analytics.html" %}
 </head>
 <body style="background: #E9EBEE">
 
@@ -132,8 +132,9 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
   });
 }
+amplitude.getInstance().logEvent('photo_detail');
 </script>
-{% include "ga_ss.html" %}
+
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 {% transparent_buttons_js ident=user.id static_url=STATIC_URL %}
 </body>

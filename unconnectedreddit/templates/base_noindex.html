@@ -34,7 +34,6 @@ for(h=0;h<k.length;h++)e(d,k[h]);a._i.push([b,c,f])};a.__SV=1.2;b=e.createElemen
 mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <!-- end Mixpanel -->
     {% include "ga_user_analytics.html" with my_var=user.id %}
-    {% include "amplitude_analytics.html" %}
 </head>
 <body>
 {% load count %}
@@ -71,7 +70,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
 </div>
-
+    {% include "amplitude_analytics.html" %}
 <script type="text/javascript">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {

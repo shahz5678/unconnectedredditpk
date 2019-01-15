@@ -39,7 +39,6 @@ start Mixpanel <script type="text/javascript">(function(e,a){if(!a.__SV){var b=w
 0)))}}var d=a;"undefined"!==typeof f?d=a[f]=[]:f="mixpanel";d.people=d.people||[];d.toString=function(b){var a="mixpanel";"mixpanel"!==f&&(a+="."+f);b||(a+=" (stub)");return a};d.people.toString=function(){return d.toString(1)+".people (stub)"};k="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config reset people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
 for(h=0;h<k.length;h++)e(d,k[h]);a._i.push([b,c,f])};a.__SV=1.2;b=e.createElement("script");b.type="text/javascript";b.async=!0;b.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";c=e.getElementsByTagName("script")[0];c.parentNode.insertBefore(b,c)}})(document,window.mixpanel||[]);
 mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
-{% include "amplitude_analytics.html" %}
 </head>
 <body>
 {% include "ga_user_analytics.html" with my_var=user.id %}
@@ -77,7 +76,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|<a href="{% url 'init_classified' %}#section0"> &nbsp;Muft Ad Lagain&nbsp; </a>|
 </div>
-
+{% include "amplitude_analytics.html" %}
 <script type="text/javascript">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {

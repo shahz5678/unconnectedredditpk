@@ -599,7 +599,8 @@ def private_mehfil_oversight_dashboard(request):
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_change_topic.html','guid':group_uuid})
 				elif help_decision == '2':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_invite.html','guid':group_uuid,\
-						'max_owner_invites':MAX_OWNER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP})
+						'max_owner_invites':MAX_OWNER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP,\
+						'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '3':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_kick.html','guid':group_uuid})
 				elif help_decision == '4':
@@ -659,7 +660,8 @@ def private_mehfil_oversight_dashboard(request):
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_change_topic.html','guid':group_uuid})
 				elif help_decision == '2':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_invite.html','guid':group_uuid,\
-						'max_member_invites':MAX_MEMBER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP})
+						'max_member_invites':MAX_MEMBER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP,\
+						'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '6':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_ownership_request.html','guid':group_uuid})
 				elif help_decision == '7':
@@ -823,7 +825,7 @@ def public_mehfil_oversight_dashboard(request):
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_kick.html','guid':group_uuid})
 				elif help_decision == '3':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_invite.html','guid':group_uuid,\
-						'max_owner_invites':MAX_OWNER_INVITES_PER_PUBLIC_GROUP})
+						'max_owner_invites':MAX_OWNER_INVITES_PER_PUBLIC_GROUP,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '4':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_read_feedback.html','guid':group_uuid})
 				elif help_decision == '5':
@@ -904,7 +906,7 @@ def public_mehfil_oversight_dashboard(request):
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_kick.html','guid':group_uuid})
 				elif help_decision == '3':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_invite.html','guid':group_uuid,\
-						'max_officer_invites':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP})
+						'max_officer_invites':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '5':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_change_topic.html','guid':group_uuid})
 				elif help_decision == '7':
@@ -4608,7 +4610,7 @@ def private_group_invite_help(request):
 		if group_member_exists(group_id, own_id):
 			return render(request,'mehfil/private_group_invite_help.html',{'owner_max':MAX_OWNER_INVITES_PER_PRIVATE_GROUP,'guid':unique,\
 				'member_max':MAX_MEMBER_INVITES_PER_PRIVATE_GROUP,'one_less_owner':MAX_OWNER_INVITES_PER_PRIVATE_GROUP-1,\
-				'private_max_members': PRIVATE_GROUP_MAX_MEMBERSHIP})
+				'private_max_members': PRIVATE_GROUP_MAX_MEMBERSHIP,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4637,8 +4639,8 @@ def unaccepted_private_mehfil_invites(request):
 				invited_id = int(invite_id)
 				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
-			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,\
-				'show_instr':tutorial_unseen(user_id=own_id, which_tut='23', renew_lease=True),'females':FEMALES})
+			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES,\
+				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4678,7 +4680,8 @@ def cancel_closed_group_invite(request):
 				invited_id = int(invite_id)
 				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
-			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES})
+			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES,\
+				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
 			return redirect("group_page")
@@ -4796,7 +4799,8 @@ def public_group_invite_help(request):
 		own_id = str(request.user.id)
 		if group_owner_id == own_id or is_group_officer(group_id, own_id):
 			return render(request,'mehfil/public_group_invite_help.html',{'owner_max':MAX_OWNER_INVITES_PER_PUBLIC_GROUP,'guid':unique,\
-				'officer_max':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP,'one_less_owner':MAX_OWNER_INVITES_PER_PUBLIC_GROUP-1})
+				'officer_max':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP,'one_less_owner':MAX_OWNER_INVITES_PER_PUBLIC_GROUP-1,\
+				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4828,7 +4832,7 @@ def unaccepted_public_mehfil_invites(request):
 				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/open_group_invited_list.html',{'owner':is_owner,'guid':unique,'final_data':final_data,\
-				'show_instr':tutorial_unseen(user_id=own_id, which_tut='19', renew_lease=True),'females':FEMALES})
+				'females':FEMALES,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4870,10 +4874,12 @@ def cancel_open_group_invite(request):
 				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/open_group_invited_list.html',{'owner':True,'guid':unique,'final_data':final_data,\
-				'females':FEMALES})
+				'females':FEMALES,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
 			return redirect("public_group")
+
+
 	else:
 		# not a POST request
 		return redirect("public_group")

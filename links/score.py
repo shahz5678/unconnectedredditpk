@@ -7,7 +7,7 @@ PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
-CONTENT_SHARING_SHORT_RATELIMIT = 120#amount of time to wait between sharing posts (time pooled between home and photos) 
+CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing posts (time pooled between home and photos) 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 ################################################ Judgement Related Variables ##################################
@@ -75,11 +75,12 @@ GROUP_OFFICER_QUESTIONS = {'1':'Ap mehfil ka mahol khush gawar rakhney mein owne
 ###################################################
 
 ########## Invites in groups ##########
-INVITE_LOCK_DURATION = 1209600#2 weeks #use this key to disallow reinviting the same user again and again
+INVITE_LOCK_DURATION = 1209600#2 weeks - use this key to disallow reinviting the same user again and again
+CANCEL_INVITE_AFTER_TIME_PASSAGE = 259200#3 days after inviting, a public (or private) group owner can cancel their invite
+GROUP_INVITE_TTL = 604800#7 days ttl for group invites (public and private both). Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_INVITE_AFTER_TIME_PASSAGE to work
 MAX_OWNER_INVITES_PER_PUBLIC_GROUP = 30 #num users an owner can invite into a group within a week
-MAX_OFFICER_INVITES_PER_PUBLIC_GROUP = 10 #num users all officers can invite into a group within a week
-CANCEL_INVITE_AFTER_TIME_PASSAGE = 864000#10 days later, a public (or private) group owner can cancel an invite
 MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 3 #num users a priv mehfil owner can invite
+MAX_OFFICER_INVITES_PER_PUBLIC_GROUP = 10 #num users all officers can invite into a group
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP = 1 # num users a priv mehfil member can invite
 #######################################
 

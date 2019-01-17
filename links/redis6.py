@@ -2622,51 +2622,55 @@ def invite_allowed(group_id,inviter,is_public, inviter_id=None):
 
 
 
-def save_group_invite(group_id, target_id, time_now, is_public, sent_by=None, sent_by_id=None):
+def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, sent_by_id=None):
 	"""
-	Save a group invite in its respective sorted sets
+	Saving group invites in their respective sorted sets
 
 	Used for both public and private mehfil invites
 	These details are saved for each invite: group_privacy, inviter_id, invite_time
 	"""
-	group_id, target_id, expire_target_time = str(group_id), str(target_id), int(time_now+GROUP_INVITE_TTL)
-	user_invites_list = USER_INVITES+target_id
+	group_id, target_ids, expire_target_time = str(group_id), map(str,target_ids), int(time_now+GROUP_INVITE_TTL)
 	group_invites = GROUP_INVITES+group_id
-	invite_obj = USER_GROUP_INVITE_HASH+group_id+":"+target_id
+	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'it':time_now})
 	my_server = redis.Redis(connection_pool=POOL)
-
+	
 	pipeline1 = my_server.pipeline()
-	pipeline1.zadd(group_invites, target_id, time_now)
-	pipeline1.expireat(group_invites, expire_target_time)
-	pipeline1.zadd(user_invites_list, group_id, time_now)
-	pipeline1.expireat(user_invites_list,expire_target_time)
+	for target_id in target_ids:
+		user_invites_list = USER_INVITES+target_id
+		invite_obj = USER_GROUP_INVITE_HASH+group_id+":"+target_id
+		pipeline1.zadd(user_invites_list, group_id, time_now)
+		pipeline1.zadd(group_invites, target_id, time_now)
+		pipeline1.set(invite_obj,json_payload)
+		pipeline1.expireat(user_invites_list,expire_target_time)
+		pipeline1.expireat(group_invites, expire_target_time)
+		pipeline1.expireat(invite_obj,expire_target_time)
+		pipeline1.setex(GROUP_INVITE_LOCK+group_id+":"+target_id,'1',INVITE_LOCK_DURATION)
+	
 	if is_public:
 		# processing public mehfil invites
 		if sent_by == 'owner':
 			owner_invite_key = GROUP_OWNER_INVITES+group_id
-			pipeline1.zadd(owner_invite_key, target_id, time_now)
-			pipeline1.expireat(owner_invite_key, expire_target_time)
+			for target_id in target_ids:
+				pipeline1.zadd(owner_invite_key, target_id, time_now)
+				pipeline1.expireat(owner_invite_key, expire_target_time)
 		elif sent_by == 'officer':
 			officer_invite_key = GROUP_OFFICER_INVITES+group_id
-			pipeline1.zadd(officer_invite_key, target_id, time_now)
-			pipeline1.expireat(officer_invite_key, expire_target_time)
-		pipeline1.set(invite_obj,json.dumps({'p':'0','iid':sent_by_id,'it':time_now}))
-		pipeline1.expireat(invite_obj,expire_target_time)
+			for target_id in target_ids:
+				pipeline1.zadd(officer_invite_key, target_id, time_now)
+				pipeline1.expireat(officer_invite_key, expire_target_time)
 	else:
 		# processing private mehfil invites
 		if sent_by == 'owner':
 			owner_invite_key = PRIVATE_GROUP_OWNER_INVITES+group_id
-			pipeline1.zadd(owner_invite_key, target_id, time_now)
-			pipeline1.expireat(owner_invite_key, expire_target_time)
+			for target_id in target_ids:
+				pipeline1.zadd(owner_invite_key, target_id, time_now)
+				pipeline1.expireat(owner_invite_key, expire_target_time)
 		elif sent_by == 'member':
 			sent_by_id = str(sent_by_id)
 			member_invite_key = PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+sent_by_id
-			pipeline1.zadd(member_invite_key, target_id, time_now)
-			pipeline1.expireat(member_invite_key, expire_target_time)
-		pipeline1.set(invite_obj,json.dumps({'p':'1','iid':sent_by_id,'it':time_now}))
-		pipeline1.expireat(invite_obj,expire_target_time)
-	# set this key and use it to disallow reinviting the same user again and again
-	pipeline1.setex(GROUP_INVITE_LOCK+group_id+":"+target_id,'1',INVITE_LOCK_DURATION)
+			for target_id in target_ids:
+				pipeline1.zadd(member_invite_key, target_id, time_now)
+				pipeline1.expireat(member_invite_key, expire_target_time)
 	pipeline1.execute()
 
 

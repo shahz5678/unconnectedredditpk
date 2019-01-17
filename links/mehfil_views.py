@@ -4299,7 +4299,7 @@ def process_public_group_invite(request,*args, **kwargs):
 						reply = Reply.objects.create(text=invitee_username, category='1', which_group_id=group_id,writer_id=own_id)
 						add_group_invite(pk, group_id,reply.id)
 						############# REDIS 6 #############
-						save_group_invite(group_id=group_id, target_id=pk, time_now=time.time(),is_public=True,sent_by='owner' if is_owner else 'officer')# redis 6 function, remove add_group_invite (redis 1) later
+						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time.time(),is_public=True,sent_by='owner' if is_owner else 'officer')# redis 6 function, remove add_group_invite (redis 1) later
 						own_uname = retrieve_uname(own_id,decode=True)
 						partial_sentence = own_uname+" ne "+invitee_username
 						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time.time()))
@@ -4366,7 +4366,7 @@ def process_private_group_invite(request, *args, **kwargs):
 						if num_submissions > DELETION_THRESHOLD:
 							# delete extra submissions
 							trim_group_submissions.delay(group_id)
-						save_group_invite(group_id=group_id, target_id=pk, time_now=time_now,is_public=False, \
+						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time_now,is_public=False, \
 						sent_by='owner' if is_owner else 'member',sent_by_id=user_id)# redis 6 function, remove add_group_invite() (redis 1) later
 						invalidate_cached_mehfil_replies(group_id)
 						invalidate_presence(group_id)
@@ -4458,7 +4458,7 @@ class InviteUsersToPrivateGroupView(ListView):
 				own_id = str(self.request.user.id)
 				if group_member_exists(group_id, own_id):
 					user_ids = get_most_recent_online_users()#cache_mem.get('online')
-					# user_ids = [1,9, 11,22,33,44,55,66,77,88,99]
+					#user_ids = [114,113,128,164,132,123,133,150,160]
 					if user_ids:
 						users_purified = [pk for pk in user_ids if pk not in condemned]
 						non_invited_online_ids = bulk_check_group_invite(users_purified,group_id)# removes already invited users (redis 1 legacy function - remove)
@@ -4707,7 +4707,7 @@ class InviteUsersToGroupView(ListView):
 				allowed_to_invite = own_id == group_owner_id or is_group_officer(group_id,own_id)
 				if allowed_to_invite:
 					user_ids = get_most_recent_online_users()#cache_mem.get('online')
-					# user_ids = [3,9, 11,22,33,44,55,66,77,88,99]
+					#user_ids = [114,113,128,164,132,123,133,150,160]
 					if user_ids:
 						users_purified = [pk for pk in user_ids if pk not in condemned]
 						non_invited_online_ids = bulk_check_group_invite(users_purified, group_id)

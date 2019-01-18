@@ -25,7 +25,7 @@ KICK_DISCOUNT, GROUP_SIZE_PERCENTILE_CUTOFF, MAX_OFFICER_APPOINTMENTS_ALLWD, NUM
 OFFICER_APPLICATIONS_RATE_LIMIT, OFFICER_APP_ARCHIVE_EXPIRY_TIME, MAX_ARCHIVED_OFFICER_APPS_PER_GROUP, GROUP_TRANSACTION_RATE_LIMIT,FOLLOW_UP_REQUEST_RATE_LIMIT,\
 PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_REENTRY_LOCK, EXCESSIVE_ATTEMPTS_TO_CHANGE_TOPIC_RATE_LIMIT, MAX_TIME_BETWEEN_TOPIC_CHANGE_ATTEMPTS,\
 RULES_CHANGE_RATE_LIMIT, MAX_TIME_BETWEEN_RULE_CHANGE_ATTEMPTS, EXCESSIVE_ATTEMPTS_TO_CHANGE_RULES_RATE_LIMIT, TOPIC_LONG_RATE_LIMIT, TOPIC_SHORT_RATE_LIMIT,\
-NUM_RULES_CHANGE_ATTEMPTS_ALLOWED, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, FEEDBACK_TTL, FEEDBACK_RATELIMIT, FEEDBACK_CACHE
+NUM_RULES_CHANGE_ATTEMPTS_ALLOWED, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, FEEDBACK_TTL, FEEDBACK_RATELIMIT, FEEDBACK_CACHE, GROUP_INVITE_TTL
 from redis4 import retrieve_bulk_unames, retrieve_uname, retrieve_bulk_credentials, retrieve_credentials
 from redis1 import remove_group_invite, legacy_mehfil_exit
 from redis3 import exact_date
@@ -129,6 +129,7 @@ TEMPORARY_GROUP_CREDENTIALS_STORE = "tgcs:"#temporarily stores group credentials
 
 ######################## Handling group membership and invites ########################
 
+USER_GROUP_INVITE_HASH = 'ugi:'#hash key holding details of a sent invite (e.g. group_privacy, inviter_id, invite_time)
 PUBLIC_GROUPS_USER_IS_A_MEMBER_OF = 'upubg:' #sorted set containing group_ids of public groups a user is a member of
 PRIVATE_GROUPS_USER_IS_A_MEMBER_OF = 'uprvg:' #sorted set containing group_ids of private groups a user is a member of
 USER_INVITES = "ui:"#sorted set holding all group ids a user has been invited to
@@ -144,6 +145,7 @@ PRIVATE_GROUP_OWNER_INVITES = 'pgowi:'#sorted set containing invites sent by pri
 GROUP_INVITE_LOCK = 'giv:'# key that locks further invites to a user from a certain group
 GROUP_EXITING_LOCKED = 'gel:'# key used to rate limit users from joining and then abruptly leaving a public mehfil
 GROUP_REENTRY_LOCKED = 'grl:'# key used to rate limit users from rejoining a group immediately after exiting
+EXPIRING_GROUP_INVITES_RATE_LIMIT = 'egirl:'# key used to rate limit auto invite culling in groups
 
 ##################################### Punishing group users #####################################
 
@@ -302,6 +304,38 @@ def human_readable_time(future_time_in_seconds):
 			return "kuch waqt"
 	except (NameError,TypeError):
 		return "kuch waqt"
+
+
+def bulk_update_sorted_set_ttl(set_list,my_server=None):
+	"""
+	Updates the ttl of the sorted sets passed to this function
+
+	The function is passed a list of tuples which contains [(sorted set key-names, type_string), ...]
+	The new ttl is always set to the ttl of the latest entrant in the sorted set
+	'user_invites' denotes USER_INVITES+user_id
+	'group_invites' denotes GROUP_INVITES+group_id
+	'group_owner_invites' denotes GROUP_OWNER_INVITES+group_id
+	'group_officer_invites' denotes GROUP_OFFICER_INVITES+group_id
+	'private_group_owner_invites' denotes PRIVATE_GROUP_OWNER_INVITES+group_id
+	'private_group_member_invites' denotes PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+inviter_id
+	"""
+	if set_list:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		for sorted_set, type_string in set_list:
+			current_latest_item = my_server.zrange(sorted_set,-1,-1)
+			if current_latest_item:
+				current_latest_item = current_latest_item[0]
+				if type_string in ('group_invites','group_owner_invites','group_officer_invites','private_group_owner_invites',\
+					'private_group_member_invites'):
+					group_id = sorted_set.split(":")[1]
+					hash_key = USER_GROUP_INVITE_HASH+group_id+":"+current_latest_item#'current_latest_item' is invite user's ID
+				elif type_string == 'user_invites':
+					invitee_id = sorted_set.split(":")[1]
+					hash_key = USER_GROUP_INVITE_HASH+current_latest_item+":"+invitee_id#'current_latest_item' is group ID in this scenario
+				ttl = my_server.ttl(hash_key)# getting the relevant invite obj's expiry time
+				if ttl > 0:
+					my_server.expire(sorted_set,ttl)# settng the expiry time of the relevant sorted set
+
 
 ############################## Group creation and content submission ##############################
 
@@ -2454,19 +2488,108 @@ def filter_non_recents(user_ids,group_id,time_now):
 		return []
 
 
+def retrieve_expired_group_invites(group_id, my_server=None, override_rl=False):
+	"""
+	Scans group invites to isolate 'expired' invites (i.e. invites that were neither accepted, nor cancelled by sender)
+
+	Also sets a micro rate-limit so that this lengthy process is not called again and again
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	ttl = 0 if override_rl else my_server.ttl(EXPIRING_GROUP_INVITES_RATE_LIMIT+group_id)
+	if ttl > 0:
+		return []
+	else:
+		expired_invites = []
+		all_invited_users = my_server.zrevrange(GROUP_INVITES+group_id,0,-1)
+		if all_invited_users:
+			invite_keys = []
+			for invitee_id in all_invited_users:
+				invite_keys.append(USER_GROUP_INVITE_HASH+group_id+":"+invitee_id)# invite hash key
+			pipeline1 = my_server.pipeline()
+			for invite_key in invite_keys:
+				pipeline1.exists(invite_key)
+			existing_invites, counter = pipeline1.execute(), 0
+			for invite in existing_invites:
+				if not invite:
+					expired_invites.append(invite_keys[counter].split(":")[2])#appending invitee_id for invite whose hashes have expired
+				counter += 1
+		my_server.setex(EXPIRING_GROUP_INVITES_RATE_LIMIT+group_id,'1',MICRO_CACHE_TTL)
+		return expired_invites
+
+
+def cleanse_expired_group_invites(group_id, expired_invitee_ids, my_server=None):
+	"""
+	Removes group invites that have 'expired'
+
+	A group invite 'expires' when it has been unattended for a long time (i.e. neither accepted, nor cancelled by the sender)
+	"""
+	sets_to_update = []
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for invitee_id in expired_invitee_ids:
+		user_invite_key = USER_INVITES+invitee_id
+		pipeline1.zrem(user_invite_key,group_id)# cleansing user_invites for affected users
+		sets_to_update.append((user_invite_key,'user_invites'))
+	pipeline1.execute()
+	my_server.zrem(GROUP_INVITES+group_id,*expired_invitee_ids)# sanitize expired invites
+	sets_to_update.append((GROUP_INVITES+group_id,'group_invites'))
+	##############
+	privacy = my_server.hget(GROUP+group_id,'p')
+	if privacy == '0':
+		# public group
+		my_server.zrem(GROUP_OWNER_INVITES+group_id,*expired_invitee_ids)# sanitize inviter set
+		sets_to_update.append((GROUP_OWNER_INVITES+group_id,'group_owner_invites'))
+		my_server.zrem(GROUP_OFFICER_INVITES+group_id,*expired_invitee_ids)# sanitize inviter set
+		sets_to_update.append((GROUP_OFFICER_INVITES+group_id,'group_officer_invites'))
+	else:
+		# private group
+		my_server.zrem(PRIVATE_GROUP_OWNER_INVITES+group_id,*expired_invitee_ids)# sanitize inviter set
+		sets_to_update.append((PRIVATE_GROUP_OWNER_INVITES+group_id,'private_group_owner_invites'))
+		inviter_ids = my_server.zrange(GROUP_MEMBERS+group_id,0,-1)# all member_ids of private group
+		if len(inviter_ids) > 4:
+			pipeline2 = my_server.pipeline()
+			for inviter_id in inviter_ids:
+				key = PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+inviter_id
+				pipeline2.zrem(key, *expired_invitee_ids)
+				sets_to_update.append((key,'private_group_member_invites'))
+			pipeline2.execute()
+		else:
+			for inviter_id in inviter_ids:
+				key = PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+inviter_id
+				my_server.zrem(key, *expired_invitee_ids)
+				sets_to_update.append((key,'private_group_member_invites'))
+	bulk_update_sorted_set_ttl(set_list=sets_to_update,my_server=my_server)
+
+
 def retrieve_outstanding_invite_report(group_id):
 	"""
-	Retrieves all outstanding invites sent out in a group
+	Retrieves all outstanding invites sent out in a group (used in invite-cancellation flow)
+
+	Cull invites that have expired (and replenishes relevant inviter's counts)
 	"""
-	return redis.Redis(connection_pool=POOL).zrevrange(GROUP_INVITES+str(group_id),0,-1,withscores=True)	
+	group_id = str(group_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	########################## Expiring invites #########################
+	expired_invites = retrieve_expired_group_invites(group_id, my_server)
+	if expired_invites:
+		cleanse_expired_group_invites(group_id, expired_invites, my_server)
+	#####################################################################
+	return my_server.zrevrange(GROUP_INVITES+group_id,0,-1,withscores=True)	
 
 
 def invite_allowed(group_id,inviter,is_public, inviter_id=None):
 	"""
-	Lets user know whether they're able to send an invite
+	Checks whether a user is able to send an invite (used in process_private_group_invite() and process_public_group_invite())
+
+	Reclaim expired invites before checking allowance
 	"""
 	group_id = str(group_id)
 	my_server = redis.Redis(connection_pool=POOL)
+	########################## Expiring invites #########################
+	# expired_invites = retrieve_expired_group_invites(group_id, my_server)
+	# if expired_invites:
+	# 	cleanse_expired_group_invites(group_id, expired_invites, my_server)
+	#####################################################################
 	if is_public:
 		if inviter == 'owner':
 			if MAX_OWNER_INVITES_PER_PUBLIC_GROUP - my_server.zcard(GROUP_OWNER_INVITES+group_id) > 0:
@@ -2499,31 +2622,58 @@ def invite_allowed(group_id,inviter,is_public, inviter_id=None):
 
 
 
-def save_group_invite(group_id, target_id, time_now, is_public, sent_by=None, sent_by_id=None):
+def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, sent_by_id=None, sent_by_uname=None, group_uuid=None):
 	"""
-	Save a group invite in its respective sorted sets
+	Saving group invites in their respective sorted sets
 
 	Used for both public and private mehfil invites
+	These details are saved for each invite: group_privacy, inviter_id, invite_time
 	"""
-	group_id, target_id = str(group_id), str(target_id)
+	group_id, target_ids, expire_target_time = str(group_id), map(str,target_ids), int(time_now+GROUP_INVITE_TTL)
+	group_invites = GROUP_INVITES+group_id
+	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'it':time_now})
+	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'it':time_now})
+	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'iun':sent_by_uname,'it':time_now,'gid':group_id,'uuid':group_uuid})
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zadd(GROUP_INVITES+group_id, target_id, time_now)
-	my_server.zadd(USER_INVITES+target_id, group_id, time_now)
+	
+	pipeline1 = my_server.pipeline()
+	for target_id in target_ids:
+		user_invites_list = USER_INVITES+target_id
+		invite_obj = USER_GROUP_INVITE_HASH+group_id+":"+target_id
+		pipeline1.zadd(user_invites_list, group_id, time_now)
+		pipeline1.zadd(group_invites, target_id, time_now)
+		pipeline1.set(invite_obj,json_payload)
+		pipeline1.expireat(user_invites_list,expire_target_time)
+		pipeline1.expireat(group_invites, expire_target_time)
+		pipeline1.expireat(invite_obj,expire_target_time)
+		pipeline1.setex(GROUP_INVITE_LOCK+group_id+":"+target_id,'1',INVITE_LOCK_DURATION)
+	
 	if is_public:
 		# processing public mehfil invites
 		if sent_by == 'owner':
-			my_server.zadd(GROUP_OWNER_INVITES+group_id, target_id, time_now)
+			owner_invite_key = GROUP_OWNER_INVITES+group_id
+			for target_id in target_ids:
+				pipeline1.zadd(owner_invite_key, target_id, time_now)
+				pipeline1.expireat(owner_invite_key, expire_target_time)
 		elif sent_by == 'officer':
-			my_server.zadd(GROUP_OFFICER_INVITES+group_id, target_id, time_now)
+			officer_invite_key = GROUP_OFFICER_INVITES+group_id
+			for target_id in target_ids:
+				pipeline1.zadd(officer_invite_key, target_id, time_now)
+				pipeline1.expireat(officer_invite_key, expire_target_time)
 	else:
 		# processing private mehfil invites
 		if sent_by == 'owner':
-			my_server.zadd(PRIVATE_GROUP_OWNER_INVITES+group_id, target_id, time_now)
+			owner_invite_key = PRIVATE_GROUP_OWNER_INVITES+group_id
+			for target_id in target_ids:
+				pipeline1.zadd(owner_invite_key, target_id, time_now)
+				pipeline1.expireat(owner_invite_key, expire_target_time)
 		elif sent_by == 'member':
 			sent_by_id = str(sent_by_id)
-			my_server.zadd(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+sent_by_id, target_id, time_now)
-	# set this key and use it to disallow reinviting the same user again and again
-	my_server.setex(GROUP_INVITE_LOCK+group_id+":"+target_id,'1',INVITE_LOCK_DURATION)
+			member_invite_key = PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+sent_by_id
+			for target_id in target_ids:
+				pipeline1.zadd(member_invite_key, target_id, time_now)
+				pipeline1.expireat(member_invite_key, expire_target_time)
+	pipeline1.execute()
 
 
 def reinviting(group_id, target_id):
@@ -2540,20 +2690,55 @@ def reinviting(group_id, target_id):
 		return None
 
 
-def group_invite_exists(group_id, user_id):
+def group_invite_exists(group_id, user_id, privacy='1'):
 	"""
 	Check if invite exists for a certain group (for a certain user)
 
 	Unused at the moment, should be used in left_private_group()
 	"""
-	return redis.Redis(connection_pool=POOL).zscore(USER_INVITES+str(user_id), group_id)
+	group_id, user_id = str(group_id), str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(USER_GROUP_INVITE_HASH+group_id+":"+user_id):
+		return True
+	else:
+		# first culling invites since it's opportune, then returning 'False'
+		#####################################################################
+		expired_invites = retrieve_expired_group_invites(group_id, my_server)
+		if expired_invites:
+			cleanse_expired_group_invites(group_id, expired_invites, my_server)
+		#####################################################################
+		return False
 
 
-# def retrieve_user_group_invites(user_id):
-# 	"""
-# 	Retrieves all groups user has been invited to
-# 	"""
-# 	return redis.Redis(connection_pool=POOL).zrange(USER_INVITES+str(user_id),0,-1)   
+def retrieve_user_group_invites(user_id):
+	"""
+	Retrieves all groups user has been invited to (useful for populating group_list)
+
+	Cull expired invites too while we're at it
+	TODO: paginate this (take help from get_top_50_reporters())
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	all_invited_groups = my_server.zrevrange(USER_INVITES+user_id,0,-1)
+	if all_invited_groups:
+		invite_keys = []
+		for group_id in all_invited_groups:
+			invite_keys.append(USER_GROUP_INVITE_HASH+group_id+":"+user_id)
+		invite_data_list = my_server.mget(*invite_keys)
+		invite_data, expired_invites, counter = [], [], 0
+		for json_invite in invite_data_list:
+			if json_invite:
+				invite_data.append(json.loads(json_invite))
+			else:
+				expired_invites.append(invite_keys[counter].split(":")[1])#appending group_id of invites that have expired
+			counter += 1
+		if expired_invites:
+			set_name = USER_INVITES + user_id
+			my_server.zrem(set_name,*expired_invites)
+			bulk_update_sorted_set_ttl(set_list=[(set_name,'user_invites')],my_server=my_server)
+		return invite_data
+	else:
+		return [] 
 
 
 def cancel_invite(group_id, member_id, is_public, time_now):
@@ -2586,43 +2771,37 @@ def purge_group_invitation(group_id, member_id, is_public=None, my_server=None):
 	"""
 	Removing invitations associated to a group
 
-	Used when user declines public or private mehfil invite
+	Used when user declines or accepts a public/private mehfil invite
 	Also used if open/closed mehfil owner cancels a 'stale' invite
-	Also used if an invitee accepts an invite
+	The sole case it isn't called is when an invite auto-expires
+	Cull expired invites too while we're at it
 	"""
 	group_id, member_id = str(group_id), str(member_id)
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	my_server.zrem(GROUP_INVITES+group_id, member_id)
-	my_server.zrem(USER_INVITES+member_id, group_id)
-	if is_public:
-		# decrement invite from whoever invited's sorted set
-		my_server.zrem(GROUP_OWNER_INVITES+group_id, member_id)
-		my_server.zrem(GROUP_OFFICER_INVITES+group_id, member_id)
-	else:
-		my_server.zrem(PRIVATE_GROUP_OWNER_INVITES+group_id, member_id)
-		inviter_ids = my_server.zrange(GROUP_MEMBERS+group_id,0,-1)# all member_ids of private group
-		if len(inviter_ids) > 4:
-			pipeline1 = my_server.pipeline()
-			for inviter_id in inviter_ids:
-				pipeline1.zrem(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+inviter_id, member_id)
-			pipeline1.execute()
-		else:
-			for inviter_id in inviter_ids:
-				my_server.zrem(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+inviter_id, member_id)
-
+	my_server.delete(USER_GROUP_INVITE_HASH+group_id+":"+member_id)# just delete this hash; the snippet below will take care of everything else
+	########################### Culling invites #########################
+	expired_invites = retrieve_expired_group_invites(group_id, my_server, override_rl=True)# override rate-limit, this must ALWAYS be run
+	if expired_invites:
+		# 'expired invites' should now contain the invite related to the hash we deleted upstairs (including any other expired invites)
+		cleanse_expired_group_invites(group_id, expired_invites, my_server)
+	#####################################################################
+	
 
 def invalidate_all_group_invites(group_id, is_public, my_server=None, member_ids=None):
 	"""
-	Removes all group invites occuring in user sorted sets
+	Removes all group invites (including their occurances in user sorted sets)
 
-	Useful when deleting the entire group
+	Used when deleting the entire group
 	"""
 	invite_key = GROUP_INVITES+group_id
-	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)	
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	invited_users_who_didnt_accept = my_server.zrange(invite_key,0,-1)
-	pipeline1 = my_server.pipeline()
+	pipeline1, sets_to_update = my_server.pipeline(), []
 	for user_id in invited_users_who_didnt_accept:
-		pipeline1.zrem(USER_INVITES+user_id,group_id)# removing outstanding invites for invitees since group is being deleted
+		user_invite_key = USER_INVITES+user_id
+		pipeline1.zrem(user_invite_key,group_id)# removing outstanding invites for invitees since group is being deleted
+		pipeline1.delete(USER_GROUP_INVITE_HASH+group_id+":"+user_id)
+		sets_to_update.append((user_invite_key,'user_invites'))# only update affected users' sorted sets' TTLs, no need to touch group's sets since it's being deleted
 	pipeline1.delete(invite_key)
 	if is_public:
 		pipeline1.delete(GROUP_OFFICER_INVITES+group_id)
@@ -2632,6 +2811,7 @@ def invalidate_all_group_invites(group_id, is_public, my_server=None, member_ids
 			pipeline1.delete(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+member_id)
 		pipeline1.delete(PRIVATE_GROUP_OWNER_INVITES+group_id)
 	pipeline1.execute()
+	bulk_update_sorted_set_ttl(set_list=sets_to_update,my_server=my_server)
 
 
 def retrieve_closed_group_remaining_invites(unique,user_type,inviter_id):
@@ -2643,10 +2823,10 @@ def retrieve_closed_group_remaining_invites(unique,user_type,inviter_id):
 	if group_id:
 		if user_type == 'owner':
 			max_invites = MAX_OWNER_INVITES_PER_PRIVATE_GROUP
-			invites_used = redis.Redis(connection_pool=POOL).zcard(PRIVATE_GROUP_OWNER_INVITES+group_id)
+			invites_used = my_server.zcard(PRIVATE_GROUP_OWNER_INVITES+group_id)
 		elif user_type == 'member':
 			max_invites = MAX_MEMBER_INVITES_PER_PRIVATE_GROUP
-			invites_used = redis.Redis(connection_pool=POOL).zcard(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+str(inviter_id))
+			invites_used = my_server.zcard(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+str(inviter_id))
 		else:
 			return -1
 		return max_invites - invites_used
@@ -2674,7 +2854,6 @@ def retrieve_closed_group_remaining_invites(unique,user_type,inviter_id):
 			return -1
 
 
-
 def retrieve_open_group_remaining_invites(unique,user_type):
 	"""
 	Retrieves number of invites remaining in public mehfil
@@ -2684,10 +2863,10 @@ def retrieve_open_group_remaining_invites(unique,user_type):
 	if group_id:
 		if user_type == 'owner':
 			max_invites = MAX_OWNER_INVITES_PER_PUBLIC_GROUP
-			invites_used = redis.Redis(connection_pool=POOL).zcard(GROUP_OWNER_INVITES+group_id)
+			invites_used = my_server.zcard(GROUP_OWNER_INVITES+group_id)
 		elif user_type == 'officer':
 			max_invites = MAX_OFFICER_INVITES_PER_PUBLIC_GROUP
-			invites_used = redis.Redis(connection_pool=POOL).zcard(GROUP_OFFICER_INVITES+group_id)
+			invites_used = my_server.zcard(GROUP_OFFICER_INVITES+group_id)
 		else:
 			return -1
 		return max_invites - invites_used
@@ -2717,11 +2896,18 @@ def retrieve_open_group_remaining_invites(unique,user_type):
 
 def show_public_group_invite_instructions(unique,own_id):
 	"""
-	Should invite related instructions be shown in public group invite page? 
+	Should invite related instructions be shown in public group invite page?
+
+	Opportune time to cull expired invites too
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+str(unique)) if unique else None
 	if group_id:
+		########################### Culling invites #########################
+		expired_invites = retrieve_expired_group_invites(group_id, my_server)
+		if expired_invites:
+			cleanse_expired_group_invites(group_id, expired_invites, my_server)
+		#####################################################################
 		group_owner_id, seen_invite_instr = my_server.hmget(GROUP+group_id,'oi','ii')# 'ii' is invite_instructions
 		if group_owner_id == str(own_id):
 			instr_type = 'owner'
@@ -2755,6 +2941,8 @@ def show_public_group_invite_instructions(unique,own_id):
 				instr_type = 'owner'
 			elif is_group_officer(group_id,own_id, my_server=my_server):
 				instr_type = 'officer'
+
+
 			else:
 				instr_type = None
 			return True, instr_type
@@ -2764,11 +2952,18 @@ def show_public_group_invite_instructions(unique,own_id):
 
 def show_private_group_invite_instructions(unique,own_id):
 	"""
-	Should invite related instructions be shown in private group invite page? 
+	Should invite related instructions be shown in private group invite page?
+
+	Opportune time to cull expired invites too
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+str(unique)) if unique else None
 	if group_id:
+		########################### Culling invites #########################
+		expired_invites = retrieve_expired_group_invites(group_id, my_server)
+		if expired_invites:
+			cleanse_expired_group_invites(group_id, expired_invites, my_server)
+		#####################################################################
 		group_owner_id, seen_invite_instr = my_server.hmget(GROUP+group_id,'oi','pii')# 'pii' is private_invite_instructions
 		if group_owner_id == str(own_id):
 			instr_type = 'owner'
@@ -2807,7 +3002,7 @@ def show_private_group_invite_instructions(unique,own_id):
 			return True, instr_type
 		else:
 			return None, None
-			
+
 
 ##################################### Kicking or (un)kicking group users #####################################
 
@@ -4044,7 +4239,7 @@ def permanently_delete_group(group_id, group_type, return_member_ids=False):
 	else:
 		# handling deletion for private mehfils
 		all_submission_ids = my_server.zrange(GROUP_SUBMISSION_LIST+group_id,0,-1)
-		topic_ids = my_server.zrange(GROUP_TOPIC_LIST+group_id,0,-1)#checked
+		topic_ids = my_server.zrange(GROUP_TOPIC_LIST+group_id,0,-1)
 		pipeline1 = my_server.pipeline()
 		for submission_id in all_submission_ids:
 			pipeline1.delete(GROUP_SUBMISSION_HASH+group_id+":"+submission_id)

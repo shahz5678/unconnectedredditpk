@@ -5,9 +5,9 @@
 	<input type="hidden" name="org" value="{{ org }}">
 	<input type="hidden" name="hh" value="{{ home_hash }}">
 {% if is_already_fan %}
-	<button name="sid_btn" style="border:1px solid lightgray;width:50px;height:42px;padding:0;text-align:center" class="vt" type="submit" value="{{ tid }}"><img src="{{ static_url }}img/unfan.svg" class="mt" width="15" height="15"><br><div style="font-size:8.2px" class="mts cgy">UNFAN</div></button>
+	<button name="sid_btn" style="border:1px solid lightgray;width:50px;height:42px;padding:0;text-align:center" class="vt" type="submit" value="{{ tid }}"><div><img src="{{ static_url }}img/unfan.svg" class="mt" width="15" height="15"></div><div style="font-size:8.2px" class="mt"><span class="cgy">UNFAN</span></div></button>
 {% else %}
-	<button name="sid_btn" style="border:1px solid {{ border_color }};width:50px;height:42px;padding:0;text-align:center" class="vt" type="submit" value="{{ tid }}"><img src="{{ static_url }}img/fan.svg" class="mt" width="15" height="15"><br><div class="mt" style="font-size:8.2px;color:#e6b800">FAN</div></button>
+	<button name="sid_btn" style="border:1px solid {{ border_color }};width:50px;height:42px;padding:0;text-align:center" class="vt" type="submit" value="{{ tid }}"><div><img src="{{ static_url }}img/fan.svg" class="mt" width="15" height="15"></div><div style="font-size:8.2px;color:#e6b800" class="mt">FAN</div></button>
 {% endif %}
 </form>
 {% endif %}

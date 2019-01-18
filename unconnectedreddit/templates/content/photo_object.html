@@ -55,7 +55,7 @@
 		<div class="mls" style="color:gray">--- --- ---</div>
 		{% else %}
 		<div class="mls" style="overflow:hidden;max-width:400px;margin-bottom:4px">
-		<b class="cl clb mrs lsp" itemprop="caption"><bdi>{{ cap }}</bdi></b>{% if is_fbs == '1' %}<span class="cxs sp cgy">(fbs)</span>{% endif %}
+		<b class="cl clb mrs lsp" itemprop="caption"><bdi>{{ cap }}</bdi></b>{% if is_fbs == '1' %}<span class="cxs sp cgy">(fbs)</span>{% endif %}&nbsp;<span class="sp cxs cgy">- {{ ut }}</span>
 		</div>
 		{% endif %}
 		<form style="padding-right:3px;display:{{ report_display }}" method="POST" action="{% url 'report_or_block' %}">

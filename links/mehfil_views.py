@@ -4299,8 +4299,8 @@ def process_public_group_invite(request,*args, **kwargs):
 						reply = Reply.objects.create(text=invitee_username, category='1', which_group_id=group_id,writer_id=own_id)
 						add_group_invite(pk, group_id,reply.id)
 						############# REDIS 6 #############
-						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time.time(),is_public=True,sent_by='owner' if is_owner else 'officer')# redis 6 function, remove add_group_invite (redis 1) later
 						own_uname = retrieve_uname(own_id,decode=True)
+						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time.time(),is_public=True,sent_by='owner' if is_owner else 'officer',sent_by_id=own_id,sent_by_uname=own_uname,group_uuid=uuid)# redis 6
 						partial_sentence = own_uname+" ne "+invitee_username
 						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time.time()))
 						document_administrative_activity.delay(group_id, main_sentence, 'public_invite')
@@ -4366,8 +4366,7 @@ def process_private_group_invite(request, *args, **kwargs):
 						if num_submissions > DELETION_THRESHOLD:
 							# delete extra submissions
 							trim_group_submissions.delay(group_id)
-						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time_now,is_public=False, \
-						sent_by='owner' if is_owner else 'member',sent_by_id=user_id)# redis 6 function, remove add_group_invite() (redis 1) later
+						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time.time(),is_public=True,sent_by='owner' if is_owner else 'officer',sent_by_id=user_id,sent_by_uname=own_uname,group_uuid=uuid)# redis 6
 						invalidate_cached_mehfil_replies(group_id)
 						invalidate_presence(group_id)
 						partial_sentence = own_uname+" ne "+invitee_username

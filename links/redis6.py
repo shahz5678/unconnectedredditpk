@@ -2622,7 +2622,7 @@ def invite_allowed(group_id,inviter,is_public, inviter_id=None):
 
 
 
-def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, sent_by_id=None):
+def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, sent_by_id=None, sent_by_uname=None, group_uuid=None):
 	"""
 	Saving group invites in their respective sorted sets
 
@@ -2632,6 +2632,8 @@ def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, s
 	group_id, target_ids, expire_target_time = str(group_id), map(str,target_ids), int(time_now+GROUP_INVITE_TTL)
 	group_invites = GROUP_INVITES+group_id
 	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'it':time_now})
+	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'it':time_now})
+	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'iun':sent_by_uname,'it':time_now,'gid':group_id,'uuid':group_uuid})
 	my_server = redis.Redis(connection_pool=POOL)
 	
 	pipeline1 = my_server.pipeline()

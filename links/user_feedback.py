@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
 from website_feedback_form import WebsiteDescriptiveFeedbackForm, WebsiteFeedbackUserDetailsForm, WebsiteChoicesFeedbackForm
-from redis1 import clean_up_feedback, get_website_feedback, save_website_feedback_user_details, save_website_feedback, first_time_feedbacker, \
-add_website_feedbacker
+# from redis1 import clean_up_feedback, get_website_feedback, save_website_feedback_user_details, save_website_feedback, first_time_feedbacker, \
+# add_website_feedbacker
 from views import convert_to_epoch
 from models import HellBanList
 

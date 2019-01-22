@@ -1,6 +1,6 @@
 from operator import itemgetter
 from home_post_rating_algos import wilson_score, aggregate_post_score
-from redis1 import set_best_posts_on_home, retrieve_all_home_links_with_scores
+# from redis1 import set_best_posts_on_home, retrieve_all_home_links_with_scores
 
 def get_upvotes_and_downvotes(post_and_votes):
 	all_those_who_voted = []

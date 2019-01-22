@@ -1,4 +1,4 @@
-from .redis1 import get_website_feedback
+from redis7 import get_website_feedback
 from .redis3 import retrieve_erroneous_passwords
 from django.shortcuts import redirect, render
 import csv

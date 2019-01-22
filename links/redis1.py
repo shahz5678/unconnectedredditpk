@@ -317,19 +317,7 @@ def del_delay_cricket_match(final_status,match_id):
 		pipeline1.expire(cricket,TWENTY_MINS)
 		pipeline1.expire(match_comments,ONE_WEEK)
 		pipeline1.execute()
-
-#####################Authorization#####################
-
-def account_creation_disallowed(ip):
-	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.exists("ip:"+str(ip)):
-		return True
-	else:
-		return False
-
-def account_created(ip,username):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.setex("ip:"+str(ip),username,FOUR_MINS)
+		
 
 # def insert_nickname(username):
 # 	my_server = redis.Redis(connection_pool=POOL)

@@ -16,7 +16,7 @@ GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan, Group
-from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
+#from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, \
@@ -34,15 +34,12 @@ get_active_fans, skip_private_chat_notif, clean_expired_notifications, get_top_1
 remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, sanitize_eachothers_unseen_activities,\
 update_private_chat_notif_object, update_private_chat_notifications, set_uploader_score, bulk_remove_multiple_group_notifications, \
 update_group_topic_in_obj
-from redis1 import get_group_members, set_best_photo, get_best_photo, get_previous_best_photo, \
-add_photos_to_best, account_created, get_current_cricket_match, del_cricket_match, set_latest_group_reply,\
-update_cricket_match, del_delay_cricket_match, get_cricket_ttl, get_prev_status, delete_photo_report, \
-cleanse_public_and_private_groups_data
 # photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
 from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
-log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members
+log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
+retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
-cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers
+cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -326,9 +323,7 @@ def sanitize_unused_ecomm_photos(photo_ids=None):
 		images_and_hashes = qset.values_list('image_file','avg_hash')#flat=True)
 		image_names, avg_hashes= zip(*images_and_hashes)
 		qset.delete()
-		# deleting actual images+thumbnails in azure storage
-		delete_avg_hash(avg_hashes,categ='ecomm')
-		# delete_from_blob(image_names)
+
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
 def set_user_binding_with_twilio_notify_service(user_id,phone_number):
@@ -350,32 +345,32 @@ def calc_ecomm_metrics():
 	insert_latest_metrics()
 
 
-@celery_app1.task(name='tasks.log_gibberish_writer')
-def log_gibberish_writer(user_id,text,length_of_text):
-	if length_of_text > 10 and ' ' not in text:
-		log_gibberish_text_writer(user_id)
-		# log_spam_text_writer(user_id, text)
-	else:
-		tokens = text[:12].split()
-		if len(tokens) > 1:
-			first_word = tokens[0]
-			len_first_word = len(first_word)
-			offset = text[len_first_word:].find(first_word)
-			if offset > -1:
-				first_start = len_first_word+offset
-				first_end = first_start+len_first_word
-				first_repetition = text[first_start:first_end]
-				if first_word == first_repetition:
-					second_start = first_end + offset
-					second_end = second_start+len_first_word
-					second_repetition = text[second_start:second_end]
-					if first_repetition == second_repetition:
-						third_start = second_end + offset
-						third_end = third_start + len_first_word
-						third_repetition = text[third_start:third_end]
-						if third_repetition == second_repetition:
-							log_gibberish_text_writer(user_id)
-							# log_spam_text_writer(user_id, text)
+# @celery_app1.task(name='tasks.log_gibberish_writer')
+# def log_gibberish_writer(user_id,text,length_of_text):
+# 	if length_of_text > 10 and ' ' not in text:
+# 		log_gibberish_text_writer(user_id)
+# 		# log_spam_text_writer(user_id, text)
+# 	else:
+# 		tokens = text[:12].split()
+# 		if len(tokens) > 1:
+# 			first_word = tokens[0]
+# 			len_first_word = len(first_word)
+# 			offset = text[len_first_word:].find(first_word)
+# 			if offset > -1:
+# 				first_start = len_first_word+offset
+# 				first_end = first_start+len_first_word
+# 				first_repetition = text[first_start:first_end]
+# 				if first_word == first_repetition:
+# 					second_start = first_end + offset
+# 					second_end = second_start+len_first_word
+# 					second_repetition = text[second_start:second_end]
+# 					if first_repetition == second_repetition:
+# 						third_start = second_end + offset
+# 						third_end = third_start + len_first_word
+# 						third_repetition = text[third_start:third_end]
+# 						if third_repetition == second_repetition:
+# 							log_gibberish_text_writer(user_id)
+# 							# log_spam_text_writer(user_id, text)
 
 # @celery_app1.task(name='tasks.set_section_retention')
 # def set_section_retention(which_section, user_id):
@@ -633,7 +628,7 @@ def construct_administrative_activity(punisher_id, target_id, time_now, group_id
 
 @celery_app1.task(name='tasks.cleanse_complainers')
 def cleanse_complainers():
-    cleanse_inactive_complainers()
+	cleanse_inactive_complainers()
 
 
 @celery_app1.task(name='tasks.rank_mehfils')
@@ -688,7 +683,7 @@ def delete_idle_public_and_private_groups():
 
 	grp_ids_and_members = delete_ghost_groups()#redis6
 	bulk_remove_multiple_group_notifications(grp_ids_and_members)#redis2
-	cleanse_public_and_private_groups_data(grp_ids_and_members)#redis1 (DEPRECATE THIS ENTIRE FUNCTIONALITY)
+	# cleanse_public_and_private_groups_data(grp_ids_and_members)#redis1 (DEPRECATE THIS ENTIRE FUNCTIONALITY)
 	# marking postgresql Group object as deleted (deprecate this later)
 	group_ids = grp_ids_and_members.keys()
 	if group_ids:
@@ -715,7 +710,7 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 		if not updated:
 			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 				unseen_activity=True, check_parent_obj=True)# matka notif won't be created if original object doesn't exist
-		set_latest_group_reply(group_id,reply_id)# used to populate grouppageview()
+		# set_latest_group_reply(group_id,reply_id)# used to populate grouppageview()
 		if priv == '1':
 			increment_convo_counter(group_id, sender_id, group_type='pm')
 			increment_session(str(group_id), sender_id, group_type='pm')
@@ -739,8 +734,8 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 			update_notification(viewer_id=single_target_id,object_id=group_id,object_type='3',seen=False,updated_at=reply_time,\
 				unseen_activity=True,single_notif=True,priority=priority,bump_ua=True)
 		else:
-			all_group_member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
-			all_group_member_ids.remove(sender_id)
+			all_group_member_ids = retrieve_all_member_ids(group_id)
+			all_group_member_ids.remove(str(sender_id))
 			if all_group_member_ids:
 				# this does NOT update notifications for users whose notification object was deleted (or wasn't created in the first place)
 				bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
@@ -752,13 +747,14 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 		if not updated:
 			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 				unseen_activity=True)
-		set_latest_group_reply(group_id,reply_id)# used to populate grouppageview(), replace with 'submission_id' later
+		# set_latest_group_reply(group_id,reply_id)# used to populate grouppageview(), replace with 'submission_id' later
 		if priv == '1':
 			increment_convo_counter(group_id, sender_id, group_type='pm')
 			increment_session(str(group_id), sender_id, group_type='pm')
 			log_group_chatter(group_id, sender_id)# redis 6
 			if image_url:
-				increment_pic_count(group_id, sender_id)#redis 6			
+				increment_pic_count(group_id, sender_id)#redis 6
+
 
 @celery_app1.task(name='tasks.log_private_mehfil_session')
 def log_private_mehfil_session(group_id,user_id):# called every time a private mehfil is refreshed
@@ -767,9 +763,13 @@ def log_private_mehfil_session(group_id,user_id):# called every time a private m
 
 @celery_app1.task(name='tasks.rank_home_posts')
 def rank_home_posts():
-	order_home_posts2(urdu_only=False,exclude_photos=False)
-	order_home_posts1(urdu_only=False,exclude_photos=True)
-	order_home_posts(urdu_only=True,exclude_photos=False)
+	"""
+	Unused celery task
+	"""
+	pass
+	# order_home_posts2(urdu_only=False,exclude_photos=False)
+	# order_home_posts1(urdu_only=False,exclude_photos=True)
+	# order_home_posts(urdu_only=True,exclude_photos=False)
 
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
@@ -797,45 +797,7 @@ def rank_all_photos():
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
-	enqueued_match = get_current_cricket_match()
-	if 'team1' in enqueued_match:# and get_cricket_ttl() < 1:
-		#refresh the result
-		teams_with_results = cricket_scr()
-		match_to_follow = 0
-		for match in teams_with_results:
-			if match[0][0] == enqueued_match['team1']:
-				match_to_follow = match
-		if match_to_follow:
-			team1 = match_to_follow[0][0]
-			team2 = match_to_follow[1][0]
-			try:
-				score1 = match_to_follow[0][1]
-			except:
-				score1 = None #this side is yet to score
-			try:
-				score2 = match_to_follow[1][1]
-			except:
-				score2 = None #this side is yet to score
-			status = match_to_follow[2]
-			if not status:
-				if score2:
-					status = str(team1)+" "+str(score1)+" vs "+str(team2)+" "+str(score2)
-				else:
-					status = str(team1)+" "+str(score1)+" vs "+str(team2)
-			# decide whether to go on, or delete match
-			prev_status = get_prev_status().lower()
-			if "won by" in prev_status or "drawn" in prev_status or "tied" in prev_status:
-				#match ended
-				del_delay_cricket_match(status,enqueued_match['id']) #key will expire in 20 mins
-			elif "abandoned" in prev_status or "begin" in prev_status:
-				#match not begun, or abandoned. Dequeue immediately
-				del_cricket_match(enqueued_match['id'])
-			else:
-				update_cricket_match(team_to_follow=team1, team1=team1, score1=score1, team2=team2, \
-					score2=score2, status=status)
-		else:
-			#match not found, dequeue it
-			del_cricket_match(enqueued_match['id'])
+	pass
 
 
 @celery_app1.task(name='tasks.set_input_rate_and_history')

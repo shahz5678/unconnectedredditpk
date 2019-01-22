@@ -1819,3 +1819,26 @@ def get_num_complaints():
 	Retrieves num of outstanding reports for the attention of mods
 	"""
 	return redis.Redis(connection_pool=POOL).zcard(COMPLAINT_LIST)
+
+
+#####################Authorization#####################
+
+def account_creation_disallowed(ip):
+	"""
+	Do not allow the same user to create an account right away!
+
+	Outdated: later on, replace it via 'localstorage' html5 functionality. That at least is more reliable
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists("ip:"+str(ip)):
+		return True
+	else:
+		return False
+
+
+def account_created(ip,username):
+	"""
+	Save the IP of the user who just created the account
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.setex("ip:"+str(ip),username,FOUR_MINS)

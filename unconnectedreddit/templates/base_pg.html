@@ -28,21 +28,24 @@
 <meta name="google" content="notranslate" />
 
 {% google_analytics %}
+
 </head>
 <body style="position: relative">
+
 {% include "ga_user_analytics.html" with my_var=user.id %}
-{% load count %}
-{% check_notif_count as notif_count %}
-{% load count_priv_invites %}
-{% check_invite_count as invite_count %}
 
 <div class="header cxl" style="text-shadow:1px 1px #009940">Damadam.pk</div>
 <ul class="navbar">
 
 {% if user.is_authenticated %}
-	       <!-- bunched HTML removes spaces between li elements -->
-        <li><a href="/">Home</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if user.userprofile.score and user.userprofile.score > 40 %}<li><a href="{% url 'search_username' %}">Khoji</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li>{% endif %}<li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li>{% if user.userprofile.score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if user.userprofile.score > 0 %}<span style="color:green;font-size:90%;"> ({{ user.userprofile.score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li>
-
+	<!-- bunched HTML removes spaces between li elements -->
+	{% load count %}
+	{% check_notif_count as notif_count %}
+	{% load count_priv_invites %}
+	{% check_invite_count as invite_count %}
+	{% load get_own_score %}
+    {% own_score as own_score %}
+	<li><a href="/">Home</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Khoji</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li>{% endif %}<li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if own_score > 0 %}<span style="color:green;font-size:90%;"> ({{ own_score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li>
 {% else %}
     <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 {% endif %}
@@ -65,6 +68,7 @@
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
 </div>
+
 <script type="text/javascript">
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function() {

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Group invites sent | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+	<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+	<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden;margin:0">Invited!</h1>
+	</div>
+
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+
+		
+		<div class="cxl mt lsp"><b>{% for username in invited_usernames %}{{ username }}&nbsp;{% endfor %}</b>ko invite kar dia gya!</div>
+		
+		{% if is_public %}
+			<div class="mbl mtl"><a href="{% url 'public_group' group_uuid %}"><button type="submit" class="btn bcp bm sp pg_ok_res" style="height:27px">wapis</button></a></div>
+		{% else %}
+			<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ group_uuid }}"><button type="submit" class="btn bcg bm sp pg_ok_res" style="height:27px">wapis</button></form>
+		{% endif %}
+
+	</div>
+
+<br><br>
+{% endblock %}

@@ -86,7 +86,8 @@ from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders,\
-rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos
+rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, \
+invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -356,15 +357,10 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	else:
 		device = '3'
 	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id, device=device)
+	invalidate_cached_public_replies(link_id)
 	reply_time = convert_to_epoch(reply.submitted_on)
-	try:
-		url = request.user.userprofile.avatar.url
-	except ValueError:
-		url = None
-	try:
-		owner_url = parent.submitter.userprofile.avatar.url
-	except ValueError:
-		owner_url = None
+	url = retrieve_avurl(user_id)
+	owner_url = retrieve_avurl(parent.submitter_id)
 	amnt = update_comment_in_home_link(text,username,('1' if username in FEMALES else '0'),reply_time,user_id,link_id)
 	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
 	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,link_submitter_id=parent.submitter_id,\
@@ -4908,6 +4904,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return redirect("unseen_activity",request.user.username)
 
 
+@csrf_protect
 def public_reply_view(request,*args,**kwargs):
 	context, user_id = {}, request.user.id
 	if request.method == "POST":
@@ -4920,21 +4917,21 @@ def public_reply_view(request,*args,**kwargs):
 	else:
 		link_id = request.session.pop("link_pk",None)
 	if link_id:
-		link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
+		# link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
+		link = Link.objects.only('id','reply_count','description','submitted_on','submitter','net_votes').get(id=link_id)
 		form = request.session.pop("publicreply_form",None)
 		context["is_auth"] = True
 		secret_key = uuid.uuid4()
 		set_text_input_key(user_id, link_id, 'home_rep', secret_key)
 		context["sk"] = secret_key
 		context["form"] = form if form else PublicreplyForm()
-		context["authenticated"] = True
-		context["mob_verified"] = True
+		# context["authenticated"] = True
+		context["mob_verified"] = True if request.mobile_verified else False
 		context["user_id"] = user_id
-		if not request.mobile_verified:
-			context["mob_verified"] = False
 		parent_submitter_id = link.submitter_id
 		parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
 		context["parent_submitter_id"] = parent_submitter_id
+		context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
 		context["parent_av_url"] = parent_avurl
 		context["vote_score"] = link.net_votes
 		context["parent"] = link #the parent link
@@ -4943,27 +4940,39 @@ def public_reply_view(request,*args,**kwargs):
 		context["ensured"] = FEMALES
 		context["feature_phone"] = True if request.is_feature_phone else False
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-		replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').\
-		defer('answer_to__net_votes','answer_to__url','answer_to__cagtegory','answer_to__image_file','answer_to__rank_score','answer_to__is_visible',\
-			'answer_to__device','answer_to__which_photostream','submitted_by__userprofile__media_score','submitted_by__userprofile__shadi_shuda',\
-			'submitted_by__userprofile__age','submitted_by__userprofile__gender','submitted_by__userprofile__bio','submitted_by__userprofile__streak',\
-			'submitted_by__userprofile__previous_retort','submitted_by__userprofile__attractiveness','submitted_by__userprofile__mobilenumber',\
-			'category','device','seen','submitted_by__is_superuser','submitted_by__first_name','submitted_by__last_name','submitted_by__last_login',\
-			'submitted_by__email','submitted_by__date_joined','submitted_by__is_staff','submitted_by__is_active','submitted_by__password').\
-			filter(answer_to=link).order_by('-id')[:25]
-		context["replies"] = replies
+		replies = retrieve_cached_public_replies(link_id)
+		if replies:
+			replies_data = json.loads(replies)
+		else:
+			replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').\
+			defer('answer_to__net_votes','answer_to__url','answer_to__cagtegory','answer_to__image_file','answer_to__rank_score','answer_to__is_visible',\
+				'answer_to__device','answer_to__which_photostream','submitted_by__userprofile__media_score','submitted_by__userprofile__shadi_shuda',\
+				'submitted_by__userprofile__age','submitted_by__userprofile__gender','submitted_by__userprofile__bio','submitted_by__userprofile__streak',\
+				'submitted_by__userprofile__previous_retort','submitted_by__userprofile__attractiveness','submitted_by__userprofile__mobilenumber',\
+				'category','device','seen','submitted_by__is_superuser','submitted_by__first_name','submitted_by__last_name','submitted_by__last_login',\
+				'submitted_by__email','submitted_by__date_joined','submitted_by__is_staff','submitted_by__is_active','submitted_by__password').\
+				filter(answer_to_id=link_id).order_by('-id')[:25]
+			replies_data = []
+			for reply in replies:
+				replies_data.append({'submitted_on':convert_to_epoch(reply.submitted_on),'score':reply.submitted_by.userprofile.score,\
+					'description':reply.description,'id':reply.id,'submitter_id':reply.submitted_by_id,'username':reply.submitted_by.username,\
+					'abuse':reply.abuse})
+			cache_public_replies(json.dumps(replies_data),link_id)
+		context["replies"] = replies_data#replies
+		#########################################################################################
 		if request.user_banned:
 			context["unseen"] = False
 			context["reply_time"] = None
-		elif replies:
+		elif replies_data:
 			updated = update_notification(viewer_id=user_id, object_id=link_id, object_type='2', seen=True, \
 				updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
 			if updated:
 				context["unseen"] = True
 				try:
 					# calculating the max 'own reply' time
-					context["reply_time"] = max(reply.submitted_on for reply in replies if reply.submitted_by_id == user_id)
-				except:
+					own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitter_id'] == user_id)
+					context["reply_time"] = own_reply_time
+				except (AttributeError,ValueError):
 					context["reply_time"] = None
 			else:
 				context["unseen"] = False

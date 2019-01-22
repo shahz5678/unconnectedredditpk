@@ -1821,6 +1821,32 @@ def get_num_complaints():
 	return redis.Redis(connection_pool=POOL).zcard(COMPLAINT_LIST)
 
 
+
+##################### Maintaining public replies cache #####################
+
+CACHED_PUBLIC_REPLY = 'cpr:'
+
+def cache_public_replies(json_payload, obj_id):
+	"""
+	Caching public replies under a home text
+	"""
+	redis.Redis(connection_pool=POOL).setex(CACHED_PUBLIC_REPLY+str(obj_id),json_payload,ONE_HOUR)
+
+
+def retrieve_cached_public_replies(obj_id):
+	"""
+	Retrieve cached public replies
+	"""
+	return redis.Redis(connection_pool=POOL).get(CACHED_PUBLIC_REPLY+str(obj_id))
+
+
+def invalidate_cached_public_replies(obj_id):
+	"""
+	Deleting cached public replies
+	"""
+	redis.Redis(connection_pool=POOL).delete(CACHED_PUBLIC_REPLY+str(obj_id))
+
+
 #####################Authorization#####################
 
 def account_creation_disallowed(ip):
@@ -1842,3 +1868,4 @@ def account_created(ip,username):
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.setex("ip:"+str(ip),username,FOUR_MINS)
+

@@ -75,7 +75,8 @@ retrieve_closed_group_remaining_invites, recently_quit_group, can_officer_change
 retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_membership_frozen, retrieve_cached_ranked_groups, cache_ranked_groups, \
 get_ranked_mehfils, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
 retrieve_officer_stats, invalidate_cached_ranked_groups, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites,\
-filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, retrieve_user_group_invites, group_invite_exists 
+filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, retrieve_user_group_invites, group_invite_exists,\
+set_group_id 
 #, cache_mehfil_list#, retrieve_latest_group_replies, remove_public_mehfil_captain,invalidate_cached_mehfil_pages, cache_mehfil_pages
 
 
@@ -5071,6 +5072,7 @@ class DirectMessageCreateView(FormView):
 						reply_time = convert_to_epoch(reply.submitted_on)
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						###################
+						set_group_id(group_id)#set group ID in redis6
 						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=None, group_id=group_id,privacy='1',uuid=unique,\
 							topic=topic,pics='1',created_at=created_at, grp_categ='1')#grp_categ is set to '1', '2' being a group only pink stars can join
 						save_group_submission(writer_id=own_id, group_id=group_id, text=invitee, posting_time=reply_time,category='1',\
@@ -5144,6 +5146,7 @@ class ClosedGroupCreateView(CreateView):
 				reply_time = convert_to_epoch(reply.submitted_on)
 				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 				####################
+				set_group_id(f.id)#set group ID in redis6
 				create_group_credentials(owner_id=user_id, owner_uname=own_uname,owner_join_time=None, group_id=f.id,privacy='1',uuid=f.unique,\
 					topic=f.topic,pics='1',created_at=created_at, grp_categ='1')
 				save_group_submission(writer_id=user_id, group_id=f.id, text=creation_text, posting_time=reply_time,category='0',\
@@ -5216,6 +5219,7 @@ def create_open_group(request):
 						group = Group.objects.create(topic=topic, rules=rules, owner_id=own_id, private=0, category=group_category,unique=unique, \
 							pics_ki_ijazat=1)
 						group_id = group.id
+						set_group_id(group_id)#set group ID in redis6
 						unique_id = group.unique
 						created_at = convert_to_epoch(group.created_at)
 						reply = Reply.objects.create(text=creation_text,which_group_id=group_id,writer_id=own_id)# to ensure group shows up in grouppageview()

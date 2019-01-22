@@ -51,7 +51,7 @@ ONE_MONTH = 60*60*24*30
 ONE_AND_A_HALF_MONTHS = 60*60*24*45
 
 ############################## Group creation and content submission ##############################
-
+GROUP_ID = 'group_id'# generates group ids
 GROUPS_OWNED_BY_USER = 'uog:' # sorted set containing group_ids user has created
 CACHED_USER_OWNERSHIP_PUBLIC_GROUPS = 'cuowg:'# key holding cached ownership data related to a particular user
 GROUP_MAU = "group_mau"#sorted set containg all public groups and their respective MAU counts
@@ -340,6 +340,21 @@ def bulk_update_sorted_set_ttl(set_list,my_server=None):
 
 ############################## Group creation and content submission ##############################
 
+
+def set_group_id(group_id=None):
+	"""
+	Gets the group_id of a created group
+
+	Can optionally be seeded with a group_id
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(GROUP_ID):
+		my_server.incr(GROUP_ID)
+	else:
+		if group_id:
+			my_server.set(GROUP_ID,group_id)
+		else:
+			pass
 
 def create_group_credentials(owner_id,owner_uname,owner_join_time, group_id,privacy,uuid,topic,pics,created_at,grp_categ,rules=None, raw_rules=None):
 	"""

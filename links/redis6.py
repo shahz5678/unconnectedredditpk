@@ -2374,7 +2374,7 @@ def create_group_membership_and_rules_signatory(group_id, member_id, time_now, m
 	if not my_server.exists(GROUP+group_id):#group does not exist
 		return False
 	else:
-		key = GROUP_MEMBERS+group_id
+		key, member_id = GROUP_MEMBERS+group_id, str(member_id)
 		if is_public:
 			my_server.zadd(key,member_id,time_now)
 			my_server.zadd(GROUP_RULES_SIGNATORY+group_id,member_id,time_now)
@@ -2399,7 +2399,8 @@ def create_group_membership_and_rules_signatory(group_id, member_id, time_now, m
 			####################################################################################
 			update_user_membership_set(member_id, group_id, 'public', time_now, my_server=my_server)
 			# ensuring user can't abruptly leave the public mehfil
-			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+str(member_id),'1',PUBLIC_GROUP_EXIT_LOCK)# locked for 1 day
+			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+member_id,'1',PUBLIC_GROUP_EXIT_LOCK)# locked for 1 day
+			my_server.delete(GROUP_INVITE_LOCK+group_id+":"+member_id)# deleting group invite lock
 		else:
 			# add in a private group
 			my_server.zadd(key,member_id,time_now)
@@ -2411,7 +2412,8 @@ def create_group_membership_and_rules_signatory(group_id, member_id, time_now, m
 			my_server.zrem(KICKED_USERS+group_id,member_id)# in case the user was previously kicked out of the group and is rejoining
 			my_server.delete(CACHED_GROUP_INFO+group_id)# shows cached group info
 			# ensuring user can't abruptly leave the private mehfil
-			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+str(member_id),'1',PRIVATE_GROUP_EXIT_LOCK)# locked for 40 mins
+			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+member_id,'1',PRIVATE_GROUP_EXIT_LOCK)# locked for 40 mins
+			my_server.delete(GROUP_INVITE_LOCK+group_id+":"+member_id)# delete group invite lock
 			purge_group_invitation(group_id=group_id, member_id=member_id, is_public=False, my_server=my_server)# incase invite existed, get rid of it
 			invalidate_group_membership_cache(group_id,my_server=my_server)
 			update_user_membership_set(member_id, group_id, 'private', time_now, my_server=my_server)

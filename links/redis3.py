@@ -76,6 +76,26 @@ TWO_WEEKS = 2*7*24*60*60
 ONE_MONTH = 30*24*60*60
 
 
+###########################################
+############ 'si' error logger ############
+def log_submitter_error(hash_obj, user_id):
+	"""
+	Logs 'si' error shown on fresh photos page
+	"""
+	key_name = 'error_'+str(time.time())
+	my_server = redis.Redis(connection_pool=POOL)
+	if hash_obj:
+		hash_obj['user_id'] = user_id
+		my_server.hmset(key_name,hash_obj)
+		my_server.expire(key_name,ONE_WEEK)
+	else:
+		payload = {'user_id':user_id}
+		my_server.hmset(key_name,payload)
+		my_server.expire(key_name,ONE_WEEK)
+###########################################
+###########################################
+
+
 def string_tokenizer(string):
 	return string.replace("_"," ")
 

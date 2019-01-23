@@ -1,7 +1,7 @@
 import os, time, datetime, random, ast#, math
 from collections import defaultdict, Counter
 from operator import itemgetter
-from location import MEMLOC
+#from location import MEMLOC
 from unconnectedreddit import celery_app1
 from django.core.cache import get_cache, cache
 from django.db.models import Count, Q, F, Sum
@@ -39,7 +39,7 @@ from redis6 import group_attendance, exact_date, add_to_universal_group_activity
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
-cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created
+cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -833,64 +833,76 @@ def rank_photos():
 def fans():
 	user_ids = get_top_100()
 	user_ids_and_fan_counts = get_fan_counts_in_bulk(user_ids)
-	user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').in_bulk(user_ids)
+	user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').defer('password','last_login','is_superuser',\
+		'first_name','email','is_staff','is_active','date_joined','id','last_name','totalfanandphotos__total_fans','totalfanandphotos__last_updated',\
+		'userprofile__bio','userprofile__shadi_shuda','userprofile__previous_retort','userprofile__attractiveness','userprofile__mobilenumber',\
+		'userprofile__score','userprofile__avatar','userprofile__streak','userprofile__age','userprofile__gender').in_bulk(user_ids)
 	top_list = []
 	for user_id in user_ids:
-		top_list.append({"user_obj":user_ids_and_user_objects[int(user_id)],'username':user_ids_and_user_objects[int(user_id)].username,\
+		top_list.append({'username':user_ids_and_user_objects[int(user_id)].username,\
 			"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
-			"user_profile":user_ids_and_user_objects[int(user_id)].userprofile,\
-			"fan_count":user_ids_and_fan_counts[user_id]})
-	top_list = retrieve_thumbs(top_list)
-	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 1260,
-		})
-	cache_mem.set('fans', top_list)
+			"media_score":user_ids_and_user_objects[int(user_id)].userprofile.media_score,\
+			"av_url":retrieve_avurl(user_id),"fan_count":user_ids_and_fan_counts[user_id]})
+	top_list = retrieve_thumbs(top_list)# add 'rows' key in the dictionary
+	set_top_stars(top_list)
+	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+	#         'LOCATION': MEMLOC, 'TIMEOUT': 1260,
+	#     })
+	# cache_mem.set('fans', top_list)
 
 @celery_app1.task(name='tasks.salat_info')
 def salat_info():
-	salat_timings = {}
-	now = datetime.utcnow()+timedelta(hours=5)
-	current_minute = now.hour * 60 + now.minute
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	salat_timings['previous_namaz'] = previous_namaz
-	salat_timings['next_namaz'] = next_namaz
-	salat_timings['namaz'] = namaz
-	salat_timings['next_namaz_start_time'] = next_namaz_start_time
-	salat_timings['current_namaz_start_time'] = current_namaz_start_time
-	salat_timings['current_namaz_end_time'] = current_namaz_end_time
-	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			'LOCATION': MEMLOC, 'TIMEOUT': 70,
-		})
-	cache_mem.set('salat_timings', salat_timings)
+	"""
+	Unused scheduled task
+	"""
+	pass
+	# salat_timings = {}
+	# now = datetime.utcnow()+timedelta(hours=5)
+	# current_minute = now.hour * 60 + now.minute
+	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	# salat_timings['previous_namaz'] = previous_namaz
+	# salat_timings['next_namaz'] = next_namaz
+	# salat_timings['namaz'] = namaz
+	# salat_timings['next_namaz_start_time'] = next_namaz_start_time
+	# salat_timings['current_namaz_start_time'] = current_namaz_start_time
+	# salat_timings['current_namaz_end_time'] = current_namaz_end_time
+	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+	# 		'LOCATION': MEMLOC, 'TIMEOUT': 70,
+	# 	})
+	# cache_mem.set('salat_timings', salat_timings)
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():
-	now = datetime.utcnow()+timedelta(hours=5)
-	current_minute = now.hour * 60 + now.minute
-	twelve_hrs_ago = now - timedelta(hours=12)
-	previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	if namaz == 'Fajr':
-		salat = '1'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	elif namaz == 'Zuhr':
-		salat = '2'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	elif namaz == 'Asr':
-		salat = '3'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	elif namaz == 'Maghrib':
-		salat = '4'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	elif namaz == 'Isha':
-		salat = '5'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	else:
-		salat = '1'
-		object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		'LOCATION': MEMLOC, 'TIMEOUT': 120,
-	})
-	status = cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
+	"""
+	Unused scheduled task
+	"""
+	pass
+	# now = datetime.utcnow()+timedelta(hours=5)
+	# current_minute = now.hour * 60 + now.minute
+	# twelve_hrs_ago = now - timedelta(hours=12)
+	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
+	# if namaz == 'Fajr':
+	# 	salat = '1'
+	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	# elif namaz == 'Zuhr':
+	# 	salat = '2'
+	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	# elif namaz == 'Asr':
+	# 	salat = '3'
+	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	# elif namaz == 'Maghrib':
+	# 	salat = '4'
+	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	# elif namaz == 'Isha':
+	# 	salat = '5'
+	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	# else:
+	# 	salat = '1'
+	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
+	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+	# 	'LOCATION': MEMLOC, 'TIMEOUT': 120,
+	# })
+	# status = cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
 
 # @celery_app1.task(name='tasks.queue_for_deletion')
 # def queue_for_deletion(link_id_list):

@@ -23,7 +23,7 @@ from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
-redirect_to_content, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, salat_notification, cross_salat_notif, \
+redirect_to_content, star_list, cross_salat_notif, \
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list, best_photo_location,\
@@ -42,8 +42,8 @@ WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdT
 SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSettingsEditView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
 RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, TopPhotoView, \
-PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, \
-ExternalSalatInviteView,SalatRankingView, SpecialPhotoTutorialView, AdGenderChoiceView, \
+PhotoShareView, PhotoDetailView, \
+SpecialPhotoTutorialView, AdGenderChoiceView, \
 VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, \
 AdAddressView, AdCallPrefView
 from links.announcement_views import coming_soon
@@ -113,17 +113,17 @@ urlpatterns = patterns('',
 	# url(r'^mehfilcomment/help/$', auth(MehfilCommentView.as_view()), name='mehfilcomment_help'),
 	# url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	# url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
-	url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
-	url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
-	url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
-	url(r'^external_salat/$', auth(ExternalSalatInviteView.as_view()), name='external_salat_invite'),
-	url(r'^salat_success/(?P<mins>\d+)/(?P<num>\d+)/$', auth(SalatSuccessView.as_view()), name='salat_success'),
-	url(r'^salat_tutorial/(?P<offered>[\w.@+-]+)/$', auth(salat_tutorial_init), name='salat_tutorial_init'),
-	url(r'^process_salat/$', auth(process_salat), name='process_salat'),
-	url(r'^namaz_report/$', SalatRankingView.as_view(), name='salat_ranking'),
-	url(r'^salatutorial/$', auth(SalatTutorialView.as_view()), name='salat_tutorial'),
-	url(r'^skip_salat/(?P<skipped>[\w.@+-]+)/$', auth(skip_salat), name='skip_salat'),
-	url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
+	# url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
+	# url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
+	# url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
+	# url(r'^external_salat/$', auth(ExternalSalatInviteView.as_view()), name='external_salat_invite'),
+	# url(r'^salat_success/(?P<mins>\d+)/(?P<num>\d+)/$', auth(SalatSuccessView.as_view()), name='salat_success'),
+	# url(r'^salat_tutorial/(?P<offered>[\w.@+-]+)/$', auth(salat_tutorial_init), name='salat_tutorial_init'),
+	# url(r'^process_salat/$', auth(process_salat), name='process_salat'),
+	# url(r'^namaz_report/$', SalatRankingView.as_view(), name='salat_ranking'),
+	# url(r'^salatutorial/$', auth(SalatTutorialView.as_view()), name='salat_tutorial'),
+	# url(r'^skip_salat/(?P<skipped>[\w.@+-]+)/$', auth(skip_salat), name='skip_salat'),
+	# url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
 	# url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
 	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),

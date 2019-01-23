@@ -66,6 +66,8 @@ VOTE_ON_TXT = "vt:" #prefix for a sorted set that contains users who voted on a 
 FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT = 'fbsuprl:'#rate limit key to throttle FBS users from uploading way too many public photos
 
 
+CACHED_TOP_STARS = 'cts:'
+CACHED_PUBLIC_REPLY = 'cpr:'
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -1824,7 +1826,6 @@ def get_num_complaints():
 
 ##################### Maintaining public replies cache #####################
 
-CACHED_PUBLIC_REPLY = 'cpr:'
 
 def cache_public_replies(json_payload, obj_id):
 	"""
@@ -1897,6 +1898,24 @@ def first_time_photo_ads_visitor(user_id):
 		return False
 	else:
 		return True		
+
+
+##################### Maintaining top stars listing #####################
+
+
+def set_top_stars(payload):
+	"""
+	Sets top stars data
+	"""
+	redis.Redis(connection_pool=POOL).setex(CACHED_TOP_STARS,json.dumps(payload),ONE_HOUR)
+
+
+def retrieve_top_stars():
+	"""
+	Retrieves top stars' data
+	"""
+	return redis.Redis(connection_pool=POOL).get(CACHED_TOP_STARS)
+
 
 ################################## maint_views.py ##############################################
 

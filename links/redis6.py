@@ -27,7 +27,7 @@ PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_REENTRY_LOCK, EXCESSIVE_A
 RULES_CHANGE_RATE_LIMIT, MAX_TIME_BETWEEN_RULE_CHANGE_ATTEMPTS, EXCESSIVE_ATTEMPTS_TO_CHANGE_RULES_RATE_LIMIT, TOPIC_LONG_RATE_LIMIT, TOPIC_SHORT_RATE_LIMIT,\
 NUM_RULES_CHANGE_ATTEMPTS_ALLOWED, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, FEEDBACK_TTL, FEEDBACK_RATELIMIT, FEEDBACK_CACHE, GROUP_INVITE_TTL
 from redis4 import retrieve_bulk_unames, retrieve_uname, retrieve_bulk_credentials, retrieve_credentials
-from redis1 import remove_group_invite, legacy_mehfil_exit
+from redis2 import remove_group_notification
 from redis3 import exact_date
 from location import REDLOC6
 from models import Group
@@ -51,7 +51,7 @@ ONE_MONTH = 60*60*24*30
 ONE_AND_A_HALF_MONTHS = 60*60*24*45
 
 ############################## Group creation and content submission ##############################
-
+GROUP_ID = 'group_id'# generates group ids
 GROUPS_OWNED_BY_USER = 'uog:' # sorted set containing group_ids user has created
 CACHED_USER_OWNERSHIP_PUBLIC_GROUPS = 'cuowg:'# key holding cached ownership data related to a particular user
 GROUP_MAU = "group_mau"#sorted set containg all public groups and their respective MAU counts
@@ -112,6 +112,7 @@ RANKING_LAST_UPDATE_TIME = 'rlu'# key holding last time ranking was calculated (
 
 MEHFIL_CACHED_DATA = 'mcd:'#contains json serialized data of mehfil
 MEHFIL_CACHED_PAGES = 'mcp:'#contains json serialized data of a user's paginated mehfil list
+MEHFIL_CACHED_INVITE_PAGES = 'mci:'#contains json serialized data of a user's paginated mehfil invite list
 
 ############# Freezing certain functionality of reported mehfils ################
 
@@ -339,6 +340,21 @@ def bulk_update_sorted_set_ttl(set_list,my_server=None):
 
 ############################## Group creation and content submission ##############################
 
+
+def set_group_id(group_id=None):
+	"""
+	Gets the group_id of a created group
+
+	Can optionally be seeded with a group_id
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(GROUP_ID):
+		my_server.incr(GROUP_ID)
+	else:
+		if group_id:
+			my_server.set(GROUP_ID,group_id)
+		else:
+			pass
 
 def create_group_credentials(owner_id,owner_uname,owner_join_time, group_id,privacy,uuid,topic,pics,created_at,grp_categ,rules=None, raw_rules=None):
 	"""
@@ -644,8 +660,8 @@ def retrieve_group_topic(group_id=None, group_uuid=None,requestor_id=None):
 			categ = group_obj.category
 			if categ == '99':
 				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				if requestor_id:
-					remove_group_invite(requestor_id, group_id)
+				# if requestor_id:
+				#     remove_group_invite(requestor_id, group_id)
 				return None
 			else:
 				# populate the source data in redis 6
@@ -669,8 +685,8 @@ def retrieve_group_topic(group_id=None, group_uuid=None,requestor_id=None):
 			categ = group_obj.category
 			if categ == '99':
 				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				if requestor_id:
-					remove_group_invite(requestor_id, group_id)
+				# if requestor_id:
+				#     remove_group_invite(requestor_id, group_id)
 				return None
 			else:
 				# populate the source data in redis 6
@@ -727,8 +743,8 @@ def retrieve_group_privacy(group_id=None,group_uuid=None,requestor_id=None):
 			categ = group_obj.category
 			if categ == '99':
 				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				if requestor_id:
-					remove_group_invite(requestor_id, group_id)
+				# if requestor_id:
+				#     remove_group_invite(requestor_id, group_id)
 				return None
 			else:
 				# populate the source data in redis 6
@@ -751,8 +767,8 @@ def retrieve_group_privacy(group_id=None,group_uuid=None,requestor_id=None):
 			categ = group_obj.category
 			if categ == '99':
 				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				if requestor_id:
-					remove_group_invite(requestor_id, group_id)
+				# if requestor_id:
+				#     remove_group_invite(requestor_id, group_id)
 				return None
 			else:
 				# populate the source data in redis 6
@@ -996,8 +1012,8 @@ def retrieve_group_reqd_data(group_id=None, group_uuid=None, with_group_owner_id
 			categ = group_obj.category
 			if categ == '99':
 				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				if requestor_id:
-					remove_group_invite(requestor_id, group_id)
+				# if requestor_id:
+				#     remove_group_invite(requestor_id, group_id)
 				return {}
 			else:
 				created_at = convert_to_epoch(group_obj.created_at)
@@ -1047,8 +1063,8 @@ def retrieve_group_reqd_data(group_id=None, group_uuid=None, with_group_owner_id
 			categ = group_obj.category
 			if categ == '99':
 				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				if requestor_id:
-					remove_group_invite(requestor_id, group_id)
+				# if requestor_id:
+				#     remove_group_invite(requestor_id, group_id)
 				return {}
 			else:
 				created_at = convert_to_epoch(group_obj.created_at)
@@ -1085,7 +1101,6 @@ def retrieve_group_reqd_data(group_id=None, group_uuid=None, with_group_owner_id
 					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'u':unique_id}
 					cache_group_reqd_data(group_id,data,'001',my_server)
 				else:
-					# data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8')}
 					data = {'p':privacy,'gi':group_id,'tp':topic}
 					cache_group_reqd_data(group_id,data,'000',my_server)
 				return data
@@ -2067,37 +2082,83 @@ def invalidate_cached_mehfil_replies(group_id,my_server=None):
 # 	return redis.Redis(connection_pool=POOL).get(MEHFIL_LIST_CACHED_DATA+str(user_id))
 
 
-def cache_mehfil_pages(paginated_data,user_id):
+def cache_mehfil_invites(paginated_data,user_id):
 	"""
 	Micro-caches data shown in a user's mehfil list
 
-	'paginated_data' is a dictionary containing all the page(s) data
+	'paginated_data' is a dictionary containing ALL the page(s) data
 	"""
 	if paginated_data:
 		user_id = str(user_id)
 		final_data = {}
 		for page_num, page_data in paginated_data.items():
 			final_data[page_num] = json.dumps(page_data)
-		final_data['tp'] = len(paginated_data)
-		key, my_server = MEHFIL_CACHED_PAGES+user_id, redis.Redis(connection_pool=POOL)
+		final_data['tp'] = len(paginated_data)#tp is total pages
+		key, my_server = MEHFIL_CACHED_INVITE_PAGES+user_id, redis.Redis(connection_pool=POOL)
 		my_server.hmset(key,final_data)
-		my_server.expire(key,27)
+		my_server.expire(key,TEN_MINS)
 
 
-def retrieve_cached_mehfil_pages(user_id,page_num):
+def retrieve_cached_mehfil_invites(user_id,page_num):
 	"""
-	Retrieving cached mehfil page data for a certain user
+	Retrieving cached mehfil invite page data for a certain user
 	"""
-	page_data, num_pages = redis.Redis(connection_pool=POOL).hmget(MEHFIL_CACHED_PAGES+str(user_id),str(page_num),'tp')
+	page_data, num_pages = redis.Redis(connection_pool=POOL).hmget(MEHFIL_CACHED_INVITE_PAGES+str(user_id),str(page_num),'tp')
 	num_pages = int(num_pages) if num_pages else 0
 	return page_data, num_pages
 
 
-def invalidate_cached_mehfil_pages(user_id):
+def invalidate_cached_mehfil_invites(user_id, group_id=None, all_invites=False):
 	"""
-	Invalidating cached mehfil list
+	Invalidating cached mehfil invite list of a single user, or for all invitees of a mehfil
 	"""
-	redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_PAGES+str(user_id))
+	if all_invites:
+		group_owner_id = retrieve_group_owner_id(group_id=group_id)
+		if str(user_id) == group_owner_id:
+			my_server = redis.Redis(connection_pool=POOL)
+			all_invited_ids = my_server.zrevrange(GROUP_INVITES+group_id,0,-1)
+			pipeline1 = my_server.pipeline()
+			for invited_id in all_invited_ids:
+				pipeline1.delete(MEHFIL_CACHED_INVITE_PAGES+invited_id)
+			pipeline1.execute()
+		else:
+			# do nothing, this isn't called by group owner (perhaps they sold off the mehfil before doing this)
+			pass
+	else:
+		redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_INVITE_PAGES+str(user_id))
+
+
+# def cache_mehfil_pages(paginated_data,user_id):
+# 	"""
+# 	Micro-caches data shown in a user's mehfil list
+
+# 	'paginated_data' is a dictionary containing all the page(s) data
+# 	"""
+# 	if paginated_data:
+# 		user_id = str(user_id)
+# 		final_data = {}
+# 		for page_num, page_data in paginated_data.items():
+# 			final_data[page_num] = json.dumps(page_data)
+# 		final_data['tp'] = len(paginated_data)
+# 		key, my_server = MEHFIL_CACHED_PAGES+user_id, redis.Redis(connection_pool=POOL)
+# 		my_server.hmset(key,final_data)
+# 		my_server.expire(key,27)
+
+
+# def retrieve_cached_mehfil_pages(user_id,page_num):
+# 	"""
+# 	Retrieving cached mehfil page data for a certain user
+# 	"""
+# 	page_data, num_pages = redis.Redis(connection_pool=POOL).hmget(MEHFIL_CACHED_PAGES+str(user_id),str(page_num),'tp')
+# 	num_pages = int(num_pages) if num_pages else 0
+# 	return page_data, num_pages
+
+
+# def invalidate_cached_mehfil_pages(user_id):
+# 	"""
+# 	Invalidating cached mehfil list
+# 	"""
+# 	redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_PAGES+str(user_id))
 
 
 ######################## Group creation helper functions ########################
@@ -2165,6 +2226,40 @@ def is_group_creation_rate_limited(user_id, which_group):
 		return None
 
 ######################## Handling group membership and invites ########################
+
+
+def enrich_group_invites_with_topics(invite_data, my_server=None, sort_data=False):
+	"""
+	Given a list of dictionaries containing group invite data, add group topics to it
+	
+	Also filters out 'corrupted' invite data (i.e. data that doesn't contain user id)
+	Some data got corrupted in the early days of rolling out this system. Months down the line, we can remove this filter on corrupted data if we want to
+	"""
+	if invite_data:
+		group_ids, filtered_invite_data = [], []
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		for invite_dict in invite_data:
+			group_id = invite_dict.get('gid',None)
+			if group_id:
+				group_ids.append(group_id)
+				filtered_invite_data.append(invite_dict)
+		if group_ids:
+			pipeline1 = my_server.pipeline()
+			for group_id in group_ids:
+				pipeline1.hget(GROUP+group_id,'tp')
+			result1, counter = pipeline1.execute(), 0
+			for invite_dict in filtered_invite_data:
+				invite_dict['tp'] = result1[counter]
+				counter += 1
+			if sort_data:
+				# if sort_data is True, return the same data, but sorted according to descending invite times
+				return sorted(filtered_invite_data, key=lambda k: k['it'], reverse=True)
+			else:
+				return filtered_invite_data
+		else:
+			return []
+	else:
+		return []
 
 
 def group_member_exists(group_id, user_id, my_server=None):
@@ -2294,7 +2389,7 @@ def create_group_membership_and_rules_signatory(group_id, member_id, time_now, m
 	if not my_server.exists(GROUP+group_id):#group does not exist
 		return False
 	else:
-		key = GROUP_MEMBERS+group_id
+		key, member_id = GROUP_MEMBERS+group_id, str(member_id)
 		if is_public:
 			my_server.zadd(key,member_id,time_now)
 			my_server.zadd(GROUP_RULES_SIGNATORY+group_id,member_id,time_now)
@@ -2319,7 +2414,8 @@ def create_group_membership_and_rules_signatory(group_id, member_id, time_now, m
 			####################################################################################
 			update_user_membership_set(member_id, group_id, 'public', time_now, my_server=my_server)
 			# ensuring user can't abruptly leave the public mehfil
-			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+str(member_id),'1',PUBLIC_GROUP_EXIT_LOCK)# locked for 1 day
+			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+member_id,'1',PUBLIC_GROUP_EXIT_LOCK)# locked for 1 day
+			my_server.delete(GROUP_INVITE_LOCK+group_id+":"+member_id)# deleting group invite lock
 		else:
 			# add in a private group
 			my_server.zadd(key,member_id,time_now)
@@ -2331,7 +2427,8 @@ def create_group_membership_and_rules_signatory(group_id, member_id, time_now, m
 			my_server.zrem(KICKED_USERS+group_id,member_id)# in case the user was previously kicked out of the group and is rejoining
 			my_server.delete(CACHED_GROUP_INFO+group_id)# shows cached group info
 			# ensuring user can't abruptly leave the private mehfil
-			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+str(member_id),'1',PRIVATE_GROUP_EXIT_LOCK)# locked for 40 mins
+			my_server.setex(GROUP_EXITING_LOCKED+group_id+":"+member_id,'1',PRIVATE_GROUP_EXIT_LOCK)# locked for 40 mins
+			my_server.delete(GROUP_INVITE_LOCK+group_id+":"+member_id)# delete group invite lock
 			purge_group_invitation(group_id=group_id, member_id=member_id, is_public=False, my_server=my_server)# incase invite existed, get rid of it
 			invalidate_group_membership_cache(group_id,my_server=my_server)
 			update_user_membership_set(member_id, group_id, 'private', time_now, my_server=my_server)
@@ -2457,6 +2554,21 @@ def purge_group_membership(group_id, member_id, is_public, time_now):
 		my_server.setex(GROUP_REENTRY_LOCKED+group_id+":"+str(member_id),'1',GROUP_REENTRY_LOCK)#15 hours lock
 
 
+def filter_members(user_ids, group_id):
+	"""
+	Given a list of user_ids, only return non-members
+	"""
+	if user_ids:
+		user_ids = map(str, user_ids)
+		all_members = redis.Redis(connection_pool=POOL).zrange(GROUP_MEMBERS+str(group_id),0,-1)
+		non_member_user_ids = []
+		for user_id in user_ids:
+			if user_id not in all_members:
+				non_member_user_ids.append(user_id)
+		return non_member_user_ids
+	return []
+
+
 def filter_non_members(user_ids, group_id):
 	"""
 	Given a list of user_ids, only return group member ids
@@ -2470,6 +2582,37 @@ def filter_non_members(user_ids, group_id):
 				member_user_ids.append(user_id)
 		return member_user_ids
 	return []
+
+
+def filter_invitees(user_ids, group_id):
+	"""
+	Given a list of user_ids, only return non_invitees of a certain group
+	"""
+	if user_ids:
+		user_ids = map(str, user_ids)
+		all_invited_ids = redis.Redis(connection_pool=POOL).zrange(GROUP_INVITES+str(group_id),0,-1)
+		non_invited_user_ids = []
+		for user_id in user_ids:
+			if user_id not in all_invited_ids:
+				non_invited_user_ids.append(user_id)
+		return non_invited_user_ids
+	return []
+
+
+def filter_kicked_users(user_ids, group_id):
+	"""
+	Given a list of user_ids, only return non_kicked ids of a certain group
+	"""
+	if user_ids:
+		user_ids = map(str, user_ids)
+		all_kicked_ids = redis.Redis(connection_pool=POOL).zrange(KICKED_USERS+str(group_id),0,-1)
+		non_kicked_user_ids = []
+		for user_id in user_ids:
+			if user_id not in all_kicked_ids:
+				non_kicked_user_ids.append(user_id)
+		return non_kicked_user_ids
+	return []
+	
 
 def filter_non_recents(user_ids,group_id,time_now):
 	"""
@@ -2487,6 +2630,29 @@ def filter_non_recents(user_ids,group_id,time_now):
 	else:
 		return []
 
+
+def filter_invite_locks(user_ids, group_id):
+	"""
+	Given a list of user_ids, only returns ids that a group isn't locked from inviting
+	"""
+	if user_ids:
+		user_ids = map(str, user_ids)
+		all_lock_keys = []
+		for user_id in user_ids:
+			all_lock_keys.append(GROUP_INVITE_LOCK+group_id+":"+user_id)
+		lock_keys = redis.Redis(connection_pool=POOL).mget(*all_lock_keys)
+		final_ids, counter = [], 0
+		for lock_key in lock_keys:
+			if lock_key:
+				# this is locked
+				pass
+			else:
+				# this is not locked
+				final_ids.append(user_ids[counter])
+			counter += 1
+		return final_ids
+	else:
+		return []
 
 def retrieve_expired_group_invites(group_id, my_server=None, override_rl=False):
 	"""
@@ -2579,46 +2745,27 @@ def retrieve_outstanding_invite_report(group_id):
 
 def invite_allowed(group_id,inviter,is_public, inviter_id=None):
 	"""
-	Checks whether a user is able to send an invite (used in process_private_group_invite() and process_public_group_invite())
-
-	Reclaim expired invites before checking allowance
+	Checks whether a user is able to send an invite (user in process_private_group_invite() and process_public_group_invite())
 	"""
 	group_id = str(group_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	########################## Expiring invites #########################
-	# expired_invites = retrieve_expired_group_invites(group_id, my_server)
-	# if expired_invites:
-	# 	cleanse_expired_group_invites(group_id, expired_invites, my_server)
-	#####################################################################
 	if is_public:
-		if inviter == 'owner':
-			if MAX_OWNER_INVITES_PER_PUBLIC_GROUP - my_server.zcard(GROUP_OWNER_INVITES+group_id) > 0:
-				return True
-			else:
-				return False
-		elif inviter == 'officer':
-			if MAX_OFFICER_INVITES_PER_PUBLIC_GROUP - my_server.zcard(GROUP_OFFICER_INVITES+group_id):
-				return True
-			else:
-				return False
+		num_invite_slots = MAX_OWNER_INVITES_PER_PUBLIC_GROUP - my_server.zcard(GROUP_OWNER_INVITES+group_id) if inviter == 'owner' \
+		else MAX_OFFICER_INVITES_PER_PUBLIC_GROUP - my_server.zcard(GROUP_OFFICER_INVITES+group_id)
+		if num_invite_slots > 0:
+			return num_invite_slots, 'allwd'
 		else:
-			False
+			return 0, 'ivt_overflow'
 	else:
 		if get_num_group_members(group_id, my_server=my_server) >= PRIVATE_GROUP_MAX_MEMBERSHIP:
-			return False, 'mem_overflow'
-		elif inviter == 'owner':
-			if MAX_OWNER_INVITES_PER_PRIVATE_GROUP - my_server.zcard(PRIVATE_GROUP_OWNER_INVITES+group_id) > 0:
-				return True, 'allwd'
-			else:
-				return False, 'ivt_overflow'
-		elif inviter == 'member':
-			inviter_id = str(inviter_id)
-			if MAX_MEMBER_INVITES_PER_PRIVATE_GROUP - my_server.zcard(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+inviter_id):
-				return True, 'allwd'
-			else:
-				return False, 'ivt_overflow'
+			return 0, 'mem_overflow'
 		else:
-			False, 'gen_error'
+			num_invite_slots = MAX_OWNER_INVITES_PER_PRIVATE_GROUP - my_server.zcard(PRIVATE_GROUP_OWNER_INVITES+group_id) if \
+			inviter == 'owner' else MAX_MEMBER_INVITES_PER_PRIVATE_GROUP - my_server.zcard(PRIVATE_GROUP_MEMBER_INVITES+group_id+":"+str(inviter_id))
+			if num_invite_slots > 0:
+				return num_invite_slots, 'allwd'
+			else:
+				return 0, 'ivt_overflow'
 
 
 
@@ -2631,8 +2778,6 @@ def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, s
 	"""
 	group_id, target_ids, expire_target_time = str(group_id), map(str,target_ids), int(time_now+GROUP_INVITE_TTL)
 	group_invites = GROUP_INVITES+group_id
-	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'it':time_now})
-	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'it':time_now})
 	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'iun':sent_by_uname,'it':time_now,'gid':group_id,'uuid':group_uuid})
 	my_server = redis.Redis(connection_pool=POOL)
 	
@@ -2736,9 +2881,9 @@ def retrieve_user_group_invites(user_id):
 			set_name = USER_INVITES + user_id
 			my_server.zrem(set_name,*expired_invites)
 			bulk_update_sorted_set_ttl(set_list=[(set_name,'user_invites')],my_server=my_server)
-		return invite_data
+		return enrich_group_invites_with_topics(invite_data, my_server, sort_data=True)
 	else:
-		return [] 
+		return []
 
 
 def cancel_invite(group_id, member_id, is_public, time_now):
@@ -3004,6 +3149,28 @@ def show_private_group_invite_instructions(unique,own_id):
 			return None, None
 
 
+def filter_uninvitables(invitee_ids, group_uuid):
+	"""
+	Given a list of invitees, filters out:
+
+	1) Invitees already invited to the group 
+	2) Those who're already members!
+	3) Those who are in the "kicked list" of the group
+	"""
+	if invitee_ids:
+		my_server = redis.Redis(connection_pool=POOL)
+		group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+str(group_uuid))
+		if group_id:
+			non_member_invitee_ids = filter_members(invitee_ids, group_id)
+			non_member_non_invited_ids = filter_invitees(non_member_invitee_ids, group_id)
+			locked_non_member_non_invited_ids = filter_invite_locks(non_member_non_invited_ids, group_id)
+			return filter_kicked_users(locked_non_member_non_invited_ids, group_id)
+		else:
+			return []
+	else:
+		return []
+
+
 ##################################### Kicking or (un)kicking group users #####################################
 
 
@@ -3133,13 +3300,13 @@ def kick_users_from_group(group_id, culprit_ids, time_now, kicked_by_uname, kick
 	Kicking out users from given group
 	"""
 	if not culprit_ids or not group_id:
-		return None, '', '', None
+		return None, '', '', None, []
 	else:
 		group_id, kicked_by_id, culprit_ids = str(group_id), str(kicked_by_id), map(str,culprit_ids)
 		my_server = redis.Redis(connection_pool=POOL)
 		ttl = my_server.ttl(PUNISHER_RATE_LIMITED+group_id+":"+kicked_by_id)
 		if ttl > 0:
-			return ttl, '', '', None
+			return ttl, '', '', None, []
 		else:
 			# do not kick out users who're already banned!
 			pipeline0 = my_server.pipeline()
@@ -3239,7 +3406,7 @@ def kick_users_from_group(group_id, culprit_ids, time_now, kicked_by_uname, kick
 					# deleting kicked culprits feedback from the mehfil
 					delete_specific_users_group_feedback(group_id, culprit_ids, my_server)
 
-					return None, nicknames, nickname_list, activity_id
+					return None, nicknames, nickname_list, activity_id, culprit_ids
 				else:
 					# kicking from a private group
 					my_server.zrem(GROUP_MEMBERS+group_id,*culprit_ids)
@@ -3311,10 +3478,10 @@ def kick_users_from_group(group_id, culprit_ids, time_now, kicked_by_uname, kick
 
 					pipeline2.execute()
 
-					return None, nicknames, nickname_list, activity_id
+					return None, nicknames, nickname_list, activity_id, culprit_ids
 			else:
-				# no unbanned culprits found (e.g. another officer simultanously handled the threat if it was a public group)
-				return None, '', '', None
+				# no non-banned culprits found (e.g. another officer simultanously handled the threat if it was a public group)
+				return None, '', '', None, []
 
 
 def hide_writers_group_messages(group_id,writer_ids):
@@ -4390,23 +4557,28 @@ def remove_inactive_members(user_ids, group_id, time_now):
 			list_of_user_ids = list(user_ids)
 			for user_id in list_of_user_ids:
 				# 'uninstall' the group for these 45-day inactive_users (even if they're officers in a public group)
-				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 				if group_privacy == '1':
 					# group is private
-					legacy_mehfil_exit(group_id, user_id, own_uname, group_type='private')# legacy redis 1 - please remove
+					# legacy_mehfil_exit(group_id, user_id, own_uname, group_type='private')# legacy redis 1 - please remove
+					############################ Redis 2 ###############################
+					remove_group_notification(user_id,group_id)# removing notification from redis 2
 					############################ Redis 6 ###############################
+					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 					exit_group(group_id, user_id, time_now, own_uname, get_s3_object(own_avurl,category='thumb'), is_public=False,\
 						inactive=True)
 					####################################################################
 				else:
 					# group is public
-					legacy_mehfil_exit(group_id, user_id, own_uname, group_type='public')# legacy redis 1 - please remove
+					# legacy_mehfil_exit(group_id, user_id, own_uname, group_type='public')# legacy redis 1 - please remove
+					############################ Redis 2 ###############################
+					remove_group_notification(user_id,group_id)# removing notification from redis 2
 					############################ Redis 6 ###############################
 					exit_group(group_id, user_id, time_now, is_public=True, inactive=True, rescind_apps=rescind_apps)
 					####################################################################
 					rescind_apps = True
 			if rescind_apps:
 				bulk_rescind_officer_applications(list_of_user_ids, group_id, my_server=my_server)
+
 
 ################################## Pruning group submissions #####################################
 
@@ -4555,7 +4727,7 @@ def cache_ranked_groups(json_data):
 	"""
 	Caches data displayed in popular groups page
 	"""
-	redis.Redis(connection_pool=POOL).setex(CACHED_RANKED_GROUPS,json_data,TEN_MINS)
+	redis.Redis(connection_pool=POOL).setex(CACHED_RANKED_GROUPS,json_data,ONE_DAY)
 
 
 def retrieve_cached_ranked_groups():
@@ -4570,7 +4742,7 @@ def invalidate_cached_ranked_groups(my_server=None):
 	Deletes cached ranked groups
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	return my_server.delete(CACHED_RANKED_GROUPS)
+	my_server.delete(CACHED_RANKED_GROUPS)
 
 
 ######################## Rate limiting mehfil topic and rules changes ########################

@@ -41,10 +41,6 @@ bulk_remove_group_notification
 from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks,\
 construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity
 
-from redis1 import bulk_check_group_invite, bulk_check_group_membership, get_group_members, add_group_member, remove_group_invite, add_user_group,\
-remove_all_group_members, remove_latest_group_reply, check_group_member, check_group_invite, add_group_invite, set_latest_group_reply, get_user_groups, \
-get_latest_group_replies, get_active_invites, remove_group_members,bulk_remove_user_group, legacy_mehfil_exit#, remove_group_member, remove_user_group
-
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
 ChangeGroupTopicForm, ChangeGroupRulesForm, GroupHelpForm, ClosedGroupHelpForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
 OpenGroupCreateForm, OpenGroupHelpForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
@@ -78,8 +74,10 @@ get_num_group_members, show_private_group_invite_instructions, retrieve_group_to
 retrieve_closed_group_remaining_invites, recently_quit_group, can_officer_change_topic, hide_private_group_submission, retrieve_single_group_submission,\
 retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_membership_frozen, retrieve_cached_ranked_groups, cache_ranked_groups, \
 get_ranked_mehfils, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
-retrieve_officer_stats, invalidate_cached_ranked_groups, invalidate_cached_mehfil_pages, retrieve_cached_mehfil_pages, retrieve_topic_and_rules_ttl, \
-cache_mehfil_pages, human_readable_time #, cache_mehfil_list#, retrieve_latest_group_replies, remove_public_mehfil_captain
+retrieve_officer_stats, invalidate_cached_ranked_groups, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites,\
+filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, retrieve_user_group_invites, group_invite_exists,\
+set_group_id 
+#, cache_mehfil_list#, retrieve_latest_group_replies, remove_public_mehfil_captain,invalidate_cached_mehfil_pages, cache_mehfil_pages
 
 
 ################################### Mehfil info #####################################
@@ -1923,7 +1921,7 @@ def kick_out(request, slug):
 	if request.user_banned:
 		return redirect("error")
 	elif slug not in ('public','private'):
-		return redirect("missing_page")
+		raise Http404("The page you are looking for does not exist")
 	elif request.method == "POST":
 		guid = request.POST.get("guid",None)
 		kick_decision = request.POST.get("kdec",None)
@@ -1943,7 +1941,7 @@ def kick_out(request, slug):
 					own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 					culprit_ids = request.session.get("final_kick_ids"+str(group_id),[])
 					culprit_ids = map(str,culprit_ids) if culprit_ids else culprit_ids
-					ttl, kicked_nicknames, nickname_list, activity_id = kick_users_from_group(group_id, culprit_ids, time_now, own_uname, own_id, \
+					ttl, kicked_nicknames, nickname_list, activity_id, kicked_culprit_ids = kick_users_from_group(group_id, culprit_ids, time_now, own_uname, own_id, \
 						kick_duration, is_public=is_public)
 					if ttl:
 						# cannot do it since rate limited
@@ -1952,9 +1950,9 @@ def kick_out(request, slug):
 						# hide all messages of kicked culprits
 						hide_writers_group_messages(group_id,culprit_ids)# works for public, private both
 						###### remove from redis 1 legacy ##################
-						remove_group_members(group_id, nickname_list)
-						removed_culprit_ids = bulk_remove_user_group(culprit_ids, group_id, return_member_ids=True)
-						bulk_remove_group_notification(removed_culprit_ids,group_id)# redis 2 - not legacy
+						# remove_group_members(group_id, nickname_list)
+						# removed_culprit_ids = bulk_remove_user_group(culprit_ids, group_id, return_member_ids=True)
+						bulk_remove_group_notification(kicked_culprit_ids, group_id)# redis 2 - not legacy
 						####################################################
 						# produce group message of kicking out user
 						save_group_submission(writer_id=own_id, group_id=group_id, text=kicked_nicknames,posting_time=time_now,\
@@ -1996,7 +1994,7 @@ def kick_out(request, slug):
 					own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 					culprit_ids = request.session.get("final_kick_ids"+str(group_id),[])
 					culprit_ids = map(str,culprit_ids) if culprit_ids else culprit_ids
-					ttl, kicked_nicknames, nickname_list, activity_id = kick_users_from_group(group_id, culprit_ids, time_now, own_uname, own_id, \
+					ttl, kicked_nicknames, nickname_list, activity_id, kicked_culprit_ids = kick_users_from_group(group_id, culprit_ids, time_now, own_uname, own_id, \
 						kick_duration, is_public=True)
 					if ttl:
 						# cannot do it since rate limited
@@ -2005,9 +2003,9 @@ def kick_out(request, slug):
 						# hide all messages of kicked culprits
 						hide_writers_group_messages(group_id,culprit_ids)
 						###### remove from redis 1 legacy ##################
-						remove_group_members(group_id, nickname_list)
-						removed_culprit_ids = bulk_remove_user_group(culprit_ids, group_id, return_member_ids=True)
-						bulk_remove_group_notification(removed_culprit_ids,group_id)
+						# remove_group_members(group_id, nickname_list)
+						# removed_culprit_ids = bulk_remove_user_group(culprit_ids, group_id, return_member_ids=True)
+						bulk_remove_group_notification(kicked_culprit_ids, group_id)
 						####################################################
 						# produce group message
 						save_group_submission(writer_id=own_id, group_id=group_id, text=kicked_nicknames,posting_time=time_now,\
@@ -2095,7 +2093,7 @@ def kick_out(request, slug):
 						return redirect("public_group")
 			else:
 				# unauthorized user
-				return redirect("group_page")   
+				return redirect("group_page")    
 		else:
 			# the user decided to not take any action
 			is_public = False if group_privacy == '1' else True
@@ -2594,7 +2592,11 @@ class ChangePrivateGroupTopicView(CreateView):
 						trim_group_submissions.delay(group_id)
 					main_sentence = own_uname+" ne ye new topic rakha at {0}: {1}".format(exact_date(time.time()), topic)
 					document_administrative_activity.delay(group_id, main_sentence, 'topic')
-					invalidate_cached_mehfil_pages(user_id)
+					#invalidate_cached_mehfil_pages(user_id)
+					invitee_ids_and_invite_times = retrieve_outstanding_invite_report(group_id)
+					invitee_ids = [tup[0] for tup in invitee_ids_and_invite_times]
+					for invitee_id in invitee_ids:
+						invalidate_cached_mehfil_invites(invitee_id)
 					##########################
 					##########################
 					self.request.session["unique_id"] = unique
@@ -2682,7 +2684,11 @@ class ChangeGroupTopicView(CreateView):
 						writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 					main_sentence = own_uname+" ne ye new topic rakha at {0}: {1}".format(exact_date(time.time()), topic)
 					document_administrative_activity.delay(group_id, main_sentence, 'topic')
-					invalidate_cached_mehfil_pages(user_id)
+					#invalidate_cached_mehfil_pages(user_id)
+					invitee_ids_and_invite_times = retrieve_outstanding_invite_report(group_id)
+					invitee_ids = [tup[0] for tup in invitee_ids_and_invite_times]
+					for invitee_id in invitee_ids:
+						invalidate_cached_mehfil_invites(invitee_id)
 					invalidate_cached_ranked_groups()
 					#############
 					return redirect("public_group", slug=unique)
@@ -2799,8 +2805,10 @@ def leave_private_group(request, *args, **kwargs):
 				return render(request, 'mehfil/leave_private_group.html', context)
 		else:
 			# group does not exist
-			invalidate_cached_mehfil_pages(user_id)
-			remove_group_invite(user_id, pk)# in case redis 1 invite exists, delete it (DEPRECATE REDIS 1 LATER)
+			# invalidate_cached_mehfil_pages(user_id)# remove this alongwith redis 1 functionality
+			purge_group_invitation(group_id=pk, member_id=user_id, is_public=False)
+			invalidate_cached_mehfil_invites(user_id)
+			# remove_group_invite(user_id, pk)# in case redis 1 invite exists, delete it (DEPRECATE REDIS 1 LATER)
 			return redirect("group_page")
 	else:
 		# not a POST request
@@ -2830,8 +2838,10 @@ def leave_public_group(request):
 					'topic':retrieve_group_topic(group_id=pk,requestor_id=own_id)})
 		else:
 			# group does not exist
-			invalidate_cached_mehfil_pages(own_id)
-			remove_group_invite(own_id, pk)# in case redis 1 invite exists, delete it (DEPRECATE REDIS 1 LATER)
+			# invalidate_cached_mehfil_pages(own_id)# remove this alongwith redis 1 functionality
+			purge_group_invitation(group_id=pk, member_id=own_id, is_public=True)
+			invalidate_cached_mehfil_invites(own_id)
+			# remove_group_invite(own_id, pk)# in case redis 1 invite exists, delete it (DEPRECATE REDIS 1 LATER)
 			return redirect("group_page")
 	else:
 		# not a POST request
@@ -2849,7 +2859,7 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 		if deletion_decision == '2':
 			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=unique,with_group_id=True)
 			# REPLACE get_group_members() WITH SIMILAR FUNCTION FROM REDIS 6
-			member_ids = list(User.objects.filter(username__in=get_group_members(pk)).values_list('id',flat=True))
+			# member_ids = list(User.objects.filter(username__in=get_group_members(pk)).values_list('id',flat=True))
 			own_id = str(request.user.id)
 			if group_owner_id:
 				if group_owner_id == own_id and group_id == str(pk):
@@ -2863,14 +2873,14 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						remove_group_object(group_id)
 
 						# removing from popular group list that contains top 20 ranked groups (redis 3)
-						#del_from_rankings(group_id)
+						# del_from_rankings(group_id)
 
 						# removing the group member set (redis 1)
-						remove_all_group_members(group_id)
+						# remove_all_group_members(group_id)
 						# removing group's separately saved 'latest' reply (redis 1)
-						remove_latest_group_reply(group_id)
+						# remove_latest_group_reply(group_id)
 						# purging group for all members (redis 1)
-						bulk_remove_user_group(member_ids, group_id, return_member_ids=False)
+						# bulk_remove_user_group(member_ids, group_id, return_member_ids=False)
 						
 						# marking postgresql group data (deprecate this later)
 						Group.objects.filter(id=group_id).update(category='99')#'99' implies deleted
@@ -2878,18 +2888,18 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						# # removing postgresql group data (canceling plans to do this since it cascades over ALL replies in the group and can lock up the table)
 						# replies = Reply.objects.filter(which_group_id=group_id).order_by('-id').values_list('id',flat=True)[:1000]
 						# if replies.exists():
-						#   # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
-						#   Reply.objects.filter(id__in=replies).delete()
+						#     # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
+						#     Reply.objects.filter(id__in=replies).delete()
 						# banned_users = GroupBanList.objects.filter(which_group_id=group_id)
 						# if banned_users.exists():
-						#   banned_users.delete()
+						#     banned_users.delete()
 						# Group.objects.get(id=group_id).delete()
+
+						# purging cached group invites before deleting own group
+						invalidate_cached_mehfil_invites(own_id, group_id, all_invites=True)
 
 						# purging redis 6 group related data structures:
 						permanently_delete_group(group_id, group_type='public')# get rid of all redis 6 data related to the group
-						
-						# purging group_list cache view for the owner
-						invalidate_cached_mehfil_pages(own_id)
 
 						return render(request,'mehfil/notify_and_redirect.html', {'deleted':True,'is_public':True})
 				elif group_id != str(pk):
@@ -2936,12 +2946,12 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 					remove_group_object(group_id)
 
 					# removing the group member set (redis 1)
-					remove_all_group_members(group_id)
+					# remove_all_group_members(group_id)
 					# removing group's separately saved 'latest' reply (redis 1)
-					remove_latest_group_reply(group_id)
+					# remove_latest_group_reply(group_id)
 					# purging group for all members (redis 1)
-					member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
-					bulk_remove_user_group(member_ids, group_id, return_member_ids=False)
+					# member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
+					# bulk_remove_user_group(member_ids, group_id, return_member_ids=False)
 					
 					# marking postgresql group data (deprecate this later)
 					Group.objects.filter(id=group_id).update(category='99')#'99' implies deleted
@@ -2949,15 +2959,16 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 					# # removing postgresql group data (didn't do it since it cascades over ALL replies - that could lock table for a long time)
 					# replies = Reply.objects.filter(which_group_id=group_id).order_by('-id').values_list('id',flat=True)[:1000]
 					# if replies.exists():
-					#   # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
-					#   Reply.objects.filter(id__in=replies).delete()
+					#     # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
+					#     Reply.objects.filter(id__in=replies).delete()
 					# Group.objects.get(id=group_id).delete()
+
+					# purging cached group invites before deleting own group
+					invalidate_cached_mehfil_invites(own_id, group_id, all_invites=True)
 
 					# purging redis 6 group related data structures:
 					permanently_delete_group(group_id, group_type='private')# get rid of all redis 6 data related to the group
-					# purging group_list cache view for the owner
-					invalidate_cached_mehfil_pages(own_id)
-					
+
 					return render(request,'mehfil/notify_and_redirect.html', {'deleted':True,'is_public':False})
 			elif group_id != str(pk):
 				# maybe the input was tinkered with?
@@ -2992,29 +3003,33 @@ def left_public_group(request, *args, **kwargs):
 		leaving_decision = request.POST.get("ldec",None)
 		if leaving_decision == '1':
 			user_id = request.user.id
-			own_uname = retrieve_uname(user_id,decode=True)
-			time_now = time.time()
-			#replace below 'if' condition with group_member_exists(group_id, user_id) - from redis 6
-			if check_group_member(pk, own_uname):
+			# own_uname = retrieve_uname(user_id,decode=True)
+			#replace below 'if' condition with group_member_exists(pk, user_id) - from redis 6
+			# if check_group_member(pk, own_uname):
+			if group_member_exists(pk, user_id):
 				ttl = can_leave_group(pk, user_id)#stops from joining and then immediately leaving
 				if ttl:
 					return render(request,"mehfil/notify_and_redirect.html",{'cannot_exit':True,'time_remaining':ttl,'is_public':True,'unique':unique})
 				else:
-					legacy_mehfil_exit(pk, user_id, own_uname, group_type='public')# legacy redis 1 - please remove
+					# legacy_mehfil_exit(pk, user_id, own_uname, group_type='public')# legacy redis 1 - please remove
+					############################ Redis 2 ###############################
+					remove_group_notification(user_id,pk)# removing notification
 					############################ Redis 6 ###############################
-					exit_group(pk, user_id, time_now, is_public=True)# redis 6 function - remove redis 1 funcs in the future
-					invalidate_cached_mehfil_pages(user_id)
+					exit_group(pk, user_id, time.time(), is_public=True)# redis 6 function - remove redis 1 funcs in the future
+					#invalidate_cached_mehfil_pages(user_id)
 					####################################################################
 
-			elif check_group_invite(user_id, pk):
-				
-				remove_group_invite(user_id, pk)# group invite removed from user invites pir:user_id (redis 1)
+			# elif check_group_invite(user_id, pk):# redis1 legacy - replace with similar redis6 functionality
+			elif group_invite_exists(pk, user_id):
+
+				# remove_group_invite(user_id, pk)# group invite removed from user invites pir:user_id (redis 1)
 				
 				############################ Redis 6 ###############################
 				# purge_group_membership(group_id=pk, member_id=user_id, is_public=True, time_now=time_now)# redis 6 function - remove all others in the future
 				purge_group_invitation(group_id=pk, member_id=user_id, is_public=True)# redis 6 function - remove all others in the future
 				remove_group_officer(group_id=pk,target_user_id=user_id)# redis 6 function - remove all others in the future
-				invalidate_cached_mehfil_pages(user_id)
+				# invalidate_cached_mehfil_pages(user_id)
+				invalidate_cached_mehfil_invites(user_id)
 				####################################################################
 
 			else:
@@ -3039,28 +3054,30 @@ def left_private_group(request, *args, **kwargs):
 		pk = request.POST.get("gid",None)
 		unique = request.POST.get("guid",None)
 		own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-		time_now = time.time()
-		if check_group_member(pk, own_uname):
-			#replace this if condition with group_member_exists(group_id, user_id) from redis 6
+		# if check_group_member(pk, own_uname):
+		if group_member_exists(pk, user_id):
 			ttl = can_leave_group(pk, user_id)#stops user from repeating entering/exiting a group
 			if ttl:
 				return render(request,"mehfil/notify_and_redirect.html",{'cannot_exit':True,'time_remaining':ttl, 'is_public':False,'unique':unique})
 			else:
-				legacy_mehfil_exit(pk, user_id, own_uname, group_type='private')# legacy redis 1 - please remove
+				# legacy_mehfil_exit(pk, user_id, own_uname, group_type='private')# legacy redis 1 - please remove
+				############################ Redis 2 ###############################
+				remove_group_notification(user_id,pk)# removing notification
 				############################ Redis 6 ###############################
-				exit_group(pk, user_id, time_now, own_uname, get_s3_object(own_avurl,category='thumb'), is_public=False)
-				invalidate_cached_mehfil_pages(user_id)
+				exit_group(pk, user_id, time.time(), own_uname, get_s3_object(own_avurl,category='thumb'), is_public=False)
+				#invalidate_cached_mehfil_pages(user_id)
 				####################################################################
 
-		elif check_group_invite(user_id, pk):#sorted set containing user invites ipg:user_id: (redis 1)
-			#replace this if condition with group_invite_exists(group_id, user_id) from redis 6
-			remove_group_invite(user_id, pk)# group invite removed from user invites pir:user_id (redis 1)
+		# elif check_group_invite(user_id, pk):#sorted set containing user invites ipg:user_id: (redis 1)
+		elif group_invite_exists(pk, user_id):
+			# remove_group_invite(user_id, pk)# group invite removed from user invites pir:user_id (redis 1)
 			############################ Redis 6 ###############################
 			save_group_submission(writer_id=user_id, group_id=pk, text='unaccepted invite',posting_time=time.time(),\
 				category='7', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 			purge_group_invitation(group_id=pk, member_id=user_id)# redis 6 function - remove redis 1 funcs in the future
-			invalidate_cached_mehfil_pages(user_id)# redis6 function
+			# invalidate_cached_mehfil_pages(user_id)# redis6 function
 			invalidate_cached_mehfil_replies(pk)#redis6 function
+			invalidate_cached_mehfil_invites(user_id)
 			invalidate_presence(pk)
 			####################################################################
 		else:
@@ -3442,8 +3459,8 @@ class PublicGroupView(CreateView):
 					context["unseen"] = False
 					context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
 					if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
-						members = get_group_members(group_id)
-						if self.request.user.username in members and context["replies"]:
+						#members = get_group_members(group_id)
+						if context["replies"]:
 							update_notification(viewer_id=user_id, object_id=group_id, object_type='3', seen=True, updated_at=updated_at, \
 								single_notif=False, unseen_activity=True, priority='public_mehfil', bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
 				else:
@@ -3600,50 +3617,6 @@ class PublicGroupView(CreateView):
 #################### Rendering list of all mehfils #####################
 
 
-# class NewGroupPageView(ListView):
-#   """
-#   Renders list of all joined and invited mehfils (public and private both)
-#   """
-#   # model = Reply
-#   form_class = GroupPageForm
-#   template_name = "mehfil/group.html"
-#   paginate_by = 20
-
-#   def get_queryset(self):
-#       groups = []
-#       replies = []
-#       user_id = self.request.user.id
-#       group_ids = get_user_groups(user_id)
-#       replies = filter(None, get_latest_group_replies(group_ids))
-#       replies_qset = Reply.objects.filter(id__in=list(set(replies))).values('id','writer__username','which_group__topic','submitted_on','text','which_group',\
-#           'which_group__unique','writer__userprofile__avatar','which_group__private','category').order_by('-id')[:80]
-#       for reply in replies_qset:
-#           print reply
-#       invited_group_ids_and_times = retrieve_group_invites(user_id)#list of tuples containing invited groups and invite times
-#       print invited_group_ids_and_times
-#       reply_req = reply.category, reply.writer_uname, reply.writer_avurl, reply.posting_time, reply.group.private, reply.text, reply.group.unique, reply.group.id, reply.group.topic, 
-
-#       invite_req = reply.category, reply.writer_uname, reply.writer_avurl, reply.posting_time, reply.group.private, reply.group.unique, reply.group.id, reply.group.topic
-
-#       reply_data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-
-#   def get_context_data(self, **kwargs):
-#       context = super(GroupPageView, self).get_context_data(**kwargs)
-#       if self.request.user.is_authenticated():
-#           context["verified"] = FEMALES
-#       return context
-
-
-# i) Set TOTAL_LIST_SIZE in score.py
-# ii) Set MEHFIL_LIST_PAGE_SIZE in score.py
-# iii) Set 25 second micro-cache in redis6
-# iv) Update get_latest_group_replies() in redis1
-# v) Update group.html (done)
-# vi) Create group_page(request)
-# vii) Create a separate url for group_page(request)
-# viii) Take group_page(request) live
-# ix) Paginate group_page(request)
-
 def paginate_group_list(data):
 	"""
 	Divides provided data list into pages
@@ -3658,116 +3631,116 @@ def paginate_group_list(data):
 	return pages, len(pages)
 
 
-def group_page(request):    
-	"""
-	Renders list of all joined and invited mehfils (public and private both)
+# def group_page(request):    
+# 	"""
+# 	Renders list of all joined and invited mehfils (public and private both)
 
-	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
+# 	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
+# 	"""
+# 	user_id, page_num = request.user.id, request.GET.get('page', '1')
+# 	page_data_from_micro_cache, num_pages = retrieve_cached_mehfil_pages(user_id,page_num)
+# 	if page_data_from_micro_cache:
+# 		data = json.loads(page_data_from_micro_cache)
+# 	else:
+# 		groups, replies = [], []
+# 		group_ids = get_user_groups(user_id)
+# 		replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
+# 		num_replies = len(replies)
+# 		##################
+# 		if num_replies == 0:
+# 			# only have invites to show
+# 			invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
+# 			num_invites = len(invite_reply_ids)
+# 			if num_invites > TOTAL_LIST_SIZE:
+# 				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)[:TOTAL_LIST_SIZE]
+# 			elif not num_invites:
+# 				most_recent_invites = []
+# 			else:
+# 				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)
+# 			replies_qset = Reply.objects.filter(id__in=most_recent_invites).values('id','category','text','submitted_on','which_group',\
+# 				'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
+# 			for data in replies_qset:
+# 				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
+# 			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+# 			pages, num_pages = paginate_group_list(data)
+# 			data = pages[page_num] if pages else []
+# 			cache_mehfil_pages(pages,user_id)
+# 		elif num_replies >= TOTAL_LIST_SIZE:
+# 			# only use replies to populate the list
+# 			most_recent_replies = sorted(replies, key=int,reverse=True)[:TOTAL_LIST_SIZE]
+# 			replies_qset = Reply.objects.filter(id__in=most_recent_replies).values('id','category','text','submitted_on','which_group',\
+# 				'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
+# 			for data in replies_qset:
+# 				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
+# 			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+# 			pages, num_pages = paginate_group_list(data)
+# 			data = pages[page_num]
+# 			cache_mehfil_pages(pages,user_id)
+# 		else:
+# 			#concatenate at least 1 invite!
+# 			sorted_replies = sorted(replies, key=int,reverse=True)
+# 			invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
+# 			##################
+# 			if invite_reply_ids:
+# 				empty_invite_slots_available = TOTAL_LIST_SIZE - num_replies
+# 				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)[:empty_invite_slots_available]
+# 				final_ids = sorted_replies + most_recent_invites
+# 				replies_qset = Reply.objects.filter(id__in=set(final_ids)).values('id','category','text','submitted_on','which_group',\
+# 					'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private')
+# 				for data in replies_qset:
+# 					data['submitted_on'] = convert_to_epoch(data['submitted_on'])
+# 				# re-arrange replies_qset in the same order as the list "final_ids"
+# 				unsorted_final_data = {}
+# 				for item in replies_qset:
+# 					unsorted_final_data[item['id']] = item
+# 				sorted_final_data = []
+# 				for item_id in map(int,final_ids):
+# 					data = unsorted_final_data.get(item_id,None)
+# 					if data:
+# 						sorted_final_data.append(data)
+# 				# get 'Seen' status
+# 				data = get_replies_with_seen(group_replies=sorted_final_data,viewer_id=user_id,object_type='3')
+# 				pages, num_pages = paginate_group_list(data)
+# 				data = pages[page_num]
+# 				# cache and return data
+# 				cache_mehfil_pages(pages,user_id)
+# 			else:
+# 				replies_qset = Reply.objects.filter(id__in=sorted_replies).values('id','category','text','submitted_on','which_group',\
+# 					'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
+# 				for data in replies_qset:
+# 					data['submitted_on'] = convert_to_epoch(data['submitted_on'])
+# 				data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
+# 				pages, num_pages = paginate_group_list(data)
+# 				data = pages[page_num]
+# 				cache_mehfil_pages(pages,user_id)
+# 	page_num = int(page_num)
+# 	return render(request,'mehfil/group.html',{'verified':FEMALES,'own_uname':retrieve_uname(user_id,decode=True),\
+# 		'object_list':data,'page_num':page_num,'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,\
+# 		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False}})
+
+
+def group_page(request):
+	"""
+	Renders list of all mehfil invites (public and private both)
 	"""
 	user_id, page_num = request.user.id, request.GET.get('page', '1')
-	page_data_from_micro_cache, num_pages = retrieve_cached_mehfil_pages(user_id,page_num)
+	page_data_from_micro_cache, num_pages = retrieve_cached_mehfil_invites(user_id,page_num)
 	if page_data_from_micro_cache:
-		data = json.loads(page_data_from_micro_cache)
+		final_data = json.loads(page_data_from_micro_cache)
 	else:
 		groups, replies = [], []
-		group_ids = get_user_groups(user_id)
-		replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
-		num_replies = len(replies)
-		##################
-		if num_replies == 0:
-			# only have invites to show
-			invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
-			num_invites = len(invite_reply_ids)
-			if num_invites > TOTAL_LIST_SIZE:
-				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)[:TOTAL_LIST_SIZE]
-			elif not num_invites:
-				most_recent_invites = []
-			else:
-				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)
-			replies_qset = Reply.objects.filter(id__in=most_recent_invites).values('id','category','text','submitted_on','which_group',\
-				'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
-			for data in replies_qset:
-				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
-			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-			pages, num_pages = paginate_group_list(data)
-			data = pages[page_num] if pages else []
-			cache_mehfil_pages(pages,user_id)
-		elif num_replies >= TOTAL_LIST_SIZE:
-			# only use replies to populate the list
-			most_recent_replies = sorted(replies, key=int,reverse=True)[:TOTAL_LIST_SIZE]
-			replies_qset = Reply.objects.filter(id__in=most_recent_replies).values('id','category','text','submitted_on','which_group',\
-				'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
-			for data in replies_qset:
-				data['submitted_on'] = convert_to_epoch(data['submitted_on'])
-			data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-			pages, num_pages = paginate_group_list(data)
-			data = pages[page_num]
-			cache_mehfil_pages(pages,user_id)
-		else:
-			#concatenate at least 1 invite!
-			sorted_replies = sorted(replies, key=int,reverse=True)
-			invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
-			##################
-			if invite_reply_ids:
-				empty_invite_slots_available = TOTAL_LIST_SIZE - num_replies
-				most_recent_invites = sorted(invite_reply_ids, key=int,reverse=True)[:empty_invite_slots_available]
-				final_ids = sorted_replies + most_recent_invites
-				replies_qset = Reply.objects.filter(id__in=set(final_ids)).values('id','category','text','submitted_on','which_group',\
-					'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private')
-				for data in replies_qset:
-					data['submitted_on'] = convert_to_epoch(data['submitted_on'])
-				# re-arrange replies_qset in the same order as the list "final_ids"
-				unsorted_final_data = {}
-				for item in replies_qset:
-					unsorted_final_data[item['id']] = item
-				sorted_final_data = []
-				for item_id in map(int,final_ids):
-					data = unsorted_final_data.get(item_id,None)
-					if data:
-						sorted_final_data.append(data)
-				# get 'Seen' status
-				data = get_replies_with_seen(group_replies=sorted_final_data,viewer_id=user_id,object_type='3')
-				pages, num_pages = paginate_group_list(data)
-				data = pages[page_num]
-				# cache and return data
-				cache_mehfil_pages(pages,user_id)
-			else:
-				replies_qset = Reply.objects.filter(id__in=sorted_replies).values('id','category','text','submitted_on','which_group',\
-					'writer__username','which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')
-				for data in replies_qset:
-					data['submitted_on'] = convert_to_epoch(data['submitted_on'])
-				data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-				pages, num_pages = paginate_group_list(data)
-				data = pages[page_num]
-				cache_mehfil_pages(pages,user_id)
-	page_num = int(page_num)
-	return render(request,'mehfil/group.html',{'verified':FEMALES,'own_uname':retrieve_uname(user_id,decode=True),\
-		'object_list':data,'page_num':page_num,'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,\
-		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False}})
 
-
-def group_list(request):    
-	"""
-	Renders list of all joined and invited mehfils (public and private both)
-	DEPRECATE LATER (ALONGWITH REDIS 1 GROUP FUNCTIONALITY)
-	"""
-	groups, replies = [], []
-	user_id, page_num = request.user.id, request.GET.get('page', '1')
-	group_ids = get_user_groups(user_id)
-	replies = filter(None, get_latest_group_replies(group_ids))#'latest_group_reply' is the latest reply in any given group, saved with a TTL of TWO WEEKS
-	invite_reply_ids = get_active_invites(user_id) #contains all current invites (they have associated replies to them)
-	invite_reply_ids |= set(replies) #doing union of two sets. Gives us all latest reply ids, minus any deleted replies (e.g. if the group object had been deleted)
-	replies_qset = Reply.objects.filter(id__in=invite_reply_ids).values('id','category','text','submitted_on','which_group','writer__username',\
-		'which_group__topic','which_group__unique','writer__userprofile__avatar','which_group__private').order_by('-id')[:80]
-	for data in replies_qset:
-		data['submitted_on'] = convert_to_epoch(data['submitted_on'])
-	data = get_replies_with_seen(group_replies=replies_qset,viewer_id=user_id,object_type='3')
-	pages, num_pages = paginate_group_list(data)
-	data = pages[page_num] if pages else []
+		########################
+		# pub_grp_ids, prv_grp_ids = retrieve_user_group_membership(user_id, group_type='both')
+		invite_data = retrieve_user_group_invites(user_id)
+		pages, num_pages = paginate_group_list(invite_data)
+		# final_data = pages[page_num]
+		final_data = pages[page_num] if pages else []
+		cache_mehfil_invites(pages,user_id)
 	page_num = int(page_num)
-	return render(request,"mehfil/group.html",{'verified':FEMALES,'own_uname':retrieve_uname(user_id, decode=True),\
-		'object_list':data,'page_num':page_num,'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,\
-		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False}})
+	return render(request,"mehfil/group_invites.html",{'object_list':final_data,'own_uname':retrieve_uname(user_id,decode=True),\
+		'verified':FEMALES,'num_invites':len(final_data),'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,\
+		'has_next':True if page_num<num_pages else False,'has_previous':True if page_num>1 else False},'page_num':page_num})
 
 
 ##################### Mehfil membership #####################
@@ -3790,6 +3763,31 @@ def time_reqd_to_read(lenght_of_text):
 			return max_ttr
 		else:
 			return determined_ttr
+
+
+def create_sorted_invitee_list(username_data, user_ids):
+	"""
+	Prepares list of alphabetically sorted names available to mehfil inviters (both public and private)
+	"""
+	user_alpha_data = []#nicks starting with an alpha character
+	user_digital_data = []#nicks starting with a digital character
+	for online_id in user_ids:
+		username = username_data[int(online_id)]
+		username_lower = username.lower()
+		if username[0].isdigit():
+			user_digital_data.append((online_id,username,username_lower))
+		else:
+			user_alpha_data.append((online_id,username,username_lower))
+	user_digital_data.sort(key=itemgetter(2))
+	user_alpha_data.sort(key=itemgetter(2))
+	user_data = user_alpha_data + user_digital_data
+	final_data, previous_lower_username_first_alphabet = [] , ''
+	for id_, uname, uname_lower in user_data:
+		first_alphabet = uname_lower[0]
+		new_alphabet = first_alphabet.upper() if (first_alphabet!=previous_lower_username_first_alphabet) else None
+		final_data.append((id_,uname,uname_lower,new_alphabet))
+		previous_lower_username_first_alphabet = first_alphabet
+	return final_data
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -3816,11 +3814,10 @@ def join_private_group(request):
 			# already a member
 			request.session["unique_id"] = retrieve_group_uuid(group_id)
 			return redirect("private_group_reply")
-		# IMPLEMENT THE BELOW A FEW WEEKS AFTER LAUNCH - SO THAT NO ONE CAN JOIN PRIV MEHFIL WITHOUT AN INVITE (EVEN IF THEY NAVIGATE TO IT)
-		# and once implemented - ensure would-be joiner see basic mehfil stats at the 'join' page (who are the members, who owns it, etc.) - also see first_time_refresh() comments for another tweak
-		# elif not invite_exists(group_id, own_id):
-		#     # reject user if uninvited
-		#     return render(request,"mehfil/notify_and_redirect.html",{'uninvited':True,'owner_uname':retrieve_group_owner_uname(group_id)})
+		elif not group_invite_exists(group_id, own_id):
+			# reject user (if uninvited)
+			# TODO: ensure would-be joiner see basic mehfil stats at the 'join' page (who are the members, who owns it, etc.)
+			return render(request,"mehfil/notify_and_redirect.html",{'uninvited':True})
 		elif banned_from_group(group_id, own_id):
 			# user is banned from group, turn them away
 			ban_details = get_ban_details(group_id, own_id)
@@ -3853,9 +3850,9 @@ def join_private_group(request):
 				own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 				##############################################
 				# legacy redis 1 functionality
-				add_group_member(group_id, own_uname)
-				remove_group_invite(own_id, group_id)
-				add_user_group(own_id, group_id)
+				# add_group_member(group_id, own_uname)
+				# remove_group_invite(own_id, group_id)
+				# add_user_group(own_id, group_id)
 				##############################################
 				reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')# to take care of grouppageview
 				group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=group_owner_id, topic=retrieve_group_topic(group_id=group_id),\
@@ -3867,6 +3864,7 @@ def join_private_group(request):
 					# delete extra submissions
 					trim_group_submissions.delay(group_id)
 				invalidate_cached_mehfil_replies(group_id)#redis6 function
+				invalidate_cached_mehfil_invites(own_id)
 				main_sentence = own_uname+" ne mehfil join ki at {0}".format(exact_date(time_now))
 				document_administrative_activity.delay(group_id, main_sentence, 'join')
 				##############################################
@@ -3946,9 +3944,9 @@ def owner_rejoining_public_group(request):
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						##############################################
 						# legacy functionality
-						add_group_member(group_id, own_uname)
-						remove_group_invite(own_id, group_id)
-						add_user_group(own_id, group_id)#to take care of grouppageview()
+						# add_group_member(group_id, own_uname)
+						# remove_group_invite(own_id, group_id)
+						# add_user_group(own_id, group_id)#to take care of grouppageview()
 						##############################################
 						reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=time_now,\
@@ -3960,6 +3958,7 @@ def owner_rejoining_public_group(request):
 							# delete extra submissions
 							trim_group_submissions.delay(group_id)
 						invalidate_cached_mehfil_replies(group_id)#redis6 function
+						invalidate_cached_mehfil_invites(own_id)
 						##############################################
 						try:
 							join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
@@ -4133,9 +4132,9 @@ def accept_open_group_rules(request):
 								# rules are acceptable to the user and they took the prescribed time to read them
 								##############################################
 								# legacy functionality
-								add_group_member(group_id, own_uname)
-								remove_group_invite(own_id, group_id)
-								add_user_group(own_id, group_id)
+								# add_group_member(group_id, own_uname)
+								# remove_group_invite(own_id, group_id)
+								# add_user_group(own_id, group_id)
 								##############################################
 								reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')# to take care of grouppageview
 								group_owner_id = group_meta_data['oi']
@@ -4148,6 +4147,7 @@ def accept_open_group_rules(request):
 									# delete extra submissions
 									trim_group_submissions.delay(group_id)
 								invalidate_cached_mehfil_replies(group_id)#redis6 function
+								invalidate_cached_mehfil_invites(own_id)
 								##############################################
 								try:
 									join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
@@ -4175,9 +4175,9 @@ def accept_open_group_rules(request):
 							# rules are acceptable to the user and they took the prescribed time to read them
 							##############################################
 							# legacy functionality
-							add_group_member(group_id, own_uname)
-							remove_group_invite(own_id, group_id)
-							add_user_group(own_id, group_id)
+							# add_group_member(group_id, own_uname)
+							# remove_group_invite(own_id, group_id)
+							# add_user_group(own_id, group_id)
 							##############################################
 							reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')# to take care of grouppageview
 							group_owner_id = group_meta_data['oi']
@@ -4190,6 +4190,7 @@ def accept_open_group_rules(request):
 								# delete extra submissions
 								trim_group_submissions.delay(group_id)
 							invalidate_cached_mehfil_replies(group_id)#redis6 function
+							invalidate_cached_mehfil_invites(own_id)
 							##############################################
 							try:
 								join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
@@ -4266,221 +4267,193 @@ def quick_accept_open_group_rules(request):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-def process_public_group_invite(request,*args, **kwargs):
+def process_public_group_invite(request, *args, **kwargs):
 	"""
-	Sending a prospective user an invite to a public mehfil
+	Sending prospective members invites to a private mehfil
 
 	If prospective member was already invited, ensure invite not sent
+	Handle bulk invites in the same go
 	"""
 	if request.user_banned:
 		return redirect("group_page")
-	elif request.method == "POST":  
+	elif request.method == "POST":
 		uuid = request.POST.get("puid",None)
-		pk = request.POST.get("vid",None)#visitor id
 		group_owner_id, group_id = retrieve_group_owner_id(group_uuid=uuid,with_group_id=True)
-		if group_owner_id:
+		if group_id:
+			# group exists
 			own_id = str(request.user.id)
 			is_officer = is_group_officer(group_id,own_id)
 			is_owner = own_id == group_owner_id
 			if is_officer or is_owner:
-				can_invite = invite_allowed(group_id,inviter='owner' if is_owner else 'officer',is_public=True)
-				if can_invite:
-					invitee_username = retrieve_uname(pk,decode=True)
-					if check_group_invite(pk, group_id) or check_group_member(group_id, invitee_username):
-						# REPLACE check_group_invite() WITH reinviting() redis 6 later
-						# REPLACE check_group_member() WITH group_member_exists() redis 6 later
-						# calling ReinviteView() - invite already exists (target is being 'double-invited')
-						return redirect("reinvite_help", slug= uuid)
+				invitee_ids = request.POST.getlist('vids',[])# contains group_ids in list format
+				if invitee_ids:
+					# process the invites
+					slots_available, reason = invite_allowed(group_id,inviter='owner' if is_owner else 'officer', is_public=True, \
+						inviter_id=own_id)
+					if slots_available > 0:
+						num_selected = len(invitee_ids)
+						if num_selected > slots_available:
+							# cannot possibly invite them all, render a screen that shows options to remove some of the targets
+							return render(request,'mehfil/select_fewer_invitees.html',{'num_selected':num_selected,'slots_available':slots_available,\
+								'invited_usernames':retrieve_bulk_unames(invitee_ids,decode=True).iteritems(),'group_uuid':uuid,'is_public':True,\
+								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'legit':FEMALES})
+						else:
+							# can invite them all - proceed
+							invitable_ids = filter_uninvitables(invitee_ids, uuid)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
+							invited_nicknames_string = nickname_strings(invitable_ids)
+							own_uname = retrieve_uname(own_id,decode=True)
+							save_group_invite(group_id=group_id, target_ids=invitable_ids, time_now=time.time(),is_public=True,sent_by='owner' if is_owner \
+							else 'officer',sent_by_id=own_id,sent_by_uname=own_uname,group_uuid=uuid)# redis 6 function, remove add_group_invite (redis 1) later
+							partial_sentence = own_uname+" ne "+invited_nicknames_string
+							main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time.time()))
+							document_administrative_activity.delay(group_id, main_sentence, 'public_invite')
+							for invitee_id in invitable_ids:
+								#invalidate_cached_mehfil_pages(invitee_id)# so that the invitees can view the invite immediately
+								invalidate_cached_mehfil_invites(invitee_id)
+							##############################
+							return render(request,'mehfil/group_invites_sent.html',{'invited_usernames':retrieve_bulk_unames(invitable_ids,decode=True).values(),'group_uuid':uuid,\
+								'is_public':True})
 					else:
-						#################################################################################
-						# this person ought to be sent an invite                                        #
-						# create reply and then use its ID in add_group_invite()                        #
-						# this is legacy that can be removed once Reply and Group models are deprecated #
-						reply = Reply.objects.create(text=invitee_username, category='1', which_group_id=group_id,writer_id=own_id)
-						add_group_invite(pk, group_id,reply.id)
-						############# REDIS 6 #############
-						own_uname = retrieve_uname(own_id,decode=True)
-						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time.time(),is_public=True,sent_by='owner' if is_owner else 'officer',sent_by_id=own_id,sent_by_uname=own_uname,group_uuid=uuid)# redis 6
-						partial_sentence = own_uname+" ne "+invitee_username
-						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time.time()))
-						document_administrative_activity.delay(group_id, main_sentence, 'public_invite')
-						invalidate_cached_mehfil_pages(pk)# so that the invitee can view the invite immediately
-						###################################
-						return redirect("invite")
+						# slots are used up
+						if reason == 'ivt_overflow':
+							# invite limit reached
+							return render(request,"mehfil/notify_and_redirect.html",{'invite_overflow':True,'unique':uuid,'is_public':True})
+						else:
+							# some other generic error, redirect user
+							return redirect("group_page")
 				else:
-					#exhausted invites or not authorized, either way redirect user
-					return redirect("group_page")
+					# nothing was selected, return the user to group
+					return redirect("public_group")
+				#####################################################
 			else:
-				# not authorized to invite
-				return redirect("group_page")
+				# does not have invite privileges in this group
+				raise Http404("You're not a member of this group!")
 		else:
 			# group does not exist
 			return redirect("group_page")
 	else:
-		# not a POST
+		# not a POST request
 		return redirect("public_group")
-
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def process_private_group_invite(request, *args, **kwargs):
 	"""
-	Sending a prospective user an invite to a private mehfil
+	Sending prospective members invites to a private mehfil
 
 	If prospective member was already invited, ensure invite not sent
+	Handle bulk invites in the same go
 	"""
 	if request.user_banned:
 		return redirect("group_page")
-	elif request.method=="POST":
+	elif request.method == "POST":
 		uuid = request.POST.get("puid",None)
-		pk = request.POST.get("vid",None)#visitor_id
 		group_owner_id, group_id = retrieve_group_owner_id(group_uuid=uuid,with_group_id=True)
 		if group_id:
+			# group exists
 			user_id = str(request.user.id)
 			is_owner = user_id == group_owner_id
 			if group_member_exists(group_id, user_id):
-				can_invite, reason = invite_allowed(group_id,inviter='owner' if is_owner else 'member',is_public=False,\
-					inviter_id=user_id)
-				if can_invite:
-					invitee_username = retrieve_uname(pk,decode=True)
-					if check_group_invite(pk, group_id) or check_group_member(group_id, invitee_username):
-						# REPLACE check_group_invite() WITH reinviting() redis 6 later
-						# REPLACE check_group_member() WITH group_member_exists() redis 6 later
-						# calling ReinvitePrivateView(), ensures already invited user not invited again
-						return redirect("reinvite_private_help")
+				invitee_ids = request.POST.getlist('vids',[])# contains group_ids in list format
+				if invitee_ids:
+					# process the invites
+					slots_available, reason = invite_allowed(group_id,inviter='owner' if is_owner else 'member',is_public=False, \
+						inviter_id=user_id)
+					if slots_available > 0:
+						num_selected = len(invitee_ids)
+						if num_selected > slots_available:
+							# cannot possibly invite them all, render a screen that shows options to remove some of the targets
+							return render(request,'mehfil/select_fewer_invitees.html',{'num_selected':num_selected,'slots_available':slots_available,\
+								'invited_usernames':retrieve_bulk_unames(invitee_ids,decode=True).iteritems(),'group_uuid':uuid,'is_public':False,\
+								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'legit':FEMALES})
+						else:
+							# can invite them all - proceed
+							invitable_ids = filter_uninvitables(invitee_ids, uuid)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
+							time_now = time.time()
+							own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
+							invited_nicknames_string = nickname_strings(invitable_ids)
+							submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=invited_nicknames_string,\
+								posting_time=time_now,category='1', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))# shows invite in group
+							if num_submissions > DELETION_THRESHOLD:
+								# delete extra submissions
+								trim_group_submissions.delay(group_id)
+							save_group_invite(group_id=group_id, target_ids=invitable_ids, time_now=time_now,is_public=False, sent_by='owner' if is_owner \
+							else 'member',sent_by_id=user_id,sent_by_uname=own_uname,group_uuid=uuid)# redis 6 function, remove add_group_invite() (redis 1) later
+							invalidate_cached_mehfil_replies(group_id)
+							invalidate_presence(group_id)
+							partial_sentence = own_uname+" ne "+invited_nicknames_string
+							main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time_now))
+							document_administrative_activity.delay(group_id, main_sentence, 'private_invite')
+							for invitee_id in invitable_ids:
+								#invalidate_cached_mehfil_pages(invitee_id)# so that the invitees can view the invite immediately
+								invalidate_cached_mehfil_invites(invitee_id)
+							return render(request,'mehfil/group_invites_sent.html',{'invited_usernames':retrieve_bulk_unames(invitable_ids,decode=True).values(),'group_uuid':uuid,\
+								'is_public':False})
 					else:
-						#################################################################################
-						# this person ought to be sent an invite                                        #
-						# create reply and then use its ID in add_group_invite()                        #
-						# this is legacy that can be removed once Reply and Group models are deprecated #
-						reply = Reply.objects.create(text=invitee_username, category='1', which_group_id=group_id,writer_id=user_id)
-						reply_id = reply.id
-						add_group_invite(pk, group_id,reply_id)#redis 1 legacy function
-						##############################
-						##############################
-						time_now = time.time()
-						own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-						submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=invitee_username,\
-							posting_time=time_now,category='1', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))# shows invite in group
-						if num_submissions > DELETION_THRESHOLD:
-							# delete extra submissions
-							trim_group_submissions.delay(group_id)
-						save_group_invite(group_id=group_id, target_ids=[pk], time_now=time.time(),is_public=True,sent_by='owner' if is_owner else 'officer',sent_by_id=user_id,sent_by_uname=own_uname,group_uuid=uuid)# redis 6
-						invalidate_cached_mehfil_replies(group_id)
-						invalidate_presence(group_id)
-						partial_sentence = own_uname+" ne "+invitee_username
-						main_sentence = partial_sentence+" ko invite kiya at {0}".format(exact_date(time_now))
-						document_administrative_activity.delay(group_id, main_sentence, 'private_invite')
-						invalidate_cached_mehfil_pages(pk)# so that the invitee can view the invite immediately
-						##############################
-						##############################
-						set_latest_group_reply(group_id,reply_id)# populates grouppageview()
-						request.session.pop("unique_id",None)
-						return redirect("invite_private", slug=uuid)
+						# slots are used up
+						if reason == 'mem_overflow':
+							# member limit reached
+							return render(request,"mehfil/notify_and_redirect.html",{'member_overflow':True,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP,\
+								'unique':uuid})
+						elif reason == 'ivt_overflow':
+							# invite limit reached
+							return render(request,"mehfil/notify_and_redirect.html",{'invite_overflow':True,'unique':uuid,'is_public':False})
+						else:
+							# some other generic error, redirect user
+							return redirect("group_page")
 				else:
-					if reason == 'mem_overflow':
-						# member limit reached
-						return render(request,"mehfil/notify_and_redirect.html",{'member_overflow':True,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP,\
-							'unique':uuid})
-					elif reason == 'ivt_overflow':
-						# invite limit reached
-						return render(request,"mehfil/notify_and_redirect.html",{'invite_overflow':True,'unique':uuid,'is_public':False})
-					else:
-						# some other generic error, redirect user
-						return redirect("group_page")
+					# nothing was selected, return the user to group
+					request.session["unique_id"] = uuid
+					return redirect("private_group_reply")
+				#####################################################
 			else:
-				# not authorized to invite
-				return redirect("group_page")
+				# not this group's member
+				raise Http404("You're not a member of this group!")
+		else:
+			# group does not exist
+			return redirect("group_page")
 	else:
+		# not a POST request
 		return redirect("group_page")
-
-############################################################
-
-# class InviteUsersToPrivateGroupView(ListView):
-#   """
-#   Renders list of currently online users, and allows inviter to select users from there for their private mehfil
-#   """
-#   # model = Session
-#   template_name = "mehfil/invite_for_private_group.html"
-#   paginate_by = 100
-
-#   def get_queryset(self):
-#       if self.request.user_banned:
-#           return []
-#       else:
-#           global condemned
-#           user_ids = get_most_recent_online_users()#cache_mem.get('online')
-#           try:
-#               group = Group.objects.get(unique=self.request.session["unique_id"])
-#               users_purified = [pk for pk in user_ids if pk not in condemned]
-#               non_invited_online_ids = bulk_check_group_invite(users_purified,group.id)
-#               non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group.id)
-#               print "kads"
-#               print User.objects.filter(id__in=non_invited_non_member_online_ids).values('id','userprofile__score','userprofile__avatar','username')
-#               return User.objects.filter(id__in=non_invited_non_member_online_ids).values('id','userprofile__score','userprofile__avatar','username')
-#           except:
-#               return []
-
-#   def get_context_data(self, **kwargs):
-#       context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
-#       if self.request.user.is_authenticated():
-#           context["legit"] = FEMALES
-#           try:    
-#               unique = self.request.session["unique_id"]
-#               context["unique"] = unique
-#               group = Group.objects.get(unique=unique)
-#               context["authorized"] = True
-#               context["group"] = group
-#           except:
-#               context["authorized"] = False
-#       return context              
-
-
-############################################################
 
 
 class InviteUsersToPrivateGroupView(ListView):
 	"""
 	Renders list of currently online users, and allows inviter to select users from there for their private mehfil
 	"""
-	# model = Session
 	template_name = "mehfil/invite_for_private_group.html"
-	paginate_by = 100
 
 	def get_queryset(self):
 		if self.request.user_banned:
-			return [{'id':-4}]
+			return [(-4,-4,-4,-4)]
 		else:
-			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=self.request.session.get("unique_id",None),with_group_id=True)
+			group_uuid = self.request.session.get("unique_id",None)
+			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=group_uuid,with_group_id=True)
 			if group_owner_id:
 				own_id = str(self.request.user.id)
 				if group_member_exists(group_id, own_id):
-					user_ids = get_most_recent_online_users()#cache_mem.get('online')
-					#user_ids = [114,113,128,164,132,123,133,150,160]
+					user_ids = get_most_recent_online_users()
+					#user_ids = [18,114,113,128,164,132,123,133,150,160]
 					if user_ids:
-						users_purified = [pk for pk in user_ids if pk not in condemned]
-						non_invited_online_ids = bulk_check_group_invite(users_purified,group_id)# removes already invited users (redis 1 legacy function - remove)
-						non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids,group_id)# removes already member users (redis 1 function)
-						user_data = retrieve_bulk_credentials(non_invited_non_member_online_ids, decode_unames=True)#returned data {int(user_id):{'uname':uname,'avurl':avurl}}
-						if user_data:
-							final_data = []#list of dictionaries
-							for online_id in non_invited_non_member_online_ids:
-								online_id = int(online_id)
-								final_data.append({'id':online_id,'username':user_data[online_id]['uname'],'avurl':user_data[online_id]['avurl']})
-							return final_data
+						users_purified = [pk for pk in user_ids if pk not in condemned]# remove hell-banned users
+						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified,group_uuid)
+						username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
+						if username_data:
+							return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
+
 						else:
 							# no one online
-							return [{'id':-1}]
+							return [(-1,-1,-1,-1)]
 					else:
 						# no one online
-						return [{'id':-1}]
+						return [(-1,-1,-1,-1)]
 				else:
 					# not allowed to invite users (e.g. isn't a member of the mehfil)
-					return [{'id':-2}]
+					return [(-2,-2,-2,-2)]
 			else:
 				# no group found
-				return [{'id':-3}]
+				return [(-3,-3,-3,-3)]
 
 
 	def get_context_data(self, **kwargs):
@@ -4488,7 +4461,7 @@ class InviteUsersToPrivateGroupView(ListView):
 		if self.request.user.is_authenticated():
 			unique = self.request.session.get("unique_id",None)
 			context["unique"] = unique
-			marker = context["object_list"][0]['id']
+			marker = context["object_list"][0][0]
 			if marker < 0:
 				# cannot invite users
 				context["group"] = False
@@ -4505,11 +4478,11 @@ class InviteUsersToPrivateGroupView(ListView):
 					# user is banned
 					context["banned"] = True
 			else:
-				# can invite
+				# can invite users
 				own_id = self.request.user.id
 				group_topic = retrieve_group_topic(group_uuid=unique,requestor_id=own_id)
 				if group_topic:
-					show_instr, instr_type = show_private_group_invite_instructions(unique,own_id)
+					show_instr, instr_type = show_private_group_invite_instructions(unique,own_id)# also expired invite culling happens here
 					if instr_type:
 						context["show_instr"] = show_instr
 						if show_instr:
@@ -4525,6 +4498,7 @@ class InviteUsersToPrivateGroupView(ListView):
 							elif invites_remaining == 0:
 								context["invites_remaining"] = 0
 								context["no_more_invites"] = True
+								context["status"] = 'disabled'
 							else:
 								context["invites_remaining"] = invites_remaining
 						context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
@@ -4537,64 +4511,7 @@ class InviteUsersToPrivateGroupView(ListView):
 				else:
 					context["no_group"] = True
 					context["group"] = False
-		return context  
-
-	
-	# def get_context_data(self, **kwargs):
-	#   context = super(InviteUsersToPrivateGroupView, self).get_context_data(**kwargs)
-	#   if self.request.user.is_authenticated():
-	#       unique = self.request.session.get("unique_id",None)
-	#       context["unique"] = unique
-	#       marker = context["object_list"][0]['id']
-	#       if marker < 0:
-	#           # cannot invite users
-	#           context["group"] = False
-	#           if marker == -1:
-	#               # no one online
-	#               context["no_online"] = True
-	#           elif marker == -2:
-	#               # not allowed to invite users
-	#               context["cant_invite"] = True
-	#           elif marker == -3:
-	#               # group not found
-	#               context["no_group"] = True
-	#           elif marker == -4:
-	#               # user is banned
-	#               context["banned"] = True
-	#       else:
-	#           # can invite
-	#           own_id = self.request.user.id
-	#           group_topic = retrieve_group_topic(group_uuid=unique,requestor_id=own_id)
-	#           if group_topic:
-	#               show_instr, instr_type = show_private_group_invite_instructions(unique,own_id)
-	#               if instr_type:
-	#                   context["show_instr"] = show_instr
-	#                   if show_instr:
-	#                       context["max_invites"] = MAX_OWNER_INVITES_PER_PRIVATE_GROUP if instr_type == 'owner' else MAX_MEMBER_INVITES_PER_PRIVATE_GROUP
-	#                       context["one_less"] = context["max_invites"] - 1
-	#                       context["instr_type"] = instr_type
-	#                   else:
-	#                       invites_remaining = retrieve_closed_group_remaining_invites(unique,user_type=instr_type)
-	#                       if invites_remaining == -1:
-	#                           # this is a general error
-	#                           context["cant_invite"] = True
-	#                           context["group"] = False
-	#                       elif invites_remaining == 0:
-	#                           context["invites_remaining"] = 0
-	#                           context["no_more_invites"] = True
-	#                       else:
-	#                           context["invites_remaining"] = invites_remaining
-	#                   context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
-	#                   context["group_topic"] = group_topic
-	#                   context["legit"] = FEMALES
-	#                   context["group"] = True
-	#               else:
-	#                   context["cant_invite"] = True
-	#                   context["group"] = False
-	#           else:
-	#               context["no_group"] = True
-	#               context["group"] = False
-	#   return context              
+		return context
 
 
 @csrf_protect
@@ -4663,8 +4580,9 @@ def cancel_closed_group_invite(request):
 			time_now = time.time()
 			successful = cancel_invite(group_id, target_user_id, False, time_now)
 			if successful:
+				invalidate_cached_mehfil_invites(target_user_id)
 				########## legacy redis 1 function ##########
-				remove_group_invite(target_user_id, group_id)
+				# remove_group_invite(target_user_id, group_id)
 				##### adding to administrative activity #####
 				username_dictionary = retrieve_bulk_unames([own_id,target_user_id],decode=True)
 				main_sentence = username_dictionary[own_id]+" ne "+username_dictionary[int(target_user_id)]+\
@@ -4691,45 +4609,42 @@ def cancel_closed_group_invite(request):
 
 class InviteUsersToGroupView(ListView):
 	"""
-	Inviting users to public mehfil
+	Renders list of currently online users, and allows inviter to select users from there for their public mehfil
 	"""
 	template_name = "mehfil/invite_for_groups.html"
-	paginate_by = 100
 	
 	def get_queryset(self):
 		if self.request.user_banned:
-			return [{'id':-4}]
+			return [(-4,-4,-4,-4)]
 		else:
-			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=self.request.session.get("public_uuid",None),with_group_id=True)
+			group_uuid = self.request.session.get("public_uuid",None)
+			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=group_uuid,with_group_id=True)
 			if group_owner_id:
 				own_id = str(self.request.user.id)
 				allowed_to_invite = own_id == group_owner_id or is_group_officer(group_id,own_id)
 				if allowed_to_invite:
 					user_ids = get_most_recent_online_users()#cache_mem.get('online')
-					#user_ids = [114,113,128,164,132,123,133,150,160]
+					# user_ids = [1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,154,155]
+					#user_ids = [18,114,113,128,164,132,123,133,150,160]
 					if user_ids:
 						users_purified = [pk for pk in user_ids if pk not in condemned]
-						non_invited_online_ids = bulk_check_group_invite(users_purified, group_id)
-						non_invited_non_member_online_ids = bulk_check_group_membership(non_invited_online_ids, group_id)
-						user_data = retrieve_bulk_credentials(non_invited_non_member_online_ids, decode_unames=True)#returned data {int(user_id):{'uname':uname,'avurl':avurl}}
-						if user_data:
-							final_data = []#list of dictionaries
-							for online_id in non_invited_non_member_online_ids:
-								online_id = int(online_id)
-								final_data.append({'id':online_id,'username':user_data[online_id]['uname'],'avurl':user_data[online_id]['avurl']})
-							return final_data
+						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified,group_uuid)
+						username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
+						if username_data:
+							return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
+
 						else:
 							# no one online
-							return [{'id':-1}]
+							return [(-1,-1,-1,-1)]
 					else:
 						# no one online
-						return [{'id':-1}]
+						return [(-1,-1,-1,-1)]
 				else:
-					# not allowed to invite users (e.g. is just a regular user, and not the mehfil owner or an officer)
-					return [{'id':-2}]
+					# not allowed to invite users (e.g. isn't a member of the mehfil)
+					return [(-2,-2,-2,-2)]
 			else:
 				# no group found
-				return [{'id':-3}]
+				return [(-3,-3,-3,-3)]
 			
 
 	def get_context_data(self, **kwargs):
@@ -4737,7 +4652,7 @@ class InviteUsersToGroupView(ListView):
 		if self.request.user.is_authenticated():
 			unique = self.request.session.get("public_uuid",None)
 			context["unique"] = unique
-			marker = context["object_list"][0]['id']
+			marker = context["object_list"][0][0]
 			if marker < 0:
 				# cannot invite users
 				context["group"] = False
@@ -4758,7 +4673,7 @@ class InviteUsersToGroupView(ListView):
 				own_id = self.request.user.id
 				group_topic = retrieve_group_topic(group_uuid=unique,requestor_id=own_id)
 				if group_topic:
-					show_instr, instr_type = show_public_group_invite_instructions(unique,own_id)
+					show_instr, instr_type = show_public_group_invite_instructions(unique,own_id)# also expired invite culling happens here
 					if instr_type:
 						context["show_instr"] = show_instr
 						if show_instr:
@@ -4768,13 +4683,16 @@ class InviteUsersToGroupView(ListView):
 						else:
 							invites_remaining = retrieve_open_group_remaining_invites(unique,user_type=instr_type)
 							if invites_remaining == -1:
+								# this is a general error
 								context["cant_invite"] = True
 								context["group"] = False
 							elif invites_remaining == 0:
 								context["invites_remaining"] = 0
 								context["no_more_invites"] = True
+								context["status"] = 'disabled'
 							else:
 								context["invites_remaining"] = invites_remaining
+						
 						context["group_topic"] = group_topic
 						context["legit"] = FEMALES
 						context["group"] = True
@@ -4856,8 +4774,9 @@ def cancel_open_group_invite(request):
 			time_now = time.time()
 			successful = cancel_invite(group_id, target_user_id, True, time_now)
 			if successful:
+				invalidate_cached_mehfil_invites(target_user_id)
 				########## legacy redis 1 function ##########
-				remove_group_invite(target_user_id, group_id)
+				# remove_group_invite(target_user_id, group_id)
 				##### adding to administrative activity #####
 				username_dictionary = retrieve_bulk_unames([own_id,target_user_id],decode=True)
 				main_sentence = username_dictionary[own_id]+" ne "+username_dictionary[int(target_user_id)]+\
@@ -4877,8 +4796,6 @@ def cancel_open_group_invite(request):
 		else:
 			# not authorized
 			return redirect("public_group")
-
-
 	else:
 		# not a POST request
 		return redirect("public_group")
@@ -4962,8 +4879,8 @@ def first_time_refresh(request, unique=None, *args, **kwargs):
 			url = reverse_lazy("private_group_reply")+"#sectionJ"
 			return redirect(url)
 	else:
-		# ONCE MEHFIL IS ONLY ENTERED BY INVITED USERS, REMOVE THIS ERROR SO "GET" REQUESTS ARE NOT TOO FATAL
-		raise Http404("Not a POST request")
+		url = reverse_lazy("private_group_reply")+"#sectionJ"
+		return redirect(url)
 
 
 ########################## Mehfil Help #########################
@@ -5155,6 +5072,7 @@ class DirectMessageCreateView(FormView):
 						reply_time = convert_to_epoch(reply.submitted_on)
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						###################
+						set_group_id(group_id)#set group ID in redis6
 						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=None, group_id=group_id,privacy='1',uuid=unique,\
 							topic=topic,pics='1',created_at=created_at, grp_categ='1')#grp_categ is set to '1', '2' being a group only pink stars can join
 						save_group_submission(writer_id=own_id, group_id=group_id, text=invitee, posting_time=reply_time,category='1',\
@@ -5163,15 +5081,18 @@ class DirectMessageCreateView(FormView):
 						group_attendance_tasks.delay(group_id=group_id, user_id=own_id, time_now=reply_time)#, private=True)
 						main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 						document_administrative_activity.delay(group_id, main_sentence, 'create')
+						save_group_invite(group_id=group_id, target_ids=[pk], time_now=reply_time,is_public=False, sent_by='owner',\
+							sent_by_id=own_id,sent_by_uname=own_uname,group_uuid=str(unique))
 						###################
-						add_group_member(group_id, own_uname)
-						add_group_invite(pk, group_id,reply.id)
-						add_user_group(own_id, group_id)
+						# add_group_member(group_id, own_uname)
+						# add_group_invite(pk, group_id,reply.id)
+						# add_user_group(own_id, group_id)
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text=invitee,priv='1',slug=str(unique),image_url=None,\
 							priority='priv_mehfil',from_unseen=False,reply_id=reply.id)
 						rate_limit_group_creation(own_id, which_group='private')
-						invalidate_cached_mehfil_pages(own_id)
+						# invalidate_cached_mehfil_pages(own_id)
+						invalidate_cached_mehfil_invites(pk)
 						self.request.session["unique_id"] = unique
 						return redirect("private_group_reply")
 				else:
@@ -5183,7 +5104,7 @@ class DirectMessageCreateView(FormView):
 
 class ClosedGroupCreateView(CreateView):
 	"""
-	Resposible for rendering and validating private mehfil creation form. Also creates the private mehfil.
+	Responsible for rendering and validating private mehfil creation form. Also creates the private mehfil.
 	"""
 	model = Group
 	form_class = ClosedGroupCreateForm
@@ -5225,6 +5146,7 @@ class ClosedGroupCreateView(CreateView):
 				reply_time = convert_to_epoch(reply.submitted_on)
 				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 				####################
+				set_group_id(f.id)#set group ID in redis6
 				create_group_credentials(owner_id=user_id, owner_uname=own_uname,owner_join_time=None, group_id=f.id,privacy='1',uuid=f.unique,\
 					topic=f.topic,pics='1',created_at=created_at, grp_categ='1')
 				save_group_submission(writer_id=user_id, group_id=f.id, text=creation_text, posting_time=reply_time,category='0',\
@@ -5233,10 +5155,10 @@ class ClosedGroupCreateView(CreateView):
 				group_attendance_tasks.delay(group_id=f.id, user_id=user_id, time_now=reply_time)#, private=True)
 				main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 				document_administrative_activity.delay(f.id, main_sentence, 'create')
-				invalidate_cached_mehfil_pages(user_id)
+				# invalidate_cached_mehfil_pages(user_id)
 				####################
-				add_group_member(f.id, own_uname)
-				add_user_group(user_id, f.id)
+				# add_group_member(f.id, own_uname)
+				# add_user_group(user_id, f.id)
 				group_notification_tasks.delay(group_id=f.id,sender_id=user_id,group_owner_id=user_id,topic=f.topic,reply_time=reply_time,\
 					poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='1',slug=str(f.unique),image_url=None,\
 					priority='priv_mehfil',from_unseen=False,reply_id=reply.id)
@@ -5281,8 +5203,9 @@ def create_open_group(request):
 					join_date = User.objects.only('date_joined').get(id=own_id).date_joined
 				except User.DoesNotExist:
 					# this user does not exist thus data incomplete
-					return redirect("home")
-				ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - convert_to_epoch(join_date))
+					raise Http404("This user is non-existent")
+				epoch_join_date = convert_to_epoch(join_date)
+				ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - epoch_join_date)
 				if ttl > 4:
 					# this user isn't allowed to create a group
 					return render(request,"mehfil/group_type.html",{'user_age_inadequate':True,'age_inadequate_ttl':ttl})
@@ -5296,6 +5219,7 @@ def create_open_group(request):
 						group = Group.objects.create(topic=topic, rules=rules, owner_id=own_id, private=0, category=group_category,unique=unique, \
 							pics_ki_ijazat=1)
 						group_id = group.id
+						set_group_id(group_id)#set group ID in redis6
 						unique_id = group.unique
 						created_at = convert_to_epoch(group.created_at)
 						reply = Reply.objects.create(text=creation_text,which_group_id=group_id,writer_id=own_id)# to ensure group shows up in grouppageview()
@@ -5304,15 +5228,15 @@ def create_open_group(request):
 						reply_time = convert_to_epoch(reply.submitted_on)
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						########### legacy redis 1 functions ###########
-						add_group_member(group_id, own_uname)
-						add_user_group(own_id, group_id)
+						# add_group_member(group_id, own_uname)
+						# add_user_group(own_id, group_id)
 						################################################
-						try:
-							join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
-						except User.DoesNotExist:
-							# this user does not exist thus data incomplete
-							join_date = None
-						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=join_date, group_id=group_id,privacy='0',\
+						# try:
+						#     join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
+						# except User.DoesNotExist:
+						#     # this user does not exist thus data incomplete
+						#     join_date = None
+						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=epoch_join_date, group_id=group_id,privacy='0',\
 							uuid=unique_id,topic=topic,pics='1',created_at=created_at, grp_categ=group_category,rules=rules, raw_rules=raw_rules)
 						# writer_score is request.user.userprofile.score, to reflect the PUBLIC_GROUP_COST that was recently subtracted from score
 						save_group_submission(writer_id=own_id, group_id=group_id, text=creation_text, posting_time=reply_time,category='0',\
@@ -5324,7 +5248,7 @@ def create_open_group(request):
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='0',slug=str(unique_id),image_url=None,\
 							priority='public_mehfil',from_unseen=False, reply_id=reply.id)
-						#rank_public_groups.delay(group_id=group_id,writer_id=own_id)# legacy ranking redis3 function - please revert
+						# rank_public_groups.delay(group_id=group_id,writer_id=own_id)# legacy ranking redis3 function - please revert
 						group_attendance_tasks.delay(group_id=group_id, user_id=own_id, time_now=reply_time)
 						# rate limit further public mehfil creation by this user (for 1 day)
 						rate_limit_group_creation(own_id, which_group='public')
@@ -5341,7 +5265,7 @@ def create_open_group(request):
 							'data_expired':True,'topic_char_limit':PUBLIC_GROUP_MAX_TITLE_SIZE,'rules_char_limit':PUBLIC_GROUP_MAX_RULES_SIZE})
 		else:
 			# the 'dec' option is not recognized
-			return redirect("missing")  
+			return redirect("missing")    
 	else:
 		return redirect("missing")
 

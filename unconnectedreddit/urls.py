@@ -21,18 +21,18 @@ from urls_voting import urlpatterns as urlpatterns_voting
 
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
-from links.views import home_link_list, cross_notif, cross_comment_notif, photostream_vote, user_profile_photo, welcome_reply, fan,\
-comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, reportreply_pk, link_create_pk, welcome_pk, unfan, \
-redirect_to_content, star_list, process_salat, skip_salat, skip_presalat, salat_tutorial_init, salat_notification, cross_salat_notif, \
-report_comment, see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
-profile_pk, faces_pages, cricket_comment_page, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, \
-unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list,\
-best_photos_list, best_photo_location, see_best_photo_pk, photo_list, cricket_dashboard, cricket_initiate, cricket_remove, cricket_comment, \
-manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user, cricket_location, first_time_unseen_refresh, \
-missing_page, cricket_reply, first_time_cricket_refresh, home_reply, home_location_pk, search_username, \
-go_to_username, go_to_user_photo, remove_searched_username, upload_public_photo, website_rules, photo_comment, public_reply_view, \
-post_public_reply, public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
- #cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
+from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
+comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
+redirect_to_content, star_list, cross_salat_notif, \
+see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
+profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
+click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list, best_photo_location,\
+see_best_photo_pk, photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,\
+first_time_unseen_refresh, missing_page, home_reply, home_location_pk, search_username, go_to_username, go_to_user_photo, \
+remove_searched_username, upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
+public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
+#cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
+
 from links.number_verification import verify_user_number
 from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
@@ -41,9 +41,9 @@ UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, 
 WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdTitleView,TestAdsView, AdAddressYesNoView,\
 SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSettingsEditView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
-RegisterHelpView, VerifyHelpView, ReportreplyView, UserActivityView, HistoryHelpView, AdDescriptionView, TopPhotoView, \
-PhotoShareView, PhotoDetailView, SalatSuccessView, SalatTutorialView, SalatInviteView, InternalSalatInviteView, \
-ExternalSalatInviteView,SalatRankingView, SpecialPhotoView, SpecialPhotoTutorialView, AdGenderChoiceView, \
+RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, TopPhotoView, \
+PhotoShareView, PhotoDetailView, \
+SpecialPhotoTutorialView, AdGenderChoiceView, \
 VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, \
 AdAddressView, AdCallPrefView
 from links.announcement_views import coming_soon
@@ -113,17 +113,17 @@ urlpatterns = patterns('',
 	# url(r'^mehfilcomment/help/$', auth(MehfilCommentView.as_view()), name='mehfilcomment_help'),
 	# url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
 	# url(r'^mehcomm/(?P<pk>\d+)/(?P<num>\d+)/(?P<origin>\d+)/(?P<slug>\d+)/$', auth(mehfilcomment_pk), name='mehfilcomment_pk'),
-	url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
-	url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
-	url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
-	url(r'^external_salat/$', auth(ExternalSalatInviteView.as_view()), name='external_salat_invite'),
-	url(r'^salat_success/(?P<mins>\d+)/(?P<num>\d+)/$', auth(SalatSuccessView.as_view()), name='salat_success'),
-	url(r'^salat_tutorial/(?P<offered>[\w.@+-]+)/$', auth(salat_tutorial_init), name='salat_tutorial_init'),
-	url(r'^process_salat/$', auth(process_salat), name='process_salat'),
-	url(r'^namaz_report/$', SalatRankingView.as_view(), name='salat_ranking'),
-	url(r'^salatutorial/$', auth(SalatTutorialView.as_view()), name='salat_tutorial'),
-	url(r'^skip_salat/(?P<skipped>[\w.@+-]+)/$', auth(skip_salat), name='skip_salat'),
-	url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
+	# url(r'^salat_reminder/$', auth(SalatInviteView.as_view()), name='salat_invite'),
+	# url(r'^salat_notify/(?P<pk>\d+)/$', auth(salat_notification), name='salat_notification'),
+	# url(r'^internal_salat/$', auth(InternalSalatInviteView.as_view()), name='internal_salat_invite'),
+	# url(r'^external_salat/$', auth(ExternalSalatInviteView.as_view()), name='external_salat_invite'),
+	# url(r'^salat_success/(?P<mins>\d+)/(?P<num>\d+)/$', auth(SalatSuccessView.as_view()), name='salat_success'),
+	# url(r'^salat_tutorial/(?P<offered>[\w.@+-]+)/$', auth(salat_tutorial_init), name='salat_tutorial_init'),
+	# url(r'^process_salat/$', auth(process_salat), name='process_salat'),
+	# url(r'^namaz_report/$', SalatRankingView.as_view(), name='salat_ranking'),
+	# url(r'^salatutorial/$', auth(SalatTutorialView.as_view()), name='salat_tutorial'),
+	# url(r'^skip_salat/(?P<skipped>[\w.@+-]+)/$', auth(skip_salat), name='skip_salat'),
+	# url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
 	# url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
 	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
@@ -250,7 +250,6 @@ urlpatterns = patterns('',
 	url(r'^user_phonenumber/(?P<slug>[\w.@+-]+)/(?P<num>\d+)/(?P<err>\d+)/(?P<id>\d+)/$', UserPhoneNumberView.as_view(), name='user_phonenumber'),
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	url(r'^comments/', include('django.contrib.comments.urls')),
-	url(r'^phstot/(?P<pk>\d+)/(?P<val>\d+)/(?P<from_best>\d+)/$', auth(photostream_vote), name='photostream_vote'),
 	#url(r'^vidvote/(?P<pk>\d+)/(?P<val>\d+)/(?P<usr>\d+)/$', auth(video_vote), name='video_vote'),
 	#url(r'^vidizz/(?P<pk>\d+)/$', VideoScoreView.as_view(), name='video_izzat'),
 	##################################################Publicreply################################################
@@ -262,9 +261,6 @@ urlpatterns = patterns('',
 	url(r'^unphoto/(?P<pk>\d+)/$', auth(unseen_comment), name='unseen_comment'),
 	url(r'^reply/hide/(?P<publicreply_id>\d+)/(?P<link_id>\d+)/$', auth(hide_jawab), name='hide_jawab'),
 	url(r'^comment/hide/(?P<comment_id>\d+)/(?P<photo_id>\d+)/(?P<origin>\d+)/$', auth(hide_comment), name='hide_comment'),
-	url(r'^reportjawab/$', auth(ReportreplyView.as_view()), name='reportreply'),
-	url(r'^report/(?P<pk>\d+)/(?P<num>\d+)/$', auth(reportreply_pk), name='reportreply_pk'),
-	url(r'^rep_comment/$', auth(report_comment), name="report_comment"),
 	# url(r'^groupreport/$', auth(GroupReportView.as_view()), name="group_report"),
 	# url(r'^kick/$', auth(KickView.as_view()), name='kick'),
 	# url(r'^tfrs/$', auth(test_functional_redis_server), name='test_functional_redis_server'),
@@ -274,14 +270,14 @@ urlpatterns = patterns('',
 	
 	#################################################################################################
 	##########################################Cricket Related########################################
-	url(r'^cricket_dashboard/$',auth(cricket_dashboard),name='cricket_dashboard'),
-	url(r'^cricket_remove/$',auth(cricket_remove),name='cricket_remove'),
-	url(r'^cricket_initiate/$', auth(cricket_initiate),name='cricket_initiate'),
-	url(r'^cricomm/$', auth(cricket_comment),name='cricket_comment'),
-	url(r'^cricket_page/$', auth(cricket_comment_page),name='cricket_comment_page'),
-	url(r'^redirectcric/$', auth(cricket_location), name='cric_loc'),
-	url(r'^ftcr/$', auth(first_time_cricket_refresh), name='first_time_cricket_refresh'),
-	url(r'^cricrep/(?P<pk>\d+)/$', auth(cricket_reply), name='cricket_reply'),
+	# url(r'^cricket_dashboard/$',auth(cricket_dashboard),name='cricket_dashboard'),
+	# url(r'^cricket_remove/$',auth(cricket_remove),name='cricket_remove'),
+	# url(r'^cricket_initiate/$', auth(cricket_initiate),name='cricket_initiate'),
+	# url(r'^cricomm/$', auth(cricket_comment),name='cricket_comment'),
+	# url(r'^cricket_page/$', auth(cricket_comment_page),name='cricket_comment_page'),
+	# url(r'^redirectcric/$', auth(cricket_location), name='cric_loc'),
+	# url(r'^ftcr/$', auth(first_time_cricket_refresh), name='first_time_cricket_refresh'),
+	# url(r'^cricrep/(?P<pk>\d+)/$', auth(cricket_reply), name='cricket_reply'),
 	url(r'^manage_user/$', auth(manage_user),name='manage_user'),
 	url(r'^manage_user_help/$', auth(manage_user_help),name='manage_user_help'),
 	url(r'^cut_user_score/$', auth(cut_user_score),name='cut_user_score'),

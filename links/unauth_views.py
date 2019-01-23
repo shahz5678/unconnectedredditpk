@@ -9,7 +9,7 @@ from django.contrib.auth.views import login as log_me_in
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.middleware import csrf
-from redis1 import account_creation_disallowed
+from redis7 import account_creation_disallowed
 from tasks import registration_task, send_user_pin
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
@@ -61,10 +61,10 @@ def logout_then_login(request):
 			request.session.modified = True
 			return redirect("login")
 		else:
-			CSRF = csrf.get_token(request)
-			temporarily_save_user_csrf(str(request.user.id), CSRF)
-			return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
-			#return render(request, 'unable_to_submit_without_verifying.html', {'logout':True})
+			# CSRF = csrf.get_token(request)
+			# temporarily_save_user_csrf(str(request.user.id), CSRF)
+			# return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
+			return render(request, 'verification/unable_to_submit_without_verifying.html', {'logout':True})
 	else:
 		return redirect("home")
 

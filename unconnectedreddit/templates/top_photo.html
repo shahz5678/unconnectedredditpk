@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>100 trending photo uploaders | Damadam.pk</title></head>
+<head><title>Top photo uploaders | Damadam.pk</title></head>
  
 <style>body{background: #E9EBEE}</style>
 
@@ -12,7 +12,7 @@
 <div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 
     <div class="mbs" style="text-align:center">
-        <span class="mrs cgy sp">List updated every 2 days</span><a href="{% url 'top_photo_help' %}#section0"><button style="background:0 0;padding:0;border:none;border-bottom:1px dotted dodgerblue" class="sp cb">help</button></a>
+        <span class="mrs cgy sp">Top Damadam stars jinki fotos Damadam pe sab se ziada popular hain</span>
     </div>
     <div class="mt" style="text-align:center">
         <ul style="display:inline-block;padding: 0;list-style:none;margin-top:0px">
@@ -21,13 +21,13 @@
                 <div style="word-break:break-all">
                     <span class="cgy cxs sp">{{ forloop.counter }}.</span>
                     <a href="{% url 'profile' slug=row.username %}#section0" class="clb">
-                	<img src="{{ row.user_profile.avatar|s3:"thumb" }}" width="22" height="22" alt="pic" style="border-radius:50%">
+                	<img src="{{ row.av_url|s3:"thumb" }}" width="22" height="22" alt="pic" style="border-radius:50%">
                     <b>{{ row.username }}</b></a>{% if row.username in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" style="color:deeppink" alt="*">{% endif %}
-                	{% if row.user_profile.media_score %}
-                		{% if row.user_profile.media_score < 0 %}
+                	{% if row.media_score %}
+                		{% if row.media_score < 0 %}
                 	    	<span class="cxs sp" style="color:#9900cc;">(1)</span>
                 	    {% else %}
-                	    	<span class="cxs sp" style="color:#9900cc;">({{ row.user_profile.media_score }})</span>
+                	    	<span class="cxs sp" style="color:#9900cc;">({{ row.media_score }})</span>
                 		{% endif %}
                     {% else %}
                     {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=row.username %}#section0" class="co">{{ row.fan_count }} fans</a></b>

@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Select fewer users to invite | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+	<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
+	
+	{% if is_public %}
+	<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden;margin:0">Invite to&nbsp;<span class="cp">{% emoticons %}{{ topic|truncatechars:'80' }}{% endemoticons %}</span></h1>
+	</div>
+	{% else %}
+	<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden;margin:0">Invite to&nbsp;<span class="cg">{% emoticons %}{{ topic|truncatechars:'80' }}{% endemoticons %}</span></h1>
+	</div>
+	{% endif %}
+
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+
+	{% if is_public %}
+
+		<div class="mbl mt"><a href="{% url 'public_group' group_uuid %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+		<div style="padding:8px;background-color:ivory" class="bizcard mbs lsp">
+		
+			<div class="cxl lsp">Sorry! Ap ne {{ num_selected }} users select kiye, lekin ap sirf {{ slots_available }} user(s) invite kar saktey hain</div>
+			<hr size=1 COLOR="#E9EBEE">
+			<div class="sp lsp mts"><b>In mein se <span class="cr cl">{{ num_to_drop }}</span> invite(s) khatam karein:</b></div>
+			
+		</div>
+
+
+		<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0">
+			<form method="POST" action="{% url 'process_public_group_invite' %}" class="mt">
+				{% csrf_token %}
+				<button type="submit" name="puid" class="btn bcp bl mbl pg_ok_res sp" value="{{ group_uuid }}" style="height:27px">invite</button>
+				<div class="mtl" style="word-break: break-all">
+				{% for invitee_id, invitee_username in invited_usernames %}
+					<li class="mbl cl sp" style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px">
+						<input type="checkbox" style="vertical-align:sub" name="vids" id="{{ invitee_id }}" value="{{ invitee_id }}" checked><label for="{{ invitee_id }}">{% if invitee_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ invitee_username }}</bdi></b></label>
+					</li>
+				{% endfor %}
+				</div>
+				<button type="submit" name="puid" class="btn bcp bl mbs pg_ok_res sp" value="{{ group_uuid }}" style="height:27px">invite</button>
+			</form>
+
+		</ul>
+
+		<div class="mbs"><a href="{% url 'public_group' group_uuid %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
+
+
+	{% else %}
+
+		<form method="POST" class="mbl mt" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ group_uuid }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue;border-radius:0">back to mehfil</button></form>
+
+		<div style="padding:8px;background-color:ivory" class="bizcard mbs lsp">
+		
+			<div class="cxl lsp">Sorry! Ap ne {{ num_selected }} users select kiye, lekin ap sirf {{ slots_available }} user(s) invite kar saktey hain</div>
+			<hr size=1 COLOR="#E9EBEE">
+			<div class="sp lsp mts"><b>In mein se <span class="cr cl">{{ num_to_drop }}</span> invite(s) khatam karein:</b></div>
+			
+		</div>
+
+
+		<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0">
+			<form method="POST" action="{% url 'process_private_group_invite' %}" class="mt">
+				{% csrf_token %}
+				<button type="submit" name="puid" class="btn bcg bl mbl pg_ok_res sp" value="{{ group_uuid }}" style="height:27px">invite</button>
+				<div class="mtl" style="word-break: break-all">
+				{% for invitee_id, invitee_username in invited_usernames %}
+					<li class="mbl cl sp" style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px">
+						<input type="checkbox" style="vertical-align:sub" name="vids" id="{{ invitee_id }}" value="{{ invitee_id }}" checked><label for="{{ invitee_id }}">{% if invitee_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ invitee_username }}</bdi></b></label>
+					</li>
+				{% endfor %}
+				</div>
+				<button type="submit" name="puid" class="btn bcg bl mbs pg_ok_res sp" value="{{ group_uuid }}" style="height:27px">invite</button>
+			</form>
+
+		</ul>
+
+		<form method="POST" class="mbs" style="border-top:1px dashed lightgray;padding-top:10px" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ group_uuid }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+
+	{% endif %}
+
+	</div>
+
+<br><br>
+{% endblock %}

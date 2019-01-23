@@ -419,7 +419,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.salat_streaks': {
 		'task': 'tasks.salat_streaks',
-		'schedule': timedelta(seconds=280),  # execute every 280 seconds, calculates salat streaks for users
+		'schedule': timedelta(seconds=1200),  # execute every 20 mins, calculates salat streaks for users
 		'args': (),
 	},
 	'tasks.public_group_ranking_clean_up_task': {
@@ -429,7 +429,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 		'tasks.salat_info': {
 		'task': 'tasks.salat_info',
-		'schedule': timedelta(seconds=120), #execute every 120 seconds, calculates which salat is next, which was previous, etc.
+		'schedule': timedelta(seconds=1200), #execute every 20 mins, calculates which salat is next, which was previous, etc.
 	},
 	'tasks.delete_exited_personal_group': {
 		'task': 'tasks.delete_exited_personal_group',

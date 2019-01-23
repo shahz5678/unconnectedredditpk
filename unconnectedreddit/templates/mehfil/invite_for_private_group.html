@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Invite users to private mehfil | Damadam.pk</title></head>
@@ -12,6 +11,8 @@
 	<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden;margin:0">Invite to&nbsp;<span class="cg">{% emoticons %}{{ group_topic|truncatechars:'80' }}{% endemoticons %}</span></h1>
 	</div>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+
+	<form method="POST" class="mbl mt" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue;border-radius:0">back to mehfil</button></form>
 
 	{% if show_instr %}
 		<div style="padding:8px;background-color:ivory" class="bizcard mbs lsp">
@@ -27,37 +28,40 @@
 			{% endif %}
 		</div>
 	{% else %}
-		<div class="cxl lsp sp">{{ invites_remaining }} invite(s) remaining</div>
-		<hr size=1 COLOR="#E9EBEE">
+		<div style="padding:5px;background-color:ivory" class="bizcard mbl">
+			<div class="cxl lsp">{{ invites_remaining }} invite(s) remaining!</div>
+			<hr size=1 COLOR="#E9EBEE">
+			<div class="cs cgy lsp sp">Users select kar ke 'invite' ka button dabain</div>
+		</div>
 	{% endif %}
 
-	<form method="POST" class="mbl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
-
-	<div class="mbs cs sp"><b>{{ page_obj.paginator.count }}</b> mein se <b>{{ page_obj.start_index }} - {{ page_obj.end_index }}</b></div>
-	<ul style="display:inline-block;padding: 0;list-style:none">
+	<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0">
 	{% if no_more_invites %}
-		{% for visitor in object_list %}
-			<li class="mbl" style="text-align:left;padding-bottom:10px;border-bottom:1px dashed lightgray">
-			<span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-			<img src="{{ visitor.avurl|s3:'thumb' }}" alt="pic" style="vertical-align:sub;border-radius:50%">{% if visitor.username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ visitor.username }}</bdi>
+		<div class="mts" style="word-break: break-all">
+		{% for visitor_id, visitor_username, visitor_username_lower, section_header in object_list %}
+			{% if section_header %}<h2 style="text-align:left;font-size:60px;color:lightgray;margin:10px 0">{{ section_header }}</h2>{% endif %}
+			<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px dashed lightgray">
+			<span class="cgy cs">{{ forloop.counter }}. </span>
+			{% if visitor_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ visitor_username }}</bdi></b>
 			</li>
 		{% endfor %}
+		</div>
 	{% else %}
-		{% for visitor in object_list %}
-			<li class="mbl" style="text-align:left;border-bottom:1px dashed lightgray">
-			<span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-			<img src="{{ visitor.avurl|s3:'thumb' }}" alt="pic" style="vertical-align:sub;border-radius:50%">{% if visitor.username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ visitor.username }}</bdi>
-			<form method="POST" action="{% url 'process_private_group_invite' %}" style="display:inline">
-				{% csrf_token %}
-				<input type="hidden" name="puid" value="{{ unique }}">
-				<button type="submit" name="vid" class="btn bcg bm mbl mls pg_ok_res sp" value="{{ visitor.id }}" style="height:23px">invite</button>
-			</form>
-			</li>
-		{% endfor %}
+		<form method="POST" action="{% url 'process_private_group_invite' %}" class="mt">
+			{% csrf_token %}
+			<button type="submit" name="puid" class="btn bcg bl mbl pg_ok_res sp" value="{{ unique }}" style="height:27px">invite</button>
+			<div class="mts" style="word-break: break-all">
+			{% for visitor_id, visitor_username, visitor_username_lower, section_header in object_list %}
+				{% if section_header %}<h2 style="text-align:left;font-size:60px;color:lightgray;margin:10px 0">{{ section_header }}</h2>{% endif %}
+				<li class="mbl cl sp" style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px"><input type="checkbox" style="vertical-align:sub" name="vids" id="{{ visitor_id }}" value="{{ visitor_id }}" {{ status }}><label for="{{ visitor_id }}">{% if visitor_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ visitor_username }}</bdi></b></label></li>
+			{% endfor %}
+			</div>
+			<button type="submit" name="puid" class="btn bcg bl mbs pg_ok_res sp" value="{{ unique }}" style="height:27px">invite</button>
+		</form>
 	{% endif %}
 	</ul>
 
-	<form method="POST" class="mbs" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	<form method="POST" class="mbs" style="border-top:1px dashed lightgray;padding-top:10px" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
 	</div>
 {% else %}
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Cannot invite to mehfil</h1>
@@ -80,22 +84,5 @@
 	{% endif %}
 </div>
 {% endif %}
-{% endblock %}
-
-{% block pagination %}
-	<div class="mtl mbl">
-	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
-		{% if page_obj.has_previous %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
-	    {% if page_obj.has_next %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
-	</div>
-	</div>
-	
+<br><br>
 {% endblock %}

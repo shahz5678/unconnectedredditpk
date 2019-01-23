@@ -14,7 +14,7 @@ MERCH
 from tasks import upload_ecomm_photo, save_unfinished_ad, enqueue_sms, sanitize_unused_ecomm_photos, set_user_binding_with_twilio_notify_service, \
 save_ecomm_photo_hash, detail_click_logger,enqueue_buyer_sms,enqueue_orderer_sms,enqueue_query_sms, send_orderer_pin
 from ecomm_forms import EcommCityForm, BasicItemDetailForm, BasicItemPhotosForm, SellerInfoForm, VerifySellerMobileForm, EditFieldForm#, AddShopForm 
-from redis1 import add_exchange_visitor, first_time_exchange_visitor, add_photo_ad_visitor, first_time_photo_ads_visitor#, first_time_classified_contacter, add_classified_contacter
+from redis7 import add_exchange_visitor, first_time_exchange_visitor, add_photo_ad_visitor, first_time_photo_ads_visitor#, first_time_classified_contacter, add_classified_contacter
 from redis3 import log_unserviced_city, log_completed_orders, get_basic_item_ad_id, get_unapproved_ads, edit_single_unapproved_ad, del_single_unapproved_ad, \
 move_to_approved_ads, get_approved_ad_ids, get_ad_objects, get_all_user_ads, get_single_approved_ad, get_classified_categories, get_approved_places, namify, \
 get_and_set_classified_dashboard_visitors, edit_unfinished_ad_field, del_orphaned_classified_photos, get_unfinished_photo_ids_to_delete, lock_unapproved_ad, \

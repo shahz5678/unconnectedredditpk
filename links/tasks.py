@@ -701,7 +701,7 @@ def trim_group_submissions(group_id):
 #bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
-	image_url,priority,from_unseen, reply_id, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
+	image_url,priority,from_unseen, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
 	if txt_type == 'join':
 		# own self has seen this, and no need to show a notification to other users
 		###############################

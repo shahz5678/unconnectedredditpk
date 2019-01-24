@@ -1290,7 +1290,6 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		context["form"] = form if form else PublicreplyForm()
 		context["replyforms"] = replyforms
 		secret_key = uuid.uuid4()
 		context["sk"] = secret_key
@@ -4953,6 +4952,7 @@ def public_reply_view(request,*args,**kwargs):
 		set_text_input_key(user_id, link_id, 'home_rep', secret_key)
 		context["sk"] = secret_key
 		context["form"] = form if form else PublicreplyForm()
+		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 		# context["authenticated"] = True
 		context["mob_verified"] = True if request.mobile_verified else False
 		context["user_id"] = user_id

@@ -1290,6 +1290,7 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		context["link_list"] = list_of_dictionaries
 		context["page"] = page
 		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+		context["form"] = form if form else PublicreplyForm()
 		context["replyforms"] = replyforms
 		secret_key = uuid.uuid4()
 		context["sk"] = secret_key

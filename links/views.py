@@ -4622,7 +4622,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					#######################################################
 					group_notification_tasks.delay(group_id=pk, sender_id=user_id, group_owner_id=grp["owner_id"], topic=grp["topic"],\
 						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["private"], \
-						slug=grp["unique"], image_url=image_url, priority=priority, from_unseen=True, reply_id=groupreply.id)
+						slug=grp["unique"], image_url=image_url, priority=priority, from_unseen=True)
 					if origin:
 						if origin == '1':
 							return redirect("photo")
@@ -4952,6 +4952,7 @@ def public_reply_view(request,*args,**kwargs):
 		set_text_input_key(user_id, link_id, 'home_rep', secret_key)
 		context["sk"] = secret_key
 		context["form"] = form if form else PublicreplyForm()
+		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 		# context["authenticated"] = True
 		context["mob_verified"] = True if request.mobile_verified else False
 		context["user_id"] = user_id

@@ -3325,7 +3325,7 @@ class PrivateGroupView(CreateView):
 					unique_id = data['u']
 					group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=data['oi'], topic=data['tp'], \
 						reply_time=time_now, poster_url=own_avurl, poster_username=own_uname, reply_text=notif_text, priv='1', \
-						slug=unique_id,image_url=uploaded_img_loc,priority='priv_mehfil',from_unseen=False,reply_id=reply.id,\
+						slug=unique_id,image_url=uploaded_img_loc,priority='priv_mehfil',from_unseen=False,\
 						notify_single_user=notify_single_user, single_target_id=writer_id)
 					if is_ajax:
 						return HttpResponse(json.dumps({'success':True,'message':reverse('private_group_reply')}),content_type='application/json',)
@@ -3599,7 +3599,7 @@ class PublicGroupView(CreateView):
 				#rank_public_groups.delay(group_id=group_id,writer_id=user_id)# legacy ranking redis3 function - please review_ownership_transfer_requests
 				group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=group_data['oi'], topic=topic, \
 					reply_time=reply_time, poster_url=own_avurl, poster_username=own_uname, reply_text=notif_text, priv='0', \
-					slug=public_uuid,image_url=uploaded_img_loc,priority='public_mehfil',from_unseen=False,reply_id=reply.id,\
+					slug=public_uuid,image_url=uploaded_img_loc,priority='public_mehfil',from_unseen=False,\
 					notify_single_user=notify_single_user, single_target_id=writer_id)
 				if is_ajax:
 					return HttpResponse(json.dumps({'success':True,'message':reverse('public_group')}),content_type='application/json',)
@@ -3857,7 +3857,7 @@ def join_private_group(request):
 				reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')# to take care of grouppageview
 				group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=group_owner_id, topic=retrieve_group_topic(group_id=group_id),\
 					reply_time=time_now,poster_url=own_avurl,poster_username=own_uname,reply_text='join', priv='1',image_url=None,priority='priv_mehfil',\
-					from_unseen=False, reply_id=reply.id, txt_type='join')# to take care of matka, priv is group privacy. uniqud_id is group uniqud
+					from_unseen=False, txt_type='join')# to take care of matka, priv is group privacy. uniqud_id is group uniqud
 				submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,category='9', \
 					writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 				if num_submissions > DELETION_THRESHOLD:
@@ -3951,7 +3951,7 @@ def owner_rejoining_public_group(request):
 						reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=time_now,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,priority='public_mehfil',\
-							from_unseen=False, reply_id=reply.id, txt_type='join')# to take care of matka, priv is group privacy
+							from_unseen=False, txt_type='join')# to take care of matka, priv is group privacy
 						submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,\
 							category='9', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))# makes 'joining' announcement appear inside group
 						if num_submissions > DELETION_THRESHOLD:
@@ -4140,7 +4140,7 @@ def accept_open_group_rules(request):
 								group_owner_id = group_meta_data['oi']
 								group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=group_owner_id,topic=group_meta_data['tp'],\
 									reply_time=time_now,poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,\
-									priority='public_mehfil',from_unseen=False, reply_id=reply.id, txt_type='join')# to take care of matka, priv is group privacy. uniqud_id is group uniqud
+									priority='public_mehfil',from_unseen=False, txt_type='join')# to take care of matka, priv is group privacy. uniqud_id is group uniqud
 								submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,\
 									category='9', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 								if num_submissions > DELETION_THRESHOLD:
@@ -4183,7 +4183,7 @@ def accept_open_group_rules(request):
 							group_owner_id = group_meta_data['oi']
 							group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=group_owner_id,topic=group_meta_data['tp'],\
 								reply_time=time_now,poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,\
-								priority='public_mehfil',from_unseen=False, reply_id=reply.id,txt_type='join')# to take care of matka, priv is group privacy. uniqud_id is group uniqud
+								priority='public_mehfil',from_unseen=False, txt_type='join')# to take care of matka, priv is group privacy. uniqud_id is group uniqud
 							submission_id, num_submissions = save_group_submission(writer_id=own_id, group_id=group_id, text='join',posting_time=time_now,\
 								category='9', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 							if num_submissions > DELETION_THRESHOLD:
@@ -5089,7 +5089,7 @@ class DirectMessageCreateView(FormView):
 						# add_user_group(own_id, group_id)
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text=invitee,priv='1',slug=str(unique),image_url=None,\
-							priority='priv_mehfil',from_unseen=False,reply_id=reply.id)
+							priority='priv_mehfil',from_unseen=False)
 						rate_limit_group_creation(own_id, which_group='private')
 						# invalidate_cached_mehfil_pages(own_id)
 						invalidate_cached_mehfil_invites(pk)
@@ -5161,7 +5161,7 @@ class ClosedGroupCreateView(CreateView):
 				# add_user_group(user_id, f.id)
 				group_notification_tasks.delay(group_id=f.id,sender_id=user_id,group_owner_id=user_id,topic=f.topic,reply_time=reply_time,\
 					poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='1',slug=str(f.unique),image_url=None,\
-					priority='priv_mehfil',from_unseen=False,reply_id=reply.id)
+					priority='priv_mehfil',from_unseen=False)
 				# rate limit further public mehfil creation by this user (for 1 day)
 				rate_limit_group_creation(user_id, which_group='private')
 				self.request.session["unique_id"] = f.unique
@@ -5247,7 +5247,7 @@ def create_open_group(request):
 						################################################
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='0',slug=str(unique_id),image_url=None,\
-							priority='public_mehfil',from_unseen=False, reply_id=reply.id)
+							priority='public_mehfil',from_unseen=False)
 						# rank_public_groups.delay(group_id=group_id,writer_id=own_id)# legacy ranking redis3 function - please revert
 						group_attendance_tasks.delay(group_id=group_id, user_id=own_id, time_now=reply_time)
 						# rate limit further public mehfil creation by this user (for 1 day)

@@ -67,7 +67,7 @@ log_profile_view, group_attendance_tasks
 from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, GroupBanList, HellBanList, GroupCaptain, GroupTraffic, \
-Group, Reply, GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
+GroupInvite, HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Report, Video, \
 VideoComment
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
@@ -83,7 +83,8 @@ prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, bulk_i
 get_photo_fan_count, retrieve_object_data
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .website_feedback_form import AdvertiseWithUsForm
-from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists# invalidate_cached_mehfil_pages
+from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
+retrieve_group_reqd_data# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, \
@@ -1257,9 +1258,9 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		# sort_by_best = True if get_user_type(user.id,best=True) =='True' else False
 		######################################################################################################
 		######################################################################################################
-		context["newbie_flag"] = request.session.pop("newbie_flag",None)
-		context["newbie_lang"] = request.session["newbie_lang"] if "newbie_lang" in request.session else None
-		context["lang"] = lang
+		context["newbie_flag"] = request.session.get("newbie_flag",None)
+		context["newbie_lang"] = request.session.get("newbie_lang",None)
+		context["lang"] = lang# always none under the current scenario (it's not passed in from 'first_time_choice()' any more)
 		context["sort_by"] = 'best' if sort_by_best else 'recent'
 		context["checked"] = FEMALES
 		context["form"] = form
@@ -1387,82 +1388,29 @@ def home_link_list(request, lang=None, *args, **kwargs):
 
 ##############################################################################################################################
 ##############################################################################################################################
+
+def turn_off_newbie(request,origin):
+    """
+    Turn off newbie flag so that the tutorial can disappear
+
+    Origin must match that which is defined in return_to_content()
+    """
+    request.session.pop("newbie_flag",None)
+    if origin == '3':
+        return redirect("home")
+    elif origin == '2':
+        return redirect("best_photo")
+    elif origin == '1':
+        return redirect("photo")
+    else:
+        return redirect("home")
+
 def new_user_gateway(request,lang=None,*args,**kwargs):
 	# set necessary newbie_flags for other parts of damadam too (e.g. for matka: is mein woh sab batien likhi aa jatien hain jin mein tum ne hissa liya (maslan jawab, tabsrey, waghera))
 	request.session["newbie_flag"] = True
 	request.session.modified = True
 	return redirect("first_time_choice", lang=lang)
-	# user_id = request.user.id
-	# variation = config_manager.get_obj().activate('landing_page_exp', user_id)
-	# if variation == 'var_1':
-	#   # how things are currently
-	#   set_user_type(variation, user_id, best=False, algo=None)
-	#   return redirect("first_time_link")
-	#   ##########################################################
-	# elif variation == 'var_2':
-	#   # give users a choice of what to do
-	#   request.session["newbie_flag"] = True
-	#   request.session.modified = True
-	#   set_user_type(variation, user_id, best=False, algo=None)
-	#   return redirect("first_time_choice", best=False, algo=None)
-	#   ##########################################################
-	# elif variation == 'var_3':
-	#   # show users best feed (photo heavy) by default
-	#   request.session["newbie_flag"] = True
-	#   request.session.modified = True
-	#   set_user_type(variation, user_id, best=True, algo='1')
-	#   return redirect("first_time_best",algo='1')
-	#   ##########################################################
-	# elif variation == 'var_4':
-	#   # show users best feed (text heavy) by default
-	#   request.session["newbie_flag"] = True
-	#   request.session.modified = True
-	#   set_user_type(variation, user_id, best=True, algo='2')
-	#   return redirect("first_time_best",algo='2')
-	#   ##########################################################
-	# elif variation == 'var_5':
-	#   # give users a choice of what to do (home has text heavy 'best' feed). No use showing photo heavy best feed here. The user opted for chatting. Why show him photos?
-	#   request.session["newbie_flag"] = True
-	#   request.session.modified = True
-	#   set_user_type(variation, user_id, best=True, algo='2')
-	#   return redirect("first_time_choice",best=True, algo='2')
-	#   ##########################################################
-	# elif variation == 'var_6':
-	#   # status quo, but with instructions - trivial case
-	#   request.session["newbie_flag"] = True
-	#   request.session.modified = True
-	#   set_user_type(variation, user_id, best=False, algo=None)
-	#   return redirect("first_time_link")
-	#   ##########################################################
-	# else:
-	#   # how things are currently
-	#   set_user_type(variation, user_id, best=False, algo=None)
-	#   return redirect("first_time_link")
-	#   ##########################################################
-
-# def first_time_best(request,algo, *args, **kwargs):
-#   return redirect("home_best")
-
-# def first_time_choice(request, best=False, algo=None, *args, **kwargs):
-#   if request.method == 'POST':
-#       user_id = request.user.id
-#       choice = request.POST.get("choice",None)
-#       best = request.POST.get("best",None)
-#       algo = request.POST.get("algo",None)
-#       # save_user_choice(user_id, choice)
-#       if choice == '1':
-#           # this user wants to chat
-#           if best == 'True':
-#               # handling 'var_5'
-#               return redirect("home_best")
-#           elif best == 'False':
-#               # handling 'var_2'
-#               return redirect("home")
-#       elif choice == '2':
-#           # this user wants to see fotos, handling 'var_2'
-#           return redirect("best_photo")
-#   else:
-#       return render(request,"first_time_choice.html",{'show_best':best,'algo':algo})
+	
 
 
 def first_time_choice(request,lang=None, *args, **kwargs):
@@ -3719,8 +3667,8 @@ def best_photos_list(request,*args,**kwargs):
 			context["object_list"] = retrieve_obj_feed(page_obj.object_list)
 		user = request.user
 		context["username"] = user.username
-		context["newbie_flag"] = request.session.pop("newbie_flag",None)
-		context["newbie_lang"] = request.session["newbie_lang"] if "newbie_lang" in request.session else None
+		context["newbie_flag"] = request.session.get("newbie_flag",None)
+		context["newbie_lang"] = request.session.get("newbie_lang",None)
 		context["ident"] = user_id
 		context["score"] = user.userprofile.score
 		context["girls"] = FEMALES
@@ -4580,27 +4528,26 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	else:
 		user_id = request.user.id
 		username, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-		grp = Group.objects.filter(id=pk).values('private','owner_id','topic','unique')[0]
+		grp = retrieve_group_reqd_data(group_id=pk,with_group_owner_id=True,with_uuid=True)
 		if not group_member_exists(pk, user_id):
 			return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
-		elif not request.mobile_verified and not grp["private"] == '1':
+		elif not request.mobile_verified and not grp["p"] == '1':
 			return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_verified':True})
 		else:
 			if request.method == 'POST':
 				origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-				if grp["private"] == '1':
+				if grp["p"] == '1':
 					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='',per_grp_id='')
 				else:
 					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='',per_grp_id='')
 				if form.is_valid():
 					desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
 					description = desc1 if desc1 else desc2
-					groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description)#,device=device)
-					reply_time = convert_to_epoch(groupreply.submitted_on)
+					# groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description)#,device=device)
+					reply_time = time.time()#convert_to_epoch(groupreply.submitted_on)
 					invalidate_cached_mehfil_replies(pk)
-					# invalidate_cached_mehfil_pages(user_id)
 					group_attendance_tasks.delay(group_id=pk, user_id=user_id, time_now=reply_time)
-					if grp["private"] == '1':
+					if grp["p"] == '1':
 						set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='priv_mehfil'
 						UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
@@ -4611,18 +4558,14 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						# rank_public_groups.delay(group_id=pk,writer_id=user_id)
 					
 					#######################################################
-					try:
-						image_url = groupreply.image.url
-					except ValueError:
-						image_url = None
 					# own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=image_url, posting_time=reply_time,\
+					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=None, posting_time=reply_time,\
 						writer_avurl=get_s3_object(own_avurl,category='thumb'), writer_score=request.user.userprofile.score, category='0',\
 						writer_uname=username, save_latest_submission=True)
 					#######################################################
-					group_notification_tasks.delay(group_id=pk, sender_id=user_id, group_owner_id=grp["owner_id"], topic=grp["topic"],\
-						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["private"], \
-						slug=grp["unique"], image_url=image_url, priority=priority, from_unseen=True)
+					group_notification_tasks.delay(group_id=pk, sender_id=user_id, group_owner_id=grp["oi"], topic=grp["tp"],\
+						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["p"], \
+						slug=grp["u"], image_url=None, priority=priority, from_unseen=True)
 					if origin:
 						if origin == '1':
 							return redirect("photo")

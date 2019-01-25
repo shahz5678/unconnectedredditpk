@@ -1,69 +1,85 @@
 {% if lang == 'ur' %}
 
-	{% if location == 'home' %}
-	<div style="background-color:#00c853;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-	<div style="text-align: center;">
-	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;!خوش آمدید&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
+	<h1 class="cxl lsp sp" style="text-align:center;overflow:hidden;margin:0"><bdo dir="rtl">ایک نئی دنیا میں خوش آمدید!</bdo></h1>
+
+	<div class="bizcard sp mtl mbl" style="background-color:#FFD12B;color:#000000;text-align:center;">
+
+		<div style="text-align:right;padding-right:5px">
+			<a href="{% url 'turn_off_newbie' origin %}">
+				<button style="background:0 0;padding:0;border:none"><img src="{{ STATIC_URL }}img/x_br.svg" width="10" height="10" alt="x" class="clb"></button>
+			</a>
+		</div>
+
+		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0"><bdo dir="rtl">مزیدار ٹائم پاس کے لئے:</bdo></div>
+	
+		<div style="padding:10px 8px;background-color:#fff169">
+
+			<div class="mbl mtl fx fxaicn" style="justify-content: flex-end">
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">گپ شپ لگایں '<bdo dir="ltr">Home</bdo>', '<bdo dir="ltr">Fotos</bdo>', '<bdo dir="ltr">Mehfils</bdo>' ميں  يا '<bdo dir="ltr">1&nbsp;on&nbsp;1</bdo>'</bdo></div>
+				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/talking.svg" width="55" height="55" alt="pic"></div>
+			</div>
+
+			<div class="mbl fx fxaicn" style="justify-content: flex-end">
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">پوسٹس کو '<bdo dir="ltr">Jhappi</bdo>' يا '<bdo dir="ltr">Chpair</bdo>' سے پسند يا ناپسند کریں</bdo></div>
+				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/jhappi-opt.svg" width="50" height="50" alt="pic"></div>
+			</div>
+
+			<div class="mbl fx fxaicn" style="justify-content: flex-end">
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">پورے پاکستان کے لوگوں سے جان پہچان بنایں</bdo></div>
+				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/pakistan.svg" width="55" height="55" alt="pic"></div>
+			</div>
+		</div>
+
+		<div class="cxl lsp" style="padding:15px 8px 10px 8px"><bdo dir="rtl">لیکن سب سے پہلے اپنے اکاؤنٹ کو '<bdo dir="ltr">verify</bdo>' کروا لیں:</bdo></div>
+		
+		<a href="{% url 'verify_user_mobile' %}#section0">
+			<button class="btn bcb pg_ok_res mt" style="padding:8px 10px"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
+		</a>
+		<br><br>
+
 	</div>
-		<div class="mrs mls mts mbs">
-		<div class="cl">
-		جو بات پسند آۓ، اسکے نیچے دی گئی پٹی میں اپنا جواب لکھ کے <b>"جواب دو"</b> دبائیں<br>
-		</div>
-		<hr size=1 COLOR="#ffeb3b">
-		<div class="mt">
-		اس طرح اپکی دمادم کے لوگوں کے ساتھ چیٹ شروع ہو جاۓ گی
-		</div>
-		</div>
-	</div>
-	{% elif location == 'best_photos' %}
-	<div style="background-color:#f93;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-	<div style="text-align: center;">
-	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;!خوش آمدید&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
-	</div>
-		<div class="mrs mls mts mbs">
-		<div class="cl">
-		جو فوٹو پسند آۓ، اسکے نیچے دی گئی پٹی میں اپنا تبصرہ لکھ کر <b>"تبصرہ کرو"</b> دبائیں<br>
-		</div>
-		<hr size=1 COLOR="#ffeb3b">
-		<div class="mt">
-		اس طرح اپکی دمادم کے لوگوں کے ساتھ چیٹ شروع ہو جاۓ گی
-		</div>
-		</div>
-	</div>
-	{% endif %}
 
 {% else %}
 
-	{% if location == 'home' %}
-	<div style="background-color:#00c853;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-	<div style="text-align: center;">
-	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
+	<h1 class="cxl lsp sp" style="text-align:center;overflow:hidden;margin:0">Aik naee duniya main welcome!</h1>
+
+	<div class="bizcard sp mtl mbl" style="background-color:#FFD12B;color:#000000;text-align:center;">
+
+		<div style="text-align:right;padding-right:5px">
+			<a href="{% url 'turn_off_newbie' origin %}">
+				<button style="background:0 0;padding:0;border:none"><img src="{{ STATIC_URL }}img/x_br.svg" width="10" height="10" alt="x" class="clb"></button>
+			</a>
+		</div>
+
+		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0">Mazedar time paas ke liye:</div>
+	
+		<div style="padding:10px 8px;background-color:#fff169">
+
+			<div class="mbl mtl fx fxjsfs fxaicn">
+				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/talking.svg" width="55" height="55" alt="pic"></div>
+				<div class="cl lsp" style="text-align:left">Guppein lagain 'Home', 'Fotos', 'Mehfils' mein ya '1&nbsp;on&nbsp;1'</div>
+			</div>
+
+			<div class="mbl fx fxjsfs fxaicn">
+				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/jhappi-opt.svg" width="50" height="50" alt="pic"></div>
+				<div class="cl lsp" style="text-align:left">Posts ko 'Jhappi' ya 'Chpair' se like ya unlike karein</div>
+			</div>
+
+			<div class="mbl fx fxjsfs fxaicn">
+				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/pakistan.svg" width="55" height="55" alt="pic"></div>
+				<div class="cl lsp" style="text-align:left">Puray Pakistan ke logoon se jaan pehchaan banain</div>
+			</div>
+		</div>
+
+		<div class="cxl lsp" style="padding:15px 8px 10px 8px">
+		Lekin sab se pehlay apna account verify kerwaein:
+		</div>
+		
+		<a href="{% url 'verify_user_mobile' %}#section0">
+			<button class="btn bcb pg_ok_res mt" style="padding:8px 10px"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
+		</a>
+		<br><br>
+
 	</div>
-		<div class="mrs mls mts mbs">
-		<div class="cl">
-		Jo baat pasand aye, uskey neechay di gayee patti mein apna jawab likh ke <b>"jawab do"</b> dabain!<br>
-		</div>
-		<hr size=1 COLOR="#ffeb3b">
-		<div class="mt">
-		Is terah apki Damadam ke users ke sath gupshup shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.c2{% endemoticons %}
-		</div>
-		</div>
-	</div>
-	{% elif location == 'best_photos' %}
-	<div style="background-color:#f93;color:white;padding:5px 5px 5px 5px;border-radius:4px;">
-	<div style="text-align: center;">
-	<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic"><b class="cxl">&nbsp;Welcome!&nbsp;</b><img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">&nbsp;<img src="{{ static_url }}img/fan_star.png" width="30" height="30" alt="no pic">
-	</div>
-		<div class="mrs mls mts mbs">
-		<div class="cl">
-		Jo foto pasand aye, uskey neechay di gayee patti mein apna tabsra likh ke <b>"tabsra kro"</b> dabao!<br>
-		</div>
-		<hr size=1 COLOR="#ffeb3b">
-		<div class="mt">
-		Is terah apki Damadam ke users ke sath gupshup shuru ho jaye gi&nbsp; {% load emoticons_tags %}{% emoticons %}.b7{% endemoticons %}
-		</div>
-		</div>
-	</div>
-	{% endif %}
 
 {% endif %}

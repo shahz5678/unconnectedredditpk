@@ -3,7 +3,7 @@ from django.contrib import admin
 from links.unauth_views import unauth_home_new, create_nick_new, create_password_new, create_account, login, forgot_password, log_google_in, \
 set_forgetters_password, create_dummy_user, logout_then_login, send_SMS_to_forgetter, verify_forgetters_pin#, unauth_home_new_ur
 from django.contrib.auth.decorators import login_required as auth    
-from links.views import first_time_choice, new_user_gateway
+from links.views import first_time_choice, new_user_gateway, turn_off_newbie
 from links.number_verification import verify_forgetter_number
 
 ############################Optimizely Experiment############################
@@ -19,6 +19,7 @@ urlpatterns = patterns('',
 	# url(r'^new_user_choice/(?P<best>[\w.@+-]+)/(?P<algo>[\w.@+-]+)/$', auth(first_time_choice), name='first_time_choice'),
 	######################################################################################################
 	
+	url(r'^turn-off-newbie/(?P<origin>\d+)/$', auth(turn_off_newbie), name='turn_off_newbie'),
 	url(r'^new-user-gateway/$', auth(new_user_gateway), name='new_user_gateway'),
 	url(r'^new-user-gateway/(?P<lang>[\w.@+-]+)/$', auth(new_user_gateway), name='new_user_gateway'),
 	url(r'^new-user-choice/$', auth(first_time_choice), name='first_time_choice'),

@@ -3,7 +3,6 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from verified import FEMALES
-from models import Reply, Group
 from views import convert_to_epoch
 from redis3 import invalid_topic_logger, invalid_rules_logger
 from forms import repetition_found, uniform_string, clear_zalgo_text
@@ -286,7 +285,7 @@ def process_group_topic(topic, topic_len_threshold, user_id=None, unique=None, h
 ####################################################################################################################
 ####################################################################################################################
 
-class PrivateGroupReplyForm(forms.ModelForm):
+class PrivateGroupReplyForm(forms.Form):
 	"""
 	Handles form entry and validation in private mehfils
 
@@ -300,10 +299,10 @@ class PrivateGroupReplyForm(forms.ModelForm):
 	wid = forms.IntegerField(required=False)
 	gp = forms.IntegerField()
 	
-	class Meta:
-		model = Reply
-		exclude = ("submitted_on","which_group","writer","abuse")
-		fields = ("image", "text")
+	# class Meta:
+	#     model = Reply
+	#     exclude = ("submitted_on","which_group","writer","abuse")
+	#     fields = ("image", "text")
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
@@ -361,7 +360,7 @@ class PrivateGroupReplyForm(forms.ModelForm):
 					raise forms.ValidationError('tip: likhna zaruri hai')
 
 
-class PublicGroupReplyForm(forms.ModelForm):
+class PublicGroupReplyForm(forms.Form):
 	"""
 	Handles form entry and validation in public mehfils
 
@@ -375,10 +374,10 @@ class PublicGroupReplyForm(forms.ModelForm):
 	wid = forms.IntegerField(required=False)
 	gp = forms.IntegerField()
 
-	class Meta:
-		model = Reply
-		exclude = ("submitted_on","which_group","writer","abuse")
-		fields = ("image", "text")
+	# class Meta:
+	#     model = Reply
+	#     exclude = ("submitted_on","which_group","writer","abuse")
+	#     fields = ("image", "text")
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
@@ -434,16 +433,16 @@ class PublicGroupReplyForm(forms.ModelForm):
 					raise forms.ValidationError('tip: likhna zaruri hai')
 
 
-class ChangePrivateGroupTopicForm(forms.ModelForm):
+class ChangePrivateGroupTopicForm(forms.Form):
 	"""
 	Validates new topic entered in private mehfil
 	"""
 	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
 		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
 	error_messages={'required': 'Topic likhna zaruri hain'})
-	class Meta:
-		model = Group
-		fields = ("topic",)
+	# class Meta:
+	#     model = Group
+	#     fields = ("topic",)
 
 	def __init__(self,*args,**kwargs):
 		self.unique = kwargs.pop('unique',None)
@@ -463,16 +462,16 @@ class ChangePrivateGroupTopicForm(forms.ModelForm):
 			raise forms.ValidationError('Topic change karney ke liye ye mehfil join karein')
 
 
-class ChangeGroupTopicForm(forms.ModelForm):
+class ChangeGroupTopicForm(forms.Form):
 	"""
 	Validates new topic entered in public mehfil
 	"""
 	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
 		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_TITLE_SIZE}),\
 	error_messages={'required': 'Topic likhna zaruri hain'})
-	class Meta:
-		model = Group
-		fields = ("topic",)
+	# class Meta:
+	#     model = Group
+	#     fields = ("topic",)
 
 	def __init__(self,*args,**kwargs):
 		self.unique = kwargs.pop('unique',None)
@@ -489,16 +488,16 @@ class ChangeGroupTopicForm(forms.ModelForm):
 		return string.capwords(topic)
 
 
-class ChangeGroupRulesForm(forms.ModelForm):
+class ChangeGroupRulesForm(forms.Form):
 	"""
 	Validates new rules entered in public mehfil
 	"""
 	rules = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
 		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_MAX_RULES_SIZE}),\
 	error_messages={'required': 'Rules likhna zaruri hain'})
-	class Meta:
-		model = Group
-		fields = ("rules",)
+	# class Meta:
+	#     model = Group
+	#     fields = ("rules",)
 
 	def __init__(self, *args, **kwargs):
 		self.user_id = kwargs.pop('user_id',None)
@@ -515,17 +514,17 @@ class ChangeGroupRulesForm(forms.ModelForm):
 		return number_new_lines(rules), rules
 	
 
-class ClosedGroupCreateForm(forms.ModelForm):
+class ClosedGroupCreateForm(forms.Form):
 	"""
 	Validates topic in private mehfils (at the point of their creation)
 	"""
 	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
 		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
 	error_messages={'required': 'Topic likhna zaruri hai'})
-	class Meta:
-		model = Group
-		exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
-		fields = ("topic",)
+	# class Meta:
+	#     model = Group
+	#     exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
+	#     fields = ("topic",)
 
 	def __init__(self, *args, **kwargs):
 		self.score = kwargs.pop('score',None)
@@ -543,7 +542,7 @@ class ClosedGroupCreateForm(forms.ModelForm):
 			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PRIVATE_GROUP_COST,user_score))
 
 
-class OpenGroupCreateForm(forms.ModelForm):
+class OpenGroupCreateForm(forms.Form):
 	"""
 	Validates all required fields of public mehfils at the point of their creation
 	"""
@@ -560,10 +559,10 @@ class OpenGroupCreateForm(forms.ModelForm):
 	category = forms.TypedChoiceField(required=False, choices=CATEGS, initial='1', widget=forms.RadioSelect, coerce=int,\
 		error_messages={'required': '"Haan" ya "Nahi" ka intekhab karein'})
 
-	class Meta:
-		model = Group
-		exclude = ("owner","private","created_at","pics_ki_ijazat")
-		fields = ("topic","rules","category")
+	# class Meta:
+	#     model = Group
+	#     exclude = ("owner","private","created_at","pics_ki_ijazat")
+	#     fields = ("topic","rules","category")
 
 	def __init__(self, *args, **kwargs):
 		self.is_mob_verified = kwargs.pop('verified',None)
@@ -596,7 +595,6 @@ class OpenGroupCreateForm(forms.ModelForm):
 			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
 		else:
 			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
-
 
 class GroupFeedbackForm(forms.Form):
 	"""
@@ -780,7 +778,8 @@ class GroupHelpForm(forms.Form):
 
 class DirectMessageCreateForm(forms.Form):
 	class Meta:
-		model = Group
+		pass
+		# model = Group
 
 class DirectMessageForm(forms.Form):
 	class Meta:

@@ -17,7 +17,7 @@ from templatetags.s3 import get_s3_object
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key,\
 get_aurl
 from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
-Publicreply, Group, GroupInvite, Reply, GroupTraffic, GroupCaptain, VideoComment
+Publicreply, GroupInvite, GroupTraffic, GroupCaptain, VideoComment
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, prep_image
 from redis6 import is_group_member_and_rules_signatory, human_readable_time, group_member_exists
 from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE
@@ -542,13 +542,6 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				data["description"] = re.sub(r'\n\s*\n', '\n', description)#ensures multiple new-lines are collapsed into 1
 				return data
 
-class OutsiderGroupForm(forms.ModelForm):
-	text = forms.CharField(label='Likho:',widget=forms.Textarea(attrs={'cols':40,'rows':3}))
-	class Meta:
-		model = Reply
-		exclude = ("submitted_on","which_group","writer","abuse")
-		fields = ("image", "text")
-
 
 class WelcomeMessageForm(forms.ModelForm):
 	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3}))
@@ -1040,12 +1033,6 @@ class UnseenActivityForm(forms.Form):
 class PhotoTimeForm(forms.Form):
 	class Meta:
 		pass
-
-class ChangeOutsideGroupTopicForm(forms.ModelForm):
-	topic = forms.CharField(label='Neya Topic:', widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
-	class Meta:
-		model = Group
-		fields = ("topic",)
 
 
 class UploadPhotoReplyForm(forms.ModelForm):

@@ -61,7 +61,7 @@
         {% endif %}
 
         {% if reply.category == '1' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b> ne <bdi><a href="{% url 'profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko invite kia</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b> ne <bdi>{{ reply.text }}</bdi> ko invite kia</span></div>
         {% elif reply.category == '2' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko mehfil se kick out kar dia gya</span></div>
         {% elif reply.category == '3' %}

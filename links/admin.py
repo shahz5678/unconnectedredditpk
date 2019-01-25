@@ -1,6 +1,6 @@
 from django.contrib import admin
 from .models import Link, Vote, Photo, PhotoVote, PhotoComment, PhotoStream, ChatInbox, ChatPic, ChatPicMessage, UserProfile, \
-UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, Group, Reply, GroupInvite, GroupSeen, UserFan, \
+UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, GroupInvite, GroupSeen, UserFan, \
 Salat, SalatInvite, Logout, Video, VideoComment
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
@@ -35,8 +35,8 @@ admin.site.register(PhotoComment, PhotoCommentAdmin)
 class PhotoVoteAdmin(admin.ModelAdmin): pass
 admin.site.register(PhotoVote, PhotoVoteAdmin)
 
-class GroupCreateAdmin(admin.ModelAdmin): pass
-admin.site.register(Group, GroupCreateAdmin)
+# class GroupCreateAdmin(admin.ModelAdmin): pass
+# admin.site.register(Group, GroupCreateAdmin)
 
 class GroupBanListAdmin(admin.ModelAdmin): pass
 admin.site.register(GroupBanList, GroupBanListAdmin)
@@ -56,8 +56,8 @@ admin.site.register(GroupSeen, GroupSeenAdmin)
 class UnseennotificationAdmin(admin.ModelAdmin): pass
 admin.site.register(Unseennotification, UnseennotificationAdmin)
 
-class ReplyAdmin(admin.ModelAdmin): pass
-admin.site.register(Reply, ReplyAdmin)
+# class ReplyAdmin(admin.ModelAdmin): pass
+# admin.site.register(Reply, ReplyAdmin)
 
 class PublicreplyAdmin(admin.ModelAdmin): pass
 admin.site.register(Publicreply, PublicreplyAdmin)

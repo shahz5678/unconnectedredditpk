@@ -26,7 +26,7 @@
 
 <div style="max-width:600px;margin:0 auto;width:92%;position:relative;">
 {% if newbie_flag %}
-	{% include "newbie_rules.html" with static_url=STATIC_URL location='home' lang=lang %}
+	{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin='3' %}
 {% else %}
 
 	{% load get_notification_bar %}

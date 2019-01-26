@@ -2,24 +2,19 @@
 {% load emoticons_tags %}
 {% load human_time %}
 {% block content %}
-<head><title>User mehfils | Damadam.pk</title></head>
+<head><title>User mehfil invites | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
-{% include "mehfil/mehfil_list_navbar.html" with section='list' static_url=STATIC_URL %}
+{% include "mehfil/mehfil_list_navbar.html" with section='invites' static_url=STATIC_URL %}
 
-<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if num_invites == 1 %}1 mehfil invite:{% else %}{{ num_invites }} mehfil invites:{% endif %}</span><br><div class="cxs sp" style="font-weight:lighter">Apki joined mehfils <a href="{% url 'unseen_activity' slug=user.username  %}#section0" class="cb sp" style="border-bottom:1px dotted blue">matkay</a> mein hein</div></h1>
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if group_invite_count == 1 %}1 mehfil invite:{% else %}{{ group_invite_count }} mehfil invites:{% endif %}</span></h1>
 
 {% if not object_list %}
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
-	
-
 	<div class="cxl lsp">Apko kisi mehfil mein invite nahi kia gya</div>
-
-
-	<div class="cs lsp"></div>
-	<div class="sp mts lsp mbl cgy">'Mehfil' groups ko kehtay hain jahan messaging and foto sharing hoti hai</div>
+	<div class="sp mts lsp mbl cgy">'Mehfil' group ko kehtay hain jahan messaging and foto sharing hoti hai</div>
 	<hr size=1 COLOR="#E9EBEE">
-	<div class="mt cs sp lsp"><a href="{% url 'group_type' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">Apni mehfil banain</a> ya dusrey users ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain</div>
+	<div class="mt cs sp lsp">Damadam ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain ya <a href="{% url 'group_type' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">apni mehfil banain</a></div>
 </div>
 {% else %}
 

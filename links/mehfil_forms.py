@@ -772,9 +772,6 @@ class ReinvitePrivateForm(forms.Form):
 # 	class Meta:
 # 		model = Reply
 
-class GroupHelpForm(forms.Form):
-	class Meta:
-		pass
 
 class DirectMessageCreateForm(forms.Form):
 	class Meta:

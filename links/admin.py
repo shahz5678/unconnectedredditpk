@@ -1,7 +1,6 @@
 from django.contrib import admin
 from .models import Link, Vote, Photo, PhotoVote, PhotoComment, PhotoStream, ChatInbox, ChatPic, ChatPicMessage, UserProfile, \
-UserSettings, Publicreply, GroupBanList, HellBanList, Seen, Unseennotification, GroupInvite, GroupSeen, UserFan, \
-Salat, SalatInvite, Logout, Video, VideoComment
+UserSettings, Publicreply, HellBanList, Seen, Unseennotification, UserFan, Salat, SalatInvite, Logout, Video, VideoComment
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth import get_user_model
 #these will appear in the admin panel
@@ -38,20 +37,20 @@ admin.site.register(PhotoVote, PhotoVoteAdmin)
 # class GroupCreateAdmin(admin.ModelAdmin): pass
 # admin.site.register(Group, GroupCreateAdmin)
 
-class GroupBanListAdmin(admin.ModelAdmin): pass
-admin.site.register(GroupBanList, GroupBanListAdmin)
+# class GroupBanListAdmin(admin.ModelAdmin): pass
+# admin.site.register(GroupBanList, GroupBanListAdmin)
 
 class HellBanListAdmin(admin.ModelAdmin): pass
 admin.site.register(HellBanList, HellBanListAdmin)
 
-class GroupInviteAdmin(admin.ModelAdmin): pass
-admin.site.register(GroupInvite, GroupInviteAdmin)
+# class GroupInviteAdmin(admin.ModelAdmin): pass
+# admin.site.register(GroupInvite, GroupInviteAdmin)
 
 class LogoutAdmin(admin.ModelAdmin): pass
 admin.site.register(Logout, LogoutAdmin)
 
-class GroupSeenAdmin(admin.ModelAdmin): pass
-admin.site.register(GroupSeen, GroupSeenAdmin)
+# class GroupSeenAdmin(admin.ModelAdmin): pass
+# admin.site.register(GroupSeen, GroupSeenAdmin)
 
 class UnseennotificationAdmin(admin.ModelAdmin): pass
 admin.site.register(Unseennotification, UnseennotificationAdmin)

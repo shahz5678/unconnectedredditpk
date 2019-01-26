@@ -24,7 +24,7 @@
 				New jawab:
 				</span>
 				<p style="margin-top:.3em;"></p>
-			{% endif %}    
+			{% endif %}	
 			
 			<div class="mbl" style="overflow:hidden">
 			<a href="{% url 'profile' parent.lrsn %}" class="cb">
@@ -294,7 +294,7 @@
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
 			<input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
-			<button class="btn bco bms mts" type="submit">tabsra kro</button>
+			<button class="btn bco bms mts" type="submit">tabsra&nbsp;kro</button>
 		</div>
 		</form>
 		<a href="{% url 'cross_comment_notif' parent_pk ident origin 0 lang sort_by %}"><button class="btn bs cs mtl bco sp" style="height:22px">skip</button></a>
@@ -343,7 +343,7 @@
 			<input type="hidden" name="sort_by" value="{{ sort_by }}">
 			<input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
-			<button class="btn bco bms mts" type="submit">tabsra kro</button>
+			<button class="btn bco bms mts" type="submit">tabsra&nbsp;kro</button>
 		</div>
 		</form>
 		<a href="{% url 'cross_comment_notif' parent_pk ident origin 1 lang sort_by %}"><button class="btn bs cs mtl bco sp" style="height:22px">skip</button></a>

@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% load human_time %}
+{% block content %}
+<head><title>User mehfils | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+{% include "mehfil/mehfil_list_navbar.html" with section='list' static_url=STATIC_URL %}
+
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if num_grps == 1 %}1 mehfil:{% else %}{{ num_grps }} mehfils:{% endif %}</span></h1>
+
+{% if not object_list %}
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Ap kisi bhi mehfil ke member nahi!</div>
+	<div class="sp mts lsp mbl cgy">'Mehfil' group ko kehtay hain jahan messaging and foto sharing hoti hai</div>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="mt cs sp lsp">Damadam ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain ya <a href="{% url 'group_type' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">apni mehfil banain</a></div>
+</div>
+{% else %}
+
+{% for group in object_list %}
+	{% if group.p == '1' %}
+		<div class="mtl">
+		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 0 0;background-color:ivory;overflow:hidden;">
+		    <form method="POST" action="{% url 'priv_group' %}">
+		    {% csrf_token %}
+			<input type="hidden" name="private_uuid" value="{{ group.u }}">
+			<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:0px 0px;width:100%;background:0 0" class="lsp pg_ok_res">
+				<div style="padding:7px 10px;background:white">
+					{% if group.lst %}<div class="cxs sp lsp cgy" style="text-align:right">you visited {{ group.lst|human_time }}</div>{% endif %}
+					<div class="bw cw"><span class="cl lsp mts mrs" style="color:#11ae59;font-weight:bold">{% emoticons %}{{ group.tp }}{% endemoticons %}</span><span class="cs sp cgy">(owner: <b>{{ group.oun }}</b>)</span></div>
+				</div>
+				{% if group.lrtx %}
+					<div style="border-top:1px solid #e9ebee;padding:3px 10px 7px 10px">
+						{% if group.lst < group.lrti %}
+						<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
+						{% endif %}
+						<div style="display:inline">
+						{% if group.st == 'green' %}
+			                <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
+			            {% elif group.st == 'idle' %}
+			                <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
+			            {% else %}
+			                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
+			            {% endif %}
+						{% if group.lrsn in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
+						</div>
+					</div>
+				{% endif %}
+			</button>
+			</form>
+		</div>
+		</div>
+	{% elif group.p == '0' %}
+
+		<div class="mtl">
+		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 0px 0;background-color:ivory;overflow:hidden;">
+		    
+		    <a href="{% url 'public_group' group.u %}">
+			<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:0px 0px;width:100%;background:0 0" class="lsp pg_ok_res">
+				<div style="padding:7px 10px;background:white">
+					{% if group.lst %}<div class="cxs sp lsp cgy" style="text-align:right">you visited {{ group.lst|human_time }}</div>{% endif %}
+					<div class="bw cw"><span class="cl lsp mts mrs cp" style="font-weight:bold">{% emoticons %}{{ group.tp }}{% endemoticons %}</span><span class="cs sp cgy">(owner: <b>{{ group.oun }}</b>)</span></div>
+				</div>
+				{% if group.lrtx %}
+					<div style="border-top:1px solid #e9ebee;padding:3px 10px 7px 10px">
+						{% if group.lst < group.lrti %}
+						<div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
+						{% endif %}
+						<div style="display:inline">
+						{% if group.st == 'green' %}
+			                <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
+			            {% elif group.st == 'idle' %}
+			                <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
+			            {% else %}
+			                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
+			            {% endif %}
+						{% if group.lrsn in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
+						</div>
+					</div>
+				{% endif %}
+			</button>
+			</a>
+		</div>
+		</div>
+
+
+
+	{% endif %}
+{% endfor %}
+
+{% endif %}
+</div><br>
+<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+	{% if page_obj.has_previous %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+    {% if page_obj.has_next %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+</div>
+<br>
+{% endblock %}

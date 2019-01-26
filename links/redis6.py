@@ -100,7 +100,7 @@ RANKING_LAST_UPDATE_TIME = 'rlu'# key holding last time ranking was calculated (
 ######################### Caching mehfil messaging data #########################
 
 MEHFIL_CACHED_DATA = 'mcd:'#contains json serialized data of mehfil
-MEHFIL_CACHED_PAGES = 'mcp:'#contains json serialized data of a user's paginated mehfil list
+MEHFIL_CACHED_PAGES = 'mp:'#contains json serialized data of a user's paginated mehfil list
 MEHFIL_CACHED_INVITE_PAGES = 'mci:'#contains json serialized data of a user's paginated mehfil invite list
 
 ############# Freezing certain functionality of reported mehfils ################
@@ -1748,37 +1748,52 @@ def invalidate_cached_mehfil_invites(user_id, group_id=None, all_invites=False):
 		redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_INVITE_PAGES+str(user_id))
 
 
-# def cache_mehfil_pages(paginated_data,user_id):
-# 	"""
-# 	Micro-caches data shown in a user's mehfil list
+def cache_mehfil_pages(paginated_data,user_id):
+	"""
+	Micro-caches data shown in a user's mehfil list
 
-# 	'paginated_data' is a dictionary containing all the page(s) data
-# 	"""
-# 	if paginated_data:
-# 		user_id = str(user_id)
-# 		final_data = {}
-# 		for page_num, page_data in paginated_data.items():
-# 			final_data[page_num] = json.dumps(page_data)
-# 		final_data['tp'] = len(paginated_data)
-# 		key, my_server = MEHFIL_CACHED_PAGES+user_id, redis.Redis(connection_pool=POOL)
-# 		my_server.hmset(key,final_data)
-# 		my_server.expire(key,27)
-
-
-# def retrieve_cached_mehfil_pages(user_id,page_num):
-# 	"""
-# 	Retrieving cached mehfil page data for a certain user
-# 	"""
-# 	page_data, num_pages = redis.Redis(connection_pool=POOL).hmget(MEHFIL_CACHED_PAGES+str(user_id),str(page_num),'tp')
-# 	num_pages = int(num_pages) if num_pages else 0
-# 	return page_data, num_pages
+	'paginated_data' is a dictionary containing all the page(s) data
+	"""
+	if paginated_data:
+		user_id = str(user_id)
+		final_data = {}
+		for page_num, page_data in paginated_data.items():
+			final_data[page_num] = json.dumps(page_data)
+		final_data['tp'] = len(paginated_data)
+		key, my_server = MEHFIL_CACHED_PAGES+user_id, redis.Redis(connection_pool=POOL)
+		my_server.hmset(key,final_data)
+		my_server.expire(key,30)
 
 
-# def invalidate_cached_mehfil_pages(user_id):
-# 	"""
-# 	Invalidating cached mehfil list
-# 	"""
-# 	redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_PAGES+str(user_id))
+def retrieve_cached_mehfil_pages(user_id,page_num):
+	"""
+	Retrieving cached mehfil page data for a certain user
+	"""
+	page_data, num_pages = redis.Redis(connection_pool=POOL).hmget(MEHFIL_CACHED_PAGES+str(user_id),str(page_num),'tp')
+	num_pages = int(num_pages) if num_pages else 0
+	return page_data, num_pages
+
+
+def invalidate_cached_mehfil_pages(user_id, group_id=None, all_members=False):
+	"""
+	Invalidating cached mehfil list
+
+	Can performs the operation in bulk for all members too (e.g. if mehfil is deleted)
+	"""
+	if all_members:
+		group_owner_id = retrieve_group_owner_id(group_id=group_id)
+		if str(user_id) == group_owner_id:
+			my_server = redis.Redis(connection_pool=POOL)
+			all_member_ids = my_server.zrevrange(GROUP_MEMBERS+group_id,0,-1)
+			pipeline1 = my_server.pipeline()
+			for member_id in all_member_ids:
+				pipeline1.delete(MEHFIL_CACHED_PAGES+member_id)
+			pipeline1.execute()
+		else:
+			# do nothing, this isn't called by group owner (perhaps they sold off the mehfil before doing this)
+			pass
+	else:
+		redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_PAGES+str(user_id))
 
 
 ######################## Group creation helper functions ########################
@@ -1879,6 +1894,61 @@ def enrich_group_invites_with_topics(invite_data, my_server=None, sort_data=Fals
 		else:
 			return []
 	else:
+		return []
+
+
+def retrieve_user_group_data(user_id):
+	"""
+	Retrieves all groups user is a part of (useful for populating group_list)
+	"""
+	pub_grp_ids, prv_grp_ids = retrieve_user_group_membership(user_id, group_type='both')
+	if pub_grp_ids or prv_grp_ids:
+		group_data = {}
+		for group_id in pub_grp_ids:
+			group_data[group_id] = {'p':'0','gid':group_id}
+		for group_id in prv_grp_ids:
+			group_data[group_id] = {'p':'1','gid':group_id}
+		###################################################
+		if pub_grp_ids and prv_grp_ids:
+			all_group_ids = prv_grp_ids+pub_grp_ids
+		elif prv_grp_ids:
+			all_group_ids = prv_grp_ids
+		else:
+			all_group_ids = pub_grp_ids
+		###################################################
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		for group_id in all_group_ids:
+			pipeline1.hmget(GROUP+group_id,'tp','u','oun','lrsn','lrtx','lrti','lrc')# list of tuples
+			pipeline1.zscore(GROUP_VISITORS+group_id,user_id)
+		result1, counter, time_now = pipeline1.execute(), 0, time.time()
+		for group_id in all_group_ids:
+			data = result1[counter]
+			latest_reply_time = float(data[5]) if data[5] else None
+			how_old = (time_now - latest_reply_time) if latest_reply_time else -1
+			group_data[group_id]['tp'] = data[0]
+			group_data[group_id]['u'] = data[1]
+			group_data[group_id]['oun'] = data[2]
+			group_data[group_id]['lrsn'] = data[3]
+			group_data[group_id]['lrtx'] = data[4]
+			group_data[group_id]['lrti'] = latest_reply_time
+			group_data[group_id]['lrc'] = data[6]
+			group_data[group_id]['lst'] = result1[counter+1]# own last seen time
+			if how_old < 0:
+				group_data[group_id]['st'] = 'gone'
+			elif how_old < GROUP_GREEN_DOT_CUTOFF:
+				group_data[group_id]['st'] = 'green'
+			elif how_old < GROUP_IDLE_DOT_CUTOFF:
+				group_data[group_id]['st'] = 'idle'
+			else:
+				group_data[group_id]['st'] = 'gone'
+			counter += 2
+		# we need the data in list of dictionaries format (what we've created is a dictionary of dictionaries)
+		list_of_dict = group_data.values()
+		# return the sorted the data
+		return sorted(list_of_dict, key=lambda k: k['lrti'], reverse=True)
+	else:
+		# this user does not have any groups
 		return []
 
 
@@ -2387,6 +2457,12 @@ def invite_allowed(group_id,inviter,is_public, inviter_id=None):
 			else:
 				return 0, 'ivt_overflow'
 
+
+def get_num_user_invites(user_id):
+	"""
+	Retrieves user invite count for the user to see anywhere in the app
+	"""
+	return redis.Redis(connection_pool=POOL).zcard(USER_INVITES+str(user_id))
 
 
 def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, sent_by_id=None, sent_by_uname=None, group_uuid=None):
@@ -4430,7 +4506,7 @@ def rules_change_rate_limited(user_id,unique_id):
 ###################################### Handling user sets #######################################
 
 
-def retrieve_user_ownership(user_id, with_ownership_start_time=False, my_server=None):
+def retrieve_user_group_ownership(user_id, with_ownership_start_time=False, my_server=None):
 	"""
 	Retrieves all groups owned by user_id
 	"""
@@ -4438,7 +4514,7 @@ def retrieve_user_ownership(user_id, with_ownership_start_time=False, my_server=
 	return my_server.zrange(GROUPS_OWNED_BY_USER+str(user_id),0,-1, withscores=with_ownership_start_time)
 
 
-def retrieve_user_officership(user_id, with_officership_start_time=False, my_server=None):
+def retrieve_user_group_officership(user_id, with_officership_start_time=False, my_server=None):
 	"""
 	Retrieves all groups officered by user_id
 	"""
@@ -4446,25 +4522,25 @@ def retrieve_user_officership(user_id, with_officership_start_time=False, my_ser
 	return my_server.zrange(GROUPS_IN_WHICH_USER_IS_OFFICER+str(user_id),0,-1, withscores=with_officership_start_time)
 
 
-# def retrieve_user_group_membership(user_id, group_type='public', my_server=None):
-# 	"""
-# 	Returns IDs of public and/or private groups a user is a member of
-# 	"""
-# 	user_id = str(user_id)
-# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-# 	if group_type == 'public':
-# 		# group_type is 'public'
-# 		return my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 	elif group_type == 'private':
-# 		# group_type is 'private'
-# 		return my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 	elif group_type == 'both':
-# 		# group_type is 'both'
-# 		pub_grp_ids = my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 		prv_grp_ids = my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 		return pub_grp_ids, prv_grp_ids
-# 	else:
-# 		return []
+def retrieve_user_group_membership(user_id, group_type='public', my_server=None):
+	"""
+	Returns IDs of public and/or private groups a user is a member of
+	"""
+	user_id = str(user_id)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if group_type == 'public':
+		# group_type is 'public'
+		return my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+	elif group_type == 'private':
+		# group_type is 'private'
+		return my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+	elif group_type == 'both':
+		# group_type is 'both'
+		pub_grp_ids = my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+		prv_grp_ids = my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+		return pub_grp_ids, prv_grp_ids
+	else:
+		return []
 
 
 def update_user_membership_set(user_id, group_id, group_type, time_now=None, remove=False, my_server=None):
@@ -4506,7 +4582,6 @@ def update_user_officership_set(user_id, group_id, time_now=None, remove=False, 
 		my_server.zadd(GROUPS_IN_WHICH_USER_IS_OFFICER+str(user_id), group_id, time_now)
 
 
-
 def bulk_update_user_membership_set(user_ids, group_id, group_type, time_now=None, remove=False, my_server=None):
 	"""
 	"""
@@ -4536,7 +4611,6 @@ def bulk_update_user_membership_set(user_ids, group_id, group_type, time_now=Non
 			for user_id in user_ids:
 				pipeline1.zadd(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+str(user_id), group_id, time_now)
 			pipeline1.execute()
-
 
 
 def bulk_update_user_officership_set(user_ids, group_id, time_now=None, remove=False, my_server=None):

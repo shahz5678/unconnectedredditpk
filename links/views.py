@@ -4900,6 +4900,7 @@ def public_reply_view(request,*args,**kwargs):
 			context["form"] = form if form else PublicreplyForm()
 			# context["authenticated"] = True
 			context["mob_verified"] = True if request.mobile_verified else False
+			context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 			context["user_id"] = user_id
 			parent_submitter_id = link.submitter_id
 			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)

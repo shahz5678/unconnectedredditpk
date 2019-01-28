@@ -15,15 +15,21 @@
 
 <form method="POST" class="mt mbl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ guid }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
 
-{% if final_data %}
+{% if just_invited_users %}
 <div style="padding:8px;background-color:ivory" class="bizcard cxl lsp">
-In users ne abhi tak apki private mehfil ka invite accept nahi kiya
-<hr size=1 COLOR="#E9EBEE">
-<div class="sp cs lsp"><span class="cgy"><b>Note:</b>&nbsp;Invite ke {{ cancellation_time }} baad mehfil members neechay se invite cancel kar saktey hain</span></div>
+	<b>Successfully invited!</b>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="sp cs lsp">Invite ke <b>{{ cancellation_time }}</b> baad members neechay se 'unaccepted' invites cancel kar saktey hain</div>
+</div>
+{% elif final_data %}
+<div style="padding:8px;background-color:ivory" class="bizcard cxl lsp">
+	In users ne abhi tak apki private mehfil ka invite accept nahi kiya
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="sp cs lsp"><span class="cgy"><b>Note:</b>&nbsp;Invite ke {{ cancellation_time }} baad members neechay se invite cancel kar saktey hain</span></div>
 </div>
 {% else %}
 <div style="padding:8px;background-color:ivory" class="bizcard cxl lsp">
-Yahan invited users show hotay hain
+	Yahan invited users show hotay hain
 </div>
 {% endif %}
 

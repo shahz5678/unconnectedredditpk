@@ -24,17 +24,6 @@
 
 </div>
 
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-    <div class="mbs" style="text-align:center;background:#E9EBEE;height:50px;width:320px">
-    <ins class="adsbygoogle"
-     style="display:inline-block;width:320px;height:50px"
-     data-ad-client="ca-pub-2568547635306983"
-     data-ad-slot="5874974569"></ins>
-    </div>
-<script>
-(adsbygoogle = window.adsbygoogle || []).push({});
-</script>
-
 <div class="bizcard" style="background-color:white;padding:10px 7px;margin-bottom:15px">
     <a name="sectionJ"></a> 
 
@@ -42,20 +31,37 @@
     <form action="{% url 'publicreply_post' %}" method="POST" style="display:inline">
         {% csrf_token %}
         <input type="hidden" name="sk" value="{{ sk }}">
-        <input type="hidden" name="user_id" value="{{ user_id }}">
         <input type="hidden" name="link_id" value="{{ parent.id }}">
+        <input type="hidden" name="sid" value="{{ user_id }}">
         <input type="hidden" name="lwpk" value="{{ parent_submitter_id }}">
         {{ form.description }}
         <button class="btn bm bct mbl mts mrl sp pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
     </form>
     &nbsp;
-    <form action="{% url 'publicreply_view' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><button class="rf rf-bg" name="lid" value="{{ parent.id }}" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></form>
+    <form action="{% url 'publicreply_view' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><input type="hidden" name="sid" value="{{ user_id }}"><button class="rf rf-bg" name="lid" value="{{ parent.id }}" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></form>
 
 
     <div class="mts">
     {% for reply in replies %}
     
     {% if forloop.counter != 1 %}<hr size=1 COLOR="#E9EBEE">{% endif %}
+
+
+    {% if not on_fbs and forloop.counter == 5 %}
+
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <div class="mbs" style="text-align:center;background:snow">
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:320px;height:100px"
+             data-ad-client="ca-pub-2568547635306983"
+             data-ad-slot="1436750697"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        </div>
+        <hr size=1 COLOR="#E9EBEE">
+
+    {% endif %}
 
     {% if user_id == reply.submitter_id %}
         <div style="overflow:hidden;background-color:ivory">

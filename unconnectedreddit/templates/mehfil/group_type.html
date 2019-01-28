@@ -8,7 +8,7 @@
 {% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
 
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Create new mehfil:</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:0px;background-color:white;text-align:center">
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0px;background-color:white;text-align:center">
 
 {% if ttl %}
 	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Ap ne recently mehfil banai, is liye ap dubara mehfil bana sakein ge {{ ttl|future_time }}</div></div>
@@ -18,18 +18,48 @@
 	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Apko join kiye huay ziyada time nahi guzra. Ap ye mehfil bana sakein ge {{ age_inadequate_ttl|future_time }}</div></div>
 {% endif %}
 
-{% cache 3600 mehfil_type %}
+{% cache 3600 mehfil_creation %}
 <div class="cxl lsp" style="padding:1em 0.5em 0.5em 0.5em">Kaunsi mehfil create karni hai?</div>
-<div class="fx fxjscn fxaicn mts" style="padding-bottom:20px;border-bottom:1px solid #E9EBEE">
+	<div class="fx fxjscn fxaicn mts mbl" style="padding-bottom:30px">
 
-	<a href="{% url 'open_group_help' %}#section0"><button style="border-radius:8px;border:1px solid #866496;width:100px;height:100px;background-color:#9274a0" class="mrl pg_ok_res"><img src="{{ STATIC_URL }}img/open.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white" class="mts lsp sp">PUBLIC<br>MEHFIL</div></button></a>
+		<a href="{% url 'open_group_help' %}#section0"><button style="border-radius:8px;border:1px solid #866496;width:100px;height:100px;background-color:#9274a0" class="mrl pg_ok_res"><img src="{{ STATIC_URL }}img/open.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white" class="mts lsp sp">PUBLIC<br>MEHFIL</div></button></a>
 
-	<a href="{% url 'closed_group_help' %}#section0"><button style="border-radius:8px;border:1px solid #19a83b;width:100px;height:100px;background-color:#11ae59" class="mll pg_ok_res"><img src="{{ STATIC_URL }}img/closed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white" class="mts lsp sp">PRIVATE<br>MEHFIL</div></button></a>
+		<a href="{% url 'closed_group_help' %}#section0"><button style="border-radius:8px;border:1px solid #19a83b;width:100px;height:100px;background-color:#11ae59" class="mll pg_ok_res"><img src="{{ STATIC_URL }}img/closed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white" class="mts lsp sp">PRIVATE<br>MEHFIL</div></button></a>
 
+	</div>
 </div>
-<a href="{% url 'group_help' %}#section0">
-	<button class="vt" style="padding-top:1em;padding-bottom:1em;border:none;width:100%"><div class="sp cb cm" style="border-bottom:1px dotted blue;display:inline-block">mehfil kya hai?</div></button>
-</a>
+
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Mehfil help:</span></h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0px;background-color:ivory;text-align:center;overflow:hidden">
+	<div class="cxl lsp" style="border-bottom:1px solid #e9ebee;padding:10px 8px">Mehfil mien group messaging and foto sharing hoti hai</div>
+	
+	<div style="padding:5px 10px;background-color:white">
+		
+		<div class="mtl mbl">
+		<div style="text-align:left;font-weight:bold;margin-top:0;margin-bottom:0" class="cg sp cl">Private mehfil:</div>
+		<ul style="display:inline-block;padding: 0;margin:0;list-style:none;max-width:520px" class="lsp sp">
+			<li style="text-align:left" class="mt"><b class="cs cg sp">1.</b>&nbsp;Ye mehfil sirf invited users join kar saktey hain</li>
+			<li style="text-align:left" class="mt"><b class="cs cg sp">2.</b>&nbsp;Is mehfil mein maximum {{ private_max_members }} members ho saktey hain</li>
+			<li style="text-align:left" class="mt"><b class="cs cg sp">3.</b>&nbsp;Iska owner {{ private_owner_invites }} invites send kar sakta hai, jabkey normal members {{ private_member_invites }} invites send kar saktey hain</li>
+			<li style="text-align:left" class="mt"><b class="cs cg sp">4.</b>&nbsp;Isko create karney ke liye {{ private_price }} points dene partey hain</li>
+			<li style="text-align:left" class="mt"><b class="cs cg sp">5.</b>&nbsp;Agr sirf 1 friend se baat karni ho tou <a href="{% url 'show_personal_group_invite_list' 'received' %}#section0" class="cb" style="border-bottom:1px dotted blue">1 on 1 messaging</a> use karein, woh bilkul muft hai</li>
+		</ul>
+		</div>
+		<hr size="1" color="#e7e9ec">
+		<div style="text-align:left;font-weight:bold;margin:0;padding-top:5px" class="cp sp cl">Public mehfil:</div>
+		<ul style="display:inline-block;padding: 0;margin:0;list-style:none;max-width:520px" class="lsp sp">
+			<li style="text-align:left" class="mt"><b class="cs cp sp">1.</b>&nbsp;Ye mehfil public ke liye open hoti hai</li>
+			<li style="text-align:left" class="mt"><b class="cs cp sp">2.</b>&nbsp;Is mein topic and rules set kiye jatey hain</li>
+			<li style="text-align:left" class="mt"><b class="cs cp sp">3.</b>&nbsp;Iska owner 'officers' bana sakta hai jo mehfil ko manage kartey hain</li>
+			<li style="text-align:left" class="mt"><b class="cs cp sp">4.</b>&nbsp;Iska owner {{ public_owner_invites }} invites send kar sakta hai, jabkey officers {{ public_officer_invites }} invites send kar saktey hain</li>
+			<li style="text-align:left" class="mt"><b class="cs cp sp">5.</b>&nbsp;Unaccepted invites ko mehfil owner {{ public_invite_cancellation }} baad cancel kar sakta hai takey aur invites bhejay ja sakein</li>
+			<li style="text-align:left" class="mt"><b class="cs cp sp">6.</b>&nbsp;Ye mehfil <a href="{% url 'get_ranked_groups' %}#section0" class="cb" style="border-bottom:1px dotted blue">popular mehfils</a> ki list mein shamil ho sakti hai</li>
+			<li style="text-align:left" class="mt mbl"><b class="cs cp sp">6.</b>&nbsp;Isko create karney ke liye {{ public_price }} points dene partey hain</li>
+		</ul>
+
+	</div>
+
 </div>
 
 <br><br>

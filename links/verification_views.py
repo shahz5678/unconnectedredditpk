@@ -200,6 +200,8 @@ def pin_verification(request):
 				if form.is_valid():
 					pin_state = form.cleaned_data.get("pinnumber")
 					if pin_state == 'pin_matched':
+						request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+						request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
 						for_personal_group = request.session.pop("for_personal_group",None)
 						own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(user_id, target_id)
 						if for_personal_group == '1':
@@ -238,6 +240,8 @@ def pin_verification(request):
 			if form.is_valid():
 				pin_state = form.cleaned_data.get("pinnumber")
 				if pin_state == 'pin_matched':
+					request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+					request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
 					request.session.pop('phonenumber'+str(user_id),None)
 					account_kid_id = 'twilio_verification'
 					national_number = phonenumber[-10:]

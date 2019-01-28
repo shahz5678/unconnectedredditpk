@@ -14,8 +14,8 @@ process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE,\
 GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE
 # from page_controls import PHOTOS_PER_PAGE
-from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, Report, UserProfile, \
-Video, HotUser, PhotoStream, HellBanList, UserFan, Group
+from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, \
+Video, HotUser, PhotoStream, HellBanList, UserFan
 #from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
@@ -685,9 +685,9 @@ def delete_idle_public_and_private_groups():
 	bulk_remove_multiple_group_notifications(grp_ids_and_members)#redis2
 	# cleanse_public_and_private_groups_data(grp_ids_and_members)#redis1 (DEPRECATE THIS ENTIRE FUNCTIONALITY)
 	# marking postgresql Group object as deleted (deprecate this later)
-	group_ids = grp_ids_and_members.keys()
-	if group_ids:
-		Group.objects.filter(id__in=group_ids).update(category='99')#'99' implies deleted
+	# group_ids = grp_ids_and_members.keys()
+	# if group_ids:
+	# 	Group.objects.filter(id__in=group_ids).update(category='99')#'99' implies deleted
 
 
 @celery_app1.task(name='tasks.trim_group_submissions')
@@ -701,7 +701,7 @@ def trim_group_submissions(group_id):
 #bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
-	image_url,priority,from_unseen, reply_id, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
+	image_url,priority,from_unseen, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
 	if txt_type == 'join':
 		# own self has seen this, and no need to show a notification to other users
 		###############################

@@ -1,17 +1,7 @@
 """
 TODO:
-1) Mehfils' invitations and membership have many legacy functions still being used in Redis 1. Look at the imports from redis1 in mehfil_views.py and in this file
-2) These redis1 functions need to be deprecated - all functionality mehfils need should be routed via redis 6
-3) Also delete legacy data from redis 1. Keys include:
-	i) pgm:<group_id>, a set containing all usernames of members of a particular group 
-	ii) lgr:<group_id>, a key containing the ID of the latest reply submitted in a group (useful in populating GroupPageView())
-	iii) ipg:<user_id>, a sorted set containing IDs of all groups the user has been invited to (capped at 500 invites). This prevents reinvitation. Use GROUP_INVITE_LOCK in redis6 to replace this.
-	iv) ug:<user_id> - a set containing all group ids a given <user_id> is a member of
-	v) giu:<group_id><user_id> - a hash containing information about an invite to a group received by a user
-	vi) pir:<user_id> - a set containing IDs of all 'active' invites currently outstanding for a given user
-4) Likewise, remove all REQUESTOR_ID parameters from functions containing 'retrieve' in their names in this file
-5) Group, Reply, GroupBanList, GroupTraffic and GroupCaptain data models also need to be deprecated entirely
-6) UNIVERSAL_GROUP_ATTENDANCE_LIST sorted set contains list of active mehfils. All other mehfils are dead - remove their notification objects from redis 2
+1) Group, Reply, GroupBanList, GroupTraffic and GroupCaptain data models also need to be deprecated entirely
+2) UNIVERSAL_GROUP_ATTENDANCE_LIST sorted set contains list of active mehfils. All other mehfils are dead - remove their notification objects from redis 2
 """
 import ujson as json
 import redis, time, random
@@ -30,7 +20,6 @@ from redis4 import retrieve_bulk_unames, retrieve_uname, retrieve_bulk_credentia
 from redis2 import remove_group_notification
 from redis3 import exact_date
 from location import REDLOC6
-from models import Group
 
 # changed connection from TCP port to UNIX socket
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC6, db=0)
@@ -111,7 +100,7 @@ RANKING_LAST_UPDATE_TIME = 'rlu'# key holding last time ranking was calculated (
 ######################### Caching mehfil messaging data #########################
 
 MEHFIL_CACHED_DATA = 'mcd:'#contains json serialized data of mehfil
-MEHFIL_CACHED_PAGES = 'mcp:'#contains json serialized data of a user's paginated mehfil list
+MEHFIL_CACHED_PAGES = 'mp:'#contains json serialized data of a user's paginated mehfil list
 MEHFIL_CACHED_INVITE_PAGES = 'mci:'#contains json serialized data of a user's paginated mehfil invite list
 
 ############# Freezing certain functionality of reported mehfils ################
@@ -341,7 +330,7 @@ def bulk_update_sorted_set_ttl(set_list,my_server=None):
 ############################## Group creation and content submission ##############################
 
 
-def set_group_id(group_id=None):
+def get_group_id(group_id=None):
 	"""
 	Gets the group_id of a created group
 
@@ -349,12 +338,17 @@ def set_group_id(group_id=None):
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(GROUP_ID):
-		my_server.incr(GROUP_ID)
+		new_group_id = my_server.incr(GROUP_ID)
+		if my_server.exists(GROUP+str(new_group_id)):
+			return my_server.incr(GROUP_ID)
+		else:
+			return new_group_id
 	else:
 		if group_id:
 			my_server.set(GROUP_ID,group_id)
 		else:
 			pass
+
 
 def create_group_credentials(owner_id,owner_uname,owner_join_time, group_id,privacy,uuid,topic,pics,created_at,grp_categ,rules=None, raw_rules=None):
 	"""
@@ -641,66 +635,14 @@ def retrieve_group_topic_log(group_id):
 def retrieve_group_topic(group_id=None, group_uuid=None,requestor_id=None):
 	"""
 	Returns group's topic from meta data hash
-
-	Populates the meta data from postgresql 'Group' model object if meta_data doesn't exist in redis6
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+str(group_uuid)) if group_uuid else group_id
 	if group_id:
-		group_id = str(group_id)
-		topic = my_server.hget(GROUP+group_id,'tp')
-		if topic:
-			return topic.decode('utf-8')
-		else:
-			# retrieve group object
-			try:
-				group_obj = Group.objects.get(id=group_id)
-			except Group.DoesNotExist:
-				return None
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				# if requestor_id:
-				#     remove_group_invite(requestor_id, group_id)
-				return None
-			else:
-				# populate the source data in redis 6
-				created_at = convert_to_epoch(group_obj.created_at)
-				group_uuid = group_uuid if group_uuid else group_obj.unique
-				topic = group_obj.topic 
-				mapping = {'oi':group_obj.owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':group_uuid,'tp':topic,\
-				'r':group_obj.rules, 'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+str(group_uuid),group_id)
-				return topic
+		return my_server.hget(GROUP+str(group_id),'tp')
 	else:
-		if group_uuid:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=group_uuid)
-			except Group.DoesNotExist:
-				return None
-			group_id = str(group_obj.id)
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				# if requestor_id:
-				#     remove_group_invite(requestor_id, group_id)
-				return None
-			else:
-				# populate the source data in redis 6
-				created_at = convert_to_epoch(group_obj.created_at)
-				topic = group_obj.topic 
-				mapping = {'oi':group_obj.owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':group_uuid,\
-				'tp':topic,'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+str(group_uuid),group_id)
-				return topic
-		else:
-			return None
-
+		return None
+		
 
 def retrieve_group_creation_time(group_id):
 	"""
@@ -724,72 +666,19 @@ def retrieve_group_creation_time(group_id):
 def retrieve_group_privacy(group_id=None,group_uuid=None,requestor_id=None):
 	"""
 	Returns group's privacy from meta data hash
-
-	Populates the meta data from postgresql 'Group' model object if meta_data doesn't exist in redis6
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+str(group_uuid)) if group_uuid else group_id
 	if group_id:
-		group_id = str(group_id)
-		privacy = my_server.hget(GROUP+group_id,'p')
-		if privacy:
-			return privacy
-		else:
-			# retrieve group object
-			try:
-				group_obj = Group.objects.get(id=group_id)
-			except Group.DoesNotExist:
-				return None
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				# if requestor_id:
-				#     remove_group_invite(requestor_id, group_id)
-				return None
-			else:
-				# populate the source data in redis 6
-				created_at = convert_to_epoch(group_obj.created_at)
-				group_uuid = group_uuid if group_uuid else group_obj.unique
-				mapping = {'oi':group_obj.owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':group_uuid,'tp':group_obj.topic,\
-				'r':group_obj.rules, 'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+str(group_uuid),group_id)
-				return str(group_obj.private)
+		return my_server.hget(GROUP+str(group_id),'p')
 	else:
-		if group_uuid:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=group_uuid)
-			except Group.DoesNotExist:
-				return None
-			group_id = str(group_obj.id)
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				# if requestor_id:
-				#     remove_group_invite(requestor_id, group_id)
-				return None
-			else:
-				# populate the source data in redis 6
-				created_at = convert_to_epoch(group_obj.created_at)
-				group_privacy = str(group_obj.private)
-				mapping = {'oi':group_obj.owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_privacy,'u':group_uuid,\
-				'tp':group_obj.topic ,'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+str(group_uuid),group_id)
-				return group_privacy
-		else:
-			return None
+		return None
 
 
 
 def retrieve_group_owner_id(group_id=None,group_uuid=None,with_group_id=False,with_group_privacy=False):
 	"""
 	Returns group's owner's ID from meta data hash
-
-	Populates the meta data from postgresql 'Group' model object if meta_data doesn't exist in redis6
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+str(group_uuid)) if group_uuid else group_id
@@ -808,93 +697,6 @@ def retrieve_group_owner_id(group_id=None,group_uuid=None,with_group_id=False,wi
 			else:
 				return my_server.hget(group_key,'oi')
 		else:
-			# retrieve group object - take counter measures
-			try:
-				group_obj = Group.objects.get(id=group_id)
-			except Group.DoesNotExist:
-				if with_group_privacy and with_group_id:
-					return None, None, None
-				elif with_group_privacy:
-					return None, None
-				elif with_group_id:
-					return None, None
-				else:
-					return None
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, so don't take counter measures
-				if with_group_privacy and with_group_id:
-					return None, None, None
-				elif with_group_privacy:
-					return None, None
-				elif with_group_id:
-					return None, None
-				else:
-					return None
-			else:
-				# populate the source data in redis 6
-				created_at = convert_to_epoch(group_obj.created_at)
-				group_uuid = group_uuid if group_uuid else group_obj.unique
-				group_owner_id = str(group_obj.owner_id)
-				group_privacy = group_obj.private
-				mapping = {'oi':group_owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_privacy,'u':group_uuid,'tp':group_obj.topic,\
-				'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+str(group_uuid),group_id)
-				if with_group_privacy and with_group_id:
-					return group_owner_id, group_id, group_privacy
-				elif with_group_privacy:
-					return group_owner_id, group_privacy
-				elif with_group_id:
-					return group_owner_id, group_id
-				else:
-					return group_owner_id
-	else:
-		if group_uuid:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=group_uuid)
-			except Group.DoesNotExist:
-				if with_group_privacy and with_group_id:
-					return None, None, None
-				elif with_group_privacy:
-					return None, None
-				elif with_group_id:
-					return None, None
-				else:
-					return None
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, so don't take counter measures
-				if with_group_privacy and with_group_id:
-					return None, None, None
-				elif with_group_privacy:
-					return None, None
-				elif with_group_id:
-					return None, None
-				else:
-					return None
-			else:
-				# populate the source data in redis 6
-				group_id = str(group_obj.id)
-				group_privacy = str(group_obj.private)
-				created_at = convert_to_epoch(group_obj.created_at)
-				group_owner_id = str(group_obj.owner_id)
-				mapping = {'oi':group_owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_privacy,'u':group_uuid,\
-				'tp':group_obj.topic,'r':group_obj.rules,'pics':str(group_obj.pics_ki_ijazat),'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+str(group_uuid),group_id)
-				if with_group_privacy and with_group_id:
-					return group_owner_id, group_id, group_privacy
-				elif with_group_privacy:
-					return group_owner_id, group_privacy
-				elif with_group_id:
-					return group_owner_id, group_id
-				else:
-					return group_owner_id
-		else:
 			if with_group_privacy and with_group_id:
 				return None, None, None
 			elif with_group_privacy:
@@ -903,40 +705,25 @@ def retrieve_group_owner_id(group_id=None,group_uuid=None,with_group_id=False,wi
 				return None, None
 			else:
 				return None
+	else:
+		if with_group_privacy and with_group_id:
+			return None, None, None
+		elif with_group_privacy:
+			return None, None
+		elif with_group_id:
+			return None, None
+		else:
+			return None
 
 
 def retrieve_group_id(group_uuid):
 	"""
 	Returns group's ID from meta data hash
-
-	Populates the meta data from postgresql 'Group' model object if meta_data doesn't exist in redis6
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if group_uuid:
 		group_uuid = str(group_uuid)
-		group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+group_uuid)
-		if group_id:
-			return group_id
-		else:
-			# retrieve group object
-			try:
-				group_obj = Group.objects.get(unique=group_uuid)
-			except Group.DoesNotExist:
-				return None
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, so don't take counter measures
-				return None
-			else:
-				# populate the source data in redis 6
-				group_id = str(group_obj.id)
-				created_at = convert_to_epoch(group_obj.created_at)
-				mapping = {'oi':group_obj.owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':group_uuid,'tp':group_obj.topic,\
-				'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+group_uuid,group_id)
-				return group_id
+		return my_server.get(GROUP_UUID_TO_ID_MAPPING+group_uuid)
 	else:
 		return None
 
@@ -1004,115 +791,14 @@ def retrieve_group_reqd_data(group_id=None, group_uuid=None, with_group_owner_id
 					cache_group_reqd_data(group_id,data,'000',my_server)
 			return data
 		else:
-			# populate the data
-			try:
-				group_obj = Group.objects.get(id=group_id)
-			except Group.DoesNotExist:
-				return {}
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				# if requestor_id:
-				#     remove_group_invite(requestor_id, group_id)
-				return {}
-			else:
-				created_at = convert_to_epoch(group_obj.created_at)
-				unique_id = str(group_obj.unique)
-				privacy = str(group_obj.private)
-				topic = group_obj.topic
-				owner_id = str(group_obj.owner_id)
-				pics_perms = str(group_obj.pics_ki_ijazat)
-				mapping = {'oi':owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':privacy,'u':unique_id,'tp':topic,'r':group_obj.rules,\
-				'pics':pics_perms,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(group_key,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+unique_id,group_id)
-				if with_group_owner_id and with_pics_perm and with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'pics':pics_perms,'u':unique_id}
-					cache_group_reqd_data(group_id,data,'111',my_server)
-				elif with_group_owner_id and with_pics_perm:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'pics':pics_perms}
-					cache_group_reqd_data(group_id,data,'110',my_server)
-				elif with_group_owner_id and with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'u':unique_id}
-					cache_group_reqd_data(group_id,data,'101',my_server)
-				elif with_pics_perm and with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'pics':pics_perms,'u':unique_id}
-					cache_group_reqd_data(group_id,data,'011',my_server)
-				elif with_group_owner_id:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id}
-					cache_group_reqd_data(group_id,data,'100',my_server)
-				elif with_pics_perm:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'pics':pics_perms}
-					cache_group_reqd_data(group_id,data,'010',my_server)
-				elif with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'u':unique_id}
-					cache_group_reqd_data(group_id,data,'001',my_server)
-				else:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8')}
-					cache_group_reqd_data(group_id,data,'000',my_server)
-				return data
-	else:
-		if group_uuid:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=group_uuid)
-			except Group.DoesNotExist:
-				return {}
-			group_id = str(group_obj.id)
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, delete the user invite (in case it existed) and return Null
-				# if requestor_id:
-				#     remove_group_invite(requestor_id, group_id)
-				return {}
-			else:
-				created_at = convert_to_epoch(group_obj.created_at)
-				privacy = str(group_obj.private)
-				topic = group_obj.topic
-				unique_id = str(group_uuid)
-				owner_id = str(group_obj.owner_id)
-				pics_perms = str(group_obj.pics_ki_ijazat)
-				mapping = {'oi':owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':privacy,'u':unique_id,'tp':topic,'r':group_obj.rules,\
-				'pics':pics_perms,'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+unique_id,group_id)
-				if with_group_owner_id and with_pics_perm and with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'pics':pics_perms,'u':unique_id}
-					cache_group_reqd_data(group_id,data,'111',my_server)
-				elif with_group_owner_id and with_pics_perm:
-					# data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'pics':pics_perms}
-					data = {'p':privacy,'gi':group_id,'tp':topic,'oi':owner_id,'pics':pics_perms}
-					cache_group_reqd_data(group_id,data,'110',my_server)
-				elif with_group_owner_id and with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id,'u':unique_id}
-					cache_group_reqd_data(group_id,data,'101',my_server)
-				elif with_pics_perm and with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'pics':pics_perms,'u':unique_id}
-					cache_group_reqd_data(group_id,data,'011',my_server)
-				elif with_group_owner_id:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'oi':owner_id}
-					cache_group_reqd_data(group_id,data,'100',my_server)
-				elif with_pics_perm:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'pics':pics_perms}
-					cache_group_reqd_data(group_id,data,'010',my_server)
-				elif with_uuid:
-					data = {'p':privacy,'gi':group_id,'tp':topic.decode('utf-8'),'u':unique_id}
-					cache_group_reqd_data(group_id,data,'001',my_server)
-				else:
-					data = {'p':privacy,'gi':group_id,'tp':topic}
-					cache_group_reqd_data(group_id,data,'000',my_server)
-				return data
-		else:
 			return {}
+	else:
+		return {}
 
 
 def retrieve_group_meta_data(group_id=None,group_uuid=None):
 	"""
 	Returns entire group meta data, retrieved either via group ID or group UUID
-
-	Populates the meta data from postgresql 'Group' model object if meta_data doesn't exist in redis6
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+str(group_uuid)) if group_uuid else group_id
@@ -1126,55 +812,15 @@ def retrieve_group_meta_data(group_id=None,group_uuid=None):
 			meta_data['oun'] = meta_data['oun'].decode('utf-8')
 			return meta_data
 		else:
-			# try to retrieve the source data
-			try:
-				group_obj = Group.objects.get(id=group_id)
-			except Group.DoesNotExist:
-				return {}
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, don't take counter measures
-				return {}
-			else:
-				# populate the source data in redis 6
-				created_at = convert_to_epoch(group_obj.created_at)
-				unique_id = str(group_obj.unique)
-				mapping = {'oi':str(group_obj.owner_id),'oun':group_obj.owner.username,'gi':group_id,'p':str(group_obj.private),'u':unique_id,\
-				'tp':group_obj.topic,'r':group_obj.rules,'pics':str(group_obj.pics_ki_ijazat),'ct':created_at,'grp_categ':categ}
-				my_server.hmset(key,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+unique_id,group_id)
-				return mapping
-	else:
-		if group_uuid:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=group_uuid)
-			except Group.DoesNotExist:
-				return {}
-			categ = group_obj.category
-			if categ == '99':
-				# group was recently deleted, don't take counter measuress
-				return {}
-			else:
-				# populate the source data in redis 6
-				group_id = str(group_obj.id)
-				created_at = convert_to_epoch(group_obj.created_at)
-				mapping = {'oi':str(group_obj.owner_id),'oun':group_obj.owner.username,'gi':group_id,'p':str(group_obj.private),'u':group_uuid,\
-				'tp':group_obj.topic,'r':group_obj.rules,'pics':str(group_obj.pics_ki_ijazat),'ct':created_at,'grp_categ':categ}
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+str(group_uuid),group_id)
-				return mapping
-		else:
 			return {}
+	else:
+		return {}
+
 
 
 def retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids):
 	"""
 	Bulk retrieves and return owner_unames, unique_ids and group topics (for use by get_ranked_groups())
-
-	Populates the meta data from postgresql 'Group' model object if meta_data doesn't exist in redis6
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if group_ids:
@@ -1189,37 +835,11 @@ def retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids):
 			if tup[0]:
 				group_dict = {'oun':tup[0].decode('utf-8'),'tp':tup[1].decode('utf-8'),'u':tup[2],'gi':group_id}
 				list_of_group_dicts.append(group_dict)
-			else:
-				group_dict = {'oun':None,'tp':None,'u':None,'gi':group_id}
-				list_of_group_dicts.append(group_dict)
 			counter += 1
-		group_ids_to_retrieve = []
-		for group_obj in list_of_group_dicts:
-			if not group_obj['oun']:
-				group_ids_to_retrieve.append(group_obj['gi'])
-		if group_ids_to_retrieve:
-			retrieved_groups = Group.objects.filter(id__in=group_ids_to_retrieve)
-			dict_of_group_dicts = {}
-			for group in retrieved_groups:
-				created_at = convert_to_epoch(group.created_at)
-				unique_id = str(group.unique)
-				group_id = str(group.id)
-				mapping = {'oi':group.owner_id,'oun':group.owner.username,'gi':group_id,'p':group.private,'u':unique_id,\
-				'tp':group.topic,'r':group.rules,'pics':group.pics_ki_ijazat,'ct':created_at,'grp_categ':group.category}
-				dict_of_group_dicts[group_id] = mapping
-				my_server.hmset(GROUP+group_id,mapping)
-				my_server.zadd(GROUP_LIST,group_id, created_at)
-				my_server.set(GROUP_UUID_TO_ID_MAPPING+unique_id,group_id)
-			for group_obj in list_of_group_dicts:
-				if not group_obj['oun']:
-					group_dict = dict_of_group_dicts.get(group_obj['gi'],None)
-					if group_dict:
-						group_obj['oun'] = group_dict['oun']
-						group_obj['tp'] = group_dict['tp']
-						group_obj['u'] = group_dict['u']
 		return list_of_group_dicts
 	else:
 		return []
+
 
 def increment_pic_count(group_id, sender_id):
 	"""
@@ -2128,37 +1748,52 @@ def invalidate_cached_mehfil_invites(user_id, group_id=None, all_invites=False):
 		redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_INVITE_PAGES+str(user_id))
 
 
-# def cache_mehfil_pages(paginated_data,user_id):
-# 	"""
-# 	Micro-caches data shown in a user's mehfil list
+def cache_mehfil_pages(paginated_data,user_id):
+	"""
+	Micro-caches data shown in a user's mehfil list
 
-# 	'paginated_data' is a dictionary containing all the page(s) data
-# 	"""
-# 	if paginated_data:
-# 		user_id = str(user_id)
-# 		final_data = {}
-# 		for page_num, page_data in paginated_data.items():
-# 			final_data[page_num] = json.dumps(page_data)
-# 		final_data['tp'] = len(paginated_data)
-# 		key, my_server = MEHFIL_CACHED_PAGES+user_id, redis.Redis(connection_pool=POOL)
-# 		my_server.hmset(key,final_data)
-# 		my_server.expire(key,27)
-
-
-# def retrieve_cached_mehfil_pages(user_id,page_num):
-# 	"""
-# 	Retrieving cached mehfil page data for a certain user
-# 	"""
-# 	page_data, num_pages = redis.Redis(connection_pool=POOL).hmget(MEHFIL_CACHED_PAGES+str(user_id),str(page_num),'tp')
-# 	num_pages = int(num_pages) if num_pages else 0
-# 	return page_data, num_pages
+	'paginated_data' is a dictionary containing all the page(s) data
+	"""
+	if paginated_data:
+		user_id = str(user_id)
+		final_data = {}
+		for page_num, page_data in paginated_data.items():
+			final_data[page_num] = json.dumps(page_data)
+		final_data['tp'] = len(paginated_data)
+		key, my_server = MEHFIL_CACHED_PAGES+user_id, redis.Redis(connection_pool=POOL)
+		my_server.hmset(key,final_data)
+		my_server.expire(key,30)
 
 
-# def invalidate_cached_mehfil_pages(user_id):
-# 	"""
-# 	Invalidating cached mehfil list
-# 	"""
-# 	redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_PAGES+str(user_id))
+def retrieve_cached_mehfil_pages(user_id,page_num):
+	"""
+	Retrieving cached mehfil page data for a certain user
+	"""
+	page_data, num_pages = redis.Redis(connection_pool=POOL).hmget(MEHFIL_CACHED_PAGES+str(user_id),str(page_num),'tp')
+	num_pages = int(num_pages) if num_pages else 0
+	return page_data, num_pages
+
+
+def invalidate_cached_mehfil_pages(user_id, group_id=None, all_members=False):
+	"""
+	Invalidating cached mehfil list
+
+	Can performs the operation in bulk for all members too (e.g. if mehfil is deleted)
+	"""
+	if all_members:
+		group_owner_id = retrieve_group_owner_id(group_id=group_id)
+		if str(user_id) == group_owner_id:
+			my_server = redis.Redis(connection_pool=POOL)
+			all_member_ids = my_server.zrevrange(GROUP_MEMBERS+group_id,0,-1)
+			pipeline1 = my_server.pipeline()
+			for member_id in all_member_ids:
+				pipeline1.delete(MEHFIL_CACHED_PAGES+member_id)
+			pipeline1.execute()
+		else:
+			# do nothing, this isn't called by group owner (perhaps they sold off the mehfil before doing this)
+			pass
+	else:
+		redis.Redis(connection_pool=POOL).delete(MEHFIL_CACHED_PAGES+str(user_id))
 
 
 ######################## Group creation helper functions ########################
@@ -2259,6 +1894,61 @@ def enrich_group_invites_with_topics(invite_data, my_server=None, sort_data=Fals
 		else:
 			return []
 	else:
+		return []
+
+
+def retrieve_user_group_data(user_id):
+	"""
+	Retrieves all groups user is a part of (useful for populating group_list)
+	"""
+	pub_grp_ids, prv_grp_ids = retrieve_user_group_membership(user_id, group_type='both')
+	if pub_grp_ids or prv_grp_ids:
+		group_data = {}
+		for group_id in pub_grp_ids:
+			group_data[group_id] = {'p':'0','gid':group_id}
+		for group_id in prv_grp_ids:
+			group_data[group_id] = {'p':'1','gid':group_id}
+		###################################################
+		if pub_grp_ids and prv_grp_ids:
+			all_group_ids = prv_grp_ids+pub_grp_ids
+		elif prv_grp_ids:
+			all_group_ids = prv_grp_ids
+		else:
+			all_group_ids = pub_grp_ids
+		###################################################
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		for group_id in all_group_ids:
+			pipeline1.hmget(GROUP+group_id,'tp','u','oun','lrsn','lrtx','lrti','lrc')# list of tuples
+			pipeline1.zscore(GROUP_VISITORS+group_id,user_id)
+		result1, counter, time_now = pipeline1.execute(), 0, time.time()
+		for group_id in all_group_ids:
+			data = result1[counter]
+			latest_reply_time = float(data[5]) if data[5] else None
+			how_old = (time_now - latest_reply_time) if latest_reply_time else -1
+			group_data[group_id]['tp'] = data[0]
+			group_data[group_id]['u'] = data[1]
+			group_data[group_id]['oun'] = data[2]
+			group_data[group_id]['lrsn'] = data[3]
+			group_data[group_id]['lrtx'] = data[4]
+			group_data[group_id]['lrti'] = latest_reply_time
+			group_data[group_id]['lrc'] = data[6]
+			group_data[group_id]['lst'] = result1[counter+1]# own last seen time
+			if how_old < 0:
+				group_data[group_id]['st'] = 'gone'
+			elif how_old < GROUP_GREEN_DOT_CUTOFF:
+				group_data[group_id]['st'] = 'green'
+			elif how_old < GROUP_IDLE_DOT_CUTOFF:
+				group_data[group_id]['st'] = 'idle'
+			else:
+				group_data[group_id]['st'] = 'gone'
+			counter += 2
+		# we need the data in list of dictionaries format (what we've created is a dictionary of dictionaries)
+		list_of_dict = group_data.values()
+		# return the sorted the data
+		return sorted(list_of_dict, key=lambda k: k['lrti'], reverse=True)
+	else:
+		# this user does not have any groups
 		return []
 
 
@@ -2768,6 +2458,12 @@ def invite_allowed(group_id,inviter,is_public, inviter_id=None):
 				return 0, 'ivt_overflow'
 
 
+def get_num_user_invites(user_id):
+	"""
+	Retrieves user invite count for the user to see anywhere in the app
+	"""
+	return redis.Redis(connection_pool=POOL).zcard(USER_INVITES+str(user_id))
+
 
 def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, sent_by_id=None, sent_by_uname=None, group_uuid=None):
 	"""
@@ -2976,27 +2672,7 @@ def retrieve_closed_group_remaining_invites(unique,user_type,inviter_id):
 			return -1
 		return max_invites - invites_used
 	else:
-		if unique:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=unique)
-			except Group.DoesNotExist:
-				return -1
-			# populate the source data in redis 6
-			created_at = convert_to_epoch(group_obj.created_at)
-			group_id = str(group_obj.id)
-			group_owner_id = str(group_obj.owner_id)
-			mapping = {'oi':group_owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':unique,'pii':'1',\
-			'tp':group_obj.topic,'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':group_obj.category}# pii is private_invite_instructions flag
-			my_server.hmset(GROUP+group_id,mapping)
-			my_server.zadd(GROUP_LIST,group_id, created_at)
-			my_server.set(GROUP_UUID_TO_ID_MAPPING+str(unique),group_id)
-			if user_type == 'owner':
-				return MAX_OWNER_INVITES_PER_PRIVATE_GROUP
-			elif user_type == 'member':
-				return MAX_MEMBER_INVITES_PER_PRIVATE_GROUP
-		else:
-			return -1
+		return -1
 
 
 def retrieve_open_group_remaining_invites(unique,user_type):
@@ -3016,27 +2692,7 @@ def retrieve_open_group_remaining_invites(unique,user_type):
 			return -1
 		return max_invites - invites_used
 	else:
-		if unique:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=unique)
-			except Group.DoesNotExist:
-				return -1
-			# populate the source data in redis 6
-			created_at = convert_to_epoch(group_obj.created_at)
-			group_id = str(group_obj.id)
-			group_owner_id = str(group_obj.owner_id)
-			mapping = {'oi':group_owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':unique,'ii':'1',\
-			'tp':group_obj.topic,'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':group_obj.category}# ii is invite_instructions flag
-			my_server.hmset(GROUP+group_id,mapping)
-			my_server.zadd(GROUP_LIST,group_id, created_at)
-			my_server.set(GROUP_UUID_TO_ID_MAPPING+str(unique),group_id)
-			if user_type == 'owner':
-				return MAX_OWNER_INVITES_PER_PUBLIC_GROUP
-			elif user_type == 'officer':
-				return MAX_OFFICER_INVITES_PER_PUBLIC_GROUP
-		else:
-			return -1
+		return -1
 
 
 def show_public_group_invite_instructions(unique,own_id):
@@ -3067,32 +2723,7 @@ def show_public_group_invite_instructions(unique,own_id):
 			my_server.hmset(GROUP+group_id,{'ii':'1'})
 		return show_invite_instr, instr_type
 	else:
-		if unique:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=unique)
-			except Group.DoesNotExist:
-				return None, None
-			# populate the source data in redis 6
-			created_at = convert_to_epoch(group_obj.created_at)
-			group_id = str(group_obj.id)
-			group_owner_id = str(group_obj.owner_id)
-			mapping = {'oi':group_owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':unique,'ii':'1',\
-			'tp':group_obj.topic,'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':group_obj.category}# ii is invite_instructions flag
-			my_server.hmset(GROUP+group_id,mapping)
-			my_server.zadd(GROUP_LIST,group_id, created_at)
-			my_server.set(GROUP_UUID_TO_ID_MAPPING+str(unique),group_id)
-			if group_owner_id == str(own_id):
-				instr_type = 'owner'
-			elif is_group_officer(group_id,own_id, my_server=my_server):
-				instr_type = 'officer'
-
-
-			else:
-				instr_type = None
-			return True, instr_type
-		else:
-			return None, None
+		return None, None
 
 
 def show_private_group_invite_instructions(unique,own_id):
@@ -3123,30 +2754,7 @@ def show_private_group_invite_instructions(unique,own_id):
 			my_server.hmset(GROUP+group_id,{'pii':'1'})
 		return show_invite_instr, instr_type
 	else:
-		if unique:
-			#take secondary measures
-			try:
-				group_obj = Group.objects.get(unique=unique)
-			except Group.DoesNotExist:
-				return None, None
-			# populate the source data in redis 6
-			created_at = convert_to_epoch(group_obj.created_at)
-			group_id = str(group_obj.id)
-			group_owner_id = str(group_obj.owner_id)
-			mapping = {'oi':group_owner_id,'oun':group_obj.owner.username,'gi':group_id,'p':group_obj.private,'u':unique,'pii':'1',\
-			'tp':group_obj.topic,'r':group_obj.rules,'pics':group_obj.pics_ki_ijazat,'ct':created_at,'grp_categ':group_obj.category}# pii is private_invite_instructions flag
-			my_server.hmset(GROUP+group_id,mapping)
-			my_server.zadd(GROUP_LIST,group_id, created_at)
-			my_server.set(GROUP_UUID_TO_ID_MAPPING+str(unique),group_id)
-			if group_owner_id == str(own_id):
-				instr_type = 'owner'
-			elif group_member_exists(group_id, own_id, my_server=my_server):
-				instr_type = 'member'
-			else:
-				instr_type = None
-			return True, instr_type
-		else:
-			return None, None
+		return None, None
 
 
 def filter_uninvitables(invitee_ids, group_uuid):
@@ -4347,6 +3955,16 @@ def freeze_reported_group_functionality(group_id, payload_type):
 ###################################### Delete group data #####################################
 
 
+def is_group_recently_deleted(group_id):
+	"""
+	Return 'True' if group was recently deleted
+	"""
+	if redis.Redis(connection_pool=POOL).exists(RECENTLY_DELETED_GROUP+str(group_id)):
+		return True
+	else:
+		return False
+
+
 def permanently_delete_group(group_id, group_type, return_member_ids=False):
 	"""
 	Permanently delete all group data residing in redis6 (including group meta data)
@@ -4888,7 +4506,7 @@ def rules_change_rate_limited(user_id,unique_id):
 ###################################### Handling user sets #######################################
 
 
-def retrieve_user_ownership(user_id, with_ownership_start_time=False, my_server=None):
+def retrieve_user_group_ownership(user_id, with_ownership_start_time=False, my_server=None):
 	"""
 	Retrieves all groups owned by user_id
 	"""
@@ -4896,7 +4514,7 @@ def retrieve_user_ownership(user_id, with_ownership_start_time=False, my_server=
 	return my_server.zrange(GROUPS_OWNED_BY_USER+str(user_id),0,-1, withscores=with_ownership_start_time)
 
 
-def retrieve_user_officership(user_id, with_officership_start_time=False, my_server=None):
+def retrieve_user_group_officership(user_id, with_officership_start_time=False, my_server=None):
 	"""
 	Retrieves all groups officered by user_id
 	"""
@@ -4904,25 +4522,25 @@ def retrieve_user_officership(user_id, with_officership_start_time=False, my_ser
 	return my_server.zrange(GROUPS_IN_WHICH_USER_IS_OFFICER+str(user_id),0,-1, withscores=with_officership_start_time)
 
 
-# def retrieve_user_group_membership(user_id, group_type='public', my_server=None):
-# 	"""
-# 	Returns IDs of public and/or private groups a user is a member of
-# 	"""
-# 	user_id = str(user_id)
-# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-# 	if group_type == 'public':
-# 		# group_type is 'public'
-# 		return my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 	elif group_type == 'private':
-# 		# group_type is 'private'
-# 		return my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 	elif group_type == 'both':
-# 		# group_type is 'both'
-# 		pub_grp_ids = my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 		prv_grp_ids = my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
-# 		return pub_grp_ids, prv_grp_ids
-# 	else:
-# 		return []
+def retrieve_user_group_membership(user_id, group_type='public', my_server=None):
+	"""
+	Returns IDs of public and/or private groups a user is a member of
+	"""
+	user_id = str(user_id)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if group_type == 'public':
+		# group_type is 'public'
+		return my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+	elif group_type == 'private':
+		# group_type is 'private'
+		return my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+	elif group_type == 'both':
+		# group_type is 'both'
+		pub_grp_ids = my_server.zrange(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+		prv_grp_ids = my_server.zrange(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id,0,-1)
+		return pub_grp_ids, prv_grp_ids
+	else:
+		return []
 
 
 def update_user_membership_set(user_id, group_id, group_type, time_now=None, remove=False, my_server=None):
@@ -4964,7 +4582,6 @@ def update_user_officership_set(user_id, group_id, time_now=None, remove=False, 
 		my_server.zadd(GROUPS_IN_WHICH_USER_IS_OFFICER+str(user_id), group_id, time_now)
 
 
-
 def bulk_update_user_membership_set(user_ids, group_id, group_type, time_now=None, remove=False, my_server=None):
 	"""
 	"""
@@ -4994,7 +4611,6 @@ def bulk_update_user_membership_set(user_ids, group_id, group_type, time_now=Non
 			for user_id in user_ids:
 				pipeline1.zadd(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+str(user_id), group_id, time_now)
 			pipeline1.execute()
-
 
 
 def bulk_update_user_officership_set(user_ids, group_id, time_now=None, remove=False, my_server=None):

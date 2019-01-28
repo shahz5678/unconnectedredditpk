@@ -11,7 +11,7 @@ from math import log
 from django.core.validators import MaxLengthValidator, MaxValueValidator, URLValidator
 from django.conf import settings
 from imagestorage import upload_to_photos, upload_to_avatars, upload_to_mehfils, upload_to_links, upload_to_photocomments, upload_to_picschat
-from videostorage import OverwriteVideoStorage, upload_video_to_location
+# from videostorage import OverwriteVideoStorage, upload_video_to_location
 
 PHOTOS = (
 ('1','Islam'),
@@ -256,7 +256,7 @@ class Video(models.Model):
 	#high_res_thumb = models.TextField(validators=[URLValidator()], null=True, default=None)
 	low_res_video = models.TextField(validators=[URLValidator()], null=True, default=None)
 	high_res_video = models.TextField(validators=[URLValidator()], null=True, default=None)
-	video_file = models.FileField(upload_to=upload_video_to_location)
+	#video_file = models.FileField(upload_to=upload_video_to_location)
 	category = models.CharField(choices=VIDEOS, default='1', max_length=11)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	is_public = models.BooleanField(default=True) #in case user wants to upload private videos too

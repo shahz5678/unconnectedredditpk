@@ -191,7 +191,7 @@ INSTALLED_APPS = (
 	'links',
 	'unconnectedreddit',
 	'south',
-	'registration', #found at has@has-VirtualBox:~/.virtualenvs/unconnectedreddit/local/lib/python2.7/site-packages/registration/backends/simple$
+	#'registration', #found at has@has-VirtualBox:~/.virtualenvs/unconnectedreddit/local/lib/python2.7/site-packages/registration/backends/simple$
 	'bootstrap_pagination',
 	'djcelery',
 	'tweepy',
@@ -201,7 +201,7 @@ INSTALLED_APPS = (
 	'storages',
 	'emoticons',
 	'django_extensions',
-	'google_analytics',
+	#'google_analytics',
 	#'request',
 	# 'debug_toolbar',
 	# Uncomment the next line to enable admin documentation:

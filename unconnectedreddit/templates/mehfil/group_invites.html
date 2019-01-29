@@ -30,7 +30,7 @@
 			</button>
 			</form>
 			
-			<form method="POST" action="{% url 'leave_private_group' %}" style="text-align:center;padding-top:5px">
+			<form method="POST" action="{% url 'reject_private_group_invite' %}" style="text-align:center;padding-top:5px">
 		    {% csrf_token %}
 		    <input type="hidden" name="guuid" value="{{ invite.uuid }}">
 		    <input type="hidden" name="insg" value="0">
@@ -50,7 +50,7 @@
 			</button>
 			</a>
 
-			<form method="POST" action="{% url 'leave_public_group' %}" style="text-align:center;padding-top:5px">
+			<form method="POST" action="{% url 'reject_public_group_invite' %}" style="text-align:center;padding-top:5px">
 		    {% csrf_token %}
 		    <input type="hidden" name="guuid" value="{{ invite.uuid }}">
 		    <input type="hidden" name="insg" value="0">

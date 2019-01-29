@@ -3,16 +3,16 @@ from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from links.mehfil_views import public_group, public_group_request_denied, view_own_officer_app_history, process_public_group_invite, example_group_rules, \
-kick_out, process_private_group_invite, public_mehfil_oversight_dashboard, public_group_officer_management, accept_open_group_rules, leave_public_group, \
+kick_out, process_private_group_invite, public_mehfil_oversight_dashboard, public_group_officer_management, accept_open_group_rules, \
 first_time_public_refresh, remove_officer, group_hide_submission, cancel_open_group_invite, left_private_group, del_private_group, left_public_group, \
 preview_open_group, create_open_group, invite_private, join_public_group, show_kicked_users, quick_accept_open_group_rules, process_officer_application_result, \
 owner_rejoining_public_group, force_rules_onto_members, process_kicking_feedback, unkick_users, display_administrative_activity, first_time_refresh, \
 public_group_invite_help, unaccepted_public_mehfil_invites, direct_message, process_open_group_feedback, show_open_group_feedback, delete_open_group_feedback, \
 processing_group_ownership_transfer, private_mehfil_oversight_dashboard, join_private_group, group_ownership_transfer_tac, priv_group, display_group_info_page, \
 display_detailed_info, display_group_users_list, send_request_to_owner, cancel_ownership_request, private_group_invite_help, unaccepted_private_mehfil_invites, \
-cancel_closed_group_invite, leave_private_group, private_group_hide_submission, private_group_request_denied, apply_for_officer, display_officer_application, \
+cancel_closed_group_invite, private_group_hide_submission, private_group_request_denied, apply_for_officer, display_officer_application, \
 get_ranked_groups, del_public_group, view_officer_app_help, view_officer_application_form, view_officer_app_history, display_officer_app_detailed_info,\
-group_page, public_group_guidance, group_invites, DirectMessageView, GroupTypeView, ClosedGroupHelpView, PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, \
+group_page, public_group_guidance, group_invites, reject_private_group_invite,reject_public_group_invite, DirectMessageView, GroupTypeView, ClosedGroupHelpView, PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, \
 ChangeGroupTopicView, PrivateGroupView, DirectMessageCreateView, ReinvitePrivateView, ClosedGroupCreateView, InviteUsersToGroupView, \
 InviteUsersToPrivateGroupView, GroupTypeView, OpenGroupHelpView, ReinviteView
 
@@ -29,11 +29,11 @@ urlpatterns = patterns('',
 	url(r'^mehfil/private/redirect/$', auth(priv_group), name='priv_group'),
 	url(r'^mehfil/private/$', auth(PrivateGroupView.as_view()), name='private_group_reply'),
 	################################# Mehfil deletion #############################################
-	url(r'^mehfil/public/exit/$', auth(leave_public_group), name='leave_public_group'),
+	url(r'^mehfil/public/reject-invite/$', auth(reject_public_group_invite), name='reject_public_group_invite'),
 	url(r'^mehfil/public/delete/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/$', auth(del_public_group), name='del_public_group'),
 	url(r'^mehfil/public/exited/$', auth(left_public_group), name='left_public_group'),
 	url(r'^mehfil/private/delete/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/$', auth(del_private_group), name='del_private_group'),
-	url(r'^mehfil/private/exit/$', auth(leave_private_group), name='leave_private_group'),
+	url(r'^mehfil/private/exit/$', auth(reject_private_group_invite), name='reject_private_group_invite'),
 	url(r'^mehfil/private/exited/$', auth(left_private_group), name='left_private_group'),
 	################################# Mehfil invites #############################################
 	url(r'^mehfil/public/invited/$', auth(process_public_group_invite), name='process_public_group_invite'),

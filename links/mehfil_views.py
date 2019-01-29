@@ -2782,11 +2782,9 @@ class ChangeGroupRulesView(FormView):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-def leave_private_group(request, *args, **kwargs):
+def reject_private_group_invite(request, *args, **kwargs):
 	"""
-	Renders the leaving page of private mehfil
-
-	Called from group_page (inside the group, all 'exit' calls are routed through the dashboard function)
+	Called from group_invites
 	"""
 	if request.method == "POST":
 		pk = request.POST.get("gid",None)
@@ -2796,29 +2794,26 @@ def leave_private_group(request, *args, **kwargs):
 		user_id = request.user.id
 		if group_owner_id:
 			if str(user_id) == group_owner_id:
+				# should never happen - an owner shouldn't get an invite right?
 				context={'unique':unique, 'pk':pk, 'topic':retrieve_group_topic(group_id=pk, requestor_id=user_id), 'inside_grp':inside_grp}
 				return render(request,'mehfil/delete_private_group.html',context)
 			else:
 				context={'unique':unique, 'pk':pk, 'topic':retrieve_group_topic(group_id=pk, requestor_id=user_id), 'inside_grp':inside_grp}
-				return render(request, 'mehfil/leave_private_group.html', context)
+				return render(request, 'mehfil/reject_private_group_invite.html', context)
 		else:
-			# group does not exist
-			# invalidate_cached_mehfil_pages(user_id)# remove this alongwith redis 1 functionality
-			purge_group_invitation(group_id=pk, member_id=user_id, is_public=False)
 			invalidate_cached_mehfil_invites(user_id)
 			return redirect("group_invites")
 	else:
 		# not a POST request
-		return redirect("private_group_reply")
+		return redirect("group_invites")
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-def leave_public_group(request):
+# def leave_public_group(request):
+def reject_public_group_invite(request):
 	"""
-	Displays public group abandonment options
-
-	Called from group_page (inside the group, all 'exit' calls are routed through the dashboard function)
+	Called from group_invites
 	"""
 	if request.method == "POST":
 		pk = request.POST.get("gid",None)
@@ -2828,20 +2823,18 @@ def leave_public_group(request):
 		own_id = request.user.id
 		if group_owner_id:
 			if group_owner_id == str(own_id):
+				# should never happen - an owner shouldn't get an invite right?
 				return render(request, 'mehfil/delete_public_group.html', {'unique':unique, 'pk':pk, 'inside_grp':inside_grp,\
 					'topic':retrieve_group_topic(group_id=pk,requestor_id=own_id)})
 			else:
-				return render(request, 'mehfil/leave_public_group.html', {'unique':unique, 'pk':pk, 'inside_grp':inside_grp,\
+				return render(request, 'mehfil/reject_public_group_invite.html', {'unique':unique, 'pk':pk, 'inside_grp':inside_grp,\
 					'topic':retrieve_group_topic(group_id=pk,requestor_id=own_id)})
 		else:
-			# group does not exist
-			purge_group_invitation(group_id=pk, member_id=own_id, is_public=True)
 			invalidate_cached_mehfil_invites(own_id)
 			return redirect("group_invites")
 	else:
 		# not a POST request
-		return redirect("public_group")
-
+		return redirect("group_invites")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -2995,7 +2988,7 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 @csrf_protect
 def left_public_group(request, *args, **kwargs):
 	"""
-	Processes leaving a public mehfil
+	Processes leaving a public mehfil (or rejecting an invite)
 	"""
 	if request.method == "POST":
 		pk = request.POST.get("pk",None)
@@ -3019,7 +3012,7 @@ def left_public_group(request, *args, **kwargs):
 					exit_group(pk, user_id, time.time(), is_public=True)# redis 6 function - remove redis 1 funcs in the future
 					invalidate_cached_mehfil_pages(user_id)
 					####################################################################
-
+					return redirect("group_page")
 			# elif check_group_invite(user_id, pk):# redis1 legacy - replace with similar redis6 functionality
 			elif group_invite_exists(pk, user_id):
 
@@ -3031,15 +3024,14 @@ def left_public_group(request, *args, **kwargs):
 				remove_group_officer(group_id=pk,target_user_id=user_id)# redis 6 function - remove all others in the future
 				invalidate_cached_mehfil_invites(user_id)
 				####################################################################
-
+				return redirect("group_invites")
 			else:
-				pass
-			return redirect("group_page")
+				return redirect("group_page")
 		else:
 			if inside_group == '1':
 				return redirect("public_group", slug=unique)
 			else:
-				return redirect("group_page")
+				return redirect("group_invites")
 	return redirect("group_page")
 
 
@@ -3047,7 +3039,7 @@ def left_public_group(request, *args, **kwargs):
 @csrf_protect
 def left_private_group(request, *args, **kwargs):
 	"""
-	Processes leaving a private mehfil
+	Processes leaving a private mehfil (or rejecting an invite)
 	"""
 	if request.method=="POST":
 		user_id = request.user.id
@@ -3067,7 +3059,7 @@ def left_private_group(request, *args, **kwargs):
 				exit_group(pk, user_id, time.time(), own_uname, get_s3_object(own_avurl,category='thumb'), is_public=False)
 				invalidate_cached_mehfil_pages(user_id)
 				####################################################################
-
+				return redirect("group_page")
 		# elif check_group_invite(user_id, pk):#sorted set containing user invites ipg:user_id: (redis 1)
 		elif group_invite_exists(pk, user_id):
 			# remove_group_invite(user_id, pk)# group invite removed from user invites pir:user_id (redis 1)
@@ -3079,8 +3071,9 @@ def left_private_group(request, *args, **kwargs):
 			invalidate_cached_mehfil_invites(user_id)
 			invalidate_presence(pk)
 			####################################################################
+			return redirect("group_invites")
 		else:
-			pass
+			return redirect("group_page")
 	return redirect("group_page")
 
 

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Reject public mehfil invite | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div class="mbs">
+<div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="cp cxl">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
+</div>
+</div>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp mbl">Is mehfil ke invite ko reject karna hai?</div>
+
+	<form class="mbs mts" method="POST" action="{% url 'left_public_group' %}">
+	{% csrf_token %}
+	<input type="hidden" name="slug" value="{{ unique }}">
+	<input type="hidden" name="pk" value="{{ pk }}">
+	<input type="hidden" name="igrp" value="{{ inside_grp }}">
+	<button type="submit" name="ldec" class="btn bcr bm mrs mbs pg_ok_res sp" value="1" style="height:26px">Reject</button>
+	<button type="submit" name="ldec" class="cl cgy sp mls" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray" value="0">Cancel</button>
+	</form>
+	<div class="cs sp lsp" style="border-top:1px dashed darkgray;padding-top:10px;text-align:left">
+	<span class="cgy"><b>Note:</b> Reject karney pe apko kuch time tak dubara invite nahi bheja jaye ga</span>
+	</div>
+</div>
+<br><br>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load emoticons_tags %}
+{% block content %}
+<head><title>Reject private mehfil invite | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<div class="mbs">
+<div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
+    <h1 style="display:inline" class="cg cxl">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
+</div>
+</div>
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="cxl lsp mbl">Is mehfil ke invite ko reject karna hai?</div>
+
+<form method="POST" action="{% url 'left_private_group' %}" style="display:inline">{% csrf_token %}
+<input type="hidden" name="guid" value="{{ unique }}">
+<button type="submit" name="gid" class="btn bcr bm mbl mrs pg_ok_res sp" value="{{ pk }}" style="height:26px">Reject</button>
+</form>
+
+<a href="{% url 'group_invites' %}#section0"><button class="cl cgy sp mls" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray">Cancel</button></a>
+
+<div class="cs sp lsp" style="border-top:1px dashed darkgray;padding-top:10px;text-align:left">
+<span class="cgy"><b>Note:</b> Reject karney pe apko kuch time tak dubara invite nahi bheja jaye ga</span>
+</div>
+
+</div>
+<br>
+{% endblock %}

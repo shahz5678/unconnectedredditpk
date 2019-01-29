@@ -67,7 +67,7 @@ FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT = 'fbsuprl:'#rate limit key to throttle FBS u
 
 
 CACHED_TOP_STARS = 'cts:'
-CACHED_PUBLIC_REPLY = 'cpr:'
+CACHED_PUBLIC_REPLY = 'crep:'
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################

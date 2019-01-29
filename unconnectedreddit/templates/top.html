@@ -1,31 +1,33 @@
 {% extends "base.html" %}
-{% load s3 %}
 {% block content %}
 <head><title>Top scoring users | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Top chat score:</h1>
+
 {% load cache %}
-{% cache 600 top_frg %}
-    <div class="margin clb">
-    <b>Top chat scorers:</b><br><br>
-    {% for userprofile in object_list %}
-    <span class="cg cs">{{ forloop.counter }}.</span>
-    <a href="{% url 'profile' slug=userprofile.user.username %}#section0">
-	{% if userprofile.avatar %}
-		<img src="{{ userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
-	{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-	{% endif %}
-    {{ userprofile.user.username }}</a>{% if userprofile.user.username in verified %}<b class="pinkstar">*</b>{% endif %}
-	{% if userprofile.score %}
-		{% if userprofile.score < 0 %}
-	    	<span class="cg">(1)</span>
-	    {% else %}
-	    	<span class="cg">({{ userprofile.score }})</span>
-		{% endif %}
-    {% else %}
-    {% endif %}
-    <br>
+{% cache 600 cached_top %}
+    <div style="margin: 0 auto;max-width:600px;width:93%;background-color:white;text-align:center" class="bizcard">
+
+    <ul style="display:inline-block;padding: 0;list-style:none;margin-top:5px">
+    {% for usr in object_list %}
+
+	    <li style="text-align:left;border-bottom:1px dashed lightgray;padding:15px 0" class="mls lsp sp">
+	    	<div style="word-break: break-all;">
+		    <span class="cgy cs sp">{{ forloop.counter }}.</span>
+		    <a href="{% url 'profile' slug=usr.user__username %}#section0" class="cl clb" style="font-weight:bold">
+		    	{% if usr.user__username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" style="color:deeppink" alt="*" width="11" height="11">&nbsp;{% endif %}<bdi>{{ usr.user__username }}</bdi>
+			{% if usr.score < 0 %}
+		    	<span style="color:mediumseagreen">(1)</span>
+		    {% else %}
+		    	<span style="color:mediumseagreen">({{ usr.score }})</span>
+			{% endif %}
+			</a>
+			</div>
+	    </li>
     
     {% endfor %}
+    </ul>
     </div>
 {% endcache %}
 <br><br>

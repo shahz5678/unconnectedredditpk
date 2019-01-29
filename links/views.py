@@ -1543,12 +1543,16 @@ class UserProfilePhotosView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		slug = self.kwargs["slug"]
-		try:
-			user = User.objects.get(username=slug)
-			return Photo.objects.select_related('owner__userprofile').filter(owner=user,category='1').order_by('-upload_time')
-		except:
-			return []
+		username = self.kwargs.get('slug',None)
+		if username:
+			target_id = retrieve_user_id(username)
+			if target_id:
+				return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count').filter(owner_id=target_id,\
+					category='1').order_by('-upload_time')
+			else:
+				raise Http404("This user does not exist")
+		else:
+			raise Http404("No username provided")
 
 
 	def get_context_data(self, **kwargs):
@@ -2276,20 +2280,18 @@ class TopPhotoView(ListView):
 
 
 class TopView(ListView):
-	model = User
-	form_class = TopForm
-	template_name = "top.html"
+    # model = User
+    form_class = TopForm
+    template_name = "top.html"
 
-	def get_queryset(self):
-		return UserProfile.objects.select_related('user').defer('attractiveness','previous_retort','age','gender','bio','shadi_shuda',\
-			'media_score','mobilenumber','streak','user__first_name','user__last_name','user__email','user__is_staff','user__is_active',\
-			'user__is_superuser','user__email','user__date_joined','user__last_login','user__password','user__id').order_by('-score')[:100]
+    def get_queryset(self):
+        return UserProfile.objects.only('user__username','score').values('user__username','score').order_by('-score')[:100]
 
-	def get_context_data(self, **kwargs):
-		context = super(TopView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			context["verified"] = FEMALES       
-		return context
+    def get_context_data(self, **kwargs):
+        context = super(TopView, self).get_context_data(**kwargs)
+        if self.request.user.is_authenticated():
+            context["verified"] = FEMALES        
+        return context
 
 
 class PhotoJawabView(FormView):
@@ -4873,7 +4875,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return redirect("unseen_activity",request.user.username)
 
 
-@ratelimit(field='sid',ip=False,rate='3/s')
+@ratelimit(field='sid',ip=False,rate='5/s')
 @csrf_protect
 def public_reply_view(request,*args,**kwargs):
 	if getattr(request, 'limits', False):
@@ -4918,19 +4920,11 @@ def public_reply_view(request,*args,**kwargs):
 			if replies:
 				replies_data = json.loads(replies)
 			else:
-				replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').\
-				defer('answer_to__net_votes','answer_to__url','answer_to__cagtegory','answer_to__image_file','answer_to__rank_score','answer_to__is_visible',\
-					'answer_to__device','answer_to__which_photostream','submitted_by__userprofile__media_score','submitted_by__userprofile__shadi_shuda',\
-					'submitted_by__userprofile__age','submitted_by__userprofile__gender','submitted_by__userprofile__bio','submitted_by__userprofile__streak',\
-					'submitted_by__userprofile__previous_retort','submitted_by__userprofile__attractiveness','submitted_by__userprofile__mobilenumber',\
-					'category','device','seen','submitted_by__is_superuser','submitted_by__first_name','submitted_by__last_name','submitted_by__last_login',\
-					'submitted_by__email','submitted_by__date_joined','submitted_by__is_staff','submitted_by__is_active','submitted_by__password').\
-					filter(answer_to_id=link_id).order_by('-id')[:25]
-				replies_data = []
-				for reply in replies:
-					replies_data.append({'submitted_on':convert_to_epoch(reply.submitted_on),'score':reply.submitted_by.userprofile.score,\
-						'description':reply.description,'id':reply.id,'submitter_id':reply.submitted_by_id,'username':reply.submitted_by.username,\
-						'abuse':reply.abuse})
+				replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
+					'submitted_by__userprofile__score').values('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
+					'submitted_by__userprofile__score').filter(answer_to_id=link_id).order_by('-id')[:25]
+				for reply in replies_data:
+					reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
 				cache_public_replies(json.dumps(replies_data),link_id)
 			context["replies"] = replies_data#replies
 			#########################################################################################
@@ -4944,7 +4938,7 @@ def public_reply_view(request,*args,**kwargs):
 					context["unseen"] = True
 					try:
 						# calculating the max 'own reply' time
-						own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitter_id'] == user_id)
+						own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitted_by'] == user_id)
 						context["reply_time"] = own_reply_time
 					except (AttributeError,ValueError):
 						context["reply_time"] = None

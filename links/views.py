@@ -2280,18 +2280,18 @@ class TopPhotoView(ListView):
 
 
 class TopView(ListView):
-    # model = User
-    form_class = TopForm
-    template_name = "top.html"
+	# model = User
+	form_class = TopForm
+	template_name = "top.html"
 
-    def get_queryset(self):
-        return UserProfile.objects.only('user__username','score').values('user__username','score').order_by('-score')[:100]
+	def get_queryset(self):
+		return UserProfile.objects.only('user__username','score').values('user__username','score').order_by('-score')[:100]
 
-    def get_context_data(self, **kwargs):
-        context = super(TopView, self).get_context_data(**kwargs)
-        if self.request.user.is_authenticated():
-            context["verified"] = FEMALES        
-        return context
+	def get_context_data(self, **kwargs):
+		context = super(TopView, self).get_context_data(**kwargs)
+		if self.request.user.is_authenticated():
+			context["verified"] = FEMALES        
+		return context
 
 
 class PhotoJawabView(FormView):
@@ -2813,7 +2813,6 @@ class CommentView(CreateView):
 	form_class = CommentForm
 	template_name = "comments.html"
 
-
 	def get_form_kwargs( self ):
 		kwargs = super(CommentView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
@@ -2821,18 +2820,17 @@ class CommentView(CreateView):
 		kwargs['photo_id'] = self.kwargs['pk']
 		return kwargs
 
-
 	def get_context_data(self, **kwargs):
 		context = super(CommentView, self).get_context_data(**kwargs)
-		if self.request.is_feature_phone:
-			context["feature_phone"] = True
-		else:
-			context["feature_phone"] = False
+		context["feature_phone"] = True if self.request.is_feature_phone else False
 		pk = self.kwargs.get('pk',None)
-		try:
-			photo = Photo.objects.select_related('owner').get(id=pk)
-		except Photo.DoesNotExist:
-			raise Http404("Photo does not compute")
+		if pk:
+			try:
+				photo = Photo.objects.select_related('owner').get(id=pk)
+			except Photo.DoesNotExist:
+				raise Http404("Photo does not exist")
+		else:
+			raise Http404("Photo ID does not exist")
 		context["photo_id"] = pk
 		home_hash = 'img:'+pk
 		context["lid"] = home_hash
@@ -2847,8 +2845,12 @@ class CommentView(CreateView):
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 		context["authorized"] = True
-		comments = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk).order_by('-id')[:25]
-		context["latest_comment_time"] = comments[0].submitted_on if comments else None#used in the title of the page
+		comments = PhotoComment.objects.only('abuse','text','id','submitted_by','submitted_on','submitted_by__username',\
+		'submitted_by__userprofile__score').values('abuse','text','id','submitted_by','submitted_on','submitted_by__username',\
+		'submitted_by__userprofile__score').filter(which_photo_id=pk).order_by('-id')[:25]
+		context["latest_comment_time"] = comments[0]['submitted_on'] if comments else None#used in the title of the page
+		for comment in comments:
+			comment["submitted_on"] = convert_to_epoch(comment["submitted_on"])
 		context["comments"] = comments
 		origin = self.kwargs.get("origin",None)
 		context["origin"] = origin if origin else '1'
@@ -2874,7 +2876,7 @@ class CommentView(CreateView):
 					context["unseen"] = True
 					try:
 						#finding latest time user HERSELF commented
-						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by_id == user_id)
+						context["comment_time"] = max(comment['submitted_on'] for comment in comments if comment['submitted_by'] == user_id)
 					except ValueError:
 						context["comment_time"] = None #i.e. it's her very first comment
 				else:
@@ -2886,6 +2888,7 @@ class CommentView(CreateView):
 		else:
 			context["authenticated"] = False
 		return context
+
 
 
 	def form_valid(self, form):

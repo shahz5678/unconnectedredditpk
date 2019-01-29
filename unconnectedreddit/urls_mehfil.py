@@ -33,7 +33,7 @@ urlpatterns = patterns('',
 	url(r'^mehfil/public/delete/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/$', auth(del_public_group), name='del_public_group'),
 	url(r'^mehfil/public/exited/$', auth(left_public_group), name='left_public_group'),
 	url(r'^mehfil/private/delete/(?P<pk>\d+)/(?P<unique>[\w.@+-]+)/$', auth(del_private_group), name='del_private_group'),
-	url(r'^mehfil/private/exit/$', auth(reject_private_group_invite), name='reject_private_group_invite'),
+	url(r'^mehfil/private/reject-invite/$', auth(reject_private_group_invite), name='reject_private_group_invite'),
 	url(r'^mehfil/private/exited/$', auth(left_private_group), name='left_private_group'),
 	################################# Mehfil invites #############################################
 	url(r'^mehfil/public/invited/$', auth(process_public_group_invite), name='process_public_group_invite'),

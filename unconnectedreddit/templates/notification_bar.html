@@ -188,7 +188,7 @@
 		<span class="cg cs sp" >New pegham:</span><br><br>
 		<div class="mbl" style="overflow:hidden">
 		{% if parent.rp != 'None' %}
-		<img src="{{ parent.rp|s3 }}" style="border-radius:12px" alt="photo"><br>
+		<img src="{{ parent.rp|s3 }}" class="bx pgpic" style="max-width:450px" alt="photo"><br>
 		{% endif %}
 		<a href="{% url 'profile' parent.lrsn %}" class="cb">
 		<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
@@ -220,7 +220,7 @@
 		</div>
 		<span class="cp cs sp">New pegham:</span><br><br>
 		{% if parent.rp != 'None' %}
-		<img src="{{ parent.rp|s3 }}" style="border-radius:12px" alt="photo"><br>
+		<img src="{{ parent.rp|s3 }}" class="bx pgpic" style="max-width:450px" alt="photo"><br>
 		{% endif %}
 		
 		<div style="overflow:hidden">

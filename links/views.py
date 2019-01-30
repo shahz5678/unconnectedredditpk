@@ -2890,7 +2890,6 @@ class CommentView(CreateView):
 		return context
 
 
-
 	def form_valid(self, form):
 		if self.request.user.is_authenticated():
 			user = self.request.user
@@ -4959,12 +4958,12 @@ def public_reply_view(request,*args,**kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-@ratelimit(field='sid',ip=False,rate='3/s')
+# @ratelimit(field='sid',ip=False,rate='1/d')
 def post_public_reply(request,*args,**kwargs):
 	context = {}
-	if getattr(request, 'limits', False):
-		raise Http404("You cannot post this reply")
-	elif request.user_banned:
+	# if getattr(request, 'limits', False):
+	# 	raise Http404("You cannot post this reply")
+	if request.user_banned:
 		return redirect("error")
 	elif request.method == "POST":
 		link_id = request.POST.get("link_id")
@@ -5148,39 +5147,39 @@ class UserSettingsEditView(UpdateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
-@ratelimit(rate='7/s')
+# @ratelimit(rate='7/s')
 def sharing_help(request):
 	"""
 	Renders a page about sharing ettiquette
 	"""
-	if getattr(request, 'limits', False):
-		raise Http404("You cannot view sharing help")
-	else:
-		return render(request,"content/share_content_help.html",{})
+	# if getattr(request, 'limits', False):
+	# 	raise Http404("You cannot view sharing help")
+	# else:
+	return render(request,"content/share_content_help.html",{})
 
 
-@ratelimit(rate='7/s')
+#@ratelimit(rate='7/s')
 def share_content(request):
 	"""
 	Renders content sharing page, from where would-be sharer can select 'foto' or 'text' type sharing
 
 	Redirects to text or foto sharing pages accordingly
 	"""
-	if getattr(request, 'limits', False):
-		raise Http404("You cannot share")
-	else:
-		return render(request,"content/share_content.html",{'first_time':True if tutorial_unseen(user_id=request.user.id, which_tut='25', renew_lease=True) \
-			else False})
+	# if getattr(request, 'limits', False):
+	# 	raise Http404("You cannot share")
+	# else:
+	return render(request,"content/share_content.html",{'first_time':True if tutorial_unseen(user_id=request.user.id, which_tut='25',\
+	renew_lease=True) else False})
 
 
-@ratelimit(rate='7/s')
+# @ratelimit(rate='7/s')
 def link_create_pk(request, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		return redirect("missing_page")
-	else:
-		request.session["link_create_token"] = uuid.uuid4()
-		return redirect("link_create")
+	# was_limited = getattr(request, 'limits', False)
+	# if was_limited:
+	# 	return redirect("missing_page")
+	# else:
+	request.session["link_create_token"] = uuid.uuid4()
+	return redirect("link_create")
 
 
 class LinkCreateView(CreateView):

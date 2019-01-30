@@ -3519,20 +3519,7 @@ def photo_list(request,*args, **kwargs):
 		if request.user_banned:
 			context["process_notification"] = False
 		else:	
-			#context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
-			#########################################Logging empty objects causing error##########################
-			######################################################################################################
-			submitter_ids = set()
-			for obj in context["object_list"]:
-				submitter_id = obj.get('si',None)
-				if submitter_id:
-					submitter_ids.add(submitter_id)
-				else:
-					from redis3 import log_submitter_error
-					log_submitter_error(obj,context["ident"])
-			context["fanned"] = bulk_is_fan(submitter_ids, context["ident"])
-			######################################################################################################
-			######################################################################################################
+			context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
 			context["salat_timings"] = {}#cache_mem.get('salat_timings')
 			if "notif_form" in request.session:
 				context["notif_form"] = request.session["notif_form"]

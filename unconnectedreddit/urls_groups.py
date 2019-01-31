@@ -70,10 +70,14 @@ urlpatterns = patterns('',
 	url(r'^pccsf/(?P<ttl>\d+)/$', auth(cant_share_photo), name='cant_share_photo'),
 	url(r'^pcfs/$', auth(photo_shared), name='photo_shared'),
 	################################ Personal Group Help Pages #################################
-	url(r'^private_chat_help_page1/$', auth(personal_group_help1), name='personal_group_help1'),
-	url(r'^private_chat_help_page2/$', auth(personal_group_help2), name='personal_group_help2'),
-	url(r'^private_chat_help_page3/$', auth(personal_group_help3), name='personal_group_help3'),
-	url(r'^private_chat_help_page4/$', auth(personal_group_help4), name='personal_group_help4'),
+	# url(r'^private_chat_help_page1/$', auth(personal_group_help1), name='personal_group_help1'),
+	# url(r'^private_chat_help_page2/$', auth(personal_group_help2), name='personal_group_help2'),
+	# url(r'^private_chat_help_page3/$', auth(personal_group_help3), name='personal_group_help3'),
+	# url(r'^private_chat_help_page4/$', auth(personal_group_help4), name='personal_group_help4'),
+	url(r'^1-on-1/help_page/1/$', auth(personal_group_help1), name='personal_group_help1'),
+	url(r'^1-on-1/help_page/2/$', auth(personal_group_help2), name='personal_group_help2'),
+	url(r'^1-on-1/help_page/3/$', auth(personal_group_help3), name='personal_group_help3'),
+	url(r'^1-on-1/help_page/4/$', auth(personal_group_help4), name='personal_group_help4'),
 	############################## Personal Group Shared Photos ###############################
 	url(r'^shared_photos/(?P<nick>[\w.@+-]+)/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 )

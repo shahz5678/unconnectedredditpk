@@ -1543,12 +1543,16 @@ class UserProfilePhotosView(ListView):
 	paginate_by = 10
 
 	def get_queryset(self):
-		slug = self.kwargs["slug"]
-		try:
-			user = User.objects.get(username=slug)
-			return Photo.objects.select_related('owner__userprofile').filter(owner=user,category='1').order_by('-upload_time')
-		except:
-			return []
+		username = self.kwargs.get('slug',None)
+		if username:
+			target_id = retrieve_user_id(username)
+			if target_id:
+				return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count').filter(owner_id=target_id,\
+					category='1').order_by('-upload_time')
+			else:
+				raise Http404("This user does not exist")
+		else:
+			raise Http404("No username provided")
 
 
 	def get_context_data(self, **kwargs):
@@ -2276,19 +2280,17 @@ class TopPhotoView(ListView):
 
 
 class TopView(ListView):
-	model = User
+	# model = User
 	form_class = TopForm
 	template_name = "top.html"
 
 	def get_queryset(self):
-		return UserProfile.objects.select_related('user').defer('attractiveness','previous_retort','age','gender','bio','shadi_shuda',\
-			'media_score','mobilenumber','streak','user__first_name','user__last_name','user__email','user__is_staff','user__is_active',\
-			'user__is_superuser','user__email','user__date_joined','user__last_login','user__password','user__id').order_by('-score')[:100]
+		return UserProfile.objects.only('user__username','score').values('user__username','score').order_by('-score')[:100]
 
 	def get_context_data(self, **kwargs):
 		context = super(TopView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
-			context["verified"] = FEMALES       
+			context["verified"] = FEMALES        
 		return context
 
 
@@ -2811,7 +2813,6 @@ class CommentView(CreateView):
 	form_class = CommentForm
 	template_name = "comments.html"
 
-
 	def get_form_kwargs( self ):
 		kwargs = super(CommentView,self).get_form_kwargs()
 		kwargs['user_id'] = self.request.user.id
@@ -2819,18 +2820,17 @@ class CommentView(CreateView):
 		kwargs['photo_id'] = self.kwargs['pk']
 		return kwargs
 
-
 	def get_context_data(self, **kwargs):
 		context = super(CommentView, self).get_context_data(**kwargs)
-		if self.request.is_feature_phone:
-			context["feature_phone"] = True
-		else:
-			context["feature_phone"] = False
+		context["feature_phone"] = True if self.request.is_feature_phone else False
 		pk = self.kwargs.get('pk',None)
-		try:
-			photo = Photo.objects.select_related('owner').get(id=pk)
-		except Photo.DoesNotExist:
-			raise Http404("Photo does not compute")
+		if pk:
+			try:
+				photo = Photo.objects.select_related('owner').get(id=pk)
+			except Photo.DoesNotExist:
+				raise Http404("Photo does not exist")
+		else:
+			raise Http404("Photo ID does not exist")
 		context["photo_id"] = pk
 		home_hash = 'img:'+pk
 		context["lid"] = home_hash
@@ -2845,8 +2845,12 @@ class CommentView(CreateView):
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 		context["authorized"] = True
-		comments = PhotoComment.objects.select_related('submitted_by__userprofile').filter(which_photo_id=pk).order_by('-id')[:25]
-		context["latest_comment_time"] = comments[0].submitted_on if comments else None#used in the title of the page
+		comments = PhotoComment.objects.only('abuse','text','id','submitted_by','submitted_on','submitted_by__username',\
+		'submitted_by__userprofile__score').values('abuse','text','id','submitted_by','submitted_on','submitted_by__username',\
+		'submitted_by__userprofile__score').filter(which_photo_id=pk).order_by('-id')[:25]
+		context["latest_comment_time"] = comments[0]['submitted_on'] if comments else None#used in the title of the page
+		for comment in comments:
+			comment["submitted_on"] = convert_to_epoch(comment["submitted_on"])
 		context["comments"] = comments
 		origin = self.kwargs.get("origin",None)
 		context["origin"] = origin if origin else '1'
@@ -2872,7 +2876,7 @@ class CommentView(CreateView):
 					context["unseen"] = True
 					try:
 						#finding latest time user HERSELF commented
-						context["comment_time"] = max(comment.submitted_on for comment in comments if comment.submitted_by_id == user_id)
+						context["comment_time"] = max(comment['submitted_on'] for comment in comments if comment['submitted_by'] == user_id)
 					except ValueError:
 						context["comment_time"] = None #i.e. it's her very first comment
 				else:
@@ -3515,20 +3519,7 @@ def photo_list(request,*args, **kwargs):
 		if request.user_banned:
 			context["process_notification"] = False
 		else:	
-			#context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
-			#########################################Logging empty objects causing error##########################
-			######################################################################################################
-			submitter_ids = set()
-			for obj in context["object_list"]:
-				submitter_id = obj.get('si',None)
-				if submitter_id:
-					submitter_ids.add(submitter_id)
-				else:
-					from redis3 import log_submitter_error
-					log_submitter_error(obj,context["ident"])
-			context["fanned"] = bulk_is_fan(submitter_ids, context["ident"])
-			######################################################################################################
-			######################################################################################################
+			context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]),context["ident"])
 			context["salat_timings"] = {}#cache_mem.get('salat_timings')
 			if "notif_form" in request.session:
 				context["notif_form"] = request.session["notif_form"]
@@ -4873,7 +4864,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return redirect("unseen_activity",request.user.username)
 
 
-@ratelimit(field='sid',ip=False,rate='3/s')
+@ratelimit(field='sid',ip=False,rate='5/s')
 @csrf_protect
 def public_reply_view(request,*args,**kwargs):
 	if getattr(request, 'limits', False):
@@ -4918,19 +4909,11 @@ def public_reply_view(request,*args,**kwargs):
 			if replies:
 				replies_data = json.loads(replies)
 			else:
-				replies = Publicreply.objects.select_related('submitted_by__userprofile','answer_to').\
-				defer('answer_to__net_votes','answer_to__url','answer_to__cagtegory','answer_to__image_file','answer_to__rank_score','answer_to__is_visible',\
-					'answer_to__device','answer_to__which_photostream','submitted_by__userprofile__media_score','submitted_by__userprofile__shadi_shuda',\
-					'submitted_by__userprofile__age','submitted_by__userprofile__gender','submitted_by__userprofile__bio','submitted_by__userprofile__streak',\
-					'submitted_by__userprofile__previous_retort','submitted_by__userprofile__attractiveness','submitted_by__userprofile__mobilenumber',\
-					'category','device','seen','submitted_by__is_superuser','submitted_by__first_name','submitted_by__last_name','submitted_by__last_login',\
-					'submitted_by__email','submitted_by__date_joined','submitted_by__is_staff','submitted_by__is_active','submitted_by__password').\
-					filter(answer_to_id=link_id).order_by('-id')[:25]
-				replies_data = []
-				for reply in replies:
-					replies_data.append({'submitted_on':convert_to_epoch(reply.submitted_on),'score':reply.submitted_by.userprofile.score,\
-						'description':reply.description,'id':reply.id,'submitter_id':reply.submitted_by_id,'username':reply.submitted_by.username,\
-						'abuse':reply.abuse})
+				replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
+					'submitted_by__userprofile__score').values('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
+					'submitted_by__userprofile__score').filter(answer_to_id=link_id).order_by('-id')[:25]
+				for reply in replies_data:
+					reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
 				cache_public_replies(json.dumps(replies_data),link_id)
 			context["replies"] = replies_data#replies
 			#########################################################################################
@@ -4944,7 +4927,7 @@ def public_reply_view(request,*args,**kwargs):
 					context["unseen"] = True
 					try:
 						# calculating the max 'own reply' time
-						own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitter_id'] == user_id)
+						own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitted_by'] == user_id)
 						context["reply_time"] = own_reply_time
 					except (AttributeError,ValueError):
 						context["reply_time"] = None
@@ -4962,12 +4945,12 @@ def public_reply_view(request,*args,**kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-@ratelimit(field='sid',ip=False,rate='3/s')
+# @ratelimit(field='sid',ip=False,rate='1/d')
 def post_public_reply(request,*args,**kwargs):
 	context = {}
-	if getattr(request, 'limits', False):
-		raise Http404("You cannot post this reply")
-	elif request.user_banned:
+	# if getattr(request, 'limits', False):
+	# 	raise Http404("You cannot post this reply")
+	if request.user_banned:
 		return redirect("error")
 	elif request.method == "POST":
 		link_id = request.POST.get("link_id")
@@ -5151,39 +5134,39 @@ class UserSettingsEditView(UpdateView):
 	def get_success_url(self): #which URL to go back once settings are saved?
 		return reverse_lazy("profile", kwargs={'slug': self.request.user})
 
-@ratelimit(rate='7/s')
+# @ratelimit(rate='7/s')
 def sharing_help(request):
 	"""
 	Renders a page about sharing ettiquette
 	"""
-	if getattr(request, 'limits', False):
-		raise Http404("You cannot view sharing help")
-	else:
-		return render(request,"content/share_content_help.html",{})
+	# if getattr(request, 'limits', False):
+	# 	raise Http404("You cannot view sharing help")
+	# else:
+	return render(request,"content/share_content_help.html",{})
 
 
-@ratelimit(rate='7/s')
+#@ratelimit(rate='7/s')
 def share_content(request):
 	"""
 	Renders content sharing page, from where would-be sharer can select 'foto' or 'text' type sharing
 
 	Redirects to text or foto sharing pages accordingly
 	"""
-	if getattr(request, 'limits', False):
-		raise Http404("You cannot share")
-	else:
-		return render(request,"content/share_content.html",{'first_time':True if tutorial_unseen(user_id=request.user.id, which_tut='25', renew_lease=True) \
-			else False})
+	# if getattr(request, 'limits', False):
+	# 	raise Http404("You cannot share")
+	# else:
+	return render(request,"content/share_content.html",{'first_time':True if tutorial_unseen(user_id=request.user.id, which_tut='25',\
+	renew_lease=True) else False})
 
 
-@ratelimit(rate='7/s')
+# @ratelimit(rate='7/s')
 def link_create_pk(request, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		return redirect("missing_page")
-	else:
-		request.session["link_create_token"] = uuid.uuid4()
-		return redirect("link_create")
+	# was_limited = getattr(request, 'limits', False)
+	# if was_limited:
+	# 	return redirect("missing_page")
+	# else:
+	request.session["link_create_token"] = uuid.uuid4()
+	return redirect("link_create")
 
 
 class LinkCreateView(CreateView):

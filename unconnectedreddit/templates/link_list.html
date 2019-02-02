@@ -43,6 +43,10 @@
 
 {% for link in link_list %}
 
+{% if forloop.counter == 7 %}
+    {% include "announcement/maintainance_notice.html" with static_url=STATIC_URL %}
+{% endif %}
+
 {% if not on_fbs %}
 	
 	{% if forloop.counter == 3 %}

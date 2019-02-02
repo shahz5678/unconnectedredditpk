@@ -46,7 +46,7 @@ PhotoShareView, PhotoDetailView, \
 SpecialPhotoTutorialView, AdGenderChoiceView, \
 VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, \
 AdAddressView, AdCallPrefView
-from links.announcement_views import coming_soon
+from links.announcement_views import coming_soon, maintainance_notice
 
 admin.autodiscover()
 
@@ -286,6 +286,7 @@ urlpatterns = patterns('',
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
 	url(r'^coming-soon/stay-tuned/$', auth(coming_soon), name='coming_soon'),
+	url(r'^maintainance_notice/stay-tuned/$', auth(maintainance_notice), name='maintainance_notice'),
 	#################################################################################################
 )
 urlpatterns += urlpatterns_ecomm

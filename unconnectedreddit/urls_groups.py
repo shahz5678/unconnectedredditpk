@@ -18,19 +18,32 @@ admin.autodiscover()
 urlpatterns = patterns('',
 	# url(r'^deletion_test/$', auth(deletion_test), name='deletion_test'),
 	############################## Personal Groups ###############################
-	#1#
-	url(r'^private_chat/$', auth(enter_personal_group), name='enter_personal_group'),
-	url(r'^pcp/$', auth(post_to_personal_group), name='post_to_personal_group'),
-	url(r'^pcpr/$', auth(post_js_reply_to_personal_group), name='post_js_reply_to_personal_group'),
-	#2#
-	url(r'^pctb/$', auth(personal_group_their_chat_buttons), name='personal_group_their_chat_buttons'),
-	url(r'^pcasp/$', auth(show_all_saved_posts_in_personal_group), name='show_all_saved_posts_in_personal_group'),
-	url(r'^pcsp/$', auth(save_post_in_personal_group), name='save_post_in_personal_group'),
-	url(r'^pcr/$', auth(delete_post_from_personal_group), name='delete_post_from_personal_group'),
-	url(r'^pchf/$', auth(hide_photo_from_personal_group_chat), name='hide_photo_from_personal_group_chat'),
-	url(r'^pca/$', auth(post_chat_action_in_personal_group), name='post_chat_action_in_personal_group'),
-	#3#
-	url(r'^pcrd/$', auth(personal_group_own_chat_buttons), name='personal_group_own_chat_buttons'),
+	# #1#
+	# url(r'^private_chat/$', auth(enter_personal_group), name='enter_personal_group'),
+	# url(r'^pcp/$', auth(post_to_personal_group), name='post_to_personal_group'),
+	# url(r'^pcpr/$', auth(post_js_reply_to_personal_group), name='post_js_reply_to_personal_group'),
+	# #2#
+	# url(r'^pctb/$', auth(personal_group_their_chat_buttons), name='personal_group_their_chat_buttons'),
+	# url(r'^pcasp/$', auth(show_all_saved_posts_in_personal_group), name='show_all_saved_posts_in_personal_group'),
+	# url(r'^pcsp/$', auth(save_post_in_personal_group), name='save_post_in_personal_group'),
+	# url(r'^pcr/$', auth(delete_post_from_personal_group), name='delete_post_from_personal_group'),
+	# url(r'^pchf/$', auth(hide_photo_from_personal_group_chat), name='hide_photo_from_personal_group_chat'),
+	# url(r'^pca/$', auth(post_chat_action_in_personal_group), name='post_chat_action_in_personal_group'),
+	# #3#
+	# url(r'^pcrd/$', auth(personal_group_own_chat_buttons), name='personal_group_own_chat_buttons'),
+
+	url(r'^1-on-1/$', auth(enter_personal_group), name='enter_personal_group'),
+	url(r'^1-on-1/post/$', auth(post_to_personal_group), name='post_to_personal_group'),
+	url(r'^1-on-1/post/js/$', auth(post_js_reply_to_personal_group), name='post_js_reply_to_personal_group'),
+	url(r'^1-on-1/their-buttons/$', auth(personal_group_their_chat_buttons), name='personal_group_their_chat_buttons'),
+	url(r'^1-on-1/list/saved-posts/$', auth(show_all_saved_posts_in_personal_group), name='show_all_saved_posts_in_personal_group'),
+	url(r'^1-on-1/post/save/$', auth(save_post_in_personal_group), name='save_post_in_personal_group'),
+	url(r'^1-on-1/post/delete/$', auth(delete_post_from_personal_group), name='delete_post_from_personal_group'),
+	url(r'^1-on-1/photo/hide/$', auth(hide_photo_from_personal_group_chat), name='hide_photo_from_personal_group_chat'),
+	url(r'^1-on-1/action/$', auth(post_chat_action_in_personal_group), name='post_chat_action_in_personal_group'),
+	url(r'^1-on-1/my-buttons/$', auth(personal_group_own_chat_buttons), name='personal_group_own_chat_buttons'),
+
+
 	########################## Personal Group Settings ###########################
 	# url(r'^pcsvp/$', auth(personal_group_grant_chat_saving_perm), name='personal_group_grant_chat_saving_perm'),
 	# url(r'^pcdsv/$', auth(personal_group_delete_saved_post), name='personal_group_delete_saved_post'),
@@ -71,19 +84,28 @@ urlpatterns = patterns('',
 	url(r'^1-on-1/sms/receive-from-chat/$',personal_group_receive_sms_from_chat, name="personal_group_receive_sms_from_chat"),
 
 	########################### Personal Group Invites ###########################
-	#4#
-	url(r'^invite_priv_chat/$', auth(render_personal_group_invite), name='render_personal_group_invite'),
-	#5#
-	url(r'^send_priv_chat_invite/$', auth(send_personal_group_invite), name='send_personal_group_invite'),
-	url(r'^accept_priv_chat_invite/$', auth(accept_personal_group_invite), name='accept_personal_group_invite'),
-	url(r'^acc_priv_chat_invite/$', auth(process_personal_group_invite), name='process_personal_group_invite'),
-	#6#
-	url(r'^priv_chat_invite_privacy/$', auth(change_personal_group_invite_privacy), name='change_personal_group_invite_privacy'),
+	# #4#
+	# url(r'^invite_priv_chat/$', auth(render_personal_group_invite), name='render_personal_group_invite'),
+	# #5#
+	# url(r'^send_priv_chat_invite/$', auth(send_personal_group_invite), name='send_personal_group_invite'),
+	# url(r'^accept_priv_chat_invite/$', auth(accept_personal_group_invite), name='accept_personal_group_invite'),
+	# url(r'^acc_priv_chat_invite/$', auth(process_personal_group_invite), name='process_personal_group_invite'),
+	# #6#
+	# url(r'^priv_chat_invite_privacy/$', auth(change_personal_group_invite_privacy), name='change_personal_group_invite_privacy'),
+	
+	url(r'^1-on-1/invite/$', auth(render_personal_group_invite), name='render_personal_group_invite'),
+	url(r'^1-on-1/invite/send/$', auth(send_personal_group_invite), name='send_personal_group_invite'),
+	url(r'^1-on-1/invite/accept/$', auth(accept_personal_group_invite), name='accept_personal_group_invite'),
+	url(r'^1-on-1/invite/process/$', auth(process_personal_group_invite), name='process_personal_group_invite'),
+	url(r'^1-on-1/invite/privacy/$', auth(change_personal_group_invite_privacy), name='change_personal_group_invite_privacy'),
 	############################## Personal Group Listing ###############################
-	#7#
-	url(r'^invites/(?P<list_type>[\w.@+-]+)/$', auth(show_personal_group_invite_list), name='show_personal_group_invite_list'),
-	#8#
-	url(r'^priv_chat_list/$', auth(personal_group_user_listing), name='personal_group_user_listing'),
+	# #7#
+	# url(r'^invites/(?P<list_type>[\w.@+-]+)/$', auth(show_personal_group_invite_list), name='show_personal_group_invite_list'),
+	# #8#
+	# url(r'^priv_chat_list/$', auth(personal_group_user_listing), name='personal_group_user_listing'),
+	
+	url(r'^1-on-1/invite/list/(?P<list_type>[\w.@+-]+)/$', auth(show_personal_group_invite_list), name='show_personal_group_invite_list'),
+	url(r'^1-on-1/friends/$', auth(personal_group_user_listing), name='personal_group_user_listing'),
 	############################## Personal Group Notifications ###############################
 	url(r'^unpergrp/(?P<gid>\d+)/(?P<fid>\d+)/$', auth(unseen_per_grp), name='unseen_per_grp'),
 	url(r'^xpergrp/(?P<gid>\d+)/(?P<fid>\d+)/(?P<from_home>\d+)/$', auth(x_per_grp_notif), name='x_per_grp_notif'),
@@ -111,5 +133,6 @@ urlpatterns = patterns('',
 	url(r'^1-on-1/help_page/3/$', auth(personal_group_help3), name='personal_group_help3'),
 	url(r'^1-on-1/help_page/4/$', auth(personal_group_help4), name='personal_group_help4'),
 	############################## Personal Group Shared Photos ###############################
-	url(r'^shared_photos/(?P<nick>[\w.@+-]+)/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
+	# url(r'^shared_photos/(?P<nick>[\w.@+-]+)/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
+	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 )

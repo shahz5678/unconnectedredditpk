@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+{% load cache %}
+{% cache 6000 announcement_page %}
+<head><title>Coming soon!</title></head>
+
+<style>body{background: #E9EBEE}</style>
+
+
+<div class="bizcard" style="background:#fff169;text-align:center;padding:8px;color:black">
+  <img src="{{ STATIC_URL }}img/attention.png" width="70" height="70" class="mtl">
+  <div class="cxl lsp" style="font-weight:bold;border-bottom:1px solid #fffcb9;padding-bottom:5px">Zaroori Ailan!</div>
+  
+  <div class="cl lsp mt">Damadam ko safai ki sakht zaroorat hai jiss ke liay agle hafte hum kuch din offline hoon ge</div>
+  <ul style="display:inline-block;padding: 0;list-style-type: circle;padding-left:15px">
+        <li style="text-align:left" class="mbl">Safai ke baad aap apne account say logout ho chuke hoon ge</li>
+        <li style="text-align:left" class="mbl">Apna password yaad ker leien, ager ID unverified hai tuo zaroor verify kera lein</li>
+        <li style="text-align:left" class="mbl">Damadam ki soorat-e-hal aur taza tareen updates ki liay hamara <a href="https://www.facebook.com/DamadamOfficial" target="_blank">Facebook Page</a> join ker leien</li>
+        <li style="text-align:left" class="mbl">Kuch dinon ke baad damadam naha dhoo ke wapis aa ajie ga. Shukriya!</li>
+    </ul>
+  <br>
+  <a href="{% url 'home' %}"><button class="mls bcb btn bl sp pg_ok_res mtl mbs" style="height:28px"><b>Home</b></button></a>
+</div><br>
+
+{% endcache %}
+{% endblock %}
+
+
+

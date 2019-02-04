@@ -5165,7 +5165,7 @@ def link_create_pk(request, *args, **kwargs):
 	# if was_limited:
 	# 	return redirect("missing_page")
 	# else:
-	request.session["link_create_token"] = uuid.uuid4()
+	request.session["link_create_token"] = str(uuid.uuid4())
 	return redirect("link_create")
 
 

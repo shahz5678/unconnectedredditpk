@@ -132,7 +132,7 @@ class Link(models.Model):
 	rank_score = models.FloatField(default=0.0)
 	is_visible = models.BooleanField(default=True)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
-	which_photostream = models.ForeignKey('links.PhotoStream', null=True, blank=True)
+	#which_photostream = models.ForeignKey('links.PhotoStream', null=True, blank=True)
 	reply_count = models.IntegerField(default=0)
 	net_votes = models.IntegerField(default=0) #only counts votes, for censorship purposes
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)

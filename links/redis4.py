@@ -637,6 +637,19 @@ def invalidate_avurl(user_id,set_rate_limit=None):
 		my_server.setex('aurl:'+user_id,1,THREE_MINS)
 
 
+def invalidated_cached_uname_credentials(user_ids):
+    """
+    Invalidates cached unames
+
+    Useful when deprecating nicknames
+    """
+    if user_ids:
+        pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+        for user_id in user_ids:
+            pipeline1.delete("uname:"+str(user_id))
+        pipeline1.execute()
+
+
 def get_aurl(user_id):
 	"""
 	Retrieves the status of avatar uploading rate limit

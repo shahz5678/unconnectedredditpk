@@ -8,8 +8,8 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, UserFan, ChatPic
 from redis7 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
-from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes
-from redis4 import save_deprecated_photo_ids_and_filenames#, report_rate_limited_conversation
+from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes, remove_verified_mob
+from redis4 import save_deprecated_photo_ids_and_filenames, invalidated_cached_uname_credentials#, report_rate_limited_conversation
 from redis2 import bulk_sanitize_notifications
 
 ######################################## Notifications ########################################
@@ -39,44 +39,53 @@ def damadam_cleanup(request, *args, **kwargs):
 
 ######################################## Username Sanitzation ########################################
 
+
+def change_nick(target_id,new_nick):
+    """
+    Change nickname of target_id to 'new_nick'
+    """
+    User.objects.filter(id=target_id).update(username=new_nick)
+
+
 @csrf_protect
-# IN THE FUTURE, ENSURE CHANGED NICKS' PHONE NUMBERS ARE RELEASED TOO (in case those users want to verify new IDs)
 def change_nicks(request,*args,**kwargs):
-	"""This frees up the name space of nicks, 100K at a time.
+    """This frees up the name space of nicks, 100K at a time.
 
-	Nicks, once taken, are locked out of the namespace.
-	This changes nicknames that aren't in use anymore to a random string.
-	"""
-	if request.user.username == 'mhb11':
-		if request.method=='POST':
-			decision = request.POST.get("dec",None)
-			count = int(request.POST.get("count",None))
-			if decision == 'No':
-				return redirect("home")
-			elif decision == 'Yes':
-				inactives, last_batch = get_inactives(get_10K=True)
-				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
-				id_len = len(id_list)
-				start = count*100000
-				end = start+100000-1
-				rand_nums = random.sample(xrange(start,end), id_len+10)
-				counter = 0
-				for pk in id_list:
-					# change 'i_i__' next time this is run; otherwise there will be collisions
-					try:
-						nick = "i_i__"+str(rand_nums[counter])
-						# print "changing user id %s to %s" % (User.objects.get(id=int(pk)).username, nick)
-						User.objects.filter(id=int(pk)).update(username=nick)
-					except:
-						pass
-					counter += 1
-				if last_batch:
-					return render(request,'deprecate_nicks.html',{})
-				else:
-					return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
-		else:
-			return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
-
+    Nicks, once taken, are locked out of the namespace.
+    This changes nicknames that aren't in use anymore to a random string.
+    It also removes their mobile verification and cached uname entries (if they exist)
+    """
+    if request.user.username == 'mhb11':
+        if request.method == "POST":
+            decision = request.POST.get("dec",None)
+            count = int(request.POST.get("count",None))
+            if decision == 'No':
+                return redirect("home")
+            elif decision == 'Yes':
+                inactives, last_batch = get_inactives(get_100K=True)
+                id_list = map(itemgetter(1), inactives) #list of ids to deprecate
+                id_len = len(id_list)
+                start = count*100000
+                end = start+110000-1
+                sample_size = id_len+10# ensure sample_size is lesser than (start-end)
+                rand_nums = map(str,random.sample(xrange(start,end),sample_size))#strinigied random nums
+                invalidated_cached_uname_credentials(user_ids=id_list)# invalidating uname caches in bulk
+                counter = 0
+                for pk in id_list:
+                    # change 'inactive' (and can't keep 'i_i__') next time this is run; otherwise there will be collisions
+                    change_nick(target_id=pk, new_nick='inactive_'+rand_nums[counter])
+                    counter += 1
+                remove_verified_mob(target_user_ids=id_list)# unverifying users in bulk
+                if last_batch:
+                    return render(request,'deprecate_nicks.html',{})
+                else:
+                    return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
+            else:
+                return redirect("home")
+        else:
+            return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
+    else:
+        return redirect("home")
 
 
 def export_nicks(request,*args,**kwargs):

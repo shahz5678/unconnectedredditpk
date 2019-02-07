@@ -62,18 +62,18 @@ def change_nicks(request,*args,**kwargs):
             if decision == 'No':
                 return redirect("home")
             elif decision == 'Yes':
-                inactives, last_batch = get_inactives(get_100K=True)
+                inactives, last_batch = get_inactives(get_10K=True)
                 id_list = map(itemgetter(1), inactives) #list of ids to deprecate
                 id_len = len(id_list)
-                start = count*100000
-                end = start+110000-1
+                start = count*10000
+                end = start+10101
                 sample_size = id_len+10# ensure sample_size is lesser than (start-end)
                 rand_nums = map(str,random.sample(xrange(start,end),sample_size))#strinigied random nums
                 invalidated_cached_uname_credentials(user_ids=id_list)# invalidating uname caches in bulk
                 counter = 0
                 for pk in id_list:
-                    # change 'inactive' (and can't keep 'i_i__') next time this is run; otherwise there will be collisions
-                    change_nick(target_id=pk, new_nick='inactive_'+rand_nums[counter])
+                    # change 'inactive-' (and can't keep 'i_i__') next time this is run; otherwise there will be collisions
+                    change_nick(target_id=pk, new_nick='inactive-'+rand_nums[counter])
                     counter += 1
                 remove_verified_mob(target_user_ids=id_list)# unverifying users in bulk
                 if last_batch:

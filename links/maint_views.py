@@ -125,8 +125,8 @@ def deprecate_nicks(request,*args,**kwargs):
     if request.user.username == 'mhb11':
 
         import redis
-        from location import REDLOC7
-        POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
+        from location import REDLOC1
+        POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC1, db=0)
         my_server = redis.Redis(connection_pool=POOL)
         
         # populate required sorted_set in redis 7 (called 'inactive_users')

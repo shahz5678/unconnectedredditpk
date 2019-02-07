@@ -794,7 +794,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 				if p3:
 					photo3 = True
 				if exception: # e.g. pressed 'Agey', but uploaded photos didn't upload correctly
-					secret_key = uuid.uuid4()
+					secret_key = str(uuid.uuid4())
 					set_ecomm_photos_secret_key(user_id, secret_key)
 					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 				elif (photo1 and photo2 and photo3) or (decision == 'Agey'): # e.g. pressed "Agey" and all/any photos uploaded correctly
@@ -805,11 +805,11 @@ def post_basic_item_photos(request,*args,**kwargs):
 					form = SellerInfoForm(nums=mob_nums)
 					return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 				else: # e.g. uploading photos 1 by 1
-					secret_key = uuid.uuid4()
+					secret_key = str(uuid.uuid4())
 					set_ecomm_photos_secret_key(user_id, secret_key)
 					return render(request,"post_basic_item_photos.html",{'form':form, 'photo1':photo1,'photo2':photo2,'photo3':photo3,'sk':secret_key,'on_fbs':on_fbs})
 			else:
-				secret_key = uuid.uuid4()
+				secret_key = str(uuid.uuid4())
 				set_ecomm_photos_secret_key(user_id, secret_key)
 				return render(request,"post_basic_item_photos.html",{'form':form,'sk':secret_key,'on_fbs':on_fbs})
 	else:
@@ -823,7 +823,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 		elif is_step_one_saved:
 			form = BasicItemPhotosForm()
-			secret_key = uuid.uuid4()
+			secret_key = str(uuid.uuid4())
 			set_ecomm_photos_secret_key(user_id, secret_key)
 			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 			return render(request,"post_basic_item_photos.html",context)
@@ -843,7 +843,7 @@ def post_basic_item(request,*args,**kwargs):
 			barter = form.cleaned_data.get("barter",None)
 			temporarily_save_ad(user_id=str(user_id), description=description, is_new=new, ask=ask, is_barter=barter, ad_id=get_basic_item_ad_id(), uid=user_id)
 			form = BasicItemPhotosForm()
-			secret_key = uuid.uuid4()
+			secret_key = str(uuid.uuid4())
 			set_ecomm_photos_secret_key(user_id, secret_key)
 			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 			return render(request,"post_basic_item_photos.html",context)
@@ -860,7 +860,7 @@ def post_basic_item(request,*args,**kwargs):
 			return render(request,"post_seller_info.html",{'form':form,'mobile_num':mob_nums})
 		elif is_step_one_saved:
 			form = BasicItemPhotosForm()
-			secret_key = uuid.uuid4()
+			secret_key = str(uuid.uuid4())
 			set_ecomm_photos_secret_key(user_id, secret_key)
 			context = {'form':form,'sk':secret_key,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 			return render(request,"post_basic_item_photos.html",context)

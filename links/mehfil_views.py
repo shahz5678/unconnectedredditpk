@@ -4993,7 +4993,7 @@ class DirectMessageCreateView(FormView):
 						self.request.session.modified = True
 						return redirect("user_profile", invitee)
 					else:
-						topic, unique = invitee+" se gupshup", uuid.uuid4()
+						topic, unique = invitee+" se gupshup", str(uuid.uuid4())
 						# group = Group.objects.create(topic=topic, rules='', owner_id=own_id, private ='1', unique=unique)
 						group_id, created_at = get_group_id(), time.time()#convert_to_epoch(group.created_at)
 						# reply = Reply.objects.create(text=invitee, category='1', which_group_id=group_id, writer_id=own_id)
@@ -5011,13 +5011,13 @@ class DirectMessageCreateView(FormView):
 						main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 						document_administrative_activity.delay(group_id, main_sentence, 'create')
 						save_group_invite(group_id=group_id, target_ids=[pk], time_now=reply_time,is_public=False, sent_by='owner',\
-							sent_by_id=own_id,sent_by_uname=own_uname,group_uuid=str(unique))
+							sent_by_id=own_id,sent_by_uname=own_uname,group_uuid=unique)
 						###################
 						# add_group_member(group_id, own_uname)
 						# add_group_invite(pk, group_id,reply.id)
 						# add_user_group(own_id, group_id)
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
-							poster_url=own_avurl,poster_username=own_uname,reply_text=invitee,priv='1',slug=str(unique),image_url=None,\
+							poster_url=own_avurl,poster_username=own_uname,reply_text=invitee,priv='1',slug=unique,image_url=None,\
 							priority='priv_mehfil',from_unseen=False)
 						rate_limit_group_creation(own_id, which_group='private')
 						invalidate_cached_mehfil_pages(own_id)

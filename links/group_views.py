@@ -389,7 +389,7 @@ def enter_personal_group(request):
 			group_id, exists = personal_group_already_exists(own_id, target_id)
 	if exists:
 		personal_group_form_error = request.session.pop("personal_group_form_error",None)
-		secret_key, own_refresh_time = uuid.uuid4(), time.time()
+		secret_key, own_refresh_time = str(uuid.uuid4()), time.time()
 		set_photo_upload_key(user_id=own_id, group_id=group_id, secret_key=secret_key)
 		content_list_of_dictionaries = get_cached_personal_group_data(group_id)
 		if content_list_of_dictionaries:

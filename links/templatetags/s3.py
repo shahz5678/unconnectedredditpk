@@ -1,10 +1,9 @@
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from django import template
+from unconnectedreddit.env import BUCKET_ADDR
 import string
 
 register = template.Library()
-
-bucket_addr = '//s3.ap-southeast-1.amazonaws.com/damadam-2019/'
 
 @register.filter(name='s3')
 def get_s3_object(filename,category='img'):
@@ -35,11 +34,11 @@ def get_s3_object(filename,category='img'):
 		######################################################
 		if category=='thumb':
 			try:
-				return bucket_addr+"thumbnails/"+filename.split(split_by)[1]
+				return BUCKET_ADDR+"thumbnails/"+filename.split(split_by)[1]
 			except IndexError:
 				return static('img/default-avatar-min.jpg')
 		else:
 			try:
-				return bucket_addr+split_by+filename.split(split_by)[1]
+				return BUCKET_ADDR+split_by+filename.split(split_by)[1]
 			except IndexError:
 				return static('img/broken.svg')

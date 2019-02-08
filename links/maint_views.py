@@ -65,8 +65,8 @@ def change_nicks(request,*args,**kwargs):
 				inactives, last_batch = get_inactives(get_10K=True)
 				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
 				id_len = len(id_list)
-				start = count*10000
-				end = start+10100-1
+				start = count*100000
+				end = start+100000-1
 				sample_size = id_len+10# ensure sample_size is lesser than (start-end)
 				rand_nums = map(str,random.sample(xrange(start,end),sample_size))#strinigied random nums
 				invalidated_cached_uname_credentials(user_ids=id_list)# invalidating uname caches in bulk

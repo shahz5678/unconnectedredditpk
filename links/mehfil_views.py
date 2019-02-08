@@ -4887,6 +4887,8 @@ class GroupTypeView(FormView):
 	template_name = "mehfil/group_type.html"
 
 	def get_context_data(self, **kwargs):
+		from redis3 import sanitizing_old_keys
+		sanitizing_old_keys()
 		context = super(GroupTypeView, self).get_context_data(**kwargs)
 		context["private_price"] = PRIVATE_GROUP_COST
 		context["public_price"] = PUBLIC_GROUP_COST

@@ -131,7 +131,7 @@ def deprecate_nicks(request,*args,**kwargs):
 		# populate required sorted_set in redis 7 (called 'inactive_users')
 		inactives = []
 		all_inactives = set(my_server.lrange("all_inactives",0,-1))
-		inactives_data = User.objects.only('username','id','userprofile__score').filter(id__in=all_inactives,0,-1).values_list('username','id','userprofile__score')
+		inactives_data = User.objects.only('username','id','userprofile__score').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
 		for inact in inactives_data:
 			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))#creating a list of tuples
 		print "step 17 calculated"

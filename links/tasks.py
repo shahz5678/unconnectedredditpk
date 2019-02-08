@@ -582,10 +582,14 @@ def process_reporter_payables(payables):
 			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
 
-#auto-populating photo thumbs in search results (triggered whenever a user profile is visited)
 @celery_app1.task(name='tasks.populate_search_thumbs')
-def populate_search_thumbs(username,ids_with_urls):
-	bulk_add_search_photos(username,ids_with_urls)
+def populate_search_thumbs(user_id,ids_with_urls):
+    """
+    Auto-populating photo thumbs in search results, end of photo comments, etc
+
+    Triggered whenever a user profile is visited
+    """
+    bulk_add_search_photos(user_id,ids_with_urls)
 
 
 @celery_app1.task(name='tasks.sanitize_erroneous_notif')
@@ -839,16 +843,13 @@ def fans():
 		'userprofile__score','userprofile__avatar','userprofile__streak','userprofile__age','userprofile__gender').in_bulk(user_ids)
 	top_list = []
 	for user_id in user_ids:
-		top_list.append({'username':user_ids_and_user_objects[int(user_id)].username,\
+		top_list.append({'username':user_ids_and_user_objects[int(user_id)].username,'id':user_id,\
 			"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
 			"media_score":user_ids_and_user_objects[int(user_id)].userprofile.media_score,\
 			"av_url":retrieve_avurl(user_id),"fan_count":user_ids_and_fan_counts[user_id]})
 	top_list = retrieve_thumbs(top_list)# add 'rows' key in the dictionary
 	set_top_stars(top_list)
-	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-	#         'LOCATION': MEMLOC, 'TIMEOUT': 1260,
-	#     })
-	# cache_mem.set('fans', top_list)
+	
 
 @celery_app1.task(name='tasks.salat_info')
 def salat_info():
@@ -921,7 +922,7 @@ def photo_upload_tasks(user_id, photo_id, username, temp_photo_obj,number_of_pho
 	if not updated:
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
-	add_search_photo(photo.image_file.url,photo_id,username)
+	add_search_photo(photo.image_file.url,photo_id,user_id)
 	if total_score > PHOTO_HOT_SCORE_REQ:
 		add_obj_to_home_feed(temp_photo_obj)
 	if number_of_photos:

@@ -98,8 +98,10 @@ def upload_to_photocomments(instance, filename):
 
 
 
-# creates thumbs out of images passed into it
 def get_thumb(filename, content, folder_name):
+	"""
+	Creates thumbs out of images passed into it
+	"""
 	# thumb_name = filename
 	thumb_name = string.replace(filename, folder_name, "thumbnails")
 	image = content.file		
@@ -115,7 +117,7 @@ def get_thumb(filename, content, folder_name):
 		size = (bsize,height)
 	small_image = image.resize(size, Image.ANTIALIAS)
 	thumbnail = StringIO.StringIO()
-	small_image.save(thumbnail,'JPEG',quality=50, optimize=True)
+	small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
 	img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 	content.file = img
 	return thumb_name, content

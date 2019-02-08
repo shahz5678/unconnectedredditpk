@@ -184,9 +184,16 @@ def device_formatting(device):
 # 		username = '<bdi>'+username+'</bdi>'
 # 	return username
 
+
 def image_thumb_formatting(img_url,pid):
-	return '<button class="mls mbs" style="border-radius:0px;background-color:transparent;outline:none;overflow: hidden;padding:0px;border:none;" type="submit" name="pid" value="%s"><img src="%s" height="38"></button>' \
+	"""
+	Created a string blob of a provided image url
+
+	The result is used in displaying image thumbs at various parts of the website
+	"""
+	return '<button class="mls mbs" style="background-color:transparent;outline:none;overflow: hidden;padding:0px;border:none;" type="submit" name="pid" value="%s"><img src="%s" style="border-radius:4px" height="38"></button>' \
 	% (pid,img_url)
+
 
 def av_url_formatting(av_url, style=None, categ=None, pub_rep=False):
 	url = None

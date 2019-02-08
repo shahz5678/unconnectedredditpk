@@ -757,7 +757,7 @@ def permanently_delete_entire_personal_group(group_id, my_server=None):
 			pipeline3.delete('pgih:'+group_id+":"+payload.split(":")[0])
 		pipeline3.delete(user_photos)
 		pipeline3.execute()
-	except IndexError, AttributeError:
+	except (IndexError, AttributeError):
 		pass
 
 

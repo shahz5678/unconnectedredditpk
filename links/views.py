@@ -1493,7 +1493,7 @@ class OnlineKonView(ListView):
 	def get_queryset(self):
 		user_ids = get_most_recent_online_users()#cache_mem.get('online')
 		if user_ids:
-			queryset = User.objects.filter(id__in=user_ids).values('username', 'userprofile__score', 'userprofile__avatar')
+			queryset = User.objects.only('id','username','userprofile__score','userprofile__avatar').filter(id__in=user_ids).values('id','username', 'userprofile__score', 'userprofile__avatar')
 			return queryset
 		else:
 			return []
@@ -1592,9 +1592,9 @@ class UserProfilePhotosView(ListView):
 		context["fans"] = total_fans if total_fans else 0
 		context["recent_fans"] = recent_fans if recent_fans else 0
 		context["manageable"] = False
-		if context["object_list"] and search_thumbs_missing(slug):
+		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
-			populate_search_thumbs.delay(slug,ids_with_urls)
+			populate_search_thumbs.delay(star_id,ids_with_urls)
 		if user_id:#i.e. if authenticated
 			context["origin"] = '4'#helps redirect back to this page if a user enter the "report" funnel
 			context["authenticated"] = True
@@ -2840,7 +2840,7 @@ class CommentView(CreateView):
 		context["photo"] = photo
 		target_username = photo.owner.username
 		context["target_username"] = target_username
-		context["thumbs"] = retrieve_single_thumbs(target_username)
+		context["thumbs"] = retrieve_single_thumbs(photo.owner_id)
 		context["verified"] = FEMALES
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188

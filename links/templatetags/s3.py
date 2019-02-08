@@ -4,6 +4,8 @@ import string
 
 register = template.Library()
 
+bucket_addr = '//s3.ap-southeast-1.amazonaws.com/damadam-2019/'
+
 @register.filter(name='s3')
 def get_s3_object(filename,category='img'):
 	if not filename:
@@ -33,11 +35,11 @@ def get_s3_object(filename,category='img'):
 		######################################################
 		if category=='thumb':
 			try:
-				return "//s3.eu-central-1.amazonaws.com/damadam/thumbnails/"+filename.split(split_by)[1]
+				return bucket_addr+"thumbnails/"+filename.split(split_by)[1]
 			except IndexError:
 				return static('img/default-avatar-min.jpg')
 		else:
 			try:
-				return "//s3.eu-central-1.amazonaws.com/damadam/"+split_by+filename.split(split_by)[1]
+				return bucket_addr+split_by+filename.split(split_by)[1]
 			except IndexError:
 				return static('img/broken.svg')

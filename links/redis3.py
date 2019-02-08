@@ -1801,51 +1801,52 @@ def retrieve_numbers_with_country_codes(list_of_user_ids):
 
 
 def remove_verified_mob(target_user_ids):
-    """
-    Removes mobile verification credentails of given list of user ids
+	"""
+	Removes mobile verification credentials of given list of user ids
 
-    Useful when deprecating a username
-    Can also be used to give users the ability to remove their own mobile numbers from file
-    """
-    if target_user_ids:
-        target_user_ids = map(str, target_user_ids)
-        my_server = redis.Redis(connection_pool=POOL)
-        pipeline1 = my_server.pipeline()
-        for user_id in target_user_ids:
-            pipeline1.lrange("um:"+user_id,0,-1)
-        result1 = pipeline1.execute()# output is a list of lists
-        nums_to_remove, users_to_remove, counter = [], [], 0
-        #############################################################
-        for verification_data in result1:
-            num_tups = len(verification_data)
-            if num_tups == 2:
-                # this user has 2 numbers on file
-                nums_to_remove.append(ast.literal_eval(verification_data[0])['national_number'])
-                nums_to_remove.append(ast.literal_eval(verification_data[1])['national_number'])
-                users_to_remove.append(target_user_ids[counter])
-            elif num_tups == 1:
-                # this user has 1 number on file
-                nums_to_remove.append(ast.literal_eval(verification_data[0])['national_number'])
-                users_to_remove.append(target_user_ids[counter])
-            else:
-                # this user wasn't verified - hence append nothing in the final lists
-                pass
-            counter += 1
-        if nums_to_remove and users_to_remove:
-            pipeline2 = my_server.pipeline()
-            #############################################################
-            pipeline2.zrem("ecomm_verified_users",*users_to_remove)
-            #############################################################
-            pipeline2.zrem("verified_numbers",*nums_to_remove)
-            #############################################################
-            for user_id in users_to_remove:
-                pipeline2.delete("um:"+user_id)# can be replaced by 'unlink'
-            pipeline2.execute()
-        else:
-            # no numbers were found - do nothing (e.g. because a list of unverified users was passed to this function)
-            pass
-    else:
-        pass
+	Useful when deprecating a username
+	Can also be used to give users the ability to remove their own mobile numbers from file
+	"""
+	if target_user_ids:
+		target_user_ids = map(str, target_user_ids)
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		for user_id in target_user_ids:
+			pipeline1.lrange("um:"+user_id,0,-1)
+		result1 = pipeline1.execute()# output is a list of lists
+		nums_to_remove, users_to_remove, counter = [], [], 0
+		#############################################################
+		for verification_data in result1:
+			num_tups = len(verification_data)
+			if num_tups == 2:
+				# this user has 2 numbers on file
+				nums_to_remove.append(ast.literal_eval(verification_data[0])['national_number'])
+				nums_to_remove.append(ast.literal_eval(verification_data[1])['national_number'])
+				users_to_remove.append(target_user_ids[counter])
+			elif num_tups == 1:
+				# this user has 1 number on file
+				nums_to_remove.append(ast.literal_eval(verification_data[0])['national_number'])
+				users_to_remove.append(target_user_ids[counter])
+			else:
+				# this user wasn't verified - hence append nothing in the final lists
+				pass
+			counter += 1
+		if nums_to_remove and users_to_remove:
+			pipeline2 = my_server.pipeline()
+			#############################################################
+			pipeline2.zrem("ecomm_verified_users",*users_to_remove)
+			#############################################################
+			pipeline2.zrem("verified_numbers",*nums_to_remove)
+			#############################################################
+			for user_id in users_to_remove:
+				pipeline2.delete("um:"+user_id)# can be replaced by 'unlink'
+			pipeline2.execute()
+		else:
+			# no numbers were found - do nothing (e.g. because a list of unverified users was passed to this function)
+			pass
+	else:
+		pass
+
 
 ###################### setting user's world age ######################
 
@@ -1861,6 +1862,7 @@ def set_world_age(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	if not my_server.exists('warl:'+user_id):
 		my_server.zincrby('world_age',user_id,amount=1)
+		my_server.zadd('world_age_last_increment',user_id,time.time())
 		my_server.setex('warl:'+user_id,'1',SIX_HOURS)
 
 

@@ -54,6 +54,7 @@ def change_nicks(request,*args,**kwargs):
 	Nicks, once taken, are locked out of the namespace.
 	This changes nicknames that aren't in use anymore to a random string.
 	It also removes their mobile verification and cached uname entries (if they exist)
+	It does NOT sync the redis maintained list of usernames used at nickname creation. That must be synced after this is run.
 	"""
 	if request.user.username == 'mhb11':
 		if request.method == "POST":
@@ -64,6 +65,7 @@ def change_nicks(request,*args,**kwargs):
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True)
 				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
+				id_list = map(int, id_list)
 				id_len = len(id_list)
 				start = count*100000
 				end = start+100000-1
@@ -72,8 +74,8 @@ def change_nicks(request,*args,**kwargs):
 				invalidated_cached_uname_credentials(user_ids=id_list)# invalidating uname caches in bulk
 				counter = 0
 				for pk in id_list:
-					# change 'inactive-' (and can't keep 'i_i__') next time this is run; otherwise there will be collisions
-					change_nick(target_id=pk, new_nick='d_m_d_'+rand_nums[counter])
+					# change 'd_m_d_' (and can't keep 'i_i__') next time this is run; otherwise there will be collisions
+					# change_nick(target_id=pk, new_nick='d_m_d_'+rand_nums[counter])
 					counter += 1
 				remove_verified_mob(target_user_ids=id_list)# unverifying users in bulk
 				if last_batch:

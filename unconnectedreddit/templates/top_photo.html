@@ -32,9 +32,11 @@
                     {% else %}
                     {% endif %}<b>:&nbsp;<a href="{% url 'profile' slug=row.username %}#section0" class="co">{{ row.fan_count }} fans</a></b>
                     <span class="co cs">({{ row.photo_count }} photos)</a></span><br>
-                    <div class="mtl">
-                    {{ row.thumbs|safe }}
-                    </div>
+                    {% if row.thumbs %}
+                        <div class="mtl">
+                        {{ row.thumbs|safe }}
+                        </div>
+                    {% endif %}
                 </div>
             </li>
         {% endfor %}

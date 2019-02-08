@@ -5,8 +5,8 @@ from pytz import timezone
 from location import REDLOC3
 from datetime import datetime
 from operator import itemgetter
-# from redis4 import save_seller_number_error
 from templatetags.s3 import get_s3_object
+from redis4 import retrieve_bulk_unames, retrieve_user_id
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
@@ -53,14 +53,12 @@ my_server.set("epusk:"+user_id,secret_key) # ecomm photo upload secret key
 gibberish_writers = 'gibberish_writers'
 punishment_text = "pt:"+str(user_id)
 
-
-search_history = "sh:"+str(searcher_id)
-
-user_thumbs = "upt:"+owner_uname
-
-
 ###########
 '''
+
+USER_THUMBS = "ut:"#key holding a blob of user's most recent fotos
+SEARCH_HISTORY = "sch:"#set holding IDs of users a user has search via the search functionality
+
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
 
@@ -240,8 +238,11 @@ def insert_nick(nickname):
 	generic_nick, specific_nick = process_nick(nickname)
 	my_server.zadd("nicknames",generic_nick,0,specific_nick,0)
 
-#main function resposible for yielding search results
+
 def find_nickname(target_nick, searcher_id):
+	"""
+	Main function resposible for yielding search results
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	generic_nick, specific_nick = process_nick(target_nick)
 	rank = my_server.zrank("nicknames",generic_nick)
@@ -256,8 +257,9 @@ def find_nickname(target_nick, searcher_id):
 		similar_nicknames = get_nicknames(raw_nicknames)
 		pipeline1 = my_server.pipeline()
 		for uname in similar_nicknames:
-			user_thumbs = "upt:"+uname
-			pipeline1.get(user_thumbs)
+			user_id = retrieve_user_id(uname)
+			if user_id:
+				pipeline1.get(USER_THUMBS+user_id)
 		result1 = pipeline1.execute()
 		similar_with_pics = []
 		counter = 0
@@ -275,15 +277,16 @@ def find_nickname(target_nick, searcher_id):
 			if nick.lower() == target_nick.encode('utf-8').lower():
 				exact.append(nick)
 				similar_nicknames.remove(nick)
-		search_history = "sh:"+str(searcher_id)
+		search_history = SEARCH_HISTORY+str(searcher_id)
 		pipeline1 = my_server.pipeline()
 		for entry in exact:
-			pipeline1.zincrby(search_history,entry,amount=1)
+			user_id = retrieve_user_id(entry)
+			pipeline1.zincrby(search_history,user_id,amount=1)
 		pipeline1.execute()
 		pipeline2 = my_server.pipeline()
 		for uname in similar_nicknames:
-			user_thumbs = "upt:"+uname
-			pipeline2.get(user_thumbs)
+			user_id = retrieve_user_id(uname)
+			pipeline2.get(USER_THUMBS+user_id)
 		result2 = pipeline2.execute()
 		similar_with_pics = []
 		counter = 0
@@ -292,8 +295,8 @@ def find_nickname(target_nick, searcher_id):
 			counter += 1
 		pipeline3 = my_server.pipeline()
 		for uname in exact:
-			user_thumbs = "upt:"+uname
-			pipeline3.get(user_thumbs)
+			user_id = retrieve_user_id(uname)
+			pipeline3.get(USER_THUMBS+user_id)
 		result3 = pipeline3.execute()
 		counter = 0
 		for uname in exact:
@@ -301,108 +304,119 @@ def find_nickname(target_nick, searcher_id):
 			counter += 1
 	return nick_found, exact_with_pics, similar_with_pics
 
-#used to bump up scores when user clicks the nick after searching it
-def select_nick(nickname, selector_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	search_history = "sh:"+str(selector_id)
-	my_server.zincrby(search_history,nickname,amount=1)
 
-#used to populate search history in search page
+def select_nick(nickname, selector_id):
+	"""
+	Used to bump up scores when user clicks the nick after searching it
+	"""
+	nick_id = retrieve_user_id(nickname)
+	if nick_id:
+		redis.Redis(connection_pool=POOL).zincrby(SEARCH_HISTORY+str(selector_id),nick_id,amount=1)
+
+
 def get_search_history(searcher_id):
+	"""
+	Used to populate a user's search history in 'search' page
+	"""
+	search_history = SEARCH_HISTORY+str(searcher_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	search_history = "sh:"+str(searcher_id)
 	if my_server.exists(search_history):
 		my_server.expire(search_history,TWO_WEEKS)
 		return my_server.zrevrange(search_history,0,-1)
 	else:
 		return []
 
-#delete an entry from search history
-def del_search_history(searcher_id, nick):
-	my_server = redis.Redis(connection_pool=POOL)
-	search_history = "sh:"+str(searcher_id)
-	my_server.zrem(search_history,nick)
 
-def retrieve_history_with_pics(uname_list):
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	for uname in uname_list:
-		user_thumbs = "upt:"+uname
-		pipeline1.get(user_thumbs)
-	result1 = pipeline1.execute()
-	history = []
-	counter = 0
-	for uname in uname_list:
-		history.append((uname,result1[counter]))
-		counter += 1
-	return history
+def del_search_history(searcher_id, nickname):
+	"""
+	Delete an entry from search history
+	"""
+	nick_id = retrieve_user_id(nickname)
+	if nick_id:
+		redis.Redis(connection_pool=POOL).zrem(SEARCH_HISTORY+str(searcher_id),nick_id)
+
+
+def retrieve_history_with_pics(user_id_list):
+	"""
+	Enriches user history with their uploaded photo thumbnails
+	"""
+	if user_id_list:
+		pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+		for user_id in user_id_list:
+			pipeline1.get(USER_THUMBS+str(user_id))
+		result1 = pipeline1.execute()
+		username_dictionary = retrieve_bulk_unames(user_id_list,decode=True)
+		history, counter = [], 0
+		for user_id in user_id_list:
+			history.append((username_dictionary[int(user_id)], result1[counter]))
+			counter += 1
+		return history
+
 
 def retrieve_thumbs(obj_list):
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
+	"""
+	Retrieves saved user thumbs in bulk
+	"""
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for obj in obj_list:
-		user_thumbs = "upt:"+obj['username']
+		user_thumbs = USER_THUMBS+str(obj['id'])
 		pipeline1.get(user_thumbs)
-	result1 = pipeline1.execute()
-	counter = 0
+	result1, counter = pipeline1.execute(), 0
 	for obj in obj_list:
 		obj['thumbs'] = result1[counter]
 		counter += 1
 	return obj_list
 
-def retrieve_single_thumbs(obj):
-	my_server = redis.Redis(connection_pool=POOL)
-	user_thumbs = "upt:"+obj
-	return my_server.get(user_thumbs)
 
-def search_thumbs_missing(username):
-	my_server = redis.Redis(connection_pool=POOL)
-	user_thumbs = "upt:"+username
-	if my_server.exists(user_thumbs):
+def retrieve_single_thumbs(user_id):
+	"""
+	Retrieves a given user's thumbnail photos (in case they have any)
+	"""
+	return redis.Redis(connection_pool=POOL).get(USER_THUMBS+str(user_id))
+
+
+def search_thumbs_missing(user_id):
+	"""
+	Useful for checking the existence of given user's thumbs
+	"""
+	if redis.Redis(connection_pool=POOL).exists(USER_THUMBS+str(user_id)):
 		return False
 	else:
 		return True
 
-#add latest photo to a payload trimmed at 5 photos max
-def add_search_photo(img_url,photo_id,owner_uname):
+
+def add_search_photo(img_url,photo_id,user_id):
+	"""
+	Add latest photo entry to a payload trimmed at 5 most recent photo-thumbs max
+	"""
+	user_thumbs = USER_THUMBS+str(user_id)
+	new_payload = image_thumb_formatting(img_url=get_s3_object(img_url,category='thumb'),pid=photo_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	user_thumbs = "upt:"+owner_uname
-	new_payload = image_thumb_formatting(get_s3_object(img_url,category='thumb'),photo_id)
 	existing_payload = my_server.get(user_thumbs)
-	if existing_payload:
-		payload = new_payload+'&nbsp;'+existing_payload
-	else:
-		payload = new_payload
-	breaks = payload.count('&nbsp;')
-	if breaks > (PHOTOS_WITH_SEARCHED_NICKNAMES-1):
-		#trim from 5th &nbsp; and onwards
+	payload = new_payload+'&nbsp;'+existing_payload if existing_payload else new_payload
+	num_breaks = payload.count('&nbsp;')
+	if num_breaks > (PHOTOS_WITH_SEARCHED_NICKNAMES-1):
+		# trim from 5th &nbsp; onward
 		groups = payload.split('&nbsp;')
 		payload = '&nbsp;'.join(groups[:PHOTOS_WITH_SEARCHED_NICKNAMES])
-	my_server.set(user_thumbs,payload)
+	my_server.setex(user_thumbs,payload, TWO_WEEKS)
 
 
-def sanitizing_old_keys():
+def bulk_add_search_photos(target_id, ids_with_urls):
 	"""
+	Populates the target's thumbnails for preview
+
+	The thumbs appear as a series of 5 photos in certain parts of the website
+	This function is kicked off when a user's profile is visited
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	deletable_keys_1 = my_server.keys("upt:*")
-	deletable_keys_2 = my_server.keys("sh:*")
-	for key in deletable_keys_1:
-		my_server.delete(key)
-	for key in deletable_keys_2:
-		my_server.delete(key)
-
-
-#populates uploaded photo thumbs whenever a profile is visited
-def bulk_add_search_photos(owner_uname, ids_with_urls):
-	my_server = redis.Redis(connection_pool=POOL)
-	user_thumbs = "upt:"+owner_uname
+	user_thumbs = USER_THUMBS+str(target_id)
 	ids_with_thumbs = [(item[0],get_s3_object(item[1],category='thumb')) for item in ids_with_urls]
 	payload = []
-	for obj in ids_with_thumbs:
-		payload.append(image_thumb_formatting(obj[1],obj[0]))
+	for photo_id, photo_url in ids_with_thumbs:
+		payload.append(image_thumb_formatting(photo_url,photo_id))
 	final_payload = '&nbsp;'.join(payload)
-	my_server.set(user_thumbs,final_payload)
+	redis.Redis(connection_pool=POOL).setex(user_thumbs,final_payload,TWO_WEEKS)
+
 
 def insert_nick_list(nickname_list):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -919,12 +933,12 @@ def get_item_name(ad_id):
 
 # helper function for move_to_approved_ads
 # incrementing ad agent "closing" score (coffee is for closers)
-def increment_agent_score(server, username):
-	pipeline1 = server.pipeline()
-	pipeline1.incr("total_ads_closed") # keeping a count of all ads ever approved
-	pipeline1.incr("cb:"+username) # incrementing the score of the closing agent
-	pipeline1.expire("cb:"+username, ONE_WEEK) # score expires in 1 week if agent isn't at work
-	pipeline1.execute()
+# def increment_agent_score(server, username):
+# 	pipeline1 = server.pipeline()
+# 	pipeline1.incr("total_ads_closed") # keeping a count of all ads ever approved
+# 	pipeline1.incr("cb:"+username) # incrementing the score of the closing agent
+# 	pipeline1.expire("cb:"+username, ONE_WEEK) # score expires in 1 week if agent isn't at work
+# 	pipeline1.execute()
 
 # helper function for move_to_approved_ads
 def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
@@ -2126,4 +2140,3 @@ def invalid_rules_logger(banned_word,rules):
 	myserver = redis.Redis(connection_pool=POOL)
 	myserver.lpush("invalid_rules",rules+":"+banned_word)
 	myserver.ltrim("invalid_rules",0,999)	
-

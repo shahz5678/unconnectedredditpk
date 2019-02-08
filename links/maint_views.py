@@ -8,8 +8,8 @@ from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, UserFan, ChatPic
 from redis7 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
-from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes
-from redis4 import save_deprecated_photo_ids_and_filenames#, report_rate_limited_conversation
+from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes, remove_verified_mob
+from redis4 import save_deprecated_photo_ids_and_filenames, invalidated_cached_uname_credentials#, report_rate_limited_conversation
 from redis2 import bulk_sanitize_notifications
 
 ######################################## Notifications ########################################
@@ -39,44 +39,53 @@ def damadam_cleanup(request, *args, **kwargs):
 
 ######################################## Username Sanitzation ########################################
 
+
+def change_nick(target_id,new_nick):
+    """
+    Change nickname of target_id to 'new_nick'
+    """
+    User.objects.filter(id=target_id).update(username=new_nick)
+
+
 @csrf_protect
-# IN THE FUTURE, ENSURE CHANGED NICKS' PHONE NUMBERS ARE RELEASED TOO (in case those users want to verify new IDs)
 def change_nicks(request,*args,**kwargs):
-	"""This frees up the name space of nicks, 100K at a time.
+    """This frees up the name space of nicks, 100K at a time.
 
-	Nicks, once taken, are locked out of the namespace.
-	This changes nicknames that aren't in use anymore to a random string.
-	"""
-	if request.user.username == 'mhb11':
-		if request.method=='POST':
-			decision = request.POST.get("dec",None)
-			count = int(request.POST.get("count",None))
-			if decision == 'No':
-				return redirect("home")
-			elif decision == 'Yes':
-				inactives, last_batch = get_inactives(get_10K=True)
-				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
-				id_len = len(id_list)
-				start = count*100000
-				end = start+100000-1
-				rand_nums = random.sample(xrange(start,end), id_len+10)
-				counter = 0
-				for pk in id_list:
-					# change 'i_i__' next time this is run; otherwise there will be collisions
-					try:
-						nick = "i_i__"+str(rand_nums[counter])
-						# print "changing user id %s to %s" % (User.objects.get(id=int(pk)).username, nick)
-						User.objects.filter(id=int(pk)).update(username=nick)
-					except:
-						pass
-					counter += 1
-				if last_batch:
-					return render(request,'deprecate_nicks.html',{})
-				else:
-					return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
-		else:
-			return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
-
+    Nicks, once taken, are locked out of the namespace.
+    This changes nicknames that aren't in use anymore to a random string.
+    It also removes their mobile verification and cached uname entries (if they exist)
+    """
+    if request.user.username == 'mhb11':
+        if request.method == "POST":
+            decision = request.POST.get("dec",None)
+            count = int(request.POST.get("count",None))
+            if decision == 'No':
+                return redirect("home")
+            elif decision == 'Yes':
+                inactives, last_batch = get_inactives(get_10K=True)
+                id_list = map(itemgetter(1), inactives) #list of ids to deprecate
+                id_len = len(id_list)
+                start = count*10000
+                end = start+10101
+                sample_size = id_len+10# ensure sample_size is lesser than (start-end)
+                rand_nums = map(str,random.sample(xrange(start,end),sample_size))#strinigied random nums
+                invalidated_cached_uname_credentials(user_ids=id_list)# invalidating uname caches in bulk
+                counter = 0
+                for pk in id_list:
+                    # change 'inactive-' (and can't keep 'i_i__') next time this is run; otherwise there will be collisions
+                    change_nick(target_id=pk, new_nick='inactive-'+rand_nums[counter])
+                    counter += 1
+                remove_verified_mob(target_user_ids=id_list)# unverifying users in bulk
+                if last_batch:
+                    return render(request,'deprecate_nicks.html',{})
+                else:
+                    return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
+            else:
+                return redirect("home")
+        else:
+            return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
+    else:
+        return redirect("home")
 
 
 def export_nicks(request,*args,**kwargs):
@@ -107,397 +116,236 @@ def export_nicks(request,*args,**kwargs):
 		return render(request,'404.html',{})
 
 
-
-# def deprecate_nicks(request,*args,**kwargs):
-# 	"""This singles out user_ids and nicks that haven't been in use over the past 3 months.
-
-# 	It looks at criteria such as last messaging time and a ton of other things.
-# 	It ensures pink stars are not included in the list.
-# 	Only 'mhb11' can run this function.
-# 	"""
-# 	if request.user.username == 'mhb11':
-# 		three_months_ago = datetime.utcnow()-timedelta(days=240	)#240
-		
-# 		# all user ids who last logged in more than 3 months ago
-# 		all_old_ids = set(User.objects.filter(last_login__lte=three_months_ago).values_list('id',flat=True))
-# 		print "step 1 complete"
-# 		# user ids not found in Sessions
-# 		current_users = Session.objects.filter(user__isnull=False,last_activity__gte=three_months_ago).values_list('user_id',flat=True)
-# 		print "step 2a complete"
-# 		logged_out_users = set(User.objects.exclude(id__in=current_users).values_list('id',flat=True))
-# 		print "step 2b complete"
-# 		# messaged on home more than 3 months ago
-# 		current_home_messegers = Link.objects.filter(submitted_on__gte=three_months_ago).values_list('submitter_id',flat=True)
-# 		print "step 3a complete"
-# 		never_home_message = set(User.objects.exclude(id__in=current_home_messegers).values_list('id',flat=True))
-# 		print "step 3b complete"
-# 		# never submitted a publicreply
-# 		current_public_repliers = Publicreply.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
-# 		print "step 4a complete"
-# 		never_publicreply = set(User.objects.exclude(id__in=current_public_repliers).values_list('id',flat=True))
-# 		print "step 4b complete"
-# 		# never sent a photocomment
-# 		current_photo_commenters = PhotoComment.objects.filter(submitted_on__gte=three_months_ago).values_list('submitted_by_id',flat=True)
-# 		print "step 5a complete"
-# 		never_photocomment = set(User.objects.exclude(id__in=current_photo_commenters).values_list('id',flat=True))
-# 		print "step 5b complete"
-# 		# never wrote in a group
-# 		current_group_writers = Reply.objects.filter(submitted_on__gte=three_months_ago).values_list('writer_id',flat=True)
-# 		print "step 6a complete"
-# 		never_groupreply = set(User.objects.exclude(id__in=current_group_writers).values_list('id',flat=True))
-# 		print "step 6b complete"
-# 		# never uploaded a photo
-# 		current_photo_uploaders = Photo.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
-# 		print "step 7a complete"
-# 		never_uploaded_photo = set(User.objects.exclude(id__in=current_photo_uploaders).values_list('id',flat=True))
-# 		print "step 7b complete"
-# 		# never sent a chatpic
-# 		current_chat_pic_users = ChatPic.objects.filter(upload_time__gte=three_months_ago).values_list('owner_id',flat=True)
-# 		print "step 8a complete"
-# 		never_sent_chat_pic = set(User.objects.exclude(id__in=current_chat_pic_users).values_list('id',flat=True))
-# 		print "step 8b complete"
-# 		# never fanned anyone
-# 		# change this to never fanned ever (not in the last 3 months, because that could include people like 'mhb11' too)
-# 		current_fanners = UserFan.objects.filter(fanning_time__gte=three_months_ago).values_list('fan_id',flat=True)
-# 		print "step 9a complete"
-# 		never_fanned = set(User.objects.exclude(id__in=current_fanners).values_list('id',flat=True))
-# 		print "step 9b complete"
-# 		# score is below 15000 (score requirement too high, should be lessened)
-# 		less_than_15000 = set(UserProfile.objects.filter(score__lte=15000).values_list('user_id',flat=True))
-# 		print "step 10 complete"
-# 		# do not have active 1-on-1 private chats
-# 		# TODO: never_1_on_1_chatted = 
-
-# 		# intersection of all such ids (and not union)
-# 		sets = [all_old_ids, logged_out_users, never_home_message, never_publicreply, never_photocomment, never_uploaded_photo, never_fanned, less_than_15000, \
-# 		never_groupreply, never_sent_chat_pic]#, never_1_on_1_chatted]
-# 		inactive = set.intersection(*sets)# passing list of sets to set.intersection()
-# 		print "step 11 complete"
-# 		#sanitize pink stars:
-# 		pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
-# 		inactive = inactive - pink_stars
-# 		print "step 12 complete"
-# 		# populate required sorted_set in redis 1 (called 'inactive_users')
-# 		inactives = []
-# 		inactives_data = User.objects.select_related('userprofile').filter(id__in=inactive).values_list('username','id','userprofile__score')
-# 		for inact in inactives_data:
-# 			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
-# 		print "step 13 complete"
-# 		size = len(inactives)
-# 		child1 = inactives[:size/8]
-# 		child2 = inactives[size/8:size/4]
-# 		child3 = inactives[size/4:(size*3)/8]
-# 		child4 = inactives[(size*3)/8:size/2]
-# 		child5 = inactives[size/2:(size*5)/8]
-# 		child6 = inactives[(size*5)/8:(size*6)/8]
-# 		child7 = inactives[(size*6)/8:(size*7)/8]
-# 		child8 = inactives[(size*7)/8:]
-# 		print "step 14 complete"
-# 		from itertools import chain
-# 		# breaking it into 8 lists avoids socket time out
-# 		set_inactives([x for x in chain.from_iterable(child1)])
-# 		set_inactives([x for x in chain.from_iterable(child2)])
-# 		set_inactives([x for x in chain.from_iterable(child3)])
-# 		set_inactives([x for x in chain.from_iterable(child4)])
-# 		set_inactives([x for x in chain.from_iterable(child5)])
-# 		set_inactives([x for x in chain.from_iterable(child6)])
-# 		set_inactives([x for x in chain.from_iterable(child7)])
-# 		set_inactives([x for x in chain.from_iterable(child8)])
-# 		print "step 15 complete"
-# 		return render(request,'deprecate_nicks.html',{})
-# 	else:
-# 		return render(request,'404.html',{})
-
-
 def deprecate_nicks(request,*args,**kwargs):
-	"""This singles out user_ids and nicks that haven't been in use over the past 3 months.
+    """This singles out user_ids and nicks that haven't been in use over the past 3 months.
+    It looks at criteria such as last messaging time and a ton of other things.
+    It ensures pink stars are not included in the list.
+    Only 'mhb11' can run this function.
+    """
+    if request.user.username == 'mhb11':
 
-	It looks at criteria such as last messaging time and a ton of other things.
-	It ensures pink stars are not included in the list.
-	Only 'mhb11' can run this function.
-	"""
-	if request.user.username == 'ZippoLighter':
+        import redis
+        from location import REDLOC1
+        ONE_DAY = 60*60*24
+        ONE_WEEK = 60*60*24*7
+        POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC1, db=0)
+        my_server = redis.Redis(connection_pool=POOL)
 
-	# 	import redis
-	# 	from location import REDLOC4
-	# 	ONE_DAY = 60*60*24
-	# 	ONE_WEEK = 60*60*24*7
-	# 	POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
-	# 	my_server = redis.Redis(connection_pool=POOL)
+        six_months_ago = datetime.utcnow()-timedelta(days=180)#240
+        
+        if my_server.exists("active_users"):
+            print "step 14 from cache"
+            active_users = my_server.lrange("active_users",0,-1)
+            print "by passing steps 1-13\n"
 
-	# 	six_months_ago = datetime.utcnow()-timedelta(days=180)#240
+        else:
 
-	# 	inactive_ids = my_server.lrange("all_inactives",0,-1)
-	# 	latest_user_ids = User.objects.filter(date_joined__gte=six_months_ago).values_list('id',flat=True)
-	# 	latest_user_ids = map(str, latest_user_ids)
-	# 	all_old_inactives = set(inactive_ids) - set(latest_user_ids)
-	# 	all_old_inactives = list(all_old_inactives)
-	# 	llen = len(all_old_inactives)
-	# 	list1 = all_old_inactives[:llen/2]
-	# 	list2 = all_old_inactives[llen/2:]
-	# 	my_server.lpush("all_old_inactives",*list1)
-	# 	my_server.lpush("all_old_inactives",*list2)
-	# 	my_server.expire("all_old_inactives",ONE_WEEK)
-	# 	print "all_old_inactives list saved in redis4"
-		
+            # uploaded a photo recently
+            if my_server.exists("photo_uploaders"):
+                current_photo_uploaders = my_server.lrange("photo_uploaders",0,-1)
+                print "step 7 from cache"
+            else:
+                current_photo_uploaders = set(Photo.objects.filter(upload_time__gte=six_months_ago).values_list('owner_id',flat=True))
+                current_photo_uploaders = map(str, current_photo_uploaders)
+                print "step 7 calculated"
+                my_server.lpush("photo_uploaders",*current_photo_uploaders)
+                my_server.expire("photo_uploaders",ONE_WEEK)
+                print "... saved in redis\n"
 
-	# 	# populate required sorted_set in redis 1 (called 'inactive_users')
-	# 	inactives = []
-	# 	inactives_data = User.objects.select_related('userprofile').filter(id__in=all_old_inactives).values_list('username','id','userprofile__score')
-	# 	for inact in inactives_data:
-	# 		inactives.append((inact[0]+":"+str(inact[2]),inact[1]))
-	# 	print "sorted set data prepared..."
-		
-	# 	# inactives = list(all_inactives)
-	# 	size = len(inactives)
-	# 	child1 = inactives[:size/8]
-	# 	child2 = inactives[size/8:size/4]
-	# 	child3 = inactives[size/4:(size*3)/8]
-	# 	child4 = inactives[(size*3)/8:size/2]
-	# 	child5 = inactives[size/2:(size*5)/8]
-	# 	child6 = inactives[(size*5)/8:(size*6)/8]
-	# 	child7 = inactives[(size*6)/8:(size*7)/8]
-	# 	child8 = inactives[(size*7)/8:]
-	# 	print "data divided into 8 lists"
-		
-	# 	from itertools import chain	
-	# 	# breaking it into 8 lists avoids socket time out
-	# 	set_inactives([x for x in chain.from_iterable(child1)])
-	# 	set_inactives([x for x in chain.from_iterable(child2)])
-	# 	set_inactives([x for x in chain.from_iterable(child3)])
-	# 	set_inactives([x for x in chain.from_iterable(child4)])
-	# 	set_inactives([x for x in chain.from_iterable(child5)])
-	# 	set_inactives([x for x in chain.from_iterable(child6)])
-	# 	set_inactives([x for x in chain.from_iterable(child7)])
-	# 	set_inactives([x for x in chain.from_iterable(child8)])
-	# 	print "listed inserted into redis1's inactive_users sorted set\n"
-	# 	print "we are done!"
-	# 	return render(request,'deprecate_nicks.html',{})
-	# else:
-	# 	return render(request,'404.html',{})
-
-		import redis
-		from location import REDLOC1
-		ONE_DAY = 60*60*24
-		ONE_WEEK = 60*60*24*7
-		POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC1, db=0)
-		my_server = redis.Redis(connection_pool=POOL)
-
-		six_months_ago = datetime.utcnow()-timedelta(days=180)#240
-		
-		if my_server.exists("active_users"):
-			print "step 14 from cache"
-			active_users = my_server.lrange("active_users",0,-1)
-			print "by passing steps 1-13\n"
-
-		else:
-
-			# uploaded a photo recently
-			if my_server.exists("photo_uploaders"):
-				current_photo_uploaders = my_server.lrange("photo_uploaders",0,-1)
-				print "step 7 from cache"
-			else:
-				current_photo_uploaders = set(Photo.objects.filter(upload_time__gte=six_months_ago).values_list('owner_id',flat=True))
-				current_photo_uploaders = map(str, current_photo_uploaders)
-				print "step 7 calculated"
-				my_server.lpush("photo_uploaders",*current_photo_uploaders)
-				my_server.expire("photo_uploaders",ONE_WEEK)
-				print "... saved in redis\n"
-
-			
-			# fanned someone recently
-			if my_server.exists("fanners"):
-				current_fanners = my_server.lrange("fanners",0,-1)
-				print "step 9 from cache"
-			else:
-				current_fanners = set(UserFan.objects.filter(fanning_time__gte=six_months_ago).values_list('fan_id',flat=True))
-				current_fanners = map(str, current_fanners)
-				print "step 9 calculated"
-				my_server.lpush("fanners",*current_fanners)
-				my_server.expire("fanners",ONE_WEEK)
-				print "... saved in redis\n"
-			
-			
-			# score is above 500
-			if my_server.exists("high_score_users"):
-				more_than_500 = my_server.lrange("high_score_users",0,-1)
-				print "step 10 from cache"
-			else:
-				more_than_500 = set(UserProfile.objects.filter(score__gte=600).values_list('user_id',flat=True))
-				more_than_500 = map(str, more_than_500)
-				print "step 10 calculated"
-				my_server.lpush("high_score_users",*more_than_500)
-				my_server.expire("high_score_users",ONE_WEEK)
-				print "... saved in redis\n"
+            
+            # fanned someone recently
+            if my_server.exists("fanners"):
+                current_fanners = my_server.lrange("fanners",0,-1)
+                print "step 9 from cache"
+            else:
+                current_fanners = set(UserFan.objects.filter(fanning_time__gte=six_months_ago).values_list('fan_id',flat=True))
+                current_fanners = map(str, current_fanners)
+                print "step 9 calculated"
+                my_server.lpush("fanners",*current_fanners)
+                my_server.expire("fanners",ONE_WEEK)
+                print "... saved in redis\n"
+            
+            
+            # score is above 500
+            if my_server.exists("high_score_users"):
+                more_than_500 = my_server.lrange("high_score_users",0,-1)
+                print "step 10 from cache"
+            else:
+                more_than_500 = set(UserProfile.objects.filter(score__gte=600).values_list('user_id',flat=True))
+                more_than_500 = map(str, more_than_500)
+                print "step 10 calculated"
+                my_server.lpush("high_score_users",*more_than_500)
+                my_server.expire("high_score_users",ONE_WEEK)
+                print "... saved in redis\n"
 
 
-			# is a pink stars
-			if my_server.exists("pink_stars"):
-				pink_stars = my_server.lrange("pink_stars",0,-1)
-				print "step 11 from cache"
-			else:
-				pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
-				pink_stars = map(str, pink_stars)
-				print "step 11 calculated"
-				my_server.lpush("pink_stars",*pink_stars)
-				my_server.expire("pink_stars",ONE_WEEK)
-				print "... saved in redis\n"
+            # is a pink stars
+            if my_server.exists("pink_stars"):
+                pink_stars = my_server.lrange("pink_stars",0,-1)
+                print "step 11 from cache"
+            else:
+                pink_stars = set(User.objects.filter(username__in=FEMALES).values_list('id',flat=True))
+                pink_stars = map(str, pink_stars)
+                print "step 11 calculated"
+                my_server.lpush("pink_stars",*pink_stars)
+                my_server.expire("pink_stars",ONE_WEEK)
+                print "... saved in redis\n"
 
 
 
-			# submitted a publicreply recently
-			random_six_months_old_publicreply = 129806681#<- 2nd aug 2018#115706681
-			if my_server.exists("public_repliers"):
-				current_public_repliers = my_server.lrange("public_repliers",0,-1)
-				print "step 4 from cache"
-			else:
-				current_public_repliers = set(Publicreply.objects.filter(id__gte=random_six_months_old_publicreply).values_list('submitted_by_id',flat=True))
-				print "step 4a calculated"
-				current_public_repliers = map(str, current_public_repliers)
-				print "step 4b calculated"
-				my_server.lpush("public_repliers",*current_public_repliers)
-				my_server.expire("public_repliers",ONE_WEEK)
-				print "... saved in redis\n"
+            # submitted a publicreply recently
+            random_six_months_old_publicreply = 129806681#<- 2nd aug 2018#115706681
+            if my_server.exists("public_repliers"):
+                current_public_repliers = my_server.lrange("public_repliers",0,-1)
+                print "step 4 from cache"
+            else:
+                current_public_repliers = set(Publicreply.objects.filter(id__gte=random_six_months_old_publicreply).values_list('submitted_by_id',flat=True))
+                print "step 4a calculated"
+                current_public_repliers = map(str, current_public_repliers)
+                print "step 4b calculated"
+                my_server.lpush("public_repliers",*current_public_repliers)
+                my_server.expire("public_repliers",ONE_WEEK)
+                print "... saved in redis\n"
 
-			
-			# sent a photocomment recently
-			if my_server.exists("photo_commenters"):
-				current_photo_commenters = my_server.lrange("photo_commenters",0,-1)
-				print "step 5 from cache"
-			else:
-				random_six_months_old_photocomment = 60750000#<- 2nd aug 2018#53000000
-				current_photo_commenters = set(PhotoComment.objects.filter(id__gte=random_six_months_old_photocomment).values_list('submitted_by_id',flat=True))
-				print "step 5a calculated"
-				current_photo_commenters = map(str, current_photo_commenters)
-				print "step 5b calculated"
-				my_server.lpush("photo_commenters",*current_photo_commenters)
-				my_server.expire("photo_commenters",ONE_WEEK)
-				print "... saved in redis\n"
-
-
-			# all user ids who last logged in less than 6 months ago
-			if my_server.exists("latest_logins"):
-				latest_logins = my_server.lrange("latest_logins",0,-1)
-				print "step 1 from cache"
-			else:
-				latest_logins = list(set(User.objects.filter(last_login__gte=six_months_ago).values_list('id',flat=True)))
-				latest_logins = map(str, latest_logins)
-				print "step 1 calculated"
-				my_server.lpush("latest_logins",*latest_logins)
-				my_server.expire("latest_logins",ONE_WEEK)
-				print "... saved in redis\n"
-
-			
-			# latest user ids found in Sessions
-			if my_server.exists("current_sessions"):
-				current_sessions = my_server.lrange("current_sessions",0,-1)
-				print "step 2 from cache"
-			else:
-				current_sessions = set(Session.objects.filter(user__isnull=False,last_activity__gte=six_months_ago).values_list('user_id',flat=True))
-				current_sessions = map(str, current_sessions)
-				print "step 2 calculated"
-				my_server.lpush("current_sessions",*current_sessions)
-				my_server.expire("current_sessions",ONE_WEEK)
-				print "... saved in redis\n"
+            
+            # sent a photocomment recently
+            if my_server.exists("photo_commenters"):
+                current_photo_commenters = my_server.lrange("photo_commenters",0,-1)
+                print "step 5 from cache"
+            else:
+                random_six_months_old_photocomment = 60750000#<- 2nd aug 2018#53000000
+                current_photo_commenters = set(PhotoComment.objects.filter(id__gte=random_six_months_old_photocomment).values_list('submitted_by_id',flat=True))
+                print "step 5a calculated"
+                current_photo_commenters = map(str, current_photo_commenters)
+                print "step 5b calculated"
+                my_server.lpush("photo_commenters",*current_photo_commenters)
+                my_server.expire("photo_commenters",ONE_WEEK)
+                print "... saved in redis\n"
 
 
-			# messaged on home recently
-			if my_server.exists("home_messegers"):
-				current_home_messegers = my_server.lrange("home_messegers",0,-1)
-				print "step 3 from cache"
-			else:
-				current_home_messegers = set(Link.objects.filter(submitted_on__gte=six_months_ago).values_list('submitter_id',flat=True))
-				current_home_messegers = map(str, current_home_messegers)
-				print "step 3 calculated"
-				my_server.lpush("home_messegers",*current_home_messegers)
-				my_server.expire("home_messegers",ONE_WEEK)
-				print "... saved in redis\n"
+            # all user ids who last logged in less than 6 months ago
+            if my_server.exists("latest_logins"):
+                latest_logins = my_server.lrange("latest_logins",0,-1)
+                print "step 1 from cache"
+            else:
+                latest_logins = list(set(User.objects.filter(last_login__gte=six_months_ago).values_list('id',flat=True)))
+                latest_logins = map(str, latest_logins)
+                print "step 1 calculated"
+                my_server.lpush("latest_logins",*latest_logins)
+                my_server.expire("latest_logins",ONE_WEEK)
+                print "... saved in redis\n"
+
+            
+            # latest user ids found in Sessions
+            if my_server.exists("current_sessions"):
+                current_sessions = my_server.lrange("current_sessions",0,-1)
+                print "step 2 from cache"
+            else:
+                current_sessions = set(Session.objects.filter(user__isnull=False,last_activity__gte=six_months_ago).values_list('user_id',flat=True))
+                current_sessions = map(str, current_sessions)
+                print "step 2 calculated"
+                my_server.lpush("current_sessions",*current_sessions)
+                my_server.expire("current_sessions",ONE_WEEK)
+                print "... saved in redis\n"
 
 
-			# created an account recently
-			if my_server.exists("recent_account_creators"):
-				recent_account_creators = my_server.lrange("recent_account_creators",0,-1)
-				print "step 6 from cache"
-			else:
-				recent_account_creators = set(User.objects.filter(date_joined__gte=six_months_ago).values_list('id',flat=True))
-				recent_account_creators = map(str, recent_account_creators)
-				print "step 6 calculated"
-				my_server.lpush("recent_account_creators",*recent_account_creators)
-				my_server.expire("recent_account_creators",ONE_WEEK)
-				print "... saved in redis\n"
-			
+            # messaged on home recently
+            if my_server.exists("home_messegers"):
+                current_home_messegers = my_server.lrange("home_messegers",0,-1)
+                print "step 3 from cache"
+            else:
+                current_home_messegers = set(Link.objects.filter(submitted_on__gte=six_months_ago).values_list('submitter_id',flat=True))
+                current_home_messegers = map(str, current_home_messegers)
+                print "step 3 calculated"
+                my_server.lpush("home_messegers",*current_home_messegers)
+                my_server.expire("home_messegers",ONE_WEEK)
+                print "... saved in redis\n"
 
-				# has at least 1 private chat
-				# TODO: 1_on_1_chatted = 
-				# last ran 10th Sept 2018
 
-			# create a list of the data
-			sets = [set(current_public_repliers),set(current_photo_commenters),set(latest_logins),set(current_sessions),set(current_home_messegers),\
-			set(current_photo_uploaders),set(current_fanners),set(more_than_500),set(pink_stars),set(recent_account_creators)]#, 1_on_1_chatted]
-			print "step 12 calculated"
+            # created an account recently
+            if my_server.exists("recent_account_creators"):
+                recent_account_creators = my_server.lrange("recent_account_creators",0,-1)
+                print "step 6 from cache"
+            else:
+                recent_account_creators = set(User.objects.filter(date_joined__gte=six_months_ago).values_list('id',flat=True))
+                recent_account_creators = map(str, recent_account_creators)
+                print "step 6 calculated"
+                my_server.lpush("recent_account_creators",*recent_account_creators)
+                my_server.expire("recent_account_creators",ONE_WEEK)
+                print "... saved in redis\n"
+            
 
-			# the union of all of the above gives us users that have been at least remotely active in the last 4 months
-			active_users = set.union(*sets)
+                # has at least 1 private chat
+                # TODO: 1_on_1_chatted = 
+                # last ran 10th Sept 2018
 
-			print "step 13 calculated"
-			my_server.lpush("active_users",*active_users)
-			my_server.expire("active_users",ONE_WEEK)
-			print "... saved in redis\n"
-		
-		# all user ids
-		all_users = list(User.objects.all().values_list('id',flat=True))
-		all_users = map(str, all_users)
-		print "step 15 calculated"
+            # create a list of the data
+            sets = [set(current_public_repliers),set(current_photo_commenters),set(latest_logins),set(current_sessions),set(current_home_messegers),\
+            set(current_photo_uploaders),set(current_fanners),set(more_than_500),set(pink_stars),set(recent_account_creators)]#, 1_on_1_chatted]
+            print "step 12 calculated"
 
-		# all inactives are simply all users minus all active users
-		all_inactives = set(all_users) - set(active_users)
-		print "step 16 calculated"
+            # the union of all of the above gives us users that have been at least remotely active in the last 4 months
+            active_users = set.union(*sets)
 
-		all_inactives = list(all_inactives)
-		llen = len(all_inactives)
-		list1 = all_inactives[:llen/2]
-		list2 = all_inactives[llen/2:]
-		my_server.lpush("all_inactives",*list1)
-		my_server.lpush("all_inactives",*list2)
-		my_server.expire("all_inactives",ONE_WEEK)
-		print "... saved in redis\n"
+            print "step 13 calculated"
+            my_server.lpush("active_users",*active_users)
+            my_server.expire("active_users",ONE_WEEK)
+            print "... saved in redis\n"
+        
+        # all user ids
+        all_users = list(User.objects.all().values_list('id',flat=True))
+        all_users = map(str, all_users)
+        print "step 15 calculated"
 
-		
+        # all inactives are simply all users minus all active users
+        all_inactives = set(all_users) - set(active_users)
+        print "step 16 calculated"
 
-		# populate required sorted_set in redis 1 (called 'inactive_users')
-		inactives = []
-		inactives_data = User.objects.only('username','id','userprofile__score').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
-		for inact in inactives_data:
-			inactives.append((inact[0]+":"+str(inact[2]),inact[1]))#creating a list of tuples
-		print "step 17 calculated"
-		
-		# inactives = list(all_inactives)
-		size = len(inactives)
-		child1 = inactives[:size/8]
-		child2 = inactives[size/8:size/4]
-		child3 = inactives[size/4:(size*3)/8]
-		child4 = inactives[(size*3)/8:size/2]
-		child5 = inactives[size/2:(size*5)/8]
-		child6 = inactives[(size*5)/8:(size*6)/8]
-		child7 = inactives[(size*6)/8:(size*7)/8]
-		child8 = inactives[(size*7)/8:]
-		print "step 18 calculated"
-		
-		from itertools import chain	
-		# breaking it into 8 lists avoids socket time out
-		set_inactives([x for x in chain.from_iterable(child1)])
-		set_inactives([x for x in chain.from_iterable(child2)])
-		set_inactives([x for x in chain.from_iterable(child3)])
-		set_inactives([x for x in chain.from_iterable(child4)])
-		set_inactives([x for x in chain.from_iterable(child5)])
-		set_inactives([x for x in chain.from_iterable(child6)])
-		set_inactives([x for x in chain.from_iterable(child7)])
-		set_inactives([x for x in chain.from_iterable(child8)])
-		print "step 19 calculated\n"
-		print "we are done!"
-		return render(request,'deprecate_nicks.html',{})
-	else:
-		return render(request,'404.html',{})
+        all_inactives = list(all_inactives)
+        llen = len(all_inactives)
+        list1 = all_inactives[:llen/2]
+        list2 = all_inactives[llen/2:]
+        my_server.lpush("all_inactives",*list1)
+        my_server.lpush("all_inactives",*list2)
+        my_server.expire("all_inactives",ONE_WEEK)
+        print "... saved in redis\n"
+
+        
+
+        # populate required sorted_set in redis 1 (called 'inactive_users')
+        inactives = []
+        inactives_data = User.objects.only('username','id','userprofile__score').filter(id__in=all_inactives).values_list('username','id','userprofile__score')
+        for inact in inactives_data:
+            inactives.append((inact[0]+":"+str(inact[2]),inact[1]))#creating a list of tuples
+        print "step 17 calculated"
+        
+        # inactives = list(all_inactives)
+        size = len(inactives)
+        child1 = inactives[:size/8]
+        child2 = inactives[size/8:size/4]
+        child3 = inactives[size/4:(size*3)/8]
+        child4 = inactives[(size*3)/8:size/2]
+        child5 = inactives[size/2:(size*5)/8]
+        child6 = inactives[(size*5)/8:(size*6)/8]
+        child7 = inactives[(size*6)/8:(size*7)/8]
+        child8 = inactives[(size*7)/8:]
+        print "step 18 calculated"
+        
+        from itertools import chain    
+        # breaking it into 8 lists avoids socket time out
+        set_inactives([x for x in chain.from_iterable(child1)])
+        set_inactives([x for x in chain.from_iterable(child2)])
+        set_inactives([x for x in chain.from_iterable(child3)])
+        set_inactives([x for x in chain.from_iterable(child4)])
+        set_inactives([x for x in chain.from_iterable(child5)])
+        set_inactives([x for x in chain.from_iterable(child6)])
+        set_inactives([x for x in chain.from_iterable(child7)])
+        set_inactives([x for x in chain.from_iterable(child8)])
+        print "step 19 calculated\n"
+        print "we are done!"
+        return render(request,'deprecate_nicks.html',{})
+    else:
+        return render(request,'404.html',{})
 
 
 def insert_nicks(request,*args,**kwargs):

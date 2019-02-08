@@ -74,8 +74,8 @@ def change_nicks(request,*args,**kwargs):
 				invalidated_cached_uname_credentials(user_ids=id_list)# invalidating uname caches in bulk
 				counter = 0
 				for pk in id_list:
-					# change 'd_m_d_' (and can't keep 'i_i__') next time this is run; otherwise there will be collisions
-					# change_nick(target_id=pk, new_nick='d_m_d_'+rand_nums[counter])
+					# change 'd_m_d_' (and can't keep 'i_i__' either) next time this is run; otherwise there will be collisions
+					change_nick(target_id=pk, new_nick='d_m_d_'+rand_nums[counter])
 					counter += 1
 				remove_verified_mob(target_user_ids=id_list)# unverifying users in bulk
 				if last_batch:
@@ -88,7 +88,6 @@ def change_nicks(request,*args,**kwargs):
 			return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
 	else:
 		return redirect("home")
-
 
 def export_nicks(request,*args,**kwargs):
 	"""Exports deprecated nicks in a CSV.

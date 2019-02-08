@@ -380,6 +380,19 @@ def add_search_photo(img_url,photo_id,owner_uname):
 		payload = '&nbsp;'.join(groups[:PHOTOS_WITH_SEARCHED_NICKNAMES])
 	my_server.set(user_thumbs,payload)
 
+
+def sanitizing_old_keys():
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	deletable_keys_1 = my_server.keys("upt:*")
+	deletable_keys_2 = my_server.keys("sh:*")
+	for key in deletable_keys_1:
+		my_server.delete(key)
+	for key in deletable_keys_2:
+		my_server.delete(key)
+
+
 #populates uploaded photo thumbs whenever a profile is visited
 def bulk_add_search_photos(owner_uname, ids_with_urls):
 	my_server = redis.Redis(connection_pool=POOL)

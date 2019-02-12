@@ -1,5 +1,5 @@
-from django.contrib.staticfiles.templatetags.staticfiles import static
 from django import template
+from unconnectedreddit.env import BUCKET_ADDR
 
 register = template.Library()
 
@@ -12,9 +12,11 @@ def thumb_to_img(filename):
 		return ''
 	else:
 		filename = str(filename)
-		split_by = "thumbnails/"
-		######################################################
-		try:
-			return "//s3.eu-central-1.amazonaws.com/damadam/photos/"+filename.split(split_by)[1]
-		except IndexError:
-			return static('img/default-avatar-min.jpg')
+		name = filename[-40:]
+		if "thumb/public/" in filename:
+			return BUCKET_ADDR+"public/"+name
+		############################################
+		################# Legacy ###################
+		############################################
+		elif "thumbnails/" in filename:
+			return BUCKET_ADDR+"photos/"+name

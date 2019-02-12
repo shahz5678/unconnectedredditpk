@@ -13,9 +13,9 @@ os.environ['S3_USE_SIGV4'] = 'True'
 
 
 
-def upload_image_to_s3(image, prefix='personal_groups/'):
+def upload_image_to_s3(image, prefix='1on1/'):
 	"""
-	Used by group_views for personal group photos
+	Used by views for 1on1 and mehfil photos
 	"""
 	image_name_with_path = os.path.join(prefix, "%s.jpg" % uuid.uuid4())
 	s3_object = S3Storage()
@@ -39,15 +39,16 @@ def upload_to_picschat(instance, filename):
 
 
 def upload_to_mehfils(instance, filename):
-	try:
-		blocks = filename.split('.') 
-		ext = blocks[-1] #whether jpg or png
-		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
-		instance.title = blocks[0]
-		return os.path.join('mehfils/', filename)
-	except Exception as e:
-		# print '%s (%s)' % (e.message, type(e))
-		return 0
+	pass
+	# try:
+	# 	blocks = filename.split('.') 
+	# 	ext = blocks[-1] #whether jpg or png
+	# 	filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
+	# 	instance.title = blocks[0]
+	# 	return os.path.join('mehfils/', filename)
+	# except Exception as e:
+	# 	# print '%s (%s)' % (e.message, type(e))
+	# 	return 0
 
 
 def upload_to_avatars(instance, filename):
@@ -56,7 +57,7 @@ def upload_to_avatars(instance, filename):
 		ext = blocks[-1] #whether jpg or png
 		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
 		instance.title = blocks[0]
-		return os.path.join('avatars/', filename)
+		return os.path.join('avatar/', filename)
 	except Exception as e:
 		# print '%s (%s)' % (e.message, type(e))
 		return 0
@@ -67,7 +68,7 @@ def upload_to_photos(instance, filename):
 		ext = blocks[-1]
 		filename = "%s.%s" % (uuid.uuid4(), ext)
 		instance.title = blocks[0]
-		return os.path.join('photos/', filename)
+		return os.path.join('public/', filename)
 	except Exception as e:
 		# print '%s (%s)' % (e.message, type(e))
 		return 0
@@ -86,27 +87,28 @@ def upload_to_links(instance, filename):
 
 
 def upload_to_photocomments(instance, filename):
-	try:
-		blocks = filename.split('.') 
-		ext = blocks[-1] #whether jpg or png
-		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
-		instance.title = blocks[0]
-		return os.path.join('photos/', filename)
-	except Exception as e:
-		# print '%s (%s)' % (e.message, type(e))
-		return 0
+	pass
+	# try:
+	# 	blocks = filename.split('.') 
+	# 	ext = blocks[-1] #whether jpg or png
+	# 	filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
+	# 	instance.title = blocks[0]
+	# 	return os.path.join('photos/', filename)
+	# except Exception as e:
+	# 	# print '%s (%s)' % (e.message, type(e))
+	# 	return 0
 
 
-
-# creates thumbs out of images passed into it
 def get_thumb(filename, content, folder_name):
-	# thumb_name = filename
-	thumb_name = string.replace(filename, folder_name, "thumbnails")
+	"""
+	Creates thumbs out of images passed into it
+	"""
+	thumb_name = string.replace(filename, folder_name, "thumb/"+folder_name+'/')
 	image = content.file		
 	image = Image.open(image)
-	if folder_name == 'avatars':
+	if folder_name == 'avatar':
 		size = 22, 22
-	elif folder_name == 'photos' or folder_name == 'personal_groups':
+	elif folder_name == 'public' or folder_name == '1on1':
 		height = THUMB_HEIGHT
 		image = content.file		
 		image = Image.open(image)
@@ -115,7 +117,7 @@ def get_thumb(filename, content, folder_name):
 		size = (bsize,height)
 	small_image = image.resize(size, Image.ANTIALIAS)
 	thumbnail = StringIO.StringIO()
-	small_image.save(thumbnail,'JPEG',quality=50, optimize=True)
+	small_image.save(thumbnail,'JPEG',quality=70, optimize=True)
 	img = InMemoryUploadedFile(thumbnail, None, 'small.jpg', 'image/jpeg', thumbnail.len, None)
 	content.file = img
 	return thumb_name, content
@@ -158,18 +160,18 @@ class S3Storage(S3BotoStorage):
 			self._entries[encoded_name] = key
 		key.set_metadata('Content-Type', content_type)
 		self._save_content(key, content, headers=headers)
-		if 'photos' in encoded_name:
-			thumb_name, thumb_content = get_thumb(encoded_name, content, 'photos')
+		if 'public' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, 'public')
 			thumb_key = self.bucket.get_key(thumb_name)
 			if not thumb_key:
 				thumb_key = self.bucket.new_key(thumb_name)
-		elif 'avatars' in encoded_name:
-			thumb_name, thumb_content = get_thumb(encoded_name, content, 'avatars')
+		elif 'avatar' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, 'avatar')
 			thumb_key = self.bucket.get_key(thumb_name)
 			if not thumb_key:
 				thumb_key = self.bucket.new_key(thumb_name)
-		elif 'personal_groups' in encoded_name:
-			thumb_name, thumb_content = get_thumb(encoded_name, content, 'personal_groups')
+		elif '1on1' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, '1on1')
 			thumb_key = self.bucket.get_key(thumb_name)
 			if not thumb_key:
 				thumb_key = self.bucket.new_key(thumb_name)

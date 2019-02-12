@@ -79,7 +79,7 @@ from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_sa
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, \
 prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, bulk_is_fan, retrieve_unseen_notifications, \
-get_photo_fan_count, retrieve_object_data
+get_photo_fan_count, retrieve_object_data, remove_erroneous_notif
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
@@ -339,7 +339,11 @@ def valid_uuid(uuid):
 
 # link_id, writer_username, writer_avatar_url, writer_id, link_description
 def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
-	parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
+	try:
+		parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
+	except Link.DoesNotExist:
+		# return a string you're sure is NOT a username
+		return ";"
 	if link_writer_id and int(link_writer_id) != parent.submitter_id:
 		# return a string you're sure is NOT a username
 		return ":"
@@ -1162,6 +1166,9 @@ def home_reply(request,pk=None,*args,**kwargs):
 					request.session['target_id'] = notif
 					if target == ":":
 						return redirect("ban_underway")
+					elif target == ';':
+						remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(pk), user_id=user_id)
+						return render(request,"object_deleted.html",{})
 					elif tutorial_unseen(user_id=user_id, which_tut='5', renew_lease=True):
 						return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username})
 					else:
@@ -1176,14 +1183,6 @@ def home_reply(request,pk=None,*args,**kwargs):
 		request.session['list_of_dictionaries'] = list_of_dictionaries
 		request.session['page'] = page_obj
 		request.session.modified = True
-		# if lang == 'urdu' and sort_by_best:
-		#     url = reverse_lazy("ur_home_best",kwargs={'lang': lang})+addendum
-		# elif sort_by_best:
-		#     url = reverse_lazy("home_best")+addendum
-		# elif lang == 'urdu':
-		#     url = reverse_lazy("ur_home",kwargs={'lang': lang})+addendum
-		# else:
-		#     url = reverse_lazy("home")+addendum
 		url = reverse_lazy("home")+addendum
 		return redirect(url)
 
@@ -1493,7 +1492,7 @@ class OnlineKonView(ListView):
 	def get_queryset(self):
 		user_ids = get_most_recent_online_users()#cache_mem.get('online')
 		if user_ids:
-			queryset = User.objects.filter(id__in=user_ids).values('username', 'userprofile__score', 'userprofile__avatar')
+			queryset = User.objects.only('id','username','userprofile__score','userprofile__avatar').filter(id__in=user_ids).values('id','username', 'userprofile__score', 'userprofile__avatar')
 			return queryset
 		else:
 			return []
@@ -1592,9 +1591,9 @@ class UserProfilePhotosView(ListView):
 		context["fans"] = total_fans if total_fans else 0
 		context["recent_fans"] = recent_fans if recent_fans else 0
 		context["manageable"] = False
-		if context["object_list"] and search_thumbs_missing(slug):
+		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
-			populate_search_thumbs.delay(slug,ids_with_urls)
+			populate_search_thumbs.delay(star_id,ids_with_urls)
 		if user_id:#i.e. if authenticated
 			context["origin"] = '4'#helps redirect back to this page if a user enter the "report" funnel
 			context["authenticated"] = True
@@ -2819,7 +2818,7 @@ class CommentView(CreateView):
 		kwargs['mobile_verified'] = self.request.mobile_verified
 		kwargs['photo_id'] = self.kwargs['pk']
 		return kwargs
-
+	
 	def get_context_data(self, **kwargs):
 		context = super(CommentView, self).get_context_data(**kwargs)
 		context["feature_phone"] = True if self.request.is_feature_phone else False
@@ -2828,9 +2827,17 @@ class CommentView(CreateView):
 			try:
 				photo = Photo.objects.select_related('owner').get(id=pk)
 			except Photo.DoesNotExist:
-				raise Http404("Photo does not exist")
+				if self.request.user.is_authenticated():
+					user_id = self.request.user.id
+					remove_erroneous_notif(notif_name="np:"+str(user_id)+":0:"+str(pk), user_id=user_id)
+					context["obj_deleted"] = True
+					return context
+					# return render(request,"object_deleted.html",{})
+				else:
+					raise Http404("Photo does not exist")
 		else:
 			raise Http404("Photo ID does not exist")
+		context["obj_deleted"] = False
 		context["photo_id"] = pk
 		home_hash = 'img:'+pk
 		context["lid"] = home_hash
@@ -2840,7 +2847,7 @@ class CommentView(CreateView):
 		context["photo"] = photo
 		target_username = photo.owner.username
 		context["target_username"] = target_username
-		context["thumbs"] = retrieve_single_thumbs(target_username)
+		context["thumbs"] = retrieve_single_thumbs(photo.owner_id)
 		context["verified"] = FEMALES
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
@@ -4599,9 +4606,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 	"""
 	Processes comment under photo from unseen activity (or single notification)
 	"""
-	was_limited = getattr(request, 'limits', False)
 	user_id = request.user.id
-	if was_limited:
+	if getattr(request, 'limits', False):
 		raise Http404("Not so fast!")
 	elif request.user_banned:
 		return redirect("error")
@@ -4630,7 +4636,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
 				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk,per_grp_id='')
 				if form.is_valid():
-					photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
+					try:
+						photo_comment_count = Photo.objects.only('comment_count').get(id=pk).comment_count
+					except Photo.DoesNotExist:
+						remove_erroneous_notif(notif_name="np:"+str(user_id)+":0:"+str(pk), user_id=user_id)
+						return render(request,"object_deleted.html",{})
 					description = form.cleaned_data.get("photo_comment")
 					set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time.time())
 					if request.is_feature_phone:
@@ -4733,6 +4743,9 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=own_id,time_now=time.time())
 					if target == ":":
 						return redirect("ban_underway")
+					elif target == ';':
+						remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(pk), user_id=own_id)
+						return render(request,"object_deleted.html",{})
 					elif origin:
 						if origin == '1':
 							return redirect("photo")
@@ -4882,7 +4895,13 @@ def public_reply_view(request,*args,**kwargs):
 			link_id = request.session.pop("link_pk",None)
 		if link_id:
 			# link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
-			link = Link.objects.only('id','reply_count','description','submitted_on','submitter','net_votes').get(id=link_id)
+			try:
+				link = Link.objects.only('id','reply_count','description','submitted_on','submitter','net_votes').get(id=link_id)
+			except Link.DoesNotExist:
+				# purge single notification and matka of request.user.id
+				own_id = request.user.id
+				remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(link_id), user_id=own_id)
+				return render(request, 'object_deleted.html',{})
 			form = request.session.pop("publicreply_form",None)
 			context["is_auth"] = True
 			secret_key = uuid.uuid4()
@@ -4945,11 +4964,11 @@ def public_reply_view(request,*args,**kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-# @ratelimit(field='sid',ip=False,rate='1/d')
+# @ratelimit(field='sid',ip=False,rate='3/s')
 def post_public_reply(request,*args,**kwargs):
 	context = {}
 	# if getattr(request, 'limits', False):
-	# 	raise Http404("You cannot post this reply")
+	#     raise Http404("You cannot post this reply")
 	if request.user_banned:
 		return redirect("error")
 	elif request.method == "POST":
@@ -4973,6 +4992,9 @@ def post_public_reply(request,*args,**kwargs):
 				target = process_publicreply(request=request,link_id=link_id,text=text, link_writer_id=link_writer_id)
 				if target == ":":
 					return redirect("ban_underway")
+				elif target == ";":
+					remove_erroneous_notif(notif_name="np:"+str(user_id)+":2:"+str(link_id), user_id=user_id)
+					return render(request,"object_deleted.html",{})
 				request.session["link_pk"] = link_id
 				request.session.modified = True
 			else:

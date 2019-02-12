@@ -3,6 +3,10 @@ from django import template
 from unconnectedreddit.env import BUCKET_ADDR
 import string
 
+# Legacy files are files stored in S3 before 13th Feb 2019
+# Everything stored in S3 after (and on) 13th Feb 2019 is saved in folders called /1on1/, /mehfil/, /avatar/, /public/
+# Everything stored in S3 before 13th Feb 2019 is saved in folders called /personal_group/, /mehfils/, /avatars/, /photos/
+
 register = template.Library()
 
 @register.filter(name='s3')
@@ -14,31 +18,69 @@ def get_s3_object(filename,category='img'):
 			return static('img/broken.svg')
 	else:
 		filename = str(filename)
-		if filename == 'empty':
-			if category == 'thumb':
+		if category == 'thumb':
+			# this is a thumbnail
+			if filename == 'empty':
 				return static('img/default-avatar-min.jpg')
 			else:
-				return static('img/broken.svg')
-		elif "photos/" in filename:
-			split_by = "photos/"
-		elif "personal_groups/" in filename:
-			split_by = "personal_groups/"
-		elif "avatars/" in filename:
-			split_by = "avatars/"
-		elif "mehfils/" in filename:
-			split_by = "mehfils/"
-		elif "users/" in filename:
-			split_by = "users/"
+				name = filename[-40:]
+				if "1on1/" in filename:
+					return BUCKET_ADDR+'thumb/1on1/'+name
+				elif "mehfil/" in filename:
+					return BUCKET_ADDR+'thumb/mehfil/'+name
+				elif "avatar/" in filename:
+					return BUCKET_ADDR+'thumb/avatar/'+name
+				elif "public/" in filename:
+					return BUCKET_ADDR+'thumb/public/'+name
+				############################################
+				################# Legacy ###################
+				############################################
+				elif "photos/" in filename:
+					# print name
+					return BUCKET_ADDR+"thumbnails/"+name
+				elif "personal_groups/" in filename:
+					return BUCKET_ADDR+"thumbnails/"+name
+				elif "avatars/" in filename:
+					return BUCKET_ADDR+"thumbnails/"+name
+				elif "mehfils/" in filename:
+					return BUCKET_ADDR+"thumbnails/"+name
+				elif "users/" in filename:
+					return BUCKET_ADDR+"thumbnails/"+name
+				else:
+					return BUCKET_ADDR+"thumbnails/"+name
+				############################################
+				############################################
+				############################################
 		else:
-			split_by = "photos/"
-		######################################################
-		if category=='thumb':
-			try:
-				return BUCKET_ADDR+"thumbnails/"+filename.split(split_by)[1]
-			except IndexError:
-				return static('img/default-avatar-min.jpg')
-		else:
-			try:
-				return BUCKET_ADDR+split_by+filename.split(split_by)[1]
-			except IndexError:
+			# this is a full-sized image
+			if filename == 'empty':
 				return static('img/broken.svg')
+			else:
+				if "1on1/" in filename:
+					return BUCKET_ADDR+filename
+				elif "mehfil/" in filename:
+					return BUCKET_ADDR+filename
+				elif "avatar/" in filename:
+					return BUCKET_ADDR+filename
+				elif "public/" in filename:
+					return BUCKET_ADDR+filename
+				else:
+					############################################
+					################# Legacy ###################
+					############################################
+					name = filename[-40:]
+					if "photos/" in filename:
+						return BUCKET_ADDR+"photos/"+name
+					elif "personal_groups/" in filename:
+						return BUCKET_ADDR+"personal_groups/"+name
+					elif "avatars/" in filename:
+						return BUCKET_ADDR+"avatars/"+name
+					elif "mehfils/" in filename:
+						return BUCKET_ADDR+"mehfils/"+name
+					elif "users/" in filename:
+						return BUCKET_ADDR+"users/"+name
+					else:
+						return BUCKET_ADDR+"photos/"+name
+					############################################
+					############################################
+					############################################

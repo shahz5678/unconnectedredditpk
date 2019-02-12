@@ -167,8 +167,7 @@
       <a name="section{{ forloop.counter }}"></a>
 
       <div itemscope itemtype="http://schema.org/CreativeWork">
-        
-        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False %}
+        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False %}
 
         <div class="mls">
           <div style="flex-wrap:wrap" class="fx fxjsfs fxaicn cxs sp cgy">

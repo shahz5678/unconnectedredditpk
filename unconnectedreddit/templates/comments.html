@@ -6,8 +6,31 @@
 {% load show_error %}
 {% load s3 %}
 {% block content %}
-<head><title>Comments on photo titled {{ photo.caption }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
+
+{% if obj_deleted %}
+
+    <head><title>Does not exist | Damadam.pk</title></head>
+    <h1 class="cxl clb lsp" style="text-align:center">Sorry! Ye exist nahi karta</h1>
+    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+        <div class="cxl lsp">Ap jo dhoond rehay hain woh exist nahi karta</div>
+        <hr size=1 COLOR="#e5e7e9">
+        <div class="sp lsp mts cgy">Mumqin hai woh delete ho chuka ho. Ab ap Damadam mein kahan jana chahtey hain?</div>
+
+        <div class="mtl" style="text-align:center">
+        <a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs pg_ok_res" style="border:none;height:30px;">Home</button></a>
+        <a href="{% url 'best_photo' %}"><button class="btn bco bl mrl cl mts mbs pg_ok_res" style="border:none;height:30px;">Fotos</button></a>
+        <a href="{% url 'group_page' %}"><button class="btn bcg mrl bl cl mts mbs pg_ok_res" style="border:none;height:30px;">Mehfil</button></a>
+        <a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcp mrl bl cl mts pg_ok_res" style="border:none;height:30px;">Matka</button></a>
+        </div>
+
+    </div>
+    <br><br>
+
+{% else %}
+
+<head><title>Comments on photo titled {{ photo.caption }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam.pk</title></head>
 <div style="margin: 0 auto;max-width:600px;width:98%">
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
@@ -129,4 +152,5 @@
     {% endfor %}
     </div>
 </div>
+{% endif %}
 {% endblock %}

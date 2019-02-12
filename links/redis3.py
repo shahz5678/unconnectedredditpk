@@ -255,12 +255,13 @@ def find_nickname(target_nick, searcher_id):
 		my_server.zrem("nicknames",generic_nick)
 		raw_nicknames = my_server.zrange("nicknames",max(rank-5,0),(rank+5))
 		similar_nicknames = get_nicknames(raw_nicknames)
-		pipeline1 = my_server.pipeline()
+		result1 = []
 		for uname in similar_nicknames:
 			user_id = retrieve_user_id(uname)
 			if user_id:
-				pipeline1.get(USER_THUMBS+user_id)
-		result1 = pipeline1.execute()
+				result1.append(my_server.get(USER_THUMBS+user_id))
+			else:
+				result1.append(None)
 		similar_with_pics = []
 		counter = 0
 		for uname in similar_nicknames:

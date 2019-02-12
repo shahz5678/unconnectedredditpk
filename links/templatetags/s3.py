@@ -3,6 +3,10 @@ from django import template
 from unconnectedreddit.env import BUCKET_ADDR
 import string
 
+# Legacy files are files stored in S3 before 13th Feb 2019
+# Everything stored in S3 after (and on) 13th Feb 2019 is saved in folders called /1on1/, /mehfil/, /avatar/, /public/
+# Everything stored in S3 before 13th Feb 2019 is saved in folders called /personal_group/, /mehfils/, /avatars/, /photos/
+
 register = template.Library()
 
 @register.filter(name='s3')

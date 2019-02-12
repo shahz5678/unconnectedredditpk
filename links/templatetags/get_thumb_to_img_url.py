@@ -13,7 +13,10 @@ def thumb_to_img(filename):
 	else:
 		filename = str(filename)
 		name = filename[-40:]
-		if "photos/" in filename:
-			return BUCKET_ADDR+"photos/"+name
-		elif "public/" in filename:
+		if "thumb/public/" in filename:
 			return BUCKET_ADDR+"public/"+name
+		############################################
+		################# Legacy ###################
+		############################################
+		elif "thumbnails/" in filename:
+			return BUCKET_ADDR+"photos/"+name

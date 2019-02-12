@@ -2818,7 +2818,7 @@ class CommentView(CreateView):
 		kwargs['mobile_verified'] = self.request.mobile_verified
 		kwargs['photo_id'] = self.kwargs['pk']
 		return kwargs
-
+	
 	def get_context_data(self, **kwargs):
 		context = super(CommentView, self).get_context_data(**kwargs)
 		context["feature_phone"] = True if self.request.is_feature_phone else False
@@ -2827,9 +2827,17 @@ class CommentView(CreateView):
 			try:
 				photo = Photo.objects.select_related('owner').get(id=pk)
 			except Photo.DoesNotExist:
-				raise Http404("Photo does not exist")
+				if self.request.user.is_authenticated():
+					user_id = self.request.user.id
+					remove_erroneous_notif(notif_name="np:"+str(user_id)+":0:"+str(pk), user_id=user_id)
+					context["obj_deleted"] = True
+					return context
+					# return render(request,"object_deleted.html",{})
+				else:
+					raise Http404("Photo does not exist")
 		else:
 			raise Http404("Photo ID does not exist")
+		context["obj_deleted"] = False
 		context["photo_id"] = pk
 		home_hash = 'img:'+pk
 		context["lid"] = home_hash
@@ -4598,9 +4606,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 	"""
 	Processes comment under photo from unseen activity (or single notification)
 	"""
-	was_limited = getattr(request, 'limits', False)
 	user_id = request.user.id
-	if was_limited:
+	if getattr(request, 'limits', False):
 		raise Http404("Not so fast!")
 	elif request.user_banned:
 		return redirect("error")
@@ -4629,7 +4636,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 				lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
 				form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id='',link_id='',photo_id=pk,per_grp_id='')
 				if form.is_valid():
-					photo_comment_count = Photo.objects.filter(id=pk).values_list('comment_count', flat=True)[0]
+					try:
+						photo_comment_count = Photo.objects.only('comment_count').get(id=pk).comment_count
+					except Photo.DoesNotExist:
+						remove_erroneous_notif(notif_name="np:"+str(user_id)+":0:"+str(pk), user_id=user_id)
+						return render(request,"object_deleted.html",{})
 					description = form.cleaned_data.get("photo_comment")
 					set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time.time())
 					if request.is_feature_phone:

@@ -3283,7 +3283,7 @@ class PrivateGroupView(FormView):
 							else:
 								return redirect('private_group_request_denied')
 						else:
-							uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfils/')
+							uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
 					else: 
 						uploaded_img_loc = None
 					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
@@ -3554,7 +3554,7 @@ class PublicGroupView(FormView):
 						else:
 							return redirect('public_group_request_denied')
 					else:
-						uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfils/')
+						uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
 				else: 
 					uploaded_img_loc = None
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)

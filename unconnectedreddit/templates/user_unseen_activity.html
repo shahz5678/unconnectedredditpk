@@ -479,41 +479,41 @@
 				<div class="mbs cgy cs sp"><b>{{ notif.oon }}</b> ke fans ke liye:</div>
 			{% endif %}
 				<div class="cl cgy bw lsp" style="margin:0;font-weight:bold;max-width:400px">{% emoticons %}{{ notif.od }}{% endemoticons %}</div>
-		    {% if notif.v|add:"0" < VDC %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
-		    {% elif notif.v|add:"0" < VDP %}
-			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" style="border-radius:12px" class="fbl ibg mt" alt="{{ notif.od }}">
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
-			    {% endif %}
-		    {% else %}
-			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" style="border-radius:12px" class="ibg mt" alt="{{ notif.od }}">
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
-			    {% endif %}
-		    {% endif %}
-	    {% else %}
-	    	{% if notif.f == 'True' %}
+			{% if notif.v|add:"0" < VDC %}
+				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+			{% elif notif.v|add:"0" < VDP %}
+				{% if notif.p != 'None' %}
+				<img src="{{ notif.p }}" style="border-radius:12px" class="fbl ibg mt" alt="{{ notif.od }}">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+				{% endif %}
+			{% else %}
+				{% if notif.p != 'None' %}
+				<img src="{{ notif.p }}" style="border-radius:12px" class="ibg mt" alt="{{ notif.od }}">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+				{% endif %}
+			{% endif %}
+		{% else %}
+			{% if notif.f == 'True' %}
 				<div class="mbs co cs sp"><b>{{ notif.oon }}</b> ke fans ke liye:</div>
 			{% endif %}
 				<div class="cl co bw lsp" style="font-weight:bold;max-width:400px">{% emoticons %}{{ notif.od }}{% endemoticons %}</div>
-	    	{% if notif.v|add:"0" < VDC %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
-		    {% elif notif.v|add:"0" < VDP %}
-			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" class="fbl ibo mt" style="border-radius:12px" alt="{{ notif.od }}">
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
-			    {% endif %}
-		    {% else %}
-			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" style="border-radius:12px" class="ibo mt" alt="{{ notif.od }}">
-			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
-			    {% endif %}
-		    {% endif %}
+			{% if notif.v|add:"0" < VDC %}
+				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+			{% elif notif.v|add:"0" < VDP %}
+				{% if notif.p != 'None' %}
+				<img src="{{ notif.p }}" class="fbl ibo mt" style="border-radius:12px" alt="{{ notif.od }}">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+				{% endif %}
+			{% else %}
+				{% if notif.p != 'None' %}
+				<img src="{{ notif.p }}" style="border-radius:12px" class="ibo mt" alt="{{ notif.od }}">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+				{% endif %}
+			{% endif %}
 		{% endif %}
 
 	{% if notif.s == 'True' %}
@@ -634,15 +634,15 @@
 
 	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
 		{% if page.has_previous %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
-	    {% if page.has_next %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
+		{% if page.has_next %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
 	</div>
 
 </div>

@@ -20,7 +20,7 @@ def get_s3_object(filename,category='img'):
 		filename = str(filename)
 		if category == 'thumb':
 			# this is a thumbnail
-			if filename == 'empty':
+			if filename in ('empty','None'):
 				return static('img/default-avatar-min.jpg')
 			else:
 				name = filename[-40:]
@@ -53,34 +53,33 @@ def get_s3_object(filename,category='img'):
 				############################################
 		else:
 			# this is a full-sized image
-			if filename == 'empty':
+			if filename in ('empty','None'):
 				return static('img/broken.svg')
 			else:
+				name = filename[-40:]
 				if "1on1/" in filename:
-					return BUCKET_ADDR+filename
+					return BUCKET_ADDR+'1on1/'+name
 				elif "mehfil/" in filename:
-					return BUCKET_ADDR+filename
+					return BUCKET_ADDR+'mehfil/'+name
 				elif "avatar/" in filename:
-					return BUCKET_ADDR+filename
+					return BUCKET_ADDR+'avatar/'+name
 				elif "public/" in filename:
-					return BUCKET_ADDR+filename
+					return BUCKET_ADDR+'public/'+name
+				############################################
+				################# Legacy ###################
+				############################################
+				elif "photos/" in filename:
+					return BUCKET_ADDR+"photos/"+name
+				elif "personal_groups/" in filename:
+					return BUCKET_ADDR+"personal_groups/"+name
+				elif "avatars/" in filename:
+					return BUCKET_ADDR+"avatars/"+name
+				elif "mehfils/" in filename:
+					return BUCKET_ADDR+"mehfils/"+name
+				elif "users/" in filename:
+					return BUCKET_ADDR+"users/"+name
 				else:
-					############################################
-					################# Legacy ###################
-					############################################
-					name = filename[-40:]
-					if "photos/" in filename:
-						return BUCKET_ADDR+"photos/"+name
-					elif "personal_groups/" in filename:
-						return BUCKET_ADDR+"personal_groups/"+name
-					elif "avatars/" in filename:
-						return BUCKET_ADDR+"avatars/"+name
-					elif "mehfils/" in filename:
-						return BUCKET_ADDR+"mehfils/"+name
-					elif "users/" in filename:
-						return BUCKET_ADDR+"users/"+name
-					else:
-						return BUCKET_ADDR+"photos/"+name
-					############################################
-					############################################
-					############################################
+					return BUCKET_ADDR+"photos/"+name
+				############################################
+				############################################
+				############################################

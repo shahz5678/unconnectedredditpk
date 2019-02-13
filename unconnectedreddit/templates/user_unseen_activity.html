@@ -483,13 +483,13 @@
 				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
 			{% elif notif.v|add:"0" < VDP %}
 				{% if notif.p != 'None' %}
-				<img src="{{ notif.p }}" style="border-radius:12px" class="fbl ibg mt" alt="{{ notif.od }}">
+				<img src="{{ notif.p|s3 }}" style="border-radius:12px" class="fbl ibg mt" alt="{{ notif.od }}">
 				{% else %}
 				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
 				{% endif %}
 			{% else %}
 				{% if notif.p != 'None' %}
-				<img src="{{ notif.p }}" style="border-radius:12px" class="ibg mt" alt="{{ notif.od }}">
+				<img src="{{ notif.p|s3 }}" style="border-radius:12px" class="ibg mt" alt="{{ notif.od }}">
 				{% else %}
 				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
 				{% endif %}
@@ -503,13 +503,14 @@
 				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
 			{% elif notif.v|add:"0" < VDP %}
 				{% if notif.p != 'None' %}
-				<img src="{{ notif.p }}" class="fbl ibo mt" style="border-radius:12px" alt="{{ notif.od }}">
+				<img src="{{ notif.p|s3 }}" class="fbl ibo mt" style="border-radius:12px" alt="{{ notif.od }}">
 				{% else %}
 				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
 				{% endif %}
 			{% else %}
 				{% if notif.p != 'None' %}
-				<img src="{{ notif.p }}" style="border-radius:12px" class="ibo mt" alt="{{ notif.od }}">
+				
+				<img src="{{ notif.p|s3 }}" style="border-radius:12px" class="ibo mt" alt="{{ notif.od }}">
 				{% else %}
 				<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
 				{% endif %}

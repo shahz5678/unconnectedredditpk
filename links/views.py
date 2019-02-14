@@ -5684,7 +5684,8 @@ def fan(request,*args,**kwargs):
 						banned_by, ban_time = is_already_banned(own_id=user_id,target_id=star_id, return_banner=True)
 						if banned_by:
 							request.session["where_from"] = origin
-							request.session["banned_by_yourself"] = banned_by == str(user_id)
+							if banned_by == str(user_id):
+								request.session["banned_by_yourself"] = '1'
 							request.session["target_username"] = star_username
 							request.session["ban_time"] = ban_time
 							request.session["obj_id"] = object_id

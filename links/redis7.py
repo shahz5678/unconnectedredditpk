@@ -187,11 +187,11 @@ def retrieve_obj_feed(obj_list):
 	return filter(None, pipeline1.execute())
 
 
-def get_home_feed():
-	"""
-	Retrieve list of all home feed objects
-	"""
-	return redis.Redis(connection_pool=POOL).lrange(HOME_FEED, 0, -1)   
+def get_home_feed(start_idx=0,end_idx=-1):
+    """
+    Retrieve list of all home feed objects
+    """
+    return redis.Redis(connection_pool=POOL).lrange(HOME_FEED, start_idx, end_idx)
 
 
 def get_link_writer(link_id):

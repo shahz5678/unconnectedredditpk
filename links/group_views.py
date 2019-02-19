@@ -36,7 +36,7 @@ PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
 from image_processing import process_group_image
-from views import get_page_obj, get_object_list_and_forms, return_to_content
+from views import get_page_obj, get_object_list_and_forms, return_to_content, get_indices
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
 from models import Photo
@@ -2264,17 +2264,6 @@ def post_js_reply_to_personal_group(request):
 
 ######################################## Personal Group Listing and Pagination ########################################
 
-def get_indices(page_number, obj_allotment):
-	"""
-	When fed a page_number, returns a start_index and end_index
-	"""
-	try:
-		page_number = int(page_number)
-	except (ValueError,TypeError):
-		return 0,obj_allotment-1
-	objs_per_page = obj_allotment
-	index_ceiling = objs_per_page * page_number
-	return (index_ceiling)-objs_per_page,index_ceiling-1
 	
 def get_overall_page_list(num_of_items, objs_per_page):
 	"""

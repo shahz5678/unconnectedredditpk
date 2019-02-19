@@ -39,14 +39,6 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> -->
 <a name="section0"></a>
 {% block content %}
 {% endblock %}
-<script type="text/javascript">
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
-  });
-}
-</script>
-
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>
 </html>

@@ -687,7 +687,7 @@ class SearchNicknameForm(forms.Form):
 	def __init__(self, *args, **kwargs):
 		super(SearchNicknameForm, self).__init__(*args, **kwargs)
 		self.fields['nickname'].widget.attrs['style'] = \
-		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #179b36;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #179b36;'
+		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #3cb7dd;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #229ec9;'
 		self.fields['nickname'].widget.attrs['class'] = 'cxl'
 		self.fields['nickname'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['nickname'].widget.attrs['autocomplete'] = 'off'

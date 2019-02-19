@@ -59,6 +59,7 @@ CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regardin
 HOME_FEED = "homefeed:1000" # list containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
 PHOTO_FEED = "photofeed:1000" # list containing latest 1000 photo feed hashes (e.g. img:234132)
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
+BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
 VOTE_ON_IMG = "vi:" #prefix for a sorted set that contains users who voted on a particular image. Each user's vote value is used as a score
 VOTE_ON_TXT = "vt:" #prefix for a sorted set that contains users who voted on a particular text post. Each user's vote value is used as a score
 
@@ -192,6 +193,13 @@ def get_home_feed(start_idx=0,end_idx=-1):
     Retrieve list of all home feed objects
     """
     return redis.Redis(connection_pool=POOL).lrange(HOME_FEED, start_idx, end_idx)
+
+
+def get_best_home_feed(start_idx=0,end_idx=-1):
+    """
+    Retrieve list of best home feed objects
+    """
+    return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
 
 
 def get_link_writer(link_id):
@@ -464,6 +472,19 @@ def add_photos_to_best_photo_feed(photo_scores):
 	except:
 		pass
 
+def add_posts_to_best_posts_feed(post_scores):
+	"""
+	Constructing best posts feed
+	"""
+	#executing the following commands as a single transaction
+	try:
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		pipeline1.delete(BEST_HOME_FEED)
+		pipeline1.zadd(BEST_HOME_FEED,*post_scores)
+		pipeline1.execute()
+	except:
+		pass
 
 def get_best_photo_feed():
 	"""

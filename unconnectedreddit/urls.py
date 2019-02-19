@@ -18,18 +18,18 @@ from urls_mehfil import urlpatterns as urlpatterns_mehfil
 from urls_verification import urlpatterns as urlpatterns_verification
 from urls_judgement import urlpatterns as urlpatterns_judgement
 from urls_voting import urlpatterns as urlpatterns_voting
-
+from urls_search import urlpatterns as urlpatterns_search
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
-redirect_to_content, star_list, cross_salat_notif, \
+redirect_to_content, star_list, cross_salat_notif, best_home_page,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list, best_photo_location,\
 see_best_photo_pk, photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,\
-first_time_unseen_refresh, missing_page, home_reply, home_location_pk, search_username, go_to_username, go_to_user_photo, \
-remove_searched_username, upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
+first_time_unseen_refresh, missing_page, home_reply, home_location_pk,\
+upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
 public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
 #cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
 
@@ -51,12 +51,6 @@ from links.announcement_views import coming_soon
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	#url(r'^search_uname_unlocking_dec/$', auth(search_uname_unlocking_dec), name='unamesrc_unldec'),
-	url(r'^remnick/(?P<nick>[\w.@+-]+)/$', auth(remove_searched_username), name='remove_searched_username'),
-	url(r'^khoji/$', auth(search_username), name='search_username'),
-	url(r'^gtuname/(?P<nick>[\w.@+-]+)/$', auth(go_to_username), name='go_to_username'),
-	url(r'^gtuname/(?P<nick>.+)/$', auth(go_to_username), name='go_to_username'), #captures any kind of nick - for errors
-	url(r'^gtuphoto/(?P<nick>[\w.@+-]+)/(?P<add_score>\d+)/$', auth(go_to_user_photo), name='go_to_user_photo'),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
@@ -67,6 +61,7 @@ urlpatterns = patterns('',
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
 	url(r'^$', home_link_list, name='home'),
+	url(r'^best_home_test/$', best_home_page, name='best_home_test'),
 	url(r'^home/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home'),
 	url(r'^redirect_best/$', auth(home_location), name='home_loc_best'),
 	url(r'^redirect_best/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur_best'),
@@ -302,6 +297,7 @@ urlpatterns += urlpatterns_mehfil
 urlpatterns += urlpatterns_verification
 urlpatterns += urlpatterns_judgement
 urlpatterns += urlpatterns_voting
+urlpatterns += urlpatterns_search
 
 handler404 = 'links.error_views.not_found'
 handler500 = 'links.error_views.server_error'

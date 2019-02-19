@@ -24,11 +24,11 @@ from imagestorage import upload_image_to_s3
 from judgement_views import ordered_list_of_tup
 from image_processing import process_group_image
 
-from group_views import retrieve_user_env, get_indices
+from group_views import retrieve_user_env
 
 from models import HellBanList, UserProfile
 
-from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price
+from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 

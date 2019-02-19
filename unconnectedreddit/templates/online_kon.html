@@ -5,14 +5,15 @@
 <head><title>Online users | Damadam.pk</title></head>
 <style type="text/css">body{background: #E9EBEE}</style>
 
+    {% include 'search/search_navbar.html' with section='online' static_url=STATIC_URL %}
+
     <h1 class="clb cxl lsp" style="text-align:center">Online users:</h1>
 
     <div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 
     <div class="sp" style="text-align:center;padding-bottom:10px;border-bottom:1px dashed lightgray">
-    <a href="{% url 'top_photo' %}#section0" class="cp cxs" ><b>high foto score</b></a>&nbsp;<span class="cs">|</span>
-    <a href="{% url 'top' %}#section0" class="cg cxs" ><b>high chat score</b></a>&nbsp;<span class="cs" >|</span>
-    <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a>
+    <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a>&nbsp;<span class="cs" >|</span>
+    <a href="{% url 'top' %}#section0" class="cg cxs" ><b>top chat scorers</b></a>
     </div>
 
         {% if not whose_online %}

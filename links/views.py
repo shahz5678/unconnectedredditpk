@@ -86,7 +86,7 @@ from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retr
 retrieve_group_reqd_data# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders,\
-rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, \
+rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed, \
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
@@ -149,6 +149,20 @@ def set_rank():
 	secs = epoch_submission - 1432201843 #a recent date, coverted to epoch time
 	invisible_score = round(sign * order + secs / 45000, 8)
 	return invisible_score
+
+
+def get_indices(page_number, obj_allotment):
+	"""
+	When fed a page_number, returns a start_index and end_index
+	"""
+	try:
+		page_number = int(page_number)
+	except (ValueError,TypeError):
+		return 0,obj_allotment-1
+	objs_per_page = obj_allotment
+	index_ceiling = objs_per_page * page_number
+	return (index_ceiling)-objs_per_page,index_ceiling-1
+
 
 def get_page_obj(page_num,obj_list,items_per_page):
 	"""
@@ -430,96 +444,6 @@ def GetLatest(user):
 		if latest_notif and notif_name:
 			sanitize_erroneous_notif.delay(notif_name, user.id)
 		return None, None, False, False, False, False, False
-
-
-# @csrf_protect
-# def feature_unlocked(request,*args,**kwargs):
-# 	if request.method == 'POST':
-# 		fid = request.POST.get("fid") #the feature_id
-# 		score = request.user.userprofile.score
-# 		if fid == '1' and score > SEARCH_FEATURE_THRESHOLD:
-# 			if is_uname_search_unlocked(request.user.id):
-# 				# redirect to page showing search feature
-# 				return redirect("search_username")
-# 			else:
-# 				return render(request,"uname_search_tutorial_I.html",{})
-# 	else:
-# 		return render(request,"404.html",{})
-
-# @csrf_protect
-# def search_uname_unlocking_dec(request,*args,**kwargs):
-# 	if request.method == 'POST':
-# 		dec = request.POST.get("dec")
-# 		if dec == '1':
-# 			unlock_uname_search(request.user.id)
-# 			return render(request,"uname_search_tutorial_II.html",{})
-# 		else:
-# 			return redirect("online_kon")
-# 	else:
-# 		return render(request,"404.html",{})        
-
-
-@csrf_protect
-def search_username(request,*args,**kwargs):
-		# search_history = get_search_history(request.user.id)
-		page_num = request.GET.get('page', '1')
-		unames = get_search_history(request.user.id)
-		page_obj = get_page_obj(page_num,unames,ITEMS_PER_PAGE)
-		search_history = retrieve_history_with_pics(page_obj.object_list)
-		if request.method == 'POST':
-			#load the page with results
-			form = SearchNicknameForm(request.POST)
-			if form.is_valid():
-				nickname = form.cleaned_data.get("nickname")
-				found_flag,exact_matches,similar = find_nickname(nickname,request.user.id)
-				return render(request,'username_search.html',{'form':form,'exact_matches':exact_matches, 'similar':similar, \
-					'found_flag':found_flag, 'orig_search':nickname,'search_history':search_history,'page':page_obj})
-			else:
-				return render(request,'username_search.html',{'form':form,'found_flag':None,'search_history':search_history,'page':page_obj})   
-		else:
-			#load the page as it ought to be loaded
-			return render(request,'username_search.html',{'form':SearchNicknameForm(),'found_flag':None,'search_history':search_history,\
-				'page':page_obj})
-
-
-@csrf_protect
-def go_to_username(request,nick,*args,**kwargs):
-	if request.method == 'POST':
-		dec = request.POST.get("dec")
-		select_nick(nick,request.user.id)
-		if dec == '1':
-			# send to profile photos
-			return redirect("profile", nick)
-		elif dec == '2':
-			# send to home history
-			return redirect("user_activity", nick)
-		elif dec == '3':
-			# send to user profile
-			return redirect("user_profile", nick)
-		else:
-			#send to profile photos
-			return redirect("profile", nick)
-	else:
-		return render(request,"404.html",{})
-
-@csrf_protect
-def go_to_user_photo(request,nick,add_score=None,*args,**kwargs):
-	if request.method == 'POST':
-		if add_score == '1':
-			select_nick(nick,request.user.id)
-		request.session["photograph_id"] = request.POST.get("pid",'')
-		return redirect("profile", nick)
-	else:
-		return render(request,"404.html",{})        
-
-@csrf_protect
-def remove_searched_username(request,nick,*args,**kwargs):
-	if request.method == 'POST':
-		searcher_id = request.POST.get("uid",'')
-		del_search_history(searcher_id,nick)
-		return redirect("search_username")
-	else:
-		return render(request,"404.html",{})
 
 
 def csrf_failure(request, reason=""):
@@ -1235,6 +1159,48 @@ def home_location(request, lang=None, *args, **kwargs):
 	#     url = reverse_lazy("home")+addendum
 	url = reverse_lazy("home")+addendum
 	return redirect(url)
+
+
+def best_home_page(request):
+	"""
+	Displays the 'best' home page
+	"""
+	if request.user.is_authenticated():
+		context = {}
+		context["authenticated"] = True
+		own_id, page_num = request.user.id, request.GET.get('page', '1')
+		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
+		############
+		obj_list = get_best_home_feed(start_idx=start_index, end_idx=end_index)# has to be written
+		############
+		list_of_dictionaries = retrieve_obj_feed(obj_list)
+		context["link_list"] = list_of_dictionaries
+		context["fanned"] = bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id)
+		#######################
+		replyforms = {}
+		for obj in list_of_dictionaries:
+			replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+		context["replyforms"] = replyforms
+		#######################
+		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+		num = random.randint(1,4)
+		context["random"] = num #determines which message to show at header
+		context["newest_user"] = User.objects.latest('id') if num > 2 else None
+		context["score"] = request.user.userprofile.score #own score
+		secret_key = str(uuid.uuid4())
+		context["sk"] = secret_key
+		set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
+		context["can_vote"] = True #allowing user to vote
+		context["process_notification"] = False
+		context["ident"] = own_id
+		# if request.user_banned:
+		#     context["process_notification"] = False #hell banned users will never see notifications
+		# else:
+		#     context["process_notification"] = True
+		#     context["notif_form"] = UnseenActivityForm()
+		return render(request, 'link_list.html', context)
+	else:
+		return redirect("unauth_home_new")
 
 
 def home_link_list(request, lang=None, *args, **kwargs):

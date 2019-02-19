@@ -39,7 +39,8 @@ from redis6 import group_attendance, exact_date, add_to_universal_group_activity
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
-cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars
+cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
+add_posts_to_best_posts_feed
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -765,16 +766,6 @@ def log_private_mehfil_session(group_id,user_id):# called every time a private m
 	increment_session(str(group_id), user_id, group_type='pm')
 	
 
-@celery_app1.task(name='tasks.rank_home_posts')
-def rank_home_posts():
-	"""
-	Unused celery task
-	"""
-	pass
-	# order_home_posts2(urdu_only=False,exclude_photos=False)
-	# order_home_posts1(urdu_only=False,exclude_photos=True)
-	# order_home_posts(urdu_only=True,exclude_photos=False)
-
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	"""
@@ -802,6 +793,29 @@ def rank_all_photos():
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
 	pass
+
+
+@celery_app1.task(name='tasks.rank_home_posts')
+def rank_home_posts():
+	"""
+	Celery scheduled task used to sort home posts
+	"""
+	post_hashes = get_home_feed()
+	hash_data = retrieve_obj_feed(post_hashes)
+	post_id_and_scr, counter = [], 0
+	for obj in hash_data:
+		obj_type = 'tx:' if post_hashes[counter][:2] == 'tx' else 'img:'
+		try:
+			object_id = obj['i']
+			net_votes = obj['nv']
+			submission_time = obj['t']
+		except (TypeError,KeyError):
+			net_votes, submission_time, object_id = None, None, None
+		if int(net_votes) >= 0 and submission_time and object_id:
+			post_id_and_scr.append(obj_type+object_id)
+			post_id_and_scr.append(set_rank(int(net_votes),float(submission_time)))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo
+		counter += 1	
+	add_posts_to_best_posts_feed(post_id_and_scr)
 
 
 @celery_app1.task(name='tasks.set_input_rate_and_history')

@@ -103,7 +103,7 @@ def get_thumb(filename, content, folder_name):
 	"""
 	Creates thumbs out of images passed into it
 	"""
-	thumb_name = string.replace(filename, folder_name, "thumb/"+folder_name+'/')
+	thumb_name = string.replace(filename, folder_name, "thumb/"+folder_name)
 	image = content.file		
 	image = Image.open(image)
 	if folder_name == 'avatar':

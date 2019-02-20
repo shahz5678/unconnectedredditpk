@@ -585,12 +585,12 @@ def process_reporter_payables(payables):
 
 @celery_app1.task(name='tasks.populate_search_thumbs')
 def populate_search_thumbs(user_id,ids_with_urls):
-    """
-    Auto-populating photo thumbs in search results, end of photo comments, etc
+	"""
+	Auto-populating photo thumbs in search results, end of photo comments, etc
 
-    Triggered whenever a user profile is visited
-    """
-    bulk_add_search_photos(user_id,ids_with_urls)
+	Triggered whenever a user profile is visited
+	"""
+	bulk_add_search_photos(user_id,ids_with_urls)
 
 
 @celery_app1.task(name='tasks.sanitize_erroneous_notif')
@@ -931,12 +931,12 @@ def photo_upload_tasks(user_id, photo_id, username, temp_photo_obj,number_of_pho
 	"""
 	Tasks fired when a photo is uploaded in the photos section (for public viewing)
 	"""
-	photo = Photo.objects.get(id=photo_id)
+	photo_image_file = Photo.objects.only('image_file').get(id=photo_id).image_file
 	updated = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
 	if not updated:
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
-	add_search_photo(photo.image_file.url,photo_id,user_id)
+	add_search_photo(photo_image_file, photo_id,user_id)
 	if total_score > PHOTO_HOT_SCORE_REQ:
 		add_obj_to_home_feed(temp_photo_obj)
 	if number_of_photos:

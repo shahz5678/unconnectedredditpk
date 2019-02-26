@@ -62,7 +62,7 @@ def unverify_user(request):
 	"""
 	This renders a form field which can take user ids and unverify them
 	"""
-	if retrieve_uname(request.user.id,decode=True) in ['pathan-e-khan','Damadam-Feedback','mhb11','mehfil_user_1']:
+	if retrieve_uname(request.user.id,decode=True) in ['pathan-e-khan','Damadam-Feedback','mhb11','ZippoLighter']:
 		if request.method == "POST":
 			processed_form = UnverifyUserIDForm(request.POST)
 			if processed_form.is_valid():

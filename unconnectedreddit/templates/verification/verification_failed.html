@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Account verification incomplete | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if reason == '0' %}
+	<div class="cxl mbl clb">Apki ID pehlay se verified hai</div>
+	<a href="{% url 'home' %}"><button class="btn bcb bm sp pg_ok_res" style="height:28px">home</button></a>
+{% elif reason == '1' %}
+	<span class="cxl clb">Sorry! Koi aur account is mobile number pe verify ho chuka hai</span>
+	<hr size=1 COLOR="#E6E6E6">
+	<div class="mt cm sp lsp mbs">Different mobile number ke sath verify karwaney ke liye 'verify now' dabain:</div>
+	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+{% elif reason == '2' %}
+	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
+	<hr size=1 COLOR="#E6E6E6">
+	<div class="mt cm sp lsp mbs">Dubara try karney ke liye 'verify now' dabain:</div>
+	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+{% elif reason == '3' %}
+	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
+	<hr size=1 COLOR="#E6E6E6">
+	<div class="mt cm sp lsp mbs">Dubara try karney ke liye 'verify now' dabain:</div>
+	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+{% elif reason == '4' %}
+	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
+	<hr size=1 COLOR="#E6E6E6">
+	<div class="mt cm sp lsp mbs">Dubara try karney ke liye 'verify now' dabain:</div>
+	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+{% elif reason == '5' %}
+	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
+	<hr size=1 COLOR="#E6E6E6">
+	<div class="mt cm sp lsp mbs">Dubara try karney ke liye 'verify now' dabain:</div>
+	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+{% elif reason == '6' %}
+	<span class="cxl clb">Sorry! Dobara verify kerwaien</span>
+	<hr size=1 COLOR="#E6E6E6">
+	<div class="mt cm sp lsp mbs">Dubara try karney ke liye 'verify now' dabain:</div>
+	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+{% else %}
+	<span class="cxl clb">Sorry! Ap ne buhut deir kar di</span>
+	<hr size=1 COLOR="#E6E6E6">
+	<div class="mt cm sp lsp mbs">Dubara try karney ke liye 'verify now' dabain:</div>
+	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
+{% endif %}
+
+</div>
+
+<br><br>
+{% endblock %}

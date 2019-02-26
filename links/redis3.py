@@ -908,6 +908,26 @@ def get_user_verified_number(user_id,country_code=False):
 		return []
 
 
+def unverify_user_id(user_id):
+	"""
+	The reverse of save_consumer_number() below
+	"""
+	numbers_to_remove = []
+	if user_id:
+		user_id = str(user_id)
+		my_server = redis.Redis(connection_pool=POOL)
+		user_number_data = my_server.lrange("um:"+user_id,0,-1)
+		for data_row in user_number_data:
+			numbers_to_remove.append(ast.literal_eval(data_row)["national_number"])
+		if numbers_to_remove:
+			pipeline1 = my_server.pipeline()
+			pipeline1.zrem('ecomm_verified_users', user_id)
+			pipeline1.zrem('verified_numbers',*numbers_to_remove)
+			pipeline1.delete("um:"+user_id)
+			pipeline1.execute()
+	return numbers_to_remove
+
+
 # this mechanism saves up to TWO user numbers, trimming the 3rd
 def save_consumer_number(account_kit_id, mobile_data, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1894,6 +1914,32 @@ def set_world_age(user_id):
 		my_server.setex('warl:'+user_id,'1',SIX_HOURS)
 
 
+def retrieve_user_world_age(user_id_list, with_highest_age=False):
+    """
+    Given a list of user_ids, this retrieves their world age and returns a dictionary
+
+    if 'with_highest_age' is set to 'True', the highest world age is returned as well so that world ages can be normalized
+    """
+    if user_id_list:
+        my_server = redis.Redis(connection_pool=POOL)
+        pipeline1 = my_server.pipeline()
+        for user_id in user_id_list:
+            pipeline1.zscore('world_age',user_id)
+        result1, counter, final_result = pipeline1.execute(), 0, {}
+        for user_id in user_id_list:
+            user_age = result1[counter]
+            final_result[user_id] = user_age if user_age else 0
+            counter += 1
+        if with_highest_age:
+            return final_result, my_server.zrevrange('world_age',0,0,withscores=True)[0][1]
+        else:
+            return final_result
+    else:
+        if with_highest_age:
+            return {}, None
+        else:
+            return {}
+
 ################################ Self-written mobile verification ################################
 
 
@@ -2025,6 +2071,52 @@ def is_forgot_password_rate_limited(user_id):
 		return ttl
 	else:
 		return None
+
+########################################  Account Kit User Verification ####################################
+
+ACCOUNT_KIT_SECRET_STORE = 'akss:'#key that stores a temporary token while a user is going through verification flow
+
+def save_user_account_kit_server_secret(user_id, secret):
+	"""
+	"""
+	redis.Redis(connection_pool=POOL).setex(ACCOUNT_KIT_SECRET_STORE+str(user_id),secret,FORTY_FIVE_MINS)
+
+
+def retrieve_user_account_kit_secret(user_id):
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).get(ACCOUNT_KIT_SECRET_STORE+str(user_id))
+
+################################################### Accountkit usage related loggers ###########################
+
+def log_ak_entered():
+	"""
+	this function logs the number of users funnelled to Accountkit for verification
+	"""
+	redis.Redis(connection_pool=POOL).incr("entered_ak_count")
+
+
+def log_ak_user_verification_outcome(reason):
+	"""
+	this function logs the number of verified users through Accountkit
+	"""
+	if reason == 'verified':
+		redis.Redis(connection_pool=POOL).incr("verified_on_ak_count")
+	elif reason == 'pressed_cross':
+		redis.Redis(connection_pool=POOL).incr("pressed_x_on_ak_count")
+	elif reason == 'number_already_used':
+		redis.Redis(connection_pool=POOL).incr("number_already_used_ak_count")
+	elif reason == 'verification_failed_reason4':
+		redis.Redis(connection_pool=POOL).incr("not_verified_reason4_count")
+	elif reason == 'verification_failed_reason5':
+		redis.Redis(connection_pool=POOL).incr("not_verified_reason5_count")
+	elif reason == 'sms_expired':
+		redis.Redis(connection_pool=POOL).incr("sms_expired_count")
+	elif reason == 'id_already_verified':
+		redis.Redis(connection_pool=POOL).incr("id_already_verified_count")
+
+
+
 
 ################################################### Twilio usage related loggers ###########################
 

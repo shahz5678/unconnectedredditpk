@@ -40,7 +40,7 @@ log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed
+add_posts_to_best_posts_feed, get_world_age_weighted_vote_score
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -769,26 +769,29 @@ def log_private_mehfil_session(group_id,user_id):# called every time a private m
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	"""
-	Function used to post photos to facebook fanpage
+	Runs every 11 mins from settings.py
 	"""
-	# previous_best_photo_id = get_previous_best_photo()
-	# current_best_photo_id = get_best_photo()
-	# if current_best_photo_id is not None:
-	# 	if previous_best_photo_id is not None:
-	# 		if previous_best_photo_id == current_best_photo_id:
-	# 			pass
-	# 		else:
-	# 			# print "uploading %s to Facebook..." % current_best_photo_id
-	# 			set_best_photo(current_best_photo_id)
-	# 			photo = Photo.objects.get(id=current_best_photo_id)
-	# 			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-	# 	else:
-	# 		set_best_photo(current_best_photo_id)
-	# 		photo = Photo.objects.get(id=current_best_photo_id)
-	# 		photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-	# else:
-	# 	pass
-	pass
+	photos = retrieve_obj_feed(get_photo_feed())
+	photo_ids_and_times = {}
+	for photo in photos:
+		try:
+			object_id = photo['i']
+			net_votes = photo['nv']
+			submission_time = photo['t']
+		except (TypeError,KeyError):
+			net_votes, submission_time, object_id = None, None, None
+		if int(net_votes) > 0 and submission_time and object_id:#remove objs with '0' votes via this
+			photo_ids_and_times[object_id] = submission_time
+	if photo_ids_and_times:
+		# create a net voting of this pool via taking world age into consideration
+		photo_ids = photo_ids_and_times.keys()
+		photo_vote_scr_dict = get_world_age_weighted_vote_score(photo_ids,obj_type='img')
+		photo_id_and_scr = []
+		for photo_id in photo_ids:
+			photo_id_and_scr.append("img:"+photo_id)
+			photo_id_and_scr.append(set_rank(float(photo_vote_scr_dict[photo_id]),float(photo_ids_and_times[photo_id])))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo
+		add_photos_to_best_photo_feed(photo_id_and_scr,consider_world_age=True)
+
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():

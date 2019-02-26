@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+
+<head><title>Unverify user | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Freedom Factory</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;width:92%;margin:0 auto;overflow:hidden;text-align:center">
+
+	<form method="POST" class="mbs" action="{% url 'unverify_user' %}">
+		{% csrf_token %}
+		{% if form.errors %}{% load show_error %}<div class="cr mbs cl">{{ form.errors|show_error }}</div>
+		{% elif unverified_id %}
+			<div class="cb mbs cl">Tench hut! {{ unverified_id }} has been oblivion'd with a [{% for number in numbers_released %}{{ number }}&nbsp;{% endfor %}] shaped missile</div>
+		{% endif %}
+		{{ form.user_id }}<br>
+		<button type="submit" class="btn bcb bl mtl sp pg_ok_res" style="height:26px">Submit</button>
+	</form>
+
+</div><br><br>
+
+{% endblock %}

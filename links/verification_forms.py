@@ -69,6 +69,33 @@ class AddVerifiedUserForm(forms.Form):
 				raise forms.ValidationError('Is gone with the wind')
 
 
+class UnverifyUserIDForm(forms.Form):
+    user_id = forms.IntegerField(error_messages={'invalid': "Don't be obnoxious",'required':"What do you want me to do?"})
+
+    def __init__(self, *args, **kwargs):
+        super(UnverifyUserIDForm, self).__init__(*args, **kwargs)
+        self.fields['user_id'].widget.attrs['class'] = 'cxl sp'
+        self.fields['user_id'].widget.attrs['autofocus'] = 'autofocus'
+        self.fields['user_id'].widget.attrs['autocomplete'] = 'off'
+        self.fields['user_id'].widget.attrs['style'] = 'max-width:90%;background-color:#F8F8F8;border: 1px solid lightgray;border-radius:5px;color: #404040;height:30px'
+
+    def clean_user_id(self):
+        user_id = self.cleaned_data.get("user_id")
+        try:
+            user_id = int(user_id)
+        except (ValueError,TypeError):
+            raise forms.ValidationError('Does not compute')
+        if User.objects.filter(id=user_id).exists():
+            # go on
+            if is_mobile_verified(user_id):
+                return user_id
+            else:
+                raise forms.ValidationError('This dude is already unverified')
+        else:
+            raise forms.ValidationError('Fraudulent activity detected')
+
+
+
 ##################### Mobile number verification form #####################################
 
 class MobileVerificationForm(forms.Form):
@@ -86,9 +113,9 @@ class MobileVerificationForm(forms.Form):
 		self.user_id = kwargs.pop('user_id',None)
 		self.allow_reverification = kwargs.pop('allow_reverification',None)
 		super(MobileVerificationForm, self).__init__(*args, **kwargs)
-		self.fields['phonenumber'].widget.attrs['style'] = 'width:95%;height:30px;border-radius:10px;border: 1px #83d1e8 solid; background-color:#fffff4;padding:5px;'
+		self.fields['phonenumber'].widget.attrs['style'] = 'width:50%;height:20px;border-radius:2px;border: 1px #83d1e8 solid; background-color:#fffff4;padding:5px;'
 		self.fields['phonenumber'].widget.attrs['autofocus'] = 'on'	
-		self.fields['phonenumber'].widget.attrs['class'] = 'cxl sp'
+		self.fields['phonenumber'].widget.attrs['class'] = 'cs'
 		self.fields['phonenumber'].widget.attrs['autocomplete'] = 'off'
 
 	

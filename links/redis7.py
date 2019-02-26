@@ -6,6 +6,7 @@ from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
+from redis3 import retrieve_user_world_age
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
@@ -189,17 +190,17 @@ def retrieve_obj_feed(obj_list):
 
 
 def get_home_feed(start_idx=0,end_idx=-1):
-    """
-    Retrieve list of all home feed objects
-    """
-    return redis.Redis(connection_pool=POOL).lrange(HOME_FEED, start_idx, end_idx)
+	"""
+	Retrieve list of all home feed objects
+	"""
+	return redis.Redis(connection_pool=POOL).lrange(HOME_FEED, start_idx, end_idx)
 
 
 def get_best_home_feed(start_idx=0,end_idx=-1):
-    """
-    Retrieve list of best home feed objects
-    """
-    return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
+	"""
+	Retrieve list of best home feed objects
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
 
 
 def get_link_writer(link_id):
@@ -332,6 +333,47 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 		return False
 
 
+def get_world_age_weighted_vote_score(obj_ids, obj_type):
+	"""
+	Retrieving net_votes for each obj via weighting voter's world age
+	"""
+	if obj_type in ('tx','img'):
+		prefix = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		for obj_id in obj_ids:
+			pipeline1.zrange(prefix+obj_id,0,-1,withscores=True)#returns list of tuples
+		result1 = pipeline1.execute()#list of list of tuples [[(user_id,user_vote),(user_id,user_vote),(user_id,user_vote),...],[(),(),(),...],...]
+		counter, voter_ids = 0, set()
+		for obj_id in obj_ids:
+			# isolate all user_ids that voted
+			if result1[counter]:
+				for user_id, user_vote in result1[counter]:
+					voter_ids.add(user_id)
+			counter += 1
+		voter_age_dict, highest_age = retrieve_user_world_age(voter_ids,with_highest_age=True)
+		if voter_age_dict and highest_age:
+			counter = 0 #resetting the counter
+			final_net_votes = {}
+			for obj_id in obj_ids:
+				# re-scoring the items via weighting with voter world_age
+				if result1[counter]:
+					obj_aggregate_vote_score = 0
+					for user_id, user_vote in result1[counter]:
+						if int(user_vote) == 0:
+							vote_value = -1*(voter_age_dict[user_id]/highest_age)
+						elif int(user_vote) == 1:
+							vote_value = 1*(voter_age_dict[user_id]/highest_age)
+						else:
+							vote_value = 0
+						obj_aggregate_vote_score += vote_value
+					final_net_votes[obj_id] = obj_aggregate_vote_score
+				else:
+					final_net_votes[obj_id] = 0
+				counter += 1
+		return final_net_votes
+
+
 #################################################### Updating image content objects ############################################
 
 
@@ -458,19 +500,33 @@ def get_photo_feed():
 	return redis.Redis(connection_pool=POOL).lrange(PHOTO_FEED, 0, -1)
 
 
-def add_photos_to_best_photo_feed(photo_scores):
+def add_photos_to_best_photo_feed(photo_scores, consider_world_age=False):
 	"""
 	Constructing bestphotofeed
+
+	 Provides an alternative route where world age of the voter is taken into consideration (as a proxy for user 'karma')
 	"""
 	#executing the following commands as a single transaction
-	try:
-		my_server = redis.Redis(connection_pool=POOL)
-		pipeline1 = my_server.pipeline()
-		pipeline1.delete(BEST_PHOTO_FEED)
-		pipeline1.zadd(BEST_PHOTO_FEED,*photo_scores)
-		pipeline1.execute()
-	except:
-		pass
+	if consider_world_age:
+		ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
+		try:
+			my_server = redis.Redis(connection_pool=POOL)
+			pipeline1 = my_server.pipeline()
+			pipeline1.delete(ALT_BEST_PHOTO_FEED)
+			pipeline1.zadd(ALT_BEST_PHOTO_FEED,*photo_scores)
+			pipeline1.execute()
+		except:
+			pass
+	else:
+		try:
+			my_server = redis.Redis(connection_pool=POOL)
+			pipeline1 = my_server.pipeline()
+			pipeline1.delete(BEST_PHOTO_FEED)
+			pipeline1.zadd(BEST_PHOTO_FEED,*photo_scores)
+			pipeline1.execute()
+		except:
+			pass
+
 
 def add_posts_to_best_posts_feed(post_scores):
 	"""
@@ -1942,51 +1998,51 @@ def retrieve_top_stars():
 
 
 def get_inactives(get_100K=False, get_50K=False, get_10K=False, get_5K=False, key=None):
-    my_server = redis.Redis(connection_pool=POOL)
-    if not key:
-        key = "inactive_users"
-    if get_100K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 100000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,99999,withscores=True)
-            my_server.zremrangebyrank(key,0,99999)
-            return data, False
-    elif get_50K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 50000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,49999,withscores=True)
-            my_server.zremrangebyrank(key,0,49999)
-            return data, False
-    elif get_10K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 10000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,9999,withscores=True)
-            my_server.zremrangebyrank(key,0,9999)
-            return data, False
-    elif get_5K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 5000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,4999,withscores=True)
-            my_server.zremrangebyrank(key,0,4999)
-            return data, False
-    else:
-        return my_server.zrange(key,0,-1,withscores=True)
+	my_server = redis.Redis(connection_pool=POOL)
+	if not key:
+		key = "inactive_users"
+	if get_100K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 100000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,99999,withscores=True)
+			my_server.zremrangebyrank(key,0,99999)
+			return data, False
+	elif get_50K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 50000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,49999,withscores=True)
+			my_server.zremrangebyrank(key,0,49999)
+			return data, False
+	elif get_10K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 10000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,9999,withscores=True)
+			my_server.zremrangebyrank(key,0,9999)
+			return data, False
+	elif get_5K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 5000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,4999,withscores=True)
+			my_server.zremrangebyrank(key,0,4999)
+			return data, False
+	else:
+		return my_server.zrange(key,0,-1,withscores=True)
 
 def set_inactives(inactive_list):
 	if inactive_list:

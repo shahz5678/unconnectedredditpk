@@ -201,6 +201,8 @@ def account_kit_verification_result(request):
 	"""
 	verification_successful = request.session.pop("account_kit_verification_succeeded",'')
 	if verification_successful:
+		request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+		request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
 		return render(request,"verification/reward_earned.html",{})
 	else:
 		verification_failed = request.session.pop("account_kit_verification_failed",'')

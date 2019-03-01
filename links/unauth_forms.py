@@ -63,7 +63,7 @@ class ForgettersMobileNumber(forms.Form):
 			raise forms.ValidationError(retrieve_validation_error_string('mobnum_not_verified',lang=lang))
 		user_nums = get_user_verified_number(user_id=self.user_id)
 		if phonenumber[-10:] in user_nums:
-			ttl = is_sms_sending_rate_limited(self.user_id)
+			ttl = None#is_sms_sending_rate_limited(self.user_id)# set this only when using inhouse SMS service
 			if ttl:
 				return phonenumber[-11:], ttl
 			else:
@@ -183,7 +183,7 @@ class ForgettersNicknameForm(forms.Form):
 		{'required': retrieve_validation_error_string('required_new_nick',lang=self.lang),'invalid':retrieve_validation_error_string('invalid_new_nick',lang=self.lang)}
 		self.fields['username'].widget.attrs['style'] = \
 		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #16d68a;'
-		self.fields['username'].widget.attrs['class'] = 'cxl'
+		self.fields['username'].widget.attrs['class'] = 'cl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
 		self.fields['username'].widget.attrs['autocapitalize'] = 'none'

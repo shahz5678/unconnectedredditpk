@@ -15,7 +15,6 @@ from views import convert_to_epoch
 from redis4 import retrieve_uname
 from models import UserProfile
 
-
 ############################## Number verification administration  #################################
 
 
@@ -110,6 +109,7 @@ def account_kit_verification_commencement(request):
 			save_user_account_kit_server_secret(user_id, user_account_kit_server_secret)
 			URL = "https://www.accountkit.com/v1.0/basic/dialog/sms_login/"
 			PARAMS = {'counter_code':'PK','app_id':'1758220174446684','state':user_account_kit_server_secret,\
+			#'redirect':'http://127.0.0.1:8000/verification/mobile/via-account-kit/process-verification/',\
 			'redirect':'https://damadam.pk/verification/mobile/via-account-kit/process-verification/',\
 			'phone_number':phonenumber,'fbAppEventsEnabled':'true','debug':'false'}
 			log_ak_entered()
@@ -135,10 +135,10 @@ def account_kit_verification_processing(request):
 		log_ak_user_verification_outcome("id_already_verified")	
 		request.session["account_kit_verification_failure_reason"] = '0'#user is already verified
 		request.session.modified = True
-		return redirect("account_kit_verification_result")
+		return redirect("account_kit_verification_failed")
 	else:
 		user_id = request.user.id
-		original_secret = retrieve_user_account_kit_secret(user_id=str(user_id))
+		original_secret = retrieve_user_account_kit_secret(identifier=str(user_id))
 		if original_secret:
 			AK_ID, MN_data, err = get_requirements(request=request,secret=original_secret)
 			if AK_ID and MN_data:
@@ -147,7 +147,7 @@ def account_kit_verification_processing(request):
 					log_ak_user_verification_outcome("number_already_used")
 					request.session["account_kit_verification_failure_reason"] = '1'#number already used up done
 					request.session.modified = True
-					return redirect("account_kit_verification_result")
+					return redirect("account_kit_verification_failed")
 				else:
 					# verify the user
 					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
@@ -155,13 +155,13 @@ def account_kit_verification_processing(request):
 					log_ak_user_verification_outcome("verified")
 					request.session["account_kit_verification_succeeded"] = '1'
 					request.session.modified = True
-					return redirect("account_kit_verification_result")
+					return redirect("account_kit_verification_successful")
 			elif AK_ID == 'generic' or AK_ID == 'used' or AK_ID == 'expired' or AK_ID == 'invalid':
 				# return render(request,"unverified_number.html",{'referrer':'home','reason':AK_ID,'from_ecomm':False})
 				request.session["account_kit_verification_failed"] = '1'
 				request.session["account_kit_verification_failure_reason"] = '2'#could not be verified
 				request.session.modified = True
-				return redirect("account_kit_verification_result")
+				return redirect("account_kit_verification_failed")
 			elif err['status'] == "NOT_AUTHENTICATED":
 				# return render(request,"dont_worry_just_authenticate.html",{'csrf':original_secret,'referrer':'home','type':'user',\
 				# 	'from_ecomm':False})
@@ -170,29 +170,28 @@ def account_kit_verification_processing(request):
 				request.session["account_kit_verification_failure_reason"] = '3'#encourage user to go back and verify 
 				request.session.modified = True
 				#pressed cross
-				return redirect("account_kit_verification_result")
+				return redirect("account_kit_verification_failed")
 			elif err['status'] == "PARTIALLY_AUTHENTICATED":
 				# return render(request,"try_again.html",{'type':'user','from_ecomm':False})
 				request.session["account_kit_verification_failed"] = '1'
 				request.session["account_kit_verification_failure_reason"] = '4'#could not be verified 
 				log_ak_user_verification_outcome("verification_failed_reason4")
 				request.session.modified = True
-				return redirect("account_kit_verification_result")
+				return redirect("account_kit_verification_failed")
 			else:
 				# return render(request,"unverified_number.html",{'referrer':'home','from_ecomm':False})
 				request.session["account_kit_verification_failed"] = '1'
 				log_ak_user_verification_outcome("verification_failed_reason5")
 				request.session["account_kit_verification_failure_reason"] = '5'#could not be verified
 				request.session.modified = True
-				return redirect("account_kit_verification_result")
+				return redirect("account_kit_verification_failed")
 		else:
 			# return render(request,"try_again.html",{'type':'user','from_ecomm':False})
 			request.session["account_kit_verification_failed"] = '1'
 			log_ak_user_verification_outcome("sms_expired")
-			print "here 1"
 			request.session["account_kit_verification_failure_reason"] = '6'#user too late or secret never generated (simply loading URL)
 			request.session.modified = True
-			return redirect("account_kit_verification_result")
+			return redirect("account_kit_verification_failed")
 
 
 def account_kit_verification_result(request):

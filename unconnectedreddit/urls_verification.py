@@ -3,7 +3,8 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from links.verification_views import verify_user_artificially, pin_verification, number_verification_help,\
 wait_before_verifying, account_kit_verification_commencement, account_kit_verification_processing, account_kit_verification_result,\
-unverify_user, verify_user_mobile_unpaid#verify_user_mobile_paid
+unverify_user, verify_user_mobile_unpaid #verify_user_mobile_paid
+from links.unauth_views import render_set_new_password
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -20,6 +21,8 @@ urlpatterns = patterns('',
 	url(r'^verification/mobile/$', auth(verify_user_mobile_unpaid), name='verify_user_mobile_unpaid'),
 	url(r'^verification/mobile/via-account-kit/$', auth(account_kit_verification_commencement), name='account_kit_verification_commencement'),
 	url(r'^verification/mobile/via-account-kit/process-verification/$', auth(account_kit_verification_processing), name='account_kit_verification_processing'),
-	url(r'^verification/mobile/via-account-kit/verification-successful/$', auth(account_kit_verification_result), name='account_kit_verification_result'),
-	url(r'^verification/mobile/via-account-kit/verification-failed/$', auth(account_kit_verification_result), name='account_kit_verification_result'),
+	url(r'^verification/mobile/via-account-kit/verification-successful/account-verification/$', auth(account_kit_verification_result), name='account_kit_verification_successful'),
+	url(r'^verification/mobile/via-account-kit/verification-successful/forgot-pass/$', render_set_new_password, name='account_kit_forgot_pass_verification_successful'),
+	url(r'^verification/mobile/via-account-kit/verification-failed/account-verification/$', auth(account_kit_verification_result), name='account_kit_verification_failed'),
+	url(r'^verification/mobile/via-account-kit/verification-failed/forgot-pass/$', account_kit_verification_result, name='account_kit_forgot_pass_verification_failed'),
 )

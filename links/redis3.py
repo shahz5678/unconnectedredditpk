@@ -2074,18 +2074,34 @@ def is_forgot_password_rate_limited(user_id):
 
 ########################################  Account Kit User Verification ####################################
 
+
 ACCOUNT_KIT_SECRET_STORE = 'akss:'#key that stores a temporary token while a user is going through verification flow
 
-def save_user_account_kit_server_secret(user_id, secret):
+def save_user_account_kit_server_secret(identifier, secret, mob_num_as_key=False):
 	"""
+	This saves a 'secret' uuid key that helps identify users as they jump out to Account Kit and then subsequently return
+
+	'identifier' can either be a user_id (in case of user account verification flow) or a mobile number (in case of forgot pass flow)
 	"""
-	redis.Redis(connection_pool=POOL).setex(ACCOUNT_KIT_SECRET_STORE+str(user_id),secret,FORTY_FIVE_MINS)
+	if mob_num_as_key:
+		# existence of 'f:' in key name signifies that this is related to the forgot password flow
+		redis.Redis(connection_pool=POOL).setex(ACCOUNT_KIT_SECRET_STORE+"f:"+str(identifier),secret,FORTY_FIVE_MINS)
+	else:
+		redis.Redis(connection_pool=POOL).setex(ACCOUNT_KIT_SECRET_STORE+str(identifier),secret,FORTY_FIVE_MINS)
 
 
-def retrieve_user_account_kit_secret(user_id):
+def retrieve_user_account_kit_secret(identifier, from_forgot_pass=False):
 	"""
+	This retrieves the 'secret' uuid key to be used to ascertain whether the same user returned from Account Kit's flow
+
+	'identifier' can either be a user_id (in case of user account verification flow) or a mobile number (in case of forgot pass flow)
 	"""
-	return redis.Redis(connection_pool=POOL).get(ACCOUNT_KIT_SECRET_STORE+str(user_id))
+	if from_forgot_pass:
+		# existence of 'f:' in key name signifies that this is related to the forgot password flow
+		return redis.Redis(connection_pool=POOL).get(ACCOUNT_KIT_SECRET_STORE+"f:"+str(identifier))
+	else:
+		return redis.Redis(connection_pool=POOL).get(ACCOUNT_KIT_SECRET_STORE+str(identifier))
+
 
 ################################################### Accountkit usage related loggers ###########################
 
@@ -2116,6 +2132,37 @@ def log_ak_user_verification_outcome(reason):
 		redis.Redis(connection_pool=POOL).incr("id_already_verified_count")
 
 
+################################################### Accountkit forgot password related loggers ###################
+
+
+def log_fp_ak_entered():
+	"""
+	this function logs the number of Forgot password user funnelled to Accountkit for verification
+	"""
+	redis.Redis(connection_pool=POOL).incr("entered_fp_ak_count")
+
+
+def log_fp_ak_user_verification_outcome(reason):
+	"""
+	this function logs the number of Accountkit errors for users in forgot password funnel
+	"""
+	pass
+	if reason == 'ratelimited_before_ak':
+		redis.Redis(connection_pool=POOL).incr("forgetter_ratelimited_before_ak_count")
+	elif reason == 'ratelimited_after_ak':
+		redis.Redis(connection_pool=POOL).incr("forgetter_ratelimited_after_ak_count")
+	elif reason == 'verified':
+		redis.Redis(connection_pool=POOL).incr("change_password_success_count")
+	elif reason == 'forgetters_userid_missing':
+		redis.Redis(connection_pool=POOL).incr("forgetters_userid_missing_count")
+	elif reason == 'forgetter_using_someone_elses_number':
+		redis.Redis(connection_pool=POOL).incr("forgetter_using_someone_elses_number_count")
+	elif reason == 'forgetter_on_setting_pass_screen':
+		redis.Redis(connection_pool=POOL).incr("forgetter_on_setting_pass_screen_count")
+	elif reason == 'forgetters_number_questionable':
+		redis.Redis(connection_pool=POOL).incr("forgetters_number_questionable_count")
+	elif reason == 'forgetter_ran_into_unknown_error':
+		redis.Redis(connection_pool=POOL).incr("forgetter_ran_into_unknown_error_count")
 
 
 ################################################### Twilio usage related loggers ###########################

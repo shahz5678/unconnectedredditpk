@@ -1,22 +1,28 @@
 {% extends "base_signup.html" %}
 {% block content %}
+<head><title>User verification | Damadam.pk</title></head>
+<style>body{background: #fefbfb}</style>
+{% include "fb_analytics.html" %}
 
-<head><title>Forgot password | Damadam.pk</title></head>
-<div style="margin-top: 5%;">
-{% include "unauth/title.html" with lang='' translate='0' %}
+<div class="lsp cm" style="color:white;padding:10px;border-bottom:1px #c0f4d5;font-weight:bold;background-color:#26d5ab;text-align:center">Ab apna verified mobile number likhein</div>
 
-<div class="clb bizcard mbl" style="margin-right: auto; margin-left:auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+<div class="bizcard" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
+	<div class="cxs sp mbl">Aapko 6 digits ka pin code <b>SMS</b> ya <b>WhatsApp</b> ke zariye bheja jai ga</div>				
 
-<div class="lsp cxl" style="color:white;text-shadow:1px 1px #009940;padding:10px;border-bottom:1px dashed #c0f4d5;font-weight:bold;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">Ab apka mobile number confirm kia jaye ga</div>
 
-<form method="POST" style="padding:0px 10px 10px 10px" class="mts mbs" action="{% url 'send_SMS_to_forgetter' %}">
-	{% csrf_token %}
-	<div class="mtl mbs lsp">{% if form.phonenumber.errors %}<b style="color:#f9ef6c;text-shadow:1px 1px #009940;" class="cxl lsp">{{ form.phonenumber.errors.0 }}</b>{% else %}<b style="color:white;text-shadow:1px 1px #009940;" class="cl sp lsp">Wohi mobile number likhein jo pehlay se Damadam pe verified ho</b>{% endif %}</div>
-	{{ form.phonenumber }}
-  	<button class="mtl mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button>
-</form>
+		<form method="POST" action="{% url 'prelim_mobile_verification' %}" class="mtl cgy">
 
+			{% csrf_token %}
+			{% if form.phonenumber.errors %}<b class="cr sp cxs mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
+			{{ form.phonenumber }}<br>
+			<div class="cxs mt clb">oper mobile number likhien (example: 03451234567)</div>
+			<button class="btn bct mtl mbs bl cs sp pg_ok_res" style="height:35px;width:100%;padding:10px;">OK</button>
+		</form>
+
+		<hr size=1 COLOR="#e6e6e6">
+		<div class="cs lsp" style="text-align:left;padding:5px 5px;"><span class="cgy"><b>Tip I:</b> mobile number '0' se start hona chahiye, '+92' se nahi<br><b>Tip II:</b> 
+			Agli screen per number tabdeel na kerien siruf SMS ya Whatsapp se pin mangwane ka button dabaien<br><b>Tip III:</b> Sirf numbers likhien, dashes ya spaces ki zarurat nahi</span></div>
 </div>
 {% include "unauth/old_account_button.html" with lang='' %}
-</div>
+<br><br><br><br><br><br>
 {% endblock %}

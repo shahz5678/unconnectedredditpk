@@ -1,23 +1,28 @@
 {% extends "base_signup.html" %}
 {% block content %}
+<head><title>User verification | Damadam.pk</title></head>
+<style>body{background: #fefbfb}</style>
+{% include "fb_analytics.html" %}
 
-<head><title>Forgot password (Urdu) | Damadam.pk</title></head>
-<div style="margin-top: 5%;">
-{% include "unauth/title.html" with lang='ur' translate='0' %}
 
-<div class="clb bizcard mbl" style="margin-right: auto; margin-left:auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
 
-<div style="color:white;text-shadow:1px 1px #009940;padding:10px;border-bottom:1px dashed #c0f4d5;font-weight:bold;font-size:23px;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">اب آپکے موبائل نمبر کی تصدیق ہو گی</div>
+<div class="lsp cm" style="color:white;padding:10px;border-bottom:1px #c0f4d5;font-weight:bold;background-color:#26d5ab;text-align:center"><bdo dir="rtl">اب آپکے موبائل نمبر کی تصدیق ہو گی</bdo></div>
 
-<form method="POST" style="padding:0px 10px 10px 10px" class="mts mbs" action="{% url 'send_SMS_to_forgetter' 'ur' %}">
-	{% csrf_token %}
-	<div class="mtl mbs">{% if form.phonenumber.errors %}<b style="color:#f9ef6c;text-shadow:1px 1px #009940;" class="cxl"><bdi>{{ form.phonenumber.errors.0 }}</bdi></b>{% else %}<b style="color:white;text-shadow:1px 1px #009940;" class="cxl">وہ موبائل نمبر لکھیں جو پہلے تصدیق کروایا تھا</b>{% endif %}</div>
-	{{ form.phonenumber }}
-	<button class="mtl mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button>
-</form>
+<div class="bizcard" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
+
+	<form method="POST" action="{% url 'prelim_mobile_verification' 'ur' %}" class="mtl cgy">
+
+			{% csrf_token %}
+			{% if form.phonenumber.errors %}<b class="cr sp cxs mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
+			{{ form.phonenumber }}<br>
+			<div class="cxs mt clb"><bdo dir="rtl">وہ موبائل نمبر لکھیں جو پہلے تصدیق کروایا تھا ( مثال :<bdo dir="ltr"> 03451234567</bdo>)</bdo></div>
+			    <button class="btn bct mtl mbs bl cs sp pg_ok_res" style="height:35px;width:100%;padding:10px;">OK</button>
+	</form>
+	<hr size=1 COLOR="#e6e6e6">
+		<div class="cs lsp" style="text-align:right;padding:5px 5px;"><span class="cgy"><bdo dir="rtl"><b>ٹپ I:</b> موبائل نمبر ’ 0 ’ سے اسٹارٹ ہونا چاہیے ، ’  29 +’ سے نہیں</bdo><br><bdo dir="rtl"><b>ٹپ II:</b>اگلی اسکریں پر نمبر تبدیل نا کریں صرف SMS یا <bdo dir='ltr'>WhatsApp</bdo> سے پن منگوانے کا بٹن دابایین</bdo><br><bdo dir='rtl'><b>ٹپ III:</b>اوپر صرف نمبرز لکھ سکتے ہیں ، ڈیش یا اسپیس کی ضرورت نہیں</bdo></span></div>
+
 
 </div>
-
-{% include "unauth/old_account_button.html" with lang='ur' %}
-</div>
+	{% include "unauth/old_account_button.html" with lang='ur' %}
+<br><br><br><br><br><br>
 {% endblock %}

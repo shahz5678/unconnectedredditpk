@@ -1,6 +1,6 @@
 {% if lang == 'ur' %}
 	{% if forgot_pass == '1' and translate == '1' %}
-		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">دمادم <a href="{% url 'forgot_password' %}" class="cb" style="font-size:0.5em">(eng)</a></h1>
+		<h1 class="bw sp" style="color:#1bb187;text-align:center;margin:0">دمادم <a href="{% url 'forgot_password' %}" class="cb" style="font-size:0.5em">(eng)</a></h1>
 	{% elif login == '1' and translate == '1' %}
 		<h1 class="bw mbs sp" style="color:#1bb187;text-align:center">دمادم <a href="{% url 'login' %}" class="cb" style="font-size:0.5em">(eng)</a></h1>
 	{% elif translate == '1' %}

@@ -1,5 +1,5 @@
 # coding=utf-8
-import shortuuid
+import shortuuid, requests, uuid, time
 from django.db import transaction
 from django.contrib.auth import login as quick_login
 from django.contrib.auth import authenticate, logout
@@ -15,9 +15,11 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
 from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, insert_nick, temporarily_save_user_csrf, set_forgot_password_rate_limit, \
-is_forgot_password_rate_limited, twiliolog_user_verified, twiliolog_pin_sms_sent, log_post_banned_username#, log_forgot_password, is_sms_sending_rate_limited
+is_forgot_password_rate_limited, twiliolog_user_verified, twiliolog_pin_sms_sent, log_post_banned_username, save_user_account_kit_server_secret, \
+someone_elses_number, log_ak_user_verification_outcome,retrieve_user_account_kit_secret,log_fp_ak_entered, log_fp_ak_user_verification_outcome#, log_forgot_password, is_sms_sending_rate_limited
 from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ForgettersNicknameForm, ResetForgettersPasswordForm, SignInForm,\
 ForgettersMobileNumber, ForgettersPin
+from verification_views import get_requirements
 from forms import getip
 from score import PW
 from brake.decorators import ratelimit
@@ -103,13 +105,14 @@ def forgot_password(request, lang=None, *args, **kwargs):
 		return render(request,template_name,{'form':ForgettersNicknameForm()})
 
 
-
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
-def send_SMS_to_forgetter(request, lang=None, *args, **kwargs):
+def prelim_mobile_verification(request, lang=None, *args, **kwargs):
 	"""
-	This sends pin code to forgetter's number for password recovery purposes
+	This sends the user to Account Kit after performing preliminary check that the user's provided mobile number is indeed correct
+	
+	Can be removed if Account Kit is no longer in use
 	"""
 	if request.user.is_authenticated():
 		return redirect("home")
@@ -120,65 +123,26 @@ def send_SMS_to_forgetter(request, lang=None, *args, **kwargs):
 		if form.is_valid():
 			fg_ttl = is_forgot_password_rate_limited(user_id)
 			if fg_ttl:
+				log_fp_ak_user_verification_outcome("ratelimited_before_ak")
 				# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again
-				import time
 				template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
 				return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
 			else:
 				phonenumber, sms_ttl = form.cleaned_data.get("phonenumber")
-				if sms_ttl:
-					# SMS sending is rate limited (because SMS already sent)
-					template_name = "unauth/verify_forgetters_pin_ur.html" if lang == 'ur' else "unauth/verify_forgetters_pin.html"
-					return render(request,template_name,{'form':ForgettersPin(),'reentry_instr':True})
-				else:
-					target_number = '+92'+phonenumber[-10:]
-					# generate and send a pin code to the given mobile number
-					send_user_pin.delay(user_id, target_number)
-					twiliolog_pin_sms_sent(forgot_pass=True)
-					template_name = "unauth/verify_forgetters_pin_ur.html" if lang == 'ur' else "unauth/verify_forgetters_pin.html"
-					return render(request,template_name,{'form':ForgettersPin()})
+				# sms_ttl is always none when Account Kit is used (it's useful when inhouse SMS services are deployed)
+				target_number = phonenumber[-11:]
+				# send GET request to Account Kit url
+				user_account_kit_server_secret = str(uuid.uuid4())# save locally
+				log_fp_ak_entered()
+				save_user_account_kit_server_secret(target_number, user_account_kit_server_secret, mob_num_as_key=True)
+				URL = "https://www.accountkit.com/v1.0/basic/dialog/sms_login/"
+				PARAMS = {'counter_code':'PK','app_id':'1758220174446684','state':user_account_kit_server_secret,\
+				'redirect':'https://damadam.pk/forgot-password/set-new-pass/','phone_number':target_number,\
+				'fbAppEventsEnabled':'true','debug':'false'}
+				r = requests.get(url = URL, params = PARAMS) 
+				return redirect(r.url)
 		else:
 			template_name = "unauth/verify_forgetters_account_ur.html" if lang == 'ur' else "unauth/verify_forgetters_account.html"
-			return render(request,template_name,{'form':form})
-	else:
-		# not a POST request
-		return redirect("forgot_password")
-
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@sensitive_post_parameters()
-@csrf_protect
-def verify_forgetters_pin(request, lang=None, *args, **kwargs):
-	"""
-	Verify's whether the pin code entered by the forgetter is the correct one
-	"""
-	if request.user.is_authenticated():
-		return redirect("home")
-	elif request.method == "POST":
-		username = request.session.get('forgetters_username',None)
-		user_id = request.session.get('forgetters_userid',None)
-		form = ForgettersPin(request.POST,user_id=user_id, lang=lang)
-		if form.is_valid():
-			fg_ttl = is_forgot_password_rate_limited(user_id)
-			if fg_ttl:
-				# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again
-				import time
-				template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
-				return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
-			else:
-				pin_state = form.cleaned_data.get("pinnumber")
-				if pin_state == 'pin_matched':
-					# pin verified - now allow the user to change their password
-					twiliolog_user_verified(forgot_pass=True)
-					request.session.pop('forgetters_username',None)
-					template_name = "unauth/set_new_password_ur.html" if lang == 'ur' else "unauth/set_new_password.html"
-					return render(request,template_name,{'form':ResetForgettersPasswordForm()})
-				else:
-					# pin_state is 'invalid' or 'expired' - start from scratch
-					template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
-					return render(request,template_name,{'form':ForgettersNicknameForm(),'pin_expired':True})
-		else:
-			template_name = "unauth/verify_forgetters_pin_ur.html" if lang == 'ur' else "unauth/verify_forgetters_pin.html"
 			return render(request,template_name,{'form':form})
 	else:
 		# not a POST request
@@ -191,6 +155,8 @@ def verify_forgetters_pin(request, lang=None, *args, **kwargs):
 def set_forgetters_password(request, lang=None, *args, **kwargs):
 	"""
 	This enables a verified user (who's forgotten their password) to simply type a new one
+
+	It uses Account Kit
 	"""
 	if request.user.is_authenticated():
 		return redirect("home")
@@ -204,7 +170,10 @@ def set_forgetters_password(request, lang=None, *args, **kwargs):
 				if fg_ttl:
 					# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again'
 					import time
+					log_fp_ak_user_verification_outcome("ratelimited_after_ak")
 					template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
+					request.session.pop('forgetters_userid',None)
+					request.session.pop('forgetters_username',None)
 					return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
 				else:
 					password = form.cleaned_data['password']
@@ -213,16 +182,198 @@ def set_forgetters_password(request, lang=None, *args, **kwargs):
 					quick_login(request,user)
 					request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 					request.session.pop('forgetters_userid',None)
+					request.session.pop('forgetters_username',None)
+					log_fp_ak_user_verification_outcome("verified")
 					set_forgot_password_rate_limit(user_id)
 					return render(request,'change_password/new_password.html',{'new_pass':password})
 			else:
 				template_name = "unauth/set_new_password_ur.html" if lang == 'ur' else "unauth/set_new_password.html"
 				return render(request,template_name,{'form':form})
 		else:
+			request.session.pop('forgetters_username',None)
 			template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
+			log_fp_ak_user_verification_outcome("forgetters_userid_missing")
 			return render(request,template_name,{'form':ForgettersNicknameForm(),"did_not_work":True})
 	else:
-		return redirect("forgot_password")
+		# account kit handshake takes place here (cater for various failure/success cases)
+		AK_ID, MN_data, err = get_requirements(request=request, secret='', secret_omitted=True)
+		if AK_ID and MN_data:
+			# process the results
+			mob_num = MN_data['national_number']
+			original_secret = retrieve_user_account_kit_secret(identifier="0"+str(mob_num),from_forgot_pass=True)
+			returned_secret = request.GET.get('state', None)
+			if returned_secret and original_secret == returned_secret:
+				user_id = request.session.get('forgetters_userid',None)
+				if someone_elses_number(national_number=mob_num, user_id=user_id):
+					request.session.pop('forgetters_username',None)
+					request.session.pop('forgetters_userid',None)
+					request.session["account_kit_verification_failed"] = '1'
+					log_fp_ak_user_verification_outcome("forgetter_using_someone_elses_number")
+					request.session["account_kit_verification_failure_reason"] = '8'#someone elses number, trying to dupe forgot password
+					request.session.modified = True
+					return redirect("account_kit_forgot_pass_verification_failed")
+				else:
+					# let the user set a new password
+					# template_name = "unauth/set_new_password_ur.html" if lang == 'ur' else "unauth/set_new_password.html"
+					# return render(request,template_name,{'form':ResetForgettersPasswordForm()})
+					request.session["allwd_set_new_pass"] = '1'
+					request.session.modified = True
+					return redirect("account_kit_forgot_pass_verification_successful")
+			else:
+				# this user's mobile number is questionable, make them do everything again
+				request.session.pop('forgetters_username',None)
+				request.session.pop('forgetters_userid',None)
+				log_fp_ak_user_verification_outcome("forgetters_number_questionable")
+				request.session["account_kit_verification_failed"] = '1'
+				request.session["account_kit_verification_failure_reason"] = '7'#someone elses number, trying to dupe forgot password
+				return redirect("account_kit_forgot_pass_verification_failed")
+		else:
+			# something went wrong, do it again
+			log_fp_ak_user_verification_outcome("forgetter_ran_into_unknown_error")
+			request.session.pop('forgetters_username',None)
+			request.session.pop('forgetters_userid',None)
+			request.session["account_kit_verification_failed"] = '1'
+			request.session["account_kit_verification_failure_reason"] = '7'#someone elses number, trying to dupe forgot password
+			return redirect("account_kit_forgot_pass_verification_failed")
+
+
+def render_set_new_password(request):
+	"""
+	Renders form where user can set a new password (part of the forgot password flow)
+	"""
+	if request.user.is_authenticated():
+		return redirect("home")
+	else:
+		if request.session.get("allwd_set_new_pass",'') == '1':
+			log_fp_ak_user_verification_outcome("forgetter_on_setting_pass_screen")
+			request.session.pop("allwd_set_new_pass",'')
+			return render(request,'unauth/set_new_password.html',{'form':ResetForgettersPasswordForm()})
+		else:
+			return redirect("login")
+
+
+# Functions below are used when inhouse SMS systems are deployed for password retrieval
+
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @sensitive_post_parameters()
+# @csrf_protect
+# def send_SMS_to_forgetter(request, lang=None, *args, **kwargs):
+# 	"""
+# 	This sends pin code to forgetter's number for password recovery purposes
+# 	"""
+# 	print "func inside send sms to forgetter"
+# 	if request.user.is_authenticated():
+# 		return redirect("home")
+# 	elif request.method == "POST":
+# 		username = request.session.get('forgetters_username',None)
+# 		user_id = request.session.get('forgetters_userid',None)
+# 		form = ForgettersMobileNumber(request.POST,user_id=user_id, lang=lang)
+# 		if form.is_valid():
+# 			fg_ttl = is_forgot_password_rate_limited(user_id)
+# 			if fg_ttl:
+# 				# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again
+# 				import time
+# 				template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
+# 				return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
+# 			else:
+# 				phonenumber, sms_ttl = form.cleaned_data.get("phonenumber")
+# 				if sms_ttl:
+# 					# SMS sending is rate limited (because SMS already sent)
+# 					template_name = "unauth/verify_forgetters_pin_ur.html" if lang == 'ur' else "unauth/verify_forgetters_pin.html"
+# 					return render(request,template_name,{'form':ForgettersPin(),'reentry_instr':True})
+# 				else:
+# 					target_number = '+92'+phonenumber[-10:]
+# 					# generate and send a pin code to the given mobile number
+# 					send_user_pin.delay(user_id, target_number)
+# 					twiliolog_pin_sms_sent(forgot_pass=True)
+# 					template_name = "unauth/verify_forgetters_pin_ur.html" if lang == 'ur' else "unauth/verify_forgetters_pin.html"
+# 					return render(request,template_name,{'form':ForgettersPin()})
+# 		else:
+# 			template_name = "unauth/verify_forgetters_account_ur.html" if lang == 'ur' else "unauth/verify_forgetters_account.html"
+# 			return render(request,template_name,{'form':form})
+# 	else:
+# 		# not a POST request
+# 		return redirect("forgot_password")
+
+
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @sensitive_post_parameters()
+# @csrf_protect
+# def verify_forgetters_pin(request, lang=None, *args, **kwargs):
+# 	"""
+# 	Verify's whether the pin code entered by the forgetter is the correct one
+# 	"""
+# 	if request.user.is_authenticated():
+# 		return redirect("home")
+# 	elif request.method == "POST":
+# 		username = request.session.get('forgetters_username',None)
+# 		user_id = request.session.get('forgetters_userid',None)
+# 		form = ForgettersPin(request.POST,user_id=user_id, lang=lang)
+# 		if form.is_valid():
+# 			fg_ttl = is_forgot_password_rate_limited(user_id)
+# 			if fg_ttl:
+# 				# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again
+# 				import time
+# 				template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
+# 				return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
+# 			else:
+# 				pin_state = form.cleaned_data.get("pinnumber")
+# 				if pin_state == 'pin_matched':
+# 					# pin verified - now allow the user to change their password
+# 					twiliolog_user_verified(forgot_pass=True)
+# 					request.session.pop('forgetters_username',None)
+# 					template_name = "unauth/set_new_password_ur.html" if lang == 'ur' else "unauth/set_new_password.html"
+# 					return render(request,template_name,{'form':ResetForgettersPasswordForm()})
+# 				else:
+# 					# pin_state is 'invalid' or 'expired' - start from scratch
+# 					template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
+# 					return render(request,template_name,{'form':ForgettersNicknameForm(),'pin_expired':True})
+# 		else:
+# 			template_name = "unauth/verify_forgetters_pin_ur.html" if lang == 'ur' else "unauth/verify_forgetters_pin.html"
+# 			return render(request,template_name,{'form':form})
+# 	else:
+# 		# not a POST request
+# 		return redirect("forgot_password")
+
+
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @sensitive_post_parameters()
+# @csrf_protect
+# def set_forgetters_password(request, lang=None, *args, **kwargs):
+# 	"""
+# 	This enables a verified user (who's forgotten their password) to simply type a new one
+# 	"""
+# 	if request.user.is_authenticated():
+# 		return redirect("home")
+# 	elif request.method == "POST":
+# 		user_id = request.session.get('forgetters_userid',None)
+# 		if user_id:
+# 			user = User.objects.get(id=user_id)
+# 			form = ResetForgettersPasswordForm(data=request.POST, user=user, lang=lang)
+# 			if form.is_valid():
+# 				fg_ttl = is_forgot_password_rate_limited(user_id)
+# 				if fg_ttl:
+# 					# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again'
+# 					import time
+# 					template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
+# 					return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
+# 				else:
+# 					password = form.cleaned_data['password']
+# 					form.save()
+# 					user = authenticate(username=user.username,password=password)
+# 					quick_login(request,user)
+# 					request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+# 					request.session.pop('forgetters_userid',None)
+# 					set_forgot_password_rate_limit(user_id)
+# 					return render(request,'change_password/new_password.html',{'new_pass':password})
+# 			else:
+# 				template_name = "unauth/set_new_password_ur.html" if lang == 'ur' else "unauth/set_new_password.html"
+# 				return render(request,template_name,{'form':form})
+# 		else:
+# 			template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
+# 			return render(request,template_name,{'form':ForgettersNicknameForm(),"did_not_work":True})
+# 	else:
+# 		return redirect("forgot_password")
 
 
 ######################## Used to log in Google (enable when required) ############################

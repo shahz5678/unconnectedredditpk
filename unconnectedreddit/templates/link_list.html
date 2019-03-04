@@ -5,7 +5,6 @@
 {% load get_item %}
 {% load show_error %}
 {% load human_time %}
-{% load s3 %}
 {% load get_photo_object %}
 {% load get_text_object %}
 {% load get_transparent_buttons_js %}
@@ -22,9 +21,8 @@
 {% load get_home_replies_section %}
 {% block content %}
 <head><title>Home | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-
-<div style="max-width:600px;margin:0 auto;width:92%;position:relative;">
+<style>body{background:#f0f3f4}</style>
+<div style="max-width:600px;margin:0 auto;width:96%;position:relative;">
 {% if newbie_flag %}
 	{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin='3' %}
 {% else %}
@@ -37,8 +35,8 @@
 {% endif %}
 
 <div class="mbs fx fxjscn fxaibl">
-<a href="{% url 'home' %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
-<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
+	<a href="{% url 'home' %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
+	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
 </div>
 
 {% for link in link_list %}
@@ -46,8 +44,8 @@
 {% if not on_fbs %}
 	
 	{% if forloop.counter == 3 %}
-	
-		<div style="text-align:center;background:#E9EBEE">
+
+		<div class="mbl" style="text-align:center;background:#f0f3f4">
 			<ins class="adsbygoogle"
 				 style="display:block"
 				 data-ad-client="ca-pub-2568547635306983"
@@ -57,15 +55,15 @@
 			<script>
 				(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>		
-		</div>
+		</div>	
 
 	{% elif forloop.counter == 10 %}
 
-		<div style="text-align:center;background:#E9EBEE">
+		<div class="mbl" style="text-align:center;background:#f0f3f4">
 			<ins class="adsbygoogle"
-				 style="display:inline-block;width:320px;height:100px"
-				 data-ad-client="ca-pub-2568547635306983"
-				 data-ad-slot="6326691312"></ins>
+			     style="display:inline-block;width:320px;height:100px"
+			     data-ad-client="ca-pub-2568547635306983"
+			     data-ad-slot="6326691312"></ins>
 			<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
@@ -73,11 +71,11 @@
 
 	{% elif forloop.counter == 17 %}
 
-		<div style="text-align:center;background:#E9EBEE">
+		<div class="mbl" style="text-align:center;background:#f0f3f4">
 			<ins class="adsbygoogle"
-				 style="display:inline-block;width:320px;height:100px"
-				 data-ad-client="ca-pub-2568547635306983"
-				 data-ad-slot="1018524312"></ins>
+			     style="display:inline-block;width:320px;height:100px"
+			     data-ad-client="ca-pub-2568547635306983"
+			     data-ad-slot="1018524312"></ins>
 			<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
@@ -92,40 +90,38 @@
 	
 {% if link.c == '6' %}
 	
-<div class="bizcard" style="background-color:white;padding:3px;margin-top:15px;margin-bottom:20px">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
 	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p score=link.sc %}
 
-	<div class="mls">
-	<div style="flex-wrap:wrap" class="fx fxjsfs fxaicn cxs sp cgy">
-	{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
-	{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
-	{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
-	{% big_external_share_button owner_username=link.su is_mobile=is_mob photo_id=link.i origin='3' static_url=STATIC_URL %}
-	{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
-	{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
-
+	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+		{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
+		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
+		{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+		{% big_external_share_button owner_username=link.su is_mobile=is_mob photo_id=link.i origin='3' static_url=STATIC_URL %}
+		{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
+		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 	</div>
 
+	<div class="mls mbl"> 
 	{% photo_comments_section raw_comments=link.i static_url=STATIC_URL self_user_id=ident origin='3' score=score home_hash=link.h %}
-
-	<div class="mts mrs mbs">
-	{% home_photo_comment_bar photo_id=link.i photo_owner_id=link.si lang=lang sort_by=sort_by user_id=ident comment_form=comment_form origin='3' home_hash=link.h sk=sk %}
 	</div>
+
+	<div class="mls mrs mbl">
+	{% home_photo_comment_bar photo_id=link.i photo_owner_id=link.si lang=lang sort_by=sort_by user_id=ident comment_form=comment_form origin='3' home_hash=link.h sk=sk %}
 	</div>
 
 </div>
 	
 {% elif link.c == '1' %}
-<div class="bizcard clb" style="background-color:white;padding:3px;margin-top:15px;margin-bottom:20px">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
 
 	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p score=link.sc %}
 
-	<div class="mls">
 
-		<div style="flex-wrap:wrap" class="mtl fx fxjsfs fxaicn cxs sp cgy">
+		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
@@ -133,15 +129,15 @@
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
 		</div>
 
-		<div class="mtl mbs">
+
+		<div class="mts mls mbl">
 		{% home_replies_section link.cb STATIC_URL ident score link.h %}
 		</div>
 
-		<div class="mts mrs mbs">
+		<div class="mls mrs mbl">
 		{% home_publicreply_bar link_pk=link.i link_writer_pk=link.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='home' sk=sk %}
 		</div>
 
-	</div>
 </div>
 {% else %}
 <!-- nothing -->
@@ -159,15 +155,15 @@
 </div>
 	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
 		{% if page.has_previous %}
-		<div style="padding:0 10px">
-		<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-		</div>
-		{% endif %}
-		{% if page.has_next %}
-		<div style="padding:0 10px">
-		<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-		</div>
-		{% endif %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
+	    {% if page.has_next %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+	    </div>
+	    {% endif %}
 	</div>
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}

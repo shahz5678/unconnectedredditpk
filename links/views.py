@@ -1554,8 +1554,6 @@ class UserProfilePhotosView(ListView):
 		context["star_av_url"] = retrieve_avurl(star_id)
 		context["legit"] = FEMALES
 		total_fans, recent_fans = get_photo_fan_count(star_id)
-		context["fans"] = total_fans if total_fans else 0
-		context["recent_fans"] = recent_fans if recent_fans else 0
 		context["manageable"] = False
 		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
@@ -1567,20 +1565,18 @@ class UserProfilePhotosView(ListView):
 			username = retrieve_uname(user_id,decode=True)
 			if is_defender:
 				context["manageable"] = True
-			context["not_fan"] = False if is_fan(star_id, user_id) else True
-			if username == slug:
-				context["allowed_fan"] = False
-				context["stars"] = UserFan.objects.filter(fan=self.request.user).count()
-				context["blocked"] = get_banned_users_count(user_id)
+			if is_fan(star_id, user_id):
+				context["not_fan"] = False
+				context["fanned"] = [star_id]
 			else:
-				context["subject_id"] = star_id
-				context["allowed_fan"] = True
+				context["not_fan"] = True
+				context["fanned"] = []#[] must be passed, otherwise code fails
 			if star_id != user_id:
+				context["subject_id"] = star_id
 				log_profile_view.delay(user_id,star_id,time.time())
 		else:
 			context["authenticated"] = False
 			context["not_fan"] = True
-			context["allowed_fan"] = False
 		return context
 
 
@@ -2013,7 +2009,8 @@ class UserProfileDetailView(FormView):
 		context["image_base_width"] = PERSONAL_GROUP_IMG_WIDTH
 		star_id = retrieve_user_id(username)
 		try:
-			context["object"] = User.objects.get(id=star_id)# get full object
+			user_obj = User.objects.get(id=star_id)# get full object
+			context["object"] = user_obj
 		except User.DoesNotExist:
 			raise Http404("User ID does not compute")
 		if star_id:
@@ -2033,8 +2030,15 @@ class UserProfileDetailView(FormView):
 			context["origin"] = '10'#helps redirect back to this page if a user enter the "report" funnel
 			context["mehfil_creation_ttl"] = self.request.session.pop("mehfil_creation_rate_limited",None)
 			context["star_owner_mehfils"] = retrieve_latest_user_owned_mehfils(star_id)
-			if star_id != user_id:
+			total_fans, recent_fans = get_photo_fan_count(star_id)
+			context["fans"] = total_fans if total_fans else 0
+			context["recent_fans"] = recent_fans if recent_fans else 0
+			if star_id == user_id:
+				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
+				context["blocked"] = get_banned_users_count(user_id)
+			else:
 				log_profile_view.delay(user_id,star_id,time.time())
+				context["fanned"] = [user_obj.id] if is_fan(star_id, user_id) else []
 		else:
 			# user does not exist
 			raise Http404("User ID does not exist")

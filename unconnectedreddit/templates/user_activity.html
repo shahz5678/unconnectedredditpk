@@ -11,8 +11,7 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>{{ uname }}'s home posts | Damadam.pk</title></head>
-
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
 {% user_profile_navbar static_url=STATIC_URL section='posts' uname=uname is_own_profile=is_own_profile %}
 
@@ -27,11 +26,11 @@
 {% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=uname ban_detail=ban_detail %}
 
 {% for link in object_list %}
-	<div class="clb bizcard" style="background-color:white;padding:3px;margin-top:15px;margin-bottom:20px">
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	
 	{% text_object obid=link.id ooid=submitter_id text=link.description|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on|naturaltime oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_pinkstar=verified score=score block_time_remaining=time_remaining %}
 
-	<div style="flex-wrap:wrap" class="mls mtl fx fxjsfs fxaicn cxs sp cgy">
+	<div style="flex-wrap:wrap" class="mbl fx fxjscn fxaicn cxs sp cgy">
 	{% big_group_button own_id=ident target_id=submitter_id parent_object_id=link.pk object_type='link' origin='8' target_username=uname %}
 	{% big_home_reply_button link_id=link.pk comm_count=link.reply_count static_url=STATIC_URL home_history=True %}
 	{% big_points_button obj_id=link.id owner_id=submitter_id is_pht=0 origin='8' net_votes=link.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
@@ -60,13 +59,7 @@
 {% endfor %}
 
 </div>
-
-{% endblock %}
-
-{% block pagination %}
-{% if is_paginated %}
-
-	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
 		{% if page_obj.has_previous %}
 	    <div style="padding:0 10px">
 	    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
@@ -78,7 +71,6 @@
 	    </div>
 	    {% endif %}
 	</div>
-
-{% endif %}<br>
+<br>
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 {% endblock %}

@@ -174,6 +174,15 @@ def add_obj_to_home_feed(hash_name, my_server=None):
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	my_server.lpush(HOME_FEED, hash_name)
 	my_server.ltrim(HOME_FEED, 0, 999)
+	#########################################################################
+	#########################################################################
+	HOME_SORTED_FEED = "homesortedfeed:1000" # sorted set containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
+	my_server.zadd(HOME_SORTED_FEED, hash_name, time.time())
+	if random() < 0.2:
+		# every now and then, trim the sorted set for size
+		my_server.zremrangebyrank(HOME_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
+	#########################################################################
+	#########################################################################
 
 
 def retrieve_obj_feed(obj_list):
@@ -353,6 +362,8 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 			counter += 1
 		voter_age_dict, highest_age = retrieve_user_world_age(voter_ids,with_highest_age=True)
 		if voter_age_dict and highest_age:
+			import math
+			log_highest_age = math.log(highest_age)# taking log of highest age so that large-age users cannot have an undue influence
 			counter = 0 #resetting the counter
 			final_net_votes = {}
 			for obj_id in obj_ids:
@@ -361,9 +372,11 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 					obj_aggregate_vote_score = 0
 					for user_id, user_vote in result1[counter]:
 						if int(user_vote) == 0:
-							vote_value = -1*(voter_age_dict[user_id]/highest_age)
+							log_voter_age = math.log(voter_age_dict[user_id])
+							vote_value = -1*(log_voter_age/log_highest_age)
 						elif int(user_vote) == 1:
-							vote_value = 1*(voter_age_dict[user_id]/highest_age)
+							log_voter_age = math.log(voter_age_dict[user_id])
+							vote_value = 1*(log_voter_age/log_highest_age)
 						else:
 							vote_value = 0
 						obj_aggregate_vote_score += vote_value
@@ -372,7 +385,6 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 					final_net_votes[obj_id] = 0
 				counter += 1
 		return final_net_votes
-
 
 #################################################### Updating image content objects ############################################
 

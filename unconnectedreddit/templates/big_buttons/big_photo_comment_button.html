@@ -6,7 +6,7 @@
 <a href="{% url 'comment_pk' photo_id origin %}" style="margin-bottom:4px;margin-right:4px">
 <span itemprop="discussionUrl"><button class="vt" style="padding:0;border:1px solid {{ border_color }};width:50px;height:42px;color:#ff8000;font-size:12px;text-align:center"><div class="mt mbs">{% if comm_count > 999 %}999+{% else %}{{ comm_count }}{% endif %}</div><div style="font-size:8.2px;color:#ff8000" class="mt">TABSRY</div></button></span>
 </a>
-{% elif origin == '5' %}
+{% elif origin == '5' or from_single_notif %}
 <a href="{% url 'comment_pk' photo_id origin %}" style="margin-bottom:4px;margin-right:4px">
 <span itemprop="discussionUrl"><button class="vt" style="padding:0;border:1px solid {{ border_color }};width:50px;height:42px;color:#ff8000;font-size:12px;text-align:center"><div class="mbs mt">{% if comm_count > 999 %}999+{% else %}{{ comm_count }}{% endif %}</div><div style="font-size:8.2px;color:#ff8000" class="mt">{% if comm_count == 1 %}TABSRA{% else %}TABSRY{% endif %}</div></button></span>
 </a>

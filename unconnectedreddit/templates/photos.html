@@ -19,9 +19,9 @@
 
 <head><title>Fresh photos and memes | Damadam.pk</title></head>
 
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
-<div style="max-width:600px;margin:0 auto;width:92%">
+<div style="max-width:600px;margin:0 auto;width:96%">
 	
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
@@ -33,13 +33,13 @@
 
 {% for photo in object_list %}
 
-<div class="bizcard" style="background-color:white;position:relative;padding:3px;margin-top:15px;margin-bottom:20px">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
-
+	
 	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=1 upload_time=photo.t|human_time vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p score=photo.sc %}
 
 	<div class="mls">
-	<div style="flex-wrap:wrap" class="fx fxjsfs fxaicn cxs sp cgy">
+	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 	{% big_vote_button vote_type='photo_vote' obid=photo.i origin=1 net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL %}
 	{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin='1' fan_list=fanned static_url=STATIC_URL %}
 	{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin='1' target_username=photo.su %}
@@ -50,7 +50,7 @@
 
 	{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin='1' score=score %}
 
-	<div class="mts mrs mbs">
+	<div class="mts mrs mbl">
 	{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form '1' sk %}
 	</div>		
 	</div>

@@ -2,28 +2,28 @@
 {% load get_user_profile_navbar %}
 {% block content %}
 <head><title>Edit profile | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 {% user_profile_navbar static_url=STATIC_URL section='edit' uname=username is_own_profile=is_own_profile %}
 
 <h1 class="cxl lsp clb" style="text-align:center">Edit your profile:</h1>
 
-<div class="clb bizcard" style="background-color:white;margin: 0 auto;max-width:600px;width:95%;padding:10px 7px">
+<div class="mbl" style="margin-right:auto;margin-left:auto;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;padding:10px 7px">
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
   {% if form.mobilenumber.errors %}<span class="cr">{{ form.mobilenumber.errors.0 }}</span><br>{% endif %}
   <b class="sp cl">Mobile number:</b><br>{{ form.mobilenumber }}<br>
   <span class="cs cgy sp">Apka mobile number kisi ko nahi diya jaye ga</span>
-  <hr size=1 COLOR="#E9EBEE"><br>
+  <hr size=1 COLOR="#f4f4f4">
   {% if form.bio.errors %}<span class="cr">{{ form.bio.errors.0 }}</span><br>{% endif %}
-  <b class="sp cl">Apni ek khas baat likhein </b><span class="cgy cs sp">(ya phir apka favorite joke)</span>:<br>{{ form.bio }}
-  <hr size=1 COLOR="#E9EBEE"><br>
+  <b class="sp cl">Apni life se koi story likhein:</b><div class="mt lsp">{{ form.bio }}</div>
+  <hr size=1 COLOR="#f4f4f4">
   {% if form.avatar.errors %}<span class="cr">{{ form.avatar.errors.0 }}</span><br>{% endif %}
-  <b class="sp cl">Apki profile foto:</b><br>{{ form.avatar }}
-  <hr size=1 COLOR="#E9EBEE"><br>
+  <b class="sp cl">Apki profile foto:</b><div class="lsp">{{ form.avatar }}</div>
+  <hr size=1 COLOR="#f4f4f4">
   {% if form.age.errors %}<span class="cr">{{ form.age.errors.0 }}</span><br>{% endif %}
-  <b class="sp cl">Age likhein:</b><br>{{ form.age }}
-  <hr size=1 COLOR="#E9EBEE"><br>
+  <b class="sp cl">Age likhein:</b><div class="mt lsp">{{ form.age }}</div>
+  <hr size=1 COLOR="#f4f4f4">
   {% if form.gender.errors %}<span class="cr">{{ form.gender.errors.0 }}</span><br>{% endif %}
   <b class="sp cl">Boy or girl:</b><br>
   {% for radio in form.gender %}
@@ -38,7 +38,7 @@
       </tr>
     </table>
   {% endfor %}
-  <hr size=1 COLOR="#E9EBEE"><br>
+  <hr size=1 COLOR="#f4f4f4">
   {% if form.shadi_shuda.errors %}<span class="cr">{{ form.shadi_shuda.errors.0 }}</span>{% endif %}
   <b class="sp cl">Shaadi shuda:</b><br>
   {% for radio in form.shadi_shuda %}
@@ -53,7 +53,7 @@
       </tr>
     </table>
   {% endfor %}
-  <hr size=1 COLOR="#E9EBEE"><br>
+ <hr size=1 COLOR="#f4f4f4">
   {% if form.attractiveness.errors %}<span class="cr">{{ form.attractiveness.errors.0 }}</span>{% endif %}
   <b class="sp cl">Shakal soorat:</b><br>
   {% for radio in form.attractiveness %}
@@ -68,10 +68,9 @@
       </tr>
     </table>
   {% endfor %}
-  <hr size=1 COLOR="#E9EBEE">
-  <div style="text-align:center"><button class="btn bl bcg mbs mts sp pg_ok_res" style="height:26px" type="submit">Save</button></div>
+  <hr size=1 COLOR="#f4f4f4">
+  <div style="text-align:center"><button class="btn bl mbs mts sp pg_ok_res" style="height:26px;background-color:#1edea8" type="submit">Save</button></div>
 </form>
-<span class="cs cgy sp">Profile foto nahi lagti jab tuk foto ke sath <b>age</b> aur <b>mobile number</b> na diya toh!</span>
 </div>
 <br><br>
 {% endblock %}

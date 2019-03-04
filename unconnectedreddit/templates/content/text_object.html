@@ -2,20 +2,25 @@
 
 	<div class="mbs">
 	  
-	  <a href="{% url 'profile' oun %}" style="text-decoration: none;">
-	  <span itemprop="image"><img src="{{ av_url }}" alt="{{ oun }}" style="border:1px solid #DCDCDC;position:absolute;margin-left:-16px;margin-top:-16px" width="22" height="22" class="av_btn"></span>
-	  </a>
-	  <div class="fx fxjssb">
-	  <div style="padding-left:22px"><a href="{% url 'profile' oun %}" style="text-decoration: none">{% if is_pinkstar %}<img src="{{ static_url }}img/pstar.svg" alt="*" style="color:deeppink" height="13" width="13">&nbsp;{% endif %}<b class="clb cs sp" itemprop="author">{{ oun }}</b>&nbsp;<span class="cxs sp cg">({{ score }})</span></a>&nbsp;<span class="sp cxs cgy" itemprop="datePublished">- {{ upload_time }}</span></div>
+	  <div class="fx fxjssb fxaicn" style="border-bottom:2px solid whitesmoke;background:#fefefa">
 
-	 	<form style="padding-right:3px" method="POST" action="{% url 'report_or_block' %}">
-		{% csrf_token %}
-		<button type="submit" name="report" style="background:0 0;padding:0;border:none" class="report mt pg_ok_res" value="tx#{{ origin }}#{{ obid }}#{{ oun }}#{{ ooid }}#{{ av_url }}#{{ home_hash }}#{{ raw_text|truncatechars:'60' }}"><img src="{{ static_url }}img/warn_g.svg" width="15" height="15"></button>
-		</form>
+	  	<div class="fx fxjsfs fxaicn" style="padding:7px">
+
+		  <a href="{% url 'profile' oun %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
+
+		  <div style="word-break: break-all;"><a href="{% url 'profile' oun %}" style="text-decoration: none">{% if is_pinkstar %}<img src="{{ static_url }}img/pstar.svg" alt="*" style="color:deeppink" height="13" width="13">&nbsp;{% endif %}<b class="clb cs sp" itemprop="author">{{ oun }}</b>&nbsp;<span class="cxs sp cg">({{ score }})</span></a>&nbsp;<span class="sp cxs cgy" itemprop="datePublished">- {{ upload_time }}</span></div>
+
+		</div>
+
+	 	  <form style="padding-right:7px" method="POST" action="{% url 'report_or_block' %}">
+		  {% csrf_token %}
+		  <button type="submit" name="report" style="background:0 0;padding:0;border:none" class="report pg_ok_res" value="tx#{{ origin }}#{{ obid }}#{{ oun }}#{{ ooid }}#{{ av_url }}#{{ home_hash }}#{{ raw_text|truncatechars:'60' }}"><img src="{{ static_url }}img/warn_g.svg" width="16" height="16"></button>
+		  </form>
+
 	  </div>
 
 	</div>
-	<div class="mbs mls lsp ow" style="overflow:hidden;font-size:17.5px;padding-right:3px">
+	<div class="mbs mls lsp ow clb cxl" style="overflow:hidden;padding-right:3px">
 		{% if vsc|add:"0" < VDC or block_time_remaining %}<span class="cgy sp cs">- mita diya gya -</span>{% else %}<span itemprop="headline">{{ text }}</span>{% endif %}
 	</div>
 

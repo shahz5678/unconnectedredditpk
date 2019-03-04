@@ -7,7 +7,7 @@
 {% load s3 %}
 {% block content %}
 <head><title>{{ username }}'s profile | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
 {% user_profile_navbar static_url=STATIC_URL section='profile' uname=username is_own_profile=is_own_profile %}
 
@@ -20,116 +20,224 @@
 {% endif %}
  </div>
 
-<div class="clb bizcard" style="background-color:white;margin: 0 auto;max-width:600px;width:93%;padding:10px 7px">
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto">
 
-{% if mehfil_creation_ttl %}
-	{% load future_time %}
-	<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cl cr mt mbs lsp">
-	Ap {{ username }} ke sath mehfil bana sakein ge {{ mehfil_creation_ttl|future_time }}
-	</div>
-{% else %}
-	{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=username ban_detail=ban_detail %}
-{% endif %}
+	{% if mehfil_creation_ttl %}
+		{% load future_time %}
+		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cl cr mt mbs lsp">
+		Ap {{ username }} ke sath mehfil bana sakein ge {{ mehfil_creation_ttl|future_time }}
+		</div>
+	{% else %}
+		{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=username ban_detail=ban_detail %}
+	{% endif %}
 
 	{% if not is_profile_banned %}
-		
-		<div class="cl sp lsp" style="font-weight:bold">Profile foto:</div>
-			
+
+        <div class="cl sp" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">
+        	Profile foto:
+        </div>
+
+		<div style="overflow:hidden;text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0">
 		{% if object.userprofile.avatar %}
-		<img class="pht" src="{{ object.userprofile.avatar|s3 }}" style="border-radius:12px" alt="avatar"><br>
+		<img style="vertical-align:top" src="{{ object.userprofile.avatar|s3 }}" alt="avatar"><br>
 		{% else %}
 			{% if is_own_profile %}
-			<img src="{{ STATIC_URL }}img/broken.svg" style="border-radius:12px;max-width:{{ image_base_width }}px" alt="avatar"><br>
+			<img src="{{ STATIC_URL }}img/broken.svg" style="max-width:{{ image_base_width }}px;vertical-align:top" alt="avatar"><br>
 			{% else %}
-			<span style="font-weight:lighter" class="cgy cm sp">in sey kahein aik profile foto tou laga lein ...</span><hr size=1 COLOR="#E9EBEE">
+			<div style="font-weight:lighter" class="mts mbs clb cm sp">in sey kahein aik profile foto tou laga lein ...</div>
 			{% endif %}
 		{% endif %}
-	{% endif %}
-	
-	{% if not is_own_profile %}
-		<a href="{% url 'direct_message' pk=object.id %}"><button class="btn bcg bxl mts mbl pg_ok_res" style="height:26px">Private mehfil</button></a><br>
+		</div>
+
+		<div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ object.date_joined|naturaltime }}</div>
+
+		{% if is_own_profile %}
+			<div class="mbs" style="text-align:center;padding-bottom:5px"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px">Edit your<br>profile</button></a></div>
+		{% else %}
+			{% if own_id %}
+				{% load get_big_fan_button %}
+				{% load get_big_group_button %}
+				<div class="mts mbs fx fxjscn fxaicn">
+				{% big_fan_button own_user_id=own_id target_user_id=object.id object_id=object.id origin='10' home_hash='' fan_list=fanned static_url=STATIC_URL %}
+				{% big_group_button own_id=own_id target_id=object.id parent_object_id='' object_type='profile' origin='10' target_username=username %}
+				</div>
+			{% endif %}
+		{% endif %}
+
 	{% endif %}
 
-	<b class="profile">Joined {{ object.date_joined|naturaltime }}</b>
-	<hr size=1 COLOR="#E9EBEE">
-	<b class="profile">Chat score:</b>
-	<a class="info">
-	{% if object.userprofile.score %}
-		{% if object.userprofile.score < 0 %}
-			<b class="cg">1</b>
-		{% else %}
-			<b class="cg">{{ object.userprofile.score }}</b>
-		{% endif %}
-	{% else %}
-		<b class="cg">1</b>
-	{% endif %}
-	</a>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">help</a><br>
-	<hr size=1 COLOR="#E9EBEE">
+</div>
+
+
+{% if star_owner_mehfils and not is_profile_banned %}
 	
-	<div style="overflow:hidden">
-	<b class="profile">About:</b>
-		{% if is_profile_banned %}
-			<span class="cgy sp">&nbsp;mita diya gya</span>
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:7px">
+
+			{% load human_time %}
+			<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Public mehfil(s) owned:</div>
+			{% for group_id, uuid, topic, ownership_time in star_owner_mehfils %}
+				<div class="mbs" style="text-align:center">
+				<a href="{% url 'public_group' slug=uuid %}">
+				<button class="bizcard mts vt" style="width:90%;padding:10px 7px 5px 7px;border:1px solid #c69fb8">
+					<div class="cp cl sp lsp ow" style="font-weight:bold">{% emoticons %}{{ topic }}{% endemoticons %}</div>
+					<div class="mts cs sp cgy lsp">owner since {{ ownership_time|human_time }}</div>
+				</button>
+				</a>
+				</div>
+			{% endfor %}
+
+	</div>
+
+{% endif %}
+
+
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:7px">
+
+  {% if is_own_profile %} 
+
+	<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Popularity and blocks:</div>
+
+	<div class="mls mrs">
+
+      <b class="cm sp lsp" style="color:darkgray">Total fans:</b>
+      <a href="{% url 'fan_list' star_id %}#section0" class="cs">
+      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ fans }}</button>
+      </a>
+      <hr size=1 COLOR="#f4f4f4">
+      <b class="cm sp lsp" style="color:darkgray">Recent fans:</b>
+      <a href="{% url 'fan_list' star_id %}#section0" class="cs">
+      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">
+      {{ recent_fans }}</button>
+      </a>
+      <hr size=1 COLOR="#f4f4f4">
+      <b class="cm sp lsp" style="color:darkgray">Total stars:</b>
+      <a href="{% url 'star_list' %}#section0" class="cs">
+      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ stars }}</button>
+      </a>
+      <hr size=1 COLOR="#f4f4f4">
+      <b class="cm sp lsp" style="color:darkgray">Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' username %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">fotos</button></a>
+      <hr size=1 COLOR="#f4f4f4">
+      <b class="cm sp lsp" style="color:darkgray">Foto score:</b>&nbsp;<span class="sp cl" style="color:#1cca99"><b>{{ object.userprofile.media_score }}</b>
+      </span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
+      <hr size=1 COLOR="#f4f4f4">
+
+		<b class="cm sp lsp" style="color:darkgray">Chat score:</b>
+		<span class="cm sp lsp">
+		{% if object.userprofile.score %}
+			{% if object.userprofile.score < 0 %}
+				<b style="color:#1cca99">1</b>
+			{% else %}
+				<b style="color:#1cca99">{{ object.userprofile.score }}</b>
+			{% endif %}
 		{% else %}
+			<b style="color:#1cca99">1</b>
+		{% endif %}
+		</span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
+		<hr size=1 COLOR="#f4f4f4">
+		<b class="cm sp lsp" style="color:darkgray">Blocked users:</b>
+		<a href="{% url 'banned_users_list' %}#section0" class="cs">
+		<button class="btn" style="background-color:tomato;padding:2px 5px;height:22px">{{ blocked }}</button>
+		</a>
+	</div>
+
+  {% else %}
+
+  		<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Popularity:</div>
+
+  		<div class="mls mrs">
+
+	      <b class="cm sp lsp" style="color:darkgray">Total Fans:</b>
+	      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn mrl" style="height:22px;background-color:#1edea8;padding:2px 5px">{{ fans }}</button></a>
+	      <hr size=1 COLOR="#f4f4f4">
+	      <b class="cm sp lsp" style="color:darkgray">Recent fans:</b>
+	      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn mrl" style="height:22px;background-color:#1edea8;padding:2px 5px">{{ recent_fans }}</button></a>
+	      <hr size=1 COLOR="#f4f4f4">
+	      <b class="cm sp lsp" style="color:darkgray">Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' username %}"><button type="submit" class="btn nw sp bm" style="background-color:#1edea8;padding:2px 0px;height:22px">fotos</button></a>
+	      <hr size=1 COLOR="#f4f4f4">
+	      <b class="cm sp lsp" style="color:darkgray">Foto score:</b>&nbsp;<span class="sp cl" style="color:#1cca99"><b>{{ object.userprofile.media_score }}</b>
+	      </span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
+	      <hr size=1 COLOR="#f4f4f4">
+
+			<b class="cm sp lsp" style="color:darkgray">Chat score:</b>
+			<span class="cl sp lsp">
+			{% if object.userprofile.score %}
+				{% if object.userprofile.score < 0 %}
+					<b style="color:#1cca99">1</b>
+				{% else %}
+					<b style="color:#1cca99">{{ object.userprofile.score }}</b>
+				{% endif %}
+			{% else %}
+				<b style="color:#1cca99">1</b>
+			{% endif %}
+			</span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
+
+		</div>
+
+  {% endif %}
+
+</div>
+
+
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:10px">
+
+	<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">About:</div>
+
+	<div class="mls mrs">
+
+	<div class="ow">
+	<b class="cm sp lsp" style="color:darkgray">My story:</b>
+		{% if is_profile_banned %}
+			<span class="cgy sp cl">- hidden -</span>
+		{% else %}
+			<span class="cl sp lsp">
 			{% if object.userprofile.bio %}
 			{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
 			{% endif %}
+			</span>
 		{% endif %}
 	</div>
-	<hr size=1 COLOR="#E9EBEE">
-	
-	<b class="profile">Age:</b>
-		{% if object.userprofile.age %}
-		{{ object.userprofile.age }}
-		{% endif %}
-	<hr size=1 COLOR="#E9EBEE">
+	<hr size=1 COLOR="#f4f4f4">
 
-	<b class="profile">Gender:</b>
+	<b class="cm sp lsp" style="color:darkgray">Age:</b>
+		{% if object.userprofile.age %}
+		<span class="cl sp lsp">{{ object.userprofile.age }}</span>
+		{% endif %}
+	<hr size=1 COLOR="#f4f4f4">
+
+	<b class="cm sp lsp" style="color:darkgray">Gender:</b>
 		{% if object.userprofile.gender == '1' %}
 			{% if username in ratified %}
-	    	<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="13" width="13">&nbsp;<span style="color:#ff4d4d">Girl</span>
+	    	<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="13" width="13">&nbsp;<span class="cl sp lsp" style="color:#ff4d4d">Girl</span>
 	    	{% else %}
-			Girl
+			<span class="cl sp lsp">Girl</span>
 			{% endif %}
 		{% else %}
-			Boy
+			<span class="cl sp lsp">Boy</span>
 		{% endif %}
-	<hr size=1 COLOR="#E9EBEE">
+	<hr size=1 COLOR="#f4f4f4">
 
-	<b class="profile">Shaadi shuda:</b>
+	<b class="cm sp lsp" style="color:darkgray">Shaadi shuda:</b>
+		<span class="cl sp lsp">
 		{% if object.userprofile.shadi_shuda == '1' %}
 			Yes
 		{% else %}
 			No
 		{% endif %}
-	<hr size=1 COLOR="#E9EBEE">
+		</span>
+	<hr size=1 COLOR="#f4f4f4">
 
-	<b class="profile">Shakal soorat:</b>
-	{% if object.userprofile.attractiveness == '0' %}
-		Ek dum kadak
-	{% elif object.userprofile.attractiveness == '1' %}
-		Fifty fifty
-	{% else %}
-		Shakal pe mat ja
-	{% endif %}
+	<b class="cm sp lsp" style="color:darkgray">Shakal soorat:</b>
+		<span class="cl sp lsp">
+		{% if object.userprofile.attractiveness == '0' %}
+			Ek dum kadak
+		{% elif object.userprofile.attractiveness == '1' %}
+			Fifty fifty
+		{% else %}
+			Shakal pe mat ja
+		{% endif %}
+		</span>
 
-	{% if star_owner_mehfils and not is_profile_banned %}
-	<hr size=1 COLOR="#E9EBEE">
-	{% load human_time %}
-	<div style="font-weight:bold" class="mbs">Public mehfil(s) owned:</div>
-		{% for group_id, uuid, topic, ownership_time in star_owner_mehfils %}
-			<div style="text-align:center">
-			<a href="{% url 'public_group' slug=uuid %}">
-			<button class="bizcard mts vt" style="width:95%;padding:10px 7px 5px 7px;border:1px solid #e3cfdc">
-				<div class="cp cl sp lsp" style="font-weight:bold">{% emoticons %}{{ topic }}{% endemoticons %}</div>
-				<div class="mts cs sp cgy lsp">owner since {{ ownership_time|human_time }}</div>
-			</button>
-			</a>
-			</div>
-		{% endfor %}
-
-	{% endif %}
-
+	</div>
 </div>
 <br><br>
 

@@ -23,7 +23,7 @@ from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
 comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
-redirect_to_content, star_list, cross_salat_notif, best_home_page,\
+redirect_to_content, star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list, best_photo_location,\
@@ -54,13 +54,16 @@ urlpatterns = patterns('',
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
+	url(r'^redirect/home/$', auth(home_redirect), name='redirect_to_home'),
+	url(r'^redirect/home/(?P<pk>\d+)/$', auth(home_redirect), name='redirect_to_home'),
 	url(r'^redirect/(?P<pk>\d+)/$', auth(home_location_pk), name='home_loc_pk'),
 	url(r'^redirect-to-content/$', auth(redirect_to_content), name='redirect_to_content'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^redirect/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
-	url(r'^$', home_link_list, name='home'),
+	#url(r'^$', home_link_list, name='home'),
+	url(r'^$', auth(home_page), name='home'),
 	url(r'^best_home_test/$', best_home_page, name='best_home_test'),
 	url(r'^home/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home'),
 	url(r'^redirect_best/$', auth(home_location), name='home_loc_best'),

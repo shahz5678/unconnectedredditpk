@@ -19,7 +19,7 @@
 	{% elif orig == '2' %}
 		<a href="{% url 'best_photo_loc_pk' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '3' %}
-		<a href="{% url 'home_loc' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '4' %}
 		<a href="{% url 'user_profile_photo' obj.owner obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '5' %}
@@ -29,7 +29,7 @@
 wapis</a><br>
 {% else %}
 	{% if orig == '3' %}
-		<a href="{% url 'home_loc' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '8' %}
 		<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% endif %}wapis</a><br>

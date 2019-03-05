@@ -517,30 +517,37 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		description = strip_zero_width_characters(description)
 		if not description or description.isspace():
 			raise forms.ValidationError('Likhna zaruri hai')
-		elif len(description.split('\n')) > 4:
-			raise forms.ValidationError('Itni ziyada new lines nahi dalein!')
-		elif secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('Sirf aik dafa button dabain')
-		elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
-			raise forms.ValidationError('Milti julti baatien nahi likhein')
 		else:
-			rate_limited, reason = is_limited(user_id,section='home',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap home pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+			len_ = len(description)
+			if len_ > MAX_HOME_SUBMISSION_SIZE+150:
+				# if post is too long, short circuit the rest of the cleaning method
+				raise forms.ValidationError('Itni lambi post submit nahi hoti kiyun ke parhney waley bore ho jatey hain')
 			else:
-				len_ = len(description)
-				if len_ < 2:
-					raise forms.ValidationError('Itni choti baat nahi likh sakte')
-				elif len_ < 6:
-					if many_short_messages(user_id,section,section_id):
-						raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
+				description = re.sub(r'\n\s*\n', '\n', description)# collapsing multiple new lines into 1
+				lines = description.split('\n')
+				if len(lines) > 10:
+					raise forms.ValidationError('Itni zyada new lines nahi dalein!')
+				elif secret_key_from_form != secret_key_from_session:
+					raise forms.ValidationError('Sirf aik dafa button dabain')
+				elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
+					raise forms.ValidationError('Milti julti baatien nahi likhein')
+				else:
+					rate_limited, reason = is_limited(user_id,section='home',with_reason=True)
+					if rate_limited > 0:
+						raise forms.ValidationError('Ap home pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 					else:
-						log_short_message(user_id,section,section_id)
-				elif len_ > MAX_HOME_SUBMISSION_SIZE:
-					raise forms.ValidationError('{0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
-				# log_gibberish_writer.delay(user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
-				data["description"] = re.sub(r'\n\s*\n', '\n', description)#ensures multiple new-lines are collapsed into 1
-				return data
+						if len_ < 2:
+							raise forms.ValidationError('Itni choti baat nahi likh sakte')
+						elif len_ < 6:
+							if many_short_messages(user_id,section,section_id):
+								raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
+							else:
+								log_short_message(user_id,section,section_id)
+						elif len_ > MAX_HOME_SUBMISSION_SIZE:
+							raise forms.ValidationError('{0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
+						# log_gibberish_writer.delay(user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
+						data["description"] = re.sub(r'\n\s*\n', '\n', description)#ensures multiple new-lines are collapsed into 1
+						return data
 
 
 class WelcomeMessageForm(forms.ModelForm):
@@ -550,6 +557,7 @@ class WelcomeMessageForm(forms.ModelForm):
 		model = Publicreply
 		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
 		fields = ("description",)
+
 
 class CommentForm(forms.ModelForm):
 	text = forms.CharField(widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
@@ -571,18 +579,18 @@ class CommentForm(forms.ModelForm):
 	def clean(self):
 		user_id = self.user_id
 		if user_id and not self.mob_verified:
-			raise forms.ValidationError('Mobile number verify kiye beghair ap yahan nahi likh saktey')
+			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
 		else:
 			data = self.cleaned_data
 			text, photo_id, section, secret_key_from_form = data.get("text"), self.photo_id, 'pht_comm', data.get("sk")
 			secret_key_from_session = get_and_delete_text_input_key(user_id, self.photo_id,'pht_comm')
 			if secret_key_from_form != secret_key_from_session:
-				raise forms.ValidationError('tip: sirf aik dafa button dabain')
+				raise forms.ValidationError('Rabta munqata ho gaya, phir se karien')
 			text = text.strip() if text else text
 			if not text:
-				raise forms.ValidationError('tip: likhna zaruri hai')
+				raise forms.ValidationError('Likhna zaruri hai')
 			elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=text):
-				raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
+				raise forms.ValidationError('Milti julti baatien nahi likhein, kuch new likho')
 			else:
 				rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
 				if rate_limited > 0:
@@ -591,12 +599,13 @@ class CommentForm(forms.ModelForm):
 					text_len = len(text)
 					if text_len < 6:
 						if many_short_messages(user_id,section,photo_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+							raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
 						else:
 							log_short_message(user_id,section,photo_id)
 					elif text_len > 250:
-						raise forms.ValidationError('tip: inta bara tabsra nahi likh sakte')
+						raise forms.ValidationError('Itna bara tabsra nahi likh sakte')
 					return data
+
 
 class VideoCommentForm(forms.ModelForm):
 	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
@@ -627,46 +636,37 @@ class PublicreplyForm(forms.ModelForm):
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,self.link_id,'home_rep')
 		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			raise forms.ValidationError('Rabta munqata ho gaya, phir se karien')
 		return secret_key_from_form
 
 	def clean_description(self):
 		if not self.mob_verified:
-			raise forms.ValidationError('Mobile number verify kiye beghair ap yahan nahi likh saktey')
+			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
 		else:
 			description, user_id, section_id, section = self.cleaned_data.get("description"), self.user_id, self.link_id, 'home_rep'
 			description = description.strip() if description else None
 			if not description:
-				raise forms.ValidationError('tip: likhna zaruri hai')
+				raise forms.ValidationError('Likhna zaruri hai')
 			elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
-				raise forms.ValidationError('tip: milte julte jawab nah likho, kuch new likho')
+				raise forms.ValidationError('Milte julte jawab nahi likhein')
 			else:
 				rate_limited, reason = is_limited(user_id,section='home_rep',with_reason=True)
 				if rate_limited > 0:
 					raise forms.ValidationError('Ap jawab dene se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 				else:
 					desc_len = len(description)
-					# if desc_len < 2:
-					#     raise forms.ValidationError('tip: itna chota jawab nahi likh sakte')
 					if desc_len < 6:
 						if many_short_messages(user_id,section,section_id):
-							raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+							raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
 						else:
 							log_short_message(user_id,section,section_id)
 					elif desc_len > MAX_HOME_REPLY_SIZE:
-						raise forms.ValidationError('tip: inta bara jawab nahi likh sakte')
-					# description = clear_zalgo_text(description)
-					# uni_str = uniform_string(description)
-					# if uni_str:
-					#     if uni_str.isspace():
-					#         raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					#     else:
-					#         raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
+						raise forms.ValidationError('Itna bara jawab nahi likh sakte')
 					return description
 
 
 class PublicreplyMiniForm(PublicreplyForm):
-	description = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan jawab likhein, phir "Jawab do" dabain'})
+	description = forms.CharField(max_length=250, error_messages={'required': 'Pehlay safed patti mein jawab likhein, phir "Jawab do" dabain'})
 	sk = forms.CharField(required=False)
 
 	def __init__(self,*args,**kwargs):
@@ -678,7 +678,7 @@ class PublicreplyMiniForm(PublicreplyForm):
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')
 		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			raise forms.ValidationError('Phir se karein, jawab send nahi hua')
 		return secret_key_from_form
 
 class SearchNicknameForm(forms.Form):
@@ -791,7 +791,7 @@ class ReportFeedbackForm(forms.Form):
 		fields = ("description",)
 
 class PhotoCommentForm(forms.Form):
-	photo_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay yahan kuch likhein, phir "tabsra kro" button dabain'})
+	photo_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay safed patti mein tabsra likhein, phir "tabsra kro" dabain'})
 	sk = forms.CharField(required=False)
 	origin = forms.CharField(required=False)
 
@@ -812,7 +812,7 @@ class PhotoCommentForm(forms.Form):
 
 	def clean(self):
 		if not self.is_mob_verified:
-			raise forms.ValidationError('Mobile number verify kiye beghair ap yahan nahi likh saktey')
+			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
 		else:
 			data = self.cleaned_data
 			comment, user_id, photo_id, section, secret_key_from_form, origin = data.get("photo_comment"), self.user_id, self.photo_id, \
@@ -828,7 +828,7 @@ class PhotoCommentForm(forms.Form):
 				raise forms.ValidationError('Sirf aik dafa button dabain')
 			comment = comment.strip() if comment else comment
 			if not comment:
-				raise forms.ValidationError('Pehlay yahan kuch likhein, phir "tabsra kro" button dabain')
+				raise forms.ValidationError('Pehlay safed patti mein likhein, phir "tabsra kro" button dabain')
 			elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
 				raise forms.ValidationError('Milti julti baatien nahi likhein, kuch new likhein')
 			else:
@@ -837,22 +837,13 @@ class PhotoCommentForm(forms.Form):
 					raise forms.ValidationError('Ap fotos pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 				else:
 					comm_len = len(comment)
-					# if comm_len < 2:
-					#     raise forms.ValidationError('tip: itna chota lafz nahi likh sakte')
 					if comm_len < 6:
 						if many_short_messages(user_id,section,photo_id):
-							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
+							raise forms.ValidationError('Har thori deir baad choti baat nahi likhein')
 						else:
 							log_short_message(user_id,section,photo_id)
 					elif comm_len > MAX_PHOTO_COMMENT_SIZE:
 						raise forms.ValidationError('Itni lambi baat nahi likh sakte')
-					# comment = clear_zalgo_text(comment)
-					# uni_str = uniform_string(comment)
-					# if uni_str:
-					#     if uni_str.isspace():
-					#         raise forms.ValidationError('tip: ziyada spaces daal di hain')
-					#     else:
-					#         raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
 					return data
 
 

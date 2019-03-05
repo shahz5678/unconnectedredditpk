@@ -23,6 +23,14 @@
 <head><title>Home | Damadam.pk</title></head>
 <style>body{background:#f0f3f4}</style>
 <div style="max-width:600px;margin:0 auto;width:96%;position:relative;">
+
+<a name="error"></a>
+{% if home_direct_reply_error_string %}
+	<div style="background:tomato;text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
+		{{ home_direct_reply_error_string }}
+	</div>
+{% endif %}
+
 {% if newbie_flag %}
 	{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin='3' %}
 {% else %}
@@ -45,17 +53,15 @@
 	
 	{% if forloop.counter == 3 %}
 
-		<div class="mbl" style="text-align:center;background:#f0f3f4">
+		<div class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
 			<ins class="adsbygoogle"
-				 style="display:block"
-				 data-ad-client="ca-pub-2568547635306983"
-				 data-ad-slot="2387361554"
-				 data-ad-format="auto"
-				 data-full-width-responsive="true"></ins>
+			    style="display:inline-block;width:320px;height:100px"
+			    data-ad-client="ca-pub-2568547635306983"
+			    data-ad-slot="9571801752"></ins>
 			<script>
-				(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>		
-		</div>	
+			(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
+		</div>
 
 	{% elif forloop.counter == 10 %}
 
@@ -150,8 +156,6 @@
 
 {% endfor %}
 
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-
 </div>
 	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
 		{% if page.has_previous %}
@@ -167,6 +171,7 @@
 	</div>
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 <!-- separate report_modal, case_vote and copy link into different modules -->
 <!-- report modal required user ident separately -->
 {% endblock %}

@@ -58,11 +58,14 @@ TOP_50_CACHED_DATA = "top_50_reporters" # key containing cached data of top 50 r
 CONTENT_SUBMISSION_AND_VOTING_BAN = "csv:"#prefix for hash containing details about a ban levied by a defender on a user
 CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regarding a potentially bannable user
 HOME_FEED = "homefeed:1000" # list containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
+HOME_SORTED_FEED = "homesortedfeed:1000" # sorted set containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
 PHOTO_FEED = "photofeed:1000" # list containing latest 1000 photo feed hashes (e.g. img:234132)
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
 BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
 VOTE_ON_IMG = "vi:" #prefix for a sorted set that contains users who voted on a particular image. Each user's vote value is used as a score
 VOTE_ON_TXT = "vt:" #prefix for a sorted set that contains users who voted on a particular text post. Each user's vote value is used as a score
+
+
 
 
 FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT = 'fbsuprl:'#rate limit key to throttle FBS users from uploading way too many public photos
@@ -172,17 +175,19 @@ def add_obj_to_home_feed(hash_name, my_server=None):
 	Adding various objects to home feed
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	my_server.lpush(HOME_FEED, hash_name)
-	my_server.ltrim(HOME_FEED, 0, 999)
-	#########################################################################
-	#########################################################################
-	HOME_SORTED_FEED = "homesortedfeed:1000" # sorted set containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
 	my_server.zadd(HOME_SORTED_FEED, hash_name, time.time())
 	if random() < 0.2:
 		# every now and then, trim the sorted set for size
 		my_server.zremrangebyrank(HOME_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
-	#########################################################################
-	#########################################################################
+
+
+def retrieve_home_feed_index(obj_hash):
+	"""
+	Returns exact index an object is stored at in HOME_SORTED_FEED
+
+	Useful when needing to redirect to precise object after interacting with a post
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrank(HOME_SORTED_FEED,obj_hash)
 
 
 def retrieve_obj_feed(obj_list):
@@ -198,11 +203,15 @@ def retrieve_obj_feed(obj_list):
 	return filter(None, pipeline1.execute())
 
 
-def get_home_feed(start_idx=0,end_idx=-1):
+def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
 	"""
 	Retrieve list of all home feed objects
 	"""
-	return redis.Redis(connection_pool=POOL).lrange(HOME_FEED, start_idx, end_idx)
+	if with_feed_size:
+		my_server = redis.Redis(connection_pool=POOL)
+		return my_server.zrevrange(HOME_SORTED_FEED, start_idx, end_idx), my_server.zcard(HOME_SORTED_FEED)
+	else:
+		return redis.Redis(connection_pool=POOL).zrevrange(HOME_SORTED_FEED, start_idx, end_idx)
 
 
 def get_best_home_feed(start_idx=0,end_idx=-1):
@@ -363,7 +372,7 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 		voter_age_dict, highest_age = retrieve_user_world_age(voter_ids,with_highest_age=True)
 		if voter_age_dict and highest_age:
 			import math
-			log_highest_age = math.log(highest_age)# taking log of highest age so that large-age users cannot have an undue influence
+			log_highest_age = math.log(highest_age,2.0)# taking log 2 of highest age so that large-age users cannot have an undue influence
 			counter = 0 #resetting the counter
 			final_net_votes = {}
 			for obj_id in obj_ids:
@@ -372,10 +381,10 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 					obj_aggregate_vote_score = 0
 					for user_id, user_vote in result1[counter]:
 						if int(user_vote) == 0:
-							log_voter_age = math.log(voter_age_dict[user_id])
+							log_voter_age = math.log(voter_age_dict[user_id],2.0)
 							vote_value = -1*(log_voter_age/log_highest_age)
 						elif int(user_vote) == 1:
-							log_voter_age = math.log(voter_age_dict[user_id])
+							log_voter_age = math.log(voter_age_dict[user_id],2.0)
 							vote_value = 1*(log_voter_age/log_highest_age)
 						else:
 							vote_value = 0
@@ -416,6 +425,15 @@ def add_obj_to_photo_feed(hash_name, my_server=None):
 		my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush(PHOTO_FEED, hash_name)
 	my_server.ltrim(PHOTO_FEED, 0, 999)
+	#########################################################################
+	#########################################################################
+	PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 photo hashes (e.g. img:234134 or img:341243)
+	my_server.zadd(PHOTO_SORTED_FEED, hash_name, time.time())
+	if random() < 0.2:
+		# every now and then, trim the sorted set for size
+		my_server.zremrangebyrank(PHOTO_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
+	#########################################################################
+	#########################################################################
 
 
 def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_pinkstar,\
@@ -505,11 +523,11 @@ def voted_for_single_photo(photo_id, voter_id):
 		return already_exists
 
 
-def get_photo_feed():
+def get_photo_feed(start_idx=0, end_idx=-1):
 	"""
 	Retrieve list of all image feed objects
 	"""
-	return redis.Redis(connection_pool=POOL).lrange(PHOTO_FEED, 0, -1)
+	return redis.Redis(connection_pool=POOL).lrange(PHOTO_FEED, start_idx, end_idx)
 
 
 def add_photos_to_best_photo_feed(photo_scores, consider_world_age=False):
@@ -1142,7 +1160,7 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		pipeline1 = my_server.pipeline()
 		pipeline1.lrange(PHOTO_FEED,0,-1)
 		pipeline1.zrange(BEST_PHOTO_FEED,0,-1)
-		pipeline1.lrange(HOME_FEED,0,-1)
+		pipeline1.zrange(HOME_SORTED_FEED,0,-1)
 		result1 = pipeline1.execute()
 		fresh_image_objs, best_image_objs, home_objs = result1[0], result1[1], result1[2]
 		
@@ -1206,9 +1224,8 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 				pipeline7.expire(VOTE_ON_TXT+hash_name[3:],TEN_MINS)
 			else:
 				pipeline7.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline7.lrem(HOME_FEED,hash_name, num=1)
-		pipeline7.execute()
-		# this approach has a lot of duplication of effort, but is comprehensive
+			pipeline7.zrem(HOME_SORTED_FEED,hash_name)
+		pipeline7.execute()# this approach has a lot of duplication of effort, but is comprehensive
 
 
 ##################### Adding or removing defenders ######################

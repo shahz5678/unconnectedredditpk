@@ -87,7 +87,7 @@ retrieve_group_reqd_data# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed, \
-invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars
+invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -178,11 +178,19 @@ def get_page_obj(page_num,obj_list,items_per_page):
 		# If page is out of range (e.g. 9999), deliver last page of results.
 		return paginator.page(paginator.num_pages)
 
-def get_addendum(index,objs_per_page):
+
+def get_addendum(index, objs_per_page, only_addendum=False):
+	"""
+	Creates the addendum to be attached as a URL parameter
+	"""
 	page = (index // objs_per_page)+1 #determining page number
-	section = index+1-((page-1)*objs_per_page) #determining section number
+	section = index+1-((page-1)*objs_per_page) #determining section numberhome_redirect
 	addendum = '?page='+str(page)+"#section"+str(section) #forming url addendum
-	return page, addendum #returing page and addendum
+	if only_addendum:
+		return addendum
+	else:
+		return page, addendum #returing page and addendum both
+
 
 def convert_to_epoch(time):
 	#time = pytz.utc.localize(time)
@@ -220,9 +228,9 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		return redirect("best_photo_loc")
 	elif origin == '3':
 		# originated from home
-		request.session["target_id"] = link_id
+		request.session["home_hash_id"] = link_id
 		request.modified = True
-		return redirect("home_loc")
+		return redirect("redirect_to_home")
 	elif origin == '4':
 		# originated from user profile
 		request.session["photograph_id"] = obj_id
@@ -258,17 +266,17 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		# originated from user profile (About page)
 		return redirect("user_profile", target_uname)
 	elif origin == '11':
-		# originated from comments page
+		# originated from the comments page
 		return redirect("comment_pk", obj_id)
 	elif origin == '12':
-		# originated from user's own fanlist 
+		# originated from user's own fan list
 		return redirect("fan_list", obj_id)
 	elif origin == '13':
 		# originated from user's own star list
 		return redirect("star_list")
 	elif origin == '14':
 		# originated from user's own unseen activity
-		return redirect("unseen_activity",target_uname)          
+		return redirect("unseen_activity", target_uname)
 	elif origin == '15':
 		# originated from a private group
 		request.session["unique_id"] = obj_id#obj_id contains group_uuid, otherwise it won't work
@@ -278,7 +286,6 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		# originated from a public group
 		url = reverse_lazy("public_group",kwargs={'slug': obj_id})
 		return redirect(url)
-		#return redirect("public_group", slug=obj_id)#obj_id contains group_uuid, otherwise it won't work
 	elif origin == '17':
 		# originated from private chat list
 		return redirect("personal_group_user_listing")
@@ -757,7 +764,6 @@ class SalatSuccessView(ListView):
 
 
 @csrf_protect
-@ratelimit(rate='7/s')
 def hide_comment(request,comment_id,photo_id,origin,*args,**kwargs):
 	"""
 	Processing hiding a 'tabsra' of a photo post
@@ -782,8 +788,8 @@ def hide_comment(request,comment_id,photo_id,origin,*args,**kwargs):
 		raise Http404("Not a POST request")
 
 
+
 @csrf_protect
-@ratelimit(rate='7/s')
 def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 	"""
 	Processing hiding a 'jawab' of a home post
@@ -798,7 +804,6 @@ def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 			Publicreply.objects.filter(pk=publicreply_id).update(abuse=True)
 			# cut writers points
 			# UserProfile.objects.filter(user_id=submitted_by_id).update(score=F('score')-2)
-			invalidate_cached_public_replies(link_id)
 			# prepare to redirect
 		request.session["link_pk"] = link_id
 		request.session.modified = True
@@ -1059,7 +1064,7 @@ class PhotoDetailView(DetailView):
 @csrf_protect
 # @ratelimit(rate='3/s')
 # @ratelimit(field='user_id',ip=False,rate='22/38s')
-@ratelimit(field='user_id',ip=False,rate='4/s')
+# @ratelimit(field='user_id',ip=False,rate='4/s')
 def home_reply(request,pk=None,*args,**kwargs):
 	if getattr(request, 'limits', False):
 		raise Http404("Cannot post home reply")
@@ -1087,7 +1092,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 					text=form.cleaned_data.get("description")
 					set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time.time())
 					target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)# target is target_username
-					request.session['target_id'] = notif
+					request.session['home_hash_id'] = notif
 					if target == ":":
 						return redirect("ban_underway")
 					elif target == ';':
@@ -1096,19 +1101,14 @@ def home_reply(request,pk=None,*args,**kwargs):
 					elif tutorial_unseen(user_id=user_id, which_tut='5', renew_lease=True):
 						return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username})
 					else:
-						return redirect("home_loc")
+						return redirect("redirect_to_home")
 				else:
-					list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request,items_per_page=ipp,notif=notif)
-					replyforms[notif] = form#bound form
+					request.session['home_direct_reply_error_string'] = form.errors.as_text().split("*")[2]
+					return redirect(reverse_lazy("home")+'?page=1#error')#redirecting to special error section
+
 		else:
-			list_of_dictionaries, page_obj, replyforms, addendum = home_list(request=request,items_per_page=ipp,notif=notif)
-			replyforms[notif] = PublicreplyMiniForm()#unbound form
-		request.session['replyforms'] = replyforms
-		request.session['list_of_dictionaries'] = list_of_dictionaries
-		request.session['page'] = page_obj
-		request.session.modified = True
-		url = reverse_lazy("home")+addendum
-		return redirect(url)
+			request.session['home_hash_id'] = notif
+			return redirect("redirect_to_home")
 
 
 def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None):
@@ -1348,6 +1348,64 @@ def home_link_list(request, lang=None, *args, **kwargs):
 		return render(request, 'link_list.html', context)
 	else:
 		return redirect("unauth_home_new")
+
+
+def home_redirect(request, pk=None):
+	"""
+	Used to redirect to specific spot on home (e.g. after writing something)
+	"""
+	if pk:
+		index = retrieve_home_feed_index(pk)
+	else:
+		pk = request.session.pop('home_hash_id',None)
+		index = retrieve_home_feed_index(pk) if pk else 0
+	if index is None:
+		url = reverse_lazy("home")+'?page=1#section0'
+	else:
+		addendum = get_addendum(index,ITEMS_PER_PAGE, only_addendum=True)
+		url = reverse_lazy("home")+addendum
+	return redirect(url)
+
+
+def home_page(request, lang=None):
+	"""
+	Displays the home page
+
+	~20% faster calculation than its predecessor function home_link_list()
+	"""
+	own_id, page_num = request.user.id, request.GET.get('page', '1')
+	start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
+	obj_list, list_total_size = get_home_feed(start_idx=start_index, end_idx=end_index, with_feed_size=True)
+	num_pages = list_total_size/ITEMS_PER_PAGE
+	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
+	page_num = int(page_num)
+	list_of_dictionaries = retrieve_obj_feed(obj_list)
+	#######################
+	replyforms = {}
+	for obj in list_of_dictionaries:
+		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+	#######################
+	num = random.randint(1,4)
+	secret_key = str(uuid.uuid4())
+	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
+	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),\
+	'authentcated':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),\
+	'ident':own_id,'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'score':request.user.userprofile.score,\
+	'random':num,'sk':secret_key,'process_notification':False, 'newbie_flag':request.session.get("newbie_flag",None),\
+	'newbie_lang':request.session.get("newbie_lang",None)}
+	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+	'previous_page_number':page_num-1,'next_page_number':page_num+1}
+	#####################
+	# extraneous
+	context["lang"] = 'None'
+	context["sort_by"] = 'recent'
+	#####################
+	context["notif_form"] = request.session.pop("notif_form",UnseenActivityForm())
+	context["comment_form"] = request.session.pop("comment_form",PhotoCommentForm())
+	if not request.user_banned:
+		context["process_notification"] = True
+		context["home_direct_reply_error_string"] = request.session.pop("home_direct_reply_error_string",None)
+	return render(request, 'link_list.html', context)
 
 
 ##############################################################################################################################
@@ -3273,8 +3331,8 @@ def non_fbs_vid(request, pk=None, *args, **kwargs):
 #########################Views for fresh photos#########################
 
 @csrf_protect
-@ratelimit(field='user_id',ip=False,rate='4/s')
-# @ratelimit(field='user_id',ip=False,rate='22/38s')
+# @ratelimit(rate='3/s')
+# @ratelimit(field='user_id',ip=False,rate='4/s')
 def photo_comment(request,pk=None,*args,**kwargs):
 	"""
 	Processes comment written directly under a photo via home, top or best photos
@@ -3343,22 +3401,19 @@ def photo_comment(request,pk=None,*args,**kwargs):
 						##############################################################################################
 						##############################################################################################
 						if origin == '3':
-							request.session["target_id"] = home_hash
+							request.session["home_hash_id"] = home_hash
 							request.session.modified = True
-							# if lang == 'urdu' and sort_by == 'best':
-							#     return redirect("home_loc_ur_best", lang)
-							# elif sort_by == 'best':
-							#     return redirect("home_loc_best")
-							# elif lang == 'urdu':
-							#     return redirect("home_loc_ur", lang)
-							# else:
-							#     return redirect("home_loc")
-							return redirect("home_loc")
+							return redirect("redirect_to_home")
 						else:
 							return return_to_content(request,origin,pk,None,None)
 				else:
-					request.session["comment_form"] = form
-					return return_to_content(request,origin,pk,home_hash if origin == '3' else None,None)
+					if origin == '3':
+						request.session['home_direct_reply_error_string'] = form.errors.as_text().split("*")[2]
+						return redirect(reverse_lazy("home")+'?page=1#error')#redirecting to special error section
+					else:
+						request.session["comment_form"] = form
+						return return_to_content(request,origin,pk,home_hash if origin == '3' else None,None)
+
 	else:
 		return redirect("home")
 
@@ -4777,7 +4832,7 @@ def get_object_list_and_forms(request, notif=None):
 
 
 # @ratelimit(rate='22/38s')
-@ratelimit(rate='10/s')
+# @ratelimit(rate='10/s')
 def unseen_activity(request, slug=None, *args, **kwargs):
 	"""
 	Renders the inbox functionality

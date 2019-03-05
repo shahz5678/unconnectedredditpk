@@ -282,7 +282,6 @@ def cast_vote(request,*args,**kwargs):
 			return redirect('vote_result')
 
 
-@ratelimit(rate='5/s')
 def show_voting_summary(request,pk,orig,pht):
 	"""
 	Displays for each home link: net_votes, num of upvotes, num of downvotes, and num of votes by pinkstars
@@ -308,7 +307,7 @@ def show_voting_summary(request,pk,orig,pht):
 			tp = "img"
 			if orig == '3':
 				lid = tp+":"+pk
-				request.session["target_id"] = lid
+				request.session["home_hash_id"] = lid
 				request.session.modified = True
 		elif pht == '0':
 			# it's a link
@@ -323,7 +322,7 @@ def show_voting_summary(request,pk,orig,pht):
 			tp = "tx"
 			if orig == '3':
 				lid = tp+":"+pk
-				request.session["target_id"] = lid
+				request.session["home_hash_id"] = lid
 				request.session.modified = True
 		else:
 			# not a link neither a photo

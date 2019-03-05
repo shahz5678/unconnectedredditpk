@@ -46,8 +46,8 @@
       {% if not is_profile_banned %}
       
         {% if star_av_url != 'empty' %}
-        <div style="overflow:hidden;text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0">
-          <img src="{{ star_av_url|s3 }}" style="vertical-align:top" class="sp cxs" alt="avatar">
+         <div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+          <img src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="avatar">
         </div>
         {% endif %}
         <div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ subject.date_joined|naturaltime }}</div>
@@ -59,8 +59,8 @@
 
        {% if not is_profile_banned %}
           {% if star_av_url != 'empty' %}
-          <div style="overflow:hidden;text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0">
-            <img src="{{ star_av_url|s3 }}" style="vertical-align:top" class="cxs sp" alt="avatar">
+           <div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+            <img src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="avatar">
           </div>
           {% else %}
           <div style="text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0;padding:5px 0" class="mbs clb cm sp">in sey kahein aik profile foto tou laga lein ...</div>

@@ -804,6 +804,7 @@ def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 			Publicreply.objects.filter(pk=publicreply_id).update(abuse=True)
 			# cut writers points
 			# UserProfile.objects.filter(user_id=submitted_by_id).update(score=F('score')-2)
+			invalidate_cached_public_replies(link_id)
 			# prepare to redirect
 		request.session["link_pk"] = link_id
 		request.session.modified = True
@@ -1389,10 +1390,10 @@ def home_page(request, lang=None):
 	secret_key = str(uuid.uuid4())
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),\
-	'authentcated':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),\
-	'ident':own_id,'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'score':request.user.userprofile.score,\
+	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'ident':own_id,\
+	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'score':request.user.userprofile.score,\
 	'random':num,'sk':secret_key,'process_notification':False, 'newbie_flag':request.session.get("newbie_flag",None),\
-	'newbie_lang':request.session.get("newbie_lang",None)}
+	'newbie_lang':request.session.get("newbie_lang",None),"mobile_verified":request.mobile_verified}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	#####################

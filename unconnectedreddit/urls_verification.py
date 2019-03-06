@@ -15,7 +15,7 @@ urlpatterns = patterns('',
 	#url(r'^verification/mobile/$', auth(verify_user_mobile_paid), name='verify_user_mobile_paid'),
 	url(r'^verification/confirm-pin/$', auth(pin_verification), name='pin_verification'),
 	url(r'^verification/help/$', auth(number_verification_help), name='number_verification_help'),
-	url(r'^verification/please-wait/$', auth(wait_before_verifying), name='wait_before_verifying'),
+	#url(r'^verification/please-wait/$', auth(wait_before_verifying), name='wait_before_verifying'),
 	# url(r'^verification/pink-star/help/$', auth(pink_star_verification_help), name='pink_star_verification_help'),
 	############################################# Via Account Kit ##########################################
 	url(r'^verification/mobile/$', auth(verify_user_mobile_unpaid), name='verify_user_mobile_unpaid'),

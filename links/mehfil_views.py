@@ -1,3 +1,4 @@
+import json as json_backup
 import ujson as json
 import random, uuid, time
 from operator import itemgetter
@@ -3438,7 +3439,10 @@ class PublicGroupView(FormView):
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
-						latest_replies = json.loads(latest_replies)
+						try:
+							latest_replies = json.loads(latest_replies)
+						except:
+							latest_replies = json_backup.loads(latest_replies)
 					else:
 						latest_data = retrieve_group_submissions(group_id)
 						latest_replies = []
@@ -3466,7 +3470,10 @@ class PublicGroupView(FormView):
 					############################################################
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
-						latest_replies = json.loads(latest_replies)
+						try:
+							latest_replies = json.loads(latest_replies)
+						except:
+							latest_replies = json_backup.loads(latest_replies)	
 					else:
 						latest_data = retrieve_group_submissions(group_id)
 						latest_replies = []

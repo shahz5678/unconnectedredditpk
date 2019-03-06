@@ -804,6 +804,7 @@ def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 			Publicreply.objects.filter(pk=publicreply_id).update(abuse=True)
 			# cut writers points
 			# UserProfile.objects.filter(user_id=submitted_by_id).update(score=F('score')-2)
+			invalidate_cached_public_replies(link_id)
 			# prepare to redirect
 		request.session["link_pk"] = link_id
 		request.session.modified = True

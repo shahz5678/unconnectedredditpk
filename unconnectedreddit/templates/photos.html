@@ -22,14 +22,21 @@
 <style>body{background:#f0f3f4}</style>
 
 <div style="max-width:600px;margin:0 auto;width:96%">
-	
+<a name="error"></a>
+{% if photo_direct_reply_error_string %}
+	<div style="background:tomato;text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
+		{{ photo_direct_reply_error_string }}
+	</div>
+{% endif %}
+
+
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
 	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
 	{% include "photos_navbar.html" with section='fresh' static_url=STATIC_URL %}
 
-	<h1 style="text-align:center" class="cxl lsp clb">New fotos:</h1>
+	<h1 style="text-align:center" class="cxl lsp clb">New fotos <span class="cs">(page {{ page.number }})</span>:</h1>
 
 {% for photo in object_list %}
 

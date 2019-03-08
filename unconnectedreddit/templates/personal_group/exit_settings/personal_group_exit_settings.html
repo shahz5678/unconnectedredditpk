@@ -21,7 +21,7 @@
 			<div class="mbl mtl">
 				<b class="lsp cl">Hamey afsos hai ap ye 1 on 1 chorney pe majboor huay</b>
 				<div class="mts">
-				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye toy yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye to yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -30,7 +30,7 @@
 			<span class="lsp cl">Ab ap Damadam mein kahan jana chahtey hain?</span>
 			<div class="mtl" style="text-align:center">
 			<a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs" style="border:none;height:30px;">Home</button></a>
-			<a href="{% url 'best_photo' %}"><button class="btn bco bl mrl cl mts mbs" style="border:none;height:30px;">Fotos</button></a>
+			<a href="{% url 'photo' 'best-list' %}"><button class="btn bco bl mrl cl mts mbs" style="border:none;height:30px;">Fotos</button></a>
 			<a href="{% url 'group_page' %}"><button class="btn bcg mrl bl cl mts mbs" style="border:none;height:30px;">Mehfil</button></a>
 			<a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcp mrl bl cl mts" style="border:none;height:30px;">Matka</button></a>
 			</div>
@@ -87,7 +87,7 @@
 			<div class="mbl mtl">
 				<b class="lsp cl">Ap is 1 on 1 ko chore chukey hain</b>
 				<div class="mts">
-				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye tuo yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">Ap <b>1 day</b> baad is mein wapis aa sakien ge. Agar ap <b>7 days</b> tak wapis na aye to yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -96,7 +96,7 @@
 			<span class="lsp cl">Ab ap Damadam mein kahan jana chahtey hain?</span>
 			<div class="mtl" style="text-align:center">
 			<a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs" style="border:none;height:30px;">Home</button></a>
-			<a href="{% url 'best_photo' %}"><button class="btn bco bl mrl cl mts mbs" style="border:none;height:30px;">Fotos</button></a>
+			<a href="{% url 'photo' 'best-list' %}"><button class="btn bco bl mrl cl mts mbs" style="border:none;height:30px;">Fotos</button></a>
 			<a href="{% url 'group_page' %}"><button class="btn bcg mrl bl cl mts mbs" style="border:none;height:30px;">Mehfil</button></a>
 			<a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcp mrl bl cl mts" style="border:none;height:30px;">Matka</button></a>
 			</div>
@@ -106,7 +106,7 @@
 			<div class="mbl mtl">
 				<b class="lsp cl">Is 1 on 1 ko {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ke chorney ki wajah se pehley hi suspend kiya ja chuka hai</b>
 				<div class="mts">
-				<span class="sp cs cgy">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} <b> day</b> baad is mein wapis a sakein ge. Agar woh <b>7 days</b> tak wapis na aye tuo yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
+				<span class="sp cs cgy">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} <b> day</b> baad is mein wapis a sakein ge. Agar woh <b>7 days</b> tak wapis na aye tou yeh 1 on 1 hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 
@@ -148,7 +148,7 @@
 			<div class="mbs mtl">
 			<span class="lsp cl cr"><b>Exit</b>: Kya ap is 1 on 1 ko hamesha ke liye chorna chahtey hain?</span>
 				<div class="mts">
-				<span class="lsp cl"><b>Warning:</b> Apke jatey hi yahan se apkey tamam messages aur fotos mita diye jaien ge. Apkey ke tamam saved messages bhi khatam ho jaien ge. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se 1 on 1 karni hui tuo apko <b>1 day</b> wait karna ho ga. Agar ap is 1 on 1 mein <b>7 days</b> tak wapis na aye tuo ye hamesha ke liye khatam ho jaye gi</span>
+				<span class="lsp cl"><b>Warning:</b> Apke jatey hi yahan se apkey tamam messages aur fotos mita diye jaien ge. Apkey ke tamam saved messages bhi khatam ho jaien ge. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se 1 on 1 karni hui tou apko <b>1 day</b> wait karna ho ga. Agar ap is 1 on 1 mein <b>7 days</b> tak wapis na aye tou ye hamesha ke liye khatam ho jaye gi</span>
 				</div>
 			</div>
 

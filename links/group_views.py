@@ -1087,9 +1087,9 @@ def x_per_grp_notif(request, gid, fid, from_home):
 	if from_home == '3':
 		return redirect("home")
 	elif from_home == '2':
-		return redirect("best_photo")
+		return redirect("photo", list_type='best-list')
 	else:
-		return redirect("photo")
+		return redirect("photo", list_type='fresh-list')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -1115,18 +1115,11 @@ def unseen_per_grp(request, gid, fid):
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 				if origin:
 					if origin == '1':
-						return redirect("photo")
+						return redirect("photo", list_type='fresh-list')
 					elif origin == '3':
-						if lang == 'urdu' and sort_by == 'best':
-							return redirect("ur_home_best", 'urdu')
-						elif sort_by == 'best':
-							return redirect("home_best")
-						elif lang == 'urdu':
-							return redirect("ur_home", 'urdu')
-						else:
-							return redirect("home")
+						return redirect("home")
 					elif origin == '2':
-						return redirect("best_photo")
+						return redirect("photo", list_type='best-list')
 					else:
 						return redirect("unseen_activity", own_uname)
 				else:
@@ -1136,18 +1129,11 @@ def unseen_per_grp(request, gid, fid):
 					request.session["notif_form"] = form
 					request.session.modified = True
 					if origin == '1':
-						return redirect("photo")
+						return redirect("photo", list_type='fresh-list')
 					elif origin == '3':
-						if lang == 'urdu' and sort_by == 'best':
-							return redirect("ur_home_best", 'urdu')
-						elif sort_by == 'best':
-							return redirect("home_best")
-						elif lang == 'urdu':
-							return redirect("ur_home", 'urdu')
-						else:
-							return redirect("home")
+						return redirect("home")
 					elif origin == '2':
-						return redirect("best_photo")
+						return redirect("photo", list_type='best-list')
 					else:
 						return redirect("unseen_activity", own_uname)
 				else:
@@ -1163,7 +1149,8 @@ def unseen_per_grp(request, gid, fid):
 		else:
 			return redirect("unseen_activity", own_uname)
 	else:
-		return redirect("home")
+		return redirect("unseen_activity", request.user.username)
+
 
 
 ###########################################################################################################

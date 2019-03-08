@@ -59,9 +59,9 @@
 	<div class="cl sp"><b>{{ oun }}</b> ki is foto ko kisi ne vote nahi diya</div>
 		
 		{% if origin == '1' %}
-		<a href="{% url 'see_photo_pk' obid %}">
+		<a href="{% url 'redirect_to_photo' 'fresh-list' obid %}">
 		{% elif origin == '2' %}
-		<a href="{% url 'best_photo_loc_pk' obid %}">
+		<a href="{% url 'redirect_to_photo' 'best-list' obid %}">
 		{% elif origin == '3' %}
 		<a href="{% url 'redirect_to_home' link_id %}">
 		{% elif origin == '4' %}
@@ -69,7 +69,7 @@
 		{% elif origin == '6' %}
 		<a href="{% url 'cull_content' %}">
 		{% else %}
-		<a href="{% url 'best_photo' %}">
+		<a href="{% url 'photo' 'best-list' %}">
 		{% endif %}
 		<button class="btn bco bm mtl pg_ok_res" style="height:26px">wapis</button></a>
 

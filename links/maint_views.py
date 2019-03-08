@@ -24,9 +24,9 @@ def skip_outage_notif(request, *args, **kwargs):
 		if origin == '1':
 				return redirect("home")
 		elif origin == '2':
-			return redirect("best_photo")
+			return redirect("photo",list_type='best-list')
 		elif origin == '0':
-			return redirect("photo")
+			return redirect("photo",list_type='fresh-list')
 		else:
 			return redirect("home")
 	else:
@@ -55,6 +55,23 @@ def change_nicks(request,*args,**kwargs):
 	This changes nicknames that aren't in use anymore to a random string.
 	It also removes their mobile verification and cached uname entries (if they exist)
 	It does NOT sync the redis maintained list of usernames used at nickname creation. That must be synced after this is run.
+	
+	list of functions that make nicks a.k.a. username
+	####################
+	
+	Redis7	
+	account_created - username
+
+	Redis6
+	#retrieve_group_topic_log - writer_uname
+	#final_data.append((dictionary['tp'].decode('utf-8'),dictionary['t'],writer_uname,writer_avurl))
+
+	#retrieve_group_chatter -  credentials[user_id]['uname']
+	#final_data.append((credentials[user_id]['uname'],credentials[user_id]['avurl']))
+
+	Redis5
+
+	#####################
 	"""
 	if request.user.username == 'mhb11':
 		if request.method == "POST":

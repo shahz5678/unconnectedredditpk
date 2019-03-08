@@ -39,7 +39,7 @@
 
 		<div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 		{% if object.userprofile.avatar %}
-		<img style="vertical-align:top;width:100%;max-width:450px" src="{{ object.userprofile.avatar|s3 }}" alt="avatar"><br>
+		<img style="vertical-align:top;width:100%;max-width:450px" src="{{ object.userprofile.avatar|s3 }}" alt="pic loading ..."><br>
 		{% else %}
 			{% if is_own_profile %}
 			<img src="{{ STATIC_URL }}img/broken.svg" style="max-width:{{ image_base_width }}px;vertical-align:top" alt="avatar"><br>

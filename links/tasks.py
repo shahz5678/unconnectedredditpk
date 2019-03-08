@@ -771,7 +771,7 @@ def rank_all_photos():
 	"""
 	Runs every 11 mins from settings.py
 	"""
-	photos = retrieve_obj_feed(get_photo_feed())
+	photos = retrieve_obj_feed(get_photo_feed(feed_type='fresh_photos'))
 	photo_ids_and_times = {}
 	for photo in photos:
 		try:

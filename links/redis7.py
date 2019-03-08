@@ -60,6 +60,8 @@ CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regardin
 #HOME_FEED = "homefeed:1000" # list containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
 HOME_SORTED_FEED = "homesortedfeed:1000" # sorted set containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
 PHOTO_FEED = "photofeed:1000" # list containing latest 1000 photo feed hashes (e.g. img:234132)
+PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 photo hashes (e.g. img:234134 or img:341243)
+ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
 BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
 VOTE_ON_IMG = "vi:" #prefix for a sorted set that contains users who voted on a particular image. Each user's vote value is used as a score
@@ -179,6 +181,18 @@ def add_obj_to_home_feed(hash_name, my_server=None):
 	if random() < 0.2:
 		# every now and then, trim the sorted set for size
 		my_server.zremrangebyrank(HOME_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
+
+
+def retrieve_photo_feed_index(obj_hash, feed_type='best_photos'):
+	"""
+	Returns exact index an object is stored at in PHOTO_SORTED_FEED or ALT_BEST_PHOTO_FEED
+
+	Useful when needing to redirect to precise object after interacting with a post
+	"""
+	if feed_type == 'best_photos':
+		return redis.Redis(connection_pool=POOL).zrevrank(ALT_BEST_PHOTO_FEED, obj_hash)
+	elif feed_type == 'fresh_photos':
+		return redis.Redis(connection_pool=POOL).zrevrank(PHOTO_SORTED_FEED, obj_hash)
 
 
 def retrieve_home_feed_index(obj_hash):
@@ -421,19 +435,11 @@ def add_obj_to_photo_feed(hash_name, my_server=None):
 	"""
 	Adding various objects to photo feed
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush(PHOTO_FEED, hash_name)
-	my_server.ltrim(PHOTO_FEED, 0, 999)
-	#########################################################################
-	#########################################################################
-	PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 photo hashes (e.g. img:234134 or img:341243)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	my_server.zadd(PHOTO_SORTED_FEED, hash_name, time.time())
 	if random() < 0.2:
 		# every now and then, trim the sorted set for size
 		my_server.zremrangebyrank(PHOTO_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
-	#########################################################################
-	#########################################################################
 
 
 def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_pinkstar,\
@@ -523,11 +529,21 @@ def voted_for_single_photo(photo_id, voter_id):
 		return already_exists
 
 
-def get_photo_feed(start_idx=0, end_idx=-1):
+def get_photo_feed(start_idx=0, end_idx=-1, feed_type='best_photos', with_feed_size=False):
 	"""
 	Retrieve list of all image feed objects
 	"""
-	return redis.Redis(connection_pool=POOL).lrange(PHOTO_FEED, start_idx, end_idx)
+	if feed_type == 'best_photos':
+		feed_name = ALT_BEST_PHOTO_FEED
+	elif feed_type == 'fresh_photos':
+		feed_name = PHOTO_SORTED_FEED
+	else:
+		return []
+	if with_feed_size:
+		my_server = redis.Redis(connection_pool=POOL)
+		return my_server.zrevrange(feed_name, start_idx, end_idx), my_server.zcard(feed_name)
+	else:
+		return redis.Redis(connection_pool=POOL).zrevrange(feed_name, start_idx, end_idx)
 
 
 def add_photos_to_best_photo_feed(photo_scores, consider_world_age=False):
@@ -1141,6 +1157,7 @@ def log_banning(target_uname,reason_of_ban,action, dur_of_ban,time_of_ban,banned
 
 ####################### Cleanse feed of content posted by punished user #######################
 
+
 def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='1'):
 	"""
 	Ensures no content of target_user_id is part of current feeds
@@ -1158,8 +1175,8 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		my_server = redis.Redis(connection_pool=POOL)
 		# retrieve all feeds
 		pipeline1 = my_server.pipeline()
-		pipeline1.lrange(PHOTO_FEED,0,-1)
-		pipeline1.zrange(BEST_PHOTO_FEED,0,-1)
+		pipeline1.zrange(PHOTO_SORTED_FEED,0,-1)
+		pipeline1.zrange(ALT_BEST_PHOTO_FEED,0,-1)
 		pipeline1.zrange(HOME_SORTED_FEED,0,-1)
 		result1 = pipeline1.execute()
 		fresh_image_objs, best_image_objs, home_objs = result1[0], result1[1], result1[2]
@@ -1205,7 +1222,7 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		for hash_name in target_fresh_photo_hashes:
 			pipeline5.delete(hash_name)
 			pipeline5.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)#expire - don't delete - so that a defender can ban voters if need be in the next 10 min window!
-			pipeline5.lrem(PHOTO_FEED,hash_name, num=1)
+			pipeline5.zrem(PHOTO_SORTED_FEED,hash_name)
 		pipeline5.execute()
 
 		# removing target users' bestphotofeed hashes, and expiring voting objs
@@ -1213,7 +1230,7 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		for hash_name in target_best_photo_hashes:
 			pipeline6.delete(hash_name)#might have been deleted in the previous loop, but we need to catch cases where a hash may not have been in the previous list
 			pipeline6.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline6.zrem(BEST_PHOTO_FEED,hash_name)
+			pipeline6.zrem(ALT_BEST_PHOTO_FEED,hash_name)
 		pipeline6.execute()
 
 		# removing target users' homefeed hashes, and expiring voting objs
@@ -1225,7 +1242,8 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 			else:
 				pipeline7.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
 			pipeline7.zrem(HOME_SORTED_FEED,hash_name)
-		pipeline7.execute()# this approach has a lot of duplication of effort, but is comprehensive
+		pipeline7.execute()
+		# this approach has a lot of duplication of effort, but is comprehensive
 
 
 ##################### Adding or removing defenders ######################

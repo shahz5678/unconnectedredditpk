@@ -22,6 +22,14 @@
 <style>body{background:#f0f3f4}</style>
 
 <div style="max-width:600px;margin:0 auto;width:96%">
+
+<a name="error"></a>
+{% if photo_direct_reply_error_string %}
+	<div style="background:tomato;text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
+		{{ photo_direct_reply_error_string }}
+	</div>
+{% endif %}
+
 {% if newbie_flag %}
 	<div class="mbl mts">
 	{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin='2' %}
@@ -36,9 +44,9 @@
 
 	{% include "photos_navbar.html" with section='best' static_url=STATIC_URL %}
 
-	<h1 style="text-align:center" class="cxl lsp clb">Best fotos <span class="cs">(page {{ page.number }})</span>:</h1>
-
 {% endif %}	
+
+	<h1 style="text-align:center" class="cxl lsp clb">Best fotos <span class="cs">(page {{ page.number }})</span>:</h1>
 
 {% for photo in object_list %}
 	

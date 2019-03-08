@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% load emoticons_tags %}
 {% block content %}
 <head><title>Unable to complete action | Damadam.pk</title></head>
 <div class="margin clb">
-Ap apni photo pe vote nahi dal sakte {% emoticons %}.i5.i6.i7.i8{% endemoticons %}<br>
-<a href="{% url 'best_photo' %}#section0"><button class="btn bco bm mtl">wapis</button></a>
+Ap apni foto pe vote nahi dal sakte<br>
+<a href="{% url 'photo' 'best-list' %}#section0"><button class="btn bco bm mtl pg_ok_res" style="height:27px">wapis</button></a>
 </div>
 <br><br>
 {% endblock %}

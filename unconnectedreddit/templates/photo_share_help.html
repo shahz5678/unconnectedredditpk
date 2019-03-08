@@ -13,20 +13,20 @@
 	</div>
 
 	<form method="POST" class="mbl" action="{% url 'redirect_to_content' %}">
-	{% csrf_token %}
-	<input type="hidden" name="obid" value="{{ ident }}">
-	<input type="hidden" name="orig" value="{{ loc }}">
-	<input type="hidden" name="lid" value="{{ lid }}">
-	<input type="hidden" name="oun" value="{{ username }}">
-	<button type="submit" class="btn bco bm sp pg_ok_res" style="height:27px">wapis</button>
-	</form>
+    {% csrf_token %}
+    <input type="hidden" name="obid" value="{{ ident }}">
+    <input type="hidden" name="orig" value="{{ loc }}">
+    <input type="hidden" name="lid" value="{{ lid }}">
+    <input type="hidden" name="oun" value="{{ username }}">
+    <button type="submit" class="btn bco bm sp pg_ok_res" style="height:27px">wapis</button>
+    </form>
 
 
 {% else %}
-		<b>Ye photo kahien chup gaye hai</b><br>
-		Hum dhoondne ki koshish kr rahe hain<br>
-		<a href="{% url 'best_photo' %}#section0"><button class="btn bco bs mtl mbl" style="height:27px">wapis</button></a>
-		<br>
+		<b class="sp lsp cl">Ye photo kahien chup gaye hai</b><br>
+        <div class="mt cgy sp">Hum dhoondne ki koshish kr rahe hain</div>
+        <a href="{% url 'photo' 'best-list' %}#section0"><button class="btn bco bs mtl mbl" style="height:27px">wapis</button></a>
+        <br>
 {% endif %}
 </div><br><br>
 {% endblock %}

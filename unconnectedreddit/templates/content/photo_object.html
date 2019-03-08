@@ -41,9 +41,9 @@
 					{% if vsc < VDC %}
 						<img alt="hidden" style="vertical-align: top;" class="sp cs" src="{{ static_url }}img/broken.svg">
 					{% elif vsc < VDP %}
-						<img style="width:100%;max-width:450px;vertical-align: top;" class="bright cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
+						<img style="width:100%;max-width:450px;vertical-align: top;" class="bright cs sp" src="{{ img_url }}" alt="pic loading ...">
 					{% else %}
-						<img style="width:100%;max-width:450px;vertical-align: top;" class="cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
+						<img style="width:100%;max-width:450px;vertical-align: top;" class="cs sp" src="{{ img_url }}" alt="pic loading ...">
 					{% endif %}
 				</span>
 				{% endif %}
@@ -82,9 +82,9 @@
 				{% if vsc < VDC %}
 					<img class="cs sp" style="vertical-align: top;" alt="hidden" src="{{ static_url }}img/broken.svg">
 				{% elif vsc < VDP %}
-					<img style="width:100%;max-width:450px;vertical-align: top;" class="bright cs sp" src="{{ img_url }}" alt="{{ raw_caption }}" style="border-radius:12px">
+					<img style="width:100%;max-width:450px;vertical-align: top;" class="bright cs sp" src="{{ img_url }}" alt="pic loading ..." style="border-radius:12px">
 				{% else %}
-					<img style="width:100%;max-width:450px;vertical-align: top;" class="cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
+					<img style="width:100%;max-width:450px;vertical-align: top;" class="cs sp" src="{{ img_url }}" alt="pic loading ...">
 				{% endif %}
 			</span>
 		{% endif %}

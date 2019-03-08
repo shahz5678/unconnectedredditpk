@@ -4,8 +4,8 @@
 <head><title>Photo uploaded at {{ photo_time }} | Damadam.pk</title></head>
 <div class="margin">
 
-<span class="cgy">Ye photo charhi <b>{{ photo_time|naturaltime }}</b></span><br>
-<a href="{% url 'best_photo' %}"><button class="btn bco bm mtl mbs">wapis</button></a>
+<span class="cgy">Ye photo upload hui <b>{{ photo_time|naturaltime }}</b></span><br>
+<a href="{% url 'photo' 'best-list' %}"><button class="btn bco bm mtl mbs" style="height:27px">wapis</button></a>
 
 </div><br><br>
 {% endblock %}

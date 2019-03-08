@@ -17,14 +17,14 @@ def search_username(request):
 	search_history = retrieve_history_with_pics(page_obj.object_list)
 	if request.method == 'POST':
 		#load the page WITH results
-		form = SearchNicknameForm(request.POST)
+		form = SearchNicknameForm(request.POST,searched=True)
 		if form.is_valid():
 			nickname = form.cleaned_data.get("nickname")
 			found_flag,exact_matches,similar = find_nickname(nickname,own_id)
 			return render(request,'search/username_search.html',{'form':form,'exact_matches':exact_matches, 'similar':similar, 'found_flag':found_flag, \
 				'orig_search':nickname,'search_history':search_history,'page':page_obj})
 		else:
-			return render(request,'search/username_search.html',{'form':form,'found_flag':None,'search_history':search_history,'page':page_obj})	
+			return render(request,'search/username_search.html',{'form':form,'found_flag':None,'search_history':search_history,'page':page_obj})    
 	else:
 		# GET request. Load the page as it ought to be loaded (without any search results)
 		return render(request,'search/username_search.html',{'form':SearchNicknameForm(),'found_flag':None,'search_history':search_history,'page':page_obj})

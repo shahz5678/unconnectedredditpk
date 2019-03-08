@@ -15,9 +15,9 @@
 {% if pht == '1' %}
 
 	{% if orig == '1' %}
-		<a href="{% url 'see_photo_pk' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_photo' 'fresh-list' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '2' %}
-		<a href="{% url 'best_photo_loc_pk' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_photo' 'best-list' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '3' %}
 		<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '4' %}

@@ -4572,46 +4572,46 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 	"""
 	Renders the inbox functionality
 	"""
-	if getattr(request, 'limits', False):
-		raise Http404("You cannot view the inbox")
+	# if getattr(request, 'limits', False):
+	# 	raise Http404("You cannot view the inbox")
+	# else:
+	user_id = request.user.id
+	username = retrieve_uname(user_id,decode=True)
+	if tutorial_unseen(user_id=user_id, which_tut='20', renew_lease=True):
+		return render(request, 'inbox_tutorial.html', {'username':username})
 	else:
-		user_id = request.user.id
-		username = retrieve_uname(user_id,decode=True)
-		if tutorial_unseen(user_id=user_id, which_tut='20', renew_lease=True):
-			return render(request, 'inbox_tutorial.html', {'username':username})
-		else:
-			if 'forms' in request.session and 'oblist' in request.session and 'page_obj' in request.session:
-				if request.session['forms'] and request.session['oblist'] and request.session['page_obj']:
-					page_obj = request.session["page_obj"]
-					oblist = request.session["oblist"]
-					forms = request.session["forms"]
-				else:
-					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
-				del request.session["forms"]
-				del request.session["oblist"]
-				del request.session["page_obj"]
+		if 'forms' in request.session and 'oblist' in request.session and 'page_obj' in request.session:
+			if request.session['forms'] and request.session['oblist'] and request.session['page_obj']:
+				page_obj = request.session["page_obj"]
+				oblist = request.session["oblist"]
+				forms = request.session["forms"]
 			else:
 				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
-			secret_key = uuid.uuid4()
-			set_text_input_key(user_id, '1', 'home', secret_key)
-			if oblist:
-				last_visit_time = float(prev_unseen_activity_visit(user_id))-SEEN[False]
-				stars = set()
-				for notif in oblist:
-					if 'p' in notif and 'lrwi' in notif:
-						object_owner_id = notif['ooi']
-						if object_owner_id != str(user_id):
-							stars.add(notif['ooi'])
-				fanned = bulk_is_fan(stars,user_id)
-				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':username,'sk':secret_key,\
-				'last_visit_time':last_visit_time,'user_id':user_id,'fanned':fanned,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),\
-				'VDP':(VOTING_DRIVEN_PIXELATION+1)}
-				if request.is_feature_phone or request.is_phone or request.is_mobile:
-					context["is_mob"] = True
-				return render(request, 'user_unseen_activity.html', context)
-			else:
-				context = {'object_list': oblist, 'page':page_obj,'nickname':username,'sk':secret_key,'user_id':user_id}
-				return render(request, 'user_unseen_activity.html', context)
+			del request.session["forms"]
+			del request.session["oblist"]
+			del request.session["page_obj"]
+		else:
+			page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
+		secret_key = uuid.uuid4()
+		set_text_input_key(user_id, '1', 'home', secret_key)
+		if oblist:
+			last_visit_time = float(prev_unseen_activity_visit(user_id))-SEEN[False]
+			stars = set()
+			for notif in oblist:
+				if 'p' in notif and 'lrwi' in notif:
+					object_owner_id = notif['ooi']
+					if object_owner_id != str(user_id):
+						stars.add(notif['ooi'])
+			fanned = bulk_is_fan(stars,user_id)
+			context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':username,'sk':secret_key,\
+			'last_visit_time':last_visit_time,'user_id':user_id,'fanned':fanned,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),\
+			'VDP':(VOTING_DRIVEN_PIXELATION+1)}
+			if request.is_feature_phone or request.is_phone or request.is_mobile:
+				context["is_mob"] = True
+			return render(request, 'user_unseen_activity.html', context)
+		else:
+			context = {'object_list': oblist, 'page':page_obj,'nickname':username,'sk':secret_key,'user_id':user_id}
+			return render(request, 'user_unseen_activity.html', context)
 
 
 def unseen_help(request,*args,**kwargs):

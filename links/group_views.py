@@ -1084,12 +1084,13 @@ def x_per_grp_notif(request, gid, fid, from_home):
 	group_id, exists = personal_group_already_exists(own_id, fid)
 	if exists and group_id == str(gid):
 		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	if from_home == '3':
-		return redirect("home")
-	elif from_home == '2':
-		return redirect("photo", list_type='best-list')
-	else:
-		return redirect("photo", list_type='fresh-list')
+	# if from_home == '3':
+	#     return redirect("home")
+	# elif from_home == '2':
+	#     return redirect("photo", list_type='best-list')
+	# else:
+	#     return redirect("photo", list_type='fresh-list')
+	return return_to_content(request,from_home,group_id,None,None)
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

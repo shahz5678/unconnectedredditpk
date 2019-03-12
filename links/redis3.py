@@ -1928,7 +1928,7 @@ def retrieve_user_world_age(user_id_list, with_highest_age=False):
 		result1, counter, final_result = pipeline1.execute(), 0, {}
 		for user_id in user_id_list:
 			user_age = result1[counter]
-			final_result[user_id] = user_age if user_age else 0.5
+			final_result[user_id] = user_age if user_age else 1
 			counter += 1
 		if with_highest_age:
 			return final_result, my_server.zrevrange('world_age',0,0,withscores=True)[0][1]

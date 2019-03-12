@@ -1347,7 +1347,7 @@ def fan_recount(owner_id,fan_increment,fan_decrement):
 	else:
 		pass
 
-obj1 = locals()['salat_info']
+#obj1 = locals()['salat_info']
 # obj2 = locals()['rank_photos']
-obj1.run()
+#obj1.run()
 # obj2.run()

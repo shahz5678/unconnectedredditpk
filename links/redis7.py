@@ -3,7 +3,7 @@ from random import random
 import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
-from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL
+from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
 from redis3 import retrieve_user_world_age
@@ -62,6 +62,8 @@ HOME_SORTED_FEED = "homesortedfeed:1000" # sorted set containing latest 1000 hom
 PHOTO_FEED = "photofeed:1000" # list containing latest 1000 photo feed hashes (e.g. img:234132)
 PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 photo hashes (e.g. img:234134 or img:341243)
 ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
+TRENDING_PHOTO_FEED = 'trendingphotofeed:1000'
+TRENDING_PHOTO_DETAILS = 'trendingphotodetails:1000'
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
 BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
 VOTE_ON_IMG = "vi:" #prefix for a sorted set that contains users who voted on a particular image. Each user's vote value is used as a score
@@ -185,12 +187,12 @@ def add_obj_to_home_feed(hash_name, my_server=None):
 
 def retrieve_photo_feed_index(obj_hash, feed_type='best_photos'):
 	"""
-	Returns exact index an object is stored at in PHOTO_SORTED_FEED or ALT_BEST_PHOTO_FEED
+	Returns exact index an object is stored at in PHOTO_SORTED_FEED or TRENDING_PHOTO_FEED
 
 	Useful when needing to redirect to precise object after interacting with a post
 	"""
 	if feed_type == 'best_photos':
-		return redis.Redis(connection_pool=POOL).zrevrank(ALT_BEST_PHOTO_FEED, obj_hash)
+		return redis.Redis(connection_pool=POOL).zrevrank(TRENDING_PHOTO_FEED, obj_hash)
 	elif feed_type == 'fresh_photos':
 		return redis.Redis(connection_pool=POOL).zrevrank(PHOTO_SORTED_FEED, obj_hash)
 
@@ -385,8 +387,8 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 			counter += 1
 		voter_age_dict, highest_age = retrieve_user_world_age(voter_ids,with_highest_age=True)
 		if voter_age_dict and highest_age:
-			import math
-			log_highest_age = math.log(highest_age,2.0)# taking log 2 of highest age so that large-age users cannot have an undue influence
+			from math import log
+			log_highest_age = log(highest_age,2.0)# taking log 2 of highest age so that large-age users cannot have an undue influence
 			counter = 0 #resetting the counter
 			final_net_votes = {}
 			for obj_id in obj_ids:
@@ -395,10 +397,10 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 					obj_aggregate_vote_score = 0
 					for user_id, user_vote in result1[counter]:
 						if int(user_vote) == 0:
-							log_voter_age = math.log(voter_age_dict[user_id],2.0)
+							log_voter_age = log(voter_age_dict[user_id],2.0)
 							vote_value = -1*(log_voter_age/log_highest_age)
 						elif int(user_vote) == 1:
-							log_voter_age = math.log(voter_age_dict[user_id],2.0)
+							log_voter_age = log(voter_age_dict[user_id],2.0)
 							vote_value = 1*(log_voter_age/log_highest_age)
 						else:
 							vote_value = 0
@@ -408,6 +410,7 @@ def get_world_age_weighted_vote_score(obj_ids, obj_type):
 					final_net_votes[obj_id] = 0
 				counter += 1
 		return final_net_votes
+
 
 #################################################### Updating image content objects ############################################
 
@@ -534,7 +537,7 @@ def get_photo_feed(start_idx=0, end_idx=-1, feed_type='best_photos', with_feed_s
 	Retrieve list of all image feed objects
 	"""
 	if feed_type == 'best_photos':
-		feed_name = ALT_BEST_PHOTO_FEED
+		feed_name = TRENDING_PHOTO_FEED
 	elif feed_type == 'fresh_photos':
 		feed_name = PHOTO_SORTED_FEED
 	else:
@@ -544,6 +547,35 @@ def get_photo_feed(start_idx=0, end_idx=-1, feed_type='best_photos', with_feed_s
 		return my_server.zrevrange(feed_name, start_idx, end_idx), my_server.zcard(feed_name)
 	else:
 		return redis.Redis(connection_pool=POOL).zrevrange(feed_name, start_idx, end_idx)
+
+
+def add_single_trending_object(prefix, obj_id, obj_hash):
+	"""
+	Adds a single trending object to a trending list of objects
+
+	Also adds the objects details to a separate sorted set for later viewing, helpful if obj metrics are to be compared at the time of its selection
+	"""
+	if prefix == 'img:':
+		composite_id = prefix+obj_id
+		time_of_selection = obj_hash['tos']
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
+		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, time_of_selection)
+		pipeline1.execute()
+		if random() < .05:
+			# sometimes trim the sorted set for size
+			photo_hashes_to_be_removed = my_server.zrevrange(TRENDING_PHOTO_FEED,NUM_TRENDING_PHOTOS,-1)
+			if photo_hashes_to_be_removed:
+				photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in photo_hashes_to_be_removed]
+				photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
+				pipeline2 = my_server.pipeline()
+				pipeline2.zrem(TRENDING_PHOTO_FEED, *photo_hashes_to_be_removed)
+				for photo_id in photo_ids_to_be_removed:
+					pipeline2.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
+				pipeline2.execute()
+	else:
+		pass
 
 
 def add_photos_to_best_photo_feed(photo_scores, consider_world_age=False):
@@ -1176,7 +1208,7 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		# retrieve all feeds
 		pipeline1 = my_server.pipeline()
 		pipeline1.zrange(PHOTO_SORTED_FEED,0,-1)
-		pipeline1.zrange(ALT_BEST_PHOTO_FEED,0,-1)
+		pipeline1.zrange(TRENDING_PHOTO_FEED,0,-1)
 		pipeline1.zrange(HOME_SORTED_FEED,0,-1)
 		result1 = pipeline1.execute()
 		fresh_image_objs, best_image_objs, home_objs = result1[0], result1[1], result1[2]
@@ -1230,21 +1262,28 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		for hash_name in target_best_photo_hashes:
 			pipeline6.delete(hash_name)#might have been deleted in the previous loop, but we need to catch cases where a hash may not have been in the previous list
 			pipeline6.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline6.zrem(ALT_BEST_PHOTO_FEED,hash_name)
+			pipeline6.zrem(TRENDING_PHOTO_FEED,hash_name)
 		pipeline6.execute()
 
-		# removing target users' homefeed hashes, and expiring voting objs
+		# removing target users' hashes from TRENDING_PHOTO_DETAILS
+		photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in target_best_photo_hashes]
+		photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
 		pipeline7 = my_server.pipeline()
-		for hash_name in target_home_hashes:
-			pipeline7.delete(hash_name)
-			if hash_name[:2] == 'tx':
-				pipeline7.expire(VOTE_ON_TXT+hash_name[3:],TEN_MINS)
-			else:
-				pipeline7.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline7.zrem(HOME_SORTED_FEED,hash_name)
+		for photo_id in photo_ids_to_be_removed:
+			pipeline7.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
 		pipeline7.execute()
-		# this approach has a lot of duplication of effort, but is comprehensive
 
+		# removing target users' homefeed hashes, and expiring voting objs
+		pipeline8 = my_server.pipeline()
+		for hash_name in target_home_hashes:
+			pipeline8.delete(hash_name)
+			if hash_name[:2] == 'tx':
+				pipeline8.expire(VOTE_ON_TXT+hash_name[3:],TEN_MINS)
+			else:
+				pipeline8.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
+			pipeline8.zrem(HOME_SORTED_FEED,hash_name)
+		pipeline8.execute()
+		# this approach has a lot of duplication of effort, but is comprehensive
 
 ##################### Adding or removing defenders ######################
 

@@ -5151,25 +5151,27 @@ def welcome_reply(request,*args,**kwargs):
 
 
 def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_by=None, *args,**kwargs):
-	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
-		bump_ua=False)
-	if from_home == '3':
-		return redirect("home")
-	elif from_home == '2':
-		return redirect("photo",list_type='best-list')
-	else:
-		return redirect("photo",list_type='fresh-list')
+    update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
+        bump_ua=False)
+    # if from_home == '3':
+    #     return redirect("home")
+    # elif from_home == '2':
+    #     return redirect("photo",list_type='best-list')
+    # else:
+    #     return redirect("photo",list_type='fresh-list')
+    return return_to_content(request,from_home,pk,None,None)
 
 
 def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=usr, object_id=pk, object_type='0',seen=True, unseen_activity=True,\
 		single_notif=False,bump_ua=False)
-	if from_home == '3':
-		return redirect("home")
-	elif from_home == '2':
-		return redirect("photo",list_type='best-list')
-	else:
-		return redirect("photo",list_type='fresh-list')
+	# if from_home == '3':
+	#     return redirect("home")
+	# elif from_home == '2':
+	#     return redirect("photo",list_type='best-list')
+	# else:
+	#     return redirect("photo",list_type='fresh-list')
+	return return_to_content(request,from_home,pk,None,None)
 
 
 def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=None, *args, **kwargs):
@@ -5188,12 +5190,14 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, so
 def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=user, object_id=pk, object_type='2',seen=True, unseen_activity=True,\
 		single_notif=False, bump_ua=False)
-	if from_home == '3':
-		return redirect("home")
-	elif from_home == '2':
-		return redirect("photo",list_type='best-list')
-	else:
-		return redirect("photo",list_type='fresh-list')
+	# if from_home == '3':
+	#     return redirect("home")
+	# elif from_home == '2':
+	#     return redirect("photo",list_type='best-list')
+	# else:
+	#     return redirect("photo",list_type='fresh-list')
+	return return_to_content(request,from_home,pk,None,None)
+
 
 # @ratelimit(rate='3/s')
 # def video_vote(request, pk=None, val=None, usr=None, *args, **kwargs):

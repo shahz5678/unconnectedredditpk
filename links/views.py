@@ -288,6 +288,15 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 	elif origin == '18':
 		# originated from received invites' list
 		return redirect("show_personal_group_invite_list",'received')
+	elif origin == '19':
+		# originated from single notification on home (separate from home submissions)
+		return redirect("home")
+	elif origin == '20':
+		# originated from single notification on latest photos (separate from photo submissions)
+		return redirect("photo",list_type='fresh-list')
+	elif origin == '21':
+		# originated from single notification on trending photos (separate from photo submissions)
+		return redirect("photo",list_type='best-list')
 	else:
 		# take the voter to best photos by default
 		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))
@@ -5382,7 +5391,7 @@ def unfan(request):
 
 
 @csrf_protect
-@ratelimit(rate='7/s')
+#@ratelimit(rate='7/s')
 def fan(request,*args,**kwargs):
 	"""
 	Responsible for processing fanning and unfanning request

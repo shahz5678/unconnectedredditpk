@@ -17,7 +17,7 @@
 {% load get_photo_comments_section %}
 {% block content %}
 
-<head><title>Best photos and memes | Damadam.pk</title></head>
+<head><title>Trending content | Damadam.pk</title></head>
 
 <style>body{background:#f0f3f4}</style>
 
@@ -39,14 +39,14 @@
 	
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-	{% notification_bar notification=process_notification origin='2' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
+	{% notification_bar notification=process_notification origin='21' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
 
 	{% include "photos_navbar.html" with section='best' static_url=STATIC_URL %}
 
 {% endif %}	
 
-	<h1 style="text-align:center" class="cxl lsp clb">Best fotos <span class="cs">(page {{ page.number }})</span>:</h1>
+	<h1 style="text-align:center" class="cxl lsp clb">Trending fotos <span class="cs">(page {{ page.number }})</span>:</h1>
 
 {% for photo in object_list %}
 	
@@ -75,7 +75,10 @@
 </div>
 {% empty %}
 
-<div class="clb bizcard sp" style="text-align:center;background:white;padding:10px">Top fotos kuch time mein nazr aien gi!</div>
+<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px" class="cxl lsp mbl clb">Sorry! Ye abhi empty hai<br>
+<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Jab tak <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Fotos</a> check karein!</div>
+</div>
+
 
 {% endfor %}
 

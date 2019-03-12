@@ -546,7 +546,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 						elif len_ > MAX_HOME_SUBMISSION_SIZE:
 							raise forms.ValidationError('{0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
 						# log_gibberish_writer.delay(user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
-						data["description"] = re.sub(r'\n\s*\n', '\n', description)#ensures multiple new-lines are collapsed into 1
+						data["description"] = description#re.sub(r'\n\s*\n', '\n', description)#ensures multiple new-lines are collapsed into 1
 						return data
 
 

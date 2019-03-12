@@ -1915,30 +1915,30 @@ def set_world_age(user_id):
 
 
 def retrieve_user_world_age(user_id_list, with_highest_age=False):
-    """
-    Given a list of user_ids, this retrieves their world age and returns a dictionary
+	"""
+	Given a list of user_ids, this retrieves their world age and returns a dictionary
 
-    if 'with_highest_age' is set to 'True', the highest world age is returned as well so that world ages can be normalized
-    """
-    if user_id_list:
-        my_server = redis.Redis(connection_pool=POOL)
-        pipeline1 = my_server.pipeline()
-        for user_id in user_id_list:
-            pipeline1.zscore('world_age',user_id)
-        result1, counter, final_result = pipeline1.execute(), 0, {}
-        for user_id in user_id_list:
-            user_age = result1[counter]
-            final_result[user_id] = user_age if user_age else 0
-            counter += 1
-        if with_highest_age:
-            return final_result, my_server.zrevrange('world_age',0,0,withscores=True)[0][1]
-        else:
-            return final_result
-    else:
-        if with_highest_age:
-            return {}, None
-        else:
-            return {}
+	if 'with_highest_age' is set to 'True', the highest world age is returned as well so that world ages can be normalized
+	"""
+	if user_id_list:
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		for user_id in user_id_list:
+			pipeline1.zscore('world_age',user_id)
+		result1, counter, final_result = pipeline1.execute(), 0, {}
+		for user_id in user_id_list:
+			user_age = result1[counter]
+			final_result[user_id] = user_age if user_age else 0.5
+			counter += 1
+		if with_highest_age:
+			return final_result, my_server.zrevrange('world_age',0,0,withscores=True)[0][1]
+		else:
+			return final_result
+	else:
+		if with_highest_age:
+			return {}, None
+		else:
+			return {}
 
 ################################ Self-written mobile verification ################################
 

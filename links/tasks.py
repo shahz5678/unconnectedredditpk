@@ -903,7 +903,7 @@ def salat_info():
 			photo_hashes[object_id] = photo
 		except (TypeError,KeyError):
 			net_votes, up_votes, down_votes, submission_time, object_id = None, None, None, None, None
-		if int(net_votes) > 0 and submission_time and object_id:#remove objs with '0' net_votes, and must have received at least 2 downvotes
+		if int(net_votes) > 0 and int(down_votes) > 1 and submission_time and object_id:#remove objs with '0' net_votes, and must have received at least 2 downvotes
 			photo_ids_and_times[object_id] = submission_time
 	if photo_ids_and_times:
 		# create a net voting of this pool via taking world age into consideration

@@ -16,7 +16,7 @@ from redis3 import tutorial_unseen
 from judgement_views import get_usernames
 from views import secs_to_mins, return_to_content
 from redis7 import get_photo_owner, get_link_writer, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
-in_defenders, get_votes, check_content_and_voting_ban#, get_vote_ban_details, check_vote_ban
+in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending#, get_vote_ban_details, check_vote_ban
 
 def vote_result(request):
 	"""
@@ -288,63 +288,66 @@ def show_voting_summary(request,pk,orig,pht):
 
 	If link data expired, merely shows its total score
 	"""
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
+	# was_limited = getattr(request, 'limits', False)
+	# if was_limited:
+	#     return redirect("missing_page")
+	# else:
+	if pht is None:
 		return redirect("missing_page")
-	else:
-		if pht is None:
+	elif pht == '1':
+		# it's a photo
+		try:
+			obj = Photo.objects.get(id=pk)
+			purl = obj.image_file.url
+			oun = obj.owner.username
+			ooid = obj.owner_id
+		except Photo.DoesNotExist:
 			return redirect("missing_page")
-		elif pht == '1':
-			# it's a photo
-			try:
-				obj = Photo.objects.get(id=pk)
-				purl = obj.image_file.url
-				oun = obj.owner.username
-				ooid = obj.owner_id
-			except Photo.DoesNotExist:
-				return redirect("missing_page")
-			lid = None
-			tp = "img"
-			if orig == '3':
-				lid = tp+":"+pk
-				request.session["home_hash_id"] = lid
-				request.session.modified = True
-		elif pht == '0':
-			# it's a link
-			try:
-				obj = Link.objects.get(id=pk)
-				oun = obj.submitter.username
-				ooid = obj.submitter_id
-			except Link.DoesNotExist:
-				return redirect("missing_page")
-			purl = None #not applicable, it's not a photo object
-			lid = None
-			tp = "tx"
-			if orig == '3':
-				lid = tp+":"+pk
-				request.session["home_hash_id"] = lid
-				request.session.modified = True
-		else:
-			# not a link neither a photo
-			return redirect("home")
-		own_id = request.user.id
-		defender, voter_id_names_status_and_votes = False, []
-		is_pinkstar = True if oun in FEMALES else False
-		exists, net_votes, upvotes, downvotes, pink_votes = get_voting_details(pk,pht)
-		show_banning_prompt = False
-		if exists:
-			# dont show anything if content posted by defender herself!
-			net_votes = net_votes if net_votes else 0
-			upvotes = upvotes if upvotes else 0
-			downvotes = downvotes if downvotes else 0
-			pink_votes = pink_votes if pink_votes else 0
-			if own_id != ooid:
-				# not own content, so can show voter details and banning options (otherwise strictly prohibited)
-				defender = in_defenders(own_id)
-				voters_and_votes = get_votes(pk,tp)
-				voter_id_names_status_and_votes = get_usernames(voters_and_votes, ban_status=True) if defender else []
-				show_banning_prompt = True if request.session.pop('show_banning_prompt',None) == '1' else False
-		return render(request,"voting/voting_summary.html",{'obj':obj,'exists':exists,'nv':net_votes,'uv':upvotes,'dv':downvotes,'pv':pink_votes,\
-			'obj_id':pk,'pht':pht,'is_pinkstar':is_pinkstar,'defender':defender,'voter_id_names_status_and_votes':voter_id_names_status_and_votes,\
-			'tp':tp,'first_time_voting_judger':tutorial_unseen(user_id=own_id, which_tut='12', renew_lease=True) if exists else False, 'ooid':ooid,\
-			'oun':oun,'purl':purl,'lid':lid, 'show_banning_prompt':show_banning_prompt,'orig':orig,'own_id':str(own_id)})
+		trending_status, time_of_selection = is_obj_trending(prefix='img:', obj_id=pk, with_trending_time=True)
+		lid = None
+		tp = "img"
+		if orig == '3':
+			lid = tp+":"+pk
+			request.session["home_hash_id"] = lid
+			request.session.modified = True
+	elif pht == '0':
+		# it's a link
+		try:
+			obj = Link.objects.get(id=pk)
+			oun = obj.submitter.username
+			ooid = obj.submitter_id
+		except Link.DoesNotExist:
+			return redirect("missing_page")
+		# trending_status, time_of_selection = is_obj_trending(prefix='img:', obj_id=pk, with_trending_time=True)# not needed yet
+		purl = None #not applicable, it's not a photo object
+		lid = None
+		tp = "tx"
+		if orig == '3':
+			lid = tp+":"+pk
+			request.session["home_hash_id"] = lid
+			request.session.modified = True
+	else:
+		# not a link neither a photo
+		return redirect("home")
+	own_id = request.user.id
+	defender, voter_id_names_status_and_votes = False, []
+	is_pinkstar = True if oun in FEMALES else False
+	exists, net_votes, upvotes, downvotes, pink_votes = get_voting_details(pk,pht)
+	show_banning_prompt = False
+	if exists:
+		# dont show anything if content posted by defender herself!
+		net_votes = net_votes if net_votes else 0
+		upvotes = upvotes if upvotes else 0
+		downvotes = downvotes if downvotes else 0
+		pink_votes = pink_votes if pink_votes else 0
+		if own_id != ooid:
+			# not own content, so can show voter details and banning options (otherwise strictly prohibited)
+			defender = in_defenders(own_id)
+			voters_and_votes = get_votes(pk,tp)
+			voter_id_names_status_and_votes = get_usernames(voters_and_votes, ban_status=True) if defender else []
+			show_banning_prompt = True if request.session.pop('show_banning_prompt',None) == '1' else False
+	return render(request,"voting/voting_summary.html",{'obj':obj,'exists':exists,'nv':net_votes,'uv':upvotes,'dv':downvotes,'pv':pink_votes,\
+		'obj_id':pk,'pht':pht,'is_pinkstar':is_pinkstar,'defender':defender,'voter_id_names_status_and_votes':voter_id_names_status_and_votes,\
+		'tp':tp,'first_time_voting_judger':tutorial_unseen(user_id=own_id, which_tut='12', renew_lease=True) if exists else False, 'ooid':ooid,\
+		'oun':oun,'purl':purl,'lid':lid, 'show_banning_prompt':show_banning_prompt,'orig':orig,'own_id':str(own_id),'is_trending':trending_status,\
+		'time_of_trending':time_of_selection})

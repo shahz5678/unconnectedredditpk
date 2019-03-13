@@ -892,7 +892,7 @@ def salat_info():
 	best_photo_ids = get_photo_feed(feed_type='best_photos')
 	remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]
 	remaining_photo_objs = retrieve_obj_feed(remaining_fresh_photo_ids)
-	photo_ids_and_times, photo_hashes = {}, {}
+	photo_ids_and_times, photo_hashes, time_now = {}, {}, time.time()
 	for photo in remaining_photo_objs:
 		try:
 			object_id = photo['i']
@@ -903,7 +903,8 @@ def salat_info():
 			photo_hashes[object_id] = photo
 		except (TypeError,KeyError):
 			net_votes, up_votes, down_votes, submission_time, object_id = None, None, None, None, None
-		if int(net_votes) > 0 and int(down_votes) > 1 and submission_time and object_id:#remove objs with '0' net_votes, and must have received at least 2 downvotes
+		if int(net_votes) > 0 and int(down_votes) > 1 and submission_time and object_id and (time_now-float(submission_time))>600:
+			# filter objs with '0' net_votes, must have received at least 2 downvotes, and must be at least 10 mins old
 			photo_ids_and_times[object_id] = submission_time
 	if photo_ids_and_times:
 		# create a net voting of this pool via taking world age into consideration
@@ -920,7 +921,7 @@ def salat_info():
 			selected_photo_id = highest_ranked_photo[0]
 			photo_data = photo_hashes[selected_photo_id]
 			photo_data['rank_scr'] = highest_ranked_photo[1]
-			photo_data['tos'] = time.time()
+			photo_data['tos'] = time_now
 			add_single_trending_object(prefix="img:",obj_id=selected_photo_id, obj_hash=photo_data)
 
 

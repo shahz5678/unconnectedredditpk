@@ -25,6 +25,7 @@ TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 FOUR_MINS = 4*60
 FORTY_FIVE_SECS = 45
+THREE_SECS = 3
 NINE_SECS = 9
 
 
@@ -274,7 +275,7 @@ def can_vote_on_obj(voter_id, is_pht):
 		my_server.incr(votes_allowed)
 		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
 		return None, True
-	elif int(current_spree) > (VOTE_SPREE_ALWD-1):#value set at '6' in the system (score.py)
+	elif int(current_spree) > (VOTE_SPREE_ALWD-1):#value set at '25' in the system (score.py)
 		ttl = my_server.ttl(votes_allowed)
 		return ttl, False
 	else:
@@ -283,7 +284,7 @@ def can_vote_on_obj(voter_id, is_pht):
 		short_term_rate_limit = my_server.ttl(short_term_rate_limit_key)
 		if short_term_rate_limit < 0:
 			my_server.incr(votes_allowed)
-			my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+			my_server.expire(votes_allowed,THREE_SECS*(int(current_spree)+1))
 			return None, True
 		else:
 			# user has to wait a few seconds (upto 9) - they were voting super fast
@@ -562,8 +563,9 @@ def add_single_trending_object(prefix, obj_id, obj_hash):
 		pipeline1 = my_server.pipeline()
 		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
 		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, time_of_selection)
+		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
 		pipeline1.execute()
-		if random() < .05:
+		if random() < 0.05:
 			# sometimes trim the sorted set for size
 			photo_hashes_to_be_removed = my_server.zrevrange(TRENDING_PHOTO_FEED,NUM_TRENDING_PHOTOS,-1)
 			if photo_hashes_to_be_removed:
@@ -574,6 +576,25 @@ def add_single_trending_object(prefix, obj_id, obj_hash):
 				for photo_id in photo_ids_to_be_removed:
 					pipeline2.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
 				pipeline2.execute()
+	else:
+		pass
+
+
+def is_obj_trending(prefix, obj_id, with_trending_time=False):
+	"""
+	Retrieves the trending status of an object
+	"""
+	if prefix == 'img:': 
+		composite_id = prefix+str(obj_id)
+		my_server = redis.Redis(connection_pool=POOL)
+		if with_trending_time:
+			time_of_selection = my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
+			if time_of_selection:
+				return True, time_of_selection
+			else:
+				return False, None
+		else:
+			return my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
 	else:
 		pass
 

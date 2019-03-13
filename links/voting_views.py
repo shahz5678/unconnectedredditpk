@@ -319,6 +319,7 @@ def show_voting_summary(request,pk,orig,pht):
 		except Link.DoesNotExist:
 			return redirect("missing_page")
 		# trending_status, time_of_selection = is_obj_trending(prefix='img:', obj_id=pk, with_trending_time=True)# not needed yet
+		trending_status, time_of_selection = False, None
 		purl = None #not applicable, it's not a photo object
 		lid = None
 		tp = "tx"

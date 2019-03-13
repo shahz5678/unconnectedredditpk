@@ -74,7 +74,7 @@ rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limit
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
-is_already_banned, is_mobile_verified, tutorial_unseen#, log_erroneous_passwords
+is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click #, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, \
@@ -3368,15 +3368,34 @@ def photo_page(request,list_type='best-list'):
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
 		#######################
 		secret_key = str(uuid.uuid4())
+		
 		set_text_input_key(user_id=own_id, obj_id='1', obj_type=type_, secret_key=secret_key)
 		context = {'object_list':list_of_dictionaries,'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),\
 		'is_auth':True,'girls':FEMALES,'ident':own_id,'score':request.user.userprofile.score,'sk':secret_key,'process_notification':False,\
 		'newbie_lang':request.session.get("newbie_lang",None),'is_mob':True if request.is_phone or request.is_mobile else False,\
 		'newbie_flag':request.session.get("newbie_flag",None),'comment_form':request.session.pop("comment_form",PhotoCommentForm()),\
 		"mobile_verified":request.mobile_verified}
+		################################################
+		################################################
+		################################################
+		
+		if own_id % 2 == 0:
+			bucket_name = 'bucket_control' 
+		else: 
+			bucket_name = 'bucket_new'
+		
+		if 'page' in request.GET:
+			log_pagination_button_click(own_id,bucket_name)
+		
+		context[bucket_name] = True
+		
+		################################################
+		################################################
+		################################################
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 		'previous_page_number':page_num-1,'next_page_number':page_num+1}
 		#####################
+		
 		# extraneous
 		context["lang"] = 'None'
 		context["sort_by"] = 'recent'
@@ -4333,28 +4352,32 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["p"], \
 						slug=grp["u"], image_url=None, priority=priority, from_unseen=True)
 					if origin:
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("unseen_activity", username)
+						return return_to_content(request,origin,pk,None,username)
+						# if origin == '1':
+
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3':
+						# 	return redirect("home")
+						# elif origin == '2':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("unseen_activity", username)
 					else:
 						return redirect("unseen_activity", username)
 				else:
 					if origin:
+						
 						request.session["notif_form"] = form
 						request.session.modified = True
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("unseen_activity", username)
+						return return_to_content(request,origin,pk,None,username)
+						# if origin == '1':
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3':
+						# 	return redirect("home")
+						# elif origin == '2':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("unseen_activity", username)
 					else:
 						notification = "np:"+str(user_id)+":3:"+str(pk)
 						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)

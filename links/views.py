@@ -4353,15 +4353,15 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						slug=grp["u"], image_url=None, priority=priority, from_unseen=True)
 					if origin:
 						return return_to_content(request,origin,pk,None,username)
-						# if origin == '1':
+						if origin == '1':
 
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3':
-						# 	return redirect("home")
-						# elif origin == '2':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("unseen_activity", username)
+							return redirect("photo",list_type='fresh-list')
+						elif origin == '3':
+							return redirect("home")
+						elif origin == '2':
+							return redirect("photo",list_type='best-list')
+						else:
+							return redirect("unseen_activity", username)
 					else:
 						return redirect("unseen_activity", username)
 				else:
@@ -4370,14 +4370,14 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						request.session["notif_form"] = form
 						request.session.modified = True
 						return return_to_content(request,origin,pk,None,username)
-						# if origin == '1':
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3':
-						# 	return redirect("home")
-						# elif origin == '2':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("unseen_activity", username)
+						if origin == '1':
+							return redirect("photo",list_type='fresh-list')
+						elif origin == '3':
+							return redirect("home")
+						elif origin == '2':
+							return redirect("photo",list_type='best-list')
+						else:
+							return redirect("unseen_activity", username)
 					else:
 						notification = "np:"+str(user_id)+":3:"+str(pk)
 						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)

@@ -4352,9 +4352,8 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["p"], \
 						slug=grp["u"], image_url=None, priority=priority, from_unseen=True)
 					if origin:
-						return return_to_content(request,origin,pk,None,username)
+						#return return_to_content(request,origin,pk,None,username)
 						if origin == '1':
-
 							return redirect("photo",list_type='fresh-list')
 						elif origin == '3':
 							return redirect("home")
@@ -4369,7 +4368,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						
 						request.session["notif_form"] = form
 						request.session.modified = True
-						return return_to_content(request,origin,pk,None,username)
+						#return return_to_content(request,origin,pk,None,username)
 						if origin == '1':
 							return redirect("photo",list_type='fresh-list')
 						elif origin == '3':

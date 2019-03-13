@@ -903,7 +903,7 @@ def salat_info():
 			photo_hashes[object_id] = photo
 		except (TypeError,KeyError):
 			net_votes, up_votes, down_votes, submission_time, object_id = None, None, None, None, None
-		if int(net_votes) > 0 and int(down_votes) > 1 and submission_time and object_id and (time_now-float(submission_time))>600:
+		if int(net_votes) > 0 and int(down_votes) > 0 and submission_time and object_id and (time_now-float(submission_time))>600:
 			# filter objs with '0' net_votes, must have received at least 2 downvotes, and must be at least 10 mins old
 			photo_ids_and_times[object_id] = submission_time
 	if photo_ids_and_times:

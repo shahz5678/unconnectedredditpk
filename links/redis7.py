@@ -65,6 +65,7 @@ PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 p
 ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
 TRENDING_PHOTO_FEED = 'trendingphotofeed:1000'
 TRENDING_PHOTO_DETAILS = 'trendingphotodetails:1000'
+HAND_PICKED_TRENDING_PHOTOS = 'handpickedphotos'#sorted set containing hand-picked photos meant to show up in trending
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
 BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
 VOTE_ON_IMG = "vi:" #prefix for a sorted set that contains users who voted on a particular image. Each user's vote value is used as a score
@@ -550,55 +551,6 @@ def get_photo_feed(start_idx=0, end_idx=-1, feed_type='best_photos', with_feed_s
 		return redis.Redis(connection_pool=POOL).zrevrange(feed_name, start_idx, end_idx)
 
 
-def add_single_trending_object(prefix, obj_id, obj_hash):
-	"""
-	Adds a single trending object to a trending list of objects
-
-	Also adds the objects details to a separate sorted set for later viewing, helpful if obj metrics are to be compared at the time of its selection
-	"""
-	if prefix == 'img:':
-		composite_id = prefix+obj_id
-		time_of_selection = obj_hash['tos']
-		my_server = redis.Redis(connection_pool=POOL)
-		pipeline1 = my_server.pipeline()
-		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
-		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, time_of_selection)
-		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
-		pipeline1.execute()
-		if random() < 0.05:
-			# sometimes trim the sorted set for size
-			photo_hashes_to_be_removed = my_server.zrevrange(TRENDING_PHOTO_FEED,NUM_TRENDING_PHOTOS,-1)
-			if photo_hashes_to_be_removed:
-				photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in photo_hashes_to_be_removed]
-				photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
-				pipeline2 = my_server.pipeline()
-				pipeline2.zrem(TRENDING_PHOTO_FEED, *photo_hashes_to_be_removed)
-				for photo_id in photo_ids_to_be_removed:
-					pipeline2.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
-				pipeline2.execute()
-	else:
-		pass
-
-
-def is_obj_trending(prefix, obj_id, with_trending_time=False):
-	"""
-	Retrieves the trending status of an object
-	"""
-	if prefix == 'img:': 
-		composite_id = prefix+str(obj_id)
-		my_server = redis.Redis(connection_pool=POOL)
-		if with_trending_time:
-			time_of_selection = my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
-			if time_of_selection:
-				return True, time_of_selection
-			else:
-				return False, None
-		else:
-			return my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
-	else:
-		pass
-
-
 def add_photos_to_best_photo_feed(photo_scores, consider_world_age=False):
 	"""
 	Constructing bestphotofeed
@@ -666,6 +618,176 @@ def rate_limit_fbs_public_photo_uploaders(user_id):
 	Rate limiting fbs public photo uploaders
 	"""
 	redis.Redis(connection_pool=POOL).setex(FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT+str(user_id),'1',FBS_PUBLIC_PHOTO_UPLOAD_RL)
+
+
+####################################################################################################
+################################ Trending list related functonality ################################
+####################################################################################################
+
+
+def trim_trending_list(feed_type='best_photos'):
+	"""
+	Trims trending list down to NUM_TRENDING_PHOTOS elements (in case of the trending photos feed)
+	"""
+	if feed_type == 'best_photos':
+		my_server = redis.Redis(connection_pool=POOL)
+		photo_hashes_to_be_removed = my_server.zrevrange(TRENDING_PHOTO_FEED,NUM_TRENDING_PHOTOS,-1)
+		if photo_hashes_to_be_removed:
+			photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in photo_hashes_to_be_removed]
+			photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
+			pipeline1 = my_server.pipeline()
+			pipeline1.zrem(TRENDING_PHOTO_FEED, *photo_hashes_to_be_removed)
+			for photo_id in photo_ids_to_be_removed:
+				pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
+			pipeline1.execute()
+	else:
+		pass
+
+
+def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None):
+	"""
+	Adds a single trending object to a trending list of objects
+
+	Also adds the objects details to a separate sorted set for later viewing, helpful if obj metrics are to be compared at the time of its selection
+	"""
+	if prefix == 'img:':
+		composite_id = prefix+obj_id
+		time_of_selection = obj_hash['tos']
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
+		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float(time_of_selection))
+		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
+		pipeline1.execute()
+		if random() < 0.05:
+			# sometimes trim the trending sorted set for size
+			trim_trending_list()
+	else:
+		pass
+
+
+def push_hand_picked_obj_into_trending(feed_type='best_photos'):
+	"""
+	HAND_PICKED_TRENDING_PHOTOS contains photos earmarked for movement into trending - this executes the whole procedure
+	"""
+	pushed = False
+	if feed_type == 'best_photos':
+		# retrieve oldest object from HAND_PICKED_TRENDING_PHOTOS and push it into trending
+		my_server = redis.Redis(connection_pool=POOL)
+		if my_server.exists(HAND_PICKED_TRENDING_PHOTOS):
+			# sorted set exists
+			oldest_enqueued_member = my_server.zrange(HAND_PICKED_TRENDING_PHOTOS,0,0)
+			if oldest_enqueued_member:
+				# push it if the obj's hash exists and its still in fresh, otherwise just ignore
+				oldest_enqueued_member = oldest_enqueued_member[0]
+				obj_hash = my_server.hgetall(oldest_enqueued_member)
+				if obj_hash:
+					obj_exists_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,oldest_enqueued_member)
+					if obj_exists_in_fresh:
+						# do the deed - push the object for members to see!
+						time_of_selection = time.time()
+						obj_hash['tos'] = time_of_selection
+						add_single_trending_object(prefix='img:', obj_id=obj_hash['i'], obj_hash=obj_hash, my_server=my_server)
+						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
+						pushed = True
+					else:
+						# do nothing, it's no longer in fresh
+						pushed = False
+				else:
+					pushed = False
+			else:
+				pushed = False
+		else:
+			# this does not exist, so nothing was pushed
+			pushed = False
+	else:
+		pushed = False
+	return pushed
+
+
+def queue_obj_into_trending(prefix,obj_id, picked_by_id):
+	"""
+	Used by super defenders to just move an object straight into trending
+
+	The object does not get added immediately, is instead entered into a queue
+	Next time when the celery task runs, this queue is popped and the next trending object is shown
+	If two super defenders enqueue the same item for movement into trending, the object simply moves in by the 'initially' set priority
+	"""
+	if prefix == 'img:':
+		time_now = time.time()
+		composite_id = prefix+obj_id
+		my_server = redis.Redis(connection_pool=POOL)
+		already_enqueued = my_server.zscore(HAND_PICKED_TRENDING_PHOTOS,composite_id)
+		if already_enqueued:
+			# do nothing
+			pass
+		else:
+			# Enqueue the object, but first: i) check if it's already moved into trending (just to be sure), ii) it still exists in fresh (and wasn't censored for instance)
+			already_trending = my_server.zscore(TRENDING_PHOTO_FEED, composite_id)
+			if already_trending:
+				# do nothing
+				pass
+			else:
+				still_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,composite_id)
+				if still_in_fresh:
+					# Enqueue for trending
+					my_server.zadd(HAND_PICKED_TRENDING_PHOTOS,composite_id,time_now)
+					my_server.hset(composite_id,'pbid',picked_by_id)# records the ID of the super-defender who ordered this movement
+				else:
+					# not in fresh any more (for whatever reason) - so do nothing!
+					pass
+	else:
+		pass
+
+
+def remove_obj_from_trending(prefix,obj_id):
+	"""
+	Used by super defenders to remove an object from the trending list
+
+	This item is not added back into fresh-list, it is just removed from trending entirely
+	"""
+	if prefix == 'img:':
+		composite_id = prefix+obj_id
+		my_server = redis.Redis(connection_pool=POOL)
+		# ensure it's not in handpicked photos (e.g. if super-defender changed their mind about enqueing it)
+		my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,composite_id)
+		obj_is_trending = my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
+		if obj_is_trending:
+			# remove it from trending
+			pipeline1 = my_server.pipeline()
+			pipeline1.zrem(TRENDING_PHOTO_FEED,composite_id)
+			pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
+			pipeline1.execute()
+		else:
+			# not in trending (for whatever reason) - do nothing
+			pass
+	else:
+		pass
+
+
+def is_obj_trending(prefix, obj_id, with_trending_time=False):
+	"""
+	Retrieves the trending status of an object
+	"""
+	if prefix == 'img:': 
+		composite_id = prefix+str(obj_id)
+		my_server = redis.Redis(connection_pool=POOL)
+		if with_trending_time:
+			time_of_selection = my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
+			if time_of_selection:
+				return True, time_of_selection
+			else:
+				return False, None
+		else:
+			return my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
+	else:
+		pass
+
+
+####################################################################################################
+####################################################################################################
+####################################################################################################
+
 
 
 #################################################### Vote banning functionality (defenders) ############################################

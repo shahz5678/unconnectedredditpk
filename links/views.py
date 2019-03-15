@@ -216,17 +216,29 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 
 	This is merely a redirect view and needs no url pattern (request is passed from other views, e.g. redirect_to_content())
 	"""
-	if origin == '1':
+	if origin == '1' or origin == '20':
 		# originated from taza photos page
-		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'fresh-list','pk':obj_id}))
-	elif origin == '2':
+		if origin == '20':
+			# single notification on fresh photos 
+			return redirect("photo",list_type='fresh-list')
+		else:
+			return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'fresh-list','pk':obj_id}))
+	elif origin == '2' or origin == '21':
 		# originated from best photos
-		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list','pk':obj_id}))
-	elif origin == '3':
+		if origin == '21':
+			# single notification on best photos
+			return redirect("photo",list_type='best-list')
+		else:
+			return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list','pk':obj_id}))
+	elif origin == '3' or origin == '19':
+		if origin == '19':
+			# single notification on home
+			return redirect("home")
 		# originated from home
-		request.session["home_hash_id"] = link_id
-		request.modified = True
-		return redirect("redirect_to_home")
+		else:
+			request.session["home_hash_id"] = link_id
+			request.modified = True
+			return redirect("redirect_to_home")
 	elif origin == '4':
 		# originated from user profile
 		request.session["photograph_id"] = obj_id
@@ -288,15 +300,16 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 	elif origin == '18':
 		# originated from received invites' list
 		return redirect("show_personal_group_invite_list",'received')
-	elif origin == '19':
-		# originated from single notification on home (separate from home submissions)
-		return redirect("home")
-	elif origin == '20':
-		# originated from single notification on latest photos (separate from photo submissions)
-		return redirect("photo",list_type='fresh-list')
-	elif origin == '21':
-		# originated from single notification on trending photos (separate from photo submissions)
-		return redirect("photo",list_type='best-list')
+	# elif origin == '19':
+	# 	# originated from single notification on home (separate from home submissions)
+	# 	return redirect("home")
+	# elif origin == '20':
+	# 	# originated from single notification on latest photos (separate from photo submissions)
+	# 	return redirect("photo",list_type='fresh-list')
+	# elif origin == '21':
+	# 	# originated from single notification on trending photos (separate from photo submissions)
+	# 	return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type':'best-list','pk':obj_id}))
+	# 	#return redirect("photo",list_type='best-list')
 	else:
 		# take the voter to best photos by default
 		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))
@@ -2778,8 +2791,14 @@ class CommentView(CreateView):
 					#fires if user from chat
 					return redirect("comment_pk", pk=pk)
 				else:
-					return redirect("photo",list_type='best-list')
-		else:
+					# if origin == '19':
+					# 	org = 'home'
+					# elif origin == '20':
+					# 	org = 'fresh_photos'
+					# else:
+					# 	return redirect("photo",list_type='best-list')
+					return return_to_content(self.request,origin,None,None,None)
+		else:				
 			return redirect('login')
 
 
@@ -3126,11 +3145,11 @@ def photo_comment(request,pk=None,*args,**kwargs):
 			if banned_by:
 				request.session["banned_by"] = banned_by
 				request.session["ban_time"] = ban_time
-				if origin == '1':
+				if origin == '1' or origin == '20':
 					request.session["where_from"] = '1'
-				elif origin == '2':
+				elif origin == '2' or origin == '21':
 					request.session["where_from"] = '2'
-				elif origin == '3':
+				elif origin == '3' or origin == '19':
 					request.session["where_from"] = '3'
 				request.session["obj_id"] = pk
 				request.session["lid"] = home_hash
@@ -3341,7 +3360,7 @@ def photo_redirect(request, list_type='best-list', pk=None):
 		pk = request.session.pop('photo_hash_id',None)
 		index = retrieve_photo_feed_index("img:"+str(pk),feed_type=feed_type) if pk else 0
 	if index is None:
-		url = reverse_lazy("photo", args=[list_type])+'?page=1#section0'
+		url = reverse_lazy("photo", args=[list_type])
 	else:
 		addendum = get_addendum(index, ITEMS_PER_PAGE, only_addendum=True)
 		url = reverse_lazy("photo", args=[list_type])+addendum
@@ -3375,23 +3394,6 @@ def photo_page(request,list_type='best-list'):
 		'newbie_lang':request.session.get("newbie_lang",None),'is_mob':True if request.is_phone or request.is_mobile else False,\
 		'newbie_flag':request.session.get("newbie_flag",None),'comment_form':request.session.pop("comment_form",PhotoCommentForm()),\
 		"mobile_verified":request.mobile_verified}
-		################################################
-		################################################
-		################################################
-		
-		if own_id % 2 == 0:
-			bucket_name = 'bucket_control' 
-		else: 
-			bucket_name = 'bucket_new'
-		
-		if 'page' in request.GET:
-			log_pagination_button_click(own_id,bucket_name)
-		
-		context[bucket_name] = True
-		
-		################################################
-		################################################
-		################################################
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 		'previous_page_number':page_num-1,'next_page_number':page_num+1}
 		#####################
@@ -4352,31 +4354,30 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["p"], \
 						slug=grp["u"], image_url=None, priority=priority, from_unseen=True)
 					if origin:
-						#return return_to_content(request,origin,pk,None,username)
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("unseen_activity", username)
+						return return_to_content(request,origin,pk,None,username)
+						# if origin == '1':
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3':
+						# 	return redirect("home")
+						# elif origin == '2':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("unseen_activity", username)
 					else:
 						return redirect("unseen_activity", username)
 				else:
 					if origin:
-						
 						request.session["notif_form"] = form
 						request.session.modified = True
-						#return return_to_content(request,origin,pk,None,username)
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("unseen_activity", username)
+						return return_to_content(request,origin,pk,None,username)
+						# if origin == '1':
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3':
+						# 	return redirect("home")
+						# elif origin == '2':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("unseen_activity", username)
 					else:
 						notification = "np:"+str(user_id)+":3:"+str(pk)
 						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -4412,11 +4413,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			if banned_by:
 				request.session["banned_by"] = banned_by
 				request.session["ban_time"] = ban_time
-				if origin == '3':
+				if origin == '3' or origin == '19':
 					request.session["where_from"] = '3'
-				elif origin == '1':
+				elif origin == '1' or origin == '20':
 					request.session["where_from"] = '1'
-				elif origin == '2':
+				elif origin == '2' or origin == '21':
 					request.session["where_from"] = '2'
 				else:
 					request.session["where_from"] = '14'
@@ -4456,28 +4457,30 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 					unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
 						username, url, request.mobile_verified)
 					if origin:
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("photo",list_type='best-list')
+						return return_to_content(request,origin,pk,None,username)
+						# if origin == '1' or origin == '20':
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3' or origin == '19':
+						# 	return redirect("home")
+						# elif origin == '2' or origin == '21':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("photo",list_type='best-list')
 					else:
 						return redirect("unseen_activity", username)
 				else:
 					if origin:
 						request.session["notif_form"] = form
 						request.session.modified = True
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("photo",list_type='best-list')
+						return return_to_content(request,origin,pk,None,username)
+						# if origin == '1' or origin == '20':
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3' or origin == '19':
+						# 	return redirect("home")
+						# elif origin == '2' or origin == '21':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("photo",list_type='best-list')
 					else:
 						notification = "np:"+str(request.user.id)+":0:"+str(pk)
 						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -4513,11 +4516,11 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			if banned_by:
 				request.session["banned_by"] = banned_by
 				request.session["ban_time"] = ban_time
-				if origin == '3':
+				if origin == '3' or origin == '19':
 					request.session["where_from"] = '3'
-				elif origin == '1':
+				elif origin == '1' or origin == '20':
 					request.session["where_from"] = '1'
-				elif origin == '2':
+				elif origin == '2' or origin == '21':
 					request.session["where_from"] = '2'
 				else:
 					request.session["where_from"] = '14'
@@ -4538,28 +4541,30 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 						remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(pk), user_id=own_id)
 						return render(request,"object_deleted.html",{})
 					elif origin:
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("home")
+						return return_to_content(request,origin,pk,None,own_uname)
+						# if origin == '1' or origin == '20':
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3' or origin == '19':
+						# 	return redirect("home")
+						# elif origin == '2' or origin == '21':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("home")
 					else:
 						return redirect("unseen_activity", own_uname)
 				else:
 					if origin:
 						request.session["notif_form"] = form
 						request.session.modified = True
-						if origin == '1':
-							return redirect("photo",list_type='fresh-list')
-						elif origin == '3':
-							return redirect("home")
-						elif origin == '2':
-							return redirect("photo",list_type='best-list')
-						else:
-							return redirect("home")
+						return return_to_content(request,origin,pk,None,own_uname)
+						# if origin == '1':
+						# 	return redirect("photo",list_type='fresh-list')
+						# elif origin == '3':
+						# 	return redirect("home")
+						# elif origin == '2':
+						# 	return redirect("photo",list_type='best-list')
+						# else:
+						# 	return redirect("home")
 					else:
 						notification = "np:"+str(own_id)+":2:"+str(pk)
 						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)

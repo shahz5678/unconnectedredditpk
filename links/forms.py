@@ -820,9 +820,9 @@ class PhotoCommentForm(forms.Form):
 			data = self.cleaned_data
 			comment, user_id, photo_id, section, secret_key_from_form, origin = data.get("photo_comment"), self.user_id, self.photo_id, \
 			'pht_comm', data.get("sk"), data.get("origin")
-			if origin == '1':
+			if origin == '1' or origin == '20':
 				org = 'fresh_photos'
-			elif origin == '3':
+			elif origin == '3' or origin == '19':
 				org = 'home'
 			else:
 				org = 'best_photos'
@@ -904,11 +904,11 @@ class UnseenActivityForm(forms.Form):
 	def clean(self):
 		data, user_id = self.cleaned_data, self.user_id
 		origin, secret_key_from_form = data.get("origin"), data.get("sk")
-		if origin == '1':
+		if origin == '1' or origin == '20':
 			org = 'fresh_photos'
-		elif origin == '3':
+		elif origin == '3' or origin == '19':
 			org = 'home'
-		elif origin == '2':
+		elif origin == '2' or origin == '21':
 			org = 'best_photos'
 		else:
 			org = 'home'

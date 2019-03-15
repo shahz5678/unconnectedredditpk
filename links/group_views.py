@@ -1115,28 +1115,30 @@ def unseen_per_grp(request, gid, fid):
 					successful=True if bid else False, from_unseen=True)
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 				if origin:
-					if origin == '1':
-						return redirect("photo", list_type='fresh-list')
-					elif origin == '3':
-						return redirect("home")
-					elif origin == '2':
-						return redirect("photo", list_type='best-list')
-					else:
-						return redirect("unseen_activity", own_uname)
+					return return_to_content(request,origin,None,None,own_id)
+					# if origin == '1' or origin == '20':
+					# 	return redirect("photo", list_type='fresh-list')
+					# elif origin == '3' or origin == '19':
+					# 	return redirect("home")
+					# elif origin == '2' or origin == '21':
+					# 	return redirect("photo", list_type='best-list')
+					# else:
+					# 	return redirect("unseen_activity", own_uname)
 				else:
 					return redirect("unseen_activity", own_uname)
 			else:
 				if origin:
 					request.session["notif_form"] = form
 					request.session.modified = True
-					if origin == '1':
-						return redirect("photo", list_type='fresh-list')
-					elif origin == '3':
-						return redirect("home")
-					elif origin == '2':
-						return redirect("photo", list_type='best-list')
-					else:
-						return redirect("unseen_activity", own_uname)
+					return return_to_content(request,origin,None,None,own_id)
+					# if origin == '1':
+					# 	return redirect("photo", list_type='fresh-list')
+					# elif origin == '3':
+					# 	return redirect("home")
+					# elif origin == '2':
+					# 	return redirect("photo", list_type='best-list')
+					# else:
+					# 	return redirect("unseen_activity", own_uname)
 				else:
 					notification = "np:"+str(own_id)+":5:"+group_id
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -2587,7 +2589,93 @@ def share_photo_in_personal_group(request):
 	else:
 		return redirect("missing_page")
 
+################################################## Push Notifications ###############################################
 
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def notification_perms_in_personal_group(request):
+	"""
+	Renders push notification options
+	"""
+	if request.method == "POST":
+		own_id = request.user.id
+		decision = request.POST.get("dec",None)
+		if decision == '1':
+			if request.META.get('HTTP_X_IORG_FBS',False):
+				# fbs - option does not exist
+				return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'on_fbs':True,\
+					'tid':request.POST.get("tid",'')})
+			else:
+				# unsupported browser
+				return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'unsupported_browser':True,\
+					'tid':request.POST.get("tid",'')})
+		elif decision == '0':
+			target_id = request.POST.get("tid",'')
+			group_id, exists = personal_group_already_exists(own_id, target_id)
+			if exists:
+				request.session["personal_group_tid_key"] = target_id
+				request.session["personal_group_gid_key:"+target_id] = group_id#checked
+				request.session.modified = True
+				return redirect("enter_personal_group")    
+			else:
+				return redirect("personal_group_user_listing")
+		else:
+			# default state of the form
+			target_id = request.POST.get("tid",'')
+			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+			if their_anon_status:
+				name, avatar = retrieve_uname(target_id,decode=True), None
+			else:
+				name, avatar = get_single_user_credentials(target_id,as_list=False)
+			return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'tid':target_id,\
+				'their_anon':their_anon_status,'name':name,'avatar':avatar,'public_key':PUBLIC_KEY})
+	else:
+		raise Http404("This only responds to POST requests")
+
+
+def personal_group_notif_prompts(request):
+	"""
+	Renders 'success' or 'failure' prompts when a user tries to send a notification to a target
+	"""
+	was_notif_sent = request.session.pop("notif_sent_1on1_status",'')
+	if was_notif_sent == '1':
+		target_id = request.session.pop("notif_sent_1on1_status_tid",'')
+		own_id = request.user.id
+		own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+		if group_id:
+			if their_anon_status:
+				name, avatar = retrieve_uname(target_id,decode=True), None
+			else:
+				name, avatar = get_single_user_credentials(target_id,as_list=False)
+			return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'tid':target_id,'name':name,\
+				'their_anon':their_anon_status,'avatar':avatar,'status':'1'})
+		else:
+			raise Http404("1on1 did not exist but notification was somehow sent?")
+	elif was_notif_sent == '0':
+		reason = request.session.pop("notif_sent_1on1_status_reason",'')
+		if reason == '0':
+			# group does not exist
+			return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'status':'0','reason':'0'})
+		elif reason in ('1','2'):
+			# not permitted
+			target_id = request.session.pop("notif_sent_1on1_status_tid",'')
+			own_id = request.user.id
+			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+			if group_id:
+				if their_anon_status:
+					name, avatar = retrieve_uname(target_id,decode=True), None
+				else:
+					name, avatar = get_single_user_credentials(target_id,as_list=False)
+				return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'status':'0','reason':reason,\
+					'tid':target_id,'name':name,'avatar':avatar,'their_anon':their_anon_status})
+			else:
+				raise Http404("1on1 did not exist but it somehow passed existence checks in send_push_notification_for_1on1()")
+		else:
+			# default
+			return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'status':'0','reason':'3','tid':target_id})
+	else:
+		raise Http404("There is nothing to do on this view without the requisite data from the user session")
 
 #####################################################################################################################
 ################################################### Metrics Page ####################################################

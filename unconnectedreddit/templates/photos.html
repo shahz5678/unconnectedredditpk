@@ -32,7 +32,7 @@
 	
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-	{% notification_bar notification=process_notification origin='1' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
+	{% notification_bar notification=process_notification origin='20' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
 	{% include "photos_navbar.html" with section='fresh' static_url=STATIC_URL %}
 
@@ -72,7 +72,6 @@
 
 	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
 
-	{% if bucket_control %}
 
 			<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
 				
@@ -98,46 +97,6 @@
 
 			</div>
 
-	{% elif bucket_new %}
-
-		{% if page.has_previous %}
-	    <div style="padding:0 10px">
-
-	    	<a href="?page={{ page.previous_page_number }}#section0">
-		    	<button class="pg_ok_res cs sp" style="background:#ff8f66;color:white;border:none;padding:5px 10px;font-weight:bold" itemprop="url">
-		    		<div class="fx fxaicn">
-			    		
-			    		<img src="{{ STATIC_URL }}img/prev.svg" width="30" height="30">
-			    		<div class="mls">
-			    			<div class="mt">PREV</div>
-			    			<div class="mt">PAGE</div>
-		    			</div>
-
-		    		</div>
-		    	</button>
-		    </a>
-
-	    </div>
-	    {% endif %}
-	    {% if page.has_next %}
-	    <div style="padding:0 10px">
-		    <a href="?page={{ page.next_page_number }}#section0">
-		    	<button class="pg_ok_res cs sp" style="background:#3adeaf;color:white;border:none;padding:5px 10px;font-weight:bold" itemprop="url">
-		    		<div class="fx fxaicn">
-			    		
-			    		<div class="mrs">
-			    			<div class="mt">NEXT</div>
-			    			<div class="mt">PAGE</div>
-		    			</div>
-		    			<img src="{{ STATIC_URL }}img/next.svg" width="30" height="30">
-
-		    		</div>
-		    	</button>
-		    </a>
-	    </div>
-	    {% endif %}
-
-	{% endif %}
 
 	</div>
 

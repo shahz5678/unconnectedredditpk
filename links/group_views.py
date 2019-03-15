@@ -1115,28 +1115,30 @@ def unseen_per_grp(request, gid, fid):
 					successful=True if bid else False, from_unseen=True)
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 				if origin:
-					if origin == '1':
-						return redirect("photo", list_type='fresh-list')
-					elif origin == '3':
-						return redirect("home")
-					elif origin == '2':
-						return redirect("photo", list_type='best-list')
-					else:
-						return redirect("unseen_activity", own_uname)
+					return return_to_content(request,origin,None,None,own_id)
+					# if origin == '1' or origin == '20':
+					# 	return redirect("photo", list_type='fresh-list')
+					# elif origin == '3' or origin == '19':
+					# 	return redirect("home")
+					# elif origin == '2' or origin == '21':
+					# 	return redirect("photo", list_type='best-list')
+					# else:
+					# 	return redirect("unseen_activity", own_uname)
 				else:
 					return redirect("unseen_activity", own_uname)
 			else:
 				if origin:
 					request.session["notif_form"] = form
 					request.session.modified = True
-					if origin == '1':
-						return redirect("photo", list_type='fresh-list')
-					elif origin == '3':
-						return redirect("home")
-					elif origin == '2':
-						return redirect("photo", list_type='best-list')
-					else:
-						return redirect("unseen_activity", own_uname)
+					return return_to_content(request,origin,None,None,own_id)
+					# if origin == '1':
+					# 	return redirect("photo", list_type='fresh-list')
+					# elif origin == '3':
+					# 	return redirect("home")
+					# elif origin == '2':
+					# 	return redirect("photo", list_type='best-list')
+					# else:
+					# 	return redirect("unseen_activity", own_uname)
 				else:
 					notification = "np:"+str(own_id)+":5:"+group_id
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -2586,7 +2588,6 @@ def share_photo_in_personal_group(request):
 			return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 	else:
 		return redirect("missing_page")
-
 
 
 #####################################################################################################################

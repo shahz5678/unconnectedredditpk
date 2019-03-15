@@ -74,7 +74,7 @@ rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limit
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
-is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click #, log_erroneous_passwords
+is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age #, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, \
@@ -2108,6 +2108,7 @@ class UserProfileDetailView(FormView):
 			context["star_owner_mehfils"] = retrieve_latest_user_owned_mehfils(star_id)
 			total_fans, recent_fans = get_photo_fan_count(star_id)
 			context["fans"] = total_fans if total_fans else 0
+			context["diamonds"] = int(retrieve_user_world_age([user_id])[user_id]) if is_own_profile else ''
 			context["recent_fans"] = recent_fans if recent_fans else 0
 			if star_id == user_id:
 				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
@@ -5178,15 +5179,15 @@ def welcome_reply(request,*args,**kwargs):
 
 
 def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_by=None, *args,**kwargs):
-    update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
-        bump_ua=False)
-    # if from_home == '3':
-    #     return redirect("home")
-    # elif from_home == '2':
-    #     return redirect("photo",list_type='best-list')
-    # else:
-    #     return redirect("photo",list_type='fresh-list')
-    return return_to_content(request,from_home,pk,None,None)
+	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
+		bump_ua=False)
+	# if from_home == '3':
+	#     return redirect("home")
+	# elif from_home == '2':
+	#     return redirect("photo",list_type='best-list')
+	# else:
+	#     return redirect("photo",list_type='fresh-list')
+	return return_to_content(request,from_home,pk,None,None)
 
 
 def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, lang=None, sort_by=None, *args, **kwargs):

@@ -1041,23 +1041,25 @@ class UploadPhotoReplyForm(forms.ModelForm):
 		super(UploadPhotoReplyForm, self).__init__(*args, **kwargs)
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 
-class UploadPhotoForm(forms.ModelForm):
+class UploadPhotoForm(forms.Form):
 	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Foto ka intekhab sahi nahi hua'})
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;','spellcheck':'false','maxlength':MAX_PHOTO_CAPTION_SIZE}),\
 		error_messages={'required': 'Foto ke barey mien likhna zaroori hai'})
-	class Meta:
-		model = Photo
-		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
-		fields = ("image_file","caption",)
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
 		self.fields['caption'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
-		# self.fields["image_file"].widget.attrs['class'] = 'p'
 		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
-		# self.fields['image_file'].widget.attrs['accept'] = 'image/*'
+
+	def clean(self):
+		data = self.cleaned_data
+		caption = data.get("caption")
+		if not caption:
+			raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
+		else:
+			return data
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()

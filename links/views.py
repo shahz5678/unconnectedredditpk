@@ -3601,8 +3601,12 @@ def public_photo_upload_denied(request):
 		return redirect("error")
 	elif which_msg == '11':
 		return render(request,'big_photo_regular.html',{'too_narrow':True})
+	elif which_msg == '12':
+		# the photo doesn't have a title
+		return render(request,'error_pic.html',{})
 	else:
 		raise Http404("Unknown photo upload error")
+
 
 
 @csrf_protect
@@ -3678,12 +3682,13 @@ def upload_public_photo(request,*args,**kwargs):
 					if form.is_valid():
 						image_file = request.FILES['image_file']
 					else:
-						request.session["public_photo_upload_form"] = form
-						request.session.modified = True
 						if is_ajax:
-							return HttpResponse(json.dumps({'success':False,'message':reverse('upload_public_photo')}),content_type='application/json',)
+							request.session["public_photo_upload_denied"] = '12'
+							return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
 						else:
-							return redirect("upload_public_photo")
+							secret_key = str(uuid.uuid4())
+							set_photo_upload_key(user_id, secret_key)
+							return render(request,"upload_public_photo.html",{'form':form,'sk':secret_key,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})
 					if image_file:
 						if on_fbs:
 							if image_file.size > 200000:
@@ -3796,14 +3801,11 @@ def upload_public_photo(request,*args,**kwargs):
 					return redirect('public_photo_upload_denied')
 			else:
 				context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='26', renew_lease=True) else False
-				bound_form = request.session.pop("public_photo_upload_form",None)
-				context["form"] = bound_form if bound_form else UploadPhotoForm()
-				secret_key = uuid.uuid4()
+				context["form"] = UploadPhotoForm()
+				secret_key = str(uuid.uuid4())
 				context["sk"] = secret_key
 				context["sharing_limit"] = NUM_SUBMISSION_ALLWD_PER_DAY
 				set_photo_upload_key(own_id, secret_key)
-				context["score"] = request.user.userprofile.score
-				context["threshold"] = UPLOAD_PHOTO_REQ
 				return render(request,"upload_public_photo.html",context)
 
 

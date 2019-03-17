@@ -4676,7 +4676,7 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return redirect("unseen_activity",request.user.username)
 
 
-@ratelimit(field='sid',ip=False,rate='5/s')
+#@ratelimit(field='sid',ip=False,rate='5/s')
 @csrf_protect
 def public_reply_view(request,*args,**kwargs):
 	if getattr(request, 'limits', False):

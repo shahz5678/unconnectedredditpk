@@ -691,9 +691,11 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
 						pushed = True
 					else:
-						# do nothing, it's no longer in fresh
+						# don't push into trending, it's no longer in fresh
+						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
 						pushed = False
 				else:
+					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
 					pushed = False
 			else:
 				pushed = False

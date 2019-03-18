@@ -6,7 +6,12 @@
 
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 
-<div class="cxl lsp">Foto ke barey mein likhna zaruri hai ...</div>
+{% if caption_error %}
+	<div class="cxl lsp">{{ caption_error }} ...</div>
+{% elif image_error %}
+	<div class="cxl lsp">{{ image_error }} ...</div>
+{% endif %}
+
 <hr size=1 COLOR="#E9EBEE">
 <div class="sp cl lsp">Wapis jaien aur dubara try karein. Shukria!</div>
 

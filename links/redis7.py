@@ -733,8 +733,12 @@ def queue_obj_into_trending(prefix,obj_id, picked_by_id):
 				still_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,composite_id)
 				if still_in_fresh:
 					# Enqueue for trending
-					my_server.zadd(HAND_PICKED_TRENDING_PHOTOS,composite_id,time_now)
-					my_server.hset(composite_id,'pbid',picked_by_id)# records the ID of the super-defender who ordered this movement
+					pipeline1 = my_server.pipeline()
+					pipeline1.zadd(HAND_PICKED_TRENDING_PHOTOS,composite_id,time_now)
+					pipeline1.hset(composite_id,'pbid',picked_by_id)# records the ID of the super-defender who ordered this movement
+					pipeline1.expire(composite_id,PUBLIC_SUBMISSION_TTL)#re-setting TTL to one day
+					pipeline1.expire(VOTE_ON_IMG+obj_id,PUBLIC_SUBMISSION_TTL)
+					pipeline1.execute()
 				else:
 					# not in fresh any more (for whatever reason) - so do nothing!
 					pass

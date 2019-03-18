@@ -3603,7 +3603,9 @@ def public_photo_upload_denied(request):
 		return render(request,'big_photo_regular.html',{'too_narrow':True})
 	elif which_msg == '12':
 		# the photo doesn't have a title
-		return render(request,'error_pic.html',{})
+		caption_error = request.session.pop("public_photo_upload_denied_caption_error",None)
+		image_error = request.session.pop("public_photo_upload_denied_image_error",None)
+		return render(request,'error_pic.html',{'caption_error':caption_error,'image_error':image_error})
 	else:
 		raise Http404("Unknown photo upload error")
 
@@ -3682,8 +3684,14 @@ def upload_public_photo(request,*args,**kwargs):
 					if form.is_valid():
 						image_file = request.FILES['image_file']
 					else:
+						error_dict = dict(form.errors)
+						caption_error = error_dict.get('caption',[])
+						image_error = error_dict.get('image_file',[])
 						if is_ajax:
 							request.session["public_photo_upload_denied"] = '12'
+							request.session["public_photo_upload_denied_caption_error"] = caption_error[0] if caption_error else ''
+							request.session["public_photo_upload_denied_image_error"] = image_error[0] if image_error else ''
+							request.session.modified = True
 							return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
 						else:
 							secret_key = str(uuid.uuid4())

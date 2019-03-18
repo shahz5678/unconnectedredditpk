@@ -1053,13 +1053,19 @@ class UploadPhotoForm(forms.Form):
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
 
-	def clean(self):
-		data = self.cleaned_data
-		caption = data.get("caption")
+	def clean_caption(self):
+		caption = self.cleaned_data["caption"]
 		if not caption:
 			raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
 		else:
-			return data
+			caption = caption.strip()
+			caption_len = len(caption)
+			if caption_len < 1:
+				raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
+			elif caption_len > MAX_PHOTO_CAPTION_SIZE:
+				raise forms.ValidationError('{} chars se zyada nahi likhein, ap ne {} chars likhey'.format(MAX_PHOTO_CAPTION_SIZE,caption_len))
+			else:
+				return caption
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()

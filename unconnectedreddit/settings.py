@@ -361,7 +361,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_photos': {
 		'task': 'tasks.rank_photos',
-		'schedule': timedelta(seconds=12*60), #execute every 12 mins, ranks photos from the feed
+		'schedule': timedelta(seconds=120*60), #execute every 12 mins, ranks photos from the feed
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',
@@ -369,7 +369,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_all_photos': {
 		'task': 'tasks.rank_all_photos',
-		'schedule': timedelta(seconds=11*60), #execute every 11 mins, spew best photo on Facebook's Fan Page
+		'schedule': timedelta(seconds=110*60), #execute every 11 mins, spew best photo on Facebook's Fan Page
 	},
 	'tasks.rank_all_photos1': {
 		'task': 'tasks.rank_all_photos1',
@@ -429,7 +429,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 		'tasks.salat_info': {
 		'task': 'tasks.salat_info',
-		'schedule': timedelta(seconds=1200), #execute every 20 mins, calculates which salat is next, which was previous, etc.
+		'schedule': timedelta(seconds=5*60), #execute every 5 mins, calculates which salat is next, which was previous, etc.
 	},
 	'tasks.delete_exited_personal_group': {
 		'task': 'tasks.delete_exited_personal_group',

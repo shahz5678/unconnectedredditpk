@@ -1,12 +1,22 @@
-{% extends "empty.html" %}
+{% extends "base.html" %}
 {% block content %}
-<head><title>Photo above size limit (error) | Damadam.pk</title></head>
-<body bgcolor="#FFFFE0">
-<div class="margin">
-<b style="font-family:sans-serif;font-size:90%;color:red;">Is photo ka size buhut bara hai!</b><br><hr size=1>
-<a href="{% url 'pic_upload' %}" style="font-size:90%;">Koi aur photo lagain</a><p style="margin-bottom:-0.5em;"></p>
-<a href="{% url 'home' %}" style="font-size:90%;">Muft chat karain</a>
+<head><title>Unable to submit content | Damadam.pk</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center">Cannot share foto!</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+{% if caption_error %}
+	<div class="cxl lsp">{{ caption_error }} ...</div>
+{% elif image_error %}
+	<div class="cxl lsp">{{ image_error }} ...</div>
+{% endif %}
+
+<hr size=1 COLOR="#E9EBEE">
+<div class="sp cl lsp">Wapis jaien aur dubara try karein. Shukria!</div>
+
+<div class="mtl mbs"><a href="{% url 'upload_public_photo' %}"><button class="sp btn bm bco pg_ok_res" style="height:26px">wapis</button></a></div>
 
 </div>
-</body>
+<br><br>
 {% endblock %}

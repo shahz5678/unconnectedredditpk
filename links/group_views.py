@@ -36,7 +36,7 @@ PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
 from image_processing import process_group_image
-from views import get_page_obj, get_object_list_and_forms, return_to_content
+from views import get_page_obj, get_object_list_and_forms, return_to_content, get_indices
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
 from models import Photo
@@ -1084,12 +1084,13 @@ def x_per_grp_notif(request, gid, fid, from_home):
 	group_id, exists = personal_group_already_exists(own_id, fid)
 	if exists and group_id == str(gid):
 		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	if from_home == '3':
-		return redirect("home")
-	elif from_home == '2':
-		return redirect("best_photo")
-	else:
-		return redirect("photo")
+	# if from_home == '3':
+	#     return redirect("home")
+	# elif from_home == '2':
+	#     return redirect("photo", list_type='best-list')
+	# else:
+	#     return redirect("photo", list_type='fresh-list')
+	return return_to_content(request,from_home,group_id,None,None)
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -1114,42 +1115,30 @@ def unseen_per_grp(request, gid, fid):
 					successful=True if bid else False, from_unseen=True)
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 				if origin:
-					if origin == '1':
-						return redirect("photo")
-					elif origin == '3':
-						if lang == 'urdu' and sort_by == 'best':
-							return redirect("ur_home_best", 'urdu')
-						elif sort_by == 'best':
-							return redirect("home_best")
-						elif lang == 'urdu':
-							return redirect("ur_home", 'urdu')
-						else:
-							return redirect("home")
-					elif origin == '2':
-						return redirect("best_photo")
-					else:
-						return redirect("unseen_activity", own_uname)
+					return return_to_content(request,origin,None,None,own_id)
+					# if origin == '1' or origin == '20':
+					# 	return redirect("photo", list_type='fresh-list')
+					# elif origin == '3' or origin == '19':
+					# 	return redirect("home")
+					# elif origin == '2' or origin == '21':
+					# 	return redirect("photo", list_type='best-list')
+					# else:
+					# 	return redirect("unseen_activity", own_uname)
 				else:
 					return redirect("unseen_activity", own_uname)
 			else:
 				if origin:
 					request.session["notif_form"] = form
 					request.session.modified = True
-					if origin == '1':
-						return redirect("photo")
-					elif origin == '3':
-						if lang == 'urdu' and sort_by == 'best':
-							return redirect("ur_home_best", 'urdu')
-						elif sort_by == 'best':
-							return redirect("home_best")
-						elif lang == 'urdu':
-							return redirect("ur_home", 'urdu')
-						else:
-							return redirect("home")
-					elif origin == '2':
-						return redirect("best_photo")
-					else:
-						return redirect("unseen_activity", own_uname)
+					return return_to_content(request,origin,None,None,own_id)
+					# if origin == '1':
+					# 	return redirect("photo", list_type='fresh-list')
+					# elif origin == '3':
+					# 	return redirect("home")
+					# elif origin == '2':
+					# 	return redirect("photo", list_type='best-list')
+					# else:
+					# 	return redirect("unseen_activity", own_uname)
 				else:
 					notification = "np:"+str(own_id)+":5:"+group_id
 					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
@@ -1163,7 +1152,8 @@ def unseen_per_grp(request, gid, fid):
 		else:
 			return redirect("unseen_activity", own_uname)
 	else:
-		return redirect("home")
+		return redirect("unseen_activity", request.user.username)
+
 
 
 ###########################################################################################################
@@ -2264,17 +2254,6 @@ def post_js_reply_to_personal_group(request):
 
 ######################################## Personal Group Listing and Pagination ########################################
 
-def get_indices(page_number, obj_allotment):
-	"""
-	When fed a page_number, returns a start_index and end_index
-	"""
-	try:
-		page_number = int(page_number)
-	except (ValueError,TypeError):
-		return 0,obj_allotment-1
-	objs_per_page = obj_allotment
-	index_ceiling = objs_per_page * page_number
-	return (index_ceiling)-objs_per_page,index_ceiling-1
 	
 def get_overall_page_list(num_of_items, objs_per_page):
 	"""
@@ -2609,7 +2588,6 @@ def share_photo_in_personal_group(request):
 			return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 	else:
 		return redirect("missing_page")
-
 
 
 #####################################################################################################################

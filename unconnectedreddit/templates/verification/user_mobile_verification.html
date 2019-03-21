@@ -1,32 +1,25 @@
-{% extends "base.html" %}
+{% extends "base_verification.html" %}
 {% block content %}
 <head><title>User verification | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background: #fefbfb}</style>
+{% include "fb_analytics.html" %}
 
-{% if for_personal_group %}
-<h1 class="cxl lsp clb" style="text-align:center">Enter your mobile number:</h1>
-{% else %}
-<h1 class="cxl lsp clb" style="text-align:center">Verify your account:</h1>
-{% endif %}
+<div class="bizcard" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
+	<div class="cs mbl">Enter your phone number:</div>
+	<div class="cxs sp mbl">Aapko 6 digits ka pin code <b>SMS</b> ya <b>WhatsApp</b> ke zariye bheja jai ga</div>				
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
 
-	{% if pin_expired %}<div class="bizcard cxl cr sp lsp mbs" style="background:ivory;padding:10px">Sorry! Apka pin expire ho gaya, dubara start karein</div>{% endif %}
+		<form method="POST" action="{% url 'account_kit_verification_commencement' %}" class="mtl cgy">
 
-  	<div class="cxl mt lsp clb">Neechay apna mobile number likhein</div>
-					
-  	<hr size=1 COLOR="#e6e6e6">
-
-		<form method="POST" action="{% url 'verify_user_mobile' %}" class="mtl cgy">
 			{% csrf_token %}
-			<div class="sp lsp mbl">Apkey mobile number pe 5 digits ka pin code SMS kia jaye ga</div>
-			{% if form.phonenumber.errors %}<b class="cr sp cl lsp mt mbs">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
+			{% if form.phonenumber.errors %}<b class="cr sp cxs mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
 			{{ form.phonenumber }}<br>
-			<button class="btn bct mtl mbs bl cl sp pg_ok_res" style="height:28px">Submit</button>
+			<div class="cxs mt clb">oper mobile number likhien (example: 03451234567)</div>
+			<button class="btn bct mtl mbs bl cs sp pg_ok_res" style="height:35px;width:100%;padding:10px;">Submit</button>
 		</form>
 
 		<hr size=1 COLOR="#e6e6e6">
-		<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note I:</b> mobile number '0' se start hona chahiye, '+92' se nahi<br><b>Note II:</b> Sirf numbers likhein, dashes ya spaces ki zarurat nahi (example: 03451234567)</span></div>
+		<div class="cs lsp" style="text-align:left;padding:5px 5px;"><span class="cgy"><b>Tip I:</b> mobile number '0' se start hona chahiye, '+92' se nahi<br><b>Tip II:</b> Agli screen per number change na kerien warna aap ka account verify nahi ho sakey ga<br><b>Tip III:</b> Sirf numbers likhien, dashes ya spaces ki zarurat nahi</span></div>
 
 </div><br><br>
 {% endblock %}

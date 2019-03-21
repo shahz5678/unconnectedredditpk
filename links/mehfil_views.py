@@ -1,3 +1,4 @@
+import json as json_backup
 import ujson as json
 import random, uuid, time
 from operator import itemgetter
@@ -24,11 +25,11 @@ from imagestorage import upload_image_to_s3
 from judgement_views import ordered_list_of_tup
 from image_processing import process_group_image
 
-from group_views import retrieve_user_env, get_indices
+from group_views import retrieve_user_env
 
 from models import HellBanList, UserProfile
 
-from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price
+from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
@@ -3438,7 +3439,10 @@ class PublicGroupView(FormView):
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
-						latest_replies = json.loads(latest_replies)
+						try:
+							latest_replies = json.loads(latest_replies)
+						except:
+							latest_replies = json_backup.loads(latest_replies)
 					else:
 						latest_data = retrieve_group_submissions(group_id)
 						latest_replies = []
@@ -3466,7 +3470,10 @@ class PublicGroupView(FormView):
 					############################################################
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
-						latest_replies = json.loads(latest_replies)
+						try:
+							latest_replies = json.loads(latest_replies)
+						except:
+							latest_replies = json_backup.loads(latest_replies)	
 					else:
 						latest_data = retrieve_group_submissions(group_id)
 						latest_replies = []

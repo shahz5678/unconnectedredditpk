@@ -39,7 +39,10 @@ from redis6 import group_attendance, exact_date, add_to_universal_group_activity
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
-cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars
+cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
+add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object
+from redis7 import push_hand_picked_obj_into_trending, queue_obj_into_trending, in_defenders, remove_obj_from_trending
+
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -96,14 +99,27 @@ def get_credentials(user_id, uname=None, avurl=None):
 def convert_to_epoch(time):
 	return (time-datetime(1970,1,1)).total_seconds()
 
-def set_rank(netvotes,upload_time):
-	# Based on reddit ranking algo at https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9
-	if netvotes is None:
-		netvotes = 0
-	order = log(max(abs(netvotes), 1), 10) #0.041392685 for zero votes, log 1 = 0
-	sign = 1 if netvotes > 0 else -1 if netvotes < 0 else 0
+
+def set_rank(netvotes, upload_time):
+	"""
+	Based on reddit ranking algo at https://medium.com/hacking-and-gonzo/how-reddit-ranking-algorithms-work-ef111e33d0d9
+	"""
+	# if netvotes is None:
+	#     netvotes = 0
+	# order = log(max(abs(netvotes), 1), 10)
+	# if netvotes > 0:
+	#     sign = 1
+	# else:
+	#     sign = -1
+	# secs = upload_time - 1432201843 # Thu, 21 May 2015 09:50:43 GMT coverted to epoch time
+	# return round(sign * order + secs / 45000, 8)
+	##############################################################################
+	"""
+	Added a time factor to ensure 'newer' photos are given more preference all else equal
+	"""
 	secs = upload_time - 1432201843 # Thu, 21 May 2015 09:50:43 GMT coverted to epoch time
-	return round(sign * order + secs / 45000, 8)
+	return round(netvotes+secs/45000,8)
+
 
 def fans_targeted(current_percentile):
 	overall_range = CEILING_PERCENTILE - FLOOR_PERCENTILE
@@ -584,12 +600,12 @@ def process_reporter_payables(payables):
 
 @celery_app1.task(name='tasks.populate_search_thumbs')
 def populate_search_thumbs(user_id,ids_with_urls):
-    """
-    Auto-populating photo thumbs in search results, end of photo comments, etc
+	"""
+	Auto-populating photo thumbs in search results, end of photo comments, etc
 
-    Triggered whenever a user profile is visited
-    """
-    bulk_add_search_photos(user_id,ids_with_urls)
+	Triggered whenever a user profile is visited
+	"""
+	bulk_add_search_photos(user_id,ids_with_urls)
 
 
 @celery_app1.task(name='tasks.sanitize_erroneous_notif')
@@ -765,43 +781,59 @@ def log_private_mehfil_session(group_id,user_id):# called every time a private m
 	increment_session(str(group_id), user_id, group_type='pm')
 	
 
-@celery_app1.task(name='tasks.rank_home_posts')
-def rank_home_posts():
-	"""
-	Unused celery task
-	"""
-	pass
-	# order_home_posts2(urdu_only=False,exclude_photos=False)
-	# order_home_posts1(urdu_only=False,exclude_photos=True)
-	# order_home_posts(urdu_only=True,exclude_photos=False)
-
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	"""
-	Function used to post photos to facebook fanpage
+	Runs every 11 mins from settings.py
 	"""
-	# previous_best_photo_id = get_previous_best_photo()
-	# current_best_photo_id = get_best_photo()
-	# if current_best_photo_id is not None:
-	# 	if previous_best_photo_id is not None:
-	# 		if previous_best_photo_id == current_best_photo_id:
-	# 			pass
-	# 		else:
-	# 			# print "uploading %s to Facebook..." % current_best_photo_id
-	# 			set_best_photo(current_best_photo_id)
-	# 			photo = Photo.objects.get(id=current_best_photo_id)
-	# 			photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-	# 	else:
-	# 		set_best_photo(current_best_photo_id)
-	# 		photo = Photo.objects.get(id=current_best_photo_id)
-	# 		photo_poster(photo.image_file, photo.caption, current_best_photo_id)
-	# else:
-	# 	pass
-	pass
+	photos = retrieve_obj_feed(get_photo_feed(feed_type='fresh_photos'))
+	photo_ids_and_times = {}
+	for photo in photos:
+		try:
+			object_id = photo['i']
+			net_votes = photo['nv']
+			submission_time = photo['t']
+		except (TypeError,KeyError):
+			net_votes, submission_time, object_id = None, None, None
+		if int(net_votes) > 0 and submission_time and object_id:#remove objs with '0' votes via this
+			photo_ids_and_times[object_id] = submission_time
+	if photo_ids_and_times:
+		# create a net voting of this pool via taking world age into consideration
+		photo_ids = photo_ids_and_times.keys()
+		photo_vote_scr_dict = get_world_age_weighted_vote_score(photo_ids,obj_type='img')
+		photo_id_and_scr = []
+		for photo_id in photo_ids:
+			photo_id_and_scr.append("img:"+photo_id)
+			photo_id_and_scr.append(set_rank(float(photo_vote_scr_dict[photo_id]),float(photo_ids_and_times[photo_id])))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo
+		add_photos_to_best_photo_feed(photo_id_and_scr,consider_world_age=True)
+
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
 	pass
+
+
+@celery_app1.task(name='tasks.rank_home_posts')
+def rank_home_posts():
+	"""
+	Celery scheduled task used to sort home posts
+	"""
+	post_hashes = get_home_feed()
+	hash_data = retrieve_obj_feed(post_hashes)
+	post_id_and_scr, counter = [], 0
+	for obj in hash_data:
+		obj_type = 'tx:' if post_hashes[counter][:2] == 'tx' else 'img:'
+		try:
+			object_id = obj['i']
+			net_votes = obj['nv']
+			submission_time = obj['t']
+		except (TypeError,KeyError):
+			net_votes, submission_time, object_id = None, None, None
+		if int(net_votes) >= 0 and submission_time and object_id:
+			post_id_and_scr.append(obj_type+object_id)
+			post_id_and_scr.append(set_rank(int(net_votes),float(submission_time)))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo
+		counter += 1	
+	add_posts_to_best_posts_feed(post_id_and_scr)
 
 
 @celery_app1.task(name='tasks.set_input_rate_and_history')
@@ -849,28 +881,54 @@ def fans():
 			"av_url":retrieve_avurl(user_id),"fan_count":user_ids_and_fan_counts[user_id]})
 	top_list = retrieve_thumbs(top_list)# add 'rows' key in the dictionary
 	set_top_stars(top_list)
-	
+
 
 @celery_app1.task(name='tasks.salat_info')
 def salat_info():
 	"""
-	Unused scheduled task
+	Used to find the single "best" foto from the current lot
+
+	Can also push hand-picked objects into trending lists
+	Mislabeled task due to legacy reasons
 	"""
-	pass
-	# salat_timings = {}
-	# now = datetime.utcnow()+timedelta(hours=5)
-	# current_minute = now.hour * 60 + now.minute
-	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	# salat_timings['previous_namaz'] = previous_namaz
-	# salat_timings['next_namaz'] = next_namaz
-	# salat_timings['namaz'] = namaz
-	# salat_timings['next_namaz_start_time'] = next_namaz_start_time
-	# salat_timings['current_namaz_start_time'] = current_namaz_start_time
-	# salat_timings['current_namaz_end_time'] = current_namaz_end_time
-	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-	# 		'LOCATION': MEMLOC, 'TIMEOUT': 70,
-	# 	})
-	# cache_mem.set('salat_timings', salat_timings)
+	pushed = push_hand_picked_obj_into_trending()
+	if not pushed:
+		fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')
+		best_photo_ids = get_photo_feed(feed_type='best_photos')
+		remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]
+		remaining_photo_objs = retrieve_obj_feed(remaining_fresh_photo_ids)
+		photo_ids_and_times, photo_hashes, time_now = {}, {}, time.time()
+		for photo in remaining_photo_objs:
+			try:
+				object_id = photo['i']
+				net_votes = photo['nv']
+				up_votes = photo['uv']
+				down_votes = photo['dv']
+				submission_time = photo['t']
+				photo_hashes[object_id] = photo
+			except (TypeError,KeyError):
+				net_votes, up_votes, down_votes, submission_time, object_id = None, None, None, None, None
+			if int(net_votes) > 0 and int(down_votes) > 0 and submission_time and object_id and (time_now-float(submission_time))>900:
+				# filter objs with '0' net_votes, must have received at least 1 downvote, and must be at least 15 mins old
+				photo_ids_and_times[object_id] = submission_time
+		if photo_ids_and_times:
+			# create a net voting of this pool via taking world age into consideration
+			photo_ids = photo_ids_and_times.keys()
+			photo_vote_scr_dict = get_world_age_weighted_vote_score(photo_ids,obj_type='img')
+			highest_ranked_photo = ['',0]
+			for photo_id in photo_ids:
+				photo_score = set_rank(float(photo_vote_scr_dict[photo_id]),float(photo_ids_and_times[photo_id]))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo 
+				if photo_score > highest_ranked_photo[1]:
+					highest_ranked_photo[0] = photo_id
+					highest_ranked_photo[1] = photo_score
+			if highest_ranked_photo[0]:
+				# highest rank contains photo ID and score of highest scoring image from the qualifying lot
+				selected_photo_id = highest_ranked_photo[0]
+				photo_data = photo_hashes[selected_photo_id]
+				photo_data['rank_scr'] = highest_ranked_photo[1]
+				photo_data['tos'] = time_now
+				add_single_trending_object(prefix="img:",obj_id=selected_photo_id, obj_hash=photo_data)
+
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():
@@ -917,12 +975,12 @@ def photo_upload_tasks(user_id, photo_id, username, temp_photo_obj,number_of_pho
 	"""
 	Tasks fired when a photo is uploaded in the photos section (for public viewing)
 	"""
-	photo = Photo.objects.get(id=photo_id)
+	photo_image_file = Photo.objects.only('image_file').get(id=photo_id).image_file
 	updated = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
 	if not updated:
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
-	add_search_photo(photo.image_file.url,photo_id,user_id)
+	add_search_photo(photo_image_file, photo_id,user_id)
 	if total_score > PHOTO_HOT_SCORE_REQ:
 		add_obj_to_home_feed(temp_photo_obj)
 	if number_of_photos:
@@ -1081,6 +1139,14 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 					UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+UPVOTE)
 					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
 					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
+					if revert_prev:
+						# it's a reversion of a downvote - do nothing
+						pass
+					else:
+						# it's a genuine upvote - not just a reversion of the previous step
+						is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+						if is_super_defender:
+							queue_obj_into_trending(prefix='img:',obj_id=target_obj_id,picked_by_id=own_id)
 				else:
 					# is a link object
 					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE)
@@ -1099,6 +1165,15 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 					UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+DOWNVOTE)
 					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
 					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
+					is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+					if revert_prev:
+						# it's the reversion of an upvote - we have no confidence in this pic
+						if is_super_defender:
+							remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
+					else:
+						# it's a genuine downvote - not just a reversion of the previous step
+						if is_super_defender:
+							remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
 				else:
 					# is a link object
 					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+DOWNVOTE)
@@ -1109,6 +1184,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		else:
 			# neither an upvote nor a downvote, do nothing
 			pass
+
 
 
 @celery_app1.task(name='tasks.registration_task')
@@ -1295,7 +1371,7 @@ def fan_recount(owner_id,fan_increment,fan_decrement):
 	else:
 		pass
 
-obj1 = locals()['salat_info']
+#obj1 = locals()['salat_info']
 # obj2 = locals()['rank_photos']
-obj1.run()
+#obj1.run()
 # obj2.run()

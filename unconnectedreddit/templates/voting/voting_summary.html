@@ -3,23 +3,23 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Points summary | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background: #f0f3f4}</style>
 
 {% if defender %}
 	{% load get_voting_defender_navbar %}
 	{% voting_defender_navbar is_pht=pht orig=orig obid=obj_id vote_score=nv static_url=STATIC_URL section='voting' %}
 {% endif %}
 <h1 class="cxl clb lsp" style="text-align:center">Points summary:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 8px;max-width:450px;width:97%;text-align:center;margin-left:auto;margin-right:auto">
 
 {% if pht == '1' %}
 
 	{% if orig == '1' %}
-		<a href="{% url 'see_photo_pk' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_photo' 'fresh-list' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '2' %}
-		<a href="{% url 'best_photo_loc_pk' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_photo' 'best-list' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '3' %}
-		<a href="{% url 'home_loc' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '4' %}
 		<a href="{% url 'user_profile_photo' obj.owner obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '5' %}
@@ -29,7 +29,7 @@
 wapis</a><br>
 {% else %}
 	{% if orig == '3' %}
-		<a href="{% url 'home_loc' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% elif orig == '8' %}
 		<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
 	{% endif %}wapis</a><br>
@@ -40,6 +40,8 @@ wapis</a><br>
 		{% include "judgement/judge_content_voters.html" with pht=pht nv=nv from_cull=from_cull tp=tp obid=obj_id ooid=ooid oun=oun purl=purl|s3:'thumb' orig=orig lid=lid cap=obj.description|truncatechars:'60' voter_id_names_status_and_votes=voter_id_names_status_and_votes first_time_voting_judger=first_time_voting_judger section='voting_summary' %}
 		
 	{% else %}
+
+		{% load human_time %}
 
 		<hr size=1 COLOR="#e5e7e9">
 
@@ -54,21 +56,66 @@ wapis</a><br>
 		{% endif %}
 		</div>
 
-		{% if exists %}
-		<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-		
-			<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
-			<hr size=1 COLOR="#e5e7e9">
-			<div style="color:limegreen" class="mts"><img src="{{ STATIC_URL }}img/jhappi_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ uv }}</div>
-			<div style="color:tomato" class="mt"><img src="{{ STATIC_URL }}img/chupair_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ dv }}</div>
-			<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
+		{% if pht == '1' %}
+			<!-- image  -->
+			{% if is_trending %}
+				{% if exists %}
+					
+					<blockquote class="lsp mbl mts" style="border:3px solid whitesmoke;border-radius:8px;background-color:#FFFAF0;padding:10px;text-align:center">
+						<span class="cxl clb">Is foto {% if nv == '1' %}ka {{ nv }} point hai{% else %}ke {{ nv }} points hain{% endif %}</spann>
+						<hr size=1 COLOR="#e5e7e9">
+						<span class="cs sp cgy">Ye foto "{{ time_of_trending|human_time }}" trending list mein shamil hui</span>
+						
+					</blockquote>
 
-		</div>
+				{% else %}
+					
+					<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+						<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
+						<div class="cxs sp cgy mtl">- voting closed -</div>
+					</div>
+
+				{% endif %}
+			{% else %}
+
+				{% if exists %}
+				<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+				
+					<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
+					<hr size=1 COLOR="#e5e7e9">
+					<div style="color:limegreen" class="mts"><img src="{{ STATIC_URL }}img/jhappi_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ uv }}</div>
+					<div style="color:tomato" class="mt"><img src="{{ STATIC_URL }}img/chupair_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ dv }}</div>
+					<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
+
+				</div>
+				{% else %}
+				<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+					<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
+					<div class="cxs sp cgy mtl">- voting closed -</div>
+				</div>
+				{% endif %}
+
+			{% endif %}
+
 		{% else %}
-		<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-			<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
-			<div class="cxs sp cgy mtl">- voting closed -</div>
-		</div>
+			<!-- text -->
+			{% if exists %}
+			<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+			
+				<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
+				<hr size=1 COLOR="#e5e7e9">
+				<div style="color:limegreen" class="mts"><img src="{{ STATIC_URL }}img/jhappi_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ uv }}</div>
+				<div style="color:tomato" class="mt"><img src="{{ STATIC_URL }}img/chupair_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ dv }}</div>
+				<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
+
+			</div>
+			{% else %}
+			<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+				<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
+				<div class="cxs sp cgy mtl">- voting closed -</div>
+			</div>
+			{% endif %}
+
 		{% endif %}
 
 	{% endif %}
@@ -76,5 +123,5 @@ wapis</a><br>
 
 
 </div>
-<br><br>
+<br>
 {% endblock %}

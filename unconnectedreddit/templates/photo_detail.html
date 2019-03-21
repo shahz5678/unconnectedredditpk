@@ -35,8 +35,7 @@
         {% google_analytics %}
 
 </head>
-<body style="background: #E9EBEE">
-
+<body style="background:#f0f3f4">
 
 <div class="header cxl" style="text-shadow:1px 1px #009940">Damadam.pk</div>
 <ul class="navbar">
@@ -51,7 +50,7 @@
     {% check_invite_count as invite_count %}
     {% load count_group_invites %}
     {% check_group_invite_count as group_invite_count %}
-    <li><a href="/">Home</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Khoji</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li>{% endif %}<li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if own_score > 0 %}<span style="color:green;font-size:90%;"> ({{ own_score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li>
+    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Search</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li>{% endif %}<li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if own_score > 0 %}<span style="color:green;font-size:90%;"> ({{ own_score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li>
 {% else %}
     <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>New Account Bnao</b></a></li><li><a href="{% url 'login' %}#section0">Purana Account Chlao</a></li>
 {% endif %}
@@ -60,7 +59,7 @@
 {% load emoticons_tags %}
 {% load humanize %}
 <br>
-<div class="clb bizcard" style="box-sizing: border-box;margin: 0 auto;max-width:600px;width:98%;background-color:white;padding:5px">
+<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;width:98%;max-width:600px;margin-right:auto;margin-left:auto;padding-top:5px">
 <a name="section0"></a>
 
 {% if not absent %}
@@ -100,18 +99,18 @@
 	<div itemscope itemtype="http://schema.org/CreativeWork">
       {% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin=5 vsc=photo.vote_score upload_time=photo.upload_time|naturaltime oun=photo.owner.username static_url=STATIC_URL show_uname_credentials=False show_report=False %}
 		
-	<div class="mls">
-	<div class="cs cgy sp mbl">foto by&nbsp;<a href="{% url 'profile' photo.owner.username %}" class="cgy">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic" width="22" height="22">{% endif %}&nbsp;<span style="border-bottom:1px dotted gray">{{ photo.owner.username }}</span></a></div>
+	<div style="text-align:center">
+	<div class="cs cgy sp mbl">posted by&nbsp;<a href="{% url 'profile' photo.owner.username %}" class="cgy">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic" width="22" height="22">{% endif %}&nbsp;<span style="border-bottom:1px dotted gray">{{ photo.owner.username }}</span></a></div>
 	</div>
 	
 	</div>
 
-  <div class="mls">
-  <div style="flex-wrap:wrap" class="mtl fx fxjsfs fxaicn cxs sp cgy">
-  {% big_external_share_button owner_username=photo.owner.username is_mobile=is_mob photo_id=photo.id origin='5' static_url=STATIC_URL %}
-  {% big_photo_comment_button photo_id=photo.id origin='5' comm_count=photo.comment_count static_url=STATIC_URL %}
-  {% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
-  </div>
+  <div class="mbs">
+	  <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+		  {% big_external_share_button owner_username=photo.owner.username is_mobile=is_mob photo_id=photo.id origin='5' static_url=STATIC_URL %}
+		  {% big_photo_comment_button photo_id=photo.id origin='5' comm_count=photo.comment_count static_url=STATIC_URL %}
+		  {% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+	  </div>
   </div>
 
 	{% endif %}
@@ -122,7 +121,7 @@
 
 <ul class="navbar">
 {% if user.is_authenticated %}
-<li><a href="/">Home</a></li><li><a href="{% url 'best_photo' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
 {% else %}
 <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 {% endif %}
@@ -131,14 +130,6 @@
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|
 </div>
-
-<script type="text/javascript">
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', function() {
-    navigator.serviceWorker.register('{{ STATIC_URL }}js/service_worker.js');
-  });
-}
-</script>
 
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 {% transparent_buttons_js ident=user.id static_url=STATIC_URL %}

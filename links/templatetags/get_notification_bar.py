@@ -2,7 +2,7 @@ from django.contrib.auth.models import User
 from django import template
 from links.redis2 import is_fan
 from links.views import GetLatest
-from links.models import UserProfile
+from links.models import UserProfile, Photo
 from links.score import VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION
 
 register = template.Library()
@@ -95,7 +95,11 @@ def notification_bar(notification, origin, notif_form, user, user_id, females, s
 				context["parent_pk"] = freshest_reply['oi']
 				context["first_time_user"] = False
 				context["banned"] = False
-				context["fanned"] = is_fan(freshest_reply['ooi'],user_id)
+				context["fanned"] = [freshest_reply['ooi']] if is_fan(freshest_reply['ooi'],user_id) else []
+				try:
+					context["comment_count"] = Photo.objects.only('comment_count').get(id=freshest_reply['oi']).comment_count
+				except Photo.DoesNotExist:
+					context["comment_count"] = 0
 			elif object_type == '0':
 				context["latest_comment"] = freshest_reply
 				context["type_of_object"] = '0'

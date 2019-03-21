@@ -6,6 +6,7 @@ MAX_PHOTO_CAPTION_SIZE = 100
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
+NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
 NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
 CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing posts (time pooled between home and photos) 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
@@ -41,11 +42,11 @@ MIN_PUBLIC_IMG_WIDTH = 315# this number must belong to this interval: [450, 405,
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 900#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT
 ###############################################################################################################
-VOTE_SPREE_ALWD = 10# number of votes allowed on link objects within a small time window before cooldown begins (applied separately to photo voting too)
+VOTE_SPREE_ALWD = 25# number of votes allowed on link objects within a small time window before cooldown begins (applied separately to photo voting too)
 UPVOTE = 2#number to add to user score
 DOWNVOTE = -2#number to subtract from user score
-VOTING_DRIVEN_CENSORSHIP = -5# at what total vote count should a photo be completely disappeared
-VOTING_DRIVEN_PIXELATION = -3# at what total vote count should a photo be pixellated
+VOTING_DRIVEN_CENSORSHIP = -15# at what total vote count should a photo be completely disappeared
+VOTING_DRIVEN_PIXELATION = -7# at what total vote count should a photo be pixellated
 ###############################################################################################################
 MICRO_CACHE_TTL = 15# useful for micro caching some fast changing keys in groups (do a ctrl+f in redis6 to see examples)
 PRIVATE_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed

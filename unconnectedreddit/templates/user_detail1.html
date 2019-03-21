@@ -12,8 +12,7 @@
 {% load get_big_external_share_button %}
 {% block content %}
 <head><title>{{ slug }}'s photos and memes | Damadam.pk</title></head>
-
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
 <div class="clb" style="margin: 0 auto;max-width:600px;width:98%">
 
@@ -29,17 +28,15 @@
   </div>
 
 {% if page_obj.number == 1 %}
-<div class="bizcard mbl" style="background-color:white;padding:10px 7px">
-    <div class="bizcard mbl" style="background-color:ivory;text-align:center">
-    <div style="padding:10px 5px"> 
+ <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px">
+    
+    <div class="cl sp" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa"> 
+        
+          {% if not mobile_verified %}
+          <div class="mbs cr cs sp" style="font-weight:bold">- UNVERIFIED -</div>
+          {% endif %}
+          Profile foto:
       
-      <div class="cl lsp sp">Joined {{ subject.date_joined|naturaltime }}</div>  
-      
-      {% if not mobile_verified %}
-      <div class="mt">
-      <div class="cr sp" style="border-radius:4px;display: inline-block;padding-top:5px;font-weight:bold">- unverified profile -</div></div>
-      {% endif %}
-    </div>
     </div>
 
     {% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=slug ban_detail=ban_detail %}
@@ -48,105 +45,48 @@
 
       {% if not is_profile_banned %}
       
-        <a href="{% url 'edit_profile' %}#section0"><button class="btn nw bcg bxl mbs pg_ok_res" style="height:25px">Edit Profile</button></a>
-        <br>
         {% if star_av_url != 'empty' %}
-          <img class="pht" src="{{ star_av_url|s3 }}" style="border-radius:12px;overflow:hidden" class="sp cxs" alt="avatar">
-        {% endif %}
-        <div class="cgy sp cs">
-          {% if recent_fans > 1 %}
-          <b>{{ recent_fans }} fans</b> pichle 1 day mein
-          {% elif recent_fans == 1 %}
-          <b>{{ recent_fans }} fan</b> pichle 1 day mein
-          {% else %}
-          <b>{{ recent_fans }} fans</b> pichle 1 day mein
-          {% endif %}
+         <div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+          <img src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="pic loading ...">
         </div>
+        {% endif %}
+        <div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ subject.date_joined|naturaltime }}</div>
 
      {% endif %}
-      
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Foto score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' slug %}"><button type="submit" class="btn nw bcg bm" style="height:22px">fotos</button></a>
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Password:&nbsp;</b><a href="{% url 'reauth' %}#section0"><button class="btn bcg bm" style="height:22px">change</button></a>
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Fans:</b>
-      <a href="{% url 'fan_list' star_id %}#section0" class="cs">
-      <button class="btn bcg" style="height:22px">&nbsp;{{ fans }}&nbsp;</button>
-      </a>
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Stars:</b>
-      <a href="{% url 'star_list' %}#section0" class="cs">
-      <button class="btn bcg" style="height:22px">&nbsp;{{ stars }}&nbsp;</button>
-      </a>
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Blocked users:</b>
-      <a href="{% url 'banned_users_list' %}#section0" class="cs">
-      <button class="btn bcg" style="background-color:#AA0003;height:22px">&nbsp;{{ blocked }}&nbsp;</button>
-      </a>
-                  
-                  
+      <div style="text-align:center;padding-bottom:5px"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px">Edit your<br>profile</button></a></div>
+
     {% else %}
 
-      {% if not is_profile_banned %}
+       {% if not is_profile_banned %}
           {% if star_av_url != 'empty' %}
-            <img class="pht" src="{{ star_av_url|s3 }}" style="border-radius:12px;overflow:hidden" class="cxs sp" alt="avatar">
-          {% endif %}
-          <div class="cgy cs sp">
-            {% if recent_fans > 1 %}
-            <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
-            {% elif recent_fans == 1 %}
-            <b>{{ recent_fans }} fan</b> pichle 1 day mein<br>
-            {% else %}
-            <b>{{ recent_fans }} fans</b> pichle 1 day mein<br>
-            {% endif %}
+           <div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+            <img src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="pic loading ...">
           </div>
+          {% else %}
+          <div style="text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0;padding:5px 0" class="mbs clb cm sp">in sey kahein aik profile foto tou laga lein ...</div>
+          {% endif %}
+          <div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ subject.date_joined|naturaltime }}</div>
 
       {% endif %}
 
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Foto score:</b>&nbsp;<span class="cp"><b>{{ subject.userprofile.media_score }}</b></span>
-      {% if manageable and user.username == 'pathan-e-khan' or user.username == 'mhb11' %}&nbsp;<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ user_id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm mls" style="height:22px">manage</button></form>{% endif %}
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Fans:</b>
-      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn bcg mrl" style="height:22px">&nbsp;{{ fans }}&nbsp;</button></a>
-       {% if authenticated and not own_profile and allowed_fan %}
-        <form action="{% url 'fan' %}" method="POST" style="display:inline">
-        {% csrf_token %}
-        <input type="hidden" name="oid" value="0">
-        <input type="hidden" name="org" value="4">
-          
-          {% if not_fan %}
-
-          <button type="submit" name="sid_btn" class="wt" style="height:22px;border:1px solid #ffcd00" value="{{ subject_id }}">
-          <div class="fx fxjssb fxaicn">
-            <div><img src="{{ STATIC_URL }}img/fan.svg" width="16" height="16" class="mrs" style="vertical-align:text-top"></div>
-            <div class="co sp">fan</div>&nbsp;
+      {% if manageable and user.username == 'pathan-e-khan' or user.username == 'mhb11' %}
+        <form method="POST" class="mbs" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ user_id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm sp pg_ok_res" style="height:32px">manage</button></form>
+      {% else %}
+        {% if authenticated %}
+          {% load get_big_fan_button %}
+          {% load get_big_group_button %}
+          <div class="mts fx fxjscn fxaicn">
+          {% big_fan_button own_user_id=user_id target_user_id=star_id object_id=star_id origin='4' home_hash='' fan_list=fanned static_url=STATIC_URL %}
+          {% big_group_button own_id=user_id target_id=star_id parent_object_id=slug object_type='profile' origin='4' target_username=slug %}
           </div>
-          </button>
-
-          {% else %}
-
-          <button type="submit" name="sid_btn" style="height:22px;border:1px solid #cdcdcd" class="wt" value="{{ subject_id }}">
-          <div class="fx fxjssb fxaicn">
-            <div><img src="{{ STATIC_URL }}img/unfan.svg" width="16" height="16" class="mrs" style="vertical-align:text-top"></div>
-            <div class="sp"><span class="cgy">unfan</span></div>&nbsp;
-          </div>
-          </button>
-
-          {% endif %}
-          
-        </form>
         {% endif %}
-      <hr size=1 COLOR="#E9EBEE">
-      <b>Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' slug %}"><button type="submit" class="btn nw bcg bm" style="height:22px">fotos</button></a>
-                  
+      {% endif %}
+
     {% endif %}
 </div>
-  {% endif %}
 
+{% endif %}
+<a name="sectionJ"></a>
   <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
     {% if page_obj.has_previous %}
       <div style="padding:0 10px">
@@ -161,19 +101,19 @@
   </div>
 
 <div class="mtl">
-<a name="sectionJ"></a>
 {% for photo in object_list %}
-  <div class="bizcard mbl" style="background-color:white;padding:5px 3px 3px 3px">
+  <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
       <a name="section{{ forloop.counter }}"></a>
 
       <div itemscope itemtype="http://schema.org/CreativeWork">
+        
         {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False %}
 
-        <div class="mls">
-          <div style="flex-wrap:wrap" class="fx fxjsfs fxaicn cxs sp cgy">
+        <div class="mbs mtl">
+          <div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+          {% big_photo_comment_button photo_id=photo.id origin='4' comm_count=photo.comment_count static_url=STATIC_URL star_id=star_id %}
           {% big_send_button photo_owner_username=slug photo_id=photo.id photo_owner_id=star_id photo_caption=photo.caption origin='4' img_url=photo.image_file static_url=STATIC_URL %}
           {% big_external_share_button owner_username=slug is_mobile=is_mob photo_id=photo.id origin='4' static_url=STATIC_URL owner_id=star_id sharer_id=user_id js_class='wa-sharing' sharing_type='wa' %}
-          {% big_photo_comment_button photo_id=photo.id origin='4' comm_count=photo.comment_count static_url=STATIC_URL star_id=star_id %}
           {% big_points_button obj_id=photo.id owner_id=star_id is_pht=1 origin='4' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
           </div>
         </div>
@@ -184,17 +124,17 @@
   <div class="bizcard mbl" style="background-color:white;padding:10px;text-align:center">
   {% if own_profile %}
     <div class="cxl lsp">Ap ne Damadam pe koi foto share nahi ki</div>
-    <hr size=1 COLOR="#E9EBEE">
+    <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Share karney ke liye neechay 'share' dabain:</div>
       <a href="{% url 'upload_public_photo' %}#section0"><button class="btn bco sp pg_ok_res bl" style="height:26px">Share</button></a>
     </div>
   {% else %}
     <div class="cxl lsp"><b>{{ slug }}</b> ne Damadam pe koi foto nahi share ki</div>
-    <hr size=1 COLOR="#E9EBEE">
+    <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
     <div class="cgy mbl sp">Dusrey users ki fotos view karein:</div>
-    <a href="{% url 'best_photo' %}#section0"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+    <a href="{% url 'photo' 'best-list' %}#section0"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
     </div>
   {% endif %}
   </div><br>

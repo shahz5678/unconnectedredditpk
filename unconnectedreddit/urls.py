@@ -18,24 +18,24 @@ from urls_mehfil import urlpatterns as urlpatterns_mehfil
 from urls_verification import urlpatterns as urlpatterns_verification
 from urls_judgement import urlpatterns as urlpatterns_judgement
 from urls_voting import urlpatterns as urlpatterns_voting
-
+from urls_search import urlpatterns as urlpatterns_search
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
-comment_pk, photostream_pk, upload_photo_reply_pk, see_photo_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
-redirect_to_content, star_list, cross_salat_notif, \
+comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
+redirect_to_content, star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
-click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list, best_photo_location,\
-see_best_photo_pk, photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,\
-first_time_unseen_refresh, missing_page, home_reply, home_location_pk, search_username, go_to_username, go_to_user_photo, \
-remove_searched_username, upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
+click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list,\
+photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,\
+first_time_unseen_refresh, missing_page, home_reply, home_location_pk,photo_page, photo_redirect,\
+upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
 public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
 #cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
 
 from links.number_verification import verify_user_number
-from links.views import TopView, PhotoReplyView, UserProfilePhotosView, PhotoQataarHelpView, BaqiPhotosHelpView, \
-ChainPhotoTutorialView, PhotoTimeView, PhotostreamView, UploadPhotoReplyView, PicHelpView, PhotoJawabView, CommentView, \
+from links.views import TopView, UserProfilePhotosView, PhotoQataarHelpView, BaqiPhotosHelpView, \
+PhotoTimeView, PhotostreamView, PicHelpView, PhotoJawabView, CommentView, \
 AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, \
 UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, PicsChatUploadView, VerifiedView, WelcomeView, \
 WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdTitleView,TestAdsView, AdAddressYesNoView,\
@@ -43,30 +43,28 @@ SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSetti
 UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
 RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, TopPhotoView, \
 PhotoShareView, PhotoDetailView, \
-SpecialPhotoTutorialView, AdGenderChoiceView, \
+AdGenderChoiceView, \
 VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, \
 AdAddressView, AdCallPrefView
 from links.announcement_views import coming_soon
-
+from links.group_views import show_shared_photo_metrics
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	#url(r'^search_uname_unlocking_dec/$', auth(search_uname_unlocking_dec), name='unamesrc_unldec'),
-	url(r'^remnick/(?P<nick>[\w.@+-]+)/$', auth(remove_searched_username), name='remove_searched_username'),
-	url(r'^khoji/$', auth(search_username), name='search_username'),
-	url(r'^gtuname/(?P<nick>[\w.@+-]+)/$', auth(go_to_username), name='go_to_username'),
-	url(r'^gtuname/(?P<nick>.+)/$', auth(go_to_username), name='go_to_username'), #captures any kind of nick - for errors
-	url(r'^gtuphoto/(?P<nick>[\w.@+-]+)/(?P<add_score>\d+)/$', auth(go_to_user_photo), name='go_to_user_photo'),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
+	url(r'^redirect/home/$', auth(home_redirect), name='redirect_to_home'),
+	url(r'^redirect/home/(?P<pk>\d+)/$', auth(home_redirect), name='redirect_to_home'),
 	url(r'^redirect/(?P<pk>\d+)/$', auth(home_location_pk), name='home_loc_pk'),
 	url(r'^redirect-to-content/$', auth(redirect_to_content), name='redirect_to_content'),
 	url(r'^redirect/$', auth(home_location), name='home_loc'),
 	url(r'^redirect/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur'),
 	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
 	url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
-	url(r'^$', home_link_list, name='home'),
+	#url(r'^$', home_link_list, name='home'),
+	url(r'^$', auth(home_page), name='home'),
+	url(r'^best_home_test/$', best_home_page, name='best_home_test'),
 	url(r'^home/(?P<lang>[\w.@+-]+)/$', home_link_list, name='ur_home'),
 	url(r'^redirect_best/$', auth(home_location), name='home_loc_best'),
 	url(r'^redirect_best/(?P<lang>[\w.@+-]+)/$', auth(home_location), name='home_loc_ur_best'),
@@ -83,6 +81,7 @@ urlpatterns = patterns('',
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),
+	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 	url(r'^user/(?P<slug>.+)/$', missing_page, name='profile'), #captures any kind of slug - for errors
 	url(r'^usrp/(?P<slug>[\w.@+-]+)/(?P<key>\d+)/$', profile_pk, name='profile_pk'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),
@@ -166,25 +165,27 @@ urlpatterns = patterns('',
 	url(r'^unfan/$', auth(unfan), name='unfan'),
 	url(r'^fanlist/(?P<pk>\d+)/$', auth(fan_list), name='fan_list'),
 	url(r'^starlist/$', auth(star_list), name='star_list'),
-	url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
+	#url(r'^photo_ko_reply/$', auth(PhotoReplyView.as_view()), name='reply_options'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	#url(r'^videos/$', VideoView.as_view(), name='see_video'),
 	# url(r'^eid_selfies/$', SpecialPhotoView.as_view(), name='see_special_photo'),
 	# url(r'^eid_tutorial/$', SpecialPhotoTutorialView.as_view(), name='special_photo_tutorial'),
 	#url(r'^special/$', special_photo, name='special_photo'),
 	# url(r'^fan_seekho/$', auth(FanTutorialView.as_view()), name='fan_tutorial'),
-	url(r'^freshphotos/$', photo_list, name='photo'),
-	url(r'^topphotos/$', best_photos_list, name='best_photo'),
-	url(r'^tphredi/$', auth(best_photo_location), name='best_photo_loc'),
-	url(r'^tphredi/(?P<pk>\d+)/$', auth(see_best_photo_pk), name='best_photo_loc_pk'),
+	###################################################################################
+	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/(?P<pk>\d+)/$', auth(photo_redirect), name='redirect_to_photo'),
+	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/$', auth(photo_redirect), name='redirect_to_photo'),
+	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', auth(photo_page), name='photo'),
+	###################################################################################
+	# url(r'^freshphotos/$', photo_list, name='photo'),
+	# url(r'^topphotos/$', best_photos_list, name='best_photo'),
 	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
-	url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
-	url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
+	# url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
+	# url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
-	url(r'^photo_pk/(?P<pk>\d+)/$', see_photo_pk, name='see_photo_pk'),
 	url(r'^sphk/(?P<pk>\d+)/$', see_special_photo_pk, name='see_special_photo_pk'),
-	url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
-	url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
+	#url(r'^upload_photo_reply_pk/(?P<pk>\d+)/$', auth(upload_photo_reply_pk), name='upload_photo_reply_pk'),
+	#url(r'^upload_photo_reply/$', auth(UploadPhotoReplyView.as_view()), name='upload_photo_reply'),
 	######################################################## Content Sharing ###################################################
 	url(r'^share/$', auth(share_content), name='share_content'),
 	url(r'^share/help/$', auth(sharing_help), name='sharing_help'),
@@ -203,7 +204,7 @@ urlpatterns = patterns('',
 	#url(r'^upload_video/$', auth(UploadVideoView.as_view()), name='upload_video'),
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
 	url(r'^khushamdeed/$', auth(WelcomeView.as_view()), name='welcome'),
-	url(r'^jawabi_photo_seekho/$', auth(ChainPhotoTutorialView.as_view()), name='chain_photo_tutorial'),
+	#url(r'^jawabi_photo_seekho/$', auth(ChainPhotoTutorialView.as_view()), name='chain_photo_tutorial'),
 	url(r'^ftur/$', auth(first_time_unseen_refresh), name='first_time_unseen_refresh'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	#url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
@@ -302,6 +303,7 @@ urlpatterns += urlpatterns_mehfil
 urlpatterns += urlpatterns_verification
 urlpatterns += urlpatterns_judgement
 urlpatterns += urlpatterns_voting
+urlpatterns += urlpatterns_search
 
 handler404 = 'links.error_views.not_found'
 handler500 = 'links.error_views.server_error'

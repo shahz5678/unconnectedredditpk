@@ -3,9 +3,11 @@ from random import random
 import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
-from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL
+from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
+from redis3 import retrieve_user_world_age
+from models import Photo
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
@@ -24,6 +26,7 @@ TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 FOUR_MINS = 4*60
 FORTY_FIVE_SECS = 45
+THREE_SECS = 3
 NINE_SECS = 9
 
 
@@ -56,11 +59,20 @@ TOP_50_CACHED_DATA = "top_50_reporters" # key containing cached data of top 50 r
 
 CONTENT_SUBMISSION_AND_VOTING_BAN = "csv:"#prefix for hash containing details about a ban levied by a defender on a user
 CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regarding a potentially bannable user
-HOME_FEED = "homefeed:1000" # list containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
+#HOME_FEED = "homefeed:1000" # list containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
+HOME_SORTED_FEED = "homesortedfeed:1000" # sorted set containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
 PHOTO_FEED = "photofeed:1000" # list containing latest 1000 photo feed hashes (e.g. img:234132)
+PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 photo hashes (e.g. img:234134 or img:341243)
+ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
+TRENDING_PHOTO_FEED = 'trendingphotofeed:1000'
+TRENDING_PHOTO_DETAILS = 'trendingphotodetails:1000'
+HAND_PICKED_TRENDING_PHOTOS = 'handpickedphotos'#sorted set containing hand-picked photos meant to show up in trending
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
+BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
 VOTE_ON_IMG = "vi:" #prefix for a sorted set that contains users who voted on a particular image. Each user's vote value is used as a score
 VOTE_ON_TXT = "vt:" #prefix for a sorted set that contains users who voted on a particular text post. Each user's vote value is used as a score
+
+
 
 
 FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT = 'fbsuprl:'#rate limit key to throttle FBS users from uploading way too many public photos
@@ -170,8 +182,31 @@ def add_obj_to_home_feed(hash_name, my_server=None):
 	Adding various objects to home feed
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	my_server.lpush(HOME_FEED, hash_name)
-	my_server.ltrim(HOME_FEED, 0, 999)
+	my_server.zadd(HOME_SORTED_FEED, hash_name, time.time())
+	if random() < 0.2:
+		# every now and then, trim the sorted set for size
+		my_server.zremrangebyrank(HOME_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
+
+
+def retrieve_photo_feed_index(obj_hash, feed_type='best_photos'):
+	"""
+	Returns exact index an object is stored at in PHOTO_SORTED_FEED or TRENDING_PHOTO_FEED
+
+	Useful when needing to redirect to precise object after interacting with a post
+	"""
+	if feed_type == 'best_photos':
+		return redis.Redis(connection_pool=POOL).zrevrank(TRENDING_PHOTO_FEED, obj_hash)
+	elif feed_type == 'fresh_photos':
+		return redis.Redis(connection_pool=POOL).zrevrank(PHOTO_SORTED_FEED, obj_hash)
+
+
+def retrieve_home_feed_index(obj_hash):
+	"""
+	Returns exact index an object is stored at in HOME_SORTED_FEED
+
+	Useful when needing to redirect to precise object after interacting with a post
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrank(HOME_SORTED_FEED,obj_hash)
 
 
 def retrieve_obj_feed(obj_list):
@@ -187,11 +222,22 @@ def retrieve_obj_feed(obj_list):
 	return filter(None, pipeline1.execute())
 
 
-def get_home_feed():
+def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
 	"""
 	Retrieve list of all home feed objects
 	"""
-	return redis.Redis(connection_pool=POOL).lrange(HOME_FEED, 0, -1)   
+	if with_feed_size:
+		my_server = redis.Redis(connection_pool=POOL)
+		return my_server.zrevrange(HOME_SORTED_FEED, start_idx, end_idx), my_server.zcard(HOME_SORTED_FEED)
+	else:
+		return redis.Redis(connection_pool=POOL).zrevrange(HOME_SORTED_FEED, start_idx, end_idx)
+
+
+def get_best_home_feed(start_idx=0,end_idx=-1):
+	"""
+	Retrieve list of best home feed objects
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
 
 
 def get_link_writer(link_id):
@@ -231,7 +277,7 @@ def can_vote_on_obj(voter_id, is_pht):
 		my_server.incr(votes_allowed)
 		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
 		return None, True
-	elif int(current_spree) > (VOTE_SPREE_ALWD-1):#value set at '6' in the system (score.py)
+	elif int(current_spree) > (VOTE_SPREE_ALWD-1):#value set at '25' in the system (score.py)
 		ttl = my_server.ttl(votes_allowed)
 		return ttl, False
 	else:
@@ -240,7 +286,7 @@ def can_vote_on_obj(voter_id, is_pht):
 		short_term_rate_limit = my_server.ttl(short_term_rate_limit_key)
 		if short_term_rate_limit < 0:
 			my_server.incr(votes_allowed)
-			my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
+			my_server.expire(votes_allowed,THREE_SECS*(int(current_spree)+1))
 			return None, True
 		else:
 			# user has to wait a few seconds (upto 9) - they were voting super fast
@@ -324,6 +370,51 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 		return False
 
 
+def get_world_age_weighted_vote_score(obj_ids, obj_type):
+	"""
+	Retrieving net_votes for each obj via weighting voter's world age
+	"""
+	if obj_type in ('tx','img'):
+		prefix = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
+		my_server = redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		for obj_id in obj_ids:
+			pipeline1.zrange(prefix+obj_id,0,-1,withscores=True)#returns list of tuples
+		result1 = pipeline1.execute()#list of list of tuples [[(user_id,user_vote),(user_id,user_vote),(user_id,user_vote),...],[(),(),(),...],...]
+		counter, voter_ids = 0, set()
+		for obj_id in obj_ids:
+			# isolate all user_ids that voted
+			if result1[counter]:
+				for user_id, user_vote in result1[counter]:
+					voter_ids.add(user_id)
+			counter += 1
+		voter_age_dict, highest_age = retrieve_user_world_age(voter_ids,with_highest_age=True)
+		if voter_age_dict and highest_age:
+			from math import log
+			log_highest_age = log(highest_age,2.0)# taking log 2 of highest age so that large-age users cannot have an undue influence
+			counter = 0 #resetting the counter
+			final_net_votes = {}
+			for obj_id in obj_ids:
+				# re-scoring the items via weighting with voter world_age
+				if result1[counter]:
+					obj_aggregate_vote_score = 0
+					for user_id, user_vote in result1[counter]:
+						if int(user_vote) == 0:
+							log_voter_age = log(voter_age_dict[user_id],2.0)
+							vote_value = -1*(log_voter_age/log_highest_age)
+						elif int(user_vote) == 1:
+							log_voter_age = log(voter_age_dict[user_id],2.0)
+							vote_value = 1*(log_voter_age/log_highest_age)
+						else:
+							vote_value = 0
+						obj_aggregate_vote_score += vote_value
+					final_net_votes[obj_id] = obj_aggregate_vote_score
+				else:
+					final_net_votes[obj_id] = 0
+				counter += 1
+		return final_net_votes
+
+
 #################################################### Updating image content objects ############################################
 
 
@@ -350,10 +441,11 @@ def add_obj_to_photo_feed(hash_name, my_server=None):
 	"""
 	Adding various objects to photo feed
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush(PHOTO_FEED, hash_name)
-	my_server.ltrim(PHOTO_FEED, 0, 999)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	my_server.zadd(PHOTO_SORTED_FEED, hash_name, time.time())
+	if random() < 0.2:
+		# every now and then, trim the sorted set for size
+		my_server.zremrangebyrank(PHOTO_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
 
 
 def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_pinkstar,\
@@ -443,27 +535,64 @@ def voted_for_single_photo(photo_id, voter_id):
 		return already_exists
 
 
-def get_photo_feed():
+def get_photo_feed(start_idx=0, end_idx=-1, feed_type='best_photos', with_feed_size=False):
 	"""
 	Retrieve list of all image feed objects
 	"""
-	return redis.Redis(connection_pool=POOL).lrange(PHOTO_FEED, 0, -1)
+	if feed_type == 'best_photos':
+		feed_name = TRENDING_PHOTO_FEED
+	elif feed_type == 'fresh_photos':
+		feed_name = PHOTO_SORTED_FEED
+	else:
+		return []
+	if with_feed_size:
+		my_server = redis.Redis(connection_pool=POOL)
+		return my_server.zrevrange(feed_name, start_idx, end_idx), my_server.zcard(feed_name)
+	else:
+		return redis.Redis(connection_pool=POOL).zrevrange(feed_name, start_idx, end_idx)
 
 
-def add_photos_to_best_photo_feed(photo_scores):
+def add_photos_to_best_photo_feed(photo_scores, consider_world_age=False):
 	"""
 	Constructing bestphotofeed
+
+	 Provides an alternative route where world age of the voter is taken into consideration (as a proxy for user 'karma')
+	"""
+	#executing the following commands as a single transaction
+	if consider_world_age:
+		ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
+		try:
+			my_server = redis.Redis(connection_pool=POOL)
+			pipeline1 = my_server.pipeline()
+			pipeline1.delete(ALT_BEST_PHOTO_FEED)
+			pipeline1.zadd(ALT_BEST_PHOTO_FEED,*photo_scores)
+			pipeline1.execute()
+		except:
+			pass
+	else:
+		try:
+			my_server = redis.Redis(connection_pool=POOL)
+			pipeline1 = my_server.pipeline()
+			pipeline1.delete(BEST_PHOTO_FEED)
+			pipeline1.zadd(BEST_PHOTO_FEED,*photo_scores)
+			pipeline1.execute()
+		except:
+			pass
+
+
+def add_posts_to_best_posts_feed(post_scores):
+	"""
+	Constructing best posts feed
 	"""
 	#executing the following commands as a single transaction
 	try:
 		my_server = redis.Redis(connection_pool=POOL)
 		pipeline1 = my_server.pipeline()
-		pipeline1.delete(BEST_PHOTO_FEED)
-		pipeline1.zadd(BEST_PHOTO_FEED,*photo_scores)
+		pipeline1.delete(BEST_HOME_FEED)
+		pipeline1.zadd(BEST_HOME_FEED,*post_scores)
 		pipeline1.execute()
 	except:
 		pass
-
 
 def get_best_photo_feed():
 	"""
@@ -490,6 +619,184 @@ def rate_limit_fbs_public_photo_uploaders(user_id):
 	Rate limiting fbs public photo uploaders
 	"""
 	redis.Redis(connection_pool=POOL).setex(FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT+str(user_id),'1',FBS_PUBLIC_PHOTO_UPLOAD_RL)
+
+
+####################################################################################################
+################################ Trending list related functonality ################################
+####################################################################################################
+
+
+def trim_trending_list(feed_type='best_photos'):
+	"""
+	Trims trending list down to NUM_TRENDING_PHOTOS elements (in case of the trending photos feed)
+	"""
+	if feed_type == 'best_photos':
+		my_server = redis.Redis(connection_pool=POOL)
+		photo_hashes_to_be_removed = my_server.zrevrange(TRENDING_PHOTO_FEED,NUM_TRENDING_PHOTOS,-1)
+		if photo_hashes_to_be_removed:
+			photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in photo_hashes_to_be_removed]
+			photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
+			pipeline1 = my_server.pipeline()
+			pipeline1.zrem(TRENDING_PHOTO_FEED, *photo_hashes_to_be_removed)
+			for photo_id in photo_ids_to_be_removed:
+				pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
+			pipeline1.execute()
+	else:
+		pass
+
+
+def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None):
+	"""
+	Adds a single trending object to a trending list of objects
+
+	Also adds the objects details to a separate sorted set for later viewing, helpful if obj metrics are to be compared at the time of its selection
+	"""
+	if prefix == 'img:':
+		composite_id = prefix+obj_id
+		time_of_selection = obj_hash['tos']
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		pipeline1 = my_server.pipeline()
+		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
+		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float(time_of_selection))
+		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
+		pipeline1.execute()
+		Photo.objects.filter(id=obj_id).update(device='6')
+		if random() < 0.05:
+			# sometimes trim the trending sorted set for size
+			trim_trending_list()
+	else:
+		pass
+
+
+def push_hand_picked_obj_into_trending(feed_type='best_photos'):
+	"""
+	HAND_PICKED_TRENDING_PHOTOS contains photos earmarked for movement into trending - this executes the whole procedure
+	"""
+	pushed = False
+	if feed_type == 'best_photos':
+		# retrieve oldest object from HAND_PICKED_TRENDING_PHOTOS and push it into trending
+		my_server = redis.Redis(connection_pool=POOL)
+		if my_server.exists(HAND_PICKED_TRENDING_PHOTOS):
+			# sorted set exists
+			oldest_enqueued_member = my_server.zrange(HAND_PICKED_TRENDING_PHOTOS,0,0)
+			if oldest_enqueued_member:
+				# push it if the obj's hash exists and its still in fresh, otherwise just ignore
+				oldest_enqueued_member = oldest_enqueued_member[0]
+				obj_hash = my_server.hgetall(oldest_enqueued_member)
+				if obj_hash:
+					obj_exists_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,oldest_enqueued_member)
+					if obj_exists_in_fresh:
+						# do the deed - push the object for members to see!
+						time_of_selection = time.time()
+						obj_hash['tos'] = time_of_selection
+						add_single_trending_object(prefix='img:', obj_id=obj_hash['i'], obj_hash=obj_hash, my_server=my_server)
+						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
+						pushed = True
+					else:
+						# don't push into trending, it's no longer in fresh
+						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
+						pushed = False
+				else:
+					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
+					pushed = False
+			else:
+				pushed = False
+		else:
+			# this does not exist, so nothing was pushed
+			pushed = False
+	else:
+		pushed = False
+	return pushed
+
+
+def queue_obj_into_trending(prefix,obj_id, picked_by_id):
+	"""
+	Used by super defenders to just move an object straight into trending
+
+	The object does not get added immediately, is instead entered into a queue
+	Next time when the celery task runs, this queue is popped and the next trending object is shown
+	If two super defenders enqueue the same item for movement into trending, the object simply moves in by the 'initially' set priority
+	"""
+	if prefix == 'img:':
+		time_now = time.time()
+		composite_id = prefix+obj_id
+		my_server = redis.Redis(connection_pool=POOL)
+		already_enqueued = my_server.zscore(HAND_PICKED_TRENDING_PHOTOS,composite_id)
+		if already_enqueued:
+			# do nothing
+			pass
+		else:
+			# Enqueue the object, but first: i) check if it's already moved into trending (just to be sure), ii) it still exists in fresh (and wasn't censored for instance)
+			already_trending = my_server.zscore(TRENDING_PHOTO_FEED, composite_id)
+			if already_trending:
+				# do nothing
+				pass
+			else:
+				still_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,composite_id)
+				if still_in_fresh:
+					# Enqueue for trending
+					pipeline1 = my_server.pipeline()
+					pipeline1.zadd(HAND_PICKED_TRENDING_PHOTOS,composite_id,time_now)
+					pipeline1.hset(composite_id,'pbid',picked_by_id)# records the ID of the super-defender who ordered this movement
+					pipeline1.expire(composite_id,PUBLIC_SUBMISSION_TTL)#re-setting TTL to one day
+					pipeline1.expire(VOTE_ON_IMG+obj_id,PUBLIC_SUBMISSION_TTL)
+					pipeline1.execute()
+				else:
+					# not in fresh any more (for whatever reason) - so do nothing!
+					pass
+	else:
+		pass
+
+
+def remove_obj_from_trending(prefix,obj_id):
+	"""
+	Used by super defenders to remove an object from the trending list
+
+	This item is not added back into fresh-list, it is just removed from trending entirely
+	"""
+	if prefix == 'img:':
+		composite_id = prefix+obj_id
+		my_server = redis.Redis(connection_pool=POOL)
+		# ensure it's not in handpicked photos (e.g. if super-defender changed their mind about enqueing it)
+		my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,composite_id)
+		obj_is_trending = my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
+		if obj_is_trending:
+			# remove it from trending
+			pipeline1 = my_server.pipeline()
+			pipeline1.zrem(TRENDING_PHOTO_FEED,composite_id)
+			pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
+			pipeline1.execute()
+			Photo.objects.filter(id=obj_id).update(device='1')
+		else:
+			# not in trending (for whatever reason) - do nothing
+			pass
+	else:
+		pass
+
+
+def is_obj_trending(prefix, obj_id, with_trending_time=False):
+	"""
+	Retrieves the trending status of an object
+	"""
+	if prefix == 'img:': 
+		composite_id = prefix+str(obj_id)
+		my_server = redis.Redis(connection_pool=POOL)
+		if with_trending_time:
+			time_of_selection = my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
+			if time_of_selection:
+				return True, time_of_selection
+			else:
+				return False, None
+		else:
+			return my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
+	else:
+		pass
+
+
+####################################################################################################
+####################################################################################################
+####################################################################################################
+
 
 
 #################################################### Vote banning functionality (defenders) ############################################
@@ -1034,6 +1341,7 @@ def log_banning(target_uname,reason_of_ban,action, dur_of_ban,time_of_ban,banned
 
 ####################### Cleanse feed of content posted by punished user #######################
 
+
 def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='1'):
 	"""
 	Ensures no content of target_user_id is part of current feeds
@@ -1051,9 +1359,9 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		my_server = redis.Redis(connection_pool=POOL)
 		# retrieve all feeds
 		pipeline1 = my_server.pipeline()
-		pipeline1.lrange(PHOTO_FEED,0,-1)
-		pipeline1.zrange(BEST_PHOTO_FEED,0,-1)
-		pipeline1.lrange(HOME_FEED,0,-1)
+		pipeline1.zrange(PHOTO_SORTED_FEED,0,-1)
+		pipeline1.zrange(TRENDING_PHOTO_FEED,0,-1)
+		pipeline1.zrange(HOME_SORTED_FEED,0,-1)
 		result1 = pipeline1.execute()
 		fresh_image_objs, best_image_objs, home_objs = result1[0], result1[1], result1[2]
 		
@@ -1098,7 +1406,7 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		for hash_name in target_fresh_photo_hashes:
 			pipeline5.delete(hash_name)
 			pipeline5.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)#expire - don't delete - so that a defender can ban voters if need be in the next 10 min window!
-			pipeline5.lrem(PHOTO_FEED,hash_name, num=1)
+			pipeline5.zrem(PHOTO_SORTED_FEED,hash_name)
 		pipeline5.execute()
 
 		# removing target users' bestphotofeed hashes, and expiring voting objs
@@ -1106,21 +1414,28 @@ def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='
 		for hash_name in target_best_photo_hashes:
 			pipeline6.delete(hash_name)#might have been deleted in the previous loop, but we need to catch cases where a hash may not have been in the previous list
 			pipeline6.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline6.zrem(BEST_PHOTO_FEED,hash_name)
+			pipeline6.zrem(TRENDING_PHOTO_FEED,hash_name)
 		pipeline6.execute()
 
-		# removing target users' homefeed hashes, and expiring voting objs
+		# removing target users' hashes from TRENDING_PHOTO_DETAILS
+		photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in target_best_photo_hashes]
+		photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
 		pipeline7 = my_server.pipeline()
-		for hash_name in target_home_hashes:
-			pipeline7.delete(hash_name)
-			if hash_name[:2] == 'tx':
-				pipeline7.expire(VOTE_ON_TXT+hash_name[3:],TEN_MINS)
-			else:
-				pipeline7.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline7.lrem(HOME_FEED,hash_name, num=1)
+		for photo_id in photo_ids_to_be_removed:
+			pipeline7.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
 		pipeline7.execute()
-		# this approach has a lot of duplication of effort, but is comprehensive
 
+		# removing target users' homefeed hashes, and expiring voting objs
+		pipeline8 = my_server.pipeline()
+		for hash_name in target_home_hashes:
+			pipeline8.delete(hash_name)
+			if hash_name[:2] == 'tx':
+				pipeline8.expire(VOTE_ON_TXT+hash_name[3:],TEN_MINS)
+			else:
+				pipeline8.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
+			pipeline8.zrem(HOME_SORTED_FEED,hash_name)
+		pipeline8.execute()
+		# this approach has a lot of duplication of effort, but is comprehensive
 
 ##################### Adding or removing defenders ######################
 
@@ -1921,51 +2236,51 @@ def retrieve_top_stars():
 
 
 def get_inactives(get_100K=False, get_50K=False, get_10K=False, get_5K=False, key=None):
-    my_server = redis.Redis(connection_pool=POOL)
-    if not key:
-        key = "inactive_users"
-    if get_100K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 100000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,99999,withscores=True)
-            my_server.zremrangebyrank(key,0,99999)
-            return data, False
-    elif get_50K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 50000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,49999,withscores=True)
-            my_server.zremrangebyrank(key,0,49999)
-            return data, False
-    elif get_10K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 10000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,9999,withscores=True)
-            my_server.zremrangebyrank(key,0,9999)
-            return data, False
-    elif get_5K:
-        remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
-        if remaining < 5000:
-            data = my_server.zrange(key,0,-1,withscores=True)
-            my_server.delete(key)
-            return data, True
-        else:
-            data = my_server.zrange(key,0,4999,withscores=True)
-            my_server.zremrangebyrank(key,0,4999)
-            return data, False
-    else:
-        return my_server.zrange(key,0,-1,withscores=True)
+	my_server = redis.Redis(connection_pool=POOL)
+	if not key:
+		key = "inactive_users"
+	if get_100K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 100000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,99999,withscores=True)
+			my_server.zremrangebyrank(key,0,99999)
+			return data, False
+	elif get_50K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 50000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,49999,withscores=True)
+			my_server.zremrangebyrank(key,0,49999)
+			return data, False
+	elif get_10K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 10000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,9999,withscores=True)
+			my_server.zremrangebyrank(key,0,9999)
+			return data, False
+	elif get_5K:
+		remaining = get_inactive_count(server=my_server,key_name = None if key == 'inactive_users' else key)
+		if remaining < 5000:
+			data = my_server.zrange(key,0,-1,withscores=True)
+			my_server.delete(key)
+			return data, True
+		else:
+			data = my_server.zrange(key,0,4999,withscores=True)
+			my_server.zremrangebyrank(key,0,4999)
+			return data, False
+	else:
+		return my_server.zrange(key,0,-1,withscores=True)
 
 def set_inactives(inactive_list):
 	if inactive_list:

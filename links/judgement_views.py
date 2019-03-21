@@ -1350,12 +1350,13 @@ def judge_content_submitters(request):
 					purl = request.POST.get("purl",None)
 					cap = request.POST.get("cap",None)
 					tp = request.POST.get("tp",None)
+					offender_score = UserProfile.objects.only('score').get(user_id=target_id).score
 					saved = temporarily_save_content_details(obj_id=obid, owner_id=ooid, photo_url=purl, caption=cap, obj_type=tp, origin=orig, \
 						owner_uname=oun, link_id=lid, banner_id=own_id, sin=sin, target_id=ooid)
 					if saved:
 						# proceed to second screen - the 'duration' template
 						return render(request,'judgement/set_content_submission_and_voting_ban_duration.html',{'oun':oun,'purl':purl,'cap':cap,'tp':tp,\
-							'lid':lid,'orig':orig,'obid':obid,'from_cull':from_cull})
+							'lid':lid,'orig':orig,'obid':obid,'from_cull':from_cull,'offender_score':offender_score})
 					else:
 						# something unforeseen went wrong
 						if from_cull == '1':
@@ -1718,6 +1719,7 @@ def initiate_content_submission_and_voting_ban(obj_owner_id, obj_id, purl, capti
 	Also checks if target is already banned from submitting content and voting - and renders a different template in that case
 	"""
 	already_banned, time_remaining, ban_detail = check_content_and_voting_ban(obj_owner_id, with_details=True)
+	offender_score = UserProfile.objects.only('score').get(user_id=obj_owner_id).score
 	status = 'banned_content_submitter_and_voter' if already_banned else ''
 	# show banning options according to value of 'already_banned'
 	if already_banned:
@@ -1729,12 +1731,12 @@ def initiate_content_submission_and_voting_ban(obj_owner_id, obj_id, purl, capti
 				origin=origin, owner_uname=owner_uname, link_id=link_id, banner_id=banner_id, sin=status, target_id=obj_owner_id)
 			template_name = "judgement/initiate_already_imposed_content_submission_and_voting_ban.html"
 			context = {'orig':origin, 'complaints':get_num_complaints(),'oun':owner_uname,'time_remaining':time_remaining,'ban_data':ban_detail,\
-			'obid':obj_id,'purl':purl,'ooid':obj_owner_id,'lid':link_id,'cap':caption,'tp':obj_type, reason:True,'can_edit':can_edit, \
+			'obid':obj_id,'purl':purl,'ooid':obj_owner_id,'lid':link_id,'offender_score':offender_score,'cap':caption,'tp':obj_type, reason:True,'can_edit':can_edit, \
 			'target_uname':retrieve_uname(obj_owner_id,decode=True)}
 			return context, template_name
 	else:
 		context = {'obid':obj_id,'purl':purl,'oun':owner_uname,'ooid':obj_owner_id,'orig':origin,'lid':link_id,'complaints':get_num_complaints(),\
-		'obj_type':obj_type,'cap':caption}
+		'obj_type':obj_type,'cap':caption,'offender_score':offender_score}
 		template_name = 'judgement/initiate_content_submission_and_voting_ban.html'
 		return context, template_name
 

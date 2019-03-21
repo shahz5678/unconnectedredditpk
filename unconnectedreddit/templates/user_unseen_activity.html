@@ -16,29 +16,31 @@
 {% block content %}
 <head><title>{{ user.username }}'s inbox | Damadam.pk</title></head>
 
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
-<div style="margin: 0 auto;max-width:600px;width:98%">
+<div style="margin: 0 auto;max-width:600px;width:96%">
 {% if page.object_list %}
 
 <div class="mbs fx fxjscn fxaibl">
-<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" class="mrs" style="display:inline-block">{% csrf_token %}<button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></form>
-<h1 class="mls cl clb sp" style="margin:0;display:inline-block">Matka:</h1>
+	<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" class="mrs" style="display:inline-block">{% csrf_token %}<button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></form>
+	<h1 class="mls cxl clb lsp" style="margin:0;display:inline-block">Matka:</h1>
 </div>
 
 {% for notif in object_list %}
-<div class="bizcard" style="background-color:white;padding:10px 7px;margin-bottom:15px">
-<a name="section{{ forloop.counter }}"></a>
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+
+	<a name="section{{ forloop.counter }}"></a>
 	{% with forms|get_item:notif.oi as form %}
 	{% if notif.s != 'True' and  notif.u|floatformat:"3" > last_visit_time|floatformat:"3" %}
-	<div class="mbs">
-	<div class="st-dot" style="background-color:#fe4d4d"></div>
-	<div style="color:#fe4d4d;font-weight:bold;display:inline" class="cs sp">new</div>
+	<div class="mls mbs">
+		<div class="st-dot" style="background-color:tomato"></div>
+		<div style="color:tomato;font-weight:bold;display:inline" class="cs sp">new</div>
 	</div>
 	{% endif %}
 
 {% if notif.ot == '5' %}
 {% if notif.s == 'True' %}
+	<div class="mrs mls mbl mts">
 	<form class="mbl" method="POST" action="{% url 'enter_personal_group' %}">
 	{% csrf_token %}
 
@@ -68,14 +70,14 @@
 	</form>
 	<div class="cgy">
 	{% if notif.d = 'del' %}
-		<div class="cs sp mbl">Pegham aya {{ notif.lrti|human_time }}:</div>
+		<div class="cs sp mbl">latest message ({{ notif.lrti|human_time }}):</div>
 		<div class="mbs">
-		{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-			<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
-		{% else %}
-			<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
-		{% endif %}
-		<span class="sp cgy lsp mrs">msg mita dia gya</span>
+			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+				<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
+			{% else %}
+				<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+			{% endif %}
+			<span class="sp cgy lsp mrs">msg mita dia gya</span>
 		</div>
 	{% else %}
 		{% if notif.type == 'exited' %}
@@ -85,65 +87,65 @@
 		{% elif notif.type == 'creation' %}
 			<div class="cs sp mbs">1 on 1 start karney ke liye neechay likhein:</div>
 		{% elif notif.type == 'notif' %}
-			<div class="cs sp mbl">Permission manga {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">Permission requested ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% endif %}
+				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% endif %}
 			</div>
 		{% elif notif.type == 'action' %}
-			<div class="cs sp mbl">Emoji aya {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">emoji ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% endif %}
+				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% endif %}
 			</div>
 		{% elif notif.type == 'img' or notif.type == 'img_res' or notif.type == 'shared_img' %}
-			<div class="cs sp mbl">Foto ayi {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">foto posted ({{ notif.lrti|human_time }}):</div>
 			
 			<form action="{% url 'enter_personal_group' %}" method="POST">
-			{% csrf_token %}
-			{% if user_id|slugify == notif.id2 %}
-			<button name="tid" style="background:0 0;padding:0;border:none" value="{{ notif.id1 }}">
-			{% else %}
-			<button name="tid" style="background:0 0;padding:0;border:none" value="{{ notif.id2 }}">
-			{% endif %}
-			{% if notif.h == 'no' %}
-			<img src="{{ notif.rp|s3:'thumb' }}" alt="pic" height="60" style="border-radius:6px">
-			{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="pic" height="60" style="border-radius:6px">
-			{% endif %}
-			</button>
+				{% csrf_token %}
+				{% if user_id|slugify == notif.id2 %}
+				<button name="tid" style="background:0 0;padding:0;border:none" value="{{ notif.id1 }}">
+				{% else %}
+				<button name="tid" style="background:0 0;padding:0;border:none" value="{{ notif.id2 }}">
+				{% endif %}
+				{% if notif.h == 'no' %}
+				<img src="{{ notif.rp|s3:'thumb' }}" alt="pic" height="60" style="border-radius:6px">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="pic" height="60" style="border-radius:6px">
+				{% endif %}
+				</button>
 			</form>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
-			{% endif %}
-			{% if notif.h == 'no' %}
-				{% if notif.lrtx %}
-				<span class="cl cgy lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
+				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+				{% endif %}
+				{% if notif.h == 'no' %}
+					{% if notif.lrtx %}
+					<span class="cl cgy lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
+					{% else %}
+					<span class="sp lsp mrs"> .. ..</span>
+					{% endif %}
 				{% else %}
 				<span class="sp lsp mrs"> .. ..</span>
 				{% endif %}
-			{% else %}
-			<span class="sp lsp mrs"> .. ..</span>
-			{% endif %}
 			</div>
 		{% else %}
-			<div class="cs sp mbl">Pegham aya {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">latest message ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
-			{% endif %}
-			<span class="cl cgy lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
+				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+				{% endif %}
+				<span class="cl cgy lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
 			</div>
 		{% endif %}
 	{% endif %}
@@ -159,13 +161,14 @@
 		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		{{ form.personal_group_reply|htmlattributes:'border: 1px solid #bdbdbd;color:#306654' }}
-		<button class="btn bcgy bms mts" type="submit">jawab do</button>
-	</div>
+		<button class="btn bcgy bms mts sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+		</div>
 	</form>
 	{% endif %}
 	</div>
+	</div>
 {% else %}
-
+	<div class="mrs mls mbl mts">
 	<form class="mbl" method="POST" action="{% url 'enter_personal_group' %}">
 	{% csrf_token %}
 
@@ -197,12 +200,12 @@
 	{% if notif.d = 'del' %}
 		<div class="cs sp mbl">new pegham aya {{ notif.lrti|human_time }}:</div>
 		<div class="mbs">
-		{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-			<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
-		{% else %}
-			<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
-		{% endif %}
-		<span class="sp cgy lsp mrs">msg mita dia gya</span>
+			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+				<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
+			{% else %}
+				<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+			{% endif %}
+			<span class="sp cgy lsp mrs">msg mita dia gya</span>
 		</div>
 	{% else %}
 		{% if notif.type == 'exited' %}
@@ -214,58 +217,58 @@
 		{% elif notif.type == 'notif' %}
 			<div class="cs sp mbl">new permission manga {{ notif.lrti|human_time }}:</div>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.anon == '1' %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% endif %}
+				{% if notif.anon == '1' %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% endif %}
 			</div>
 		{% elif notif.type == 'action' %}
 			<div class="cs sp mbl">new emoji aya {{ notif.lrti|human_time }}:</div>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
-			{% endif %}
+				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+				{% endif %}
 			</div>
 		{% elif notif.type == 'img' or notif.type == 'img_res' or notif.type == 'shared_img' %}
-			<div class="cs sp mbl">new foto ayi {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">foto posted ({{ notif.lrti|human_time }}):</div>
 			<form action="{% url 'enter_personal_group' %}" method="POST">
-			{% csrf_token %}
-			<button name="tid" style="background:0 0;padding:0;border:none" value="{{ notif.lrwi }}">
-			{% if notif.h == 'no' %}
-			<img src="{{ notif.rp|s3:'thumb' }}" alt="pic" height="60" style="border-radius:6px">
-			{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="pic" height="60" style="border-radius:6px">
-			{% endif %}
-			</button>
+				{% csrf_token %}
+				<button name="tid" style="background:0 0;padding:0;border:none" value="{{ notif.lrwi }}">
+				{% if notif.h == 'no' %}
+				<img src="{{ notif.rp|s3:'thumb' }}" alt="pic" height="60" style="border-radius:6px">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar.jpg" alt="pic" height="60" style="border-radius:6px">
+				{% endif %}
+				</button>
 			</form>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
-			{% endif %}
-			{% if notif.h == 'no' %}
-				{% if notif.lrtx %}
-				<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
+				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+				{% endif %}
+				{% if notif.h == 'no' %}
+					{% if notif.lrtx %}
+					<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
+					{% else %}
+					<span class="sp lsp mrs"> .. ..</span>
+					{% endif %}
 				{% else %}
 				<span class="sp lsp mrs"> .. ..</span>
 				{% endif %}
-			{% else %}
-			<span class="sp lsp mrs"> .. ..</span>
-			{% endif %}
 			</div>
 		{% else %}
 			<div class="cs sp mbl">new pegham aya {{ notif.lrti|human_time }}:</div>
 			<div class="mbs" style="overflow:hidden">
-			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
-			{% else %}
-				<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
-			{% endif %}
-			<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
+				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
+				{% else %}
+					<a href="{% url 'profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+				{% endif %}
+				<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
 			</div>
 		{% endif %}
 	{% endif %}
@@ -280,314 +283,327 @@
 		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		{{ form.personal_group_reply }}
-		<button class="btn bms mts" style="background-color:#306654" type="submit">jawab do</button>
-	</div>
+		<button class="btn bms mts sp pg_ok_res" style="background-color:#306654" type="submit">jawab&nbsp;do</button>
+		</div>
 	</form>
 	{% endif %}
+	</div>
 	</div>
 {% endif %}
 
 {% elif notif.ot == '2' %}
 {% if notif.s == 'True' %}
-	<div style="overflow:hidden">
-	<a href="{% url 'profile' notif.oon %}" class="cgy">
-	<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
-	{{ notif.oon }}</a><span class="cgy bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token %}<button name="lid" style="height:20px" class="btn nw bcgy bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
-	</div>
-	<div class="mtl">
-	<div class="cgy cs sp">jawab aya {{ notif.lrti|human_time }}:</div>
-		<div class="mbs mts" style="overflow:hidden">
-			<a href="{% url 'profile' notif.lrsn %}" class="cgy">
-			{% if notif.lrau != 'None' %}
-			<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
-			{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic"></img>
-			{% endif %}
-			{{ notif.lrsn }}</a><span class="cgy bw lsp">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
+	<div class="mls mrs mts mbl">
+		<div style="overflow:hidden">
+			<a href="{% url 'profile' notif.oon %}" class="cgy">
+			<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
+			{{ notif.oon }}</a><span class="cgy bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token %}<button name="lid" style="height:20px" class="btn nw bcgy bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 		</div>
-	{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
-		{% csrf_token %}
-		<input type="hidden" name="sk" value="{{ sk }}">
-		<div class="box-with-button-right">
-		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
-		{{ form.home_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
-		<button class="btn bcgy bms" name="btn{{ forloop.counter }}" type="submit">jawab do</button>
+		<div class="mtl">
+			<div class="cgy cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+			<div class="mbs mts" style="overflow:hidden">
+				<a href="{% url 'profile' notif.lrsn %}" class="cgy">
+				{% if notif.lrau != 'None' %}
+				<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic">
+				{% endif %}
+				{{ notif.lrsn }}</a><span class="cgy bw lsp">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
+			</div>
+			{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
+			<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
+				{% csrf_token %}
+				<input type="hidden" name="sk" value="{{ sk }}">
+				<div class="box-with-button-right">
+				<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
+				{{ form.home_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
+				<button class="btn bcgy bms sp pg_ok_res" name="btn{{ forloop.counter }}" type="submit">jawab&nbsp;do</button>
+				</div>
+			</form>
 		</div>
-		</form>
 	</div>
 {% else %}
-
-	<div style="overflow:hidden">
-	<a href="{% url 'profile' notif.oon %}" class="cgy">
-	<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
-	<span class="ct">{{ notif.oon }}</span></a><span class="ct bw">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" style="height:20px" type="submit" value="{{ notif.oi }}">post</button></form>
-	</div>
-	<div class="mtl">
-	<div class="ct cs sp">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</div>
-		<div class="lsp mts mbs" style="overflow:hidden">
-			<span class="clb lsp"><a href="{% url 'profile' notif.lrsn %}">
-			{% if notif.lrau != 'None' %}
-			<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibt">
-			{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibt">
-			{% endif %}
-			{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+	
+	<div class="mls mrs mbl mts">
+		<div style="overflow:hidden">
+			<a href="{% url 'profile' notif.oon %}" class="cgy">
+			<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
+			<span class="ct">{{ notif.oon }}</span></a><span class="ct bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" style="height:20px" type="submit" value="{{ notif.oi }}">post</button></form>
 		</div>
-		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-		<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
-		{% csrf_token %}
-		<input type="hidden" name="sk" value="{{ sk }}">
-		<div class="box-with-button-right">
-		<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
-		{{ form.home_comment }}
-		<br><button class="btn bct bms mts" type="submit">jawab do</button>
+		<div class="mtl">
+			<div class="ct cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+			<div class="lsp mts mbs" style="overflow:hidden">
+				<span class="clb lsp"><a href="{% url 'profile' notif.lrsn %}">
+				{% if notif.lrau != 'None' %}
+				<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibt">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibt">
+				{% endif %}
+				{{ notif.lrsn }}</a>: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+			</div>
+			{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
+			<form method="post" action="{% url 'unseen_reply' pk=notif.oi %}">
+				{% csrf_token %}
+				<input type="hidden" name="sk" value="{{ sk }}">
+				<div class="box-with-button-right">
+				<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
+				{{ form.home_comment }}
+				<br><button class="btn bct bms mts sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+				</div>
+			</form>
 		</div>
-		</form>
 	</div>
 {% endif %}
 
 
 {% elif notif.ot == '3' %}
 	{% if notif.s == 'True' %}
-	<div style="overflow:hidden">
-		{% if notif.g == '1' %}
-		<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}"><label class="cgy bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label></form> &nbsp;&nbsp;<form method="POST" action="{% url 'priv_group' %}"  style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" style="height:20px" class="btn nw bs cs bcgy">mehfil</button></form>
-		{% else %}
-		<a href="{% url 'public_group' notif.l %}"><b class="cgy bw">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</b></a> &nbsp;&nbsp;<a href="{% url 'public_group' notif.l %}"><button style="height:20px" class="btn nw bcgy bs cs">mehfil</button></a>
-		{% endif %}
-	</div>
-	<div class="mtl">
-	<div class="cgy cs sp">jawab aya {{ notif.lrti|human_time }}:</div>
-		{% if notif.rp != 'None' %}
-		<img src="{{ notif.rp|s3 }}" style="border-radius:12px" class="ibg" alt="{{ notif.lrtx }}">
-		<br>
-		{% endif %}
-
-		<div class="mts mbs" style="overflow:hidden">
-		<a href="{% url 'profile' notif.lrsn %}">
-		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
-		{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic">
-		{% endif %}
-	
-		<span class="cgy bw">{{ notif.lrsn }}</span></a><span class="lsp cgy bw">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
+	<div class="mts mbl">
+		<div class="mls mrs" style="overflow:hidden">
+			{% if notif.g == '1' %}
+				<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}"><label class="cgy bw lsp" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label></form> &nbsp;&nbsp;<form method="POST" action="{% url 'priv_group' %}"  style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" style="height:20px" class="btn nw bs cs bcgy">mehfil</button></form>
+			{% else %}
+				<a href="{% url 'public_group' notif.l %}"><b class="cgy bw lsp">{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</b></a> &nbsp;&nbsp;<a href="{% url 'public_group' notif.l %}"><button style="height:20px" class="btn nw bcgy bs cs">mehfil</button></a>
+			{% endif %}
 		</div>
-
-		{% if notif.g == '1' %}
-		
-		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-		<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
-			{% csrf_token %}
-			<input type="hidden" name="sk" value="{{ sk }}">
-			<div class="box-with-button-right">
-			{{ form.private_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
-			<button class="btn bcgy bms" type="submit" >jawab do</button>
+		<div class="mtl">
+			<div class="mrs mls cgy cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+			{% if notif.rp != 'None' %}
+			<div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+				<img src="{{ notif.rp|s3 }}" style="vertical-align:top;width:100%;max-width:450px" alt="{{ notif.lrtx }}">
 			</div>
-		</form>
+			{% endif %}
 
-		{% else %}
-		
-		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
+			<div class="mls mrs mts mbs" style="overflow:hidden">
+				<a href="{% url 'profile' notif.lrsn %}">
+				{% if notif.lrau != 'None' %}
+				<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
+				{% else %}
+				<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic">
+				{% endif %}
+			
+				<span class="cgy bw">{{ notif.lrsn }}</span></a><span class="lsp cgy bw">:&nbsp;{% emoticons %}{{ notif.lrtx|truncatechars:40 }}{% endemoticons %}</span>
+			</div>
+
+			{% if notif.g == '1' %}
+			
+			{% if form.errors %}<span class="mrs mls cr">{{ form.errors|show_error }}</span>{% endif %}
+			<form method="post" class="mrs mls" action="{% url 'unseen_group' pk=notif.oi %}">
 				{% csrf_token %}
 				<input type="hidden" name="sk" value="{{ sk }}">
 				<div class="box-with-button-right">
-				{{ form.public_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
-				<button class="btn bcgy bms" type="submit">jawab do</button>
+				{{ form.private_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
+				<button class="btn bcgy bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
 				</div>
 			</form>
-			
-		{% endif %}
-	</div>
 
+			{% else %}
+			
+			{% if form.errors %}<span class="mrs mls cr">{{ form.errors|show_error }}</span>{% endif %}
+				<form method="post" class="mrs mls" action="{% url 'unseen_group' pk=notif.oi %}">
+					{% csrf_token %}
+					<input type="hidden" name="sk" value="{{ sk }}">
+					<div class="box-with-button-right">
+					{{ form.public_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
+					<button class="btn bcgy bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+					</div>
+				</form>
+				
+			{% endif %}
+		</div>
+	</div>
 	{% else %}
 	
 		{% if notif.g == '1' %}
-		<div style="overflow:hidden">
-			<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}"><label class="cg bw" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label></form> &nbsp;&nbsp;<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" style="height:20px" class="btn nw bs cs bcg">mehfil</button></form>
-		</div>
-		
-		<div class="mtl">
-		<div class="cg cs sp">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</div>
-		{% if notif.rp != 'None' %}	
-		<img src="{{ notif.rp|s3 }}" style="border-radius:12px" class="ibgn" alt="{{ notif.lrtx }}">
-		<br>
-		{% endif %}
-
-		<div class="mts mbs" style="overflow:hidden">
-			<a href="{% url 'profile' notif.lrsn %}">
-			{% if notif.lrau != 'None' %}
-			<img style="width:auto;border-radius:50%" height="22" width="22" src="{{ notif.lrau|s3:'thumb' }}" class="ibgn">
-			{% else %}
-			<img style="width:auto;border-radius:50%" height="22" width="22" src="{{ STATIC_URL }}img/default-avatar-min.jpg" class="ibgn">
-			{% endif %}
-			{{ notif.lrsn }}</a><span class="clb bw lsp">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
-		</div>
-		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-		
-			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
-				{% csrf_token %}
-				<input type="hidden" name="sk" value="{{ sk }}">
-				<div class="box-with-button-right">
-				{{ form.private_group_reply }}
-				<button class="btn bcg bms mts" type="submit" >jawab do</button>
+		<div class="mts mbl">
+			<div class="mrs mls" style="overflow:hidden">
+				<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ notif.l }}"><label class="cg bw lsp" style="border:none;background:none;font-weight:bold;cursor: pointer;">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}<input type="submit" style="border:none;background:none;opacity:0;margin-left:-1.2em;" value="."></label></form> &nbsp;&nbsp;<form method="POST" action="{% url 'priv_group' %}" style="display:inline">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ notif.l }}" style="height:20px" class="btn nw bs cs bcg">mehfil</button></form>
+			</div>
+			
+			<div class="mtl">
+				<div class="mrs mls cg cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+				{% if notif.rp != 'None' %}	
+				<div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+					<img src="{{ notif.rp|s3 }}" style="vertical-align:top;width:100%;max-width:450px" alt="{{ notif.lrtx }}">
 				</div>
-			</form>
+				{% endif %}
+
+				<div class="mrs mls mts mbs" style="overflow:hidden">
+					<a href="{% url 'profile' notif.lrsn %}">
+					{% if notif.lrau != 'None' %}
+					<img style="width:auto;border-radius:50%" height="22" width="22" src="{{ notif.lrau|s3:'thumb' }}" class="ibgn">
+					{% else %}
+					<img style="width:auto;border-radius:50%" height="22" width="22" src="{{ STATIC_URL }}img/default-avatar-min.jpg" class="ibgn">
+					{% endif %}
+					{{ notif.lrsn }}</a><span class="clb bw lsp">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+				</div>
+				{% if form.errors %}<span class="mrs mls cr">{{ form.errors|show_error }}</span>{% endif %}
+			
+				<form method="post" class="mrs mls mts" action="{% url 'unseen_group' pk=notif.oi %}">
+					{% csrf_token %}
+					<input type="hidden" name="sk" value="{{ sk }}">
+					<div class="box-with-button-right">
+					{{ form.private_group_reply }}
+					<button class="btn bcg bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+					</div>
+				</form>
+			</div>
 		</div>
 		{% else %}
+		<div class="mts mbl">
+			<div class="mrs mls" style="overflow:hidden">
+				<a href="{% url 'public_group' notif.l %}"><b class="cp bw lsp">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a> &nbsp;&nbsp;<a href="{% url 'public_group' notif.l %}"><button style="height:20px" class="btn nw bcp bs cs">mehfil</button></a>
+			</div>
 
-		<div style="overflow:hidden">
-		<a href="{% url 'public_group' notif.l %}"><b class="cp bw">{% emoticons %}{{ notif.od|truncatechars:80 }}{% endemoticons %}</b></a> &nbsp;&nbsp;<a href="{% url 'public_group' notif.l %}"><button style="height:20px" class="btn nw bcp bs cs">mehfil</button></a>
-		</div>
-
-		<div class="mtl">
-		<div class="cp cs sp">new jawab aya <b>{{ notif.lrti|human_time }}</b>:</div>
-		{% if notif.rp != 'None' %}
-		<img src="{{ notif.rp|s3 }}" style="border-radius:12px" class="ibp" alt="{{ notif.lrtx }}">
-		<br>
-		{% endif %}
-
-		<div class="mbs mts" style="overflow:hidden">
-		<a href="{% url 'profile' notif.lrsn %}">
-		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibp">
-		{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic">
-		{% endif %}
-		
-		{{ notif.lrsn }}</a><span class="clb bw lsp">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
-		</div>
-		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-			<form method="post" action="{% url 'unseen_group' pk=notif.oi %}">
-				{% csrf_token %}
-				<input type="hidden" name="sk" value="{{ sk }}">
-				<div class="box-with-button-right">
-				{{ form.public_group_reply }}
-				<button class="btn bcp bms" type="submit">jawab do</button>
+			<div class="mtl">
+				<div class="mrs mls cp cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+				{% if notif.rp != 'None' %}
+				<div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+					<img src="{{ notif.rp|s3 }}" style="vertical-align:top;width:100%;max-width:450px" alt="{{ notif.lrtx }}">
 				</div>
-			</form>
+				{% endif %}
+
+				<div class="mls mrs mbs mts" style="overflow:hidden">
+					<a href="{% url 'profile' notif.lrsn %}">
+					{% if notif.lrau != 'None' %}
+					<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibp">
+					{% else %}
+					<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic">
+					{% endif %}
+					
+					{{ notif.lrsn }}</a><span class="clb bw lsp">: {% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+				</div>
+				{% if form.errors %}<span class="mrs mls cr">{{ form.errors|show_error }}</span>{% endif %}
+				<form method="post" class="mrs mls" action="{% url 'unseen_group' pk=notif.oi %}">
+					{% csrf_token %}
+					<input type="hidden" name="sk" value="{{ sk }}">
+					<div class="box-with-button-right">
+					{{ form.public_group_reply }}
+					<button class="btn bcp bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+					</div>
+				</form>
+			</div>
 		</div>
 		{% endif %}
-
 	{% endif %}
 
 {% elif notif.ot == '0' %}
 		{% if notif.s == 'True' %}
 			{% if notif.f == 'True' %}
-				<div class="mbs cgy cs sp"><b>{{ notif.oon }}</b> ke fans ke liye:</div>
+				<div class="mbs cgy cs lsp sp" style="text-align:center;border-bottom:2px solid whitesmoke;background-color:#fefefa;padding:5px 0"><b>{{ notif.oon }}</b> ke fans ke liye:</div>
+			{% else %}
+				<div class="mbs cgy cs lsp sp" style="text-align:center;border-bottom:2px solid whitesmoke;background-color:#fefefa;padding:5px 0">foto by <b>{{ notif.oon }}</b>:</div>
 			{% endif %}
-				<div class="cl cgy bw lsp" style="margin:0;font-weight:bold;max-width:400px">{% emoticons %}{{ notif.od }}{% endemoticons %}</div>
+			<div class="cl lsp clb ow" style="overflow:hidden;text-align:center;padding:0 5px">{% emoticons %}{{ notif.od }}{% endemoticons %}</div>
+		    <div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 		    {% if notif.v|add:"0" < VDC %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+		    	<img src="{{ STATIC_URL }}img/broken.svg" style="vertical-align:top" alt="pic">
 		    {% elif notif.v|add:"0" < VDP %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" style="border-radius:12px" class="fbl ibg mt" alt="{{ notif.od }}">
+			    <img src="{{ notif.p|s3 }}" style="width:100%;max-width:450px;vertical-align:top" class="bright" alt="{{ notif.od }}">
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="vertical-align:top" alt="pic" width="38" height="38">
 			    {% endif %}
 		    {% else %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" style="border-radius:12px" class="ibg mt" alt="{{ notif.od }}">
+			    <img src="{{ notif.p|s3 }}" style="width:100%;max-width:450px;vertical-align:top" alt="{{ notif.od }}">
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="vertical-align:top" alt="pic" width="38" height="38">
 			    {% endif %}
 		    {% endif %}
+		    </div>
 	    {% else %}
 	    	{% if notif.f == 'True' %}
-				<div class="mbs co cs sp"><b>{{ notif.oon }}</b> ke fans ke liye:</div>
+				<div class="mbs co cs lsp sp" style="text-align:center;border-bottom:2px solid whitesmoke;background-color:#fefefa;padding:5px 0"><b>{{ notif.oon }}</b> ke fans ke liye:</div>
+			{% else %}
+				<div class="mbs cgy cs lsp sp" style="text-align:center;border-bottom:2px solid whitesmoke;background-color:#fefefa;padding:5px 0">foto by <b>{{ notif.oon }}</b>:</div>
 			{% endif %}
-				<div class="cl co bw lsp" style="font-weight:bold;max-width:400px">{% emoticons %}{{ notif.od }}{% endemoticons %}</div>
+			<div class="cl lsp clb ow" style="overflow:hidden;text-align:center;padding:0 5px">{% emoticons %}{{ notif.od }}{% endemoticons %}</div>
+			<div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 	    	{% if notif.v|add:"0" < VDC %}
-		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+		    	<img src="{{ STATIC_URL }}img/broken.svg" style="vertical-align:top" alt="pic">
 		    {% elif notif.v|add:"0" < VDP %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" class="fbl ibo mt" style="border-radius:12px" alt="{{ notif.od }}">
+			    <img src="{{ notif.p|s3 }}" style="width:100%;max-width:450px;vertical-align:top" class="bright" alt="{{ notif.od }}">
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="vertical-align:top" alt="pic" width="38" height="38">
 			    {% endif %}
 		    {% else %}
 			    {% if notif.p != 'None' %}
-			    <img src="{{ notif.p|s3 }}" style="border-radius:12px" class="ibo mt" alt="{{ notif.od }}">
+			    <img src="{{ notif.p|s3 }}" style="width:100%;max-width:450px;vertical-align:top" alt="{{ notif.od }}">
 			    {% else %}
-			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" class="mt" style="border-radius:4px" alt="pic" width="38" height="38">
+			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" style="vertical-align:top" alt="pic" width="38" height="38">
 			    {% endif %}
 		    {% endif %}
+		    </div>
 		{% endif %}
 
 	{% if notif.s == 'True' %}
-		<div class="cs sp cgy">
-		foto by&nbsp;<a href="{% url 'profile' notif.oon %}" class="cgy"><span style="border-bottom:1px dotted gray">{{ notif.oon }}</span></a>
+		<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+			{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL seen='1' %}
+			{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL seen='1' %}
+			{% big_external_share_button owner_username=notif.oon is_mobile=is_mob photo_id=notif.oi origin='14' static_url=STATIC_URL seen='1' %}
+			{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id seen='1' %}
 		</div>
-		<div style="flex-wrap:wrap" class="mtl fx fxjsfs fxaicn cxs sp cgy">
-		{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL seen='1' %}
-		{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL seen='1' %}
-		{% big_external_share_button owner_username=notif.oon is_mobile=is_mob photo_id=notif.oi origin='14' static_url=STATIC_URL seen='1' %}
-		{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id seen='1' %}
-		</div>
-		<div class="mts">
-		{% if notif.nc != 'True' %}
-			{% if notif.lrti != 'None' %}
-			<div class="cgy cs sp">tabsra aya {{ notif.lrti|human_time }}:</div>
-			<div class="mts" style="overflow:hidden">
-			<a href="{% url 'profile' notif.lrsn %}">
-			<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
-			<span class="cgy">{{ notif.lrsn }}</span></a><span class="cgy lsp">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
-			</div>
+		<div class="mls mrs mts">
+			{% if notif.nc != 'True' %}
+				{% if notif.lrti != 'None' %}
+				<div class="cgy cs sp">latest tabsra ({{ notif.lrti|human_time }}):</div>
+				<div class="mts" style="overflow:hidden">
+					<a href="{% url 'profile' notif.lrsn %}">
+					<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
+					<span class="cgy">{{ notif.lrsn }}</span></a><span class="cgy lsp">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+				</div>
+				{% endif %}
 			{% endif %}
-		{% endif %}
-		<div class="mts">
+			<div class="mts">
+			{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
+			<form method="post" class="mbl mts" action="{% url 'unseen_comment' pk=notif.oi %}">
+				{% csrf_token %}
+				<input type="hidden" name="sk" value="{{ sk }}">
+				<div class="box-with-button-right">
+					<input type="hidden" name="popk" value="{{ notif.ooi }}">
+					{{ form.photo_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
+					<br><button class="btn bcgy bms sp pg_ok_res" type="submit">tabsra&nbsp;kro</button>
+				</div>
+			</form>
+			</div>
+		</div>
+	{% else %}
+	<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+		{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL %}
+		{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL %}
+		{% big_external_share_button owner_username=notif.oon is_mobile=is_mob photo_id=notif.oi origin='14' static_url=STATIC_URL %}
+		{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id %}
+	</div>
+	<div class="mts mrs mls">
+	{% if notif.nc != 'True' %}
+		<div class="co cs sp">new tabsra aya <b>{{ notif.lrti|human_time }}</b>:</div>
+		<div class="mbs mts" style="overflow:hidden">
+			<a href="{% url 'profile' notif.lrsn %}">
+			{% if notif.lrau != 'None' %}
+			<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibo">
+			{% else %}
+			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibo">
+			{% endif %}
+			{{ notif.lrsn }}</a><span class="clb lsp">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
+		</div>
+	{% endif %}
 		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
+		<form method="post" class="mbl mts" action="{% url 'unseen_comment' pk=notif.oi %}">
 			{% csrf_token %}
 			<input type="hidden" name="sk" value="{{ sk }}">
 			<div class="box-with-button-right">
 			<input type="hidden" name="popk" value="{{ notif.ooi }}">
-			{{ form.photo_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
-			<br><button class="btn bcgy bms mts" type="submit">tabsra kro</button>
+			{{ form.photo_comment }}
+			<button class="btn bco bms sp pg_ok_res" type="submit">tabsra&nbsp;kro</button>
 			</div>
-		</form>
-		</div>
-		</div>
-	{% else %}
-	<div class="cs sp co">
-	foto by <a href="{% url 'profile' notif.oon %}" class="co" style="border-bottom:1px dotted #e6b800;display:inline-block">{{ notif.oon }}</a>
-	</div>
-	<div style="flex-wrap:wrap" class="mtl fx fxjsfs fxaicn cxs sp cgy">
-	{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL %}
-	{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL %}
-	{% big_external_share_button owner_username=notif.oon is_mobile=is_mob photo_id=notif.oi origin='14' static_url=STATIC_URL %}
-	{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id %}
-	</div>
-	<div class="mts">
-	{% if notif.nc != 'True' %}
-		<div class="co cs sp">new tabsra aya <b>{{ notif.lrti|human_time }}</b>:</div>
-		<div class="mbs mts" style="overflow:hidden">
-		<a href="{% url 'profile' notif.lrsn %}">
-		{% if notif.lrau != 'None' %}
-		<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibo">
-		{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibo">
-		{% endif %}
-		{{ notif.lrsn }}</a><span class="clb lsp">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
-		</div>
-	{% endif %}
-		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
-		<form method="post" action="{% url 'unseen_comment' pk=notif.oi %}">
-		{% csrf_token %}
-		<input type="hidden" name="sk" value="{{ sk }}">
-		<div class="box-with-button-right">
-		<input type="hidden" name="popk" value="{{ notif.ooi }}">
-		{{ form.photo_comment }}
-		<button class="btn bco bms mts" type="submit">tabsra kro</button>
-		</div>
 		</form>
 	</div>
 	
 	{% endif %}
 {% elif notif.ot == '1' %}
-	<span class="co lsp">
+	<div class="mrs mls mts mbs co lsp">
 	{% if notif.t == '0' %}
 		Ye foto <img src="{{ notif.p|s3:"thumb" }}" style="height:38px;width:auto;border-radius:4px" alt="pic" class="ibo"> apke <b>{{ notif.v }} fans</b> mein se kisi ke bhi <b>matke</b> mein nahi pohonch saki<span class="mls cxs sp">{{ notif.u|human_time }}</span>
 		
@@ -613,9 +629,9 @@
 	{% endif %}
 	<hr size=1 COLOR="#ffe6cc">
 	<div style="text-align:center;color:darkgray" class="lsp cs sp">
-	Jitne fans apki fotos pe vote ya tabsre krein ge, apki fotos ki pohonch utni hi barhe gi
+	Jitne users apki fotos ko pasand karein ge, apki fotos utney hi zyada users ke matkoon mein jaye gi
 	</div>
-	</span>
+	</div>
 
 {% endif %}
 

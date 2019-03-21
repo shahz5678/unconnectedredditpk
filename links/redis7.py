@@ -7,6 +7,7 @@ from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOA
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
 from redis3 import retrieve_user_world_age
+from models import Photo
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
@@ -659,6 +660,7 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None):
 		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float(time_of_selection))
 		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
 		pipeline1.execute()
+		Photo.objects.filter(id=obj_id).update(device='6')
 		if random() < 0.05:
 			# sometimes trim the trending sorted set for size
 			trim_trending_list()
@@ -764,6 +766,7 @@ def remove_obj_from_trending(prefix,obj_id):
 			pipeline1.zrem(TRENDING_PHOTO_FEED,composite_id)
 			pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
 			pipeline1.execute()
+			Photo.objects.filter(id=obj_id).update(device='1')
 		else:
 			# not in trending (for whatever reason) - do nothing
 			pass

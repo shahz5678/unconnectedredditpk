@@ -780,7 +780,7 @@ def post_basic_item_photos(request,*args,**kwargs):
 										photo3 = 'duplicate'
 								else:
 									photo = Photo.objects.create(image_file = image, owner_id=user_id, caption='caption', comment_count=0, \
-										device=get_device(request), avg_hash=avghash, category='9')
+										avg_hash=avghash, category='9')
 									photo_id = photo.id
 									upload_ecomm_photo.delay(photo_id, user_id, get_temporarily_saved_ad_data(str(user_id),id_only=True))
 									temporarily_save_ad(user_id=str(user_id), which_photo_hash=photo_list[2], photo_id=photo_id, photo_hash=avghash, \

@@ -215,6 +215,8 @@ NUMBER_VERIFICATION_BONUS = 500
 ###############################################################################################################
 PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'
 ###############################################################################################################
+PERSONAL_GROUP_NOTIF_IVT_RATE_LIMIT = 86400#1 day breather between sending notification invites in personal groups
+PERSONAL_GROUP_NOTIF_RATE_LIMIT = 1800#rate limit a person for 30 mins after they've sent a push notification
 PERSONAL_GROUP_ERR = {'too_high':'Ye foto buhut lambi hai, koi aur chunein',\
 'mismatch':'Rabta munqata ho gaya, phir se karien','generic':'Internet ka rabta munqata ho gaya, phir se karien'}
 PERSONAL_GROUP_DEFAULT_SMS_TXT = ' ne apko Damadam ki 1 on 1 mein bulaya'

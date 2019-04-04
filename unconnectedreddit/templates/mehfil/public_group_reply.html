@@ -5,7 +5,7 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>{% if switching %}Public mehfil{% else %}{{ group_topic }} (public mehfil){% endif %} | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
 {% if switching %}
 
@@ -28,7 +28,7 @@
     <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:600px;width:96%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
     <a name="sectionJ"></a> 
 
     <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
@@ -46,7 +46,7 @@
         <input id="grp_sk" type="hidden" name="sk" value="{{ sk }}">
         <input id="grp_wid" type="hidden" name="wid" value="-1">
         <input name="uid" type="hidden" value="{{ unique }}">
-        <button class="btn bm bcp mrl mbs mts pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:26px" value="{{ group_id }}">OK</button>
+        <button class="btn bm bcp mrl mbs mts pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:28px" value="{{ group_id }}">OK</button>
     </form>&nbsp;
     <form action="{% url 'first_time_public_refresh' %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
@@ -67,7 +67,7 @@
                     (adsbygoogle = window.adsbygoogle || []).push({});
                     </script>
                 </div>
-                <hr size=1 COLOR="#E9EBEE">
+                <hr size=1 COLOR="#f4f4f4">
             {% endif %}
         
         {% if reply.category == '2' %}
@@ -107,7 +107,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a><span class="cg cxs sp">&nbsp;{% if reply.writer_score|add:"0" < 0 %}(1){% else %}({{ reply.writer_score }}){% endif %}</span>&nbsp;:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
+            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
 
             <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
         
@@ -124,7 +124,7 @@
             </div>
            
         {% endif %}
-        <hr size=1 COLOR="#E9EBEE">
+        <hr size=1 COLOR="#f4f4f4">
         
         {% endfor %}
     
@@ -181,7 +181,7 @@
                 (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
             </div>
-            <hr size=1 COLOR="#E9EBEE">
+            <hr size=1 COLOR="#f4f4f4">
         {% endif %}
 
         {% if reply.category == '2' %}
@@ -210,14 +210,14 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a><span class="cg cxs sp">&nbsp;{% if reply.writer_score|add:"0" < 0 %}(1){% else %}({{ reply.writer_score }}){% endif %}</span>&nbsp;:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
+            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
 
             <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             </div>
            
         {% endif %}
-        <hr size=1 COLOR="#E9EBEE">
+        <hr size=1 COLOR="#f4f4f4">
         
         {% endfor %}
 
@@ -226,5 +226,5 @@
     <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.12.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.13.js"></script>
 {% endblock %}

@@ -6,13 +6,13 @@
 {% load get_group_button %}
 {% block content %}
 <head><title>{% if switching %}Private mehfil{% else %}{{ group_topic }} (private mehfil){% endif %} | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
 <div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl lsp">{% if switching %}Mehfil not found{% else %}{% emoticons %}{{ group_topic }}{% endemoticons %}{% endif %}:</h1>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:600px;width:96%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
 
 {% if switching %}
     <div style="text-align:center">
@@ -36,7 +36,7 @@
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
         <div class="mtl sp">{% if form.errors %}<span class="cr lsp">{{ form.errors|show_error }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div>
         <div class="mt">{{ form.text }}</div>
-    <button class="mts mbs btn bm bcg mrl pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:26px" value="{{ group_id }}">OK</button>
+    <button class="mts mbs btn bm bcg mrl pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:28px" value="{{ group_id }}">OK</button>
     </form>&nbsp;
     <form action="{% url 'first_time_refresh' unique %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
@@ -57,11 +57,11 @@
                 (adsbygoogle = window.adsbygoogle || []).push({});
                 </script>
             </div>
-            <hr size=1 COLOR="#E9EBEE">
+            <hr size=1 COLOR="#f4f4f4">
         {% endif %}
 
         {% if reply.category == '1' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b> ne <bdi>{{ reply.text }}</bdi> ko invite kia</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b> ne <bdi><span class="clb" style="font-weight:bold">{{ reply.text }}</span></bdi> ko invite kia</span></div>
         {% elif reply.category == '2' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko mehfil se kick out kar dia gya</span></div>
         {% elif reply.category == '3' %}
@@ -109,7 +109,7 @@
                     {% endif %}
                 {% endif %}
         
-            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>&nbsp;{% if reply.writer_score|add:"0" < 0 %}<span class="cg sp cxs">(1)</span>{% else %}<span class="cg sp cxs">({{ reply.writer_score }})</span>{% endif %}&nbsp;:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
+            <a href="{% url 'profile' slug=reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
 
             <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
@@ -126,7 +126,7 @@
             </div>
         {% endif %}
             
-            <hr size=1 COLOR="#E9EBEE">
+            <hr size=1 COLOR="#f4f4f4">
 
         {% endfor %}
 
@@ -162,5 +162,5 @@
 <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.12.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.13.js"></script>
 {% endblock %}

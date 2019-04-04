@@ -49,20 +49,6 @@
 
 {% for link in link_list %}
 
-{% if forloop.counter == 6 %}
-
-    <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#fefefa;text-align:center">
-        <div class="cl sp lsp" style="border-bottom:1px solid #f4f4f4;padding:10px 5px 10px 10px;color:coral">Damadam ki latest fotos mein kya kya hai?</div>
-        <a href="{% url 'photo' 'fresh-list' %}">
-            <button class="vt" style="color:coral;padding-top:10px;width:100%;border:none;font-weight:bold;border:1px solid coral;border-radius:0 0 12px 12px">
-                <div class="mbs cxl sp" style="padding:4px 8px">See latest fotos</div>
-            </button>
-        </a>    
-    </div>
-
-{% endif %}
-
-
 {% if not on_fbs %}
 	
 	{% if forloop.counter == 3 %}

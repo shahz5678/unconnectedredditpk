@@ -113,7 +113,8 @@ img.yt_img:hover{
 
 
 </style>
-  
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.13.js"></script>
+
 <form action="{% url 'post_js_reply_to_personal_group' %}" id="form_template" method="POST" class="mtl" style="display:none" enctype="multipart/form-data">
   {% csrf_token %}
     <span id="pg_rep_size_err" style="text-align:center;display:none" class="cr">Ye foto buhut barri hai, choti foto chunein</span>
@@ -146,7 +147,7 @@ img.yt_img:hover{
 
     {% else %}
       
-      {% personal_group_input_fields sk=sk no_permit=no_permit no_sms=no_sms no_save_chat=no_save_chat t_nick=t_nick form_errors=form_errors personal_group_form=personal_group_form tid=tid static_url=STATIC_URL chat_not_empty=not_empty their_last_seen_time=their_last_seen_time|human_time last_seen_time_diff=last_seen_time_diff is_js_env=is_js_env %}
+      {% personal_group_input_fields sk=sk no_permit=no_permit no_notif=no_notif no_save_chat=no_save_chat t_nick=t_nick form_errors=form_errors personal_group_form=personal_group_form tid=tid static_url=STATIC_URL chat_not_empty=not_empty their_last_seen_time=their_last_seen_time|human_time last_seen_time_diff=last_seen_time_diff is_js_env=is_js_env %}
 
     {% endif %}
 
@@ -241,7 +242,7 @@ img.yt_img:hover{
                                 {% if blob.t_status == 'del' %}
                                     <div class="mbs">{% personal_group_deleted_post_message inset_color='white' shadow_base_color='#00E699' %}</div>
                                 {% elif blob.t_type == 'text' %}
-                                    <div class="lsp mbs"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
+                                    <div class="lsp mbs bw"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
                                 {% elif blob.t_type == 'img' or blob.t_type == 'shared_img' %}
                                     
                                       {% if blob.t_hidden == 'yes' %}
@@ -455,7 +456,7 @@ img.yt_img:hover{
                                       {% personal_group_deleted_post_message inset_color='white' shadow_base_color='#68D0FD' %}
                                     </div>
                                   {% elif blob.t_type == 'text' %}
-                                      <div class="lsp mbs"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
+                                      <div class="lsp mbs bw"><bdi>{% emoticons %}{{ blob.t_content|truncatechars:75 }}{% endemoticons %}</bdi></div>
                                   {% elif blob.t_type == 'img' or blob.t_type == 'shared_img' %}
                                       
                                      {% if blob.t_hidden == 'no' %}
@@ -582,7 +583,7 @@ img.yt_img:hover{
 
       {% if not is_suspended %}
       <div class="lsp mtl bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
-      <div class="cxl mts">Uper safed box mein apna message likhien aur <b>OK</b> dabain</div>
+      <div class="cxl mts">Uper safed box mein apna message likhein aur <b>OK</b> dabain</div>
       <hr size=1 COLOR="#F1F1DA"> 
       <div class="sp cgy cs">Agr 1 on 1 ki setting change karni hai tou neechay buttons istimal karien</div>
       </div>
@@ -597,8 +598,7 @@ img.yt_img:hover{
     {% endif %}
 
     {% personal_group_bottom_navbar tid STATIC_URL own_nick %}
-
 </div>
 <br><br>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/helper_funcs.v1.8.js"></script>
+
 {% endblock %}

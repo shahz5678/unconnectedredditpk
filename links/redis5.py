@@ -4,7 +4,7 @@ import ujson as json
 import redis, time, random
 from urlparse import urlparse
 from location import REDLOC5
-from score import THUMB_HEIGHT, EXTRA_PADDING, PERSONAL_GROUP_SAVE_MSGS
+from score import THUMB_HEIGHT, EXTRA_PADDING, PERSONAL_GROUP_SAVE_MSGS, PERSONAL_GROUP_NOTIF_IVT_RATE_LIMIT, PERSONAL_GROUP_NOTIF_RATE_LIMIT
 from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_FLOOR, PERSONAL_GROUP_BLOB_SIZE_LIMIT, PERSONAL_GROUP_PHT_XFER_IVTS, \
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
@@ -84,6 +84,13 @@ SENT_LIST_TRIMMING_RATE_LIMITED = 'siltrl:' # sent invite list trimming rate lim
 RECEIVED_LIST_TRIMMING_RATE_LIMITED = 'riltrl:' # received invite list trimming rate limited - key that rate limits trimming of said list
 
 PERSONAL_GROUP_INVITE_COUNT = 'pgic' #this key holds the cached value of received invites by a user id
+
+
+NOTIF_SENT_SUCCESSFULLY = "nss"# sorted set that contains all success reasons along with their counters
+NOTIF_SENDING_FAILED = "nsf"# sorted set that contains all failure reasons along with their counters
+NOTIF_RECEIVER_INTERACTION = "nri"# sorted set that contains all notification interactions, along with their counters
+
+
 #########################################
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC5, db=0)
@@ -1402,8 +1409,11 @@ def suspend_personal_group(suspended_by_id, their_id, group_id, override_rl=Fals
 			'phrec'+suspended_by_id:'0','phrec'+their_id:'0','svprm'+suspended_by_id:'0','svprm'+their_id:'0','lt_msg_t':exit_time,\
 			'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
 			'lt_msg_id':''}
+			group_key = "pgah:"+group_id
 			pipeline1 = my_server.pipeline()
-			pipeline1.hmset("pgah:"+group_id,mapping)
+			pipeline1.hmset(group_key,mapping)
+			pipeline1.hdel(group_key,'pn'+suspended_by_id)
+			pipeline1.hdel(group_key,'pn'+their_id)
 			pipeline1.zadd('exited_personal_groups',group_id,exit_time)
 			pipeline1.zadd("pgfgm:"+suspended_by_id,group_id+":"+their_id,exit_time)
 			pipeline1.zadd("pgfgm:"+their_id,group_id+":"+suspended_by_id,exit_time)
@@ -1419,8 +1429,11 @@ def suspend_personal_group(suspended_by_id, their_id, group_id, override_rl=Fals
 				'phrec'+suspended_by_id:'0','phrec'+their_id:'0','svprm'+suspended_by_id:'0','svprm'+their_id:'0','lt_msg_t':exit_time,\
 				'lt_msg_tp':'suspend','lt_msg_wid':suspended_by_id,'last_seen'+suspended_by_id:exit_time,'lt_msg_tx':'','lt_msg_img':'','lt_msg_st':'',\
 				'lt_msg_id':''}
+				group_key = "pgah:"+group_id
 				pipeline1 = my_server.pipeline()
-				pipeline1.hmset("pgah:"+group_id,mapping)
+				pipeline1.hmset(group_key,mapping)
+				pipeline1.hdel(group_key,'pn'+suspended_by_id)
+				pipeline1.hdel(group_key,'pn'+their_id)
 				pipeline1.zadd('exited_personal_groups',group_id,exit_time)
 				pipeline1.zadd("pgfgm:"+suspended_by_id,group_id+":"+their_id,exit_time)
 				pipeline1.zadd("pgfgm:"+their_id,group_id+":"+suspended_by_id,exit_time)
@@ -2422,9 +2435,8 @@ def personal_group_already_exists(own_id, target_id, server=None):
 	"""
 	if not target_id:
 		return None, False
-	if not server:
-		server = redis.Redis(connection_pool=POOL)
-	group_id = server.get("pgrp:"+str(own_id)+":"+target_id)
+	server = server if server else redis.Redis(connection_pool=POOL)
+	group_id = server.get("pgrp:"+str(own_id)+":"+str(target_id))
 	if group_id:
 		return group_id, True
 	else:
@@ -2458,6 +2470,116 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		#########################################################################################
 		pipeline1.execute()
 		return group_id, False
+
+
+################################## Push notifications in 1 on 1 ##################################
+
+
+def personal_group_notification_invite_allwd(their_id, group_id):
+	"""
+	Checking whether it's OK to send the target a notification-perm invite in personal group
+	"""
+	time_now = time.time()
+	my_server = redis.Redis(connection_pool=POOL)
+	hash_name, their_id = "pgah:"+group_id, str(their_id)
+	time_of_last_notif_invite = my_server.hget(hash_name,'nivtt'+their_id)#notification invite time - nivtt
+	if time_of_last_notif_invite:
+		# enough time has elapsed - allow them to send the notif invite again
+		if time_now - float(time_of_last_notif_invite) > PERSONAL_GROUP_NOTIF_IVT_RATE_LIMIT:
+			my_server.hset(hash_name,'nivtt'+their_id,time_now)
+			return True
+		else:
+			# they can't send the notif invite
+			return False
+	else:
+		# this has never been set before
+		my_server.hset(hash_name,'nivtt'+their_id,time_now)
+		return True
+
+
+def save_1on1_push_subscription(receiver_id, sender_id):
+	"""
+	receiver_id has allowed sender_id to send them a notification
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, already_exists = personal_group_already_exists(receiver_id, sender_id, my_server)
+	if group_id:
+		my_server.hset("pgah:"+group_id,'pn'+str(receiver_id),'1')
+
+
+def remove_1on1_push_subscription(receiver_id,sender_id):
+	"""
+	receiver_id has removed permission to receive push notifications from sender_id
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, already_exists = personal_group_already_exists(receiver_id, sender_id, my_server)
+	if group_id:
+		my_server.hdel("pgah:"+group_id,'pn'+str(receiver_id))
+
+
+def rate_limit_1on1_notification(sender_id, receiver_id):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, already_exists = personal_group_already_exists(receiver_id, sender_id, my_server)
+	if group_id:
+		my_server.setex('pnrl:'+str(sender_id)+":"+str(receiver_id),'1',PERSONAL_GROUP_NOTIF_RATE_LIMIT)
+
+def is_1on1_notif_rate_limited(sender_id, receiver_id):
+	"""
+	"""
+	ttl = redis.Redis(connection_pool=POOL).ttl('pnrl:'+str(sender_id)+":"+str(receiver_id))
+	if ttl:
+		return ttl
+	else:
+		return None
+
+
+def can_send_1on1_push(receiver_id, sender_id):
+	"""
+	Checks whether receiver_id has allowed sender_id to send a push notification in a 1on1
+
+	Checks for 'pn' (push_notification) flag in the group hash.
+	If pn+receiver_id is set to '1' - receiver_id has given permission to receive push notifications, otherwise not
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	group_id, already_exists = personal_group_already_exists(receiver_id, sender_id, my_server)
+	if group_id:
+		# group exists - what is the value of pn+receiver_id?
+		if my_server.hget("pgah:"+group_id,'pn'+str(receiver_id)) == '1':
+			# receiver_id has given permission to receive push notifications
+			return True
+		else:
+			# receiver_id has not given permission to receive push notifications
+			return False
+	else:
+		# group does not exist
+		return False
+
+
+def log_1on1_sent_notif(sent, status_code):
+	"""
+	Logging sent 1on1 notification metrics
+	"""
+	if sent:
+		# the notification was sent (whether it was received and reviewed is another story)
+		redis.Redis(connection_pool=POOL).zincrby(NOTIF_SENT_SUCCESSFULLY,status_code,amount=1)
+	else:
+		# the notification was not sent - log various failure reasons here
+		redis.Redis(connection_pool=POOL).zincrby(NOTIF_SENDING_FAILED,status_code,amount=1)
+
+
+def log_1on1_received_notif_interaction(status_code):
+	"""
+	Logging recieved 1on1 notification metrics
+	
+	Three status codes are employed:
+	'1' - the notification was received (counting all successful receipts - '2' and '3' merely count which notifications had actions performed on them by the user)
+	'2' - interaction on the received notification led to 'refocusing' of the window in the browser
+	'3' - interaction on the received notification led to opening up of a new window in the browser
+	"""
+	redis.Redis(connection_pool=POOL).zincrby(NOTIF_RECEIVER_INTERACTION,status_code,amount=1)
+
 
 
 # ############################################ test for post invite accept split test #########################

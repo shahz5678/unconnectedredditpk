@@ -1,0 +1,232 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>Push notification settings for 1 on 1 messaging | Damadam.pk</title></head>
+<style>body{background:#f0f3f4}</style>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/page/min_notif.v1.0.js"></script>
+{% if on_fbs %}
+
+	<h1 class="cxl lsp clb" style="text-align:center">Service not available:</h1>
+
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:450px;width:92%;overflow:hidden;background:white;text-align:center;margin-right:auto;margin-left:auto">
+	
+		<div class="cxl mbs lsp"><b>Sorry!</b> Ye service sirf Package ya Wifi pe chalti hai</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mts mbl lsp sp"><span class="cgy">Package ya WiFi be Damadam use karney ke liye "Let's Go" dabain:</span></div>
+		<a href="https://damadam.pk"><button type="submit" class="btn bcb bm cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="1">LET'S GO</button></a>
+		<form method="POST" class="mtl mbs" action="{% url 'enter_personal_group' %}">
+			{% csrf_token %}
+			<button type="submit" class="btn bcgy bm cl sp pg_ok_res" name="tid" style="border:none;height:40px;width:100%" value="{{ tid }}">BACK</button>
+		</form>
+
+	</div>
+
+{% elif unsupported_browser %}
+
+	<h1 class="cxl lsp clb" style="text-align:center">Browser not supported:</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:450px;width:92%;overflow:hidden;background:white;text-align:center;margin-right:auto;margin-left:auto">
+
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+	
+		<div class="cxl mbs mts lsp clb"><b>Sorry!</b> Ye service chalaney ke liye <img src="{{ STATIC_URL }}img/chrome.svg" height="25" width="25" style="vertical-align:baseline">&nbsp;Chrome browser ka <a href="https://chrome.en.softonic.com/" rel="nofollow" target="_blank">latest version</a> use karein</div>
+		<form method="POST" class="mtl mbs" action="{% url 'enter_personal_group' %}">
+			{% csrf_token %}
+			<button type="submit" class="btn bcgy bm cl sp pg_ok_res" name="tid" style="border:none;height:40px;width:100%" value="{{ tid }}">BACK</button>
+		</form>
+
+	</div>
+
+{% elif removed %}
+
+	<h1 class="cxl lsp clb" style="text-align:center">Notifications disallowed!</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:450px;width:92%;overflow:hidden;background:white;text-align:center;margin-right:auto;margin-left:auto">
+	
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+
+		<div class="cxl mts mbs lsp clb">Ab {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} apko 1 on 1 mein bulaney ke notifications send nahi kar sakey ga</div>
+		<form method="POST" class="mtl mbs" action="{% url 'enter_personal_group' %}">
+			{% csrf_token %}
+			<button type="submit" class="btn bcgy bm cl sp sp pg_ok_res" name="tid" style="border:none;height:40px;width:100%" value="{{ tid }}">BACK</button>
+		</form>
+
+	</div>
+
+{% else %}
+
+	<div class="mbl lsp clb" style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+		{% endif %}
+	</div>
+
+	{% if show_all_options %}
+
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:450px;width:92%;overflow:hidden;background:white;text-align:center;margin-right:auto;margin-left:auto">
+
+		<div class="cxl mbs lsp"><b>Send notification</b>: Kya ap {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko yahan bulaney ke liye notification send karna chahtey hain?</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mts lsp">
+			<span class="sp cgy cl">Agar manzoor hai tou neechay 'send' dabain:</span>
+		</div>
+
+		<form method="POST" class="mtl" action="{% url 'send_push_notification_for_1on1' %}" style="text-align:center">
+			{% csrf_token %}
+			<input type="hidden" id="send_tid" name="tid" value="{{ tid }}">
+			<button type="submit" id="send_notif_1on1_btn" class="btn bm sp cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%;background:#2de0ae" value="1">SEND</button><br>
+			<button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="0">BACK</button>
+			
+		</form>
+
+	</div>
+
+	<br>
+
+	{% endif %}
+
+		{% if allow_btn %}
+
+		<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:450px;width:92%;overflow:hidden;background:white;text-align:center;margin-right:auto;margin-left:auto">
+
+		<div class="cxl mbs lsp"><b>Allow notification</b>: {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko ijazat dein ke apko notification ke zariye 1 on 1 mein bula le</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mts lsp">
+			<span class="sp cgy cl">Agar manzoor hai tou neechay 'allow' dabain:</span>
+		</div>
+
+		<form method="POST" class="mtl" action="{% url 'decide_notification_perms_in_personal_group' %}" style="text-align:center">
+			{% csrf_token %}
+			<input type="hidden" id="notif_pub_key" name="pk" value="{{ public_key }}">
+			<input type="hidden" id="sw_loc" name="sw_loc" value="{{ STATIC_URL }}js/min_sw.v1.0.js">
+			<input type="hidden" id="allow_tid" name="tid" value="{{ tid }}">
+			<input type="hidden" id="furl" name="furl" value="{{ furl }}">
+			<input type="hidden" id="fts" name="fts" value="{{ first_time_subscriber }}">
+			
+			<button type="submit" id="allow_notif_1on1_btn" data-origin="1on1" class="btn bcb bm cl sp pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="1">ALLOW</button><br>
+			
+			<button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="0">BACK</button>
+			
+		</form>
+
+		</div>
+
+		{% elif disallow_btn %}
+
+		<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:450px;width:92%;overflow:hidden;background:white;text-align:center;margin-right:auto;margin-left:auto">
+
+		<div class="cxl mbs lsp"><b>Disallow notification</b>: Kya {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko apko notifications send karney se roke dein?</div>
+		<hr size=1 COLOR="#ffeb3b">
+		<div class="mts lsp">
+			<span class="sp cgy cl">Agar manzoor hai tou neechay 'disallow' dabain:</span>
+		</div>
+
+		<form method="POST" class="mtl" action="{% url 'decide_notification_perms_in_personal_group' %}" style="text-align:center">
+			{% csrf_token %}
+			<input type="hidden" name="tid" value="{{ tid }}">
+			
+			<button type="submit" data-origin="1on1" class="btn bm cl sp pg_ok_res" name="dec" style="border:none;height:40px;width:100%;background:coral" value="2">DISALLOW</button><br>
+			
+			<button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="0">BACK</button>
+			
+		</form>
+
+		</div>
+
+		{% elif incompatible %}
+		<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:92%;overflow:hidden;background:coral;text-align:center;margin-right:auto;margin-left:auto">
+
+			<div class="clw sp cm lsp" style="padding:7px">{% if on_fbs %}Freebasics pe 'allow' nahi chalta{% else %}Allow karney ke liye Chrome browser ka <a href="https://chrome.en.softonic.com/" rel="nofollow" target="_blank">latest version</a> use karein{% endif %}</div>
+
+			<div style="background:white;padding:10px 8px">
+				<div class="cxl mbs lsp"><b>Allow notification</b>: {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko ijazat dein ke apko notification ke zariye 1 on 1 mein bula le</div>
+				<hr size=1 COLOR="#ffeb3b">
+				<div class="mts lsp">
+					<span class="sp cgy cl">Agar manzoor hai tou neechay 'allow' dabain:</span>
+				</div>
+
+				<button data-origin="1on1" class="btn bcgy mtl bm cl sp pg_ok_res" style="border:none;height:40px;width:100%" disabled>ALLOW</button>
+
+				<form method="POST" class="mtl" action="{% url 'decide_notification_perms_in_personal_group' %}" style="text-align:center">
+					{% csrf_token %}
+					<input type="hidden" name="tid" value="{{ tid }}">
+					<button type="submit" class="btn bcgy bm mbs sp cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="0">BACK</button>
+					
+				</form>
+			</div>
+		</div>
+		{% elif disabled %}
+
+		<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:92%;overflow:hidden;background:coral;text-align:center;margin-right:auto;margin-left:auto">
+
+		<div class="clw sp cm lsp" style="padding:7px">{% if on_fbs %}Freebasics pe 'allow' nahi chalta{% else %}Allow karney ke liye browser mein Javascript hona zaruri hai, maslan Chrome browser{% endif %}</div>
+
+		<div style="background:white;padding:10px 8px">
+			<div class="cxl mbs lsp"><b>Allow notification</b>: {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko ijazat dein ke apko notification ke zariye 1 on 1 mein bula le</div>
+			<hr size=1 COLOR="#ffeb3b">
+			<div class="mts lsp">
+				<span class="sp cgy cl">Agar manzoor hai tou neechay 'allow' dabain:</span>
+			</div>
+
+			<button data-origin="1on1" class="btn bcgy mtl bm cl sp pg_ok_res" style="border:none;height:40px;width:100%" disabled>ALLOW</button>
+
+			<form method="POST" class="mtl" action="{% url 'decide_notification_perms_in_personal_group' %}" style="text-align:center">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcgy bm mbs sp cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="0">BACK</button>
+				
+			</form>
+		</div>
+
+		</div>
+
+		{% elif blocked %}
+
+		<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:92%;overflow:hidden;background:coral;text-align:center;margin-right:auto;margin-left:auto">
+
+		<div class="clw sp cm lsp" style="padding:7px"><b class="cl">Notifications blocked hain!</b><br>Inko allow karne ke liye browser ki 'settings' mein ja ke block khatam karein</div>
+
+		<div style="background:white;padding:10px 8px">
+			<div class="cxl mbs lsp"><b>Allow notification</b>: {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko ijazat dein ke apko notification ke zariye 1 on 1 mein bula le</div>
+			<hr size=1 COLOR="#ffeb3b">
+			<div class="mts lsp">
+				<span class="sp cgy cl">Agar manzoor hai tou neechay 'allow' dabain:</span>
+			</div>
+
+			<button data-origin="1on1" class="btn bcgy mtl bm cl sp pg_ok_res" style="border:none;height:40px;width:100%" disabled>ALLOW</button>
+
+			<form method="POST" class="mtl" action="{% url 'decide_notification_perms_in_personal_group' %}" style="text-align:center">
+				{% csrf_token %}
+				<input type="hidden" name="tid" value="{{ tid }}">
+				<button type="submit" class="btn bcgy bm mbs sp cl pg_ok_res" name="dec" style="border:none;height:40px;width:100%" value="0">BACK</button>
+				
+			</form>
+		</div>
+
+		</div>
+
+		{% endif %}
+
+		<h1 class="cxl lsp clb" style="text-align:center">Notification help:</h1>
+
+		<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:92%;overflow:hidden;background:white;text-align:center;margin-right:auto;margin-left:auto;padding:8px">
+
+			<div class="clb sp lsp" style="text-align:left">
+				<div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Notifications aik mobile se dusrey mobile ko send hotay hain</div>
+				<div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Notifications mein mobile number nahi use hota</div>
+				<div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Agar apko notification nahi receive ho raha, tou dubara se 'disallow'/'allow' ke steps karein</div>
+				<div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Jis browser mein notification 'allow' kiye hain, sirf ussi browser se apko notification aye ga, kisi aur se nahi</div>
+				<div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Aik waqt mein sirf aik browser pe notification 'allow' ho saktey hain</div>
+				<div class="mts" style="text-align:left"><span class="cgy cs">6)</span> Notifications 'allow' karney ke liye best browser Chrome hai <a href="https://chrome.en.softonic.com/" rel="nofollow" target="_blank">(download latest Chrome)</a></div>
+				<div class="mts" style="text-align:left"><span class="cgy cs">7)</span> Notifications send kisi bhi browser se ho saktey hain</div>
+			</div>
+
+		</div>
+
+{% endif %}
+
+<br><br>
+{% endblock %}

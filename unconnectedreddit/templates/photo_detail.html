@@ -37,7 +37,7 @@
 </head>
 <body style="background:#f0f3f4">
 
-<div class="header cxl" style="text-shadow:1px 1px #009940">Damadam.pk</div>
+{% include "header.html" %}
 <ul class="navbar">
 
 {% if user.is_authenticated %}
@@ -130,7 +130,7 @@
 <div style="text-align:center" class="mtl sp cxs cgy">
 |<a href="{% url 'about' %}"> &nbsp;About Us&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|
 </div>
-
+{% include "min_service_worker.html" %}
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 {% transparent_buttons_js ident=user.id static_url=STATIC_URL %}
 </body>

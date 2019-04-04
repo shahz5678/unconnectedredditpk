@@ -1,12 +1,12 @@
 {% if section == 'search' %}
 <div class="fx fxjscn fxaicn">
-	<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-left-radius:6px;border-bottom-left-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/search.svg" width="28" height="28" style="vertical-align:middle"></button>
-	<a href="{% url 'online_kon' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0;border-top-right-radius:5px;border-bottom-right-radius:5px"><img src="{{ static_url }}img/members_disabled.svg" width="23" height="23" style="vertical-align:middle"></button></a>
+	<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #229ec3;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#229ec3;font-weight:bold;"><img src="{{ static_url }}img/search.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">SEARCH</div></button>
+	<a href="{% url 'online_kon' %}"><button type="submit" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px; border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/members_disabled.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">ONLINE</div></button></a>
 </div>
 {% elif section == 'online' %}
 <div class="fx fxjscn fxaicn">
-	<a href="{% url 'search_username' %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/search-cgy.svg" width="22" height="22" style="vertical-align:middle"></button></a>
-	<button type="submit" class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;"><img src="{{ static_url }}img/members-ct.svg" width="28" height="28" style="vertical-align:middle"></button>
+	<a href="{% url 'search_username' %}"><button type="submit" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #DCDCDC;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#ff9933;font-weight:bold;"><img src="{{ static_url }}img/search-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts" style="color:#a9a9a9;">SEARCH</div></button></a>
+	<button type="submit" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #229ec3;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#229ec3;font-weight:bold;background:white"><img src="{{ static_url }}img/members-ct.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">ONLINE</div></button>
 </div>
 {% else %}
 {% endif %}

@@ -1,5 +1,9 @@
 <div class="bizcard mtl" style="text-align:center;overflow:hidden;background-color:#F0F3F4;border-radius: 10px;padding-bottom:6px;">
-  
+      
+      <form method="POST" action="{% url 'render_notification_perms_in_personal_group' %}" style="display:inline">
+        {% csrf_token %}
+        <button type="submit" name="tid" value="{{ tid }}" class="all_notif_btn cp cp-bg mrs" style="background-image: url('{{ static_url }}img/notification.svg')">&nbsp;</button>
+      </form>
       <form method="POST" action="{% url 'anonymize_user_in_personal_group' %}" style="display:inline">
         {% csrf_token %}
         {% if is_nick %}
@@ -20,16 +24,12 @@
         {% csrf_token %}
         <button type="submit" class="cp cp-bg mls mrs" style="background-image: url('{{ static_url }}img/sv.svg')" name="tid" value="{{ tid }}">&nbsp;</button>
       </form>
-      <form method="POST" action="{% url 'personal_group_sms_settings' %}" style="display:inline">
-        {% csrf_token %}
-        <button type="submit" class="cp cp-bg mls mrs" style="background-image: url('{{ static_url }}img/sms.svg');width:27px;height:27px;" name="tid" value="{{ tid }}">&nbsp;</button>
-      </form>
       <form method="POST" action="{% url 'personal_group_exit_settings' %}" style="display:inline">
         {% csrf_token %}
         <button type="submit" class="cp cp-bg mls mrs" style="background-image: url('{{ static_url }}img/exit.svg')" name="tid" value="{{ tid }}">&nbsp;</button>
       </form>
       <form method="POST" action="{% url 'personal_group_help1' %}" style="display:inline">
         {% csrf_token %}
-        <button type="submit" class="cp cp-bg mls mrs" style="background-image: url('{{ static_url }}img/help.svg')" name="tid" value="{{ tid }}">&nbsp;</button>
+        <button type="submit" class="cp cp-bg mls" style="background-image: url('{{ static_url }}img/help.svg')" name="tid" value="{{ tid }}">&nbsp;</button>
       </form>
 </div>

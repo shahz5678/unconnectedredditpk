@@ -39,7 +39,6 @@
 				{% else %}
 				<span itemprop="contentUrl">
 					{% if vsc < VDC %}
-
 						<img alt="hidden" style="vertical-align: top;" class="sp cs" src="{{ static_url }}img/broken.svg">
 					{% elif vsc < VDP %}
 						<img style="width:100%;max-width:450px;vertical-align: top;" class="bright cs sp" src="{{ img_url }}" alt="pic loading ...">
@@ -65,7 +64,7 @@
 			{% if vsc < VDC %}
 				<div class="lsp cl sp" style="color:darkgray;">- hidden -</div>
 			{% else %}
-			
+
 				<div class="ow" style="overflow:hidden;padding:0 5px">
 					<span class="cxl clb lsp" itemprop="caption"><bdi>{{ cap }}</bdi></span>{% if is_fbs == '1' %}<span class="mls cxs sp cgy">(fbs)</span>{% endif %}
 				</div>
@@ -92,7 +91,7 @@
 
 		</div>
 
-		<div class="cxs sp" style="text-align:center"><span class="cgy">{{ ut }}</span></div>
+		<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<span class="cgy">{{ ut }}</span></div>
 
 		</div>
 	{% endif %}

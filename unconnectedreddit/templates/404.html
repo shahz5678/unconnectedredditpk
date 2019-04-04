@@ -2,13 +2,13 @@
 <html style="background-color: #E9EBEE;">
 <style>
 body {
-	background-color: #E9EBEE;
-	font-family:Arial;
+    background-color: #E9EBEE;
+    font-family:Arial;
 }
 </style>
 <head>
 
-		<!-- has to be the first tag in head -->
+        <!-- has to be the first tag in head -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     {% include "favicons.html" %}
@@ -22,8 +22,8 @@ body {
         <meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, buy and sell, content, group, ads, classifieds, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
         <title>Page not found! | Damadam.pk</title>
         <meta property="og:site_name" content="Damadam.pk">
-		<meta property="og:type" content="website">
-		<meta property="og:description" content="Damadam is the place for gupshup with girls and guys from Pakistan, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+        <meta property="og:type" content="website">
+        <meta property="og:description" content="Damadam is the place for gupshup with girls and guys from Pakistan, the best funny photos and memes, and Urdu poetry. Join the fun now!">
         {% load google_analytics %}
         {% google_analytics %}
 
@@ -31,7 +31,7 @@ body {
 
 {% load count %}
 {% check_notif_count as notif_count %}
-<div class="header cxl" style="text-shadow:1px 1px #009940">Damadam.pk</div>
+{% include "header.html" %}
 <ul class="navbar">
 
 {% if user.is_authenticated %}
@@ -47,9 +47,9 @@ body {
 <br>
 
 <div style="margin-top:1em;margin-right: auto;margin-left: auto;max-width:600px;width:93%;border-radius:6px;padding:5px 5px 5px 5px;background-color:#26d5ab;padding-bottom:2em;-webkit-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);-moz-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-sizing: border-box;">
-	<div style="margin-top:1em;text-align:center">
-	<img src="{{ STATIC_URL }}img/scream.svg" alt="scream" height="200" width="200" style="font-size:60%;">
-	</div>
+    <div style="margin-top:1em;text-align:center">
+    <img src="{{ STATIC_URL }}img/scream.svg" alt="scream" height="200" width="200" style="font-size:60%;">
+    </div>
     <h1 style="color:white;text-shadow:1px 1px #009940;text-align:center;font-size:180%;">Aaaaa! Ye aik khokhlay matkey ki terah khali hai</h1>
 
     <h2 style="color:#f9ef6c;text-shadow:1px 1px #009940;text-align:center;">Ap rasta toh nahi bhool gaye?</h2>
@@ -57,9 +57,9 @@ body {
 <br><br>
 <ul class="navbar">
 {% if user.is_authenticated %}
-	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
 {% else %}
-	<li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'about' %}#section0">About</a></li>
+    <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'about' %}#section0">About</a></li>
 {% endif %}
 </ul>
 

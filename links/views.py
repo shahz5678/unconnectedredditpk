@@ -1588,12 +1588,13 @@ class UserProfilePhotosView(ListView):
 		if username:
 			target_id = retrieve_user_id(username)
 			if target_id:
-				return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count').filter(owner_id=target_id,\
+				return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count','device').filter(owner_id=target_id,\
 					category='1').order_by('-upload_time')
 			else:
 				raise Http404("This user does not exist")
 		else:
 			raise Http404("No username provided")
+
 
 
 	def get_context_data(self, **kwargs):

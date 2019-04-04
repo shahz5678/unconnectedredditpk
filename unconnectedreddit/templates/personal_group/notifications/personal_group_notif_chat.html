@@ -114,4 +114,43 @@
 
 </div>
 
+{% elif notif == '3' %}
+
+<div class="mtl mbl bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
+
+  {% if i_am_sender %}
+
+    <div class="lsp mts mbs mrs mls cl">
+      <span class="cm sp">Notification nahi gya!</span>
+      <hr size=1 COLOR="#F1F1DA">
+      {% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap unko notification bhej ke online bula sakein
+    </div>
+
+    <div class="mbs mrs" style="text-align:right">
+      <span class="sp cxs cgy">{{ time }}</span>
+    </div>
+    
+  {% else %}
+
+    <div class="lsp mts mbs">
+      <div class="cxl">{% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} ne apko notification allow karney ki dawat di</div>
+      <hr size=1 COLOR="#F1F1DA">
+      <div class="cm sp lsp">Is terah {% if their_nick %}<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko notification se Damadam pe bula lia karey ga</div>
+    </div>
+
+    <form method="POST" action="{% url 'render_notification_perms_in_personal_group' %}" style="display:inline">
+      {% csrf_token %}
+      <input type="hidden" id="notif_tid" name="tid" value="{{ tid }}">
+      <input type="hidden" id="notif_show_allow_only" name="show_allow_only" value="1">
+      <button type="submit" class="allow_notif_btn btn bcb mbs mts sp pg_ok_res" style="border:none;height:50px;padding:5px 10px"><div>Allow</div><div class="mt">Notification</div></button>
+    </form>
+    
+    <hr size=1 COLOR="#F1F1DA">
+
+    <div class="sp mt cgy cs mbs">Apka mobile number aur deegar data secret rehay ga</div>
+
+  {% endif %}
+
+</div>
+
 {% endif %}

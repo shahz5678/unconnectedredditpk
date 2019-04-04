@@ -66,6 +66,8 @@ PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 p
 ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
 TRENDING_PHOTO_FEED = 'trendingphotofeed:1000'
 TRENDING_PHOTO_DETAILS = 'trendingphotodetails:1000'
+TRENDING_PICS_AND_TIMES = 'trendingphotosandtimes'# list containing trending pics (as values) and times (as scores)
+TRENDING_PICS_AND_USERS = 'trendingphotosandusers'# list containing trending pics (as values) and user_ids (as scores)
 HAND_PICKED_TRENDING_PHOTOS = 'handpickedphotos'#sorted set containing hand-picked photos meant to show up in trending
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
 BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
@@ -654,11 +656,14 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None):
 	if prefix == 'img:':
 		composite_id = prefix+obj_id
 		time_of_selection = obj_hash['tos']
+		float_time_of_selection = float(time_of_selection)
 		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 		pipeline1 = my_server.pipeline()
 		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
-		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float(time_of_selection))
+		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float_time_of_selection)
 		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
+		pipeline1.zadd(TRENDING_PICS_AND_TIMES,obj_id,float_time_of_selection)
+		pipeline1.zadd(TRENDING_PICS_AND_USERS,obj_id,float(obj_hash['si']))
 		pipeline1.execute()
 		Photo.objects.filter(id=obj_id).update(device='6')
 		if random() < 0.05:
@@ -765,6 +770,8 @@ def remove_obj_from_trending(prefix,obj_id):
 			pipeline1 = my_server.pipeline()
 			pipeline1.zrem(TRENDING_PHOTO_FEED,composite_id)
 			pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
+			pipeline1.zrem(TRENDING_PICS_AND_TIMES,obj_id)
+			pipeline1.zrem(TRENDING_PICS_AND_USERS,obj_id)
 			pipeline1.execute()
 			Photo.objects.filter(id=obj_id).update(device='1')
 		else:

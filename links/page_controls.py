@@ -19,8 +19,8 @@ GLOBAL_ADMIN_LEDGERS_SIZE = 3000
 ########################
 ITEMS_PER_PAGE_IN_ADMINS_LEDGER = 50
 ########################
-PERSONAL_GROUP_OBJECT_CEILING = 27#size after which the personal group could be trimmed
-PERSONAL_GROUP_OBJECT_FLOOR = 21#size to which the group is trimmed down
+PERSONAL_GROUP_OBJECT_CEILING = 27# size after which the personal group could be trimmed
+PERSONAL_GROUP_OBJECT_FLOOR = 21# size to which the group is trimmed down
 PERSONAL_GROUP_BLOB_SIZE_LIMIT = 10
 PERSONAL_GROUP_PHT_XFER_IVTS = 5
 PERSONAL_GROUP_SMS_IVTS = 5
@@ -28,7 +28,7 @@ PERSONAL_GROUP_MAX_PHOTOS = 25
 PERSONAL_GROUP_IMG_WIDTH = 450
 PERSONAL_GROUP_IMGS_PER_PAGE = 20
 PERSONAL_GROUP_MAX_SMS_SIZE = 150
-PERSONAL_GROUP_MAX_PHOTO_CAPTION_SIZE = 150#max size of caption of shared photo
+PERSONAL_GROUP_MAX_PHOTO_CAPTION_SIZE = 150# max size of caption of shared photo
 PERSONAL_GROUP_SMS_LOCK_TTL = 7200 # 2 hours - ttl for sending SMS in private chat
 PERSONAL_GROUP_SAVED_CHAT_COUNTER = 17 # number of messages a user can save at a time
 PERSONAL_GROUP_OWN_BG = 'csb'
@@ -49,5 +49,6 @@ URL_POSTINGS_ALLOWED = 5# number of urls that can be pasted in a 5 minute window
 PERSONAL_GROUP_URL_IMG_WIDTH = 70# in pixels
 PRIV_CHAT_EMOTEXT = {'1':'ki dharkan tez ho geyi','2':'ko hansi ka dora par gaya','3':'ne kaha usko jaldi reply karo...',\
 '4':'buhut udas hai...','5':'ne poocha kya scene hai?'}# used when generating notifications only (not centrally connected)
-PRIV_CHAT_NOTIF = {'1':'ne photo send karney ki ijazat mangi','2':'ne ijazat mangi ke jab ap online na hon tou apko Damadam pe SMS ke zariye bulaya ja sakey'}
+PRIV_CHAT_NOTIF = {'1':'ne photo send karney ki ijazat mangi','2':'ne ijazat mangi ke jab ap online na hon tou apko Damadam pe SMS ke zariye bulaya ja sakey',\
+'3':'ne ijazat mangi ke apko notification send kar ke online bula le'}
 PHOTO_SHARING_FRIEND_LIMIT = 5#number of friends a person can share a photo with simultaneously

@@ -1,0 +1,113 @@
+{% extends "base_pg.html" %}
+{% load s3 %}
+{% load truncap %}
+{% block content %}
+<head><title>Push notification result for 1 on 1 messaging | Damadam.pk</title></head>
+<style>body{background:#f0f3f4}</style>
+
+{% if status == '1' %}
+
+	<div class="mbl lsp clb" style="text-align:center">
+		{% if their_anon %}
+			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
+		{% else %}
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+		{% endif %}
+	</div>
+
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+		<span class="cxl clb lsp"><img src="{{ STATIC_URL }}img/notification.svg" width="25" height="25" style="vertical-align:sub">&nbsp;Success! Notification send kar dia gya</span>
+		<hr size=1 COLOR="#E6E6E6">
+		<div class="mt cm sp lsp cgy">
+			1 on 1 mein wapis janey ke liye 'back' dabain:<br>
+			<form method="POST" action="{% url 'enter_personal_group' %}">
+				{% csrf_token %}
+				<button type="submit" name="tid" class="btn bcb bl mtl cm sp pg_ok" value="{{ tid }}" style="border:none;height:28px;">BACK</button>
+			</form>
+		</div>
+	</div>
+	<br>
+
+{% else %}
+	
+	{% if reason == '0' %}
+		<h1 class="cxl clb lsp" style="text-align:center">Cannot send notification!</h1>
+		<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+			<span class="cxl clb lsp">Sorry! Ye 1 on 1 exist nahi karti (ya khatam ho chuki hai)</span>
+			<hr size=1 COLOR="#E6E6E6">
+			<div class="mt cm sp lsp cgy">
+				Apni 1 on 1 ki list mein janey ke liye ye dabain:<br>
+				<a href="{% url 'personal_group_user_listing' %}"><button type="submit" class="btn bcb bl mtl cm sp pg_ok" style="border:none;height:28px;">1 ON 1</button></a>
+			</div>
+		</div>
+	{% elif reason == '1' %}
+
+		<div class="mbl lsp clb" style="text-align:center">
+			{% if their_anon %}
+				<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
+			{% else %}
+				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+			{% endif %}
+		</div>
+
+		<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+			<span class="cxl clb lsp">Sorry! {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ne notifications 'allow' nahi kiye huay</span>
+			<hr size=1 COLOR="#E6E6E6">
+			<div class="mt cm sp lsp cgy">
+				1 on 1 mein wapis janey ke liye 'back' dabain:<br>
+				<form method="POST" action="{% url 'enter_personal_group' %}">
+					{% csrf_token %}
+					<button type="submit" name="tid" class="btn bcb bl mtl cm sp pg_ok" value="{{ tid }}" style="border:none;height:28px;">BACK</button>
+				</form>
+			</div>
+		</div>
+			
+	{% elif reason == '2' %}
+
+		<div class="mbl lsp clb" style="text-align:center">
+			{% if their_anon %}
+				<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
+			{% else %}
+				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+			{% endif %}
+		</div>
+
+		<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+			<span class="cxl clb lsp">Sorry! Apko {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ne notifications send karney ki ijazat nahi di hui</span>
+			<hr size=1 COLOR="#E6E6E6">
+			<div class="mt cm sp lsp cgy">
+				1 on 1 mein wapis janey ke liye 'back' dabain:<br>
+				<form method="POST" action="{% url 'enter_personal_group' %}">
+					{% csrf_token %}
+					<button type="submit" name="tid" class="btn bcb bl mtl cm sp pg_ok" value="{{ tid }}" style="border:none;height:28px;">BACK</button>
+				</form>
+			</div>
+		</div>
+
+	{% elif reason == '3' %}
+
+		<div class="mbl lsp clb" style="text-align:center">
+			{% if their_anon %}
+				<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
+			{% else %}
+				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+			{% endif %}
+		</div>
+		{% load future_time %}
+		<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+			<span class="cxl clb lsp">Sorry! Ap {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko dubara notification send kar sakein ge {{ ttl|future_time }}</span>
+			<hr size=1 COLOR="#E6E6E6">
+			<div class="mt cm sp lsp cgy">
+				1 on 1 mein wapis janey ke liye 'back' dabain:<br>
+				<form method="POST" action="{% url 'enter_personal_group' %}">
+					{% csrf_token %}
+					<button type="submit" name="tid" class="btn bcb bl mtl cm sp pg_ok" value="{{ tid }}" style="border:none;height:28px;">BACK</button>
+				</form>
+			</div>
+		</div>
+
+	{% endif %}
+
+{% endif %}
+<br><br>
+{% endblock %}

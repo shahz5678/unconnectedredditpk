@@ -6,9 +6,9 @@ self.addEventListener('push', function(event) {
   log_notif_reception('1');
   const promiseChain = self.registration.showNotification(payload.title, {
       "body": payload.body,
-      "icon": "/static/img/notification.svg",// an icon size of 192px or more is a safe bet.
-      "badge": "/static/img/notification.svg",// a small monochrome icon appearing on the top tray in chrome in android (an image of 72px or more should be good)
-      "image": "/static/img/og_image.svg",
+      "icon": "/static/img/50.png",// an icon size of 192px or more is a safe bet.
+      "badge": "/static/img/og_image.png",// a small monochrome icon appearing on the top tray in chrome in android (an image of 72px or more should be good)
+      //"image": "/static/img/og_image.svg",
       "vibrate": [500,110,500,110,450,110,200,110,170,40,450,110,200,110,170,40,500],
       "tag": payload.tag,// used to make notification unique or generalized
       "renotify": true,// good idea to do this for chat apps (and must use 'tag' with it)

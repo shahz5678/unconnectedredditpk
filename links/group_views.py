@@ -7,14 +7,15 @@ from django.middleware import csrf
 from django.http import HttpResponse, Http404
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
-from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from redis2 import skip_private_chat_notif
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
 avg_num_of_switchovers_per_type, avg_sessions_per_type, get_cached_photo_dim, cache_photo_dim, retrieve_uname, retrieve_user_id, retrieve_photo_data,\
-retrieve_fresh_photo_shares_or_cached_data
+retrieve_fresh_photo_shares_or_cached_data, push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, \
+track_notif_allow_behavior
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -25,7 +26,9 @@ disable_personal_group_sms_rec, sms_sending_locked, lock_sms_sending, return_inv
 suspend_personal_group, save_personal_group_content, retrieve_personal_group_saved_content, get_cached_personal_group_data, reset_all_group_chat, \
 delete_single_personal_group_saved_content, delete_all_personal_group_saved_content, is_save_permission_granted_by_target, own_save_permission_status,\
 toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,unsuspend_personal_group, can_change_number, get_target_username,\
-get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count
+get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count,\
+remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
+is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
 from redis7 import check_content_and_voting_ban
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
@@ -37,9 +40,12 @@ from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGro
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
 from image_processing import process_group_image
 from views import get_page_obj, get_object_list_and_forms, return_to_content, get_indices
+from push_notification_api import send_single_push_notification
+
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
 from models import Photo
+from unconnectedreddit.env import PUBLIC_KEY
 
 ONE_DAY = 60*60*24
 ONE_WEEK = 7*60*60*24
@@ -419,16 +425,16 @@ def enter_personal_group(request):
 				last_seen_time_diff = None
 		private_chat_seen.delay(own_id, group_id, own_refresh_time) # to ensure outstanding notifications are 'seen'
 		no_permit = request.session.pop("personal_group_image_xfer_no_permit",None)
-		no_sms = request.session.pop("personal_group_sms_no_permit",None)
+		no_notif = request.session.pop("personal_group_notif_no_permit",None)
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		return render(request,"personal_group/main/personal_group.html",{'form_errors':personal_group_form_error,'personal_group_form':PersonalGroupPostForm(),\
-			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_sms':no_sms,\
+			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_notif':no_notif,\
 			'own_nick':own_nick,'their_nick':their_nick, 'no_permit':no_permit,'t_nick':t_nick,'autodel':auto_del_called,'thumb_height':THUMB_HEIGHT,\
 			'not_empty':not_empty,'their_last_seen_time':their_last_seen_time,'last_seen_time_diff':last_seen_time_diff,'no_save_chat':no_save_chat,\
 			'is_suspended':is_suspended,'group_id':group_id,'personal_group_rep_form':PersonalGroupReplyPostForm(),'is_js_env':is_js_env})
 	else:
-		return redirect("personal_group_user_listing")#redirect("missing_page")
+		return redirect("personal_group_user_listing")
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -1617,9 +1623,11 @@ def personal_group_sms_settings(request):
 		else:
 			smsrec, sms_text, mob_idx = get_user_sms_setting(own_id, group_id, with_cred=True)
 			their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
-			return render(request,"personal_group/sms_settings/personal_group_sms_settings.html",{'their_anon':their_anon_status,\
-				'avatar':their_avurl,'name':their_uname,'smsrec':smsrec, 'new_smsrec':new_smsrec,'sms_text':sms_text,'tid':tid,\
-				'fresh_visit':tutorial_unseen(user_id=own_id, which_tut='1', renew_lease=True),'is_verified':request.mobile_verified})
+			context = {'their_anon':their_anon_status,'avatar':their_avurl,'name':their_uname,'smsrec':smsrec, 'new_smsrec':new_smsrec,\
+			'sms_text':sms_text,'tid':tid,'fresh_visit':tutorial_unseen(user_id=own_id, which_tut='1', renew_lease=True),\
+			'is_verified':request.mobile_verified}
+			# return render(request,"personal_group/sms_settings/personal_group_sms_settings.html",context)# use when SMSes are being sent
+			return render(request,"personal_group/sms_settings/personal_group_sms_settings_short_circuited.html",context)
 	else:
 		return redirect("enter_personal_group")
 
@@ -2588,6 +2596,413 @@ def share_photo_in_personal_group(request):
 			return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 	else:
 		return redirect("missing_page")
+
+################################################## Push Notifications ###############################################
+
+
+@csrf_protect
+def logging_notif_allowance(request):
+	"""
+	Tracks 'allow', 'deny', and 'default' decision of users (at the point of seeing the 'allow notif' native pop-up of browsers)
+	
+	'1' - notifications are permanently denied
+	'2' - notifications are temporarily denied
+	'3' - notifications are allowed
+	'4' - notification subscription expired (see notes below)
+	Note I: total currently allowed notifications are num(3) - num(4)
+	Note II: that's because num(3) is over-counting users who 'allowed' notifs. num(4) gives subscriptions that have expired, so do net if off from num(3) 
+	"""
+	if request.method == "POST":
+		status_code = request.POST.get("status_code","")
+		if status_code in ('1','2','3'):#'4' is called from unsubscribe_target_from_notifications() in redis4
+			track_notif_allow_behavior(status_code=status_code)
+			return HttpResponse(json.dumps({'data':{'success': True},'message':'A-OK!'}),content_type='application/json',status=200)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
+		else:
+			return HttpResponse(json.dumps({'data':{'success': False},'message':'Not found'}),content_type='application/json',status=404)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
+	else:
+		return HttpResponse(json.dumps({'data':{'success': False},'message':'Not found'}),content_type='application/json',status=403)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
+
+
+@csrf_exempt
+def logging_notif_reception(request):
+	"""
+	Logging notification reception and interaction
+
+	Three status codes are employed:
+	'1' - the notification was received (counting all successful receipts - '2' and '3' merely count which notifications had actions performed on them by the user)
+	'2' - interaction on the received notification led to 'refocusing' of the window in the browser
+	'3' - interaction on the received notification led to opening up of a new window in the browser
+	"""
+	if request.method == "POST":
+		payload = json.loads(request.body)
+		status_code = payload.get('status_code','')
+		if status_code in ('1','2','3'):
+			log_1on1_received_notif_interaction(status_code=status_code)
+			return HttpResponse(json.dumps({'data':{'success': True},'message':'A-OK!'}),content_type='application/json',status=200)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
+		else:
+			return HttpResponse(json.dumps({'data':{'success': False},'message':'Not found'}),content_type='application/json',status=404)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
+	else:
+		return HttpResponse(json.dumps({'data':{'success': False},'message':'Not found'}),content_type='application/json',status=403)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
+
+
+@csrf_protect
+def send_push_notification_for_1on1(request):
+	"""
+	Sending a push notification from sender to target in a 1on1 
+
+	Also log notification sending/failures in redis5, using the following status codes where required:
+	'490' - user rate limited from sending notifications to this particular target
+	'491' - we don't seem to have target's push subscription in our records any more!
+	'492' - target has not permitted the user to send 'em a web notification
+	'493' - the target has not authorized web notifications at all (diff from '491' - where we did first think target had allowed notifications and were then proven wrong)
+	'494' - the user is trying to send a notification in a group that does not exist any more (target has probably exited it)
+	'495' - the user decided to not send a notification at all (i.e. pressed 'back' instead of 'send'. Only 'back' right below 'send' is counted)
+	Note: other status codes exist too - e.g. '201' - Created and Sent, '404' - Not Found, '410' - Gone (but those are officially designated by web standards)
+	"""
+	if request.method == "POST":
+		decision = request.POST.get('dec','')
+		target_id = request.POST.get('tid','')
+		if target_id:
+			own_id = request.user.id
+			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+			if decision == '1':
+				is_ajax = request.is_ajax()
+				if group_id:
+					is_target_receiving_notifications = push_subscription_exists(target_id)# has the target allowed notifications?
+					if is_target_receiving_notifications:
+						can_send_push_notif = can_send_1on1_push(receiver_id=target_id, sender_id=own_id)# has the receiver allowed the sender to send web notification
+						if can_send_push_notif:
+							is_notif_rl = is_1on1_notif_rate_limited(sender_id=own_id, receiver_id=target_id)
+							if is_notif_rl:
+								log_1on1_sent_notif(sent=False, status_code=490)
+								request.session["notif_sent_1on1_status"] = '0'# i.e. reason is "not permitted"
+								request.session['notif_sent_1on1_status_reason'] = '3'
+								request.session['notif_sent_1on1_status_ttl'] = is_notif_rl
+								request.session["notif_sent_1on1_status_tid"] = target_id
+								request.session.modified = True
+								if is_ajax:
+									return HttpResponse(json.dumps({'success':False,'redirect':reverse('personal_group_notif_failure_rate_limited')}),content_type='application/json',status=400)
+								else:
+									return redirect("personal_group_notif_failure_rate_limited")
+							else:
+								subscription_info = retrieve_subscription_info(target_id)
+								if subscription_info:
+									time_now = time.time()
+									own_uname = retrieve_uname(own_id,decode=True)
+									target_uname = retrieve_uname(target_id,decode=True)
+									payload = {'title': 'Hey {}!'.format(target_uname), 'tag':own_uname,\
+									'body': '{} ne apko abhi 1 on 1 mein yaad kiya'.format(own_uname),'time':int(time_now)}
+									sent_status, code = send_single_push_notification(subscription_info, payload)
+									log_1on1_sent_notif(sent=sent_status, status_code=code)
+									if is_ajax:
+										if sent_status is True:
+											# since this successfully went through, show a helpful prompt to the sender!
+											request.session["notif_sent_1on1_status"] = '1'# i.e. notif not sent
+											request.session["notif_sent_1on1_status_tid"] = target_id
+											request.session.modified = True
+											rate_limit_1on1_notification(sender_id=own_id, receiver_id=target_id)
+											return HttpResponse(json.dumps({'success':True,'redirect':reverse('personal_group_notif_successfully_sent')}),content_type='application/json',status=code)
+										else:
+											#TODO: handle '404' and '410' status codes ('Not Found' and 'Gone'). If this happens, the subscription has either expired, or is no longer valid. In these scenarios we need remove the subscriptions from our database.
+											#TODO: Older versions of Chrome, Opera and Samsung Browser won't work with this - the approach there is here: https://stackoverflow.com/a/44221065/4936905
+											if code in (404, 410):
+												unsubscribe_target_from_notifications(target_id)
+											request.session["notif_sent_1on1_status"] = '0'# i.e. notif not sent
+											request.session["notif_sent_1on1_status_reason"] = '1'# i.e. reason is "not permitted"
+											request.session["notif_sent_1on1_status_tid"] = target_id
+											request.session.modified = True
+											return HttpResponse(json.dumps({'success':False,'redirect':reverse('personal_group_notif_failure_not_permitted')}),content_type='application/json',status=code)
+									else:
+										if sent_status is True:
+											# non-JS solution
+											request.session["notif_sent_1on1_status"] = '1'# i.e. notif not sent
+											request.session["notif_sent_1on1_status_tid"] = target_id
+											request.session.modified = True
+											rate_limit_1on1_notification(sender_id=own_id, receiver_id=target_id)
+											return redirect("personal_group_notif_successfully_sent")
+										else:
+											#TODO: handle '404' and '410' status codes ('Not Found' and 'Gone'). If this happens, the subscription has either expired, or is no longer valid. In these scenarios we need remove the subscriptions from our database.
+											#TODO: Older versions of Chrome, Opera and Samsung Browser won't work with this - the approach there is here: https://stackoverflow.com/a/44221065/4936905
+											if code in (404, 410):
+												unsubscribe_target_from_notifications(target_id)
+											request.session["notif_sent_1on1_status"] = '0'# i.e. notif not sent
+											request.session["notif_sent_1on1_status_reason"] = '1'# i.e. reason is "not permitted"
+											request.session["notif_sent_1on1_status_tid"] = target_id
+											request.session.modified = True
+											return redirect("personal_group_notif_failure_not_permitted")
+								else:
+									# target_id does not have a push subscription at all (maybe they turned off the subscription manually in their browsers, 
+									# or changed phone and now have a new browser! This is a delicate case - ask for permission again!)
+									log_1on1_sent_notif(sent=False, status_code=491)
+									request.session["notif_sent_1on1_status"] = '0'# i.e. notif not sent
+									request.session["notif_sent_1on1_status_reason"] = '1'# i.e. the target is not subscribed to push notifications
+									request.session["notif_sent_1on1_status_tid"] = target_id
+									request.session.modified = True
+									if is_ajax:
+										return HttpResponse(json.dumps({'success':False,'redirect':reverse('personal_group_notif_failure_subscription_expired')}),content_type='application/json',status=403)
+									else:
+										return redirect("personal_group_notif_failure_subscription_expired")
+						else:
+							# own_id is not allowed to send a push notification to target_id - produce a prompt in the 1on1, asking the other person to authorize notifications
+							log_1on1_sent_notif(sent=False, status_code=492)
+							if personal_group_notification_invite_allwd(target_id, group_id):
+								add_content_to_personal_group(content='3', type_='notif', writer_id=own_id, group_id=group_id)
+								private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_NOTIF['3'],\
+									txt_type='notif',own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', \
+									img_url='',own_uname='',own_avurl='',deleted='undel',hidden='no')
+								request.session["personal_group_notif_no_permit"] = True
+								request.session["personal_group_tid_key"] = target_id
+								request.session["personal_group_gid_key:"+target_id] = group_id
+								request.session.modified = True
+								if is_ajax:
+									return HttpResponse(json.dumps({'success':False,'redirect':reverse('enter_personal_group')}),content_type='application/json',status=403)
+								else:
+									return redirect("enter_personal_group")
+							else:
+								request.session["notif_sent_1on1_status"] = '0'# i.e. notif not sent
+								request.session["notif_sent_1on1_status_reason"] = '2'# i.e. not permitted anymore  
+								request.session["notif_sent_1on1_status_tid"] = target_id
+								request.session.modified = True
+								if is_ajax:
+									return HttpResponse(json.dumps({'success':False,'redirect':reverse('personal_group_notif_failure_subscription_expired')}),content_type='application/json',status=403)
+								else:
+									return redirect("personal_group_notif_failure_subscription_expired")
+					else:
+						# produce a prompt in the 1on1, asking the other person to authorize notifications
+						log_1on1_sent_notif(sent=False, status_code=493)
+						if personal_group_notification_invite_allwd(target_id, group_id):
+							add_content_to_personal_group(content='3', type_='notif', writer_id=own_id, group_id=group_id)
+							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_NOTIF['3'],\
+								txt_type='notif',own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', \
+								img_url='',own_uname='',own_avurl='',deleted='undel',hidden='no')
+							request.session["personal_group_notif_no_permit"] = True
+							request.session["personal_group_tid_key"] = target_id
+							request.session["personal_group_gid_key:"+target_id] = group_id
+							request.session.modified = True
+							if is_ajax:
+								return HttpResponse(json.dumps({'success':False,'redirect':reverse('enter_personal_group')}),content_type='application/json',status=403)
+							else:
+								return redirect("enter_personal_group")
+						else:
+							request.session["notif_sent_1on1_status"] = '0'# i.e. notif not sent
+							request.session["notif_sent_1on1_status_reason"] = '1'# i.e. the target is not subscribed to push notifications
+							request.session["notif_sent_1on1_status_tid"] = target_id
+							request.session.modified = True
+							if is_ajax:
+								return HttpResponse(json.dumps({'success':False,'redirect':reverse('personal_group_notif_failure_not_permitted')}),content_type='application/json',status=403)
+							else:
+								return redirect("personal_group_notif_failure_not_permitted")
+				else:
+					# such a group doesn't exist (where own_id and target_id are friends)
+					log_1on1_sent_notif(sent=False, status_code=494)
+					request.session["notif_sent_1on1_status"] = '0'# i.e. notif not sent
+					request.session["notif_sent_1on1_status_reason"] = '0'# group does not exist
+					request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'redirect':reverse('personal_group_notif_failure_1on1_gone')}),content_type='application/json',status=403)
+					else:
+						return redirect("personal_group_notif_failure_1on1_gone")
+			else:
+				# return to 1 on 1
+				log_1on1_sent_notif(sent=False, status_code=495)
+				if group_id:
+					request.session["personal_group_tid_key"] = target_id
+					request.session["personal_group_gid_key:"+target_id] = group_id#checked
+					request.session.modified = True
+					return redirect("enter_personal_group")    
+				else:
+					return redirect("personal_group_user_listing")
+		else:
+			# target_id was empty
+			raise Http404("Cannot notify empty target id")
+	else:
+		raise Http404("Unable to send notification on GET")
+
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def decide_notification_perms_in_personal_group(request):
+	"""
+	Takes decision on push notification options
+	"""
+	if request.method == "POST":
+		own_id = request.user.id
+		decision = request.POST.get("dec",None)
+		if decision == '2':
+			# remove notification permission between these particular pair of users
+			target_id = request.POST.get("tid",'')
+			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+			if group_id:
+				remove_1on1_push_subscription(receiver_id=own_id, sender_id=target_id)
+				name = retrieve_uname(target_id,decode=True)
+				return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'tid':target_id,\
+					'their_anon':their_anon_status, 'name':name, 'removed':True})
+			else:
+				return redirect("personal_group_user_listing")
+		elif decision == '1':
+			# could not give permission since browser isn't supported
+			# already_subscribed = request.POST.get("as",None)
+			# if already_subscribed:
+			#     # the user's browser can already send notifications, just enable the permission flag in the 1on1
+			#     target_id = request.POST.get("tid",'')
+			#     save_1on1_push_subscription(receiver_id=own_id, sender_id=target_id)
+			#     is_ajax = request.is_ajax()
+			#     if is_ajax:
+			#         return HttpResponse(json.dumps({'redirect':reverse('personal_group_subscription_success')}),content_type='application/json',\
+			#             status=200)
+			#     else:
+			#         return redirect("personal_group_subscription_success")
+			if request.META.get('HTTP_X_IORG_FBS',False):
+				# fbs - option does not exist
+				return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'on_fbs':True,\
+					'tid':request.POST.get("tid",'')})
+			else:
+				# unsupported browser
+				return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'unsupported_browser':True,\
+					'tid':request.POST.get("tid",'')})
+		elif decision == '0':
+			# decided to return to group (no permission given)
+			target_id = request.POST.get("tid",'')
+			group_id, exists = personal_group_already_exists(own_id, target_id)
+			if exists:
+				request.session["personal_group_tid_key"] = target_id
+				request.session["personal_group_gid_key:"+target_id] = group_id#checked
+				request.session.modified = True
+				return redirect("enter_personal_group")    
+			else:
+				return redirect("personal_group_user_listing")
+		else:
+			raise Http404("This is uncatered")
+	else:
+		raise Http404("This only responds to POST requests")
+
+
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def render_notification_perms_in_personal_group(request):
+	"""
+	Renders push notification options
+	"""
+	own_id = request.user.id
+	if request.method == "POST":
+		# POST request
+		is_ajax = request.is_ajax()
+		target_id = request.POST.get("tid",'')
+		show_allow_only = request.POST.get("show_allow_only",'0')
+		if is_ajax:
+			browser_incompatible = request.POST.get("browser_incompat",None)
+			if browser_incompatible:
+				first_time_subscriber = '-1'# not applicable
+				allow_key = 'incompatible'
+			else:
+				notif_permission_status = request.POST.get("notif_perm",None)
+				if notif_permission_status == '3':
+					# this user has actively 'blocked' notifications
+					allow_key = 'blocked'
+					first_time_subscriber = '-1'# not applicable
+				elif notif_permission_status == '1' and push_subscription_exists(own_id) and can_send_1on1_push(own_id, target_id):
+					allow_key = 'disallow_btn'
+					first_time_subscriber = '0'
+				else:
+					allow_key = 'allow_btn'
+					if notif_permission_status != '1' or not push_subscription_exists(own_id):
+						first_time_subscriber = '1'
+					else:
+						first_time_subscriber = '0'
+		else:
+			# JS does not exist (e.g. user is on FBS)
+			allow_key = 'disabled'
+			first_time_subscriber = '-1'# not applicable
+		request.session["personal_group_tid_key"] = target_id
+		request.session["personal_group_allow_key"] = allow_key
+		request.session["personal_group_show_allow_only"] = show_allow_only
+		request.session["first_time_notif_subscriber"] = first_time_subscriber
+		request.session.modified = True
+		if is_ajax:
+			return HttpResponse(json.dumps({'redirect':reverse('render_notification_perms_in_personal_group')}),content_type='application/json',status=200)
+		else:
+			return redirect("render_notification_perms_in_personal_group")
+	else:
+		# GET request
+		target_id = request.session.get("personal_group_tid_key",None)
+		allow_key = request.session.get("personal_group_allow_key",None)
+		first_time_subscriber = request.session.pop("first_time_notif_subscriber",'')
+		show_all_options = False if request.session.pop("personal_group_show_allow_only",'') == '1' else True
+		own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+		if their_anon_status:
+			name, avatar = retrieve_uname(target_id,decode=True), None
+		else:
+			name, avatar = get_single_user_credentials(target_id,as_list=False)
+		return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'tid':target_id,\
+			'their_anon':their_anon_status, allow_key:True, 'name':name,'avatar':avatar,'public_key':PUBLIC_KEY,\
+			'furl':reverse("personal_group_subscription_failure"),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),\
+			'show_all_options':show_all_options,'first_time_subscriber':first_time_subscriber})
+
+
+def personal_group_subscription_failure(request):
+	"""
+	"""
+	return render(request,"push_notifications/push_notification_subscription_prompts.html",{'redirect_url':reverse_lazy("enter_personal_group"),\
+		'failure':True})
+
+
+def personal_group_subscription_success(request):
+	"""
+	"""
+	return render(request,"push_notifications/push_notification_subscription_prompts.html",{'redirect_url':reverse_lazy("enter_personal_group"),\
+		'success':True})
+
+
+def personal_group_notif_prompts(request):
+	"""
+	Renders 'success' or 'failure' prompts when a user tries to 'send' a notification to a target
+	"""
+	was_notif_sent = request.session.pop("notif_sent_1on1_status",'')
+	if was_notif_sent == '1':
+		target_id = request.session.pop("notif_sent_1on1_status_tid",'')
+		own_id = request.user.id
+		own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+		if group_id:
+			if their_anon_status:
+				name, avatar = retrieve_uname(target_id,decode=True), None
+			else:
+				name, avatar = get_single_user_credentials(target_id,as_list=False)
+			return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'tid':target_id,'name':name,\
+				'their_anon':their_anon_status,'avatar':avatar,'status':'1'})
+		else:
+			raise Http404("1on1 did not exist but notification was somehow sent?")
+	elif was_notif_sent == '0':
+		reason = request.session.pop("notif_sent_1on1_status_reason",'')
+		target_id = request.session.pop("notif_sent_1on1_status_tid",'')	
+		if reason == '0':
+			# group does not exist
+			return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'status':'0','reason':'0'})
+		elif reason in ('1','2'):
+			# not permitted
+			own_id = request.user.id
+			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+			if group_id:
+				if their_anon_status:
+					name, avatar = retrieve_uname(target_id,decode=True), None
+				else:
+					name, avatar = get_single_user_credentials(target_id,as_list=False)
+				return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'status':'0','reason':reason,\
+					'tid':target_id,'name':name,'avatar':avatar,'their_anon':their_anon_status})
+			else:
+				raise Http404("1on1 did not exist but it somehow passed existence checks in send_push_notification_for_1on1()")
+		elif reason == '3':
+			# rate limited
+			own_id = request.user.id
+			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+			name, avatar = get_single_user_credentials(target_id,as_list=False)
+			return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'status':'0','reason':'3','tid':target_id,\
+				'ttl':request.session.pop("notif_sent_1on1_status_ttl",None),'name':name,'avatar':avatar,'their_anon':their_anon_status})
+		else:
+			# default
+			return render(request,"personal_group/notifications/personal_group_notif_prompts.html",{'status':'0','reason':'4','tid':target_id})
+	else:
+		raise Http404("There is nothing to do on this view without the requisite data from the user session")
 
 
 #####################################################################################################################

@@ -19,6 +19,7 @@ from urls_verification import urlpatterns as urlpatterns_verification
 from urls_judgement import urlpatterns as urlpatterns_judgement
 from urls_voting import urlpatterns as urlpatterns_voting
 from urls_search import urlpatterns as urlpatterns_search
+from urls_push_notif import urlpatterns as urlpatterns_push_notif
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
@@ -304,6 +305,7 @@ urlpatterns += urlpatterns_verification
 urlpatterns += urlpatterns_judgement
 urlpatterns += urlpatterns_voting
 urlpatterns += urlpatterns_search
+urlpatterns += urlpatterns_push_notif
 
 handler404 = 'links.error_views.not_found'
 handler500 = 'links.error_views.server_error'

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Push notification subscription| Damadam.pk</title></head>
+<style>body{background:#f0f3f4}</style>
+
+{% if success %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Notifications allowed!</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;;max-width:450px;width:92%;margin-right:auto;margin-left:auto;padding:10px 8px;">
+
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+
+		<div class="cxl clb lsp mts mbs"><b>Success!</b> Notifications ko allow kar dia gya!</div>
+		<a href="{{ redirect_url }}"><button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" style="border:none;height:40px;width:100%">BACK</button></a>
+	</div>
+
+{% elif failure %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Could not complete action ...</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;;max-width:450px;width:92%;margin-right:auto;margin-left:auto;padding:10px 8px;">
+
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+
+		<div class="cxl clb lsp mts mbs">Notifications pe action complete nahi ho saka, kuch deir baad dubara koshish karein</div>
+
+		<a href="{{ redirect_url }}"><button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" style="border:none;height:40px;width:100%">BACK</button></a>
+
+	</div>
+
+{% elif denied %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Notifications blocked ...</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;;max-width:450px;width:92%;margin-right:auto;margin-left:auto;padding:10px 8px;">
+
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+
+		<div class="cxl clb lsp mts mbs">Notifications block ho gaye! </div><div class="cl clb lsp mts mbs" style="text-align:left">1. Notification allow karne ke liye browser ki 'settings' aur phir 'notifications' mein ja ke Damadam ka block khatam karein </div> <div class="cl clb lsp mts mbs" style="text-align:left">2. Ager aap Private/Incognito mode mein hein tuo uss mein notifications nahi chalte.</div>
+
+
+		<a href="{{ redirect_url }}"><button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" style="border:none;height:40px;width:100%">BACK</button></a>
+
+	</div>
+
+{% elif temp_denied %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Action temporarily blocked ...</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;;max-width:450px;width:92%;margin-right:auto;margin-left:auto;padding:10px 8px;">
+
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+
+		<div class="cxl clb lsp mts mbs">Notifications allow karney ke liye <b>new browser window</b> open kar ke 'allow' press karein</div>
+
+		<a href="{{ redirect_url }}"><button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" style="border:none;height:40px;width:100%">BACK</button></a>
+
+	</div>
+
+{% elif unavailable %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Notifications unavailable ...</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;;max-width:450px;width:92%;margin-right:auto;margin-left:auto;padding:10px 8px;">
+
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+
+		<div class="cxl clb lsp mts mbs">Apna internet connection check karein, aur kuch time baad dubara try karein</div>
+
+		<a href="{{ redirect_url }}"><button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" style="border:none;height:40px;width:100%">BACK</button></a>
+
+	</div>
+
+{% else %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Notifications unavailable ...</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;;max-width:450px;width:92%;margin-right:auto;margin-left:auto;padding:10px 8px;">
+
+		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
+
+		<div class="cxl clb lsp mts mbs">Sorry! Kuch time baad dubara try karein ...</div>
+
+		<a href="{{ redirect_url }}"><button type="submit" class="btn bcgy bm mbs mtl sp cl pg_ok_res" style="border:none;height:40px;width:100%">BACK</button></a>
+
+	</div>
+
+{% endif %}
+
+<br>
+{% endblock %}

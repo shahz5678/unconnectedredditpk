@@ -86,6 +86,7 @@ pdim:<photo_id> key that temporarily caches a shared photo's width and height
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC4, db=0)
 
+THREE_MONTHS = 3*30*24*60*60
 TWO_WEEKS = 60*60*24*7*2
 THREE_DAYS = 60*60*24*3
 ONE_DAY = 60*60*24
@@ -638,16 +639,16 @@ def invalidate_avurl(user_id,set_rate_limit=None):
 
 
 def invalidated_cached_uname_credentials(user_ids):
-    """
-    Invalidates cached unames
+	"""
+	Invalidates cached unames
 
-    Useful when deprecating nicknames
-    """
-    if user_ids:
-        pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-        for user_id in user_ids:
-            pipeline1.delete("uname:"+str(user_id))
-        pipeline1.execute()
+	Useful when deprecating nicknames
+	"""
+	if user_ids:
+		pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+		for user_id in user_ids:
+			pipeline1.delete("uname:"+str(user_id))
+		pipeline1.execute()
 
 
 def get_aurl(user_id):
@@ -1399,6 +1400,110 @@ def logging_profile_view(visitor_id,star_id,viewing_time):
 		my_server.zadd(sorted_set,visitor_id+":"+viewing_time,viewing_time)
 		my_server.expire(sorted_set,ONE_DAY)#this expires if no new views appear for 24 hours
 		my_server.setex(key,'1',THIRTY_MINS)
+
+
+########################################################################################
+################################ Push Notifications ####################################
+########################################################################################
+
+GLOBAL_SUBSCRIBER_LIST = 'gsl'# sorted set containing all push subscriptions active right now
+PUSH_SUBSCRIPTION_HASH = 'psh:'# hash that saves a given user's subscription for push notifications
+NOTIF_ALLOW_ATTEMPT = "naa"# sorted set that contains all notifications' allow attempts ('denied', 'default', 'granted') along with their counters
+
+
+def push_subscription_exists(user_id):
+	"""
+	"""
+	# has user agreed to receive push notifications from Damadam on any of their active browsers?
+	return redis.Redis(connection_pool=POOL).exists(PUSH_SUBSCRIPTION_HASH+str(user_id))
+
+
+def save_push_subscription(user_id, subscription_info, time_now, first_time):
+	"""
+	Saving push subscription info for given user_id
+
+	Gives each subscription a ttl of three months, in case the user never uses their subscription (dropped off, or was uninterested)
+	"""
+	subscription_info['t'] = time_now
+	subscription_info['uid'] = user_id
+	subscription_info['lut'] = time_now# this is 'last_use_time', is useful for expiring subscriptions
+	subscription_key = PUSH_SUBSCRIPTION_HASH+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.hmset(subscription_key,subscription_info)
+	my_server.zadd(GLOBAL_SUBSCRIBER_LIST,subscription_key,float(time_now))
+	if first_time:
+		track_notif_allow_behavior('3', my_server)
+	return True
+
+
+def unsubscribe_target_from_notifications(user_id):
+	"""
+	Deleting push_subscription because the user's browser claims the subscription doesn't exist any more
+	"""
+	subscription_key = PUSH_SUBSCRIPTION_HASH+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	pipeline1.delete(subscription_key)
+	pipeline1.zrem(GLOBAL_SUBSCRIBER_LIST,subscription_key)
+	pipeline1.execute()
+	track_notif_allow_behavior('4',my_server)
+
+
+def retrieve_subscription_info(user_id):
+	"""
+	Checking whether there is a subscription of the user for push notifications
+	
+	Also updates the TTL of the user's push subscription
+	"""
+	subscription_key = PUSH_SUBSCRIPTION_HASH+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	data = my_server.hgetall(subscription_key)
+	if data:
+		time_now = time.time()
+		my_server.hset(subscription_key,'lut',time_now)
+		my_server.zadd(GLOBAL_SUBSCRIBER_LIST,subscription_key,time_now)#updating global subscripter list entry by current time
+		return {'endpoint':data['endpoint'],'keys':{'auth':data['auth'],'p256dh':data['p256dh']}}
+	else:
+		return {}
+
+
+# def sanitize_unused_subscriptions():
+# 	"""
+# 	Cleanses old subscriptions that are ununsed (helps prevent data-leaks)
+
+# 	Is to be periodically called by tasks.py (e.g. every 7 days)
+# 	"""
+# 	three_months_ago = time.time() - THREE_MONTHS
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	subscriptions_to_delete = my_server.zrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
+# 	if subscriptions_to_delete:
+# 		num_subscriptions_deleted = len(subscriptions_to_delete)
+# 		pipeline1 = my_server.pipeline()
+# 		for subscription in subscriptions_to_delete:
+# 			pipeline1 = my_server.pipeline()
+# 		pipeline1.zremrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
+# 		pipeline1.execute()
+#		track_notif_allow_behavior('4', my_server, num_subscriptions_deleted)
+
+
+def track_notif_allow_behavior(status_code, my_server=None, amnt=1):
+	"""
+	Tracks 'allow', 'deny', and 'default' decision of users (at the point of seeing the 'allow notif' native pop-up of browsers)
+	
+	'1' - notifications are permanently denied
+	'2' - notifications are temporarily denied
+	'3' - notifications are allowed
+	'4' - notification subscription expired (see notes below)
+	Note I: total currently allowed notifications are num(3) - num(4)
+	Note II: that's because num(3) is over-counting users who 'allowed' notifs. num(4) gives subscriptions that have expired, so do net if off from num(3) 
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	my_server.zincrby(NOTIF_ALLOW_ATTEMPT,status_code,amount=amnt)
+
+
+########################################################################################
+########################################################################################
+########################################################################################
 
 ########################################### Gathering Metrics for Personal Groups ###########################################
 

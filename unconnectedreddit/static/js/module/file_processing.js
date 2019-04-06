@@ -1,4 +1,4 @@
-// feeder for helper_funcs.v1.12.js
+// feeder for helper_funcs.v1.13.js
 // Compress via https://jscompress.com/ and press "download"
 var valid_img = false;
 var max_img_width = 450;
@@ -245,7 +245,7 @@ function personal_group_submit(e) {
 	prep_image(browse_image_btn.files[0],text_field.value, browse_image_btn.files[0].name, e.target.action, 'pg_main','image', 'reply', '/private_chat/', null, process_ajax);
 }
 
-function prep_image(src_img, text, img_name, target_action, type, img_field, reply_field, fail_url, target_size, callback) {  
+function prep_image(src_img, text, img_name, target_action, type, img_field, reply_field, fail_url, target_size, callback) {	
 	get_orientation(src_img, type, function(orientation) {
 		var img = document.createElement('img');
 		var fr = new FileReader();//supported
@@ -769,75 +769,182 @@ function empty_input_fields() {
 
 }
 
+////////////////////////////////////////////////
 
-// function show_rep_image_name(e) { 
-//   // if opera mini, do nothing
-//   if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.target.files) return;
+// var notif_screen_show_all_init_btn = document.getElementById('notif_screen_show_all_init_btn');
+// if (notif_screen_show_all_init_btn) {notif_screen_show_all_init_btn.onclick = currentPermNavbar;}
 
-//   var filename = e.target.value.replace(/^.*[\\\/]/, '').slice(0,20);
-//   var target_form = e.target.form;
-//   var rep_filename = target_form.querySelector('#rep_filename');
-//   var camera_icon =  target_form.querySelector('#rep_cam');
-//   var ok_btn = target_form.querySelector('#rep_ok_btn');
-//   var modal_top = target_form.querySelector('#modal_top');
-//   ok_btn.disabled = true;
-//   if (e.target.files[0].size < 20000001){ // don't allow files bigger than 20000000 Bytes (20 MB), since that is the server-side (nginx) limit as well
-//     if (window.FileReader && window.Blob){
-//       // is_reply = true;
-//       // validate_img_file(e);
-//       var file = e.target.files[0];
-//       var reader = new FileReader();//supported
-//       reader.onload = function(e){
-//           var header = "";
-//           var arr = new Uint8Array(e.target.result);//supported
-//           for(var i = 0; i < arr.length; i++) {
-//              header += arr[i].toString(16);
-//           }
-//           switch (header) {
-//             case "89504e47":
-//               valid_rep_img='png';
-//               modal_top.className = "sp cs mbs cgy";//
-//               modal_top.innerHTML = 'Jawab:';
-//               ok_btn.onclick = personal_group_reply_submit;
-//               ok_btn.disabled = false;
-//               break;
-//             case "47494638":
-//               valid_rep_img = 'gif';
-//               modal_top.className = "sp cs mbs cgy";//
-//               modal_top.innerHTML = 'Jawab:';
-//               ok_btn.onclick = personal_group_reply_submit;
-//               ok_btn.disabled = false;
-//               break;
-//             case "ffd8ffe0":
-//             case "ffd8ffe1":
-//             case "ffd8ffe2":
-//             case "ffd8ffe3":
-//             case "ffd8ffe8":
-//             case "ffd8ffdb":
-//               valid_rep_img = 'jpeg';
-//               modal_top.className = "sp cs mbs cgy";//
-//               modal_top.innerHTML = 'Jawab:';
-//               ok_btn.onclick = personal_group_reply_submit;
-//               ok_btn.disabled = false;
-//               break;
-//             default:
-//               valid_rep_img = null;
-//               modal_top.className = "cr lsp";//
-//               modal_top.innerHTML = 'Ye foto kharab hai, koi aur chunein';
-//               break;
-//           }
-//           rep_filename.innerHTML = filename;
-//           camera_icon.style.display = 'none';
-//           rep_filename.style.display = 'flex';
-//         };//validate_file;
-//       reader.readAsArrayBuffer(file.slice(0,4));// instead of slice(0,25)
-//     }
+var all_notif_btns = document.getElementsByClassName('all_notif_btn');
+if (all_notif_btns) {
+  for (var i=0, len=all_notif_btns.length; i < len; i++) all_notif_btns[i].onclick = currentPermNavbar;
+}
+
+function currentPermNavbar(e){
+  // handles the notification button in the navbar
+
+  var tid = e.currentTarget.value
+
+  if (tid) {
+	e.preventDefault();
+	renderNotificationOptions(tid)
+  } else {
+	// do something else - 'tid' not found
+	return;
+  }
+  
+}
+
+
+
+
+var allow_notif_btns = document.getElementsByClassName('allow_notif_btn');
+if (allow_notif_btns) {
+	for (var i=0, len=allow_notif_btns.length; i < len; i++) allow_notif_btns[i].onclick = currentPermAllowBtn;
+}
+
+// function currentPermAllowBtn(e){
+//   // handles the 'allow notification' button that shows up in 1on1 chat
+//   e.preventDefault();
+
+//   var target_id = document.getElementById("notif_tid");
+//   var show_allow_only = document.getElementById("notif_show_allow_only");
+//   alert(target_id.value);
+//   alert(show_allow_only.value);
+//   var tid = target_id.value
+//   var show_allow_only_value = show_allow_only.value
+
+//   if (tid) {
+//     renderNotificationOptions(tid, show_allow_only_value)
 //   } else {
-//     valid_rep_img = null;
-//     modal_top.className = "cr lsp";//
-//     modal_top.innerHTML = 'Ye foto buhut barri hai, choti foto chunein';
+//     // do something else - 'tid' not found
 //   }
 
+// }
+
+function currentPermAllowBtn(e){
+	// handles the 'allow notification' button that shows up in 1on1 chat
+
+	var target_id = document.getElementById("notif_tid");
+	var show_allow_only = document.getElementById("notif_show_allow_only");
+	var tid = target_id.value
+	var show_allow_only_value = show_allow_only.value
+
+	if (tid) {
+		e.preventDefault();
+		renderNotificationOptions(tid, show_allow_only_value)
+	} else {
+		// do something else - 'tid' not found
+		return;
+	}
+}
+
+function renderNotificationOptions(target_id, show_allow_only_value) {
+
+	var form_data = new FormData();
+	form_data.append("tid",target_id);
+	if (show_allow_only_value) {
+		form_data.append("show_allow_only",show_allow_only_value);
+	}
+	/////////////////////////////
+	var NotificationIsSupported = !!(window.Notification /* W3C Specification */ || window.webkitNotifications /* old WebKit Browsers */ || navigator.mozNotification /* Firefox for Android and Firefox OS */)
+	if ( (!NotificationIsSupported) || (!('serviceWorker' in navigator)) || (!('PushManager' in window))) {
+		// handles the case where the browser supports JS but not web notifications (e.g. Safari)
+		form_data.append("browser_incompat",'1')
+	} else {
+		if (Notification.permission === "granted") {
+			form_data.append("notif_perm",'1');
+		} else if (Notification.permission === "denied"){
+			form_data.append("notif_perm",'3');
+		} else {
+			form_data.append("notif_perm",'2');
+		}
+	}
+	/////////////////////////////
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', '/1-on-1/push-notif/settings/');// url gotten from from urls_push_notif.py
+	xhr.timeout = 15000; // time in milliseconds, i.e. 15 seconds
+	xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
+	xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+	xhr.onload = function () {
+		var data = JSON.parse(this.responseText);//supported, because xhr.responseType is text, which is coverted to JSON upon receipt
+		if (this.status == 200) {
+			window.location.replace(data.redirect);
+		} else {
+			// e.g. if status == 404 or 403 or 500 (this is an error at the application level, not network level)
+			window.location.replace('/push-notification/subscription/unavailable/');
+		}
+	};
+	xhr.onerror = function () {
+		// onerror fires when there is a failure on the network level
+		window.location.replace('/push-notification/subscription/unavailable/');
+	};
+	xhr.ontimeout = function (e) {
+		// XMLHttpRequest timed out
+		window.location.replace('/push-notification/subscription/unavailable/');
+	};
+	xhr.onprogress = function () {
+		// if needed
+	};
+	xhr.send(form_data);
+
+}
+
+
+// function currentPermission(e){
+
+//   e.preventDefault();
+//   var target_show_all_id = document.getElementById("notif_show_all_tid");
+//   var target_id = document.getElementById("notif_tid");
+//   if (target_id) {
+//     var show_allow_only = document.getElementById("notif_show_allow_only");
+//     var tid = target_id;
+//   } else {
+//     var tid = target_show_all_id;
+//   }
+//   var form_data = new FormData();
+//   form_data.append("tid",tid.value);
+//   if (show_allow_only) {
+//     form_data.append("show_allow_only",show_allow_only.value);
+//   }
+//   if ((!('serviceWorker' in navigator)) || (!('PushManager' in window))) {
+//     // handles the case where the browser supports JS but not web notifications (e.g. Safari)
+//     form_data.append("browser_incompat",'1')
+//   }
+//   if (("Notification" in window) && Notification.permission === "granted") {
+//     form_data.append("notif_perm",'1');
+//   } else if (("Notification" in window) && Notification.permission === "denied"){
+//     form_data.append("notif_perm",'3');
+//   } else if (("Notification" in window)){
+//     form_data.append("notif_perm",'2');
+//   } else {
+//     form_data.append("browser_incompat",'1');
+//   }
+//   var xhr = new XMLHttpRequest();
+//   xhr.open('POST', '/1-on-1/push-notif/settings/');// url gotten from from urls_push_notif.py
+//   xhr.timeout = 15000; // time in milliseconds, i.e. 15 seconds
+//   xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
+//   xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+//   xhr.onload = function () {
+//     var data = JSON.parse(this.responseText);//supported, because xhr.responseType is text, which is coverted to JSON upon receipt
+//     if (this.status == 200) {
+//       window.location.replace(data.redirect);
+//     } else {
+//       // e.g. if status == 404 or 403 or 500 (this is an error at the application level, not network level)
+//       window.location.replace('/push-notification/subscription/unavailable/');
+//     }
+//   };
+//   xhr.onerror = function () {
+//     // onerror fires when there is a failure on the network level
+//     window.location.replace('/push-notification/subscription/unavailable/');
+//   };
+//   xhr.ontimeout = function (e) {
+//     // XMLHttpRequest timed out
+//     window.location.replace('/push-notification/subscription/unavailable/');
+//   };
+//   xhr.onprogress = function () {
+//     // if needed
+//   };
+//   xhr.send(form_data);
 // }
 
 

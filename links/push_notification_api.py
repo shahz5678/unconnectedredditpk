@@ -8,7 +8,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.core.urlresolvers import reverse, reverse_lazy
 from unconnectedreddit.env import PRIVATE_KEY
 from redis4 import save_push_subscription
-from redis5 import personal_group_already_exists, save_1on1_push_subscription
+from redis5 import personal_group_already_exists, save_1on1_push_subscription, log_1on1_sent_notif
 
 # TODO: must run 'pip install pywebpush' for this thing to work
 # TODO: must run 'pip install -U cryptography==2.5' for pywebpush to work (i.e. upgrade from cryptography 1.9 to 2.5 basically)
@@ -24,6 +24,7 @@ def save_subscription(request):
 			target_id = request.POST.get('target_id','')
 			fail_url = request.POST.get('furl','')
 			is_first_time_subscriber = True if request.POST.get('first_time_subscriber','') == '1' else False
+			from_allow_only_screen = True if request.POST.get('show_all_options','') == '0' else False
 			if target_id:
 				own_id = request.user.id
 				group_id, already_exists = personal_group_already_exists(own_id, target_id)
@@ -32,11 +33,13 @@ def save_subscription(request):
 					auth_key = request.POST.get('auth','')# secret - never to be shared outside the application
 					p256dh_key = request.POST.get('p256dh','')# a public key
 					if target_id and endpoint and auth_key and p256dh_key:
+						if from_allow_only_screen:
+							log_1on1_sent_notif(sent=False, status_code=193)
 						subscription_info = {'endpoint':endpoint,'auth':auth_key,'p256dh':p256dh_key}
 						save_push_subscription(own_id, subscription_info, time.time(), first_time=is_first_time_subscriber)# store it referenced to the user who requested the push capability
 						save_1on1_push_subscription(receiver_id=own_id, sender_id=target_id)
-						return HttpResponse(json.dumps({'data':{'success': True},'redirect':reverse('personal_group_subscription_success')}),\
-						content_type='application/json',status=200)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
+						return HttpResponse(json.dumps({'data':{'success': True},'redirect':reverse('personal_group_subscription_success',\
+						kwargs={"origin": 'allow_only' if from_allow_only_screen else 'all_options'})}),content_type='application/json',status=200)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user
 					else:
 						# something went wrong - return with a failure message
 						return HttpResponse(json.dumps({'data':{'success': False},'redirect':fail_url}),content_type='application/json',status=400)# format of json response is prescribed by https://developers.google.com/web/fundamentals/push-notifications/subscribing-a-user

@@ -1146,7 +1146,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 						# it's a genuine upvote - not just a reversion of the previous step
 						is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 						if is_super_defender:
-							queue_obj_into_trending(prefix='img:',obj_id=target_obj_id,picked_by_id=own_id)
+							queue_obj_into_trending(prefix='img:',obj_owner_id=target_user_id,obj_id=target_obj_id,picked_by_id=own_id)
 				else:
 					# is a link object
 					UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE)

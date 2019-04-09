@@ -33,8 +33,12 @@ def save_subscription(request):
 					auth_key = request.POST.get('auth','')# secret - never to be shared outside the application
 					p256dh_key = request.POST.get('p256dh','')# a public key
 					if target_id and endpoint and auth_key and p256dh_key:
+						#################### logging allow prompt funnel - remove later ######################################
+						######################################################################################################
 						if from_allow_only_screen:
 							log_1on1_sent_notif(sent=False, status_code=193)
+						######################################################################################################
+						######################################################################################################
 						subscription_info = {'endpoint':endpoint,'auth':auth_key,'p256dh':p256dh_key}
 						save_push_subscription(own_id, subscription_info, time.time(), first_time=is_first_time_subscriber)# store it referenced to the user who requested the push capability
 						save_1on1_push_subscription(receiver_id=own_id, sender_id=target_id)

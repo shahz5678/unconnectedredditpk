@@ -40,7 +40,7 @@ log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object
+add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions
 from redis7 import push_hand_picked_obj_into_trending, queue_obj_into_trending, in_defenders, remove_obj_from_trending
 
 from ecomm_tracking import insert_latest_metrics
@@ -566,8 +566,12 @@ def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, capt
 
 @celery_app1.task(name='tasks.trim_top_group_rankings')
 def trim_top_group_rankings():
-	pass
-	# expire_top_groups()
+	"""
+	Periodically trim the global sets containing all public submissions flowing into Damadam
+
+	Mislabeled for legacy reasons
+	"""
+	trim_expired_user_submissions()
 
 @celery_app1.task(name='tasks.trim_whose_online')
 def trim_whose_online():
@@ -575,11 +579,12 @@ def trim_whose_online():
 
 
 @celery_app1.task(name='tasks.remove_target_users_posts_from_all_feeds')
-def remove_target_users_posts_from_all_feeds(target_user_id, post_type, cleanse_feeds):
+def remove_target_users_posts_from_all_feeds(target_user_id, cleanse_feeds):
 	"""
 	If defender bans a user, remove said users' content from all current feeds
 	"""
-	cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds)
+	trim_expired_user_submissions(submitter_id=target_user_id, cleanse_feeds=cleanse_feeds)
+
 
 
 @celery_app1.task(name='tasks.delete_temporarily_saved_content_data')
@@ -971,18 +976,18 @@ def salat_streaks():
 
 
 @celery_app1.task(name='tasks.photo_upload_tasks')
-def photo_upload_tasks(user_id, photo_id, username, temp_photo_obj,number_of_photos, total_score):
+def photo_upload_tasks(user_id, photo_id, upload_time, username, temp_photo_obj,number_of_photos, total_score):
 	"""
 	Tasks fired when a photo is uploaded in the photos section (for public viewing)
 	"""
-	photo_image_file = Photo.objects.only('image_file').get(id=photo_id).image_file
+	photo_img_file = Photo.objects.only('image_file').get(id=photo_id).image_file
 	updated = TotalFanAndPhotos.objects.filter(owner_id=user_id).update(last_updated=datetime.utcnow()+timedelta(hours=5), total_photos=F('total_photos')+1)
 	if not updated:
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
-	add_search_photo(photo_image_file, photo_id,user_id)
+	add_search_photo(photo_img_file, photo_id,user_id)
 	if total_score > PHOTO_HOT_SCORE_REQ:
-		add_obj_to_home_feed(temp_photo_obj)
+		add_obj_to_home_feed(user_id, upload_time, temp_photo_obj)
 	if number_of_photos:
 		set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))
 

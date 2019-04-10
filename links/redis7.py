@@ -687,8 +687,8 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,*user_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*user_submissions)
 		else:
-			time_now = time.time()
-			expired_submissions = my_server.zrange(USER_SUBMISSIONS_AND_EXPIRES,'-inf',time_now)
+			time_now = int(time.time())
+			expired_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_EXPIRES,'-inf',time_now)
 			if expired_submissions:
 				# delete them all - without needing to delete vote stores (they've self deleted)
 				for submission in expired_submissions:

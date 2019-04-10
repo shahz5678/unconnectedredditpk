@@ -3770,8 +3770,8 @@ def upload_public_photo(request,*args,**kwargs):
 						for vote_score in vote_scores:
 							total_score += vote_score
 						number_of_photos = len(recent_photo_ids)
-					photo_upload_tasks.delay(user_id=user_id,photo_id=photo_id, username=name, temp_photo_obj=photo_obj,number_of_photos=number_of_photos, \
-						total_score=total_score)
+					photo_upload_tasks.delay(user_id=user_id, photo_id=photo_id, upload_time=epochtime, username=name, temp_photo_obj=photo_obj, \
+						number_of_photos=number_of_photos, total_score=total_score)
 					insert_hash(photo_id, photo.avg_hash) #perceptual hash of the photo
 					save_recent_photo(user_id, photo_id) #saving 5 recent ones
 					create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=user_id,object_owner_name=name,\

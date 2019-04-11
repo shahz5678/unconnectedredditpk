@@ -75,13 +75,14 @@ VOTE_ON_IMG = "vi:" #prefix for a sorted set that contains users who voted on a 
 VOTE_ON_TXT = "vt:" #prefix for a sorted set that contains users who voted on a particular text post. Each user's vote value is used as a score
 
 
-
-
 FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT = 'fbsuprl:'#rate limit key to throttle FBS users from uploading way too many public photos
 
 
 CACHED_TOP_STARS = 'cts:'
 CACHED_PUBLIC_REPLY = 'crep:'
+
+USER_SUBMISSIONS_AND_EXPIRES = 'use'# list containing all submissions from all users (sorted by expiry time) circulating in various feeds (in <feed_id>*<obj_hash> format)
+USER_SUBMISSIONS_AND_SUBMITTERS = 'uss'# list containing all submissions from all users (sorted by submitter ids) circulating in various feeds (in <feed_id>*<obj_hash> format)
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -147,16 +148,19 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 		mapping["fbs"]='1'
 	if is_pinkstar:
 		mapping['p']='1'
+	time_now = time.time()
+	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(hash_name,mapping)
-	pipeline1.expire(hash_name,PUBLIC_SUBMISSION_TTL)#setting ttl to one day
+	pipeline1.expireat(hash_name,expire_at)#setting ttl to one day
 	#### initialize voting sorted set ####
-	pipeline1.zadd(VOTE_ON_TXT+obj_id,-1,-1)
-	pipeline1.expire(VOTE_ON_TXT+obj_id,PUBLIC_SUBMISSION_TTL)
+	obj_vote_store_key = VOTE_ON_TXT+obj_id
+	pipeline1.zadd(obj_vote_store_key,-1,-1)
+	pipeline1.expireat(obj_vote_store_key,expire_at)
 	pipeline1.execute()
 	if add_to_feed:
-		add_obj_to_home_feed(hash_name, my_server)
+		add_obj_to_home_feed(submitter_id, time_now, hash_name, my_server)
 
 
 def update_comment_in_home_link(reply,writer,is_pinkstar,time,writer_id,link_pk):
@@ -179,15 +183,17 @@ def update_comment_in_home_link(reply,writer,is_pinkstar,time,writer_id,link_pk)
 		return 0
 
 
-def add_obj_to_home_feed(hash_name, my_server=None):
+def add_obj_to_home_feed(submitter_id, time_now, hash_name, my_server=None):
 	"""
 	Adding various objects to home feed
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	my_server.zadd(HOME_SORTED_FEED, hash_name, time.time())
+	my_server.zadd(HOME_SORTED_FEED, hash_name, time_now)
 	if random() < 0.2:
 		# every now and then, trim the sorted set for size
 		my_server.zremrangebyrank(HOME_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
+	log_user_submission(submitter_id=submitter_id, submitted_obj=hash_name, expire_at=int(time_now+PUBLIC_SUBMISSION_TTL), \
+		feeds_to_add=[HOME_SORTED_FEED], my_server=my_server)
 
 
 def retrieve_photo_feed_index(obj_hash, feed_type='best_photos'):
@@ -439,15 +445,17 @@ def save_recent_photo(user_id, photo_id):
 	pipeline1.execute()
 
 
-def add_obj_to_photo_feed(hash_name, my_server=None):
+def add_obj_to_photo_feed(submitter_id, time_now, hash_name, my_server=None):
 	"""
 	Adding various objects to photo feed
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	my_server.zadd(PHOTO_SORTED_FEED, hash_name, time.time())
+	my_server.zadd(PHOTO_SORTED_FEED, hash_name, time_now)
 	if random() < 0.2:
 		# every now and then, trim the sorted set for size
 		my_server.zremrangebyrank(PHOTO_SORTED_FEED, 0, -1001)# to keep top 1000 in the sorted set
+	log_user_submission(submitter_id=submitter_id, submitted_obj=hash_name, expire_at=int(time_now+PUBLIC_SUBMISSION_TTL), \
+		feeds_to_add=[PHOTO_SORTED_FEED], my_server=my_server)
 
 
 def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_pinkstar,\
@@ -465,18 +473,21 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 		mapping["fbs"]='1'
 	if is_pinkstar:
 		mapping['p']='1'#is_pinkstar
+	time_now = time.time()
+	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(hash_name,mapping)
-	pipeline1.expire(hash_name,PUBLIC_SUBMISSION_TTL)#setting TTL to one day
+	pipeline1.expireat(hash_name,expire_at)#setting TTL to one day
 	#### initialize voting sorted set ####
-	pipeline1.zadd(VOTE_ON_IMG+obj_id,-1,-1)
-	pipeline1.expire(VOTE_ON_IMG+obj_id,PUBLIC_SUBMISSION_TTL)
+	obj_vote_store_key = VOTE_ON_IMG
+	pipeline1.zadd(obj_vote_store_key,-1,-1)
+	pipeline1.expireat(obj_vote_store_key,expire_at)
 	pipeline1.execute()
 	if add_to_photo_feed:
-		add_obj_to_photo_feed(hash_name, my_server)
+		add_obj_to_photo_feed(submitter_id, time_now, hash_name, my_server)
 	if add_to_home_feed:
-		add_obj_to_home_feed(hash_name, my_server)
+		add_obj_to_home_feed(submitter_id, time_now, hash_name, my_server)
 	return hash_name
 
 
@@ -623,6 +634,77 @@ def rate_limit_fbs_public_photo_uploaders(user_id):
 	redis.Redis(connection_pool=POOL).setex(FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT+str(user_id),'1',FBS_PUBLIC_PHOTO_UPLOAD_RL)
 
 
+######################################### Logging User Submissions ####################################
+
+def log_user_submission(submitter_id, submitted_obj, expire_at=None, feeds_to_add=[], feeds_to_subtract=[], my_server=None):
+	"""
+	Logs the submitted object in a global sorted set
+
+	This is useful for periodic truncation of expired items and/or handling banned users whose feeds are to be eliminated
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if feeds_to_add:
+		expire_at = expire_at if expire_at else int(time.time()+my_server.ttl(submitted_obj))
+		for feed in feeds_to_add:
+			obj = feed+"*"+submitted_obj
+			my_server.zadd(USER_SUBMISSIONS_AND_EXPIRES,obj,expire_at)
+			my_server.zadd(USER_SUBMISSIONS_AND_SUBMITTERS,obj,int(submitter_id))
+	for feed in feeds_to_subtract:
+		obj = feed+"*"+submitted_obj
+		my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,obj)
+		my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,obj)
+
+
+def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
+	"""
+	Trims user submissions' set for expired entries
+
+	TODO: Call it via a scheduled task, or when banning a certain user and his/her submissions need to be taken out of circulation
+	"""
+	if cleanse_feeds == '1':
+		my_server = redis.Redis(connection_pool=POOL)
+		if submitter_id:
+			submitter_id = float(submitter_id)
+			user_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_SUBMITTERS,submitter_id,submitter_id)
+			if user_submissions:
+				# delete them all - along with vote stores
+				for submission in user_submissions:
+					data = submission.split('*')
+					which_feed, obj_hash_name = data[0], data[1]
+					if which_feed == TRENDING_PHOTO_DETAILS:
+						obj_id = int(obj_hash_name.split(":")[1])
+						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
+					elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
+						obj_id = obj_hash_name.split(":")[1]
+						my_server.zrem(which_feed,obj_id)
+					else:
+						my_server.zrem(which_feed, obj_hash_name)# no need
+						if obj_hash_name[:2] == 'tx':# removing vote stores (but after a lag of 10 mins)
+							my_server.expire(VOTE_ON_TXT+obj_hash_name[3:],TEN_MINS)
+						else:
+							my_server.expire(VOTE_ON_IMG+obj_hash_name[4:],TEN_MINS)
+						my_server.delete(obj_hash_name)# removing the object itself
+				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,*user_submissions)
+				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*user_submissions)
+		else:
+			time_now = int(time.time())
+			expired_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_EXPIRES,'-inf',time_now)
+			if expired_submissions:
+				# delete them all - without needing to delete vote stores (they've self deleted)
+				for submission in expired_submissions:
+					data = submission.split('*')
+					which_feed, obj_hash_name = data[0], data[1]
+					if which_feed == TRENDING_PHOTO_DETAILS:
+						obj_id = int(obj_hash_name.split(":")[1])
+						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
+					elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
+						obj_id = obj_hash_name.split(":")[1]
+						my_server.zrem(which_feed,obj_id)
+					else:
+						my_server.zrem(which_feed, obj_hash_name)# no need to expire vote stores of these objects, since they've already self-deleted
+				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES, *expired_submissions)
+				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS, *expired_submissions)
+
 ####################################################################################################
 ################################ Trending list related functonality ################################
 ####################################################################################################
@@ -647,7 +729,7 @@ def trim_trending_list(feed_type='best_photos'):
 		pass
 
 
-def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None):
+def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_hand_picked=False):
 	"""
 	Adds a single trending object to a trending list of objects
 
@@ -669,6 +751,10 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None):
 		if random() < 0.05:
 			# sometimes trim the trending sorted set for size
 			trim_trending_list()
+		feeds_to_add = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
+		feeds_to_subtract = [PHOTO_SORTED_FEED,HAND_PICKED_TRENDING_PHOTOS] if from_hand_picked else [PHOTO_SORTED_FEED]
+		log_user_submission(submitter_id=obj_hash['si'], submitted_obj=composite_id, feeds_to_add=feeds_to_add, \
+			feeds_to_subtract=feeds_to_subtract, my_server=my_server)
 	else:
 		pass
 
@@ -694,7 +780,8 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 						# do the deed - push the object for members to see!
 						time_of_selection = time.time()
 						obj_hash['tos'] = time_of_selection
-						add_single_trending_object(prefix='img:', obj_id=obj_hash['i'], obj_hash=obj_hash, my_server=my_server)
+						add_single_trending_object(prefix='img:', obj_id=obj_hash['i'], obj_hash=obj_hash, my_server=my_server,\
+							from_hand_picked=True)
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
 						pushed = True
 					else:
@@ -714,7 +801,7 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 	return pushed
 
 
-def queue_obj_into_trending(prefix,obj_id, picked_by_id):
+def queue_obj_into_trending(prefix, obj_owner_id, obj_id, picked_by_id):
 	"""
 	Used by super defenders to just move an object straight into trending
 
@@ -740,14 +827,17 @@ def queue_obj_into_trending(prefix,obj_id, picked_by_id):
 				still_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,composite_id)
 				if still_in_fresh:
 					# Enqueue for trending
+					expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 					pipeline1 = my_server.pipeline()
 					pipeline1.zadd(HAND_PICKED_TRENDING_PHOTOS,composite_id,time_now)
 					pipeline1.hset(composite_id,'pbid',picked_by_id)# records the ID of the super-defender who ordered this movement
-					pipeline1.expire(composite_id,PUBLIC_SUBMISSION_TTL)#re-setting TTL to one day
-					pipeline1.expire(VOTE_ON_IMG+obj_id,PUBLIC_SUBMISSION_TTL)
+					pipeline1.expireat(composite_id,expire_at)#re-setting TTL to one day
+					pipeline1.expireat(VOTE_ON_IMG+obj_id,expire_at)#re-setting TTL to one day
 					pipeline1.execute()
+					log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, expire_at=expire_at, \
+						feeds_to_add=[HAND_PICKED_TRENDING_PHOTOS], my_server=my_server)
 				else:
-					# not in fresh any more (for whatever reason) - so do nothing!
+					# not in fresh any more (e.g. because 1000 pics have overflown) - so do nothing!
 					pass
 	else:
 		pass
@@ -764,6 +854,7 @@ def remove_obj_from_trending(prefix,obj_id):
 		my_server = redis.Redis(connection_pool=POOL)
 		# ensure it's not in handpicked photos (e.g. if super-defender changed their mind about enqueing it)
 		my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,composite_id)
+		obj_owner_id = my_server.hget(composite_id,'si')
 		obj_is_trending = my_server.zscore(TRENDING_PHOTO_FEED,composite_id)
 		if obj_is_trending:
 			# remove it from trending
@@ -774,9 +865,13 @@ def remove_obj_from_trending(prefix,obj_id):
 			pipeline1.zrem(TRENDING_PICS_AND_USERS,obj_id)
 			pipeline1.execute()
 			Photo.objects.filter(id=obj_id).update(device='1')
+			feeds_to_subtract = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
+			log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, feeds_to_subtract=feeds_to_subtract, \
+				my_server=my_server)
 		else:
-			# not in trending (for whatever reason) - do nothing
-			pass
+			# not in trending yet (for whatever reason)
+			log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, feeds_to_subtract=[HAND_PICKED_TRENDING_PHOTOS], \
+				my_server=my_server)
 	else:
 		pass
 

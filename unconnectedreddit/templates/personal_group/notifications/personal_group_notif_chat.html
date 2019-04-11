@@ -132,10 +132,10 @@
     
   {% else %}
 
-    <div class="lsp mts mbs">
-      <div class="cxl">{% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} ne apko notification allow karney ki dawat di</div>
+<div class="lsp mts mbs">
+      <div class="cxl">Kya {% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko online bulaney ke liye notification send kar sakey?</div>
       <hr size=1 COLOR="#F1F1DA">
-      <div class="cm sp lsp">Is terah {% if their_nick %}<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko notification se Damadam pe bula lia karey ga</div>
+      <div class="cm sp lsp">Neechay 'Allow Notification' press karein:</div>
     </div>
 
     <form method="POST" action="{% url 'render_notification_perms_in_personal_group' %}" style="display:inline">

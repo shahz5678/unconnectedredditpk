@@ -146,12 +146,18 @@ function sendSubscriptionToServer(subscription) {
     dim_screen('on','- allowing notification -');
     var target_id = document.getElementById("allow_tid");
     var fts = document.getElementById("fts");
+    var sao = document.getElementById("sao");
     var form_data = new FormData();
     var payload = JSON.parse(subscription);
     if (fts.value) {
 		if (fts.value === '1') {
         	form_data.append("first_time_subscriber",'1')
     	}
+    }
+    if (sao.value) {
+        if (sao.value === 'False') {
+            form_data.append("show_all_options",'0')
+        }
     }
     form_data.append("endpoint", payload['endpoint']);
     form_data.append("auth", payload['keys']['auth']);

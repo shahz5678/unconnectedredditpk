@@ -28,5 +28,5 @@ urlpatterns = patterns('',
 	url(r'^1-on-1/push-notif/failure/no-permission-given/$', auth(personal_group_notif_prompts), name='personal_group_notif_failure_not_permitted'),
 	url(r'^1-on-1/push-notif/failure/subscription-action/$', auth(personal_group_subscription_failure), name='personal_group_subscription_failure'),
 	url(r'^1-on-1/push-notif/failure/browser-subscription-expired/$', auth(personal_group_notif_prompts), name='personal_group_notif_failure_subscription_expired'),
-	url(r'^1-on-1/push-notif/success/subscription-action/$', auth(personal_group_subscription_success), name='personal_group_subscription_success'),
+	url(r'^1-on-1/push-notif/success/subscription-action/(?P<origin>[\w.@+-]+)/$', auth(personal_group_subscription_success), name='personal_group_subscription_success'),
 )

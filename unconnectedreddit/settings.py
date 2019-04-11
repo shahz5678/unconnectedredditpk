@@ -405,7 +405,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',
-		'schedule': timedelta(seconds=86400*7*2), # execute every two weeks, currently unused
+		'schedule': timedelta(seconds=60*60*2), # execute every two hours
 	},
 	'tasks.whoseonline': {
 		'task': 'tasks.whoseonline',

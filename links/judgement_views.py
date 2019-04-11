@@ -1237,16 +1237,16 @@ def judge_content_submitters(request):
 									# since it's a bad content submission sin, cut votes from the target submission as well
 									if tp  == 'tx':
 										is_pht = '0'
-										Link.objects.filter(id=obj_id).update(net_votes=-100)#ensuring the text object will remain censored even after unbanning
+										Link.objects.filter(id=obj_id).update(net_votes=-100)
 									else:
 										is_pht = '1'
 										Photo.objects.filter(id=obj_id).update(vote_score=-100)#ensuring the photo object will remain censored even after unbanning
 									if from_cull == '1':
 										# Do not cleanse_feeds when report category is '9' or '10' (and defender originates from cull_list)
-										remove_target_users_posts_from_all_feeds.delay(target_user_id=obj_owner_id, post_type=tp, \
-										cleanse_feeds=request.session.pop('cleanse_feeds:'+obid+":"+tp+":"+own_id,'1'))# tp is 'img' or 'tx'
+										remove_target_users_posts_from_all_feeds.delay(target_user_id=obj_owner_id,\
+											cleanse_feeds=request.session.pop('cleanse_feeds:'+obid+":"+tp+":"+own_id,'1'))
 									else:
-										remove_target_users_posts_from_all_feeds.delay(target_user_id=obj_owner_id, post_type=tp, cleanse_feeds='1')# tp is 'img' or 'tx'
+										remove_target_users_posts_from_all_feeds.delay(target_user_id=obj_owner_id,cleanse_feeds='1')
 									#####################################################################
 									vote_id_and_values, net_votes = get_votes(obj_id,obj_type=tp, with_net_score=True)
 									if vote_id_and_values:

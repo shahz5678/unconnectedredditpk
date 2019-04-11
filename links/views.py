@@ -68,6 +68,7 @@ from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo,
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, \
 HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Video, \
 VideoComment
+from redirection_views import return_to_content
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, cache_photo_dim
@@ -195,124 +196,6 @@ def get_addendum(index, objs_per_page, only_addendum=False):
 def convert_to_epoch(time):
 	#time = pytz.utc.localize(time)
 	return (time-datetime(1970,1,1)).total_seconds()
-
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def redirect_to_content(request):
-	"""
-	Helper function for return_to_content()
-	"""
-	orig = request.POST.get("orig",None)
-	obid = request.POST.get("obid",None)
-	oun = request.POST.get("oun",None)
-	lid = request.POST.get("lid",None)
-	return return_to_content(request,orig,obid,lid,oun)
-
-
-def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None):
-	"""
-	Decides where to redirect user to
-
-	This is merely a redirect view and needs no url pattern (request is passed from other views, e.g. redirect_to_content())
-	"""
-	if origin == '1' or origin == '20':
-		# originated from taza photos page
-		if origin == '20':
-			# single notification on fresh photos 
-			return redirect("photo",list_type='fresh-list')
-		else:
-			return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'fresh-list','pk':obj_id}))
-	elif origin == '2' or origin == '21':
-		# originated from best photos
-		if origin == '21':
-			# single notification on best photos
-			return redirect("photo",list_type='best-list')
-		else:
-			return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list','pk':obj_id}))
-	elif origin == '3' or origin == '19':
-		if origin == '19':
-			# single notification on home
-			return redirect("home")
-		# originated from home
-		else:
-			request.session["home_hash_id"] = link_id
-			request.modified = True
-			return redirect("redirect_to_home")
-	elif origin == '4':
-		# originated from user profile
-		request.session["photograph_id"] = obj_id
-		request.modified = True
-		return redirect("profile", target_uname)
-	elif origin == '5':
-		# originated from photo detail
-		return redirect("photo_detail", obj_id)
-	elif origin == '6':
-		# originated from 'cull_content' (a defender view)
-		if in_defenders(request.user.id):
-			return redirect("cull_content")
-		else:
-			return redirect("photo",list_type='fresh-list')
-	elif origin == '7':
-		# originated from shared photos page
-		if target_uname:
-			return redirect("show_shared_photo_metrics", target_uname)
-		else:
-			return redirect("photo",list_type='fresh-list')
-	elif origin == '8':
-		# originated from home history
-		if target_uname:
-			return redirect("user_activity", target_uname)
-		else:
-			return redirect("home")
-	elif origin == '9':
-		# originated from a publicreply
-		request.session["link_pk"] = obj_id
-		request.modified = True
-		return redirect("publicreply_view")
-	elif origin == '10':
-		# originated from user profile (About page)
-		return redirect("user_profile", target_uname)
-	elif origin == '11':
-		# originated from the comments page
-		return redirect("comment_pk", obj_id)
-	elif origin == '12':
-		# originated from user's own fan list
-		return redirect("fan_list", obj_id)
-	elif origin == '13':
-		# originated from user's own star list
-		return redirect("star_list")
-	elif origin == '14':
-		# originated from user's own unseen activity
-		return redirect("unseen_activity", target_uname)
-	elif origin == '15':
-		# originated from a private group
-		request.session["unique_id"] = obj_id#obj_id contains group_uuid, otherwise it won't work
-		url = reverse_lazy("private_group_reply")+"#sectionJ"
-		return redirect(url)
-	elif origin == '16':
-		# originated from a public group
-		url = reverse_lazy("public_group",kwargs={'slug': obj_id})
-		return redirect(url)
-	elif origin == '17':
-		# originated from private chat list
-		return redirect("personal_group_user_listing")
-	elif origin == '18':
-		# originated from received invites' list
-		return redirect("show_personal_group_invite_list",'received')
-	# elif origin == '19':
-	# 	# originated from single notification on home (separate from home submissions)
-	# 	return redirect("home")
-	# elif origin == '20':
-	# 	# originated from single notification on latest photos (separate from photo submissions)
-	# 	return redirect("photo",list_type='fresh-list')
-	# elif origin == '21':
-	# 	# originated from single notification on trending photos (separate from photo submissions)
-	# 	return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type':'best-list','pk':obj_id}))
-	# 	#return redirect("photo",list_type='best-list')
-	else:
-		# take the voter to best photos by default
-		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))
 
 
 # def spammer_punishment_text(user_id):
@@ -4320,8 +4203,6 @@ def unseen_group(request, pk=None, *args, **kwargs):
 	"""
 	Handles replying to a mehfil message from a single notification or from unseen activity
 	"""
-	# if getattr(request,'limits',False):
-	#     raise Http404("Not so fast!")
 	if request.user_banned:
 		return redirect("error")
 	else:
@@ -4367,14 +4248,6 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						slug=grp["u"], image_url=None, priority=priority, from_unseen=True)
 					if origin:
 						return return_to_content(request,origin,pk,None,username)
-						# if origin == '1':
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3':
-						# 	return redirect("home")
-						# elif origin == '2':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("unseen_activity", username)
 					else:
 						return redirect("unseen_activity", username)
 				else:
@@ -4382,36 +4255,18 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						request.session["notif_form"] = form
 						request.session.modified = True
 						return return_to_content(request,origin,pk,None,username)
-						# if origin == '1':
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3':
-						# 	return redirect("home")
-						# elif origin == '2':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("unseen_activity", username)
 					else:
-						notification = "np:"+str(user_id)+":3:"+str(pk)
-						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-						url = reverse_lazy("unseen_activity", args=[username])+addendum
-						forms[pk] = form
-						request.session["forms"] = forms
-						request.session["oblist"] = oblist
-						request.session["page_obj"] = page_obj
-						request.session.modified = True
-						return redirect(url)
+						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+						return redirect(reverse_lazy("unseen_activity", args=[username])+"#error")
 			else:
 				return redirect("unseen_activity", username)
 
 
 @csrf_protect
-# @ratelimit(field='sk',ip=False,rate='3/s')
 def unseen_comment(request, pk=None, *args, **kwargs):
 	"""
 	Processes comment under photo from unseen activity (or single notification)
 	"""
-	# if getattr(request, 'limits', False):
-	#     raise Http404("Not so fast!")
 	if request.user_banned:
 		return redirect("error")
 	elif not request.mobile_verified:
@@ -4425,11 +4280,11 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 			if banned_by:
 				request.session["banned_by"] = banned_by
 				request.session["ban_time"] = ban_time
-				if origin == '3' or origin == '19':
+				if origin in ('3','19'):
 					request.session["where_from"] = '3'
-				elif origin == '1' or origin == '20':
+				elif origin in ('1','20'):
 					request.session["where_from"] = '1'
-				elif origin == '2' or origin == '21':
+				elif origin in ('2','21'):
 					request.session["where_from"] = '2'
 				else:
 					request.session["where_from"] = '14'
@@ -4470,14 +4325,6 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						username, url, request.mobile_verified)
 					if origin:
 						return return_to_content(request,origin,pk,None,username)
-						# if origin == '1' or origin == '20':
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3' or origin == '19':
-						# 	return redirect("home")
-						# elif origin == '2' or origin == '21':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("photo",list_type='best-list')
 					else:
 						return redirect("unseen_activity", username)
 				else:
@@ -4485,36 +4332,18 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						request.session["notif_form"] = form
 						request.session.modified = True
 						return return_to_content(request,origin,pk,None,username)
-						# if origin == '1' or origin == '20':
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3' or origin == '19':
-						# 	return redirect("home")
-						# elif origin == '2' or origin == '21':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("photo",list_type='best-list')
 					else:
-						notification = "np:"+str(request.user.id)+":0:"+str(pk)
-						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-						url = reverse_lazy("unseen_activity", args=[username])+addendum
-						forms[pk] = form
-						request.session["forms"] = forms
-						request.session["oblist"] = oblist
-						request.session["page_obj"] = page_obj
-						request.session.modified = True
-						return redirect(url)
+						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+						return redirect(reverse_lazy("unseen_activity", args=[username])+"#error")
 		else:
 			return redirect("unseen_activity", username)
 
 
 @csrf_protect
-# @ratelimit(field='sk',ip=False,rate='3/s')
 def unseen_reply(request, pk=None, *args, **kwargs):
 	"""
 	Handles replying as a 'jawab' from a single notification or from unseen activity
 	"""
-	# if getattr(request, 'limits', False):
-	#     raise Http404("Not so fast!")
 	if request.user_banned:
 		return redirect("error")
 	elif not request.mobile_verified:
@@ -4528,11 +4357,11 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 			if banned_by:
 				request.session["banned_by"] = banned_by
 				request.session["ban_time"] = ban_time
-				if origin == '3' or origin == '19':
+				if origin in ('3','19'):
 					request.session["where_from"] = '3'
-				elif origin == '1' or origin == '20':
+				elif origin in ('1','20'):
 					request.session["where_from"] = '1'
-				elif origin == '2' or origin == '21':
+				elif origin in ('2','21'):
 					request.session["where_from"] = '2'
 				else:
 					request.session["where_from"] = '14'
@@ -4554,14 +4383,6 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 						return render(request,"object_deleted.html",{})
 					elif origin:
 						return return_to_content(request,origin,pk,None,own_uname)
-						# if origin == '1' or origin == '20':
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3' or origin == '19':
-						# 	return redirect("home")
-						# elif origin == '2' or origin == '21':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("home")
 					else:
 						return redirect("unseen_activity", own_uname)
 				else:
@@ -4569,49 +4390,11 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 						request.session["notif_form"] = form
 						request.session.modified = True
 						return return_to_content(request,origin,pk,None,own_uname)
-						# if origin == '1':
-						# 	return redirect("photo",list_type='fresh-list')
-						# elif origin == '3':
-						# 	return redirect("home")
-						# elif origin == '2':
-						# 	return redirect("photo",list_type='best-list')
-						# else:
-						# 	return redirect("home")
 					else:
-						notification = "np:"+str(own_id)+":2:"+str(pk)
-						page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-						url = reverse_lazy("unseen_activity", args=[own_uname,])+addendum
-						forms[pk] = form
-						request.session["forms"] = forms
-						request.session["oblist"] = oblist
-						request.session["page_obj"] = page_obj
-						request.session.modified = True
-						return redirect(url)
+						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+						return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
 		else:
 			return redirect("unseen_activity", own_uname)
-
-
-
-def get_object_list_and_forms(request, notif=None):
-	notifications = retrieve_unseen_notifications(request.user.id)
-	if notif:
-		try:
-			index = notifications.index(notif)
-		except:
-			index = 0
-		page_num, addendum = get_addendum(index,ITEMS_PER_PAGE)
-	else:
-		addendum = '?page=1#section0'
-		page_num = request.GET.get('page', '1')
-	page_obj = get_page_obj(page_num, notifications, ITEMS_PER_PAGE)
-	if page_obj.object_list:
-		oblist = retrieve_unseen_activity(page_obj.object_list)
-	else:
-		oblist = []
-	forms = {}
-	for obj in oblist:
-		forms[obj['oi']] = UnseenActivityForm()
-	return page_obj, oblist, forms, page_num, addendum
 
 
 # @ratelimit(rate='22/38s')
@@ -4620,46 +4403,49 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 	"""
 	Renders the inbox functionality
 	"""
-	# if getattr(request, 'limits', False):
-	# 	raise Http404("You cannot view the inbox")
-	# else:
 	user_id = request.user.id
 	username = retrieve_uname(user_id,decode=True)
 	if tutorial_unseen(user_id=user_id, which_tut='20', renew_lease=True):
 		return render(request, 'inbox_tutorial.html', {'username':username})
 	else:
-		if 'forms' in request.session and 'oblist' in request.session and 'page_obj' in request.session:
-			if request.session['forms'] and request.session['oblist'] and request.session['page_obj']:
-				page_obj = request.session["page_obj"]
-				oblist = request.session["oblist"]
-				forms = request.session["forms"]
+		page_num = request.GET.get('page', '1')
+		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
+		notifications, list_total_size = retrieve_unseen_notifications(user_id, start_index, end_index, with_feed_size=True)
+		oblist = retrieve_unseen_activity(notifications) if notifications else []
+		items_in_page = len(oblist) if oblist else 0
+		if list_total_size:
+			num_pages = list_total_size/ITEMS_PER_PAGE
+			max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
+			page_num = int(page_num)
+			if oblist:
+				forms = {}
+				for obj in oblist:
+					forms[obj['oi']] = UnseenActivityForm()
+				secret_key = str(uuid.uuid4())
+				set_text_input_key(user_id, '1', 'home', secret_key)
+				last_visit_time = float(prev_unseen_activity_visit(user_id))-SEEN[False]
+				stars = set()
+				for notif in oblist:
+					if 'p' in notif and 'lrwi' in notif:
+						object_owner_id = notif['ooi']
+						if object_owner_id != str(user_id):
+							stars.add(notif['ooi'])
+				fanned = bulk_is_fan(stars,user_id)
+				error = request.session.pop('unseen_error_string','')
+				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms,'nickname':username,'sk':secret_key,'user_id':user_id,\
+				'last_visit_time':last_visit_time,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),'VDP':(VOTING_DRIVEN_PIXELATION+1),'fanned':fanned,\
+				'validation_error_string':error, 'page':{'has_previous':True if page_num>1 else False,'previous_page_number':page_num-1,\
+				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num}}
+				if request.is_phone or request.is_mobile:
+					context["is_mob"] = True
+				return render(request, 'user_unseen_activity.html', context)
 			else:
-				page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
-			del request.session["forms"]
-			del request.session["oblist"]
-			del request.session["page_obj"]
+				# page turned out to be empty since all notifications have been deleted.
+				return render(request,'user_unseen_activity.html',{'object_list':[],'page':{'number':page_num,'has_previous':True if page_num>1 else False,\
+					'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False},'nickname':username,\
+					'user_id':user_id})
 		else:
-			page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request)
-		secret_key = uuid.uuid4()
-		set_text_input_key(user_id, '1', 'home', secret_key)
-		if oblist:
-			last_visit_time = float(prev_unseen_activity_visit(user_id))-SEEN[False]
-			stars = set()
-			for notif in oblist:
-				if 'p' in notif and 'lrwi' in notif:
-					object_owner_id = notif['ooi']
-					if object_owner_id != str(user_id):
-						stars.add(notif['ooi'])
-			fanned = bulk_is_fan(stars,user_id)
-			context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms, 'page':page_obj,'nickname':username,'sk':secret_key,\
-			'last_visit_time':last_visit_time,'user_id':user_id,'fanned':fanned,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),\
-			'VDP':(VOTING_DRIVEN_PIXELATION+1)}
-			if request.is_feature_phone or request.is_phone or request.is_mobile:
-				context["is_mob"] = True
-			return render(request, 'user_unseen_activity.html', context)
-		else:
-			context = {'object_list': oblist, 'page':page_obj,'nickname':username,'sk':secret_key,'user_id':user_id}
-			return render(request, 'user_unseen_activity.html', context)
+			return render(request, 'user_unseen_activity.html', {'object_list': [], 'page':{},'nickname':username,'user_id':user_id})
 
 
 def unseen_help(request,*args,**kwargs):

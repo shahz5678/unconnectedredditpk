@@ -285,7 +285,7 @@ def can_vote_on_obj(voter_id, is_pht):
 		my_server.incr(votes_allowed)
 		my_server.expire(votes_allowed,FORTY_FIVE_SECS)
 		return None, True
-	elif int(current_spree) > (VOTE_SPREE_ALWD-1):#value set at '25' in the system (score.py)
+	elif int(current_spree) > (VOTE_SPREE_ALWD-1):#value set at '10' in the system (score.py)
 		ttl = my_server.ttl(votes_allowed)
 		return ttl, False
 	else:
@@ -294,7 +294,7 @@ def can_vote_on_obj(voter_id, is_pht):
 		short_term_rate_limit = my_server.ttl(short_term_rate_limit_key)
 		if short_term_rate_limit < 0:
 			my_server.incr(votes_allowed)
-			my_server.expire(votes_allowed,THREE_SECS*(int(current_spree)+1))
+			my_server.expire(votes_allowed,FORTY_FIVE_SECS*(int(current_spree)+1))
 			return None, True
 		else:
 			# user has to wait a few seconds (upto 9) - they were voting super fast

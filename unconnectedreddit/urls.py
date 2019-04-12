@@ -24,7 +24,7 @@ from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
 comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
-redirect_to_content, star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
+star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list,\
@@ -33,7 +33,7 @@ first_time_unseen_refresh, missing_page, home_reply, home_location_pk,photo_page
 upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
 public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
 #cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
-
+from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import TopView, UserProfilePhotosView, PhotoQataarHelpView, BaqiPhotosHelpView, \
 PhotoTimeView, PhotostreamView, PicHelpView, PhotoJawabView, CommentView, \

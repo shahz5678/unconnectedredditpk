@@ -14,7 +14,8 @@ from models import Link, Photo
 from redis4 import retrieve_uname
 from redis3 import tutorial_unseen
 from judgement_views import get_usernames
-from views import secs_to_mins, return_to_content
+from views import secs_to_mins
+from redirection_views import return_to_content
 from redis7 import get_photo_owner, get_link_writer, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending#, get_vote_ban_details, check_vote_ban
 

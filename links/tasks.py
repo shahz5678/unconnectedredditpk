@@ -988,7 +988,7 @@ def photo_upload_tasks(user_id, photo_id, upload_time, username, temp_photo_obj,
 		TotalFanAndPhotos.objects.create(owner_id=user_id, total_fans=0, total_photos=1, last_updated=datetime.utcnow()+timedelta(hours=5))
 	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')-3)
 	add_search_photo(photo_img_file, photo_id,user_id)
-	if True:#total_score > PHOTO_HOT_SCORE_REQ:
+	if total_score > PHOTO_HOT_SCORE_REQ:
 		add_obj_to_home_feed(user_id, upload_time, temp_photo_obj)
 	if number_of_photos:
 		set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))

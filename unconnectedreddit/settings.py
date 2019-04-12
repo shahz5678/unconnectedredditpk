@@ -424,7 +424,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.public_group_ranking_clean_up_task': {
 		'task': 'tasks.public_group_ranking_clean_up_task',
-		'schedule': timedelta(seconds=10*25*60),  # unused task - available for something new
+		'schedule': timedelta(seconds=60*60),  # used to calculate top contributors to trending list
 		'args': (),
 	},
 		'tasks.salat_info': {

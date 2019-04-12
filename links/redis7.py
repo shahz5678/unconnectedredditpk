@@ -731,10 +731,9 @@ def calculate_top_trenders():
 		trending_user_ids[photo_owner_id] += 1
 	list_of_tups = trending_user_ids.items()
 	trending_list = [item for sublist in list_of_tups for item in sublist]#flattening the list of tuples into a simple list which redis accepts (technique explained here: https://stackoverflow.com/a/51291027/4936905)
-	pipeline1 = my_server.pipeline()
 	my_server.delete(TOP_TRENDING_SUBMITTERS)
 	my_server.zadd(TOP_TRENDING_SUBMITTERS,*trending_list)
-	pipeline1.execute()
+
 
 def trim_trending_list(feed_type='best_photos'):
 	"""

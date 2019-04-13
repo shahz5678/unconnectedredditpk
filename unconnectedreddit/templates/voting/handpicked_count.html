@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Hand picked counter | Damadam.pk</title></head>
+<style>body{background: #f0f3f4}</style>
+   
+   	<div style="margin-left:auto;margin-right:auto">
+		<h1 class="cxl lsp clb" style="text-align:center;padding:0 10px">Handpicked photos remaining: {{ count }}</h1>
+	</div>
+
+    <div class="mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%;text-align:center">
+
+	    <div style="padding:10px;" class="cxl lsp clb mts">
+		    {% if hours and minutes %}
+		    	Time remaining: <span class="cb">{{ hours }} hour(s), {{ minutes }} mins</span>
+		    {% elif hours %}
+		    	Time remaining: <span class="cb">{{ hours }} hour(s), 0 mins</span>
+		    {% elif minutes %}
+		    	Time remaining: <span class="cb">0 hours, {{ minutes }} mins</span>
+		    {% else %}
+		    	<span class="cr">Please enqueue some photos!</span>
+		    {% endif %}
+		</div>
+		<hr size=1 COLOR="#f4f4f4">
+    	<div style="padding:10px;" class="cs sp lsp cgy mts mbs"><b>Note:</b> handpicked photos are pushed into the trending list every 5 mins</div>
+
+	</div>
+<br><br>
+{% endblock %}

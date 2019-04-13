@@ -19,23 +19,26 @@
 <style>body{background:#f0f3f4}</style>
 
 <div style="margin: 0 auto;max-width:600px;width:96%">
-{% if page.object_list %}
+{% if object_list %}
 
 <div class="mbs fx fxjscn fxaibl">
 	<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" class="mrs" style="display:inline-block">{% csrf_token %}<button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></form>
 	<h1 class="mls cxl clb lsp" style="margin:0;display:inline-block">Matka:</h1>
 </div>
 
+<a name="error"></a>
+{% if validation_error_string %}
+	<div style="background:tomato;text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">{{ validation_error_string }}</div>
+{% endif %}
+
 {% for notif in object_list %}
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 
 	<a name="section{{ forloop.counter }}"></a>
 	{% with forms|get_item:notif.oi as form %}
+
 	{% if notif.s != 'True' and  notif.u|floatformat:"3" > last_visit_time|floatformat:"3" %}
-	<div class="mls mbs">
-		<div class="st-dot" style="background-color:tomato"></div>
-		<div style="color:tomato;font-weight:bold;display:inline" class="cs sp">new</div>
-	</div>
+		<div style="font-weight:300;background-color:#ff6347;background:linear-gradient(90deg, rgba(248,131,121,1) 0%, rgba(255,178,112,1) 100%);color:white;text-align:center;padding:3px 0" class="cs sp">NEW</div>
 	{% endif %}
 
 {% if notif.ot == '5' %}
@@ -639,11 +642,20 @@
 </div>
 {% endfor %}
 
+{% elif page.number > 1 %}
+<h1 class="mls cxl clb lsp" style="text-align:center">Matka:</h1>
+
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px 8px">
+	<span class="clb cxl">Sorry! Matke ka ye page empty hai ...</span>
+	<hr size=1 COLOR="#E9EBEE">
+	<span class="lsp sp clb">Pichley page pe wapis jaein</span><br>
+
+</div>
 {% else %}
-<div class="clb bizcard" style="background-color:white;padding:10px 7px;text-align:center">
-<span class="clb cxl">Matka abhi khali hai!</span>
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px 8px">
+<span class="clb cxl">Sorry! Matke empty hai ...</span>
 <hr size=1 COLOR="#E9EBEE">
-<span class="lsp sp">Gup shup lagain takey matka bharna shuru ho</span><br>
+<span class="lsp sp clb">Gup shup lagain takey matka bharna shuru ho</span><br>
 <a href="{% url 'home' %}"><button class="btn bcb bm mtl mbs" style="height:25px">wapis</button></a>
 </div>
 {% endif %}

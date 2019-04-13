@@ -41,7 +41,7 @@ retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions
-from redis7 import push_hand_picked_obj_into_trending, queue_obj_into_trending, in_defenders, remove_obj_from_trending
+from redis7 import push_hand_picked_obj_into_trending, queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders
 
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -664,9 +664,11 @@ def rank_mehfils():
 @celery_app1.task(name='tasks.public_group_ranking_clean_up_task')
 def public_group_ranking_clean_up_task():
 	"""
-	Legacy scheduled task - unused at the moment
+	Calculates top list of photo-uploaders who have highest contributions to trending photos in a specific time period
+
+	Mislabeled task due to legacy reasons
 	"""
-	pass
+	calculate_top_trenders()
 
 
 @celery_app1.task(name='tasks.group_attendance_tasks')

@@ -6,7 +6,7 @@ from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_protect
 from django.shortcuts import redirect, render
 from django.core.urlresolvers import reverse
-from django.http import HttpResponse
+from django.http import HttpResponse, Http404
 from django.middleware import csrf
 from verified import FEMALES
 from tasks import vote_tasks
@@ -14,9 +14,10 @@ from models import Link, Photo
 from redis4 import retrieve_uname
 from redis3 import tutorial_unseen
 from judgement_views import get_usernames
-from views import secs_to_mins, return_to_content
+from views import secs_to_mins
+from redirection_views import return_to_content
 from redis7 import get_photo_owner, get_link_writer, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
-in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending#, get_vote_ban_details, check_vote_ban
+in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count#, get_vote_ban_details, check_vote_ban
 
 def vote_result(request):
 	"""
@@ -352,3 +353,21 @@ def show_voting_summary(request,pk,orig,pht):
 		'tp':tp,'first_time_voting_judger':tutorial_unseen(user_id=own_id, which_tut='12', renew_lease=True) if exists else False, 'ooid':ooid,\
 		'oun':oun,'purl':purl,'lid':lid, 'show_banning_prompt':show_banning_prompt,'orig':orig,'own_id':str(own_id),'is_trending':trending_status,\
 		'time_of_trending':time_of_selection})
+
+
+def show_handpicked_count(request):
+	"""
+	Renders a page where outstanding number of handpicked photos are displayed
+
+	Helps super defenders 'refill' the handpicked queue in a coordinated way
+	"""
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		count = retrieve_handpicked_photos_count()
+		hours_remaining = 0 if count == 0 else ((count*5.0)/60)
+		hours = int(hours_remaining//1) if hours_remaining else 0
+		minutes = int((hours_remaining%1)*60) if hours_remaining else 0
+		return render(request,"voting/handpicked_count.html",{'count':count,'hours':hours,'minutes':minutes})
+	else:
+		raise Http404("Refreshing too fast!")

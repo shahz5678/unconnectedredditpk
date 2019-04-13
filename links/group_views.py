@@ -39,13 +39,13 @@ PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
 from image_processing import process_group_image
-from views import get_page_obj, get_object_list_and_forms, return_to_content, get_indices
+from redirection_views import return_to_content
 from push_notification_api import send_single_push_notification
-
+from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
+from views import get_indices
 from models import Photo
-from unconnectedreddit.env import PUBLIC_KEY
 
 ONE_DAY = 60*60*24
 ONE_WEEK = 7*60*60*24
@@ -1122,14 +1122,6 @@ def unseen_per_grp(request, gid, fid):
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
 				if origin:
 					return return_to_content(request,origin,None,None,own_id)
-					# if origin == '1' or origin == '20':
-					# 	return redirect("photo", list_type='fresh-list')
-					# elif origin == '3' or origin == '19':
-					# 	return redirect("home")
-					# elif origin == '2' or origin == '21':
-					# 	return redirect("photo", list_type='best-list')
-					# else:
-					# 	return redirect("unseen_activity", own_uname)
 				else:
 					return redirect("unseen_activity", own_uname)
 			else:
@@ -1137,24 +1129,9 @@ def unseen_per_grp(request, gid, fid):
 					request.session["notif_form"] = form
 					request.session.modified = True
 					return return_to_content(request,origin,None,None,own_id)
-					# if origin == '1':
-					# 	return redirect("photo", list_type='fresh-list')
-					# elif origin == '3':
-					# 	return redirect("home")
-					# elif origin == '2':
-					# 	return redirect("photo", list_type='best-list')
-					# else:
-					# 	return redirect("unseen_activity", own_uname)
 				else:
-					notification = "np:"+str(own_id)+":5:"+group_id
-					page_obj, oblist, forms, page_num, addendum = get_object_list_and_forms(request, notification)
-					url = reverse_lazy("unseen_activity", args=[own_uname])+addendum
-					forms[group_id] = form
-					request.session["forms"] = forms
-					request.session["oblist"] = oblist
-					request.session["page_obj"] = page_obj
-					request.session.modified = True
-					return redirect(url)
+					request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+					return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
 		else:
 			return redirect("unseen_activity", own_uname)
 	else:

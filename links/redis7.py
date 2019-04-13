@@ -7,6 +7,7 @@ from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOA
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
 from redis3 import retrieve_user_world_age
+from collections import defaultdict
 from models import Photo
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
@@ -83,6 +84,7 @@ CACHED_PUBLIC_REPLY = 'crep:'
 
 USER_SUBMISSIONS_AND_EXPIRES = 'use'# list containing all submissions from all users (sorted by expiry time) circulating in various feeds (in <feed_id>*<obj_hash> format)
 USER_SUBMISSIONS_AND_SUBMITTERS = 'uss'# list containing all submissions from all users (sorted by submitter ids) circulating in various feeds (in <feed_id>*<obj_hash> format)
+TOP_TRENDING_SUBMITTERS = "tts"# sorted set that contains top trenders alongwith their scores (i.e. num pics in trending)
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -708,6 +710,42 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 ####################################################################################################
 ################################ Trending list related functonality ################################
 ####################################################################################################
+
+def retrieve_handpicked_photos_count():
+	"""
+	Returns count of handpicked photos that are currently enqueued
+
+	Useful for super_defenders in coordinating their voting efforts
+	"""
+	count = redis.Redis(connection_pool=POOL).zcard(HAND_PICKED_TRENDING_PHOTOS)
+	if count:
+		return count
+	else:
+		return 0
+
+
+
+def calculate_top_trenders():
+	"""
+	Calculating top X trending users within the prev Y hours (rolling)
+
+	Called by a scheduled task
+	To calculate 'score', just counting the number of pics an uploader got into trending (no ratio of num_trending/num_total yet)
+	"""
+	
+	one_day_ago = time.time() - ONE_DAY
+	my_server = redis.Redis(connection_pool=POOL)
+	last_24_hr_trending_photos = my_server.zrangebyscore(TRENDING_PICS_AND_TIMES, one_day_ago,'+inf')
+	all_trending_photo_owners = my_server.zrange(TRENDING_PICS_AND_USERS, 0,-1,withscores=True)
+	all_trending_photo_owners = dict(all_trending_photo_owners)# gives result in {'photo_id':'user_id'} form
+	trending_user_ids = defaultdict(int)# a python dictionary that doesn't give KeyError if key doesn't exist when dict is accessed
+	for photo_id in last_24_hr_trending_photos:
+		photo_owner_id = int(all_trending_photo_owners[photo_id])
+		trending_user_ids[photo_owner_id] += 1
+	list_of_tups = trending_user_ids.items()
+	trending_list = [item for sublist in list_of_tups for item in sublist]#flattening the list of tuples into a simple list which redis accepts (technique explained here: https://stackoverflow.com/a/51291027/4936905)
+	my_server.delete(TOP_TRENDING_SUBMITTERS)
+	my_server.zadd(TOP_TRENDING_SUBMITTERS,*trending_list)
 
 
 def trim_trending_list(feed_type='best_photos'):

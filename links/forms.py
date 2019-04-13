@@ -904,26 +904,26 @@ class UnseenActivityForm(forms.Form):
 	def clean(self):
 		data, user_id = self.cleaned_data, self.user_id
 		origin, secret_key_from_form = data.get("origin"), data.get("sk")
-		if origin == '1' or origin == '20':
+		if origin in ('1','20'):
 			org = 'fresh_photos'
-		elif origin == '3' or origin == '19':
+		elif origin in ('3','19'):
 			org = 'home'
-		elif origin == '2' or origin == '21':
+		elif origin in ('2','21'):
 			org = 'best_photos'
 		else:
 			org = 'home'
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
 		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
+			raise forms.ValidationError('Sirf aik dafa button dabain, bar bar nahi')
 		else:
 			link_id, photo_id, pub_grp_id, prv_grp_id, per_grp_id = self.link_id, self.photo_id, self.pub_grp_id, self.prv_grp_id, self.per_grp_id
 			if link_id:
 				section, payload, obj_id = 'home_rep', data.get("home_comment"), link_id
 				payload = payload.strip() if payload else None
 				if not payload:
-					raise forms.ValidationError('tip: likhna zaruri hai')
+					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
 				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-					raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
+					raise forms.ValidationError('Aik hi baat bar bar nahi likhein')
 				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
 				if rate_limited > 0:
 					raise forms.ValidationError('Ap jawab dene se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
@@ -935,18 +935,18 @@ class UnseenActivityForm(forms.Form):
 						else:
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
-						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+						raise forms.ValidationError('Itni barri baat nahi likh sakte')
 					return data
 			elif photo_id:
 				section, payload, obj_id = 'pht_comm', data.get("photo_comment"), photo_id
 				payload = payload.strip() if payload else None
 				if not payload:
-					raise forms.ValidationError('tip: likhna zaruri hai')
+					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
 				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-					raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
+					raise forms.ValidationError('Aik hi baat bar bar nah likhein')
 				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
 				if rate_limited > 0:
-					raise forms.ValidationError('Ap photo pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+					raise forms.ValidationError('Ap foto pe comment karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 				else:
 					len_payload = len(payload)
 					if len_payload < 6:
@@ -955,7 +955,7 @@ class UnseenActivityForm(forms.Form):
 						else:
 							log_short_message(user_id,section,obj_id)
 					elif len_payload > 250:
-						raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+						raise forms.ValidationError('Itni barri baat nahi likh sakte')
 					return data
 			elif pub_grp_id:
 				section, payload, obj_id= 'pub_grp', data.get("public_group_reply"), pub_grp_id
@@ -966,9 +966,9 @@ class UnseenActivityForm(forms.Form):
 				if is_member and is_signatory:
 					payload = payload.strip() if payload else None
 					if not payload:
-						raise forms.ValidationError('tip: likhna zaruri hai')
+						raise forms.ValidationError('Pehlay text likhein, phir button dabain')
 					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-						raise forms.ValidationError('tip: milti julti baatien nahi post karein')
+						raise forms.ValidationError('Milti julti baatien nahi post karein')
 					rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
 					if rate_limited > 0:
 						raise forms.ValidationError('Ap public mehfils mein post karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
@@ -976,11 +976,11 @@ class UnseenActivityForm(forms.Form):
 						len_payload = len(payload)
 						if len_payload < 6:
 							if many_short_messages(user_id,section,obj_id):
-								raise forms.ValidationError('tip: har thori deir baad yahan choti baat nah likhein')
+								raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
 							else:
 								log_short_message(user_id,section,obj_id)
 						elif len_payload > 500:
-							raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+							raise forms.ValidationError('Itni barri baat nahi likh sakte')
 						return data
 				elif is_member:
 					# needs to become a signatory
@@ -995,9 +995,9 @@ class UnseenActivityForm(forms.Form):
 				if is_member:
 					payload = payload.strip() if payload else None
 					if not payload:
-						raise forms.ValidationError('tip: likhna zaruri hai')
+						raise forms.ValidationError('Pehlay text likhein, phir button dabain')
 					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-						raise forms.ValidationError('tip: aik hi baat bar bar nah likhein')
+						raise forms.ValidationError('Aik hi baat bar bar nahi likhein')
 					rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
 					if rate_limited > 0:
 						raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
@@ -1009,7 +1009,7 @@ class UnseenActivityForm(forms.Form):
 							else:
 								log_short_message(user_id,section,obj_id)
 						elif len_payload > 500:
-							raise forms.ValidationError('tip: inti barri baat nahi likh sakte')
+							raise forms.ValidationError('Itni barri baat nahi likh sakte')
 						return data
 				else:
 					raise forms.ValidationError('Pehlay mehfil ke andr ja ke "join" press karein')
@@ -1017,7 +1017,7 @@ class UnseenActivityForm(forms.Form):
 				payload = data.get("personal_group_reply")
 				payload = payload.strip() if payload else None
 				if not payload:
-					raise forms.ValidationError('tip: likhna zaruri hai')
+					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
 				# No need to check for repetition, length or rate limit
 				return data
 			else:

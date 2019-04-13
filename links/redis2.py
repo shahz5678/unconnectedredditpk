@@ -87,16 +87,16 @@ def retrieve_latest_notification(viewer_id):
 		return None, None, None
 
 
-def retrieve_unseen_notifications(viewer_id):
+def retrieve_unseen_notifications(viewer_id, start_idx=0, end_idx=-1, with_feed_size=False):
 	"""
-	Retrieves notifications to be show in matka
+	Retrieves notifications to be shown in matka
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	sorted_set = "ua:"+str(viewer_id) #the sorted set containing 'unseen activity' notifications
-	if my_server.zcard(sorted_set):
-		return my_server.zrevrange(sorted_set, 0, -1)
+	if with_feed_size:
+		key = "ua:"+str(viewer_id)
+		my_server = redis.Redis(connection_pool=POOL)
+		return my_server.zrevrange(key, start_idx, end_idx), my_server.zcard(key)
 	else:
-		return []
+		return redis.Redis(connection_pool=POOL).zrevrange("ua:"+str(viewer_id), start_idx, end_idx)
 
 
 def retrieve_unseen_activity(notifications):
@@ -1078,26 +1078,26 @@ def is_fan(photo_owner_id, fan_id):
 
 
 def bulk_is_fan(star_id_list, fan_id):
-    """
-    Determines all the ids a user is a fan of (from a given list of stars)
-    """
-    my_server, stars = redis.Redis(connection_pool=POOL), []
-    if len(star_id_list) > 0:
-        pipeline1 = my_server.pipeline()
-        for star_id in star_id_list:
-            key = "f:"+star_id
-            pipeline1.zscore(key,fan_id)
-        result1, counter = pipeline1.execute(), 0
-        for star_id in star_id_list:
-            if result1[counter]:
-                stars.append(star_id)
-            counter += 1
-    elif star_id_list:
-        for star_id in star_id_list:
-            key = "f:"+star_id
-            if my_server.zscore(key,fan_id):
-                stars.append(star_id)
-    return stars
+	"""
+	Determines all the ids a user is a fan of (from a given list of stars)
+	"""
+	my_server, stars = redis.Redis(connection_pool=POOL), []
+	if len(star_id_list) > 0:
+		pipeline1 = my_server.pipeline()
+		for star_id in star_id_list:
+			key = "f:"+star_id
+			pipeline1.zscore(key,fan_id)
+		result1, counter = pipeline1.execute(), 0
+		for star_id in star_id_list:
+			if result1[counter]:
+				stars.append(star_id)
+			counter += 1
+	elif star_id_list:
+		for star_id in star_id_list:
+			key = "f:"+star_id
+			if my_server.zscore(key,fan_id):
+				stars.append(star_id)
+	return stars
 
 
 def get_all_fans(photo_owner_id):
@@ -1148,10 +1148,10 @@ def set_benchmark(benchmark):
 
 
 def set_uploader_score(user_id,benchmark_score):
-    """
-    Sets avg vote score of the user's prev 5 photos
-    """
-    redis.Redis(connection_pool=POOL).hset("us:"+str(user_id),'b',benchmark_score)
+	"""
+	Sets avg vote score of the user's prev 5 photos
+	"""
+	redis.Redis(connection_pool=POOL).hset("us:"+str(user_id),'b',benchmark_score)
 
 
 def get_uploader_percentile(user_id):

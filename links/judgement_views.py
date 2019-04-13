@@ -14,7 +14,8 @@ from django.utils import timezone
 from templatetags.s3 import get_s3_object
 from models import Photo, UserProfile, Link
 from page_controls import ITEMS_PER_PAGE, ITEMS_PER_PAGE_IN_ADMINS_LEDGER
-from views import get_price, get_addendum, get_page_obj, convert_to_epoch, return_to_content
+from views import get_price, get_addendum, get_page_obj, convert_to_epoch
+from redirection_views import return_to_content
 from judgement_forms import PhotoReportForm, DefenderBlockingReasonForm, AddDefenderIDForm, RemDefenderIDForm
 from tasks import process_reporter_payables, sanitize_expired_bans, post_banning_tasks, remove_target_users_posts_from_all_feeds,\
 delete_temporarily_saved_content_data

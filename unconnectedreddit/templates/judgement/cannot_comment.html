@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load get_display_ban_msg %}
+{% block content %}
+<head><title>Share text on Damadam | Damadam.pk</title></head>
+<style>body{background: #f0f3f4}</style>
+   
+   	<div style="margin-left:auto;margin-right:auto">
+		<h1 class="cxl lsp clb" style="text-align:center">Banned! Reason dekh lein ...</h1>
+	</div>
+
+    <div class="mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%">
+
+		{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=uname ban_detail=ban_details %}
+
+		<form method="POST" class="mtl mbl" style="text-align:center" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}
+			<input type="hidden" name="orig" value="{{ org }}">
+			<input type="hidden" name="lid" value="{{ lid }}">
+			<input type="hidden" name="oun" value="{{ tun }}">
+			<button type="submit" name="obid" class="btn bcb bl pg_ok_res sp" style="height:30px" value="{{ obid }}">wapis</button>
+		</form>
+
+	</div>
+<br><br>
+{% endblock %}

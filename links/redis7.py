@@ -739,7 +739,7 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 						my_server.delete(obj_hash_name)# removing the object itself
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,*user_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*user_submissions)
-				trim_trending_lists(submitter_id)
+				trim_trenders_data(target_user_id=submitter_id, my_server=my_server)
 		else:
 			time_now = int(time.time())
 			expired_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_EXPIRES,'-inf',time_now)
@@ -758,15 +758,16 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 						my_server.zrem(which_feed, obj_hash_name)# no need to expire vote stores of these objects, since they've already self-deleted
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES, *expired_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS, *expired_submissions)
+				trim_trenders_data(my_server=my_server)
 
 
-def trim_trending_lists(target_user_id=None):
+def trim_trenders_data(target_user_id=None, my_server=None):
 	"""
 	Removes trending items
 
 	Called by a scheduled task every few hours, or via trim_expired_user_submissions() when a user is banned
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	if target_user_id:
 		# target_user_id = int(target_user_id)
 		target_obj_ids = my_server.zrangebyscore(TRENDING_FOTOS_AND_USERS,target_user_id, target_user_id)

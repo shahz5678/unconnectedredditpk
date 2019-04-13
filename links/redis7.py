@@ -3,10 +3,10 @@ from random import random
 import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
-from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS
+from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
-from redis3 import retrieve_user_world_age
+from redis3 import retrieve_user_world_age, exact_date
 from collections import defaultdict
 from models import Photo
 
@@ -69,6 +69,8 @@ TRENDING_PHOTO_FEED = 'trendingphotofeed:1000'
 TRENDING_PHOTO_DETAILS = 'trendingphotodetails:1000'
 TRENDING_PICS_AND_TIMES = 'trendingphotosandtimes'# list containing trending pics (as values) and times (as scores)
 TRENDING_PICS_AND_USERS = 'trendingphotosandusers'# list containing trending pics (as values) and user_ids (as scores)
+TRENDING_FOTOS_AND_TIMES = 'tft'# list containing trending pics (as values) and times (as scores)
+TRENDING_FOTOS_AND_USERS = 'tfu'# list containing trending pics (as values) and user_ids (as scores)
 HAND_PICKED_TRENDING_PHOTOS = 'handpickedphotos'#sorted set containing hand-picked photos meant to show up in trending
 BEST_PHOTO_FEED = "bestphotofeed:1000"# list containing best 1000 photo feed hashes (e.g. img:123123)
 BEST_HOME_FEED = "besthomefeed:1000"# list containing best 1000 home feed hashes (e.g. tx:122123 or img:123123)
@@ -85,6 +87,7 @@ CACHED_PUBLIC_REPLY = 'crep:'
 USER_SUBMISSIONS_AND_EXPIRES = 'use'# list containing all submissions from all users (sorted by expiry time) circulating in various feeds (in <feed_id>*<obj_hash> format)
 USER_SUBMISSIONS_AND_SUBMITTERS = 'uss'# list containing all submissions from all users (sorted by submitter ids) circulating in various feeds (in <feed_id>*<obj_hash> format)
 TOP_TRENDING_SUBMITTERS = "tts"# sorted set that contains top trenders alongwith their scores (i.e. num pics in trending)
+
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -319,7 +322,36 @@ def get_voting_details(obj_id, is_pht, only_exists=False):
 		else:
 			return False, None, None, None, None
 
-def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_prev, is_pht):
+
+#TODO - showing voting history in user profiles (alongwith new user profile buttons)
+def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
+	"""
+	Saves user's voting history
+
+	#"<time>: Ap ne foto ko jhappi di"
+	#"<time>: Ap ne text ko chpair maari"
+	"""
+	VOTING_HISTORY = "vh:"# sorted set containing vote objects related to a given user (useful for historical/archiving purposes)
+	VOTING_DETAIL = "vd:"# key containing jsonized details of who voted for whom at what time 
+	voter_id, target_obj_id = str(voter_id), str(target_obj_id)
+	composite_key = voter_id+":"+target_obj_id
+	voting_history_key = VOTING_HISTORY+voter_id
+	voting_detail_key = VOTING_DETAIL+composite_key
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if is_reversion:
+		# handling voting reversion
+		my_server.zrem(voting_history_key,composite_key)
+		my_server.delete(voting_detail_key)
+		# TODO: How to handle Bayesian calculation for "voting affinity"?
+	else:
+		json_obj = json.dumps({'etov':voting_time,'dtov':exact_date(voting_time),'obid':target_obj_id,'vid':voter_id,'vv':vote_value,\
+			'tp':obj_type})
+		my_server.zadd(voting_history_key,composite_key, voting_time)
+		my_server.setex(voting_detail_key,json_obj,TWO_WEEKS)
+		my_server.expire(voting_history_key, TWO_WEEKS)
+
+
+def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_prev, is_pht, time_of_vote, target_user_id):
 	"""
 	Record a vote on textual or photo objects (used in 'cast_vote')
 	
@@ -329,8 +361,14 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 	"""
 	obj_id, own_id = str(obj_id), str(own_id)
 	hash_name = "img:"+obj_id if is_pht == '1' else "tx:"+obj_id
-	rate_limit_key = 'rlpv:'+own_id if is_pht == '1' else 'rlv:'+own_id
-	vote_store = VOTE_ON_IMG+obj_id if is_pht == '1' else VOTE_ON_TXT+obj_id
+	if is_pht == '1':
+		rate_limit_key = 'rlpv:'+own_id
+		vote_store = VOTE_ON_IMG+obj_id
+		obj_type = 'img'
+	else:
+		rate_limit_key = 'rlv:'+own_id
+		vote_store = VOTE_ON_TXT+obj_id
+		obj_type = 'tx'
 	my_server = redis.Redis(connection_pool=POOL)
 	obj_exists = my_server.exists(hash_name)#if redis obj exists, voting is still open (otherwise consider it closed)
 	if obj_exists:
@@ -340,23 +378,32 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 			my_server.hset(hash_name,'nv',net_votes)
 			if is_upvote == '1':
 				# this implies previous one was a downvote
+				vote_value = '1'
 				my_server.hincrby(hash_name,'dv',amount=-1)
 			else:
 				# this implies previous one was an upvote
+				vote_value = '0'
 				my_server.hincrby(hash_name,'uv',amount=-1)
 			if is_pinkstar:
 				# reduce one pv vote
 				my_server.hincrby(hash_name,'pv',amount=-1)
 			# reverting doesn't hit voting rate limits
+			
+			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
+				obj_type=obj_type, voting_time=time_of_vote, is_reversion=True, my_server=my_server)
+
 			return True
 		elif not my_server.exists(rate_limit_key):
 			# cast vote normally
 			my_server.zadd(vote_store,own_id, is_upvote)
+
 			my_server.hset(hash_name,'nv',net_votes)
 			if is_upvote == '1':
+				vote_value = '1'
 				my_server.hincrby(hash_name,'uv',amount=1)
 			else:
 				# is a downvote
+				vote_value = '0'
 				my_server.hincrby(hash_name,'dv',amount=1)
 			if is_pinkstar:
 				my_server.hincrby(hash_name,'pv',amount=1)
@@ -373,6 +420,10 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 				if new_value > 2:
 					# this person has voted 3 times in 10 seconds, rate limit them for 9 seconds
 					my_server.setex(rate_limit_key,'1',NINE_SECS)
+			
+			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
+				obj_type=obj_type, voting_time=time_of_vote, is_reversion=False, my_server=my_server)
+			
 			return True
 		else:
 			return False
@@ -661,7 +712,7 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 	"""
 	Trims user submissions' set for expired entries
 
-	TODO: Call it via a scheduled task, or when banning a certain user and his/her submissions need to be taken out of circulation
+	Called via a scheduled task, or when banning a certain user and his/her submissions need to be taken out of circulation
 	"""
 	if cleanse_feeds == '1':
 		my_server = redis.Redis(connection_pool=POOL)
@@ -688,6 +739,7 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 						my_server.delete(obj_hash_name)# removing the object itself
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,*user_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*user_submissions)
+				trim_trending_lists(submitter_id)
 		else:
 			time_now = int(time.time())
 			expired_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_EXPIRES,'-inf',time_now)
@@ -706,6 +758,27 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 						my_server.zrem(which_feed, obj_hash_name)# no need to expire vote stores of these objects, since they've already self-deleted
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES, *expired_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS, *expired_submissions)
+
+
+def trim_trending_lists(target_user_id=None):
+	"""
+	Removes trending items
+
+	Called by a scheduled task every few hours, or via trim_expired_user_submissions() when a user is banned
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if target_user_id:
+		# target_user_id = int(target_user_id)
+		target_obj_ids = my_server.zrangebyscore(TRENDING_FOTOS_AND_USERS,target_user_id, target_user_id)
+		if target_obj_ids:
+			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*target_obj_ids)
+			my_server.zrem(TRENDING_FOTOS_AND_USERS,*target_obj_ids)
+	else:
+		one_week_ago = time.time() - CONTEST_LENGTH#CONTEST_LENGTH
+		obj_ids_to_delete = my_server.zrangebyscore(TRENDING_FOTOS_AND_TIMES,'-inf',one_week_ago)
+		if obj_ids_to_delete:
+			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*obj_ids_to_delete)
+			my_server.zrem(TRENDING_FOTOS_AND_USERS,*obj_ids_to_delete)
 
 ####################################################################################################
 ################################ Trending list related functonality ################################
@@ -735,8 +808,8 @@ def calculate_top_trenders():
 	
 	one_day_ago = time.time() - ONE_DAY
 	my_server = redis.Redis(connection_pool=POOL)
-	last_24_hr_trending_photos = my_server.zrangebyscore(TRENDING_PICS_AND_TIMES, one_day_ago,'+inf')
-	all_trending_photo_owners = my_server.zrange(TRENDING_PICS_AND_USERS, 0,-1,withscores=True)
+	last_24_hr_trending_photos = my_server.zrangebyscore(TRENDING_FOTOS_AND_TIMES, one_day_ago,'+inf')
+	all_trending_photo_owners = my_server.zrange(TRENDING_FOTOS_AND_USERS, 0,-1,withscores=True)
 	all_trending_photo_owners = dict(all_trending_photo_owners)# gives result in {'photo_id':'user_id'} form
 	trending_user_ids = defaultdict(int)# a python dictionary that doesn't give KeyError if key doesn't exist when dict is accessed
 	for photo_id in last_24_hr_trending_photos:
@@ -745,7 +818,8 @@ def calculate_top_trenders():
 	list_of_tups = trending_user_ids.items()
 	trending_list = [item for sublist in list_of_tups for item in sublist]#flattening the list of tuples into a simple list which redis accepts (technique explained here: https://stackoverflow.com/a/51291027/4936905)
 	my_server.delete(TOP_TRENDING_SUBMITTERS)
-	my_server.zadd(TOP_TRENDING_SUBMITTERS,*trending_list)
+	if trending_list:
+		my_server.zadd(TOP_TRENDING_SUBMITTERS,*trending_list)
 
 
 def trim_trending_list(feed_type='best_photos'):
@@ -782,14 +856,14 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_ha
 		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
 		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float_time_of_selection)
 		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
-		pipeline1.zadd(TRENDING_PICS_AND_TIMES,obj_id,float_time_of_selection)
-		pipeline1.zadd(TRENDING_PICS_AND_USERS,obj_id,float(obj_hash['si']))
+		pipeline1.zadd(TRENDING_FOTOS_AND_TIMES,obj_id,float_time_of_selection)
+		pipeline1.zadd(TRENDING_FOTOS_AND_USERS,obj_id,float(obj_hash['si']))
 		pipeline1.execute()
 		Photo.objects.filter(id=obj_id).update(device='6')
 		if random() < 0.05:
 			# sometimes trim the trending sorted set for size
 			trim_trending_list()
-		feeds_to_add = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
+		feeds_to_add = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS]
 		feeds_to_subtract = [PHOTO_SORTED_FEED,HAND_PICKED_TRENDING_PHOTOS] if from_hand_picked else [PHOTO_SORTED_FEED]
 		log_user_submission(submitter_id=obj_hash['si'], submitted_obj=composite_id, feeds_to_add=feeds_to_add, \
 			feeds_to_subtract=feeds_to_subtract, my_server=my_server)
@@ -899,8 +973,8 @@ def remove_obj_from_trending(prefix,obj_id):
 			pipeline1 = my_server.pipeline()
 			pipeline1.zrem(TRENDING_PHOTO_FEED,composite_id)
 			pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
-			pipeline1.zrem(TRENDING_PICS_AND_TIMES,obj_id)
-			pipeline1.zrem(TRENDING_PICS_AND_USERS,obj_id)
+			pipeline1.zrem(TRENDING_FOTOS_AND_TIMES)
+			pipeline1.zrem(TRENDING_FOTOS_AND_USERS)
 			pipeline1.execute()
 			Photo.objects.filter(id=obj_id).update(device='1')
 			feeds_to_subtract = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
@@ -2337,7 +2411,7 @@ def first_time_exchange_visitor(user_id):
 	if redis.Redis(connection_pool=POOL).sismember("ftux:"+str(user_id),'14'):
 		return False
 	else:
-		return True	
+		return True 
 
 
 def add_photo_ad_visitor(user_id):
@@ -2352,7 +2426,7 @@ def first_time_photo_ads_visitor(user_id):
 	if my_server.sismember(set_name,'17'):
 		return False
 	else:
-		return True		
+		return True     
 
 
 ##################### Maintaining top stars listing #####################

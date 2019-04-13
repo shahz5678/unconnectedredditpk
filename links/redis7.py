@@ -711,6 +711,19 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 ################################ Trending list related functonality ################################
 ####################################################################################################
 
+def retrieve_handpicked_photos_count():
+	"""
+	Returns count of handpicked photos that are currently enqueued
+
+	Useful for super_defenders in coordinating their voting efforts
+	"""
+	count = redis.Redis(connection_pool=POOL).zcard(HAND_PICKED_TRENDING_PHOTOS)
+	if count:
+		return count
+	else:
+		return 0
+
+
 
 def calculate_top_trenders():
 	"""

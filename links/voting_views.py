@@ -1,4 +1,5 @@
 # coding=utf-8
+import time
 import ujson as json
 from datetime import timedelta
 from brake.decorators import ratelimit
@@ -208,7 +209,7 @@ def cast_vote(request,*args,**kwargs):
 									time_remaining, can_vote = can_vote_on_obj(own_id, is_pht)
 								if can_vote:
 									own_name = request.user.username
-									vote_tasks.delay(own_id, target_user_id,obj_id,value,(True if own_name in FEMALES else False),own_name, revert_old,is_pht)
+									vote_tasks.delay(own_id, target_user_id,obj_id,value,(True if own_name in FEMALES else False),own_name, revert_old,is_pht,time.time())
 									message = 'old' if revert_old else 'new'#used to do some validation checks on the JS front-end, nothing more
 									if is_ajax:
 										# JS voting

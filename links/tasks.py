@@ -20,7 +20,7 @@ Video, HotUser, PhotoStream, HellBanList, UserFan
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, \
-set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
+set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -35,7 +35,7 @@ remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_
 update_private_chat_notif_object, update_private_chat_notifications, set_uploader_score, bulk_remove_multiple_group_notifications, \
 update_group_topic_in_obj
 # photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
-from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
+from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
@@ -1119,7 +1119,7 @@ def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_incre
 
 
 @celery_app1.task(name='tasks.vote_tasks')
-def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_name,revert_prev,is_pht):
+def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_name,revert_prev,is_pht,time_of_vote):
 	"""
 	Processes vote on a post by a user
 
@@ -1138,7 +1138,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		if vote_value == '1':
 			# is an upvote
 			net_votes = old_net_votes + 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht)
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote, target_user_id)
 			if added:
 				# vote added
 				if is_pht == '1':
@@ -1164,7 +1164,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		elif vote_value == '0':
 			# is a downvote
 			net_votes = old_net_votes - 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht)
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote, target_user_id)
 			if added:
 				# vote added
 				if is_pht == '1':

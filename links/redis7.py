@@ -88,6 +88,12 @@ USER_SUBMISSIONS_AND_EXPIRES = 'use'# list containing all submissions from all u
 USER_SUBMISSIONS_AND_SUBMITTERS = 'uss'# list containing all submissions from all users (sorted by submitter ids) circulating in various feeds (in <feed_id>*<obj_hash> format)
 TOP_TRENDING_SUBMITTERS = "tts"# sorted set that contains top trenders alongwith their scores (i.e. num pics in trending)
 
+# ALL_VOTES_AND_TIMES = 'avt:'# sorted set containing all votes dropped by a user (sorted by time)
+# VOTE_DETAIL = "vd:"# key containing jsonized details of who voted for whom at what time 
+# UPVOTES_AND_OBJ_OWNERS = 'uoo:'# sorted set containing all upvotes and target users 
+# DOWNVOTES_AND_OBJ_OWNERS = 'doo:'# sorted set containing all downvotes and target users
+# GLOBAL_FIRST_VOTE_TIME = 'gfvt'# global sorted set containing first-time voting times of all voters
+# GLOBAL_LATEST_VOTE_TIME = 'glvt'# global sorted set containing latest voting times of all voters
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -323,32 +329,116 @@ def get_voting_details(obj_id, is_pht, only_exists=False):
 			return False, None, None, None, None
 
 
-#TODO - showing voting history in user profiles (alongwith new user profile buttons)
-def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
-	"""
-	Saves user's voting history
+# #TODO - showing voting history in user profiles (alongwith new user profile buttons)
+# def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
+# 	"""
+# 	Saves user's voting history
 
-	#"<time>: Ap ne foto ko jhappi di"
-	#"<time>: Ap ne text ko chpair maari"
-	"""
-	VOTING_HISTORY = "vh:"# sorted set containing vote objects related to a given user (useful for historical/archiving purposes)
-	VOTING_DETAIL = "vd:"# key containing jsonized details of who voted for whom at what time 
-	voter_id, target_obj_id = str(voter_id), str(target_obj_id)
-	composite_key = voter_id+":"+target_obj_id
-	voting_history_key = VOTING_HISTORY+voter_id
-	voting_detail_key = VOTING_DETAIL+composite_key
-	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	if is_reversion:
-		# handling voting reversion
-		my_server.zrem(voting_history_key,composite_key)
-		my_server.delete(voting_detail_key)
-		# TODO: How to handle Bayesian calculation for "voting affinity"?
-	else:
-		json_obj = json.dumps({'etov':voting_time,'dtov':exact_date(voting_time),'obid':target_obj_id,'vid':voter_id,'vv':vote_value,\
-			'tp':obj_type})
-		my_server.zadd(voting_history_key,composite_key, voting_time)
-		my_server.setex(voting_detail_key,json_obj,TWO_WEEKS)
-		my_server.expire(voting_history_key, TWO_WEEKS)
+# 	#"<time>: Ap ne foto ko jhappi di"
+# 	#"<time>: Ap ne text ko chpair maari"
+# 	"""
+# 	voter_id, target_obj_id = str(voter_id), str(target_obj_id)
+# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 	if is_reversion:
+# 		# handling voting reversion
+# 		vote_up_or_down_key = DOWNVOTES_AND_OBJ_OWNERS if vote_value == '1' else UPVOTES_AND_OBJ_OWNERS
+# 		my_server.zrem(ALL_VOTES_AND_TIMES+voter_id,target_obj_id)
+# 		my_server.zrem(vote_up_or_down_key, target_obj_id)
+# 		my_server.delete(VOTE_DETAIL+voter_id+":"+target_obj_id)
+# 	else:
+# 		vote_up_or_down_key = UPVOTES_AND_OBJ_OWNERS if vote_value == '1' else DOWNVOTES_AND_OBJ_OWNERS
+# 		json_obj = json.dumps({'etov':voting_time,'dtov':exact_date(voting_time),'obid':target_obj_id,'vid':voter_id,\
+# 			'vv':vote_value,'tp':obj_type, 'ooid':target_user_id})
+# 		my_server.set(VOTE_DETAIL+voter_id+":"+target_obj_id,json_obj)
+# 		my_server.zadd(ALL_VOTES_AND_TIMES+voter_id, target_obj_id, voting_time)
+# 		my_server.zadd(vote_up_or_down_key+voter_id, target_obj_id, target_user_id)
+# 		##################
+# 		if my_server.zscore(GLOBAL_FIRST_VOTE_TIME, voter_id):
+# 			# has voted within the last 2 months
+# 			my_server.zadd(GLOBAL_LATEST_VOTE_TIME, voter_id, voting_time)
+# 		else:
+# 			# is voting for the first time, in at least 2 months
+# 			my_server.zadd(GLOBAL_FIRST_VOTE_TIME, voter_id, voting_time)# used for cleaning up old records
+# 			my_server.zadd(GLOBAL_LATEST_VOTE_TIME, voter_id, voting_time)# used for exporting voting records
+
+
+# def calculate_bayesian_affinity(vote_value, voter_id, target_user_id, my_server=None):
+# 	"""
+# 	Calculates the Bayesian probability of a voter being a sybil of a target user (or a 'hater')
+
+# 	The formula is as follows:
+# 	P(sybil|upvote) = (P(upvote|sybil)*P(sybil))/P(upvote)
+# 	where:
+# 	- P(upvote|sybil) is 100% (by definition)
+# 	- P(sybil) is calculated via (num_upvotes_given_to_target_user_id/total_votes_cast)
+# 	- P(upvote) is (P(sybil,upvoted)+P(non-sybil,upvoted)) - ',' means AND
+
+# 	TODO: If less than 30 votes in ALL_VOTES_AND_TIMES+voter_id, do not calculate this metric
+# 	"""
+# 	voter_id = str(voter_id)
+# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 	if vote_value == '1':
+# 		# it's an upvote - calculate probability the voter is a 'sybil' of target_user_id
+# 		upvote_key = UPVOTES_AND_OBJ_OWNERS+voter_id
+# 		num_upvotes_given_to_target_user_id = my_server.zcount(upvote_key,target_user_id,target_user_id)
+# 		print "num_upvotes_given_to_target_user_id = " + str(num_upvotes_given_to_target_user_id)
+# 		if num_upvotes_given_to_target_user_id:
+# 			num_upvotes_given_to_everybody = my_server.zcard(upvote_key)
+# 			num_downvotes_given_to_everybody = my_server.zcard(DOWNVOTES_AND_OBJ_OWNERS+voter_id)
+# 			num_votes_in_consideration = num_upvotes_given_to_everybody + num_downvotes_given_to_everybody
+# 			numerator = ((num_upvotes_given_to_target_user_id*1.0)/num_votes_in_consideration)            
+# 			denominator = numerator+((1-numerator)*((num_upvotes_given_to_everybody*1.0)/num_votes_in_consideration))
+# 			if denominator:
+# 				tube = numerator/denominator
+# 				print "numerator/denominator = "+str(tube)
+# 				return numerator/denominator
+# 			else:
+# 				return 0.0
+# 		else:
+# 			return 0.0
+# 	else:
+# 		# it's a downvote - calculate probability the voter is a 'hater' of target_user_id
+# 		downvote_key = DOWNVOTES_AND_OBJ_OWNERS+voter_id
+# 		num_downvotes_given_to_target_user_id = my_server.zcount(downvote_key,target_user_id,target_user_id)
+# 		if num_downvotes_given_to_target_user_id:
+# 			num_downvotes_given_to_everybody = my_server.zcard(downvote_key)
+# 			num_upvotes_given_to_everybody = my_server.zcard(UPVOTES_AND_OBJ_OWNERS+voter_id)
+# 			num_votes_in_consideration = num_upvotes_given_to_everybody + num_downvotes_given_to_everybody
+# 			numerator = ((num_downvotes_given_to_target_user_id*1.0)/num_votes_in_consideration)
+# 			denominator = numerator+((1-numerator)*((num_downvotes_given_to_everybody*1.0)/num_votes_in_consideration))
+# 			if denominator:
+# 				return numerator/denominator
+# 			else:
+# 				return 0.0
+# 		else:
+# 			return 0.0
+
+
+# def cleanup_voting_records(voter_ids):
+# 	"""
+# 	Cleans up user's voting records after the passage of some time
+
+# 	Methodology: remove votes cast more than 2 months ago
+
+# 	TODO: Cap UPVOTES and DOWNVOTES lists to 100 latest votes (via ALL_VOTES_AND_TIMES)
+# 	TODO: Maintain a sorted set which tracks last time 'cleaningup' was run on a user's voting
+
+# 	<voter_id>:<target_id>:<vote_value> <num_occurences> - can help identify thresholds for 'sybil' and 'hater' behavior
+# 	<voter_id> <last_vote_time> - can help in truncating certain rows from the above
+# 	<voter_id> <last_cleanup_time> - can help in running the cleanup task periodically
+# 	"""
+# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 	two_months_ago = time.time() - TWO_MONTHS
+# 	for voter_id in voter_ids:
+# 		old_votes = my_server.zrangebyscore(ALL_VOTES_AND_TIMES+voter_id,'-inf',two_months_ago)
+# 		if old_votes:
+# 			pipeline1 = my_server.pipeline()
+# 			pipeline1.zrem(UPVOTES_AND_OBJ_OWNERS+voter_id,*old_votes)
+# 			pipeline1.zrem(DOWNVOTES_AND_OBJ_OWNERS+voter_id,*old_votes)
+# 			pipeline1.zrem(ALL_VOTES_AND_TIMES+voter_id,*old_votes)
+# 			for target_obj_id in old_votes:
+# 				pipeline1.delete(VOTE_DETAIL+voter_id+":"+target_obj_id)
+# 			pipeline1.execute()
 
 
 def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_prev, is_pht, time_of_vote, target_user_id):
@@ -389,8 +479,8 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 				my_server.hincrby(hash_name,'pv',amount=-1)
 			# reverting doesn't hit voting rate limits
 			
-			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
-				obj_type=obj_type, voting_time=time_of_vote, is_reversion=True, my_server=my_server)
+			# add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
+			# 	obj_type=obj_type, voting_time=time_of_vote, is_reversion=True, my_server=my_server)
 
 			return True
 		elif not my_server.exists(rate_limit_key):
@@ -421,8 +511,8 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 					# this person has voted 3 times in 10 seconds, rate limit them for 9 seconds
 					my_server.setex(rate_limit_key,'1',NINE_SECS)
 			
-			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
-				obj_type=obj_type, voting_time=time_of_vote, is_reversion=False, my_server=my_server)
+			# add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
+			# 	obj_type=obj_type, voting_time=time_of_vote, is_reversion=False, my_server=my_server)
 			
 			return True
 		else:

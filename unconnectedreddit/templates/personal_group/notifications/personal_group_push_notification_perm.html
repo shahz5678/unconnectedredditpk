@@ -86,7 +86,7 @@
 		<form method="POST" class="mtl" action="{% url 'decide_notification_perms_in_personal_group' %}" style="text-align:center">
 			{% csrf_token %}
 			<input type="hidden" id="notif_pub_key" name="pk" value="{{ public_key }}">
-			<input type="hidden" id="sw_loc" name="sw_loc" value="{{ STATIC_URL }}js/min_sw.v1.0.js">
+			<input type="hidden" id="sw_loc" name="sw_loc" value="{{ STATIC_URL }}js/min_sw.v1.1.js">
 			<input type="hidden" id="allow_tid" name="tid" value="{{ tid }}">
 			<input type="hidden" id="furl" name="furl" value="{{ furl }}">
 			<input type="hidden" id="fts" name="fts" value="{{ first_time_subscriber }}">

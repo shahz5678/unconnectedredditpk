@@ -4,7 +4,7 @@
 {% block content %}
 <head><title>Push notification settings for 1 on 1 messaging | Damadam.pk</title></head>
 <style>body{background:#f0f3f4}</style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/page/min_notif.v1.0.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/page/min_notif.v1.1.js"></script>
 
 {% if unsupported_browser %}
 
@@ -14,7 +14,8 @@
 
 		<img src="{{ STATIC_URL }}img/notification.svg" width="55" height="55" style="vertical-align:sub">
 	
-		<div class="cxl mbs mts lsp clb"><b>Sorry!</b> Ye service chalaney ke liye <img src="{{ STATIC_URL }}img/chrome.svg" height="25" width="25" style="vertical-align:baseline">&nbsp;Chrome browser use karein</div>
+		<div class="cxl mbs mts lsp clb"><b>Sorry!</b> Ye service chalaney ke liye <img src="{{ STATIC_URL }}img/chrome.svg" height="25" width="25" style="vertical-align:baseline">&nbsp;Chrome browser ka <a href="https://chrome.en.softonic.com/" rel="nofollow" target="_blank">latest version</a> use karein</div>
+
 		<form method="POST" class="mtl mbs" action="{% url 'enter_personal_group' %}">
 			{% csrf_token %}
 			<button type="submit" class="btn bcgy bm cl sp pg_ok_res" name="tid" style="border:none;height:40px;width:100%" value="{{ tid }}">BACK</button>
@@ -124,7 +125,8 @@
 		{% elif incompatible %}
 		<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:92%;overflow:hidden;background:coral;text-align:center;margin-right:auto;margin-left:auto">
 
-			<div class="clw sp cm lsp" style="padding:7px">{% if on_fbs %}Freebasics pe 'allow' nahi chalta{% else %}Allow karney ke liye Chrome browser use karein{% endif %}</div>
+			<div class="clw sp cm lsp" style="padding:7px">{% if on_fbs %}Freebasics pe 'allow' nahi chalta{% else %}Allow karney ke liye Chrome browser ka <a href="https://chrome.en.softonic.com/" rel="nofollow" target="_blank">latest version</a> use karein{% endif %}</div>
+
 
 			<div style="background:white;padding:10px 8px">
 				<div class="cxl mbs lsp"><b>Allow notification</b>: {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:10 }}{% endif %} ko ijazat dein ke apko notification ke zariye 1 on 1 mein bula le</div>

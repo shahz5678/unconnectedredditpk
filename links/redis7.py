@@ -329,7 +329,7 @@ def get_voting_details(obj_id, is_pht, only_exists=False):
 			return False, None, None, None, None
 
 
-# #TODO - showing voting history in user profiles (alongwith new user profile buttons)
+#TODO - showing voting history in user profiles (alongwith new user profile buttons)
 # def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
 # 	"""
 # 	Saves user's voting history
@@ -337,29 +337,45 @@ def get_voting_details(obj_id, is_pht, only_exists=False):
 # 	#"<time>: Ap ne foto ko jhappi di"
 # 	#"<time>: Ap ne text ko chpair maari"
 # 	"""
+
+# 	# ALL_VOTES_AND_TIMES = 'avt:'# sorted set containing all votes dropped by a user (sorted by time)
+# 	# VOTE_DETAIL = "vd:"# key containing jsonized details of who voted for whom at what time 
+# 	# UPVOTES_AND_OBJ_OWNERS = 'uoo:'# sorted set containing all upvotes and target users 
+# 	# DOWNVOTES_AND_OBJ_OWNERS = 'doo:'# sorted set containing all downvotes and target users
+# 	# GLOBAL_FIRST_VOTE_TIME = 'gfvt'# global sorted set containing first-time voting times of all voters
+# 	# GLOBAL_LATEST_VOTE_TIME = 'glvt'# global sorted set containing latest voting times of all voters
+
+
+# 	ALL_VOTES_AND_TIMES = "avt"# global sorted set hold voting data of the entire user-base, sorted by time (trimmed to last 1 month)
+# 	ALL_VOTES_AND_TGT_USERS = "avtu"# global sorted set hold voting data of the entire user-base, sorted by target user id (trimmed to last 1 month)
+# 	ALL_UVOTES_TO_TGT_USERS = "ut:"# voter specific sorted set containing all upvotes given by the voter (trimmed to last 1 month)
+# 	ALL_DVOTES_TO_TGT_USERS = "dt:"# voter specific sorted set containing all downvotes given by the voter (trimmed to last 1 month)
+	
 # 	voter_id, target_obj_id = str(voter_id), str(target_obj_id)
 # 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 # 	if is_reversion:
 # 		# handling voting reversion
-# 		vote_up_or_down_key = DOWNVOTES_AND_OBJ_OWNERS if vote_value == '1' else UPVOTES_AND_OBJ_OWNERS
-# 		my_server.zrem(ALL_VOTES_AND_TIMES+voter_id,target_obj_id)
-# 		my_server.zrem(vote_up_or_down_key, target_obj_id)
-# 		my_server.delete(VOTE_DETAIL+voter_id+":"+target_obj_id)
-# 	else:
-# 		vote_up_or_down_key = UPVOTES_AND_OBJ_OWNERS if vote_value == '1' else DOWNVOTES_AND_OBJ_OWNERS
-# 		json_obj = json.dumps({'etov':voting_time,'dtov':exact_date(voting_time),'obid':target_obj_id,'vid':voter_id,\
-# 			'vv':vote_value,'tp':obj_type, 'ooid':target_user_id})
-# 		my_server.set(VOTE_DETAIL+voter_id+":"+target_obj_id,json_obj)
-# 		my_server.zadd(ALL_VOTES_AND_TIMES+voter_id, target_obj_id, voting_time)
-# 		my_server.zadd(vote_up_or_down_key+voter_id, target_obj_id, target_user_id)
-# 		##################
-# 		if my_server.zscore(GLOBAL_FIRST_VOTE_TIME, voter_id):
-# 			# has voted within the last 2 months
-# 			my_server.zadd(GLOBAL_LATEST_VOTE_TIME, voter_id, voting_time)
+# 		# vote_up_or_down_key = DOWNVOTES_AND_OBJ_OWNERS if vote_value == '1' else UPVOTES_AND_OBJ_OWNERS
+# 		# my_server.zrem(ALL_VOTES_AND_TIMES+voter_id,target_obj_id)
+# 		# my_server.zrem(vote_up_or_down_key, target_obj_id)
+# 		# my_server.delete(VOTE_DETAIL+voter_id+":"+target_obj_id)
+# 		prev_vote_value = '0' if vote_value == '1' else '1'
+# 		if vote_value == '1':
+# 			prev_vote_value = '0'
+# 			voter_vote_key = ALL_DVOTES_TO_TGT_USERS+voter_id
 # 		else:
-# 			# is voting for the first time, in at least 2 months
-# 			my_server.zadd(GLOBAL_FIRST_VOTE_TIME, voter_id, voting_time)# used for cleaning up old records
-# 			my_server.zadd(GLOBAL_LATEST_VOTE_TIME, voter_id, voting_time)# used for exporting voting records
+# 			prev_vote_value = '1'
+# 			voter_vote_key = ALL_UVOTES_TO_TGT_USERS+voter_id
+# 		payload = voter_id+":"+str(target_user_id)+":"+prev_vote_value+":"+target_obj_id
+# 		my_server.zrem(voter_vote_key, target_obj_id)
+# 		my_server.zrem(ALL_VOTES_AND_TIMES, payload)
+# 		my_server.zrem(ALL_VOTES_AND_TGT_USERS, payload)
+# 	else:
+# 		voter_vote_key = ALL_UVOTES_TO_TGT_USERS+voter_id if vote_value == '1' else ALL_DVOTES_TO_TGT_USERS+voter_id
+# 		payload = voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_id
+# 		my_server.zadd(ALL_VOTES_AND_TIMES, payload, voting_time)
+# 		my_server.zadd(ALL_VOTES_AND_TGT_USERS, payload, target_user_id)
+# 		my_server.zadd(voter_vote_key,target_obj_id,target_user_id)
 
 
 # def calculate_bayesian_affinity(vote_value, voter_id, target_user_id, my_server=None):
@@ -370,42 +386,47 @@ def get_voting_details(obj_id, is_pht, only_exists=False):
 # 	P(sybil|upvote) = (P(upvote|sybil)*P(sybil))/P(upvote)
 # 	where:
 # 	- P(upvote|sybil) is 100% (by definition)
-# 	- P(sybil) is calculated via (num_upvotes_given_to_target_user_id/total_votes_cast)
+# 	- P(sybil) is calculated via (num_net_upvotes_given_to_target_user_id/total_votes_cast)
+# 	- num_net_upvotes_given_to_target_user_id = upvotes - downvotes
 # 	- P(upvote) is (P(sybil,upvoted)+P(non-sybil,upvoted)) - ',' means AND
 
-# 	TODO: If less than 30 votes in ALL_VOTES_AND_TIMES+voter_id, do not calculate this metric
+# 	TODO: If less than 10 votes cast by user don't calculate this at all
 # 	"""
+# 	ALL_UVOTES_TO_TGT_USERS = "ut:"# voter specific sorted set containing all upvotes given by the voter (trimmed to last 1 month)
+# 	ALL_DVOTES_TO_TGT_USERS = "dt:"# voter specific sorted set containing all downvotes given by the voter (trimmed to last 1 month)
+
 # 	voter_id = str(voter_id)
 # 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 	upvote_key = ALL_UVOTES_TO_TGT_USERS+voter_id
+# 	downvote_key = ALL_DVOTES_TO_TGT_USERS+voter_id
+# 	uvotes_to_tgt = my_server.zcount(upvote_key,target_user_id,target_user_id)
+# 	dvotes_to_tgt = my_server.zcount(downvote_key,target_user_id,target_user_id)
 # 	if vote_value == '1':
-# 		# it's an upvote - calculate probability the voter is a 'sybil' of target_user_id
-# 		upvote_key = UPVOTES_AND_OBJ_OWNERS+voter_id
-# 		num_upvotes_given_to_target_user_id = my_server.zcount(upvote_key,target_user_id,target_user_id)
-# 		print "num_upvotes_given_to_target_user_id = " + str(num_upvotes_given_to_target_user_id)
-# 		if num_upvotes_given_to_target_user_id:
-# 			num_upvotes_given_to_everybody = my_server.zcard(upvote_key)
-# 			num_downvotes_given_to_everybody = my_server.zcard(DOWNVOTES_AND_OBJ_OWNERS+voter_id)
-# 			num_votes_in_consideration = num_upvotes_given_to_everybody + num_downvotes_given_to_everybody
-# 			numerator = ((num_upvotes_given_to_target_user_id*1.0)/num_votes_in_consideration)            
-# 			denominator = numerator+((1-numerator)*((num_upvotes_given_to_everybody*1.0)/num_votes_in_consideration))
+# 		# only proceed if upvotes are greater than downvotes - otherwise this voter isn't upvoting target because of a bias
+# 		if uvotes_to_tgt > dvotes_to_tgt:
+# 			all_upvotes = my_server.zcard(upvote_key)
+# 			all_downvotes = my_server.zcard(downvote_key)
+# 			all_votes_to_tgt = uvotes_to_tgt + dvotes_to_tgt
+# 			all_votes = all_upvotes + all_downvotes
+# 			numerator = ((uvotes_to_tgt - dvotes_to_tgt)*1.0)/all_votes
+# 			print numerator
+# 			denominator = numerator + ((1-numerator)*((all_upvotes*1.0)/all_votes))
+# 			print denominator
 # 			if denominator:
-# 				tube = numerator/denominator
-# 				print "numerator/denominator = "+str(tube)
 # 				return numerator/denominator
 # 			else:
 # 				return 0.0
 # 		else:
 # 			return 0.0
 # 	else:
-# 		# it's a downvote - calculate probability the voter is a 'hater' of target_user_id
-# 		downvote_key = DOWNVOTES_AND_OBJ_OWNERS+voter_id
-# 		num_downvotes_given_to_target_user_id = my_server.zcount(downvote_key,target_user_id,target_user_id)
-# 		if num_downvotes_given_to_target_user_id:
-# 			num_downvotes_given_to_everybody = my_server.zcard(downvote_key)
-# 			num_upvotes_given_to_everybody = my_server.zcard(UPVOTES_AND_OBJ_OWNERS+voter_id)
-# 			num_votes_in_consideration = num_upvotes_given_to_everybody + num_downvotes_given_to_everybody
-# 			numerator = ((num_downvotes_given_to_target_user_id*1.0)/num_votes_in_consideration)
-# 			denominator = numerator+((1-numerator)*((num_downvotes_given_to_everybody*1.0)/num_votes_in_consideration))
+# 		# only proceed if downvotes are greater than upvotes - otherwise this voter isn't downvoting target because of a bias
+# 		if dvotes_to_tgt > uvotes_to_tgt:
+# 			all_upvotes = my_server.zcard(upvote_key)
+# 			all_downvotes = my_server.zcard(downvote_key)
+# 			all_votes_to_tgt = uvotes_to_tgt + dvotes_to_tgt
+# 			all_votes = all_upvotes + all_downvotes
+# 			numerator = ((dvotes_to_tgt - uvotes_to_tgt)*1.0)/all_votes
+# 			denominator = numerator + ((1-numerator)*((all_downvotes*1.0)/all_votes))
 # 			if denominator:
 # 				return numerator/denominator
 # 			else:
@@ -897,13 +918,13 @@ def calculate_top_trenders():
 	To calculate 'score', just counting the number of pics an uploader got into trending (no ratio of num_trending/num_total yet)
 	"""
 	
-	one_day_ago = time.time() - ONE_DAY
+	one_week_ago = time.time() - CONTEST_LENGTH
 	my_server = redis.Redis(connection_pool=POOL)
-	last_24_hr_trending_photos = my_server.zrangebyscore(TRENDING_FOTOS_AND_TIMES, one_day_ago,'+inf')
+	last_week_trending_photos = my_server.zrangebyscore(TRENDING_FOTOS_AND_TIMES, one_week_ago,'+inf')
 	all_trending_photo_owners = my_server.zrange(TRENDING_FOTOS_AND_USERS, 0,-1,withscores=True)
 	all_trending_photo_owners = dict(all_trending_photo_owners)# gives result in {'photo_id':'user_id'} form
 	trending_user_ids = defaultdict(int)# a python dictionary that doesn't give KeyError if key doesn't exist when dict is accessed
-	for photo_id in last_24_hr_trending_photos:
+	for photo_id in last_week_trending_photos:
 		photo_owner_id = int(all_trending_photo_owners[photo_id])
 		trending_user_ids[photo_owner_id] += 1
 	list_of_tups = trending_user_ids.items()
@@ -1064,8 +1085,8 @@ def remove_obj_from_trending(prefix,obj_id):
 			pipeline1 = my_server.pipeline()
 			pipeline1.zrem(TRENDING_PHOTO_FEED,composite_id)
 			pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
-			pipeline1.zrem(TRENDING_FOTOS_AND_TIMES)
-			pipeline1.zrem(TRENDING_FOTOS_AND_USERS)
+			pipeline1.zrem(TRENDING_FOTOS_AND_TIMES,obj_id)
+			pipeline1.zrem(TRENDING_FOTOS_AND_USERS,obj_id)
 			pipeline1.execute()
 			Photo.objects.filter(id=obj_id).update(device='1')
 			feeds_to_subtract = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Voting history | Damadam.pk</title></head>
+<style>body{background: #f0f3f4}</style>
+
+<h1 class="cxl clb" style="text-align:center">Voting history</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+	{% for target_user_id, vote_value, target_obj_type, target_obj_id, vote_time in data %}
+		<b>{{ vote_time }}:</b>
+		{% if vote_value == '1' %}
+			<span>Ap ne jhappi mari</span>
+		{% else %}
+			<span>Ap ne chpair lagai</span>
+		{% endif %}
+	{% endfor %}
+
+</div>
+<br><br>
+{% endblock %}

@@ -88,12 +88,11 @@ USER_SUBMISSIONS_AND_EXPIRES = 'use'# list containing all submissions from all u
 USER_SUBMISSIONS_AND_SUBMITTERS = 'uss'# list containing all submissions from all users (sorted by submitter ids) circulating in various feeds (in <feed_id>*<obj_hash> format)
 TOP_TRENDING_SUBMITTERS = "tts"# sorted set that contains top trenders alongwith their scores (i.e. num pics in trending)
 
-# ALL_VOTES_AND_TIMES = 'avt:'# sorted set containing all votes dropped by a user (sorted by time)
-# VOTE_DETAIL = "vd:"# key containing jsonized details of who voted for whom at what time 
-# UPVOTES_AND_OBJ_OWNERS = 'uoo:'# sorted set containing all upvotes and target users 
-# DOWNVOTES_AND_OBJ_OWNERS = 'doo:'# sorted set containing all downvotes and target users
-# GLOBAL_FIRST_VOTE_TIME = 'gfvt'# global sorted set containing first-time voting times of all voters
-# GLOBAL_LATEST_VOTE_TIME = 'glvt'# global sorted set containing latest voting times of all voters
+GLOBAL_VOTES_AND_TIMES = 'gvt'# global sorted set hold voting data of the entire user-base, sorted by time (trimmed to last 1 month)
+VOTER_UVOTES_AND_TIMES = "vuvt:"# voter specific sorted set hold upvoting data of the voter, sorted by time (trimmed to last 1 month)
+VOTER_DVOTES_AND_TIMES = "vdvt:"# voter specific sorted set hold downvoting data of the voter, sorted by time (trimmed to last 1 month)
+ALL_UVOTES_TO_TGT_USERS = "ut:"# voter and target user specific sorted set containing all upvotes given by the voter to a target (trimmed to last 1 month)
+ALL_DVOTES_TO_TGT_USERS = "dt:"# voter and target user specific sorted set containing all downvotes given by the voter to a target (trimmed to last 1 month)
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -330,136 +329,149 @@ def get_voting_details(obj_id, is_pht, only_exists=False):
 
 
 #TODO - showing voting history in user profiles (alongwith new user profile buttons)
-# def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
-# 	"""
-# 	Saves user's voting history
+def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
+	"""
+	Saves user's voting history
 
-# 	#"<time>: Ap ne foto ko jhappi di"
-# 	#"<time>: Ap ne text ko chpair maari"
-# 	"""
-
-# 	# ALL_VOTES_AND_TIMES = 'avt:'# sorted set containing all votes dropped by a user (sorted by time)
-# 	# VOTE_DETAIL = "vd:"# key containing jsonized details of who voted for whom at what time 
-# 	# UPVOTES_AND_OBJ_OWNERS = 'uoo:'# sorted set containing all upvotes and target users 
-# 	# DOWNVOTES_AND_OBJ_OWNERS = 'doo:'# sorted set containing all downvotes and target users
-# 	# GLOBAL_FIRST_VOTE_TIME = 'gfvt'# global sorted set containing first-time voting times of all voters
-# 	# GLOBAL_LATEST_VOTE_TIME = 'glvt'# global sorted set containing latest voting times of all voters
-
-
-# 	ALL_VOTES_AND_TIMES = "avt"# global sorted set hold voting data of the entire user-base, sorted by time (trimmed to last 1 month)
-# 	ALL_VOTES_AND_TGT_USERS = "avtu"# global sorted set hold voting data of the entire user-base, sorted by target user id (trimmed to last 1 month)
-# 	ALL_UVOTES_TO_TGT_USERS = "ut:"# voter specific sorted set containing all upvotes given by the voter (trimmed to last 1 month)
-# 	ALL_DVOTES_TO_TGT_USERS = "dt:"# voter specific sorted set containing all downvotes given by the voter (trimmed to last 1 month)
-	
-# 	voter_id, target_obj_id = str(voter_id), str(target_obj_id)
-# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-# 	if is_reversion:
-# 		# handling voting reversion
-# 		# vote_up_or_down_key = DOWNVOTES_AND_OBJ_OWNERS if vote_value == '1' else UPVOTES_AND_OBJ_OWNERS
-# 		# my_server.zrem(ALL_VOTES_AND_TIMES+voter_id,target_obj_id)
-# 		# my_server.zrem(vote_up_or_down_key, target_obj_id)
-# 		# my_server.delete(VOTE_DETAIL+voter_id+":"+target_obj_id)
-# 		prev_vote_value = '0' if vote_value == '1' else '1'
-# 		if vote_value == '1':
-# 			prev_vote_value = '0'
-# 			voter_vote_key = ALL_DVOTES_TO_TGT_USERS+voter_id
-# 		else:
-# 			prev_vote_value = '1'
-# 			voter_vote_key = ALL_UVOTES_TO_TGT_USERS+voter_id
-# 		payload = voter_id+":"+str(target_user_id)+":"+prev_vote_value+":"+target_obj_id
-# 		my_server.zrem(voter_vote_key, target_obj_id)
-# 		my_server.zrem(ALL_VOTES_AND_TIMES, payload)
-# 		my_server.zrem(ALL_VOTES_AND_TGT_USERS, payload)
-# 	else:
-# 		voter_vote_key = ALL_UVOTES_TO_TGT_USERS+voter_id if vote_value == '1' else ALL_DVOTES_TO_TGT_USERS+voter_id
-# 		payload = voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_id
-# 		my_server.zadd(ALL_VOTES_AND_TIMES, payload, voting_time)
-# 		my_server.zadd(ALL_VOTES_AND_TGT_USERS, payload, target_user_id)
-# 		my_server.zadd(voter_vote_key,target_obj_id,target_user_id)
+	The history is used for:
+	i) Displaying voting deeds to the users
+	ii) Calculating a Bayesian affinity to discount voting (in case of 'sybil', or 'hater' behavior)
+	"""
+	voter_id, target_obj_id, target_user_id = str(voter_id), str(target_obj_id), str(target_user_id)
+	voter_target_id = voter_id+":"+target_user_id
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if is_reversion:
+		# handling voting reversion
+		prev_vote_value = '0' if vote_value == '1' else '1'
+		if vote_value == '1':
+			prev_vote_value = '0'
+			voter_target_key = ALL_DVOTES_TO_TGT_USERS+voter_target_id
+			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
+		else:
+			prev_vote_value = '1'
+			voter_target_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id
+			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
+		payload = voter_target_id+":"+prev_vote_value+":"+obj_type+":"+target_obj_id
+		my_server.zrem(voter_target_key, target_obj_id)
+		my_server.zrem(voter_vote_key, payload)
+		my_server.zrem(GLOBAL_VOTES_AND_TIMES, payload)
+	else:
+		if vote_value == '1':
+			voter_target_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id
+			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
+		else:
+			voter_target_key = ALL_DVOTES_TO_TGT_USERS+voter_target_id
+			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
+		payload = voter_target_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+		my_server.zadd(GLOBAL_VOTES_AND_TIMES, payload, voting_time)# for trimming
+		my_server.zadd(voter_vote_key, payload, voting_time)# for display to voter
+		my_server.zadd(voter_target_key, target_obj_id, voting_time)# for Bayesian calculation
 
 
-# def calculate_bayesian_affinity(vote_value, voter_id, target_user_id, my_server=None):
-# 	"""
-# 	Calculates the Bayesian probability of a voter being a sybil of a target user (or a 'hater')
+def cleanse_voting_records():
+	"""
+	Delete all voting data older than 1 month
 
-# 	The formula is as follows:
-# 	P(sybil|upvote) = (P(upvote|sybil)*P(sybil))/P(upvote)
-# 	where:
-# 	- P(upvote|sybil) is 100% (by definition)
-# 	- P(sybil) is calculated via (num_net_upvotes_given_to_target_user_id/total_votes_cast)
-# 	- num_net_upvotes_given_to_target_user_id = upvotes - downvotes
-# 	- P(upvote) is (P(sybil,upvoted)+P(non-sybil,upvoted)) - ',' means AND
-
-# 	TODO: If less than 10 votes cast by user don't calculate this at all
-# 	"""
-# 	ALL_UVOTES_TO_TGT_USERS = "ut:"# voter specific sorted set containing all upvotes given by the voter (trimmed to last 1 month)
-# 	ALL_DVOTES_TO_TGT_USERS = "dt:"# voter specific sorted set containing all downvotes given by the voter (trimmed to last 1 month)
-
-# 	voter_id = str(voter_id)
-# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-# 	upvote_key = ALL_UVOTES_TO_TGT_USERS+voter_id
-# 	downvote_key = ALL_DVOTES_TO_TGT_USERS+voter_id
-# 	uvotes_to_tgt = my_server.zcount(upvote_key,target_user_id,target_user_id)
-# 	dvotes_to_tgt = my_server.zcount(downvote_key,target_user_id,target_user_id)
-# 	if vote_value == '1':
-# 		# only proceed if upvotes are greater than downvotes - otherwise this voter isn't upvoting target because of a bias
-# 		if uvotes_to_tgt > dvotes_to_tgt:
-# 			all_upvotes = my_server.zcard(upvote_key)
-# 			all_downvotes = my_server.zcard(downvote_key)
-# 			all_votes_to_tgt = uvotes_to_tgt + dvotes_to_tgt
-# 			all_votes = all_upvotes + all_downvotes
-# 			numerator = ((uvotes_to_tgt - dvotes_to_tgt)*1.0)/all_votes
-# 			print numerator
-# 			denominator = numerator + ((1-numerator)*((all_upvotes*1.0)/all_votes))
-# 			print denominator
-# 			if denominator:
-# 				return numerator/denominator
-# 			else:
-# 				return 0.0
-# 		else:
-# 			return 0.0
-# 	else:
-# 		# only proceed if downvotes are greater than upvotes - otherwise this voter isn't downvoting target because of a bias
-# 		if dvotes_to_tgt > uvotes_to_tgt:
-# 			all_upvotes = my_server.zcard(upvote_key)
-# 			all_downvotes = my_server.zcard(downvote_key)
-# 			all_votes_to_tgt = uvotes_to_tgt + dvotes_to_tgt
-# 			all_votes = all_upvotes + all_downvotes
-# 			numerator = ((dvotes_to_tgt - uvotes_to_tgt)*1.0)/all_votes
-# 			denominator = numerator + ((1-numerator)*((all_downvotes*1.0)/all_votes))
-# 			if denominator:
-# 				return numerator/denominator
-# 			else:
-# 				return 0.0
-# 		else:
-# 			return 0.0
+	Called by a scheduled task every 24 hrs
+	"""
+	one_month_ago = time.time() - ONE_MONTH
+	my_server = redis.Redis(connection_pool=POOL)
+	voting_data_older_than_one_month = my_server.zrangebyscore(GLOBAL_VOTES_AND_TIMES,'-inf',one_month_ago)
+	if voting_data_older_than_one_month:
+		voter_uvote_set, voter_dvote_set, voter_tgt_uvote_set, voter_tgt_dvote_set = set(), set(), set(), set()
+		for vote_data in voting_data_older_than_one_month:
+			# vote_data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_id
+			data_list = vote_data.split(":")
+			voter_id, target_user_id, vote_value, target_obj_id = data_list[0], data_list[1], data_list[2], data_list[3]
+			voter_target_id = voter_id+":"+target_user_id
+			if vote_value == '1':
+				voter_uvote_set.add(voter_id)
+				voter_tgt_uvote_set.add(voter_target_id)
+			else:
+				voter_dvote_set.add(voter_id)
+				voter_tgt_dvote_set.add(voter_target_id)
+		pipeline1 = my_server.pipeline()
+		for voter_id in list(voter_uvote_set):
+			pipeline1.zremrangebyscore(VOTER_UVOTES_AND_TIMES+voter_id,'-inf',one_month_ago)
+		for voter_id in list(voter_dvote_set):
+			pipeline1.zremrangebyscore(VOTER_DVOTES_AND_TIMES+voter_id,'-inf',one_month_ago)
+		for voter_target_id in list(voter_tgt_uvote_set):
+			pipeline1.zremrangebyscore(ALL_UVOTES_TO_TGT_USERS+voter_target_id,'-inf',one_month_ago)
+		for voter_target_id in list(voter_tgt_dvote_set):
+			pipeline1.zremrangebyscore(ALL_DVOTES_TO_TGT_USERS+voter_target_id,'-inf',one_month_ago)
+		pipeline1.zremrangebyscore(GLOBAL_VOTES_AND_TIMES,'-inf',one_month_ago)
+		pipeline1.execute()
 
 
-# def cleanup_voting_records(voter_ids):
-# 	"""
-# 	Cleans up user's voting records after the passage of some time
+def retrieve_global_voting_records(start_idx=0, end_idx=-1):
+	"""
+	Retrieves global voting records, useful for exporting data into a CSV
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(GLOBAL_VOTES_AND_TIMES,start_idx,end_idx, withscores=True)
 
-# 	Methodology: remove votes cast more than 2 months ago
 
-# 	TODO: Cap UPVOTES and DOWNVOTES lists to 100 latest votes (via ALL_VOTES_AND_TIMES)
-# 	TODO: Maintain a sorted set which tracks last time 'cleaningup' was run on a user's voting
+def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, with_total_votes=False):
+	"""
+	Retrieves voting records for display in the user's profile
 
-# 	<voter_id>:<target_id>:<vote_value> <num_occurences> - can help identify thresholds for 'sybil' and 'hater' behavior
-# 	<voter_id> <last_vote_time> - can help in truncating certain rows from the above
-# 	<voter_id> <last_cleanup_time> - can help in running the cleanup task periodically
-# 	"""
-# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-# 	two_months_ago = time.time() - TWO_MONTHS
-# 	for voter_id in voter_ids:
-# 		old_votes = my_server.zrangebyscore(ALL_VOTES_AND_TIMES+voter_id,'-inf',two_months_ago)
-# 		if old_votes:
-# 			pipeline1 = my_server.pipeline()
-# 			pipeline1.zrem(UPVOTES_AND_OBJ_OWNERS+voter_id,*old_votes)
-# 			pipeline1.zrem(DOWNVOTES_AND_OBJ_OWNERS+voter_id,*old_votes)
-# 			pipeline1.zrem(ALL_VOTES_AND_TIMES+voter_id,*old_votes)
-# 			for target_obj_id in old_votes:
-# 				pipeline1.delete(VOTE_DETAIL+voter_id+":"+target_obj_id)
-# 			pipeline1.execute()
+	Retrieval of either 'upvotes' or 'downvotes' (and not both together)
+	"""
+	voter_key = VOTER_UVOTES_AND_TIMES+str(voter_id) if upvotes else VOTER_DVOTES_AND_TIMES
+	my_server = redis.Redis(connection_pool=POOL)
+	voting_data = my_server.zrange(voter_key,start_idx,end_idx, withscores=True)
+	if with_total_votes:
+		return voting_data, my_server.zcard(voter_key)
+	else:
+		return voting_data
+
+def calculate_bayesian_affinity(vote_value, voter_id, target_user_id, my_server=None):
+	"""
+	Calculates the Bayesian probability of a voter being a sybil of a target user (or a 'hater')
+
+	The formula is as follows:
+	P(sybil|upvote) = (P(upvote|sybil)*P(sybil))/P(upvote)
+	where:
+	- P(upvote|sybil) is 100% (by definition)
+	- P(sybil) is calculated via (num_net_upvotes_given_to_target_user_id/total_votes_cast)
+	- num_net_upvotes_given_to_target_user_id = upvotes - downvotes
+	- P(upvote) is (P(sybil,upvoted)+P(non-sybil,upvoted)) - ',' means AND
+
+	TODO: If less than 10 votes cast by user don't calculate this at all
+	"""
+	voter_id, target_user_id = str(voter_id), str(target_user_id)
+	voter_target_id = voter_id+":"+target_user_id
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	upvote_key, downvote_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id, ALL_DVOTES_TO_TGT_USERS+voter_target_id
+	uvotes_to_tgt = my_server.zcard(upvote_key)
+	dvotes_to_tgt = my_server.zcard(downvote_key)
+	if vote_value == '1':
+		# only proceed if upvotes are greater than downvotes - otherwise this voter isn't upvoting target because of a bias
+		if uvotes_to_tgt > dvotes_to_tgt:
+			all_upvotes = my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id)
+			all_downvotes = my_server.zcard(VOTER_DVOTES_AND_TIMES+voter_id)
+			all_votes = all_upvotes+all_downvotes
+			numerator = ((uvotes_to_tgt - dvotes_to_tgt)*1.0)/all_votes
+			denominator = numerator + ((1-numerator)*((all_upvotes*1.0)/all_votes))
+			if denominator:
+				return numerator/denominator
+			else:
+				return 0.0
+		else:
+			return 0.0
+	else:
+		# only proceed if downvotes are greater than upvotes - otherwise this voter isn't downvoting target because of a bias
+		if dvotes_to_tgt > uvotes_to_tgt:
+			all_upvotes = my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id)
+			all_downvotes = my_server.zcard(VOTER_DVOTES_AND_TIMES+voter_id)
+			all_votes = all_upvotes+all_downvotes
+			numerator = ((dvotes_to_tgt - uvotes_to_tgt)*1.0)/all_votes
+			denominator = numerator + ((1-numerator)*((all_downvotes*1.0)/all_votes))
+			if denominator:
+				return numerator/denominator
+			else:
+				return 0.0
+		else:
+			return 0.0
 
 
 def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_prev, is_pht, time_of_vote, target_user_id):
@@ -500,8 +512,8 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 				my_server.hincrby(hash_name,'pv',amount=-1)
 			# reverting doesn't hit voting rate limits
 			
-			# add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
-			# 	obj_type=obj_type, voting_time=time_of_vote, is_reversion=True, my_server=my_server)
+			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
+				obj_type=obj_type, voting_time=time_of_vote, is_reversion=True, my_server=my_server)
 
 			return True
 		elif not my_server.exists(rate_limit_key):
@@ -532,8 +544,8 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 					# this person has voted 3 times in 10 seconds, rate limit them for 9 seconds
 					my_server.setex(rate_limit_key,'1',NINE_SECS)
 			
-			# add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
-			# 	obj_type=obj_type, voting_time=time_of_vote, is_reversion=False, my_server=my_server)
+			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
+				obj_type=obj_type, voting_time=time_of_vote, is_reversion=False, my_server=my_server)
 			
 			return True
 		else:

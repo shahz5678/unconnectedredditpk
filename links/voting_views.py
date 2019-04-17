@@ -13,12 +13,14 @@ from verified import FEMALES
 from tasks import vote_tasks
 from models import Link, Photo
 from redis4 import retrieve_uname
-from redis3 import tutorial_unseen
+from redis3 import tutorial_unseen, exact_date
 from judgement_views import get_usernames
-from views import secs_to_mins
+from views import secs_to_mins, get_indices
 from redirection_views import return_to_content
 from redis7 import get_photo_owner, get_link_writer, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
-in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count#, get_vote_ban_details, check_vote_ban
+in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
+retrieve_voting_records#, get_vote_ban_details, check_vote_ban
+from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
 
 def vote_result(request):
 	"""
@@ -372,3 +374,53 @@ def show_handpicked_count(request):
 		return render(request,"voting/handpicked_count.html",{'count':count,'hours':hours,'minutes':minutes})
 	else:
 		raise Http404("Refreshing too fast!")
+
+
+def export_voting_records(request):
+	"""
+	Exports all available voting records into a CSV file for analysis
+	"""
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		data_to_write_to_csv = retrieve_global_voting_records()# list of lists (where each list is a list of dictionaries)
+		if data_to_write_to_csv:
+			import csv
+			filename = 'voting_data.csv'
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["Voting time (human)","voter ID","target user ID","vote value","target obj type","target obj ID"]
+				wtr.writerow(columns)
+				for vote_data, voting_time in data_to_write_to_csv:
+					# vote_data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
+					data_list = vote_data.split(":")
+					voter_id, target_user_id, vote_value, target_obj_tp, target_obj_id = data_list[0],data_list[1],data_list[2],\
+					data_list[3], data_list[4]
+					to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
+					wtr.writerows([to_write])
+	raise Http404("Completed ;)")
+
+
+def user_vote_history(request,vote):
+	"""
+	Renders the voting history of the user
+
+	Shows all upvotes or downvotes (in separate pages) cast within last 1 month
+	"""
+	if vote in ('upvote','downvote'):
+		own_id, page_num, upvote_listing = request.user.id, request.GET.get('page', '1'), True if vote == 'upvote' else False
+		start_index, end_index = get_indices(page_num, VOTE_HISTORY_ITEMS_PER_PAGE)
+		voting_data, list_total_size = retrieve_voting_records(voter_id=own_id, start_idx=start_index, end_idx=end_index, \
+			upvotes=upvote_listing, with_total_votes=True)
+		num_pages = list_total_size/VOTE_HISTORY_ITEMS_PER_PAGE
+		max_pages = num_pages if list_total_size % VOTE_HISTORY_ITEMS_PER_PAGE == 0 else (num_pages+1)
+		page_num = int(page_num)
+		final_data = []
+		for data, vote_time in voting_data:
+			# data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
+			data_list = data.split(":")
+			human_vote_time = exact_date(vote_time)
+			final_data.append((data_list[1], data_list[2], data_list[3], data_list[4], human_vote_time))
+		return render(request,"voting/voting_history.html",{'data':final_data})
+	else:
+		raise Http404("No other type of voting exists")

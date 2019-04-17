@@ -40,8 +40,8 @@ log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions
-from redis7 import push_hand_picked_obj_into_trending, queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders
+add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
+queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records
 
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -939,36 +939,12 @@ def salat_info():
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():
-	"""
-	Unused scheduled task
-	"""
-	pass
-	# now = datetime.utcnow()+timedelta(hours=5)
-	# current_minute = now.hour * 60 + now.minute
-	# twelve_hrs_ago = now - timedelta(hours=12)
-	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	# if namaz == 'Fajr':
-	# 	salat = '1'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Zuhr':
-	# 	salat = '2'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Asr':
-	# 	salat = '3'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Maghrib':
-	# 	salat = '4'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Isha':
-	# 	salat = '5'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# else:
-	# 	salat = '1'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-	# 	'LOCATION': MEMLOC, 'TIMEOUT': 120,
-	# })
-	# status = cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
+    """
+    Cleans up user voting records saved in Redis
+
+    Mislabeled due to legacy reasons
+    """
+    cleanse_voting_records()
 
 # @celery_app1.task(name='tasks.queue_for_deletion')
 # def queue_for_deletion(link_id_list):

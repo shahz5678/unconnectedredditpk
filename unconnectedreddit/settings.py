@@ -419,7 +419,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.salat_streaks': {
 		'task': 'tasks.salat_streaks',
-		'schedule': timedelta(seconds=1200),  # execute every 20 mins, calculates salat streaks for users
+		'schedule': timedelta(seconds=24*60*60),  # execute every 24 hours, cleanses old voting records from redis
 		'args': (),
 	},
 	'tasks.public_group_ranking_clean_up_task': {

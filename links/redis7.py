@@ -94,6 +94,7 @@ VOTER_DVOTES_AND_TIMES = "vdvt:"# voter specific sorted set hold downvoting data
 ALL_UVOTES_TO_TGT_USERS = "ut:"# voter and target user specific sorted set containing all upvotes given by the voter to a target (trimmed to last 1 month)
 ALL_DVOTES_TO_TGT_USERS = "dt:"# voter and target user specific sorted set containing all downvotes given by the voter to a target (trimmed to last 1 month)
 
+VOTER_AFFINITY = 'vaf'# global sorted set containing up and downvotes dropped by users - useful for catching sybil/hater behavior
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
 ##################################################################################################################
@@ -337,6 +338,7 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 	i) Displaying voting deeds to the users
 	ii) Calculating a Bayesian affinity to discount voting (in case of 'sybil', or 'hater' behavior)
 	"""
+	
 	voter_id, target_obj_id, target_user_id = str(voter_id), str(target_obj_id), str(target_user_id)
 	voter_target_id = voter_id+":"+target_user_id
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
@@ -347,10 +349,12 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 			prev_vote_value = '0'
 			voter_target_key = ALL_DVOTES_TO_TGT_USERS+voter_target_id
 			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
+			amnt = 1
 		else:
 			prev_vote_value = '1'
 			voter_target_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id
 			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
+			amnt = -1
 		payload = voter_target_id+":"+prev_vote_value+":"+obj_type+":"+target_obj_id
 		my_server.zrem(voter_target_key, target_obj_id)
 		my_server.zrem(voter_vote_key, payload)
@@ -359,13 +363,16 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 		if vote_value == '1':
 			voter_target_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id
 			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
+			amnt = 1
 		else:
 			voter_target_key = ALL_DVOTES_TO_TGT_USERS+voter_target_id
 			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
+			amnt = -1
 		payload = voter_target_id+":"+vote_value+":"+obj_type+":"+target_obj_id
 		my_server.zadd(GLOBAL_VOTES_AND_TIMES, payload, voting_time)# for trimming
 		my_server.zadd(voter_vote_key, payload, voting_time)# for display to voter
-		my_server.zadd(voter_target_key, target_obj_id, voting_time)# for Bayesian calculation
+		my_server.zadd(voter_target_key, target_obj_id, voting_time)# for Bayesian calculation (lacking all_upvotes, all_downvotes)
+	my_server.zincrby(VOTER_AFFINITY, voter_target_id, amount=amnt)
 
 
 def cleanse_voting_records():

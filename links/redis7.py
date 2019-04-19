@@ -67,8 +67,8 @@ PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 p
 ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
 TRENDING_PHOTO_FEED = 'trendingphotofeed:1000'
 TRENDING_PHOTO_DETAILS = 'trendingphotodetails:1000'
-TRENDING_PICS_AND_TIMES = 'trendingphotosandtimes'# list containing trending pics (as values) and times (as scores)
-TRENDING_PICS_AND_USERS = 'trendingphotosandusers'# list containing trending pics (as values) and user_ids (as scores)
+# TRENDING_PICS_AND_TIMES = 'trendingphotosandtimes'# list containing trending pics (as values) and times (as scores)
+# TRENDING_PICS_AND_USERS = 'trendingphotosandusers'# list containing trending pics (as values) and user_ids (as scores)
 TRENDING_FOTOS_AND_TIMES = 'tft'# list containing trending pics (as values) and times (as scores)
 TRENDING_FOTOS_AND_USERS = 'tfu'# list containing trending pics (as values) and user_ids (as scores)
 HAND_PICKED_TRENDING_PHOTOS = 'handpickedphotos'#sorted set containing hand-picked photos meant to show up in trending
@@ -857,9 +857,9 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 					if which_feed == TRENDING_PHOTO_DETAILS:
 						obj_id = int(obj_hash_name.split(":")[1])
 						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
-					elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
-						obj_id = obj_hash_name.split(":")[1]
-						my_server.zrem(which_feed,obj_id)
+					# elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
+					# 	obj_id = obj_hash_name.split(":")[1]
+					# 	my_server.zrem(which_feed,obj_id)
 					else:
 						my_server.zrem(which_feed, obj_hash_name)# no need
 						if obj_hash_name[:2] == 'tx':# removing vote stores (but after a lag of 10 mins)
@@ -881,9 +881,9 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 					if which_feed == TRENDING_PHOTO_DETAILS:
 						obj_id = int(obj_hash_name.split(":")[1])
 						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
-					elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
-						obj_id = obj_hash_name.split(":")[1]
-						my_server.zrem(which_feed,obj_id)
+					# elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
+					# 	obj_id = obj_hash_name.split(":")[1]
+					# 	my_server.zrem(which_feed,obj_id)
 					else:
 						my_server.zrem(which_feed, obj_hash_name)# no need to expire vote stores of these objects, since they've already self-deleted
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES, *expired_submissions)
@@ -1108,7 +1108,7 @@ def remove_obj_from_trending(prefix,obj_id):
 			pipeline1.zrem(TRENDING_FOTOS_AND_USERS,obj_id)
 			pipeline1.execute()
 			Photo.objects.filter(id=obj_id).update(device='1')
-			feeds_to_subtract = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
+			feeds_to_subtract = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS]#,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
 			log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, feeds_to_subtract=feeds_to_subtract, \
 				my_server=my_server)
 		else:

@@ -2282,6 +2282,32 @@ def log_post_banned_username(username):
 	myserver.lpush("post_abuse_nicks",username)
 	myserver.ltrim("post_abuse_nicks",0,999)
 
+
+######################################### First time choice Logger ##################################
+
+USER_FIRST_TIME_CHOICE = 'uftc'
+
+CHOSE_HOME = 'chose_home'
+CHOSE_PHOTOS = 'chose_photos'
+CHOSE_DEFAULT = 'chose_default'
+
+
+def set_user_choice(choice,user_id):
+	"""
+	This function logs the choice taken by a new user between home and photos
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zincrby(USER_FIRST_TIME_CHOICE,user_id,amount=1)
+
+	if choice =='1':
+		my_server.incr(CHOSE_HOME)
+	elif choice == '2':
+		my_server.incr(CHOSE_PHOTOS)
+	else:
+		my_server.incr(CHOSE_DEFAULT)
+
+
+
 #########################################Invalid Topic & Rules Logger##################################
 
 def invalid_topic_logger(banned_word,topic):

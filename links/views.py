@@ -60,7 +60,7 @@ from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_tasks, log_private_mehfil_session, group_notification_tasks, publicreply_notification_tasks, \
 fan_recount, vote_tasks, populate_search_thumbs, sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, \
-log_profile_view, group_attendance_tasks
+group_attendance_tasks
 #, log_organic_attention, home_photo_tasks, queue_for_deletion, 
 #from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_video_abuse # check_photo_abuse
@@ -75,7 +75,7 @@ rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limit
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
-is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age #, log_erroneous_passwords
+is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age, set_user_choice #, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, \
@@ -1348,14 +1348,18 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 	if request.method == 'POST':
 		request.session["newbie_lang"] = lang if lang else 'eng'
 		request.session.modified = True
+		user_id = request.user.id
 		choice = request.POST.get("choice",None)
 		if choice == '1':
+			set_user_choice(choice='1',user_id=user_id)
 			# this user wants to chat
 			return redirect("home")
 		elif choice == '2':
+			set_user_choice(choice='2',user_id=user_id)
 			# this user wants to see fotos
 			return redirect("photo",list_type='best-list')
 		else:
+			set_user_choice(choice='3',user_id=user_id)
 			return redirect("home")
 	else:
 		if lang == 'ur':
@@ -1541,7 +1545,6 @@ class UserProfilePhotosView(ListView):
 				context["fanned"] = []#[] must be passed, otherwise code fails
 			if star_id != user_id:
 				context["subject_id"] = star_id
-				log_profile_view.delay(user_id,star_id,time.time())
 		else:
 			context["authenticated"] = False
 			context["not_fan"] = True
@@ -2006,7 +2009,6 @@ class UserProfileDetailView(FormView):
 				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
 				context["blocked"] = get_banned_users_count(user_id)
 			else:
-				log_profile_view.delay(user_id,star_id,time.time())
 				context["fanned"] = [user_obj.id] if is_fan(star_id, user_id) else []
 		else:
 			# user does not exist

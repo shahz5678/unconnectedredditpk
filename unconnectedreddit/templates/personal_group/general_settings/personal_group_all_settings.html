@@ -12,6 +12,7 @@
 		<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> <span style="font-weight:lighter">se 1 on 1</span>
 	{% endif %}
 </h1>
+
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.13.js"></script>
 
 <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:96%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
@@ -81,15 +82,6 @@
 		</tr>
 		<tr>
 			<td>
-				<form method="POST" action="{% url 'personal_group_sms_settings' %}">
-				{% csrf_token %}
-				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/sms.svg" width="60" height="60"></button>
-				</form>
-			</td>
-			<td><div class="lsp"><b>SMS options:</b>&nbsp;SMS send (ya receive) karney ke options dekhnein</div></td>
-		</tr>
-		<tr>
-			<td>
 				<form method="POST" action="{% url 'personal_group_exit_settings' %}">
 				{% csrf_token %}
 				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/exit.svg" width="60" height="60"></button>
@@ -116,4 +108,5 @@
 
 </div>
 <br><br>
+
 {% endblock %}

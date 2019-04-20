@@ -4245,13 +4245,10 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='public_mehfil'
 						UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
-						# rank_public_groups.delay(group_id=pk,writer_id=user_id)
 					
 					#######################################################
-					# own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=None, posting_time=reply_time,\
-						writer_avurl=get_s3_object(own_avurl,category='thumb'), writer_score=request.user.userprofile.score, category='0',\
-						writer_uname=username, save_latest_submission=True)
+						writer_avurl=get_s3_object(own_avurl,category='thumb'), category='0',writer_uname=username, save_latest_submission=True)
 					#######################################################
 					group_notification_tasks.delay(group_id=pk, sender_id=user_id, group_owner_id=grp["oi"], topic=grp["tp"],\
 						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["p"], \
@@ -4523,7 +4520,6 @@ def public_reply_view(request,*args,**kwargs):
 			set_text_input_key(user_id, link_id, 'home_rep', secret_key)
 			context["sk"] = secret_key
 			context["form"] = form if form else PublicreplyForm()
-			# context["authenticated"] = True
 			context["mob_verified"] = True if request.mobile_verified else False
 			context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 			context["user_id"] = user_id
@@ -4543,9 +4539,9 @@ def public_reply_view(request,*args,**kwargs):
 			if replies:
 				replies_data = json.loads(replies)
 			else:
-				replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
-					'submitted_by__userprofile__score').values('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
-					'submitted_by__userprofile__score').filter(answer_to_id=link_id).order_by('-id')[:25]
+				replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username').\
+				values('submitted_on','description','id','submitted_by','abuse','submitted_by__username').filter(answer_to_id=link_id).\
+				order_by('-id')[:25]
 				for reply in replies_data:
 					reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
 				cache_public_replies(json.dumps(replies_data),link_id)

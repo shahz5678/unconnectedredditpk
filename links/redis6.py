@@ -858,7 +858,7 @@ def log_group_chatter(group_id, writer_id):
 	redis.Redis(connection_pool=POOL).zincrby(GROUP_CHATTER+str(group_id),writer_id,amount=1)
 
 
-def save_group_submission(writer_id, group_id, text, posting_time, writer_uname,writer_avurl,category,image='',writer_score=None,\
+def save_group_submission(writer_id, group_id, text, posting_time, writer_uname,writer_avurl,category,image='',\
 	target_uname=None, target_uid=None, save_latest_submission=False):
 	"""
 	Saves a reply submitted by a mehfil member
@@ -870,8 +870,8 @@ def save_group_submission(writer_id, group_id, text, posting_time, writer_uname,
 	my_server = redis.Redis(connection_pool=POOL)
 	submission_id = my_server.incr(SUBMISSION_COUNTER+group_id)
 	payload = {'wi':writer_id,'gi':group_id,'si':submission_id,'t':posting_time,'tx':text,'wu':writer_uname,'c':category,'wa':writer_avurl}
-	if writer_score:
-		payload['ws'] = writer_score
+	# if writer_score:
+	#     payload['ws'] = writer_score
 	if image:
 		payload['iu'] = image
 	if target_uname and target_uid:

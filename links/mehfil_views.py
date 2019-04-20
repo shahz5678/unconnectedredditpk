@@ -3182,8 +3182,7 @@ class PrivateGroupView(FormView):
 						latest_replies = []
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
-								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'writer_score':data.get('ws',None),'id':data['si'],\
-								'tu':data.get('tu',None)})
+								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
 					log_private_mehfil_session.delay(group_id, user_id)
 					updated_at = time.time()#convert_to_epoch(timezone.now())
@@ -3211,7 +3210,7 @@ class PrivateGroupView(FormView):
 					context["full_member"] = False
 					context["group_topic"] = data['tp']
 					context["group_id"] = group_id
-					context["score"] = self.request.user.userprofile.score
+					# context["score"] = self.request.user.userprofile.score
 					context["exit_wait_time"] = human_readable_time(PRIVATE_GROUP_EXIT_LOCK)
 			else:
 				context["switching"] = True
@@ -3301,15 +3300,14 @@ class PrivateGroupView(FormView):
 						other_uname, other_avurl = raw_user_cred[int(writer_id)]['uname'], raw_user_cred[int(writer_id)]['avurl']
 						submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
 							image=uploaded_img_loc, posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
-							writer_score=self.request.user.userprofile.score,category='0',writer_uname=own_uname,target_uname=other_uname, \
-							target_uid=writer_id, save_latest_submission=True)
+							category='0',writer_uname=own_uname,target_uname=other_uname, target_uid=writer_id, save_latest_submission=True)
 						notify_single_user = True
 						notif_text = "@ "+other_uname+" - "+text
 					else:
 						own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 						submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, image=uploaded_img_loc, \
-							posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_score=self.request.user.userprofile.score,\
-							category='0',writer_uname=own_uname,save_latest_submission=True)
+							posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),category='0',writer_uname=own_uname,\
+							save_latest_submission=True)
 						notify_single_user = False
 						notif_text = text
 					if num_submissions > DELETION_THRESHOLD:
@@ -3448,8 +3446,7 @@ class PublicGroupView(FormView):
 						latest_replies = []
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
-								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'writer_score':data.get('ws',None),'id':data['si'],\
-								'gid':data['gi'],'tu':data.get('tu',None)})
+								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
 					presence_dict[str(user_id)] = 'green'#ensures own status is 'green'
@@ -3473,14 +3470,13 @@ class PublicGroupView(FormView):
 						try:
 							latest_replies = json.loads(latest_replies)
 						except:
-							latest_replies = json_backup.loads(latest_replies)	
+							latest_replies = json_backup.loads(latest_replies) 
 					else:
 						latest_data = retrieve_group_submissions(group_id)
 						latest_replies = []
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
-								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'writer_score':data.get('ws',None),'id':data['si'],\
-								'gid':data['gi']})
+								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi']})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
 					presence_dict[str(user_id)] = 'green'#ensures own status is 'green'
@@ -3528,7 +3524,6 @@ class PublicGroupView(FormView):
 			if is_signatory and is_member:
 				text = form.cleaned_data["text"]
 				image = form.cleaned_data.get('image',None)
-				# f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				if image and group_data['pics'] == '1':
 					on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 					if on_fbs:
@@ -3582,8 +3577,7 @@ class PublicGroupView(FormView):
 					# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=notif_text, image='')
 					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
 						image=uploaded_img_loc, posting_time=reply_time,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
-						writer_score=self.request.user.userprofile.score,category='0',writer_uname=own_uname,target_uname=other_uname, \
-						target_uid=writer_id, save_latest_submission=True)
+						category='0',writer_uname=own_uname,target_uname=other_uname, target_uid=writer_id, save_latest_submission=True)
 					notify_single_user = True
 				else:
 					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
@@ -3591,7 +3585,7 @@ class PublicGroupView(FormView):
 					# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=notif_text, image='')
 					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=notif_text, \
 						image=uploaded_img_loc, posting_time=reply_time,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
-						writer_score=self.request.user.userprofile.score,category='0',writer_uname=own_uname,save_latest_submission=True)
+						category='0',writer_uname=own_uname,save_latest_submission=True)
 					notify_single_user = False
 				if num_submissions > DELETION_THRESHOLD:
 					# delete extra submissions
@@ -3615,6 +3609,7 @@ class PublicGroupView(FormView):
 					return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
 				else:
 					return redirect("public_group")
+
 
 #################### Rendering list of all mehfils #####################
 
@@ -5001,28 +4996,21 @@ class DirectMessageCreateView(FormView):
 						return redirect("user_profile", invitee)
 					else:
 						topic, unique = invitee+" se gupshup", str(uuid.uuid4())
-						# group = Group.objects.create(topic=topic, rules='', owner_id=own_id, private ='1', unique=unique)
-						group_id, created_at = get_group_id(), time.time()#convert_to_epoch(group.created_at)
-						# reply = Reply.objects.create(text=invitee, category='1', which_group_id=group_id, writer_id=own_id)
+						group_id, created_at = get_group_id(), time.time()
 						UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PRIVATE_GROUP_COST)
-						reply_time = created_at+1#convert_to_epoch(reply.submitted_on)
+						reply_time = created_at+1
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						###################
-						# set_group_id(group_id)#set group ID in redis6
 						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=None, group_id=group_id,privacy='1',uuid=unique,\
 							topic=topic,pics='1',created_at=created_at, grp_categ='1')#grp_categ is set to '1', '2' being a group only pink stars can join
 						save_group_submission(writer_id=own_id, group_id=group_id, text=invitee, posting_time=reply_time,category='1',\
-							writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_score=(own_score - PRIVATE_GROUP_COST),\
-							writer_uname=own_uname,save_latest_submission=True)
+							writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_uname=own_uname,save_latest_submission=True)
 						group_attendance_tasks.delay(group_id=group_id, user_id=own_id, time_now=reply_time)#, private=True)
 						main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 						document_administrative_activity.delay(group_id, main_sentence, 'create')
 						save_group_invite(group_id=group_id, target_ids=[pk], time_now=reply_time,is_public=False, sent_by='owner',\
 							sent_by_id=own_id,sent_by_uname=own_uname,group_uuid=unique)
 						###################
-						# add_group_member(group_id, own_uname)
-						# add_group_invite(pk, group_id,reply.id)
-						# add_user_group(own_id, group_id)
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=reply_time,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text=invitee,priv='1',slug=unique,image_url=None,\
 							priority='priv_mehfil',from_unseen=False)
@@ -5042,7 +5030,6 @@ class ClosedGroupCreateView(FormView):
 	"""
 	Responsible for rendering and validating private mehfil creation form. Also creates the private mehfil.
 	"""
-	# model = Group
 	form_class = ClosedGroupCreateForm
 	template_name = "mehfil/create_new_closed_group.html"
 
@@ -5068,35 +5055,24 @@ class ClosedGroupCreateView(FormView):
 				# f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				topic = form.cleaned_data["topic"]
 				user = self.request.user
-				# f.owner_id = user_id
-				# f.private = 1
 				unique = str(uuid.uuid4())
-				# f.unique = unique
-				# f.rules = ''
-				# f.category = '1'
-				# f.save()#creating private mehfil
 				created_at = time.time()
 				creation_text = 'meri new mehfil mein welcome'
-				# reply = Reply.objects.create(text=creation_text,which_group=f,writer_id=user_id)
 				# subtract cost of private mehfil
 				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-PRIVATE_GROUP_COST)
 				reply_time = created_at+1#convert_to_epoch(reply.submitted_on)
 				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 				####################
-				# set_group_id(f.id)#set group ID in redis6
 				group_id = get_group_id()
 				create_group_credentials(owner_id=user_id, owner_uname=own_uname,owner_join_time=None, group_id=group_id,privacy='1',uuid=unique,\
 					topic=topic,pics='1',created_at=created_at, grp_categ='1')
 				save_group_submission(writer_id=user_id, group_id=group_id, text=creation_text, posting_time=reply_time,category='0',\
-					writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_score=self.request.user.userprofile.score,\
-					writer_uname=own_uname, save_latest_submission=True)
+					writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_uname=own_uname, save_latest_submission=True)
 				group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=reply_time)#, private=True)
 				main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 				document_administrative_activity.delay(group_id, main_sentence, 'create')
 				invalidate_cached_mehfil_pages(user_id)
 				####################
-				# add_group_member(f.id, own_uname)
-				# add_user_group(user_id, f.id)
 				group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=user_id,topic=topic,reply_time=reply_time,\
 					poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='1',slug=unique,image_url=None,\
 					priority='priv_mehfil',from_unseen=False)
@@ -5151,35 +5127,20 @@ def create_open_group(request):
 					data = get_temporarily_saved_group_credentials(own_id)
 					score = request.user.userprofile.score
 					if data and score >= PUBLIC_GROUP_COST:
-						# unique = uuid.uuid4()
 						creation_text = 'meri public mehfil mein welcome'
 						topic, rules, group_category, raw_rules = data['topic'], data['formatted_rules'], data["category"], data['rules']
-						# group = Group.objects.create(topic=topic, rules=rules, owner_id=own_id, private=0, category=group_category,unique=unique, \
-						#     pics_ki_ijazat=1)
 						group_id = get_group_id()#group.id
 						# set_group_id(group_id)#set group ID in redis6
 						unique_id = str(uuid.uuid4())
 						created_at = time.time()#convert_to_epoch(group.created_at)
-						# reply = Reply.objects.create(text=creation_text,which_group_id=group_id,writer_id=own_id)# to ensure group shows up in grouppageview()
-						# subtract cost of public mehfil
 						UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PUBLIC_GROUP_COST)
 						reply_time = created_at+1#convert_to_epoch(reply.submitted_on)
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
-						########### legacy redis 1 functions ###########
-						# add_group_member(group_id, own_uname)
-						# add_user_group(own_id, group_id)
-						################################################
-						# try:
-						#     join_date = convert_to_epoch(User.objects.only('date_joined').get(id=own_id).date_joined)
-						# except User.DoesNotExist:
-						#     # this user does not exist thus data incomplete
-						#     join_date = None
 						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=epoch_join_date, group_id=group_id,privacy='0',\
 							uuid=unique_id,topic=topic,pics='1',created_at=created_at, grp_categ=group_category,rules=rules, raw_rules=raw_rules)
 						# writer_score is request.user.userprofile.score, to reflect the PUBLIC_GROUP_COST that was recently subtracted from score
 						save_group_submission(writer_id=own_id, group_id=group_id, text=creation_text, posting_time=reply_time,category='0',\
-							writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_score=request.user.userprofile.score,writer_uname=own_uname,\
-							save_latest_submission=True)
+							writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_uname=own_uname,save_latest_submission=True)
 						main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 						document_administrative_activity.delay(group_id, main_sentence, 'create')
 						################################################
@@ -5187,7 +5148,6 @@ def create_open_group(request):
 							poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='0',slug=unique_id,image_url=None,\
 							priority='public_mehfil',from_unseen=False)
 						invalidate_cached_mehfil_pages(own_id)
-						# rank_public_groups.delay(group_id=group_id,writer_id=own_id)# legacy ranking redis3 function - please revert
 						group_attendance_tasks.delay(group_id=group_id, user_id=own_id, time_now=reply_time)
 						# rate limit further public mehfil creation by this user (for 1 day)
 						rate_limit_group_creation(own_id, which_group='public')

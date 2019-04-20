@@ -20,14 +20,14 @@ Video, HotUser, PhotoStream, HellBanList, UserFan
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, \
-set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target#, set_section_wise_retention
+set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
-log_share, logging_sharing_metrics, cache_photo_share_data, logging_profile_view, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user#, log_photo_attention_from_fresh
+log_share, logging_sharing_metrics, cache_photo_share_data, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, skip_private_chat_notif, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
@@ -35,13 +35,13 @@ remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_
 update_private_chat_notif_object, update_private_chat_notifications, set_uploader_score, bulk_remove_multiple_group_notifications, \
 update_group_topic_in_obj
 # photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
-from redis6 import group_attendance, exact_date, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
+from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions
-from redis7 import push_hand_picked_obj_into_trending, queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders
+add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
+queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records
 
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -144,11 +144,6 @@ def punish_gibberish_writers(dict_of_targets):
 	for user_id, score_penalty in dict_of_targets.items():
 		UserProfile.objects.filter(user_id=user_id).update(score=F('score')-score_penalty)
 		queue_punishment_amount(user_id,score_penalty)
-
-
-@celery_app1.task(name='tasks.log_profile_view')
-def log_profile_view(visitor_id,star_id,viewing_time):
-	logging_profile_view(visitor_id,star_id,viewing_time)
 
 
 @celery_app1.task(name='tasks.cache_photo_shares')
@@ -939,36 +934,12 @@ def salat_info():
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():
-	"""
-	Unused scheduled task
-	"""
-	pass
-	# now = datetime.utcnow()+timedelta(hours=5)
-	# current_minute = now.hour * 60 + now.minute
-	# twelve_hrs_ago = now - timedelta(hours=12)
-	# previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[current_minute]
-	# if namaz == 'Fajr':
-	# 	salat = '1'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Zuhr':
-	# 	salat = '2'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='2')|Q(latest_salat='1')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Asr':
-	# 	salat = '3'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='3')|Q(latest_salat='2')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Maghrib':
-	# 	salat = '4'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='4')|Q(latest_salat='3')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# elif namaz == 'Isha':
-	# 	salat = '5'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='5')|Q(latest_salat='4')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# else:
-	# 	salat = '1'
-	# 	object_list = LatestSalat.objects.filter(Q(latest_salat='1')|Q(latest_salat='5')).exclude(when__lte=twelve_hrs_ago).order_by('-salatee__userprofile__streak')[:500]
-	# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-	# 	'LOCATION': MEMLOC, 'TIMEOUT': 120,
-	# })
-	# status = cache_mem.set('salat_streaks', object_list)  # expiring in 120 seconds
+    """
+    Cleans up user voting records saved in Redis
+
+    Mislabeled due to legacy reasons
+    """
+    cleanse_voting_records()
 
 # @celery_app1.task(name='tasks.queue_for_deletion')
 # def queue_for_deletion(link_id_list):
@@ -1119,7 +1090,7 @@ def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_incre
 
 
 @celery_app1.task(name='tasks.vote_tasks')
-def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_name,revert_prev,is_pht):
+def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_name,revert_prev,is_pht,time_of_vote):
 	"""
 	Processes vote on a post by a user
 
@@ -1138,7 +1109,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		if vote_value == '1':
 			# is an upvote
 			net_votes = old_net_votes + 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht)
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote, target_user_id)
 			if added:
 				# vote added
 				if is_pht == '1':
@@ -1164,7 +1135,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		elif vote_value == '0':
 			# is a downvote
 			net_votes = old_net_votes - 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht)
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote, target_user_id)
 			if added:
 				# vote added
 				if is_pht == '1':

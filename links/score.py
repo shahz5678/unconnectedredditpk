@@ -11,6 +11,7 @@ NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
 CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing posts (time pooled between home and photos) 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
+CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)

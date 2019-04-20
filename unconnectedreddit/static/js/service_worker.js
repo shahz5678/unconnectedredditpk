@@ -6,8 +6,8 @@ self.addEventListener('push', function(event) {
   log_notif_reception('1');
   const promiseChain = self.registration.showNotification(payload.title, {
       "body": payload.body,
-      "icon": "/static/img/50.png",// an icon size of 192px or more is a safe bet.
-      "badge": "/static/img/og_image.png",// a small monochrome icon appearing on the top tray in chrome in android (an image of 72px or more should be good)
+      "icon": "/static/img/og_image.png",// an icon size of 192px or more is a safe bet.
+      "badge":"/static/img/50.png",// a small monochrome icon appearing on the top tray in chrome in android (an image of 72px or more should be good)
       //"image": "/static/img/og_image.svg",
       "vibrate": [500,110,500,110,450,110,200,110,170,40,450,110,200,110,170,40,500],
       "tag": payload.tag,// used to make notification unique or generalized

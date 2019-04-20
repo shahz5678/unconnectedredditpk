@@ -1379,27 +1379,27 @@ def retrieve_fresh_photo_shares_or_cached_data(user_id):
 		return my_server.zrange("sp:"+user_id,0,-1), False
 
 
-def logging_profile_view(visitor_id,star_id,viewing_time):
-	"""
-	Logs profile view if a visitor visits
+# def logging_profile_view(visitor_id,star_id,viewing_time):
+# 	"""
+# 	UNUSED: Logs profile view if a visitor visits
 
-	Only last 24 hours are preserved
-	Ensures self visits don't count
-	Ensures repeat visits don't count
-	"""
-	star_id = str(star_id)
-	one_day_ago = viewing_time - ONE_DAY
-	viewing_time = str(viewing_time)
-	visitor_id = str(visitor_id)
-	key = "vb:"+star_id+":"+visitor_id
-	my_server = redis.Redis(connection_pool=POOL)
-	if not my_server.get(key):
-		# can log visit
-		sorted_set = 'pf:'+star_id
-		my_server.zremrangebyscore(sorted_set,'-inf',one_day_ago)#purging old data
-		my_server.zadd(sorted_set,visitor_id+":"+viewing_time,viewing_time)
-		my_server.expire(sorted_set,ONE_DAY)#this expires if no new views appear for 24 hours
-		my_server.setex(key,'1',THIRTY_MINS)
+# 	Only last 24 hours are preserved
+# 	Ensures self visits don't count
+# 	Ensures repeat visits don't count
+# 	"""
+# 	star_id = str(star_id)
+# 	one_day_ago = viewing_time - ONE_DAY
+# 	viewing_time = str(viewing_time)
+# 	visitor_id = str(visitor_id)
+# 	key = "vb:"+star_id+":"+visitor_id
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if not my_server.get(key):
+# 		# can log visit
+# 		sorted_set = 'pf:'+star_id
+# 		my_server.zremrangebyscore(sorted_set,'-inf',one_day_ago)#purging old data
+# 		my_server.zadd(sorted_set,visitor_id+":"+viewing_time,viewing_time)
+# 		my_server.expire(sorted_set,ONE_DAY)#this expires if no new views appear for 24 hours
+# 		my_server.setex(key,'1',THIRTY_MINS)
 
 
 ########################################################################################
@@ -1483,7 +1483,7 @@ def retrieve_subscription_info(user_id):
 # 			pipeline1 = my_server.pipeline()
 # 		pipeline1.zremrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
 # 		pipeline1.execute()
-#		track_notif_allow_behavior('4', my_server, num_subscriptions_deleted)
+# 		track_notif_allow_behavior('4', my_server, num_subscriptions_deleted)
 
 
 def track_notif_allow_behavior(status_code, my_server=None, amnt=1):

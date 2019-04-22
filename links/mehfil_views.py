@@ -4525,10 +4525,10 @@ def cancel_closed_group_invite(request):
 			final_data, time_now = [], time_now
 			for invite_id, invite_time in invites_and_times:
 				invited_id = int(invite_id)
-				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
+				can_cancel = (time_now - int(invite_time)) > CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES,\
-				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+				'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
 			return redirect("group_page")
@@ -4720,10 +4720,10 @@ def cancel_open_group_invite(request):
 			final_data, time_now = [], time_now
 			for invite_id, invite_time in invites_and_times:
 				invited_id = int(invite_id)
-				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
+				can_cancel = (time_now - int(invite_time)) > CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/open_group_invited_list.html',{'owner':True,'guid':unique,'final_data':final_data,\
-				'females':FEMALES,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+				'females':FEMALES,'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
 			return redirect("public_group")

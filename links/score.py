@@ -8,7 +8,7 @@ UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
 NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
-CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing posts (time pooled between home and photos) 
+CONTENT_SHARING_SHORT_RATELIMIT = 1#50#amount of time to wait between sharing posts (time pooled between home and photos) 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
@@ -77,9 +77,13 @@ GROUP_OFFICER_QUESTIONS = {'1':'Ap mehfil ka mahol khush gawar rakhney mein owne
 ###################################################
 
 ########## Invites in groups ##########
-INVITE_LOCK_DURATION = 1209600#2 weeks - use this key to disallow reinviting the same user again and again
-CANCEL_INVITE_AFTER_TIME_PASSAGE = 259200#3 days after inviting, a public (or private) group owner can cancel their invite
-GROUP_INVITE_TTL = 604800#7 days ttl for group invites (public and private both). Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_INVITE_AFTER_TIME_PASSAGE to work
+GROUP_INVITE_LOCK_DURATION = 1209600#2 weeks - use this key to disallow reinviting the same user again and again
+INVITER_PRIVATE_INVITE_LOCK_DURATION = 259200#3 days - use this key to disallow reinviting by the same user again and again (even to different groups)
+INVITER_PUBLIC_INVITE_LOCK_DURATION = 259200#3 days - use this key to disallow reinviting by the same user again and again (even to different groups)
+CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE = 259200#3 days after inviting, a public group owner can cancel their invite
+CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE = 259200#3 days after inviting, a private group owner can cancel their invite
+PRIVATE_GROUP_INVITE_TTL = 604800#7 days ttl for private group invites. Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE to work
+PUBLIC_GROUP_INVITE_TTL = 604800#7 days ttl for public group invites. Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE to work
 MAX_OWNER_INVITES_PER_PUBLIC_GROUP = 30 #num users an owner can invite into a group within a week
 MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 3 #num users a priv mehfil owner can invite
 MAX_OFFICER_INVITES_PER_PUBLIC_GROUP = 10 #num users all officers can invite into a group
@@ -93,10 +97,11 @@ GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED = 864000# group must be at least 10 
 FOLLOW_UP_REQUEST_RATE_LIMIT = 604800#7 days rate limit for re-requesting group transfer from the same group owner
 #######################################
 
-######## Public group creation ########
+######## Public/Private group creation ########
 USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED = 2592000# age requirement is 30 days in seconds
 PUBLIC_GROUP_COST = 5000 # cost of buying a public group
-#######################################
+PRIVATE_GROUP_CREATION_RATE_LIMIT = 2400#40 mins
+PUBLIC_GROUP_CREATION_RATE_LIMIT = 604800#7 days
 
 ####### Group topic changing rate limits #######
 TOPIC_SHORT_RATE_LIMIT = 1800#30 mins rate limiting

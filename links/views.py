@@ -2584,9 +2584,9 @@ class CommentView(CreateView):
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 		context["authorized"] = True
-		comments = PhotoComment.objects.only('abuse','text','id','submitted_by','submitted_on','submitted_by__username',\
-		'submitted_by__userprofile__score').values('abuse','text','id','submitted_by','submitted_on','submitted_by__username',\
-		'submitted_by__userprofile__score').filter(which_photo_id=pk).order_by('-id')[:25]
+		comments = PhotoComment.objects.only('abuse','text','id','submitted_by','submitted_on','submitted_by__username').\
+		values('abuse','text','id','submitted_by','submitted_on','submitted_by__username').filter(which_photo_id=pk).\
+		order_by('-id')[:25]
 		context["latest_comment_time"] = comments[0]['submitted_on'] if comments else None#used in the title of the page
 		for comment in comments:
 			comment["submitted_on"] = convert_to_epoch(comment["submitted_on"])
@@ -2604,7 +2604,7 @@ class CommentView(CreateView):
 			context["user_id"] = user_id
 			if not self.request.mobile_verified:
 				context["mob_verified"] = False
-				context["score"] = self.request.user.userprofile.score
+				# context["score"] = self.request.user.userprofile.score
 			context["authenticated"] = True
 			context["own_username"] = self.request.user.username
 			updated = update_notification(viewer_id=user_id, object_id=pk,object_type='0',seen=True,\

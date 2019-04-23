@@ -100,7 +100,7 @@ FOLLOW_UP_REQUEST_RATE_LIMIT = 604800#7 days rate limit for re-requesting group 
 ######## Public/Private group creation ########
 USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED = 2592000# age requirement is 30 days in seconds
 PUBLIC_GROUP_COST = 5000 # cost of buying a public group
-PRIVATE_GROUP_CREATION_RATE_LIMIT = 2400#40 mins
+PRIVATE_GROUP_CREATION_RATE_LIMIT = 14400#4 hrs
 PUBLIC_GROUP_CREATION_RATE_LIMIT = 604800#7 days
 
 ####### Group topic changing rate limits #######

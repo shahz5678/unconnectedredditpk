@@ -3,25 +3,26 @@
 {% load human_time %}
 {% block content %}
 <head><title>User mehfils | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
 {% include "mehfil/mehfil_list_navbar.html" with section='list' static_url=STATIC_URL %}
 
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if num_grps == 1 %}1 mehfil:{% else %}{{ num_grps }} mehfils:{% endif %}</span></h1>
 
 {% if not object_list %}
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
-	<div class="cxl lsp">Ap kisi bhi mehfil ke member nahi!</div>
-	<div class="sp mts lsp mbl cgy">'Mehfil' group ko kehtay hain jahan messaging and foto sharing hoti hai</div>
-	<hr size=1 COLOR="#E9EBEE">
-	<div class="mt cs sp lsp">Damadam ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain ya <a href="{% url 'group_type' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">apni mehfil banain</a></div>
+<div class="clb" style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:97%;overflow:hidden;background:ivory;max-width:600px;text-align:center">
+
+	<div style="padding:10px 5px 5px 5px;background:white" class="cxl lsp">Ap kisi bhi mehfil ke member nahi!</div>
+	<div class="sp lsp cgy" style="background:white;padding-bottom:5px;border-bottom:1px solid #E9EBEE">'Mehfil' group ko kehtay hain jahan messaging and foto sharing hoti hai</div>
+	<div class="cs sp lsp mbs">Damadam ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain</div>
 </div>
 {% else %}
 
 {% for group in object_list %}
 	{% if group.p == '1' %}
 		<div class="mtl">
-		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 0 0;background-color:ivory;overflow:hidden;">
+		<div style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:97%;overflow:hidden;background:ivory;max-width:600px;padding:0">
+
 		    <form method="POST" action="{% url 'priv_group' %}">
 		    {% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ group.u }}">
@@ -54,7 +55,7 @@
 	{% elif group.p == '0' %}
 
 		<div class="mtl">
-		<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:0 0 0px 0;background-color:ivory;overflow:hidden;">
+		<div style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:97%;overflow:hidden;background:ivory;max-width:600px;padding:0">
 		    
 		    <a href="{% url 'public_group' group.u %}">
 			<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:0px 0px;width:100%;background:0 0" class="lsp pg_ok_res">

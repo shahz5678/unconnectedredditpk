@@ -11,7 +11,7 @@
 <div class="mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;margin-left:auto;margin-right:auto;width:97%;text-align:center">
 
 {% if not_verified %}
-	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Mehfil create karney ke liye apko apna <a href="{% url 'verify_user_mobile' %}#section0" class="cb" style="border-bottom:1px dotted dodgerblue">account verify</a> karwana hoga</div></div>
+	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Mehfil create karney ke liye apko apna <a href="{% url 'verify_user_mobile_unpaid' %}#section0" class="cb" style="border-bottom:1px dotted dodgerblue">account verify</a> karwana hoga</div></div>
 {% elif ttl %}
 	{% load future_time %}
 	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Ap ne recently mehfil banai, is liye ap dubara mehfil bana sakein ge {{ ttl|future_time }}</div></div>

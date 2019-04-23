@@ -44,7 +44,7 @@ construct_administrative_activity, update_group_topic, trim_group_submissions, d
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
 ChangeGroupTopicForm, ChangeGroupRulesForm, ClosedGroupHelpForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
-OpenGroupCreateForm, OpenGroupHelpForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
+OpenGroupCreateForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
 
 from score import PRIVATE_GROUP_MESSAGE, PUBLIC_GROUP_MESSAGE, POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST,\
 PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, GROUP_FEEDBACK_SIZE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
@@ -4883,10 +4883,7 @@ class GroupTypeView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(GroupTypeView, self).get_context_data(**kwargs)
-		context["private_price"] = PRIVATE_GROUP_COST
-		context["public_price"] = PUBLIC_GROUP_COST
 		context["public_invite_cancellation"] = human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)
-		context["private_invite_cancellation"] = human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE)
 		context["public_owner_invites"] = MAX_OWNER_INVITES_PER_PUBLIC_GROUP
 		context["public_officer_invites"] = MAX_OFFICER_INVITES_PER_PUBLIC_GROUP
 		context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
@@ -4895,29 +4892,45 @@ class GroupTypeView(FormView):
 		return context
 
 
-class OpenGroupHelpView(FormView):
+@csrf_protect
+def can_create_group(request, group_type):
 	"""
-	Renders form where user has to decide whether they are willing to pay the required price
-	"""
-	form_class = OpenGroupHelpForm
-	template_name = "mehfil/open_group_help.html"
+	Checks whether the user has the privilege to create a public mehfil at this point in time
 
-	def get_context_data(self, **kwargs):
-		context = super(OpenGroupHelpView, self).get_context_data(**kwargs)
-		own_id = self.request.user.id
-		context["public_price"] = PUBLIC_GROUP_COST
-		try:
-			join_date = User.objects.only('date_joined').get(id=own_id).date_joined
-		except User.DoesNotExist:
-			# this user does not exist thus data incomplete
-			context["invalid_user"] = True
-			return context
-		ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - convert_to_epoch(join_date))
-		if ttl > 4:
-			# this user isn't allowed to create a group
-			context["user_age_inadequate"] = True
-			context["age_inadequate_ttl"] = ttl
-		return context
+	Replacement for OpenGroupHelpView()
+	"""
+	if request.method == 'POST':
+		if group_type in ('public','private'):
+			own_id = request.user.id
+			if not request.mobile_verified:
+				return render(request,"mehfil/group_type.html",{'not_verified':True})
+			else:
+				try:
+					join_date = User.objects.only('date_joined').get(id=own_id).date_joined
+				except User.DoesNotExist:
+					# this user does not exist thus data incomplete
+					raise Http404("Unable to access user joining date")
+				if group_type == 'public':
+					ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - convert_to_epoch(join_date))
+					if ttl > 4:
+						# this user isn't allowed to create a group
+						return render(request,"mehfil/group_type.html",{'age_inadequate_ttl':ttl,'user_age_inadequate':True})
+					else:
+						ttl = is_group_creation_rate_limited(own_id, which_group='public')
+						if ttl:
+							return render(request,"mehfil/group_type.html",{'ttl':ttl})
+						else:
+							return redirect("open_group_preview")
+				else:
+					ttl = is_group_creation_rate_limited(own_id, which_group='private')
+					if ttl:
+						return render(request,"mehfil/group_type.html",{'ttl':ttl})
+					else:
+						return redirect("closed_group_create")
+		else:
+			raise Http404("Unknown group type")
+	else:
+		raise Http404("Unable to access page via GET request")
 
 
 class ClosedGroupHelpView(FormView):
@@ -5029,7 +5042,7 @@ class ClosedGroupCreateView(FormView):
 
 	def get_form_kwargs(self):
 		kwargs = super(ClosedGroupCreateView,self).get_form_kwargs()
-		kwargs['score'] = self.request.user.userprofile.score
+		kwargs['is_verified'] = self.request.mobile_verified
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -5040,21 +5053,20 @@ class ClosedGroupCreateView(FormView):
 	def form_valid(self, form):
 		if not self.request.mobile_verified:
 			return render(self.request,"verification/unable_to_submit_without_verifying.html",{'create_private_mehfil':True})
-		elif self.request.user.userprofile.score >= PRIVATE_GROUP_COST:
+		elif self.request.user_banned:
+			return redirect("error")
+		else:
 			user_id = self.request.user.id
 			ttl = is_group_creation_rate_limited(user_id, which_group='private')
 			if ttl:
 				return render(self.request,"mehfil/group_type.html",{'ttl':ttl})
 			else:
-				# f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				topic = form.cleaned_data["topic"]
 				user = self.request.user
 				unique = str(uuid.uuid4())
 				created_at = time.time()
 				creation_text = 'meri new mehfil mein welcome'
-				# subtract cost of private mehfil
-				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-PRIVATE_GROUP_COST)
-				reply_time = created_at+1#convert_to_epoch(reply.submitted_on)
+				reply_time = created_at+1
 				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 				####################
 				group_id = get_group_id()
@@ -5066,16 +5078,14 @@ class ClosedGroupCreateView(FormView):
 				main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 				document_administrative_activity.delay(group_id, main_sentence, 'create')
 				invalidate_cached_mehfil_pages(user_id)
-				####################
 				group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=user_id,topic=topic,reply_time=reply_time,\
 					poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='1',slug=unique,image_url=None,\
 					priority='priv_mehfil',from_unseen=False)
+				####################
 				# rate limit further public mehfil creation by this user (for 1 day)
 				rate_limit_group_creation(user_id, which_group='private')
 				self.request.session["unique_id"] = unique
 				return redirect("invite_private", slug=unique)
-		else:
-			return render(self.request,"mehfil/group_type.html",{'score_inadequate':True})
 
 
 @csrf_protect
@@ -5086,7 +5096,9 @@ def create_open_group(request):
 	if request.method == "POST":
 		own_id = request.user.id
 		decision = request.POST.get("dec",None)
-		if decision == '0':
+		if request.user_banned:
+			return redirect("error")
+		elif decision == '0':
 			return redirect("group_type")
 		elif decision == '1':
 			# re-enter the credentials
@@ -5119,15 +5131,15 @@ def create_open_group(request):
 					return render(request,"mehfil/group_type.html",{'user_age_inadequate':True,'age_inadequate_ttl':ttl})
 				else:
 					data = get_temporarily_saved_group_credentials(own_id)
-					score = request.user.userprofile.score
-					if data and score >= PUBLIC_GROUP_COST:
+					# score = request.user.userprofile.score
+					if data:# and score >= PUBLIC_GROUP_COST:
 						creation_text = 'meri public mehfil mein welcome'
 						topic, rules, group_category, raw_rules = data['topic'], data['formatted_rules'], data["category"], data['rules']
 						group_id = get_group_id()#group.id
 						# set_group_id(group_id)#set group ID in redis6
 						unique_id = str(uuid.uuid4())
 						created_at = time.time()#convert_to_epoch(group.created_at)
-						UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PUBLIC_GROUP_COST)
+						# UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PUBLIC_GROUP_COST)
 						reply_time = created_at+1#convert_to_epoch(reply.submitted_on)
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=epoch_join_date, group_id=group_id,privacy='0',\
@@ -5149,8 +5161,8 @@ def create_open_group(request):
 						request.session["public_uuid"] = unique_id
 						request.session.modified = True
 						return redirect("invite")
-					elif score < PUBLIC_GROUP_COST:
-						return render(request,"mehfil/group_type.html",{'score_inadequate':True})
+					# elif score < PUBLIC_GROUP_COST:
+					#     return render(request,"mehfil/group_type.html",{'score_inadequate':True})
 					else:
 						# data has expired, tell the person to redo
 						form = OpenGroupCreateForm()
@@ -5173,7 +5185,7 @@ def preview_open_group(request):
 	else:
 		own_id = request.user.id
 		if request.method == "POST":
-			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified, score=request.user.userprofile.score)
+			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified)#, score=request.user.userprofile.score)
 			if form.is_valid():
 				topic = form.cleaned_data.get("topic")
 				formatted_rules, rules = form.cleaned_data.get("rules")

@@ -11,7 +11,7 @@ from redis4 import many_short_messages, get_and_delete_text_input_key, is_limite
 from redis6 import human_readable_time, retrieve_group_creation_time, retrieve_group_privacy, retrieve_group_category, is_group_member_and_rules_signatory,\
 group_ownership_transfer_blocked_by_rate_limit, ownership_request_rate_limit, is_topic_change_frozen, is_rules_change_frozen, log_topic_change,\
 log_topic_changing_attempt, topic_change_rate_limited, log_rules_change, log_rules_changing_attempt, rules_change_rate_limited, group_member_exists
-from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, PUBLIC_GROUP_COST, PRIVATE_GROUP_COST, \
+from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, \
 GROUP_FEEDBACK_SIZE, PUBLIC_GROUP_REPLY_LENGTH, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_MAX_SELLING_PRICE, PUBLIC_GROUP_MIN_SELLING_PRICE, \
 USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED, GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN, \
 MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC
@@ -521,25 +521,20 @@ class ClosedGroupCreateForm(forms.Form):
 	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
 		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
 	error_messages={'required': 'Topic likhna zaruri hai'})
-	# class Meta:
-	#     model = Group
-	#     exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
-	#     fields = ("topic",)
 
 	def __init__(self, *args, **kwargs):
-		self.score = kwargs.pop('score',None)
+		self.is_verified = kwargs.pop('is_verified',None)
 		super(ClosedGroupCreateForm, self).__init__(*args, **kwargs)
 		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:100px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_topic(self):
-		user_score = self.score
-		if user_score >= PRIVATE_GROUP_COST:
+		if self.is_verified:
 			topic = self.cleaned_data.get("topic")
 			topic = topic.strip()
 			process_group_topic(topic, topic_len_threshold=PRIVATE_GROUP_MAX_TITLE_SIZE)# no need to send over user_id or unique_id (the latter doesn't even exist)
 			return string.capwords(topic)
 		else:
-			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PRIVATE_GROUP_COST,user_score))
+			raise forms.ValidationError('Ye mehfil create karney ke liye apna account verify karwain')
 
 
 class OpenGroupCreateForm(forms.Form):
@@ -559,42 +554,41 @@ class OpenGroupCreateForm(forms.Form):
 	category = forms.TypedChoiceField(required=False, choices=CATEGS, initial='1', widget=forms.RadioSelect, coerce=int,\
 		error_messages={'required': '"Haan" ya "Nahi" ka intekhab karein'})
 
-	# class Meta:
-	#     model = Group
-	#     exclude = ("owner","private","created_at","pics_ki_ijazat")
-	#     fields = ("topic","rules","category")
-
 	def __init__(self, *args, **kwargs):
 		self.is_mob_verified = kwargs.pop('verified',None)
-		self.score = kwargs.pop('score',None)
+		# self.score = kwargs.pop('score',None)
 		self.rejoin = kwargs.pop('rejoin',None)
 		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
 		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:100px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['rules'].widget.attrs['style'] = 'width:98%;height:250px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_topic(self):
-		is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
-		if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		# is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
+		is_mob_verified, is_rejoining = self.is_mob_verified, self.rejoin
+		# if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		if (is_mob_verified) or (is_mob_verified and is_rejoining):
 			topic = self.cleaned_data.get("topic")
 			topic = topic.strip()
 			process_group_topic(topic, topic_len_threshold=PUBLIC_GROUP_MAX_TITLE_SIZE)# no need to send over user_id or unique_id (the latter doesn't even exist)
 			return string.capwords(topic)
-		elif user_score < PUBLIC_GROUP_COST:
-			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
+		# elif user_score < PUBLIC_GROUP_COST:
+		#     raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
 		else:
-			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
+			raise forms.ValidationError('Account verify kiye beghair public mehfil nahi banti')
 
 	def clean_rules(self):
-		is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
-		if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		# is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
+		is_mob_verified, is_rejoining = self.is_mob_verified, self.rejoin
+		# if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		if (is_mob_verified) or (is_mob_verified and is_rejoining):
 			rules = self.cleaned_data.get("rules")
 			rules = rules.strip()
 			process_group_rules(rules, rules_len_threshold=PUBLIC_GROUP_MAX_RULES_SIZE)
 			return number_new_lines(rules), rules
-		elif user_score < PUBLIC_GROUP_COST:
-			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
+		# elif user_score < PUBLIC_GROUP_COST:
+		#     raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
 		else:
-			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
+			raise forms.ValidationError('Account verify kiye beghair public mehfil nahi banti')
 
 class GroupFeedbackForm(forms.Form):
 	"""
@@ -749,9 +743,6 @@ class GroupTypeForm(forms.Form):
 	class Meta:
 		pass
 
-class OpenGroupHelpForm(forms.Form):
-	class Meta:
-		pass
 
 class ClosedGroupHelpForm(forms.Form):
 	class Meta:

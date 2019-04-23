@@ -12,9 +12,9 @@ processing_group_ownership_transfer, private_mehfil_oversight_dashboard, join_pr
 display_detailed_info, display_group_users_list, send_request_to_owner, cancel_ownership_request, private_group_invite_help, unaccepted_private_mehfil_invites, \
 cancel_closed_group_invite, private_group_hide_submission, private_group_request_denied, apply_for_officer, display_officer_application, \
 get_ranked_groups, del_public_group, view_officer_app_help, view_officer_application_form, view_officer_app_history, display_officer_app_detailed_info,\
-group_page, public_group_guidance, group_invites, reject_private_group_invite,reject_public_group_invite, DirectMessageView, GroupTypeView, ClosedGroupHelpView, PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, \
-ChangeGroupTopicView, PrivateGroupView, DirectMessageCreateView, ReinvitePrivateView, ClosedGroupCreateView, InviteUsersToGroupView, \
-InviteUsersToPrivateGroupView, GroupTypeView, OpenGroupHelpView, ReinviteView
+group_page, public_group_guidance, group_invites, reject_private_group_invite,reject_public_group_invite, can_create_group, DirectMessageView, GroupTypeView,\
+ClosedGroupHelpView, PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView, PrivateGroupView, DirectMessageCreateView,\
+ReinvitePrivateView, ClosedGroupCreateView, InviteUsersToGroupView, InviteUsersToPrivateGroupView, GroupTypeView, ReinviteView
 
 admin.autodiscover()
 
@@ -96,7 +96,7 @@ urlpatterns = patterns('',
 	url(r'^mehfil/info/details/$', auth(display_detailed_info), name='display_detailed_info'),
 	######################################### Mehfil creation ###################################################
 	url(r'^mehfil/select-type/$', auth(GroupTypeView.as_view()), name='group_type'),
-	url(r'^mehfil/public/help/$', auth(OpenGroupHelpView.as_view()), name='open_group_help'),
+	url(r'^mehfil/cannot-create/(?P<group_type>[\w.@+-]+)/$', auth(can_create_group), name='can_create_group'),
 	url(r'^mehfil/public/preview/$', auth(preview_open_group), name='open_group_preview'),
 	url(r'^mehfil/public/create/$', auth(create_open_group), name='create_open_group'),
 	url(r'^mehfil/private/help/$', auth(ClosedGroupHelpView.as_view()), name='closed_group_help'),

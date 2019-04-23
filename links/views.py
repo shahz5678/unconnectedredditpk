@@ -3297,6 +3297,7 @@ def photo_page(request,list_type='best-list'):
 		context["lang"] = 'None'
 		context["sort_by"] = 'recent'
 		#####################
+		context["fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 		context["notif_form"] = request.session.pop("notif_form",UnseenActivityForm())
 		if not request.user_banned:
 			context["process_notification"] = True

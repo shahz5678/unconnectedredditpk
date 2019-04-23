@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Create public mehfil | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
+
+{% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
+
 <h1 class="clb cxl" style="text-align:center">{% if owner_rejoining %}Set new topic and rules:{% else %}Create public mehfil:{% endif %}</h1>
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
 

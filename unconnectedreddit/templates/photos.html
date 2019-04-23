@@ -2,7 +2,6 @@
 {% load humanize %}
 {% load get_photo_object %}
 {% load human_time %}
-{% load mathfilters %}
 {% load show_error %}
 {% load emoticons_tags %}
 {% load get_big_fan_button %}
@@ -21,7 +20,7 @@
 
 <style>body{background:#f0f3f4}</style>
 
-<div style="max-width:600px;margin:0 auto;width:96%">
+<div style="max-width:600px;margin:0 auto;width:97%">
 
 <a name="error"></a>
 {% if photo_direct_reply_error_string %}
@@ -39,6 +38,23 @@
 	<h1 style="text-align:center" class="cxl lsp clb">Latest fotos <span class="cs">(page {{ page.number }})</span>:</h1>
 
 {% for photo in object_list %}
+
+	{% if not fbs and forloop.counter == 3 %}
+
+		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+		<div class="mbl" style="text-align:center;background:#f0f3f4">
+			<ins class="adsbygoogle"
+			     style="display:block"
+			     data-ad-format="fluid"
+			     data-ad-layout-key="-6y+ed+2i-1n-4w"
+			     data-ad-client="ca-pub-2568547635306983"
+			     data-ad-slot="3247177655"></ins>
+			<script>
+			     (adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
+		</div>
+
+	{% endif %}
 
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>

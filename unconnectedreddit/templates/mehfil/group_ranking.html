@@ -2,7 +2,7 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Trending public groups | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<style>body{background:#f0f3f4}</style>
 
 {% include "mehfil/mehfil_list_navbar.html" with section='ranking' static_url=STATIC_URL %}
 
@@ -10,9 +10,9 @@
 
 {% for group in object_list %}
 
-    <div class="fx fxjsfs fxaicn bizcard" style="max-width:600px;margin: 0 auto;width:96%;">
+    <div class="fx fxjsfs fxaicn bizcard" style="max-width:600px;margin: 0 auto;width:97%;">
         
-        <div class="sp cp" style="background-color:whitesmoke;align-self:stretch;padding:10px;border-top-left-radius:6px;border-bottom-left-radius:6px;"><span style="display: inline-block;vertical-align: middle;line-height: normal;">{{ forloop.counter }}</span></div>
+        <div class="sp cp" style="background-color:whitesmoke;align-self:stretch;padding:10px;border-top-left-radius:6px;border-bottom-left-radius:6px;"><span style="display: inline-block;vertical-align: middle;line-height: normal">{{ forloop.counter }}</span></div>
 
         <div class="clb bw" style="width:100%;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;">
             <a href="{% url 'public_group' slug=group.2 %}">

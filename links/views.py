@@ -2634,66 +2634,68 @@ class CommentView(CreateView):
 			return redirect("error")#errorbanning
 		else:
 			user_id = self.request.user.id
-			pk = self.kwargs.get('pk',None)
-			photo_owner_id = self.request.POST.get("popk",None)
-			banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
-			if banned:
-				# Cannot comment if banned
-				return render(self.request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-					'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'11','obid':pk})
-			else:
-				banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
-				if banned_by:
-					self.request.session["banned_by"] = banned_by
-					self.request.session["ban_time"] = ban_time
-					self.request.session["where_from"] = '11'
-					self.request.session["obj_id"] = pk
-					self.request.session.modified = True
-					return redirect("ban_underway")
+			if user_id:
+				pk = self.kwargs.get('pk',None)
+				photo_owner_id = self.request.POST.get("popk",None)
+				banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+				if banned:
+					# Cannot comment if banned
+					return render(self.request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+						'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'11','obid':pk})
 				else:
-					f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-					text = f.text#self.request.POST.get("text")
-					origin = self.request.POST.get("origin")
-					star_user_id = None
-					link_id = None
-					try:
-						which_photo = Photo.objects.get(id=pk)
-						if which_photo.owner_id != int(photo_owner_id):
-							self.request.session["where_from"] = '3'
-							return redirect("ban_underway")
-					except Photo.DoesNotExist:
-						raise Http404("This photo does not exist")
-					set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=text,user_id=user_id,time_now=time.time())
-					already_commented = PhotoComment.objects.filter(which_photo=which_photo, submitted_by_id=user_id).exists()
-					if self.request.is_feature_phone:
-						device = '1'
-					elif self.request.is_phone:
-						device = '2'
-					elif self.request.is_tablet:
-						device = '4'
-					elif self.request.is_mobile:
-						device = '5'
+					banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
+					if banned_by:
+						self.request.session["banned_by"] = banned_by
+						self.request.session["ban_time"] = ban_time
+						self.request.session["where_from"] = '11'
+						self.request.session["obj_id"] = pk
+						self.request.session.modified = True
+						return redirect("ban_underway")
 					else:
-						device = '3'
-					photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo=which_photo, text=text,device=device)
-					comment_time = convert_to_epoch(photocomment.submitted_on)
-					commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
-					add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user_id,\
-						is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
-					photo_tasks.delay(user_id, pk, comment_time, photocomment.id, which_photo.comment_count, text, already_commented, \
-						commenter_name, url, self.request.mobile_verified)
-					if pk and origin and link_id:
-						return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
-					elif pk and origin and star_user_id:
-						return redirect("comment_pk",pk=pk,origin=origin, ident=star_user_id)
-					elif pk and origin:
-						return redirect("comment_pk",pk=pk,origin=origin)
-					elif pk:
-						#fires if user from chat
-						return redirect("comment_pk", pk=pk)
-					else:
-						return return_to_content(self.request,origin,None,None,None)
-
+						f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+						text = f.text#self.request.POST.get("text")
+						origin = self.request.POST.get("origin")
+						star_user_id = None
+						link_id = None
+						try:
+							which_photo = Photo.objects.get(id=pk)
+							if which_photo.owner_id != int(photo_owner_id):
+								self.request.session["where_from"] = '3'
+								return redirect("ban_underway")
+						except Photo.DoesNotExist:
+							raise Http404("This photo does not exist")
+						set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=text,user_id=user_id,time_now=time.time())
+						already_commented = PhotoComment.objects.filter(which_photo=which_photo, submitted_by_id=user_id).exists()
+						if self.request.is_feature_phone:
+							device = '1'
+						elif self.request.is_phone:
+							device = '2'
+						elif self.request.is_tablet:
+							device = '4'
+						elif self.request.is_mobile:
+							device = '5'
+						else:
+							device = '3'
+						photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo=which_photo, text=text,device=device)
+						comment_time = convert_to_epoch(photocomment.submitted_on)
+						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
+						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user_id,\
+							is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
+						photo_tasks.delay(user_id, pk, comment_time, photocomment.id, which_photo.comment_count, text, already_commented, \
+							commenter_name, url, self.request.mobile_verified)
+						if pk and origin and link_id:
+							return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
+						elif pk and origin and star_user_id:
+							return redirect("comment_pk",pk=pk,origin=origin, ident=star_user_id)
+						elif pk and origin:
+							return redirect("comment_pk",pk=pk,origin=origin)
+						elif pk:
+							#fires if user from chat
+							return redirect("comment_pk", pk=pk)
+						else:
+							return return_to_content(self.request,origin,None,None,None)
+			else:
+				return redirect('login')
 
 
 @ratelimit(rate='3/s')

@@ -28,6 +28,8 @@
 <div class="cxl lsp mbs">Sorry! Private mehfil bananey ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif ban_user %}
 <div class="cxl lsp mbs">Sorry! Block ki sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif file_report %}
+<div class="cxl lsp mbs">Sorry! Kisi item ko report karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif upload_public_photo %}
 <div class="cxl lsp mbs">Sorry! Foto share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% endif %}

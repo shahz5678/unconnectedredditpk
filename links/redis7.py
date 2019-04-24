@@ -2443,11 +2443,11 @@ def rate_limit_complainer(reporter_ids, my_server=None):
 		if len(reporter_ids) > 5:
 			pipeline1 = my_server.pipeline()
 			for reporter_id in reporter_ids:
-				pipeline1.setex(COMPLAINING_RATE_LIMITED+reporter_id,'1',ONE_WEEK)
+				pipeline1.setex(COMPLAINING_RATE_LIMITED+reporter_id,'1',TWO_WEEKS)
 			pipeline1.execute()
 		else:
 			for reporter_id in reporter_ids:
-				my_server.setex(COMPLAINING_RATE_LIMITED+reporter_id,'1',ONE_WEEK)
+				my_server.setex(COMPLAINING_RATE_LIMITED+reporter_id,'1',TWO_WEEKS)
 
 
 def get_content_complaints():

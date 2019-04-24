@@ -16,6 +16,7 @@ CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contribu
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
+TOP_TRENDERS_LIST_COUNT = 20 #of top trenders to be shown
 SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 SUPER_UPVOTE = 20# REMOVE
 PERMANENT_RESIDENT_SCORE = 300#REMOVE
@@ -168,7 +169,7 @@ CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni','Mult
 'Sri Lanka':'slk','England':'eng','World-XI':'wxi','Australia':'aus'}
 ###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
-REPORTED_CASE_COMPLETION_BONUS = 0#15#turning case completion bonus to '0' for now (revert if defenders complain)
+#REPORTED_CASE_COMPLETION_BONUS = 0#15#turning case completion bonus to '0' for now (revert if defenders complain)
 
 PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Foto mein nudity ya sex hai','2':'Foto mein firqa wariyat hai',\
 '3':'Foto mein khoon kharaba ya aziyat hai','4':'Foto dehshat gardi ki himayat kar rahi hai',\

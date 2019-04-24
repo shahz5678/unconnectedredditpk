@@ -12,7 +12,6 @@ body{background: #E9EBEE}
 {% if tp == 'tx' %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">
 	{% emoticons %}{{ cap }}{% endemoticons %}
-	<br><span class="cgy sp cs">Report price: {{ prc }} points</span>
 	</div>
 	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apka konsa item copy kiya gaya hai?{% else %}Isne apna konsa item dubara lagaya hai?{% endif %}</div>
 	<div class="cgy mt sp mbs lsp">Sirf recent items mein se pick karein:</div>
@@ -20,8 +19,7 @@ body{background: #E9EBEE}
 	<form method="post" action="{% url 'report_content' %}" class="mts lsp sp">
 	{% csrf_token %}
 	<input type="hidden" name="ooid" value="{{ ooid }}">
-	<input type="hidden" name="scr" value="3">
-	<input type="hidden" name="prc" value="{{ prc }}">						
+	<input type="hidden" name="scr" value="3">					
 	<input type="hidden" name="orig" value="{{ orig }}">
 	<input type="hidden" name="lid" value="{{ lid }}">
 	<input type="hidden" name="oun" value="{{ oun }}">
@@ -45,15 +43,13 @@ body{background: #E9EBEE}
 
 {% else %}
 	<img src="{{ purl }}" alt="pic" style="border: 1px solid #A9A9A9;border-radius:5px">
-	<div class="mbs cgy sp cxs">Report price: {{ prc }} points</div>
 	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apki kaunsi foto copy ki geyi hai?{% else %}Isne apni kaunsi foto dubara lagai hai?{% endif %}</div>
 	<div class="cgy mt sp mbs cl lsp">Sirf recent fotos mein se pick karein:</div>
 
 	<form method="post" action="{% url 'report_content' %}" class="mts lsp sp">
 	{% csrf_token %}
 	<input type="hidden" name="ooid" value="{{ ooid }}">
-	<input type="hidden" name="scr" value="3">
-	<input type="hidden" name="prc" value="{{ prc }}">						
+	<input type="hidden" name="scr" value="3">					
 	<input type="hidden" name="orig" value="{{ orig }}">
 	<input type="hidden" name="lid" value="{{ lid }}">
 	<input type="hidden" name="oun" value="{{ oun }}">
@@ -76,7 +72,5 @@ body{background: #E9EBEE}
 	</form>
 
 {% endif %}
-<hr size=1 COLOR="#e6e6e6">
-<span class="cgy cs sp">Agar apki report sach sabit hui tou apkey points wapis ho jaien ge</span><br>
 </div><br><br>
 {% endblock %}

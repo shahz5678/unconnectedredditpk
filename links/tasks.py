@@ -593,9 +593,13 @@ def delete_temporarily_saved_content_data(own_id):
 #paying back points spent by photo reporters
 @celery_app1.task(name='tasks.process_reporter_payables')
 def process_reporter_payables(payables):
+	"""
+	Paying back points spent by reporters (currently points paid are set to 0)
+	"""
 	if payables:
 		for user_id,payable_score in payables:
-			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+			if payable_score:
+				UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
 
 @celery_app1.task(name='tasks.populate_search_thumbs')
@@ -934,12 +938,12 @@ def salat_info():
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():
-    """
-    Cleans up user voting records saved in Redis
+	"""
+	Cleans up user voting records saved in Redis
 
-    Mislabeled due to legacy reasons
-    """
-    cleanse_voting_records()
+	Mislabeled due to legacy reasons
+	"""
+	cleanse_voting_records()
 
 # @celery_app1.task(name='tasks.queue_for_deletion')
 # def queue_for_deletion(link_id_list):

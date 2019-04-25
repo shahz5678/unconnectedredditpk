@@ -3817,7 +3817,7 @@ def owner_rejoining_public_group(request):
 		group_id = request.POST.get("gid",None)
 		category = request.POST.get("cat",None)
 		if group_id and decision is None:
-			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified, score=request.user.userprofile.score, rejoin='1')
+			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified, rejoin='1')
 			if form.is_valid():
 				# form is valid
 				topic = form.cleaned_data.get("topic")

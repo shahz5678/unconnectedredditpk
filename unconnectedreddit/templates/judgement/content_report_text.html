@@ -7,8 +7,7 @@
 {% if tp == 'tx' %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mbs">
 		<div class="cl sp lsp"><span class="cgy">"{{ cap }}"</span></div>
-		<div class="mts" style="text-align:left;border-top:1px dashed lightgray">
-			<div class="mts sp cs">&#8226;&nbsp;<b>Report price:</b>&nbsp;{{ prc }} points</div>
+		<div class="mts" style="text-align:center;border-top:1px dashed lightgray">
 			<div class="mt sp cs lsp">&#8226;&nbsp;<b>Report reason:</b>&nbsp;{{ reason|truncatechars:'32' }}</div>
 		</div>
 	</div>
@@ -16,22 +15,20 @@
 	<div style="padding:8px;background-color:ivory" class="bizcard mbs">
 		<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px">
 		<div class="cs mbl sp"><span class="cgy">profile:&nbsp;<b>{{ oun }}</b></span></div>
-		<div class="mts" style="text-align:left;border-top:1px dashed lightgray">
-			<div class="mts sp cs">&#8226;&nbsp;<b>Report price:</b>&nbsp;{{ prc }} points</div>
+		<div class="mts" style="text-align:center;border-top:1px dashed lightgray">
 			<div class="mt sp cs lsp">&#8226;&nbsp;<b>Report reason:</b>&nbsp;{{ reason|truncatechars:'32' }}</div>
 		</div>
 	</div>
 {% else %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mbs">
 		<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px">
-		<div class="mts" style="text-align:left;border-top:1px dashed lightgray">
-			<div class="mts sp cs">&#8226;&nbsp;<b>Report price:</b>&nbsp;{{ prc }} points</div>
+		<div class="mts" style="text-align:center;border-top:1px dashed lightgray">
 			<div class="mt sp cs lsp">&#8226;&nbsp;<b>Report reason:</b>&nbsp;{{ reason|truncatechars:'32' }}</div>
 		</div>
 	</div>
 {% endif %}
-<div class="cxl mts lsp" style="font-weight:bold">Problem apne alfaz mein explain karein:</div>
-<div class="mts sp lsp">Selected "report reason" se taluq hona zaruri hai, warna report reject ho gi and points wapis nahi hon ge</div>
+<div class="cxl mts lsp" style="font-weight:bold">Problem apne alfaz mein likhein:</div>
+<div class="mts sp lsp">Selected "report reason" se taluq hona zaruri hai, warna report reject ho gi</div>
 	<div class="mts">{% if form.description.errors %}<b class="sp cm cr">{{ form.description.errors.0 }}</b>{% else %}<span class="sp cs cgy">- 150 characters max -</span>{% endif %}</div>
 		<form method="post" class="mts" action="{% url 'report_content' %}">
 			{% csrf_token %}
@@ -40,7 +37,6 @@
 			<input type="hidden" name="tp" value="{{ tp }}">
 			<input type="hidden" name="purl" value="{{ purl }}">
 			<input type="hidden" name="orig" value="{{ orig }}">
-			<input type="hidden" name="prc" value="{{ prc }}">
 			<input type="hidden" name="obid" value="{{ obid }}">
 			<input type="hidden" name="lid" value="{{ lid }}">
 			<input type="hidden" name="oun" value="{{ oun }}">
@@ -48,7 +44,7 @@
 			<button class="btn bm bcr mbs mtl pg_ok_res mrs" name="dec" style="height:26px" value="{{ dec }}" type="submit">OK</button><button class="mls mbs mtl pg_ok_res cgy cl sp" name="dec" style="background:0 0;border:none;padding:0;border-bottom:1px dotted gray" value="" type="submit">Cancel</button>
 		</form>
 		<hr size=1 COLOR="#D3D3D3">
-		<span class="cgy cs sp"><b>Note:</b>&nbsp;Woh reports reject ho jati hain jin mein reported item theek hota hai aur reason mein la-taluk problem likhi hoti hai (e.g. "is user ne mujhe tang kia")</span><br>
+		<span class="cr cs sp"><b>Warning:</b>&nbsp;Woh reports reject ho jati hain jin mein reported item ka likhi hui problem se taluq nahi hota (e.g. "is user ne mujhe tang kia")</span><br>
 
 </div><br><br>
 {% endblock %}

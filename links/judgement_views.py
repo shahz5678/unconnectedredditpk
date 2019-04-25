@@ -1786,9 +1786,6 @@ def report_content(request,*args,**kwargs):
 			own_id = request.user.id
 			is_defender = in_defenders(own_id)#, return_super_status=True)
 			lid = request.POST.get("lid",'')
-			topic = request.POST.get("topic",'')
-			if topic:
-				request.session["origin_topic"] = topic
 			if lid:
 				request.session["target_id"] = lid
 				request.session.modified = True

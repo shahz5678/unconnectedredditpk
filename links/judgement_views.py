@@ -1351,7 +1351,7 @@ def judge_content_submitters(request):
 					purl = request.POST.get("purl",None)
 					cap = request.POST.get("cap",None)
 					tp = request.POST.get("tp",None)
-					offender_score = int(retrieve_user_world_age([obj_owner_id])[obj_owner_id])# UserProfile.objects.only('score').get(user_id=target_id).score
+					offender_score = int(retrieve_user_world_age([target_id])[target_id])# UserProfile.objects.only('score').get(user_id=target_id).score
 					saved = temporarily_save_content_details(obj_id=obid, owner_id=ooid, photo_url=purl, caption=cap, obj_type=tp, origin=orig, \
 						owner_uname=oun, link_id=lid, banner_id=own_id, sin=sin, target_id=ooid)
 					if saved:

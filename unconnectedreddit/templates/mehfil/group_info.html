@@ -18,35 +18,35 @@
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="2">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/ribbon-cp.svg" width="25" height="25" alt="created" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center">
-			<div class="cxs sp">MEHFIL<br>CREATED</div>
+			<div class="cxs sp lsp">MEHFIL<br>CREATED</div>
 			<div class="mt cs sp">{{ data.ct|human_time:'abbreviated' }}</div>
 		</div>
 	</button>
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="1">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/owner-cp.svg" width="25" height="25" alt="owner" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">MEHFIL<br>OWNER</div>
+			<div class="cxs sp lsp">MEHFIL<br>OWNER</div>
 			<div class="mt cs">{{ data.oun|truncatechars:'10' }}</div>
 		</div>
 	</button>
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="3">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/jigsaw-cp.svg" height="25" width="25" alt="joined" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center">
-			<div class="cxs sp">YOU<br>JOINED</div>
+			<div class="cxs sp lsp">YOU<br>JOINED</div>
 			<div class="mt cs sp">{{ data.uj|human_time:'abbreviated' }}</div>
 		</div>
 	</button>
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="4">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/user-cp.svg" width="25" height="25" alt="members" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">TOTAL<br>MEMBERS</div>
+			<div class="cxs sp lsp">TOTAL<br>MEMBERS</div>
 			<div class="mt cs sp">{{ data.m }}</div>
 		</div>
 	</button>
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="6">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/plusminus.svg" height="25" width="25" alt="change" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">CHANGE<br>IN&nbsp;MEMBERS</div>
+			<div class="cxs sp lsp">CHANGE<br>IN&nbsp;MEMBERS</div>
 			{% if data.7nm > 0 %}
 				<div class="mt cs sp">+{{ data.7nm }}</div>
 			{% elif data.7nm < 0 %}
@@ -59,7 +59,7 @@
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="5">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/1day-cp.svg" height="25" width="25" alt="visitors" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">LAST&nbsp;1-DAY<br>VISITORS</div>
+			<div class="cxs sp lsp">LAST&nbsp;1-DAY<br>VISITORS</div>
 			<div class="mt cs sp">{{ data.24v }}</div>
 		</div>
 	</button>
@@ -67,7 +67,7 @@
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="7">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/shield_y.svg" width="25" height="25" alt="officers" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">TOTAL<br>OFFICERS</div>
+			<div class="cxs sp lsp">TOTAL<br>OFFICERS</div>
 			<div class="mt cs sp">{{ data.o }}</div>
 		</div>
 	</button>
@@ -75,7 +75,7 @@
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="8">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/time.svg" width="25" height="25" alt="signup" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">AVERAGE<br>SIGNUP&nbsp;AGE</div>
+			<div class="cxs sp lsp">AVERAGE<br>SIGNUP&nbsp;AGE</div>
 			<div class="mt cs sp">{{ data.ma|time_string:'abbreviated' }}</div>
 		</div>
 	</button>
@@ -83,7 +83,7 @@
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="9">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/size.svg" width="25" height="25" alt="size" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">MEHFIL<br>SIZE</div>
+			<div class="cxs sp lsp">MEHFIL<br>SIZE</div>
 			<div class="mt cs sp">{{ data.sz }}</div>
 		</div>
 	</button>
@@ -92,15 +92,8 @@
 	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px 0;box-sizing: border-box" value="10">
 		<div style="text-align:center"><img src="{{ STATIC_URL }}img/ownership-cp.svg" width="25" height="25" alt="bought" class="cxs" style="overflow:hidden;color:white"></div>
 		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">MEHFIL<br>BOUGHT</div>
+			<div class="cxs sp lsp">OWNERSHIP<br>TRANSFER</div>
 			<div class="mt cs sp">{{ data.tos|human_time:'abbreviated' }}</div>
-		</div>
-	</button>
-	<button name="inf" class="bizcard wt fx fxaicn mbl" style="flex-direction:column;border:none;border-radius:12px;width:100px;height:100px;padding:10px;box-sizing: border-box" value="11">
-		<div style="text-align:center"><img src="{{ STATIC_URL }}img/payment.svg" width="25" height="25" alt="price" class="cxs" style="overflow:hidden;color:white"></div>
-		<div class="mt" style="color:#8c76a6;text-align:center;overflow:hidden">
-			<div class="cxs sp">POINTS<br>PAID</div>
-			<div class="mt cs sp">{{ data.pp }}</div>
 		</div>
 	</button>
 	{% endif %}

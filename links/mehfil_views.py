@@ -260,7 +260,6 @@ def processing_group_ownership_transfer(request, slug):
 							if is_mobile_verified(offerer_id):# offerer must be mobile verified
 								offer_details = retrieve_offer_details(group_id, offerer_id)    
 								if offer_details:
-									# {'sid':submitter_id,'suname':submitter_uname,'savurl':submitter_avurl,'t':time_now,'pts':points_offered,'gid':group_id}
 									points_offered = offer_details.get('pts',0)
 									submitter_uname = retrieve_uname(offerer_id,decode=True)
 									if submitter_uname:
@@ -280,11 +279,11 @@ def processing_group_ownership_transfer(request, slug):
 												return render(request,"mehfil/notify_and_redirect.html",{'member_too_young_to_become_owner':True,'unique':group_uuid,\
 													'is_public':is_public})
 											elif is_public and points_offered < PUBLIC_GROUP_MIN_SELLING_PRICE:
-												# not enough points offered (i.e. less than 5000 points)
+												# not enough points offered
 												rescind_offer(group_id=group_id, offerer_id=offerer_id)
 												return render(request,"mehfil/notify_and_redirect.html",{'not_enough_price_offered':True,'unique':group_uuid,\
 													'min_price':PUBLIC_GROUP_MIN_SELLING_PRICE})
-											elif is_public and points_offered > PUBLIC_GROUP_MAX_SELLING_PRICE:
+											elif is_public and PUBLIC_GROUP_MAX_SELLING_PRICE > 0 and points_offered > PUBLIC_GROUP_MAX_SELLING_PRICE:
 												# too much price offered
 												rescind_offer(group_id=group_id, offerer_id=offerer_id)
 												return render(request,"mehfil/notify_and_redirect.html",{'too_much_price_offered':True,'unique':group_uuid})
@@ -319,23 +318,20 @@ def processing_group_ownership_transfer(request, slug):
 															ttl = rules_ttl
 														return render(request,"mehfil/notify_and_redirect.html",{'topic_or_rules_rl_cannot_transfer':True,\
 															'unique':group_uuid,'ttl':ttl,'ttl_type':ttl_type,'is_public':is_public})
-													elif is_public and UserProfile.objects.only('score').get(user_id=offerer_id).score < points_offered:
-														# the offerer can't keep their end of the bargain any more - i.e. they dont have enough score :(
-														rescind_offer(group_id=group_id, offerer_id=offerer_id)
-														return render(request,"mehfil/notify_and_redirect.html",{'cannot_afford':True,'unique':group_uuid})
+													# elif is_public and UserProfile.objects.only('score').get(user_id=offerer_id).score < points_offered:
+													#     # the offerer can't keep their end of the bargain any more - i.e. they dont have enough score :(
+													#     rescind_offer(group_id=group_id, offerer_id=offerer_id)
+													#     return render(request,"mehfil/notify_and_redirect.html",{'cannot_afford':True,'unique':group_uuid})
 													elif HellBanList.objects.filter(condemned_id=offerer_id).exists():
 														# the offerer is hell banned
 														rescind_offer(group_id=group_id, offerer_id=offerer_id)
 														return render(request,"mehfil/notify_and_redirect.html",{'offerer_is_hellbanned':True,'unique':group_uuid,\
 															'is_public':is_public})
 													else:
-														# change owner object in Group model and create a reply
-														# Group.objects.filter(unique=group_uuid).update(owner=target_user)
 														### process redis6 related stuff ### 
 														# change owner object in redis6 data
 														# ensure ownership change is seen in administrative activity
 														# ensure ownership change is reflected in information page
-														# ensure price paid by new owner is reflected in information page if it's a public mehfil
 														own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 														accept_group_ownership_transfer_request(group_id=group_id, group_uuid=group_uuid, owner_id=own_id, \
 															own_uname=own_uname, requestor_id=offerer_id, requestor_uname=submitter_uname, time_now=time_now, \
@@ -347,9 +343,9 @@ def processing_group_ownership_transfer(request, slug):
 														invalidate_presence(group_id)
 														 ###################################
 														# charge the offerer the score they offered - and transfer it to the original owner
-														if is_public:
-															UserProfile.objects.filter(user_id=offerer_id).update(score=F('score') - points_offered)
-															UserProfile.objects.filter(user_id=own_id).update(score=F('score') + points_offered)
+														# if is_public:
+														#     UserProfile.objects.filter(user_id=offerer_id).update(score=F('score') - points_offered)
+														#     UserProfile.objects.filter(user_id=own_id).update(score=F('score') + points_offered)
 														return render(request,"mehfil/transfer_final_status.html",{'guid':group_uuid,'ouname':submitter_uname,\
 															 'is_public':is_public})
 												else:

@@ -12,11 +12,11 @@
 		<div class="mt mbl"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
 
 		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard lsp">
-		<span class="cxl lsp">Owners apni public mehfil points ke badley kisi aur user ko transfer kar saktey hain. Iskey rules yeh hain:</span>
+		<span class="cxl lsp">Ap ye public mehfil kisi bhi member ko transfer kar saktey hain. Iskey rules yeh hain:</span>
 		<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
-		<li style="text-align:left" class="mbs sp">1. Jisko ye mehfil chahiye, usko khud apko offer send karni parey gi</li>
-		<li style="text-align:left" class="mbs sp">2. Offer {{ min_price }} to {{ max_price }} points ke beech mein honi chahiye</li>
-		<li style="text-align:left" class="mbs sp">3. Apkey pas offer accept karney ke liye 3 days hon ge</li>
+		<li style="text-align:left" class="mbs sp">1. Jis ne is mehfil ka owner banna hai, usko khud apko ownership ki request send karni hogi</li>
+		<li style="text-align:left" class="mbs sp">2. Apkey pas offer accept karney ke liye 3 days hon ge</li>
+		<li style="text-align:left" class="mbs sp">3. Request accept hotay hi mehfil ownership transfer ho jaye gi</li>
 		<li style="text-align:left" class="mbs sp">4. Transfer complete honay ke 1 month tak ap koi aur mehfil transfer nahi kar sakein ge</li>
 		</ul>
 		</div>
@@ -26,7 +26,9 @@
 			<div class="cxl lsp mbs" style="font-weight:bold">{{ num_requests }} ownership request(s):</div>
 			{% for request in ownership_requests %}
 			<div class="mbl bizcard" style="background-color:#f8f2fa;padding:10px;border-radius:10px">
-				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne owner banney ke liye apko <b>{{ request.pts }} points</b> offer kiye</div>
+				
+				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne mehfil ka owner banney ke liye request send ki</div>
+				
 				<div class="sp cs" style="text-align:right"><span class="cgy">{{ request.t|human_time }}</span></div>
 				<form class="mt" method="POST" action="{% url 'group_ownership_transfer_tac' 'public' %}">
 					{% csrf_token %}
@@ -49,13 +51,12 @@
 		<form method="POST" class="mt mbl" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
 
 		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard lsp">
-		<span class="cxl lsp">Ap ye private mehfil kisi bhi mehfil member ko transfer kar saktey hain. Iskey rules yeh hain:</span>
+		<span class="cxl lsp">Ap ye private mehfil kisi bhi member ko transfer kar saktey hain. Iskey rules yeh hain:</span>
 		<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
 		<li style="text-align:left" class="mbs sp">1. Jis ne is mehfil ka owner banna hai, usko khud apko ownership ki request send karni hogi</li>
 		<li style="text-align:left" class="mbs sp">2. Apkey pas request accept karney ke liye 3 days hon ge</li>
 		<li style="text-align:left" class="mbs sp">3. Request accept hotay hi mehfil ownership transfer ho jaye gi</li>
 		<li style="text-align:left" class="mbs sp">4. Transfer complete honay ke 1 month tak ap koi aur mehfil transfer nahi kar sakein ge</li>
-		<li style="text-align:left" class="mbs sp">5. Private mehfils bilkul muft transfer hoti hain</li>
 		</ul>
 		</div>
 	
@@ -100,10 +101,13 @@
 						<div class="cxl lsp ">{{ form.errors|show_error }}</div>
 					</div>
 				{% else %}
+
+					{% if group_price > 0 %}
+					
 					<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard lsp">
 						<span class="cxl lsp">Ap is mehfil ke owner banney ki request kar saktey hain. Iskey liye ye karna ho ga:</span>
 						<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
-						<li style="text-align:left" class="mbs sp">1. Nechay is mehfil ke owner ko points offer karein</li>
+						<li style="text-align:left" class="mbs sp">1. Neechay is mehfil ke owner ko points offer karein</li>
 						<li style="text-align:left" class="mbs sp">2. Kam se kam {{ least_price }} points and ziyada se ziyada {{ group_price }} points offer karein</li>
 						<li style="text-align:left" class="mbs sp">3. Owner ke pas apki offer pe decision lene ke liye 3 days hon ge</li>
 						<li style="text-align:left" class="mbs sp">4. Owner ki decision ke time apkey points apki di geyi offer se kam nahi honay chahiyen</li>
@@ -115,25 +119,68 @@
 					<div class="lsp mts mbs">
 						<div class="cxl">Is mehfil ka owner banney ke liye ap kitney points offer karna chahtey hain?</div>
 					</div>
+
+					{% else %}
+
+					<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard lsp mbl">
+						<span class="cxl lsp">Ap is mehfil ke owner banney ki request kar saktey hain. Iskey liye ye karna ho ga:</span>
+						<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
+						<li style="text-align:left" class="mbs sp">1. Neechay button daba ke owner banney ki request send karein</li>
+						<li style="text-align:left" class="mbs sp">2. Mehfil owner ke pas accept karney ke liye 3 days hon ge</li>
+						<li style="text-align:left" class="mbs sp">3. Jab tak woh decision nahi le, ap mehfil exit nahi karein</li>
+						<li style="text-align:left" class="mbs sp">4. Agar owner ne apki request accept kar li tou ap forun mehfil ke new owner ban jaien ge</li>
+						<li style="text-align:left" class="mbs sp">5. Request accept honay ke 1 month tak ap koi aur mehfil transfer nahi kar sakein ge</li>
+						</ul>
+					</div>
+
+					{% endif %}
+
 				{% endif %}
 				
-				<div class="mbs">{{ form.price }}</div>
-				<button type="submit" class="mts sp btn bcp pg_ok_res bm" style="height:26px">Submit</button>
+				{% if group_price > 0 %}
+					<div class="mbs">{{ form.price }}</div>
+					<button type="submit" class="mts sp btn bcp pg_ok_res bl" style="height:26px">Submit</button>
+				{% else %}
+					<input type="hidden" name="price" value="0">
+					<button type="submit" class="btn bcp pg_ok_res sp bxl" style="height:26px">Send request</button>
+
+				{% endif %}
+				
 				</form>
 
 				{% if prev_request %}
-				<div class="mtl" style="border:1px dashed #dfc9e9;padding:10px;background-color:#f8f2fa;border-radius:10px">
-				<div class="mts mbs sp lsp"><b>Recent offer:</b>&nbsp;Ap ne is mehfil ka owner banney ke liye {{ prev_request.pts }} points offer kiye <span class="cs sp cgy">({{ prev_request.t|human_time }})</span></div>
-				<form method="POST" class="mtl mbs" action="{% url 'cancel_ownership_request' 'public' %}">
-				{% csrf_token %}
-				<input type="hidden" name="guid" value="{{ unique }}">
-				<button type="submit" class="sp cm" style="background:0 0;padding:0;border:none;border-bottom:1px dotted #805a8c;color:#805a8c">Cancel request</button>
-				</form>
-				</div>
-				<div class="sp cs lsp mtl"><span class="cgy"><b>Note:</b>&nbsp;Bheji hui request mehfil owner aur tamam officers dekh saktey hain</div>
+
+					{% if prev_request.pts != '0' %}
+
+						<div class="mtl" style="border:1px dashed #dfc9e9;padding:10px;background-color:#f8f2fa;border-radius:10px">
+							<div class="mts mbs sp lsp"><b>Recent offer:</b>&nbsp;Ap ne is mehfil ka owner banney ke liye {{ prev_request.pts }} points offer kiye <span class="cs sp cgy">({{ prev_request.t|human_time }})</span></div>
+							<form method="POST" class="mtl mbs" action="{% url 'cancel_ownership_request' 'public' %}">
+								{% csrf_token %}
+								<input type="hidden" name="guid" value="{{ unique }}">
+								<button type="submit" class="sp cm" style="background:0 0;padding:0;border:none;border-bottom:1px dotted #805a8c;color:#805a8c">Cancel request</button>
+							</form>
+						</div>
+
+					{% else %}
+
+						<div class="mtl" style="border:1px dashed #dfc9e9;padding:10px;background-color:#f8f2fa;border-radius:10px">
+							<div class="mts mbs sp lsp"><b>Recent request:</b>&nbsp;Ap ne is mehfil ka owner banney ke liye request ki <span class="cgy">({{ prev_request.t|human_time }})</span></div>
+							<form method="POST" class="mtl mbs" action="{% url 'cancel_ownership_request' 'public' %}">
+								{% csrf_token %}
+								<input type="hidden" name="guid" value="{{ unique }}">
+								<button type="submit" class="sp cm" style="background:0 0;padding:0;border:none;border-bottom:1px dotted #805a8c;color:#805a8c">Cancel request</button>
+							</form>
+						</div>
+
+					{% endif %}
+
+					<div class="sp cs lsp mtl"><span class="cgy"><b>Note:</b>&nbsp;Bheji hui request mehfil owner aur tamam officers dekh saktey hain</div>
+				
 				{% else %}
-				<hr size=1 COLOR="#e5e7e9">
-				<div class="sp cs lsp mts"><span class="cgy"><b>Note:</b>&nbsp;Bheji hui request mehfil owner aur tamam officers dekh saktey hain</div>
+				
+					<hr size=1 COLOR="#e5e7e9">
+					<div class="sp cs lsp mts"><span class="cgy"><b>Note:</b>&nbsp;Bheji hui request mehfil owner aur tamam officers dekh saktey hain</div>
+				
 				{% endif %}
 			{% else %}
 
@@ -172,11 +219,10 @@
 						<span class="cxl lsp">Ap is mehfil ke owner banney ki request kar saktey hain. Iskey liye ye karna ho ga:</span>
 						<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
 						<li style="text-align:left" class="mbs sp">1. Neechay button daba ke owner banney ki request send karein</li>
-						<li style="text-align:left" class="mbs sp">2. Is request mein points nahi lagtey</li>
-						<li style="text-align:left" class="mbs sp">3. Mehfil owner ke pas accept karney ke liye 3 days hon ge</li>
-						<li style="text-align:left" class="mbs sp">4. Jab tak woh decision nahi le, ap mehfil nahi chorein</li>
-						<li style="text-align:left" class="mbs sp">5. Agar owner ne apki request accept kar li tou ap mehfil ke new owner ban jaien ge</li>
-						<li style="text-align:left" class="mbs sp">6. Request accept honay ke 1 month tak ap koi aur mehfil transfer nahi kar sakein ge</li>
+						<li style="text-align:left" class="mbs sp">2. Mehfil owner ke pas accept karney ke liye 3 days hon ge</li>
+						<li style="text-align:left" class="mbs sp">3. Jab tak woh decision nahi le, ap mehfil exit nahi karein</li>
+						<li style="text-align:left" class="mbs sp">4. Agar owner ne apki request accept kar li tou ap forun mehfil ke new owner ban jaien ge</li>
+						<li style="text-align:left" class="mbs sp">5. Request accept honay ke 1 month tak ap koi aur mehfil transfer nahi kar sakein ge</li>
 						</ul>
 					</div>
 
@@ -186,7 +232,7 @@
 					<button class="btn bcg bxl pg_ok_res sp" style="height:26px">Send request</button>
 					</form>
 					<hr size=1 COLOR="#e5e7e9">
-					<div class="sp cs lsp mts"><span class="cgy"><b>Note:</b>&nbsp;Bheji hui request mehfil history mein bhi nazar ati hai</div>
+					<div class="sp cs lsp mts"><span class="cgy"><b>Note:</b>&nbsp;Bheji hui request 'mehfil history' mein bhi nazar ati hai</div>
 
 				{% endif %}
 					

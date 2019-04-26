@@ -617,7 +617,9 @@ class GroupFeedbackForm(forms.Form):
 
 class GroupPriceOfferForm(forms.Form):
 	"""
-	Handles price offered to public mehfil owner
+	Handles ownership transfer request sent to a public mehfil owner
+
+	Can support "price" offerings (currently set to '0')
 	"""
 	price = forms.CharField(error_messages={'invalid':"Sirf number likhein",'required':"Isey khali nahi chorein"})
 
@@ -645,7 +647,7 @@ class GroupPriceOfferForm(forms.Form):
 		price, own_id, own_uname, time_now, score, group_id, group_owner_id, is_mob_verified = self.cleaned_data["price"], self.user_id, self.user_uname, \
 		self.time_now, self.score, self.group_id, self.group_owner_id, self.is_mob_verified
 		is_public = False if retrieve_group_privacy(group_id) == '1' else True
-		if is_public and not is_mob_verified:
+		if not is_mob_verified:
 			# user's not verified their mobile number
 			raise forms.ValidationError("Sorry! Mehfil ki ownership sirf verified users ko mil sakti hai")
 		elif group_owner_id == str(own_id):
@@ -656,8 +658,15 @@ class GroupPriceOfferForm(forms.Form):
 				price = int(price)
 			except (ValueError, TypeError):
 				raise forms.ValidationError("Sirf number likhein")
-			if price > score:
-				raise forms.ValidationError('Sorry! Ap ne {} points offer kiye, lekin apka score sirf {} points hai'.format(price,score))
+			##################################################################
+			##################################################################
+			# if re-instating score, uncomment the 2 lines below, and comment the 2 lines after that
+			# if price > score:
+			#     raise forms.ValidationError('Sorry! Ap ne {} points offer kiye, lekin apka score sirf {} points hai'.format(price,score))
+			if price > 0:
+				raise forms.ValidationError('Sorry! Mehfil ka owner banney ke liye price offer nahi ki ja sakti')
+			##################################################################
+			##################################################################
 			elif is_public and price < PUBLIC_GROUP_MIN_SELLING_PRICE:
 				raise forms.ValidationError('Sorry! Offer kam az kam {} points honi chahiye'.format(int(PUBLIC_GROUP_MIN_SELLING_PRICE)))
 			elif is_public and price > PUBLIC_GROUP_MAX_SELLING_PRICE:
@@ -670,7 +679,7 @@ class GroupPriceOfferForm(forms.Form):
 					raise forms.ValidationError("Sorry! Apki tashkhees nahi ho saki")
 				young_age_ttl = (USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time_now - convert_to_epoch(join_date)))
 				user_is_freshman = True if young_age_ttl > 0 else False
-				if user_is_freshman: 
+				if user_is_freshman:
 					# user too young to own a public mehfil - old users' "young_age_ttl" statistic would be highly negative
 					raise forms.ValidationError("Sorry! Ap ye {} tak nahi kar saktey kiyunke apko Damadam join kiye ziyada time nahi guzra".\
 						format(human_readable_time(young_age_ttl)))
@@ -691,10 +700,10 @@ class GroupPriceOfferForm(forms.Form):
 						if user_ttl:
 							if ttl_type == 'owner':
 								# cannot proceed since mehfil owner is rate-limited (and can't accept your request)
-								raise forms.ValidationError("Sorry! Ye owner {} tak aisi koi offer receive nahi kar sakta kiyunke is ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))
+								raise forms.ValidationError("Sorry! Ye owner {} tak aisi koi request receive nahi kar sakta kiyunke is ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))
 							else:
 								# cannot proceed since you are rate-limited (and can't send your request)
-								raise forms.ValidationError("Sorry! Ap {} tak aisi koi request send nahi kar saktey kiyunke ap ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))		
+								raise forms.ValidationError("Sorry! Ap {} tak aisi koi request send nahi kar saktey kiyunke ap ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))        
 						else:
 							ttl = ownership_request_rate_limit(group_id, own_id)
 							if ttl:

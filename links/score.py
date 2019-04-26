@@ -16,7 +16,7 @@ CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contribu
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
-TOP_TRENDERS_LIST_COUNT = 20 #of top trenders to be shown
+TRENDER_RANKS_TO_COUNT = 20 #of top trenders to be shown
 SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 SUPER_UPVOTE = 20# REMOVE
 PERMANENT_RESIDENT_SCORE = 300#REMOVE
@@ -146,8 +146,8 @@ GROUP_VISITORS_PER_PAGE = 50 #num of group members per page, shown in a mehfil's
 
 POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN = 2
 PRIVATE_GROUP_COST = 500 # cost of buying a private group
-PUBLIC_GROUP_MAX_SELLING_PRICE = (PUBLIC_GROUP_COST*2)-1
-PUBLIC_GROUP_MIN_SELLING_PRICE = PUBLIC_GROUP_COST#PUBLIC_GROUP_COST*0.3
+PUBLIC_GROUP_MAX_SELLING_PRICE = 0#(PUBLIC_GROUP_COST*2)-1
+PUBLIC_GROUP_MIN_SELLING_PRICE = 0#PUBLIC_GROUP_COST#PUBLIC_GROUP_COST*0.3
 GROUP_HARD_DELETION_CUTOFF = 2479680#30 days old groups are targets of hard deletion (i.e. full deletion)
 GROUP_SOFT_DELETION_CUTOFF = 604800#7 days old groups are target of soft deletion (i.e. emptying content)
 

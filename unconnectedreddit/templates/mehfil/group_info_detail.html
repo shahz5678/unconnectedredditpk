@@ -73,9 +73,9 @@
 			</span>
 		</div>
 	{% elif info == '10' or info == '11' %}
-		<div class="cxl lsp">Ye mehfil puraney owner se <a href="{% url 'profile' owner_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> ne <b>{{ price_paid }}</b> points de kar hasil ki</div>
-		<hr size=1 COLOR="#E9EBEE">
-		<div class="cgy sp lsp mts">Sauda <b>{{ bought_at }}</b> pe hua</div>
+		
+		<div class="cxl lsp"><b>{{ bought_at }}</b> pe ye mehfil puraney owner se <a href="{% url 'profile' owner_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> ne hasil ki</div>
+		
 	{% endif %}
 
 {% else %}

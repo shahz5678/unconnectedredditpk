@@ -1467,23 +1467,24 @@ def retrieve_subscription_info(user_id):
 		return {}
 
 
-# def sanitize_unused_subscriptions():
-# 	"""
-# 	Cleanses old subscriptions that are ununsed (helps prevent data-leaks)
+def sanitize_unused_subscriptions():
+	"""
+	Cleanses old subscriptions that are ununsed (helps prevent data-leaks)
 
-# 	Is to be periodically called by tasks.py (e.g. every 7 days)
-# 	"""
-# 	three_months_ago = time.time() - THREE_MONTHS
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	subscriptions_to_delete = my_server.zrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
-# 	if subscriptions_to_delete:
-# 		num_subscriptions_deleted = len(subscriptions_to_delete)
-# 		pipeline1 = my_server.pipeline()
-# 		for subscription in subscriptions_to_delete:
-# 			pipeline1 = my_server.pipeline()
-# 		pipeline1.zremrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
-# 		pipeline1.execute()
-# 		track_notif_allow_behavior('4', my_server, num_subscriptions_deleted)
+	Is to be periodically called by tasks.py (e.g. every 7 days)
+	"""
+
+	three_months_ago = time.time() - THREE_MONTHS
+	my_server = redis.Redis(connection_pool=POOL)
+	subscriptions_to_delete = my_server.zrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
+	if subscriptions_to_delete:
+		num_subscriptions_deleted = len(subscriptions_to_delete)
+		pipeline1 = my_server.pipeline()
+		for subscription in subscriptions_to_delete:
+			pipeline1.delete(subscription)
+		pipeline1.zremrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
+		pipeline1.execute()
+		track_notif_allow_behavior('4', my_server, num_subscriptions_deleted)
 
 
 def track_notif_allow_behavior(status_code, my_server=None, amnt=1):

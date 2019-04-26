@@ -373,7 +373,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_all_photos1': {
 		'task': 'tasks.rank_all_photos1',
-		'schedule': timedelta(seconds=60), #execute every 60 seconds, cricket score enqueuing is managed through this
+		'schedule': timedelta(seconds=60*60*24*7), #execute every 60 seconds, cricket score enqueuing is managed through this
 	},
 	'tasks.calc_photo_quality_benchmark': {
 		'task': 'tasks.calc_photo_quality_benchmark',

@@ -32,6 +32,7 @@ TEN_MINS = 60*10
 FIFTEEN_MINS = 60*15
 FORTY_MINS = 60*40
 THREE_HOURS = 60*60*3
+SIX_HOURS = 60*60*6
 FIFTEEN_HOURS = 60*60*15
 ONE_DAY = 60*60*24
 THREE_DAYS = 60*60*24*3
@@ -92,6 +93,9 @@ GROUP_PRESENCE_CACHE = 'gpc:'# key containing cached status data for a group (i.
 GROUP_EXIT_TRACKER = 'ge:'# sorted set containing exited members from last 45 days
 GROUP_KICK_TRACKER = 'gk:'# sorted set containing kicked members from last 45 days
 GROUP_VISITOR_PRUNING_LOCK = 'gvpl:'# key that locks re-pruning of group visitors too soon
+PUBLIC_GROUP_OWNER_LAST_ADMINISTRATIVE_ACTION_TIME = 'admin_action_times'# sorted set containing last time a public mehfil's owner accessed the settings dashboard
+PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT = 'group_att_freq'# Keeps a 'world age' type count of how often an owner attends their group
+PUBLIC_GROUP_OWNER_ADMINISTARTIVE_ACTION_RATE_LIMIT = 'goirl:'# key that rate limits the increments in PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT
 
 ######################### Caching mehfil popularity data #########################
 
@@ -1552,6 +1556,21 @@ def retrieve_officer_stats(user_id, stat_type=None):
 		return apps_submitted, apps_accepted, num_officers
 
 ############################# Tracking mehfil visitors ############################
+
+
+def group_owner_administrative_interest(group_id, time_now):
+	"""
+	This marks the most recent time a public group owner accessed their dashboard, or checked out their recent visitors, or went into the 'info' section
+
+	We take these actions as a signal of the owner taking interest in group administration (instead of just 'passively visiting' the group)
+	We also keep incremental count of how frequently the owner takes administrative interest in their group (kind of like 'world age')
+	All these measures help us enrich our "popular" rankings
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zadd(PUBLIC_GROUP_OWNER_LAST_ADMINISTRATIVE_ACTION_TIME,group_id,time_now)# gives 'last administrative activity' for owner
+	if not my_server.exists(PUBLIC_GROUP_OWNER_ADMINISTARTIVE_ACTION_RATE_LIMIT+group_id):#locks group attendance frequency calculation
+		my_server.zincrby(PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT,group_id,amount=1)#incrementing group attendance (useful measure for sorting groups)
+		my_server.setex(PUBLIC_GROUP_OWNER_ADMINISTARTIVE_ACTION_RATE_LIMIT+group_id,'1',SIX_HOURS)
 
 
 def group_attendance(group_id,visitor_id, time_now):
@@ -4024,6 +4043,8 @@ def permanently_delete_group(group_id, group_type, return_member_ids=False):
 		pipeline1.delete(GROUP_EXIT_TRACKER+group_id)
 		pipeline1.delete(GROUP_UUID_TO_ID_MAPPING+group_uuid)
 		pipeline1.delete(group_key)
+		pipeline1.zrem(PUBLIC_GROUP_OWNER_LAST_ADMINISTRATIVE_ACTION_TIME, group_id)
+		pipeline1.zrem(PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT, group_id)
 		pipeline1.execute()
 		invalidate_cached_ranked_groups(my_server=my_server)
 		invalidate_group_membership_cache(group_id,my_server=my_server)
@@ -4357,11 +4378,11 @@ def rank_mehfil_active_users():
 
 
 def get_ranked_mehfils():
-    """
-    Returns groups ranked by their active user counts
-    # """
-    # return redis.Redis(connection_pool=POOL).zrevrange(GROUP_BIWEEKLY_STICKINESS,0,9,withscores=True)
-    return redis.Redis(connection_pool=POOL).zrangebyscore(GROUP_BIWEEKLY_STICKINESS,'0.09','+inf',withscores=True)
+	"""
+	Returns groups ranked by their active user counts
+	# """
+	# return redis.Redis(connection_pool=POOL).zrevrange(GROUP_BIWEEKLY_STICKINESS,0,9,withscores=True)
+	return redis.Redis(connection_pool=POOL).zrangebyscore(GROUP_BIWEEKLY_STICKINESS,'0.09','+inf',withscores=True)
 
 
 def cache_ranked_groups(json_data):

@@ -40,7 +40,7 @@ from redis2 import update_notification, remove_group_notification, remove_group_
 bulk_remove_group_notification
 
 from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks,\
-construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity
+construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
 ChangeGroupTopicForm, ChangeGroupRulesForm, ClosedGroupHelpForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
@@ -93,13 +93,16 @@ def display_group_info_page(request):
 		group_uuid = request.POST.get("guid",None)
 		if group_uuid:
 			group_id = retrieve_group_id(group_uuid)
+			group_owner_id, group_id, group_privacy = retrieve_group_owner_id(group_uuid=group_uuid,with_group_id=True,with_group_privacy=True)
 			own_id = request.user.id
 			if group_member_exists(group_id, own_id):
-				is_public = False if retrieve_group_privacy(group_id) == '1' else True
+				is_public = False if group_privacy == '1' else True
 				data = get_group_info(group_id, is_public = is_public)
 				data['uj'] = retrieve_group_joining_time(group_id, own_id)# this is different for each user, so retrieved separately
 				if is_public:
 					data['7nm'] = int(data['7nm']) if '7nm' in data else 0
+					if str(own_id) == group_owner_id:
+						log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 				return render(request,"mehfil/group_info.html",{'data':data,'guid':group_uuid, 'is_public':is_public})
 			else:
 				# not a member or group does not exist
@@ -811,6 +814,7 @@ def public_mehfil_oversight_dashboard(request):
 			return redirect("group_page")
 		if owner_id == own_id:
 			# group admin
+			log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
 			if help_decision in ('1','2','3','4','5','6','11','13','17'):
@@ -2463,9 +2467,12 @@ def display_group_users_list(request, grp_priv, list_type):
 						final_visitor_data.append((visitor_id,credentials[int(visitor_id)],visit_time,row_num,status))
 						row_num += 1
 					cache_group_attendance_data(json.dumps(final_visitor_data),group_id)
+			is_owner = group_owner_id == str(own_id)
 			if group_privacy == '0':
 				which_tutorial = '15'
 				template_name = 'public_group_online_kon'
+				if is_owner:
+					log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 			else:
 				which_tutorial = '16'
 				template_name = 'group_online_kon'
@@ -2477,7 +2484,7 @@ def display_group_users_list(request, grp_priv, list_type):
 			return render(request,"mehfil/{0}.html".format(template_name),{'object_list':visitor_data,'group_owner_id':group_owner_id,\
 				'show_init_msg':tutorial_unseen(user_id=own_id, which_tut=which_tutorial, renew_lease=True),'unique':group_uuid, \
 				'legit':FEMALES,'is_paginated': True if len(final_visitor_data) > GROUP_VISITORS_PER_PAGE else False, 'page_obj':page,\
-				'is_owner':group_owner_id == str(own_id),'visitors':True})
+				'is_owner':is_owner,'visitors':True})
 		elif list_type == 'members':
 			# this is for displaying all members
 			membership_data = retrieve_cached_membership_data(group_id)

@@ -37,7 +37,7 @@ update_group_topic_in_obj
 # photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
-retrieve_all_member_ids
+retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
@@ -668,6 +668,14 @@ def public_group_ranking_clean_up_task():
 	Mislabeled task due to legacy reasons
 	"""
 	calculate_top_trenders()
+
+
+@celery_app1.task(name='tasks.log_group_owner_interaction')
+def log_group_owner_interaction(group_id, time_now):
+	"""
+	Logs the last 'seen' time of when a group owner did something meaninful in their public group
+	"""
+	group_owner_administrative_interest(group_id, time_now)
 
 
 @celery_app1.task(name='tasks.group_attendance_tasks')

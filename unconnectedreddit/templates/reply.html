@@ -12,7 +12,7 @@
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}Home reply{% endif %} | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
-<div style="margin: 0 auto;max-width:600px;width:93%" class="clb">
+<div style="margin: 0 auto;max-width:600px;width:97%" class="clb">
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
@@ -20,7 +20,7 @@
 
 <div class="bizcard mbl" style="background-color:white;padding:3px">
 
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on|naturaltime oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar score=parent_submitter_score %}
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on|naturaltime oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar %}
 
 </div>
 

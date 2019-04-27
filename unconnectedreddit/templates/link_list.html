@@ -1,6 +1,5 @@
 {% extends "base.html" %}
 {% load humanize %}
-{% load mathfilters %}
 {% load emoticons_tags %}
 {% load get_item %}
 {% load show_error %}
@@ -22,7 +21,7 @@
 {% block content %}
 <head><title>Home | Damadam.pk</title></head>
 <style>body{background:#f0f3f4}</style>
-<div style="max-width:600px;margin:0 auto;width:96%;position:relative;">
+<div style="max-width:600px;margin:0 auto;width:97%;position:relative;">
 
 <a name="error"></a>
 {% if home_direct_reply_error_string %}
@@ -99,7 +98,7 @@
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p score=link.sc %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
@@ -124,7 +123,7 @@
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
 
-	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p score=link.sc %}
+	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
 
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -172,6 +171,4 @@
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- separate report_modal, case_vote and copy link into different modules -->
-<!-- report modal required user ident separately -->
 {% endblock %}

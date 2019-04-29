@@ -153,12 +153,26 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 	obj_id = str(obj_id)
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
 	hash_name = "tx:"+obj_id
+	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'si':submitter_id,'su':submitter_username, 't':submission_time,\
+	'd':text,'h':hash_name}
+	if from_fbs:
+		immutable_data["fbs"]='1'
+	if is_pinkstar:
+		immutable_data['p']='1'
+	################################################
+	################################################
+	#TO REMOVE:
 	mapping = {'i':obj_id,'c':categ,'si':submitter_id,'sa':submitter_av_url,'su':submitter_username,'sc':submitter_score,\
-	't':submission_time,'d':text,'nv':'0','uv':'0','dv':'0','pv':'0','h':hash_name}
+	't':submission_time,'d':text,'nv':'0','uv':'0','dv':'0','pv':'0','h':hash_name,'blob':json.dumps(immutable_data)}
 	if from_fbs:
 		mapping["fbs"]='1'
 	if is_pinkstar:
 		mapping['p']='1'
+	#TO ACTIVATE:
+	# search for other "TO ACTIVATE" and "TO REMOVE" snippets/functions here and in voting_views
+	# mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}    
+	################################################
+	################################################
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)
@@ -650,12 +664,26 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
 	img_thumb = get_s3_object(img_url,category="thumb")
 	hash_name = "img:"+obj_id
+	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
+	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name}
+	if from_fbs:
+		immutable_data['fbs']='1'
+	if is_pinkstar:
+		immutable_data['p']='1'
+	################################################
+	################################################
+	#TO REMOVE:
 	mapping = {'i':obj_id,'c':categ,'si':submitter_id,'sa':submitter_av_url,'su':submitter_username,'sc':submitter_score,\
-	't':submission_time,'d':img_caption,'iu':img_url,'it':img_thumb,'nv':'0','uv':'0','dv':'0','pv':'0','h':hash_name}
+	't':submission_time,'d':img_caption,'iu':img_url,'it':img_thumb,'nv':'0','uv':'0','dv':'0','pv':'0','h':hash_name,\
+	'blob':json.dumps(immutable_data)}
 	if from_fbs:
 		mapping["fbs"]='1'
 	if is_pinkstar:
 		mapping['p']='1'#is_pinkstar
+	#TO ACTIVATE:
+	# mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
+	################################################
+	################################################
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)

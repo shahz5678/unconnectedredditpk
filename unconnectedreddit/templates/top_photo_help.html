@@ -1,14 +1,60 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Trending photo and meme uploaders help | Damadam.pk</title></head>
-<div class="margin clb">
-<b class="cl">Ye top 100 Damadam stars hain jin ki photos pichle 2 days mein users ko sab se ziyada pasand aien!</b>
-<br class="mbl">
-<span class="cgy">
-Ye list din mein aik bar banai jati hai, phir poorey din change nahi hoti
-</span>
-<br>
-<a href="{% url 'top_photo' %}#section0"><button class="btn bco bm mtl">wapis</button></a>
+
+<head><title>Trending foto uploaders help | Damadam.pk</title></head>
+ 
+<style>body{background:#f0f3f4}</style>
+
+{% include "photos_navbar.html" with section='top_list' static_url=STATIC_URL %}
+
+<h1 style="text-align:center" class="cxl lsp clb">Photo trending mein kaisey jati hai?</h1>
+
+
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-right: auto;margin-left: auto;max-width:600px;width:97%;text-align:center">
+
+    <div class="mt" style="text-align:left;padding:0 7px">
+       
+     	<ol>
+
+
+     		<li class="sp cl lsp mbs">
+			<b>Damadam Mawad:</b> (Damadam content) Aisee tasaveer jin ka damadam say koi taaluq ho. Misaal:<a href="https://damadam.pk/photo_detail/4315237/" target='_blank'> 1 </a>, <a href="https://damadam.pk/photo_detail/4311700/" target='_blank'> 2</a> 
+
+			</li>
+
+			<li class="sp cl lsp mbs">
+			<b>Asli Mawad:</b> (Original content) Apne mobile say khenchi hoi ya edit ki hoi, achi quality ki koi bhi mazedaar tasveer lagain. Misaal:<a href="https://damadam.pk/photo_detail/4289947" target='_blank'> 1 </a>,<a href="https://damadam.pk/photo_detail/4319980" target='_blank'> 2 </a>
+			</li>
+
+			<li class="sp cl lsp mbs">
+			<b>Halat-e-Hazra:</b> Breaking news ya koi bhi choti barri khaber ki tasveer share kerien.<a href="https://damadam.pk/photo_detail/4319961" target='_blank'> Misaal</a>
+			</li>
+			<li class="sp cl lsp mbs">
+			<b>Memes aur Jokes:</b> Mazahia memes aur tasveerien share keriern jo Damadam ke users ko samajh aaien. <a href="https://damadam.pk/photo_detail/4300913" target='_blank'>Misaal</a>
+			</li>
+
+			<li class="sp cl lsp mbs">
+			<b>Maalomati Tasaveer:</b> Maalomati Tasaveer share kerien. Jo baatien ghair tasdeeq-shuda hoon wo trending mein nahi jaatien. <a href="https://damadam.pk/photo_detail/4303975" target='_blank'>Misaal</a>
+			</li>
+
+			<li class="sp cl lsp mbs">
+			<b>Quotes, Poetry and Attitude:</b> Hikmet aur danai wali baatien, deen say taaluq rakhne wali achi baatien, sher-o-shairi share kerien, aur aap ka zindagi ki taraf attitude. <a href="https://damadam.pk/photo_detail/4319864" target='_blank'>Misaal</a>
+			</li>
+			
+		</ol>       	
+   </div>
+   <a href="{% url 'top_photo' %}"><button class="btn bcb bxl mt mbl sp pg_ok_res" style="height:27px">Wapis</button></a>
+        <br>
+    </div>
 </div>
 <br><br>
+
+
+
+
+
+
+
+
+
 {% endblock %}

@@ -28,7 +28,7 @@ star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list,\
-photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,\
+photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 first_time_unseen_refresh, missing_page, home_reply, home_location_pk,photo_page, photo_redirect,\
 upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
 public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
@@ -42,7 +42,7 @@ UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, 
 WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdTitleView,TestAdsView, AdAddressYesNoView,\
 SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSettingsEditView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
-RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, TopPhotoView, \
+RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, \
 PhotoShareView, PhotoDetailView, \
 AdGenderChoiceView, \
 VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, \
@@ -128,7 +128,6 @@ urlpatterns = patterns('',
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
 	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
 	url(r'^top/$', auth(TopView.as_view()), name='top'),
-	url(r'^best_photo_uploaders/$', auth(TopPhotoView.as_view()), name='top_photo'),
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
@@ -176,6 +175,7 @@ urlpatterns = patterns('',
 	###################################################################################
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/(?P<pk>\d+)/$', auth(photo_redirect), name='redirect_to_photo'),
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/$', auth(photo_redirect), name='redirect_to_photo'),
+	url(r'^photo/top-trenders/$', auth(photo_top_trenders), name='top_photo'),
 	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', auth(photo_page), name='photo'),
 	###################################################################################
 	# url(r'^freshphotos/$', photo_list, name='photo'),

@@ -7,20 +7,14 @@
     <span style="font-size:85%;">Nickname ke agey <b style="color:deeppink;">*</b> ho, toh iska matlab hai woh <a href="{% url 'verify_help' %}#section0"><u><b>verified female</b></u></a> hai</span><br><br>
     {% for user in object_list %}
     <a href="{% url 'profile' slug=user.username %}#section0">
-	{% if user.userprofile.avatar %}
-		<img src="{{ user.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
-	{% else %}
-		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-	{% endif %}
-    {{ user }}</a><b style="color:deeppink;font-size:125%;">*</b>
-	{% if user.userprofile.score %}
-		{% if user.userprofile.score < 0 %}
-	    	<span style="color:red;">({{ user.userprofile.score }})</span>
-	    {% else %}
-	    	<span style="color:#18A018;">({{ user.userprofile.score }})</span>
-		{% endif %}
-    {% else %}
-    {% endif %}
+    	{% if user.userprofile.avatar %}
+    		<img src="{{ user.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
+    	{% else %}
+    		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
+    	{% endif %}
+        
+        {{ user }}</a><b style="color:deeppink;font-size:125%;">*</b>
+
     <br>
     
     {% endfor %}

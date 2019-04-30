@@ -3,10 +3,11 @@ from random import random
 import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
-from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH
+from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
 from redis3 import retrieve_user_world_age, exact_date
+from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
 from models import Photo
 
@@ -23,6 +24,7 @@ TWELVE_HOURS = 12*60*60
 SIX_HOURS = 6*60*60
 THREE_HOURS = 3*60*60
 ONE_HOUR = 60*60
+THIRTY_MINS = 60*30
 TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 FOUR_MINS = 4*60
@@ -95,6 +97,10 @@ ALL_UVOTES_TO_TGT_USERS = "ut:"# voter and target user specific sorted set conta
 ALL_DVOTES_TO_TGT_USERS = "dt:"# voter and target user specific sorted set containing all downvotes given by the voter to a target (trimmed to last 1 month)
 
 VOTER_AFFINITY = 'vaf'# global sorted set containing up and downvotes dropped by users - useful for catching sybil/hater behavior
+
+TOP_RANKED_TRENDERS = 'trt' # Global sorted set containing data of top ranked users in one week whose images made it to trending list
+TOP_TRENDERS = 'tt'	# A cached json object of trenders
+
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
 ##################################################################################################################
@@ -702,6 +708,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	return hash_name
 
 
+
 def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
 	is_pinkstar=None,latest_comm_writer_uname=None,comment_count=None, time=None):
 	"""
@@ -998,6 +1005,51 @@ def trim_trending_list(feed_type='best_photos'):
 			pipeline1.execute()
 	else:
 		pass
+
+
+def retrieve_top_trenders():
+	"""
+	Populates top stars listing (i.e. list of top trenders of the photo section)
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	trenders_data = my_server.get(TOP_TRENDERS)
+	if trenders_data:
+		return json.loads(trenders_data)
+	else:
+		rank = 0
+		all_trenders = my_server.zrevrange(TOP_TRENDING_SUBMITTERS,0,-1,withscores=True)
+		all_trender_ids = [user_id for user_id, num_pics in all_trenders]
+
+		user_cred_dict = retrieve_bulk_credentials(all_trender_ids,decode_unames=False)
+		starting_score = all_trenders[0][1]
+		final_list=[]
+		rank_to_display = 0
+
+		for row in all_trenders:
+			if starting_score == row[1]:
+				trender_id = int(row[0])
+				if (rank_to_display != rank+1):
+					rank_to_display = rank+1
+					final_list.append((trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'],rank_to_display  ) )
+				else:
+					final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
+			else:
+				starting_score = row[1]
+				rank +=1
+				if rank == TRENDER_RANKS_TO_COUNT:
+					break
+				else:
+					trender_id = int(row[0])
+					if (rank_to_display != rank+1):
+						rank_to_display = rank+1
+						final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'], rank_to_display  ) )
+					else:
+						final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
+		if final_list:
+			my_server.setex(TOP_TRENDERS, json.dumps(final_list),THIRTY_MINS)
+		return 	final_list
+		
+
 
 
 def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_hand_picked=False):

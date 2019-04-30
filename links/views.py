@@ -17,7 +17,7 @@ from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, F
 PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, CRICKET_SUPPORT_STARTING_POINT, \
 CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -66,7 +66,7 @@ group_attendance_tasks
 from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, \
-HotUser, UserFan, Salat, LatestSalat, SalatInvite, TotalFanAndPhotos, Logout, Video, \
+HotUser, UserFan, Salat, LatestSalat, SalatInvite, Logout, Video, \
 VideoComment
 from redirection_views import return_to_content
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
@@ -87,7 +87,7 @@ from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retr
 retrieve_group_reqd_data# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
-rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed, \
+rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
@@ -2196,27 +2196,11 @@ class VerifiedView(ListView):
 		return User.objects.filter(username__in=FEMALES).order_by('-userprofile__score')
 
 
-class TopPhotoView(ListView):
-	model = User
-	# form_class = TotalFanAndPhotos
-	template_name = "top_photo.html"
-
-	def get_queryset(self):
-		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		#     'LOCATION': MEMLOC, 'TIMEOUT': 1260,
-		# })
-		# top_stars = cache_mem.get('fans')
-		top_stars_data = retrieve_top_stars()
-		if top_stars_data:
-			return json.loads(top_stars_data)
-		else:
-			return []
-
-	def get_context_data(self, **kwargs):
-		context = super(TopPhotoView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			context["verified"] = FEMALES
-		return context
+def photo_top_trenders(request):
+	"""
+	Renders the top trending users (in terms of photos uploaded)
+	"""
+	return render(request,"top_photo.html",{'object_list':retrieve_top_trenders(),'list_size':TRENDER_RANKS_TO_COUNT})
 
 
 class TopView(ListView):

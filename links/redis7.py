@@ -98,7 +98,6 @@ ALL_DVOTES_TO_TGT_USERS = "dt:"# voter and target user specific sorted set conta
 
 VOTER_AFFINITY = 'vaf'# global sorted set containing up and downvotes dropped by users - useful for catching sybil/hater behavior
 
-TOP_RANKED_TRENDERS = 'trt' # Global sorted set containing data of top ranked users in one week whose images made it to trending list
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
 
 ##################################################################################################################
@@ -1646,6 +1645,11 @@ def impose_content_and_voting_ban(target_user_ids, target_usernames, ban_duratio
 		# adding to defender's and super_admin's ledgers
 		json_payload = json.dumps(payload)
 		pushed = push_to_defender_ledger(defender_id=banner_id, json_payload=json_payload, also_super_admin=True, my_server=my_server)
+
+		# resetting TOP_TRENDING_SUBMITTERS and TOP_TRENDERS
+		my_server.delete(TOP_TRENDING_SUBMITTERS)
+		calculate_top_trenders()
+		my_server.delete(TOP_TRENDERS)
 
 		return ban_time
 

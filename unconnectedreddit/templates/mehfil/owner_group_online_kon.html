@@ -18,7 +18,7 @@ Tumhari mehfil mien ye log pichle <b>10 min</b> mein nazr aye:<br>
 	<br>
 {% for group_user,captain in groupies %}
 		<b class="clg cl">.</b>
-		<a href="{% url 'profile' slug=group_user.username %}">
+		<a href="{% url 'profile' group_user.username 'fotos' %}">
 		{% if group_user.userprofile.avatar %}
 			<img src="{{ group_user.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
 		{% else %}

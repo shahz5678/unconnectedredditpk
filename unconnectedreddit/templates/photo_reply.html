@@ -41,7 +41,7 @@
 	  {% endif %}
 	  {% for comment in comments %}
 	  
-	  <a href="{% url 'profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
+	  <a href="{% url 'profile' comment.submitted_by.username 'fotos' %}#section0" style="font-size:90%;">
     	{% if comment.submitted_by.userprofile.avatar %}
         	<img src="{{ comment.submitted_by.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
         {% else %}

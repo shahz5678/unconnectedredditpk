@@ -17,7 +17,7 @@ from redis3 import tutorial_unseen, exact_date
 from judgement_views import get_usernames
 from views import secs_to_mins, get_indices
 from redirection_views import return_to_content
-from redis7 import get_photo_owner, get_link_writer, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
+from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
 retrieve_voting_records#, get_vote_ban_details, check_vote_ban
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
@@ -161,7 +161,7 @@ def cast_vote(request,*args,**kwargs):
 					else:
 						return redirect('vote_result')
 				elif mob_verified:
-					target_user_id = get_photo_owner(obj_id) if is_pht == '1' else get_link_writer(obj_id)
+					target_user_id = str(get_obj_owner(obj_id=obj_id, obj_type='img' if is_pht == '1' else 'tx'))
 					if target_user_id:
 						# voting is not yet closed on the object (i.e. it's still in home, fresh or top photos queue(s) and has a redis object)
 						if str(own_id) == target_user_id:

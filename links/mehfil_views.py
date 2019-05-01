@@ -2757,7 +2757,7 @@ class ChangeGroupRulesView(FormView):
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		user_id = str(self.request.user.id)
 		if self.request.user_banned:
-			return redirect("profile", slug=user.username)
+			return redirect("profile", slug=user.username, type='fotos')
 		else:
 			rules, raw_rules = form.cleaned_data.get("rules")
 			unique = self.request.session.get("public_uuid",None)
@@ -5030,7 +5030,7 @@ class DirectMessageCreateView(FormView):
 						self.request.session["unique_id"] = unique
 						return redirect("private_group_reply")
 				else:
-					return redirect("profile",slug=invitee)
+					return redirect("profile", slug=invitee, type='fotos')
 			else:
 				# invitee doesn't exist
 				return redirect("home")

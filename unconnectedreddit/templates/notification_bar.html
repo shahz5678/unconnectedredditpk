@@ -22,7 +22,7 @@
 			{% endif %}	
 			
 			<div class="mls mbl" style="overflow:hidden">
-				<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold">
+				<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold">
 				<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ parent.lrsn }}</bdi></a>:<bdi class="clb lsp sp lsp">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cxs sp mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 				</span>
 			</div>
@@ -81,9 +81,9 @@
 			<div class="cs sp mbl mls mrs" style="color:#306654">New pegham:</div>
 			<div class="mbs mls mrs">
 				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
 				{% else %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
 				{% endif %}
 				<span class="sp cgy lsp mrs">msg mita dia gya</span>
 			</div>
@@ -98,18 +98,18 @@
 				<div class="cs sp mbl mls mrs" style="color:#306654">New permission:</div>
 				<div class="mbs mls mrs" style="overflow:hidden">
 				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold">{{ parent.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold">{{ parent.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
 				{% else %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
 				{% endif %}
 				</div>
 			{% elif parent.type == 'action' %}
 				<div class="cs sp mbl mls mrs" style="color:#306654">New emoji:</div>
 				<div class="mbs mls mrs" style="overflow:hidden">
 				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold">{{ parent.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold">{{ parent.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
 				{% else %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ parent.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ parent.lrtx }}</span>&nbsp;<img src="{{ static_url }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle"><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
 				{% endif %}
 				</div>
 			{% elif parent.type == 'img' or parent.type == 'img_res' or parent.type == 'shared_img' %}
@@ -126,9 +126,9 @@
 				</form>
 				<div class="mls mrs mbs" style="overflow:hidden">
 					{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
-						<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
+						<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
 					{% else %}
-						<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
+						<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
 					{% endif %}
 
 					{% if parent.h == 'no' %}
@@ -145,9 +145,9 @@
 				<div class="cs sp mbl mls mrs" style="color:#306654">New pegham:</div>
 				<div class="mbs mrs mls" style="overflow:hidden">
 				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
 				{% else %}
-					<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
+					<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" alt="{{ parent.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;<bdi>{{ parent.lrsn|truncatechars:15 }}</bdi></a>:
 				{% endif %}
 				<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ parent.lrtx }}{% endemoticons %}</bdi></span><span class="cxs cgy sp">{{ parent.lrti|human_time }}</span>
 				</div>
@@ -195,7 +195,7 @@
 			<div class="mls mrs mbl cg cs sp">New pegham:</div>
 		{% endif %}
 		<div class="mls mrs mbl" style="overflow:hidden">
-			<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;{{ parent.lrsn }}</a><span class="clb lsp">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
+			<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;{{ parent.lrsn }}</a><span class="clb lsp">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		</div>
 
 		{% if form.errors %}<span class="mls mrs cr">{{ form.errors|show_error }}</span>{% endif %}
@@ -231,7 +231,7 @@
 		{% endif %}
 		
 		<div class="mls mrs mbl" style="overflow:hidden">
-			<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold">
+			<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold">
 			<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 			{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;{{ parent.lrsn }}</a><span style="color:#404040;" class="lsp">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		</div>
@@ -255,7 +255,7 @@
 	
 	{% elif type_of_object == '4' %}
 		<div class="bizcard box dbg mbl" style="padding:5px">
-		<a href="{% url 'profile' parent.oon %}#section0" class="cb">
+		<a href="{% url 'profile' parent.oon 'fotos' %}#section0" class="cb">
 		<img src="{{ parent.ooa|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 		{% if parent.oon in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}
 		{{ parent.oon }}</a>
@@ -286,7 +286,7 @@
 		<div class="mls mbs co cs sp">New tabsra:</div>
 
 		<div class="mls mbl" style="overflow:hidden">
-			<a href="{% url 'profile' parent.lrsn %}" class="clb sp" style="font-weight:bold">
+			<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold">
 			<img src="{{ parent.lrau|s3:'thumb' }}" alt="pic" style="border-radius:50%" width="22" height="22">{% if latest_comment.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ latest_comment.lrsn }}</bdi></a>:&nbsp;<span class="cl lsp clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cxs sp mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
 		</div>
 		

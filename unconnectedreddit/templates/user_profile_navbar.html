@@ -8,21 +8,21 @@
 		</div>
 	{% elif section == 'profile' %}
 		<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'profile' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+		<a href="{% url 'profile' uname 'fotos' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/user-ct.svg" width="24" height="24" style="vertical-align:middle"></button>
 		<a href="{% url 'user_activity' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<a href="{% url 'edit_profile' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/edit-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		</div>
 	{% elif section == 'posts' %}
 		<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'profile' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+		<a href="{% url 'profile' uname 'fotos' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<a href="{% url 'user_profile' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/user-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/posts.svg" width="24" height="24" style="vertical-align:middle"></button>
 		<a href="{% url 'edit_profile' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/edit-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		</div>
 	{% elif section == 'edit' %}
 		<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'profile' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+		<a href="{% url 'profile' uname 'fotos' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<a href="{% url 'user_profile' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/user-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<a href="{% url 'user_activity' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-right-radius:6px;border-bottom-right-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/edit.svg" width="24" height="24" style="vertical-align:middle"></button>
@@ -37,13 +37,13 @@
 	</div>
 	{% elif section == 'profile' %}
 	<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'profile' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+		<a href="{% url 'profile' uname 'fotos' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<button class="bizcard" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/user-ct.svg" width="24" height="24" style="vertical-align:middle"></button>
 		<a href="{% url 'user_activity' uname %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-right-radius:5px;border-bottom-right-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 	</div>
 	{% elif section == 'posts' %}
 	<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'profile' uname %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
+		<a href="{% url 'profile' uname 'fotos' %}#section0"><button style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;border-top-left-radius:5px;border-bottom-left-radius:5px;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/fotos-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<a href="{% url 'user_profile' uname %}"><button type="submit" style="padding:0;text-align:center;border:1px solid #DCDCDC;border-radius:0;height:46px;width:65px;background-color:#F0F0F0"><img src="{{ static_url }}img/user-cgy.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 		<button class="bizcard" type="submit" style="padding:0;text-align:center;border:1px solid #F8F8F8;border-radius:0;border-top-right-radius:6px;border-bottom-right-radius:6px;height:48px;width:65px;background-color:white"><img src="{{ static_url }}img/posts.svg" width="24" height="24" style="vertical-align:middle"></button>
 	</div>

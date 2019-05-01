@@ -53,7 +53,7 @@
 	{% for data in payload %}
 	<div style="margin-bottom:22px">
 	<div class="bizcard" style="background-color:white;margin:0 auto;width:95%">
-		<a href="{% url 'profile' data.friend_username %}">
+		<a href="{% url 'profile' data.friend_username 'fotos' %}">
 		{% if data.is_friend_anon == '0' %}
 			{% if data.lt_msg_wid != own_id and data.lt_msg_time|add:"0" > data.own_last_seen|add:"0" %}
 			<img src="{{ data.friend_av_url|s3:'thumb' }}" alt="{{ data.friend_username|slice:":1" }}" width="22" height="22" class="av_btn cb" style="border:1px solid #00CC99;position:absolute;margin-left:-16px;margin-top:-16px">
@@ -72,7 +72,7 @@
 			<div class="fx fxjssb fxaibl">
 				{% if data.is_friend_anon == '0' %}
 				<div style="margin-left:12px">
-					<a href="{% url 'profile' data.friend_username %}">
+					<a href="{% url 'profile' data.friend_username 'fotos' %}">
 					{% if data.lt_msg_wid != own_id and data.lt_msg_time|add:"0" > data.own_last_seen|add:"0" %}
 					<span style="color:#009973;margin-right:3px">{{ data.friend_username|truncatechars:13 }}</span>
 					{% else %}

@@ -97,10 +97,10 @@
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">User(s) banned!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if iun %}
-		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}{% if ban_time == '-1' %}ko forever ban kar dia gya!{% else %}ko ban kar dia gya. Ye ban khatam ho ga {{ ban_time|future_time }}{% endif %}</div>
-		<hr size=1 COLOR="#e5e7e9"><div class="sp lsp mts cgy">Ye user(s) ban nahi kiye gaye kiyun ke pehlay se banned thay:&nbsp;{% for ignored_uname in iun %}<a href="{% url 'profile' ignored_uname %}" class="mrs clb" style="font-weight:bold">{{ ignored_uname }}</a>{% endfor %}</div>
+		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username 'fotos' %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}{% if ban_time == '-1' %}ko forever ban kar dia gya!{% else %}ko ban kar dia gya. Ye ban khatam ho ga {{ ban_time|future_time }}{% endif %}</div>
+		<hr size=1 COLOR="#e5e7e9"><div class="sp lsp mts cgy">Ye user(s) ban nahi kiye gaye kiyun ke pehlay se banned thay:&nbsp;{% for ignored_uname in iun %}<a href="{% url 'profile' ignored_uname 'fotos' %}" class="mrs clb" style="font-weight:bold">{{ ignored_uname }}</a>{% endfor %}</div>
 	{% else %}
-		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}ko ban kar dia gya!</div>
+		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username 'fotos' %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}ko ban kar dia gya!</div>
 		<hr size=1 COLOR="#e5e7e9">
 		{% if ban_time == '-1' %}<div class="sp lsp mts">Ye ban forever ke liye hai</div>{% else %}<div class="sp lsp mts">Ye ban khatam ho ga {{ ban_time|future_time }}</div>{% endif %}
 	{% endif %}
@@ -246,7 +246,7 @@
 
 {% elif reporting_own_profile %}
 
-	<div class="mtl mbl"><a href="{% url 'profile' uname %}#section0"><button class="btn bct bm pg_ok_res sp" style="height:26px">wapis</button></a></div>
+	<div class="mtl mbl"><a href="{% url 'profile' uname 'fotos' %}#section0"><button class="btn bct bm pg_ok_res sp" style="height:26px">wapis</button></a></div>
 
 {% else %}
 

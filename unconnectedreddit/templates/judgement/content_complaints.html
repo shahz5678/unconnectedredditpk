@@ -98,7 +98,7 @@
 		<div class="cl sp mt lsp">{% emoticons %}{{ complaint.nick }}{% endemoticons %}</div>
 		<div class="cl sp mts" style="font-weight:bold">Profile foto:</div>
 		<img src="{{ complaint.av_img }}" alt="pic" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
-		<a href="{% url 'profile' complaint.nick %}" target="_blank"><button class="mts cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see profile</button></a><br>
+		<a href="{% url 'profile' complaint.nick 'fotos' %}" target="_blank"><button class="mts cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see profile</button></a><br>
 		<div class="cxs mts sp cgy" style="text-align:right">profile created {{ complaint.ct|human_time }}</div>
 	</div>
 {% elif complaint.tp == 'tx' %}

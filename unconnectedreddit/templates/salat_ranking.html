@@ -11,7 +11,7 @@
 	<span class="numbers">
 		{{ forloop.counter }}.
 	</span>
-	<a href="{% url 'profile' slug=object.salatee.username %}#section0">
+	<a href="{% url 'profile' object.salatee.username 'fotos' %}#section0">
 		{% if object.salatee.userprofile.avatar %}
 			<img src="{{ object.salatee.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
 		{% else %}

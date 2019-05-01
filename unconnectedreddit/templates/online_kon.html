@@ -23,7 +23,7 @@
             <span class="cgy sp cs"><b>{{ page_obj.paginator.count }}</b> user(s) online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-                 <a href="{% url 'profile' slug=obj.username %}#section0">
+                 <a href="{% url 'profile' obj.username 'fotos' %}#section0">
                 {% if obj.userprofile__avatar %}
                     <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                 {% else %}
@@ -48,7 +48,7 @@
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> users online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-                        <a href="{% url 'profile' slug=obj.username %}#section0">
+                        <a href="{% url 'profile' obj.username 'fotos' %}#section0">
                         {% if obj.userprofile__avatar %}
                             <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                         {% else %}

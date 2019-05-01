@@ -92,7 +92,7 @@
         {% endif %}
         
     {% if comment.abuse %}
-        <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' slug=comment.submitted_by__username %}" class="clb"><bdi>{{ comment.submitted_by__username }}</bdi></a></b>&nbsp;ke tabsrey ko hide kar dia gya</span>
+        <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' comment.submitted_by__username 'fotos' %}" class="clb"><bdi>{{ comment.submitted_by__username }}</bdi></a></b>&nbsp;ke tabsrey ko hide kar dia gya</span>
     {% else %}
 
     {% if user_id == comment.submitted_by %}
@@ -109,7 +109,7 @@
             {% endif %}
         {% endif %}
         
-    <a href="{% url 'profile' comment.submitted_by__username %}#section0" class="cm clb">
+    <a href="{% url 'profile' comment.submitted_by__username 'fotos' %}#section0" class="cm clb">
     {% if comment.submitted_by__username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="11" width="11">&nbsp;{% endif %}<b>{{ comment.submitted_by__username }}</b></a>
     :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>{% if authenticated and user == photo.owner %}<form action="{% url 'hide_comment' comment_id=comment.id photo_id=photo.pk origin=origin %}" method="POST" style="display:inline" class="mrl">{% csrf_token %}{% if origin == '3' %}<input type="hidden" name="slug" value="{{ photo.owner_id }}">{% elif origin == '4' %}<input type="hidden" name="slug" value="{{ slug_id }}">{% elif origin == '6' %}{% if link_ident %}<input type="hidden" name="slug" value="{{ link_ident }}">{% endif %}{% endif %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>{% endif %}<span class="mrs">{% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}</span>{% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
         </div>
@@ -123,7 +123,7 @@
 <hr size=1 COLOR="#ffd7b3">
 
 {% if thumbs != None %}
-<span class="cgy sp">More fotos by <a href="{% url 'profile' photo.owner %}">{{ target_username }}</a>:</span>
+<span class="cgy sp">More fotos by <a href="{% url 'profile' photo.owner 'fotos' %}">{{ target_username }}</a>:</span>
 <form method="POST" action="{% url 'go_to_user_photo' photo.owner 0 %}" class="mts">{% csrf_token %}
 {{ thumbs|safe }}
 </form>

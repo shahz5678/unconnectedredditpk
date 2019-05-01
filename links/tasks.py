@@ -834,6 +834,9 @@ def rank_all_photos():
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
+	"""
+	Sanitize unused notification subscriptions
+	"""
 	sanitize_unused_subscriptions()
 
 

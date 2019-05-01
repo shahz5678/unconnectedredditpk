@@ -37,7 +37,7 @@ def go_to_username(request,nick,*args,**kwargs):
 		select_nick(nick,request.user.id)
 		if dec == '1':
 			# send to profile photos
-			return redirect("profile", nick)
+			return redirect("profile", nick, 'fotos')
 		elif dec == '2':
 			# send to home history
 			return redirect("user_activity", nick)
@@ -46,7 +46,7 @@ def go_to_username(request,nick,*args,**kwargs):
 			return redirect("user_profile", nick)
 		else:
 			#send to profile photos
-			return redirect("profile", nick)
+			return redirect("profile", nick, 'fotos')
 	else:
 		return redirect("missing_page")
 
@@ -59,7 +59,7 @@ def go_to_user_photo(request,nick,add_score=None,*args,**kwargs):
 		if add_score == '1':
 			select_nick(nick,request.user.id)
 		request.session["photograph_id"] = request.POST.get("pid",'')
-		return redirect("profile", nick)
+		return redirect("profile", nick, 'fotos')
 	else:
 		return redirect("missing_page")		
 

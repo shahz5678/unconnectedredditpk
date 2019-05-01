@@ -16,7 +16,7 @@
 		<form class="mbs mt" method="POST" style="border-bottom:1px dashed lightgray;padding:10px 0" action="{% url 'public_mehfil_oversight_dashboard' %}">{% csrf_token %}<input type="hidden" name="guid" value="{{ guid }}"><button class="cm sp cb pg_ok_res" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to settings</button></form>
 
 		<div class="mt cxl lsp" style="padding:10px">
-			<img src="{{ application.own_avurl|s3:'thumb' }}" style="border-radius:50%">{% if application.uname in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="14" height="14" alt="*" style="color:deeppink">{% endif %}&nbsp;<a href="{% url 'profile' application.uname %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue"><b>{{ application.uname }}</b></a> ne officer banney ke liye neechay di geyi application submit ki <b>{{ application.t|human_time }}</b>:
+			<img src="{{ application.own_avurl|s3:'thumb' }}" style="border-radius:50%">{% if application.uname in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="14" height="14" alt="*" style="color:deeppink">{% endif %}&nbsp;<a href="{% url 'profile' application.uname 'fotos' %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue"><b>{{ application.uname }}</b></a> ne officer banney ke liye neechay di geyi application submit ki <b>{{ application.t|human_time }}</b>:
 		</div>
 
 		<div class="mt mbl bizcard mrs mls" style="background-color:ivory;padding:10px;text-align:left">

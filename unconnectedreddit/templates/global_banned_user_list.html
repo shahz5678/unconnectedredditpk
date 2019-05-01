@@ -8,7 +8,7 @@
 {% for username, score in result reversed %}
 
 <div class="mt">
-<span class="cs cgy">{{ forloop.counter }}.&nbsp;</span><a href="{% url 'profile' username %}">{{ username }}</a>&nbsp;(score: {{ score|floatformat:"0" }})<br>
+<span class="cs cgy">{{ forloop.counter }}.&nbsp;</span><a href="{% url 'profile' username 'fotos' %}">{{ username }}</a>&nbsp;(score: {{ score|floatformat:"0" }})<br>
 </div>
 
 

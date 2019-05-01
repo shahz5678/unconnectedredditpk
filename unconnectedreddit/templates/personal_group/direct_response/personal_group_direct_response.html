@@ -21,7 +21,7 @@
     <div class="bizcard mbl ca" style="padding:3px">
         
         <div class="mbs tl_cnr">
-          <a href="{% url 'profile' tun %}">
+          <a href="{% url 'profile' tun 'fotos' %}">
           {% if their_nick %}
             <img src="{{ tau|s3:'thumb' }}" alt="{{ tun|slice:":1" }}" width="22" height="22" class="av_btn ab" style="">
             <span style="color:#306654;">{{ tun }}</span>

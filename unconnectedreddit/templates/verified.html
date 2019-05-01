@@ -6,7 +6,7 @@
     <b>Verified females:</b><br>
     <span style="font-size:85%;">Nickname ke agey <b style="color:deeppink;">*</b> ho, toh iska matlab hai woh <a href="{% url 'verify_help' %}#section0"><u><b>verified female</b></u></a> hai</span><br><br>
     {% for user in object_list %}
-    <a href="{% url 'profile' slug=user.username %}#section0">
+    <a href="{% url 'profile' user.username 'fotos' %}#section0">
     	{% if user.userprofile.avatar %}
     		<img src="{{ user.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
     	{% else %}

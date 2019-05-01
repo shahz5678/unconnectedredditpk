@@ -70,7 +70,7 @@
 				{ enif } -->
 
 		<span style="color:grey;font-size:85%;">
-		<a href="{% url 'profile' pic.owner.username %}#section0">{{ pic.owner }}</a>
+		<a href="{% url 'profile' pic.owner.username 'fotos' %}#section0">{{ pic.owner }}</a>
 			{% for person in girls %}
 		    {% if person == pic.owner.username %}
 		    	<span style="font-size:100%;color:deeppink;"><b>*</b></span>

@@ -96,7 +96,7 @@
 		    {% endif %}    
 	    	<br>
 		{% endif %}
-		<a href="{% url 'profile' link.n %}#secton0">
+		<a href="{% url 'profile' link.n 'fotos' %}#secton0">
 		{{ link.au|safe }}
 		<span style="font-size:110%;">
 		{{ link.n }}</span>
@@ -146,7 +146,7 @@
 
 		{{ link.ch|safe }}
 
-		<a href="{% url 'profile' slug=link.n %}#section0">
+		<a href="{% url 'profile' link.n 'fotos' %}#section0">
 		{{ link.au|safe }}
 
 			<span class="bigger" ><bdi>{{ link.n }}</bdi></span>

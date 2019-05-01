@@ -60,7 +60,7 @@ from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_tasks, log_private_mehfil_session, group_notification_tasks, publicreply_notification_tasks, \
 fan_recount, vote_tasks, populate_search_thumbs, sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, \
-group_attendance_tasks
+group_attendance_tasks, log_404
 #, log_organic_attention, home_photo_tasks, queue_for_deletion, 
 #from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_video_abuse # check_photo_abuse
@@ -88,7 +88,8 @@ retrieve_group_reqd_data# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
-invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index
+invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
+retrieve_trending_photo_ids, retrieve_num_trending_photos
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -1298,7 +1299,7 @@ def home_page(request, lang=None):
 	num = random.randint(1,4)
 	secret_key = str(uuid.uuid4())
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
-	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),\
+	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'ident':own_id,\
 	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'score':request.user.userprofile.score,\
 	'random':num,'sk':secret_key,'process_notification':False, 'newbie_flag':request.session.get("newbie_flag",None),\
@@ -1459,16 +1460,16 @@ def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, 
 			updated_at=time.time(), bump_ua=False, unseen_activity=True, single_notif=False)
 	if photo_pk:
 		request.session["photograph_id"] = photo_pk
-		return redirect("profile", slug)
+		return redirect("profile", slug, 'fotos')
 	else:
 		try:
-			return redirect("profile", slug)
+			return redirect("profile", slug, 'fotos')
 		except:
-			return redirect("profile", request.user.username)
+			return redirect("profile", request.user.username, 'fotos')
 
 def profile_pk(request, slug=None, key=None, *args, **kwargs):
 	request.session["photograph_id"] = key
-	return redirect("profile", slug)
+	return redirect("profile", slug, 'fotos')
 
 class UserProfilePhotosView(ListView):
 	"""
@@ -1480,27 +1481,44 @@ class UserProfilePhotosView(ListView):
 
 	def get_queryset(self):
 		username = self.kwargs.get('slug',None)
-		if username:
+		list_type = self.kwargs.get('type',None)
+		if username and list_type in ('fotos','trending-fotos'):
 			target_id = retrieve_user_id(username)
 			if target_id:
-				return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count','device').filter(owner_id=target_id,\
-					category='1').order_by('-upload_time')
+				if list_type == 'fotos':
+					# retrieve latest images uploaded by the user
+					return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count','device').filter(owner_id=target_id,\
+						category='1').order_by('-upload_time')
+				else:
+					# retrieve past week's trending images
+					photo_ids = retrieve_trending_photo_ids(target_id)
+					if photo_ids:
+						return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count').filter(id__in=photo_ids).\
+						order_by('-upload_time')
+					else:
+						return []
 			else:
+				log_404.delay(type_of_404='1b',time_of_404=time.time())
 				raise Http404("This user does not exist")
 		else:
-			raise Http404("No username provided")
-
+			log_404.delay(type_of_404='1a',time_of_404=time.time())
+			raise Http404("No username provided or malformed type")
 
 
 	def get_context_data(self, **kwargs):
 		context = super(UserProfilePhotosView, self).get_context_data(**kwargs)
-		slug = self.kwargs["slug"]
-		context["slug"] = slug
+		username = self.kwargs["slug"]
 		try:
-			subject = User.objects.get(username=slug)
+			subject = User.objects.get(username=username)
 		except User.DoesNotExist:
+			log_404.delay(type_of_404='1c',time_of_404=time.time())
 			raise Http404("User ID does not compute")
+		list_type = self.kwargs["type"]
+		if list_type == 'trending-fotos':
+			context["is_trending"] = True
+		context["slug"] = username
 		star_id = subject.id
+		context["num_trending"] = retrieve_num_trending_photos(star_id)
 		if self.request.user:
 			user_id = self.request.user.id
 			is_defender = in_defenders(user_id)
@@ -1531,10 +1549,9 @@ class UserProfilePhotosView(ListView):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(star_id,ids_with_urls)
 		if user_id:#i.e. if authenticated
-			context["origin"] = '4'#helps redirect back to this page if a user enter the "report" funnel
+			context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
 			context["authenticated"] = True
 			context["user_id"] = user_id
-			username = retrieve_uname(user_id,decode=True)
 			if is_defender:
 				context["manageable"] = True
 			if is_fan(star_id, user_id):
@@ -2393,7 +2410,7 @@ def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
 			request.session["related_photostream_id"] = ident
 			return redirect("reply_options")
 		else:
-			return redirect("profile", request.user.username )
+			return redirect("profile", request.user.username, 'fotos')
 
 
 @ratelimit(rate='3/s')
@@ -2459,7 +2476,7 @@ class VideoCommentView(CreateView):
 			except:
 				user.userprofile.score = user.userprofile.score - 3
 				user.userprofile.save()
-				return redirect("profile", slug=user.username)
+				return redirect("profile", slug=user.username, type='fotos')
 			if self.request.user_banned:
 				return redirect("see_video")
 			else:
@@ -2482,7 +2499,7 @@ class VideoCommentView(CreateView):
 				try:
 					return redirect("videocomment_pk", pk=pk)
 				except:
-					return redirect("profile", slug=user.username)
+					return redirect("profile", slug=user.username, type='fotos')
 		else:
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
@@ -3270,7 +3287,7 @@ def photo_page(request,list_type='best-list'):
 		secret_key = str(uuid.uuid4())
 		
 		set_text_input_key(user_id=own_id, obj_id='1', obj_type=type_, secret_key=secret_key)
-		context = {'object_list':list_of_dictionaries,'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),\
+		context = {'object_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
 		'is_auth':True,'girls':FEMALES,'ident':own_id,'score':request.user.userprofile.score,'sk':secret_key,'process_notification':False,\
 		'newbie_lang':request.session.get("newbie_lang",None),'is_mob':True if request.is_phone or request.is_mobile else False,\
 		'newbie_flag':request.session.get("newbie_flag",None),'comment_form':request.session.pop("comment_form",PhotoCommentForm()),\
@@ -4754,7 +4771,7 @@ class UserSettingsEditView(UpdateView):
 		return UserSettings.objects.get_or_create(user=self.request.user)[0]
 
 	def get_success_url(self): #which URL to go back once settings are saved?
-		return reverse_lazy("profile", kwargs={'slug': self.request.user})
+		return reverse_lazy("profile", kwargs={'slug': self.request.user,'type':'fotos'})
 
 # @ratelimit(rate='7/s')
 def sharing_help(request):
@@ -4905,7 +4922,7 @@ def welcome_reply(request,*args,**kwargs):
 			try:
 				target = User.objects.get(pk=pk)
 			except User.DoesNotExist:
-				return redirect("profile", slug=username)
+				return redirect("profile", slug=username,type='fotos')
 			current = User.objects.latest('id')
 			num = current.id
 			if (num-100) <= int(pk) <= (num+100):
@@ -5316,7 +5333,7 @@ def hell_ban(request,*args,**kwargs):
 					HellBanList.objects.create(condemned_id=target)
 				else:
 					HellBanList.objects.create(condemned_id=target)
-				return redirect("profile",username)
+				return redirect("profile",username,'fotos')
 			else:
 				try:
 					counter = int(counter)
@@ -5333,9 +5350,9 @@ def hell_ban(request,*args,**kwargs):
 						for target_id in target_ids:
 							hellbanned.append(HellBanList(condemned_id=target_id))
 						HellBanList.objects.bulk_create(hellbanned)
-						return redirect("profile",username)
+						return redirect("profile",username,'fotos')
 					else:
-						return redirect("profile",username)
+						return redirect("profile",username,'fotos')
 				except:
 					return redirect("home")
 		else:
@@ -5415,7 +5432,7 @@ def kick_ban_user(request,*args,**kwargs):
 				target = request.POST.get("target1","")
 				Session.objects.filter(user_id=target).delete()
 				# BAN IP or USER_ID or BOTH?
-				return redirect("profile",username)
+				return redirect("profile",username,'fotos')
 			else:
 				try:
 					counter = int(counter)
@@ -5427,7 +5444,7 @@ def kick_ban_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",username)
+					return redirect("profile",usernamem,'fotos')
 				except:
 					return redirect("home")
 		else:
@@ -5466,7 +5483,7 @@ def kick_user(request,*args,**kwargs):
 			if counter == '1':
 				target = request.POST.get("target1","")
 				Session.objects.filter(user_id=target).delete()
-				return redirect("profile",username)
+				return redirect("profile",username,'fotos')
 			else:
 				try:
 					counter = int(counter)
@@ -5478,7 +5495,7 @@ def kick_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",username)
+					return redirect("profile",username,'fotos')
 				except:
 					return redirect("home")
 		else:
@@ -5515,7 +5532,7 @@ def cut_user_score(request,*args,**kwargs):
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
 			UserProfile.objects.filter(user_id=target_id).update(score=F('score')-int(penalty))
-			return redirect("profile",target_username)
+			return redirect("profile",target_username,'fotos')
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")

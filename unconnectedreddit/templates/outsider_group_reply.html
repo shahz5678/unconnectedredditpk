@@ -128,7 +128,7 @@
                     {{ forloop.counter }}.
                     </span>
                     <span style="color:purple;font-size:90%;">
-                    <a href="{% url 'profile' slug=reply.writer.username %}">
+                    <a href="{% url 'profile' reply.writer.username 'fotos' %}">
                         {% if reply.writer.userprofile.avatar %}
                         <img src="{{ reply.writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
                         {% else %}
@@ -147,7 +147,7 @@
                     <span class="numbers" style="font-size:50%;">
                     {{ forloop.counter }}.
                     </span>
-                    <span style="color:purple;font-size:90%;"><a href="{% url 'profile' slug=reply.writer.username %}#section0">{{ reply.writer }}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{{ reply.text }}</b>&nbsp;rakh&nbsp;diya</span>
+                    <span style="color:purple;font-size:90%;"><a href="{% url 'profile' reply.writer.username 'fotos' %}#section0">{{ reply.writer }}</a>&nbsp;ne&nbsp;topic&nbsp;tabdeel&nbsp;kar&nbsp;ke&nbsp;<b>{{ reply.text }}</b>&nbsp;rakh&nbsp;diya</span>
                 {% else %}
                     {% if reply.image %}
                     <img src="{{ reply.image.url }}"></img><br>
@@ -161,14 +161,14 @@
                     {% if reply.writer.username == 'unregistered_bhoot' %}
                         <span style="font-size:90%;color:purple;">mehmaan</span>
                     {% else %}
-                        <a href="{% url 'profile' slug=reply.writer.username %}#section0">
+                        <a href="{% url 'profile' reply.writer.username 'fotos' %}#section0">
                         {% if reply.writer.userprofile.avatar %}
                             <img src="{{ reply.writer.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
                         {% else %}
                             <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
                         {% endif %}
                         </a>
-            	   <a href="{% url 'profile' slug=reply.writer.username %}" style="font-size:90%;">{{ reply.writer }}</a>{% endif %}
+            	   <a href="{% url 'profile' reply.writer.username 'fotos' %}" style="font-size:90%;">{{ reply.writer }}</a>{% endif %}
                 :&nbsp;{% emoticons %}{{ reply.text }}{% endemoticons %}
 
                 {% endif %}

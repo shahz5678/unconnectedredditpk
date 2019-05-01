@@ -19,7 +19,7 @@ Video, HotUser, PhotoStream, HellBanList, UserFan
 #from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
 queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, \
+process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, \
 set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date#, set_section_wise_retention
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
@@ -400,6 +400,15 @@ def set_user_age(user_id):
 	"""
 	set_world_age(user_id)
 
+
+@celery_app1.task(name='tasks.log_404')
+def log_404(type_of_404, time_of_404):
+	"""
+	Logs 404 errors seen throughout the website
+
+	Currently only logging 404 errors emanating from UserProfilePhotosView()
+	"""
+	log_404_errors(type_of_404, time_of_404)
 
 ########################### priv chat split test ########
 

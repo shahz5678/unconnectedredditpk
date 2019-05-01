@@ -11,7 +11,7 @@
 {% if is_public %}
 
 	{% if info == '1' or info == '2' %}
-		<div class="cxl lsp mbl">Ye mehfil {{ created_at }} pe create hui aur iskey owner ka nickname <a href="{% url 'profile' oun %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ oun }}</a> hai</div>
+		<div class="cxl lsp mbl">Ye mehfil {{ created_at }} pe create hui aur iskey owner ka nickname <a href="{% url 'profile' oun 'fotos' %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ oun }}</a> hai</div>
 	{% elif info == '3' %}
 		<div class="cxl lspm mbl">Ap ne ye mehfil join ki on {{ joined_at }}</div>
 	{% elif info == '6' %}
@@ -74,7 +74,7 @@
 		</div>
 	{% elif info == '10' or info == '11' %}
 		
-		<div class="cxl lsp"><b>{{ bought_at }}</b> pe ye mehfil puraney owner se <a href="{% url 'profile' owner_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> ne hasil ki</div>
+		<div class="cxl lsp"><b>{{ bought_at }}</b> pe ye mehfil puraney owner se <a href="{% url 'profile' owner_uname 'fotos' %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> ne hasil ki</div>
 		
 	{% endif %}
 
@@ -85,7 +85,7 @@
 	{% load emoticons_tags %}
 
 	{% if info == '1' or info == '2' %}
-		<div class="cxl lsp mbl">Ye mehfil {{ created_at }} pe create hui aur iskey owner ka nickname <a href="{% url 'profile' oun %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ oun }}</a> hai</div>
+		<div class="cxl lsp mbl">Ye mehfil {{ created_at }} pe create hui aur iskey owner ka nickname <a href="{% url 'profile' oun 'fotos' %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ oun }}</a> hai</div>
 	{% elif info == '3' %}
 		<div class="cxl lsp mbl">Ap ne ye mehfil join ki on {{ joined_at }}</div>
 	{% elif info == '6' %}
@@ -94,7 +94,7 @@
 			{% for topic, topic_time, topic_writer_uname, topic_writer_avurl in topic_data %}
 				<hr size=1 COLOR="#E9EBEE">
 				<div class="cl sp lsp" style="text-align:left"><span class="mrs cxs sp" style="font-weight:bold">{{ forloop.counter }}.</span>{% emoticons %}{{ topic }}{% endemoticons %}</div>
-				<div class="cs sp" style="text-align:right"><span class="cgy">- set {{ topic_time|human_time }} by <img src="{{ topic_writer_avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%">&nbsp;<a href="{% url 'profile' topic_writer_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ topic_writer_uname }}</a></span></div>
+				<div class="cs sp" style="text-align:right"><span class="cgy">- set {{ topic_time|human_time }} by <img src="{{ topic_writer_avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%">&nbsp;<a href="{% url 'profile' topic_writer_uname 'fotos' %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ topic_writer_uname }}</a></span></div>
 			{% endfor %}
 			<hr size=1 COLOR="#E9EBEE">
 			<form method="POST" action="{% url 'display_group_info_page' %}" class="mts" style="text-align:center">{% csrf_token %}<button type="submit" class="cb cs sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to info</button><input type="hidden" name="guid" value="{{ guid }}"></form>
@@ -107,7 +107,7 @@
 			<ul style="display:inline-block;padding: 0;list-style:none">
 				{% for data in chatter_data %}
 					<li style="text-align:left" class="mbs sp">
-					<div class="sp"><span class="cs mrs" style="font-weight:bold">{{ forloop.counter }}.</span><img src="{{ data.1|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%">&nbsp;<a href="{% url 'profile' data.0 %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ data.0 }}</a></div>
+					<div class="sp"><span class="cs mrs" style="font-weight:bold">{{ forloop.counter }}.</span><img src="{{ data.1|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%">&nbsp;<a href="{% url 'profile' data.0 'fotos' %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ data.0 }}</a></div>
 					</li>
 				{% endfor %}
 			</ul>
@@ -118,7 +118,7 @@
 		{% endif %}
 	{% elif info == '9' %}
 		{% if pic_sharer_uname %}
-			<div class="cxl lsp mbl">Is mehfil mein sab se ziyada fotos <a href="{% url 'profile' pic_sharer_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ pic_sharer_uname }}</a> ne share keen</div>
+			<div class="cxl lsp mbl">Is mehfil mein sab se ziyada fotos <a href="{% url 'profile' pic_sharer_uname 'fotos' %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ pic_sharer_uname }}</a> ne share keen</div>
 			<hr size=1 COLOR="#E9EBEE">
 			<div class="cs sp" style="text-align:left"><span class="cgy"><b>Note:</b>&nbsp;Ye nickname kuch time baad update hota hai</span></div>
 		{% else %}

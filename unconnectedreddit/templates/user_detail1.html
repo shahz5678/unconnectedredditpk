@@ -20,10 +20,14 @@
 
   <div class="mbl" style="text-align:center">  
   {% if own_profile %}
-    <h1 class="cxl lsp" style="display:inline">Your shared fotos:</h1>
+    {% if is_trending %}
+      <h1 class="cxl lsp" style="display:inline">Your trending fotos:<br><span class="cs cgy sp lsp" style="font-weight:lighter">- last 7 days -</span></h1>
+    {% else %}
+      <h1 class="cxl lsp" style="display:inline">Your shared fotos:</h1>
+    {% endif %}
   {% else %}
     {% load get_group_button %}
-    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if slug in legit %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{{ slug|truncatechars:"10" }}'s shared fotos:</h1>
+    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if slug in legit %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{% if is_trending %}{{ slug|truncatechars:"12" }}'s trending fotos:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}{{ slug|truncatechars:"12" }}'s shared fotos:{% endif %}</h1>
   {% endif %}
   </div>
 
@@ -87,19 +91,10 @@
 
 {% endif %}
 <a name="sectionJ"></a>
-  <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
-    {% if page_obj.has_previous %}
-      <div style="padding:0 10px">
-      <a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-      </div>
-      {% endif %}
-      {% if page_obj.has_next %}
-      <div style="padding:0 10px">
-      <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-      </div>
-      {% endif %}
-  </div>
 
+{% if is_trending %}{% include 'user_profile_mini_navbar.html' with static_url=STATIC_URL section='trending' slug=slug num_trending=num_trending %}{% else %}{% include 'user_profile_mini_navbar.html' with static_url=STATIC_URL section='latest' slug=slug num_trending=num_trending %}{% endif %}
+
+  
 <div class="mtl">
 {% for photo in object_list %}
   <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
@@ -123,19 +118,34 @@
 {% empty %}
   <div class="bizcard mbl" style="background-color:white;padding:10px;text-align:center">
   {% if own_profile %}
+    {% if is_trending %}
+    <div class="cxl lsp">Pichley 7 days mein apki koi foto trending mein shamil nahi hui</div>
+    <hr size=1 COLOR="#f4f4f4">
+    <div class="cgy mbl sp">Trending me fotos shamil honay ka criteria <a href="{% url 'top_photo_help' %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue">ye hai</a></div>
+    {% else %}
     <div class="cxl lsp">Ap ne Damadam pe koi foto share nahi ki</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Share karney ke liye neechay 'share' dabain:</div>
       <a href="{% url 'upload_public_photo' %}#section0"><button class="btn bco sp pg_ok_res bl" style="height:26px">Share</button></a>
     </div>
+    {% endif %}
   {% else %}
+    {% if is_trending %}
+    <div class="cxl lsp">Pichley 7 days mein <b>{{ slug }}</b> ki koi foto trending mein shamil nahi hui</div>
+    <hr size=1 COLOR="#f4f4f4">
+    <div class="mbs">
+      <div class="cgy mbl sp">Trending fotos view karein:</div>
+      <a href="{% url 'photo' 'best-list' %}#section0"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+    </div>
+    {% else %}
     <div class="cxl lsp"><b>{{ slug }}</b> ne Damadam pe koi foto nahi share ki</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
-    <div class="cgy mbl sp">Dusrey users ki fotos view karein:</div>
-    <a href="{% url 'photo' 'best-list' %}#section0"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+      <div class="cgy mbl sp">Dusrey users ki trending fotos view karein:</div>
+      <a href="{% url 'photo' 'best-list' %}#section0"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
     </div>
+    {% endif %}
   {% endif %}
   </div><br>
 {% endfor %}

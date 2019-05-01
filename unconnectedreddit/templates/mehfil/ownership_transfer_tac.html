@@ -27,7 +27,7 @@
 			{% for request in ownership_requests %}
 			<div class="mbl bizcard" style="background-color:#f8f2fa;padding:10px;border-radius:10px">
 				
-				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne mehfil ka owner banney ke liye request send ki</div>
+				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'profile' request.suname 'fotos' %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne mehfil ka owner banney ke liye request send ki</div>
 				
 				<div class="sp cs" style="text-align:right"><span class="cgy">{{ request.t|human_time }}</span></div>
 				<form class="mt" method="POST" action="{% url 'group_ownership_transfer_tac' 'public' %}">
@@ -65,7 +65,7 @@
 			<div class="cxl lsp mbs" style="font-weight:bold">{{ num_requests }} ownership request(s):</div>
 			{% for request in ownership_requests %}
 			<div class="mbl bizcard" style="background-color:#e9fced;padding:10px;border-radius:10px">
-				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne owner banney ke liye request send ki</div>
+				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'profile' request.suname 'fotos' %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne owner banney ke liye request send ki</div>
 				<div class="sp cs" style="text-align:right"><span class="cgy">{{ request.t|human_time }}</span></div>
 				<form class="mt" method="POST" action="{% url 'group_ownership_transfer_tac' 'private' %}">
 					{% csrf_token %}

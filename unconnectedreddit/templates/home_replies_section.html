@@ -6,7 +6,7 @@
 	{% for reply in replies reversed %}
 		<hr size=1 COLOR="#f4f4f4">
 		<div itemscope itemtype="http://schema.org/CreativeWork">
-			<a href="{% url 'profile' reply.replier_username %}" class="clb">
+			<a href="{% url 'profile' reply.replier_username 'fotos' %}" class="clb">
 			{% if reply.is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" width="11" height="11">&nbsp;{% endif %}<b itemprop="author">{{ reply.replier_username|truncatechars:'13' }}</b></a>:&nbsp;<span class="lsp mrs sp" itemprop="comment"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span itemprop="datePublished" class="cgy cxs sp">{{ reply.epoch_time|human_time }}</span> &nbsp;{% block_button reply.replier_id reply.replier_username self_user_id reply.link_id '3' static_url 'tx' %}&nbsp;{% if score > 10 and reply.replier_id|slugify != self_user_id|slugify %}{% group_button own_id=self_user_id target_id=reply.replier_id parent_object_id=reply.link_id object_type='link' origin='3' target_username=reply.replier_username home_hash=home_hash %}{% endif %}
 		</div>
 	{% endfor %}

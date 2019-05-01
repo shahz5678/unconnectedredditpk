@@ -74,7 +74,7 @@ Latest commentary:
  			
 			{{ comment.ch|safe }}
 			<div style="overflow:hidden">
-			<a href="{% url 'profile' slug=comment.n %}#section0">
+			<a href="{% url 'profile' comment.n 'fotos' %}#section0">
 				{{ comment.au|safe }}
 				<bdi>{{ comment.n }}</bdi>
 			

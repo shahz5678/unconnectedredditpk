@@ -13,7 +13,7 @@
 
 	<tr><td>
 	<a name="section{{ forloop.counter }}"></a>
-	<a href="{% url 'profile' vid.owner %}#section0">
+	<a href="{% url 'profile' vid.owner 'fotos' %}#section0">
 		{% if vid.owner.userprofile.avatar %}
 			<img src="{{ vid.owner.userprofile.avatar|s3:'thumb' }}" width="22" height="22" alt="no pic"></img>
 		{% else %}

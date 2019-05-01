@@ -10,7 +10,7 @@
 
 {% for user, number in bogus_pairs %}
 	<div class="mt">
-	<a href="{% url 'profile' user %}" class="cl mrl">{{ user }}</a><span class="cgy">{{ number }} </span>
+	<a href="{% url 'profile' user 'fotos' %}" class="cl mrl">{{ user }}</a><span class="cgy">{{ number }} </span>
 	</div>
 {% empty %}
 	<span class="cgy">There are no bogus pairs</span>

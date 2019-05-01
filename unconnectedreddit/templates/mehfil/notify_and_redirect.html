@@ -114,11 +114,11 @@
 	{% if owner_spot_saved %}
 		<div class="cxl lsp">Sorry! Is mehfil mein new members ki jagah nahi</div>
 		<hr size=1 COLOR="#e5e7e9">
-		<div class="sp lsp mtl">Sirf 1 jagah bachi hai, lekin woh mehfil owner <a href="{% url 'profile' owner_uname %}" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> ke apney liye hai</div>
+		<div class="sp lsp mtl">Sirf 1 jagah bachi hai, lekin woh mehfil owner <a href="{% url 'profile' owner_uname 'fotos' %}" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> ke apney liye hai</div>
 	{% else %}
 		<div class="cxl lsp">Sorry! Is mehfil mein new members ki jagah nahi</div>
 		<hr size=1 COLOR="#e5e7e9">
-		<div class="sp lsp mtl">Agar mehfil owner <a href="{% url 'profile' owner_uname %}" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> kisi inactive member ko mehfil se kick kar de to apke liye jagah ban jaye gi</div>
+		<div class="sp lsp mtl">Agar mehfil owner <a href="{% url 'profile' owner_uname 'fotos' %}" class="cb" style="border-bottom:1px dotted blue">{{ owner_uname }}</a> kisi inactive member ko mehfil se kick kar de to apke liye jagah ban jaye gi</div>
 	{% endif %}
 	<a href="{% url 'group_page' %}#section0"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
 	</div>

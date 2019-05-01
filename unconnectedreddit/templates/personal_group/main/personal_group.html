@@ -170,7 +170,7 @@ img.yt_img:hover{
             <div class="bizcard csb" style="padding:3px;margin-top:1.3em;text-align:right;">
                   
                   <div class="mbs tr_cnr">
-                      <a href="{% url 'profile' blob.username %}" style="text-decoration: none;">
+                      <a href="{% url 'profile' blob.username 'fotos' %}" style="text-decoration: none;">
                       {% if own_nick %}
                         <span style="color:#01579B;">{{ blob.username }}
                         <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb">
@@ -228,7 +228,7 @@ img.yt_img:hover{
                             <div class="mtl mrl mll mbl bizcard ca" style="padding:3px;text-align:left">
         
                               <div class="mbs cs tl_cnr">
-                                  <a href="{% url 'profile' blob.t_username %}" style="text-decoration: none;">
+                                  <a href="{% url 'profile' blob.t_username 'fotos' %}" style="text-decoration: none;">
                                   {% if their_nick %}
                                     <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="font-size:118%;">
                                     <span style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>
@@ -383,7 +383,7 @@ img.yt_img:hover{
             <div class="bizcard ca" style="padding:3px;margin-top:1.3em">
                 
                 <div class="mbs tl_cnr">
-                    <a href="{% url 'profile' blob.username %}" style="text-decoration: none;">
+                    <a href="{% url 'profile' blob.username 'fotos' %}" style="text-decoration: none;">
                       {% if their_nick %}
                       <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb ab">
                       <span style="color:#306654">{{ blob.username }}</span>
@@ -440,7 +440,7 @@ img.yt_img:hover{
                              <div class="mtl mrl mll mbl bizcard csb" style="padding:3px;text-align:right">
                               
                               <div class="mbs cs tr_cnr">
-                                  <a href="{% url 'profile' blob.t_username %}" style="text-decoration: none;">
+                                  <a href="{% url 'profile' blob.t_username 'fotos' %}" style="text-decoration: none;">
                                   {% if own_nick %}
                                   <span style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>
                                   <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb" style="font-size: 118%;">

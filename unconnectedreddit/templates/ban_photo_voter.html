@@ -10,12 +10,12 @@
 		{% if type == 'ban' %}
 			<b class="ct">{{ owner_name }}</b> ki is photo ko <b>{{ num }}</b> Damadamers ne <b class="cg">zabardast</b> vote diya:<br><br>
 			{% for name in unames %}
-				<input type="checkbox" name="unames" value="{{ name }}" checked>&nbsp;<a href="{% url 'profile' name %}#section0">{{ name }}</a><br>
+				<input type="checkbox" name="unames" value="{{ name }}" checked>&nbsp;<a href="{% url 'profile' name 'fotos' %}#section0">{{ name }}</a><br>
 			{% endfor %}
 		{% else %}
 			<b class="ct">{{ owner_name }}</b> ki is photo ko <b>{{ num }}</b> Damadamers ne <b class="cr">bekaar</b> vote diya:<br><br>
 			{% for name in unames %}
-				<input type="checkbox" name="unames" value="{{ name }}" checked>&nbsp;<a href="{% url 'profile' name %}#section0">{{ name }}</a><br>
+				<input type="checkbox" name="unames" value="{{ name }}" checked>&nbsp;<a href="{% url 'profile' name 'fotos' %}#section0">{{ name }}</a><br>
 			{% endfor %}
 		{% endif %}
 			<br>In sab ko photos pe vote karney se kitney waqt ke liye ban karna hai?

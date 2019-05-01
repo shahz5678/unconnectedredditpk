@@ -1,5 +1,6 @@
 import redis, time
 from random import random
+import json as json_backup
 import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
@@ -164,20 +165,7 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 		immutable_data["fbs"]='1'
 	if is_pinkstar:
 		immutable_data['p']='1'
-	################################################
-	################################################
-	#TO REMOVE:
-	mapping = {'i':obj_id,'c':categ,'si':submitter_id,'sa':submitter_av_url,'su':submitter_username,'sc':submitter_score,\
-	't':submission_time,'d':text,'nv':'0','uv':'0','dv':'0','pv':'0','h':hash_name,'blob':json.dumps(immutable_data)}
-	if from_fbs:
-		mapping["fbs"]='1'
-	if is_pinkstar:
-		mapping['p']='1'
-	#TO ACTIVATE:
-	# search for other "TO ACTIVATE" and "TO REMOVE" snippets/functions here and in voting_views
-	# mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}    
-	################################################
-	################################################
+	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}    
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)
@@ -247,17 +235,33 @@ def retrieve_home_feed_index(obj_hash):
 	return redis.Redis(connection_pool=POOL).zrevrank(HOME_SORTED_FEED,obj_hash)
 
 
+def unpack_json_blob(hash_list):
+	"""
+	Iterates through rovided list of dictionaries and unpacks a json value called 'blob'
+
+	Used by retrieve_obj_feed() and retrieve_topic_feed_data()
+	"""
+	for hash_data in hash_list:
+		if hash_data:
+			try:
+				unpacked_values = json.loads(hash_data['blob'])
+			except:
+				unpacked_values = json_backup.loads(hash_data['blob'])
+			hash_data.update(unpacked_values)
+			del hash_data['blob']
+	return hash_list
+
+
 def retrieve_obj_feed(obj_list):
 	"""
 	Retrieves details to show in home, top and fresh photos (full-fledged list of dictionaries)
 
 	Works for both text and image objects
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for hash_name in obj_list:
 		pipeline1.hgetall(hash_name)
-	return filter(None, pipeline1.execute())
+	return unpack_json_blob(filter(None, pipeline1.execute()))
 
 
 def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
@@ -277,12 +281,6 @@ def get_best_home_feed(start_idx=0,end_idx=-1):
 	"""
 	return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
 
-
-def get_link_writer(link_id):
-	"""
-	Return writer_id of given link (only if redis object of link exists)
-	"""
-	return redis.Redis(connection_pool=POOL).hget("tx:"+str(link_id),'si')
 
 def voted_for_link(link_id, voter_id):
 	"""
@@ -675,20 +673,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 		immutable_data['fbs']='1'
 	if is_pinkstar:
 		immutable_data['p']='1'
-	################################################
-	################################################
-	#TO REMOVE:
-	mapping = {'i':obj_id,'c':categ,'si':submitter_id,'sa':submitter_av_url,'su':submitter_username,'sc':submitter_score,\
-	't':submission_time,'d':img_caption,'iu':img_url,'it':img_thumb,'nv':'0','uv':'0','dv':'0','pv':'0','h':hash_name,\
-	'blob':json.dumps(immutable_data)}
-	if from_fbs:
-		mapping["fbs"]='1'
-	if is_pinkstar:
-		mapping['p']='1'#is_pinkstar
-	#TO ACTIVATE:
-	# mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
-	################################################
-	################################################
+	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)
@@ -743,11 +728,19 @@ def truncate_payload(comment_blob):
 	return comment_blob[-5:] if (random() < 0.07 and comment_blob) else comment_blob
 
 
-def get_photo_owner(photo_id):
+
+def get_obj_owner(obj_id, obj_type):
 	"""
-	Return owner id of photo object (only if redis object of link exists)
+	Return owner id of content object (only if redis object of said content exists)
+
+	Replace the usage of get_photo_owner() and get_link_writer() in voting_views.py by this one
 	"""
-	return redis.Redis(connection_pool=POOL).hget("img:"+str(photo_id),'si')
+	obj_hash_name = 'img:'+str(obj_id) if obj_type == 'img' else 'tx:'+str(obj_id)
+	blob = redis.Redis(connection_pool=POOL).hget(obj_hash_name,'blob')
+	if blob:
+		return json.loads(blob)['si']
+	else:
+		return ''
 
 
 def voted_for_single_photo(photo_id, voter_id):
@@ -949,6 +942,25 @@ def trim_trenders_data(target_user_id=None, my_server=None):
 ################################ Trending list related functonality ################################
 ####################################################################################################
 
+
+def retrieve_num_trending_photos(user_id):
+	"""
+	Retrieves the total number of trending images found in TRENDING_PHOTOS_AND_USERS for a given user_id
+
+	This normally only contains as many images as dictated by CONTEST_LENGTH
+	"""
+	return redis.Redis(connection_pool=POOL).zcount(TRENDING_FOTOS_AND_USERS,user_id,user_id)
+
+
+def retrieve_trending_photo_ids(user_id):
+	"""
+	Retrieves all trending photos uploaded by user_id currently available in TRENDING_PHOTOS_AND_USERS
+
+	Normally we retain 1 week's worth of data, not longer
+	"""
+	return redis.Redis(connection_pool=POOL).zrangebyscore(TRENDING_FOTOS_AND_USERS,user_id,user_id)
+
+
 def retrieve_handpicked_photos_count():
 	"""
 	Returns count of handpicked photos that are currently enqueued
@@ -960,8 +972,6 @@ def retrieve_handpicked_photos_count():
 		return count
 	else:
 		return 0
-
-
 
 def calculate_top_trenders():
 	"""

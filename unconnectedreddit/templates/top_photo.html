@@ -24,7 +24,7 @@
         <h2 style="text-align:left;font-size:20px;color:gray;margin:10px 0"><img src="{{ STATIC_URL }}img/fire.svg" width="11" height="11" alt="*" >Rank {{ rank_to_display }}</h2>
         {% endif %}
         <div class="lsp" style="text-align:left;padding-bottom:10px;border-bottom:2px">       
-            <img src="{{ aurl|s3:'thumb' }}" alt="avatar" style="border-radius:50%;" width="22" height="22">&nbsp;<a href="{% url 'profile' username %}" class="cb"><bdi style="font-size:20px">{{ username }}</bdi></a> ne <b>{{ num_trending_pics }}</b> trending fotos lagain <span class="cgy cxs sp">(in last 7 days)</span>
+            <img src="{{ aurl|s3:'thumb' }}" alt="avatar" style="border-radius:50%;" width="22" height="22">&nbsp;<a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cb"><bdi style="font-size:20px">{{ username }}</bdi></a> ne <b>{{ num_trending_pics }}</b> trending fotos lagain <span class="cgy cxs sp">(in last 7 days)</span>
         </div>
        {% endfor %}
         </ul>

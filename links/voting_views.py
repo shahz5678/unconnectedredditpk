@@ -183,9 +183,10 @@ def cast_vote(request,*args,**kwargs):
 								disallowed = False
 								revert_old = None
 							else:
+								# has already voted - thus, reverting the vote
 								disallowed = True
 								revert_old = False
-								if (value == '0' and already_voted == 1.0) or (value == '1' and already_voted == 0.0):
+								if (value == '0' and already_voted > 0.0) or (value == '1' and already_voted <= 0.0):
 									disallowed = False
 									revert_old = True #revert user's vote - send this flag to redis
 							if disallowed:

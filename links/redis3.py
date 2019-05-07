@@ -2344,10 +2344,9 @@ def invalid_rules_logger(banned_word,rules):
 ######################################### 404 error logging ############################################
 
 
-# ERROR_LIST_TRUNCATION_LOCKED = 'eltl'#key that rate limits truncation of 404 error list
-# ERRORS_404 = 'error_list_400'# sorted set containing latest 1 week worth of 404 errors
 SPECIFIC_404 = 'specific_404'# sorted set containing latest 1 week worth of 404 errors
 GENERIC_404 = 'generic_404'
+
 
 def log_404_errors(type_of_404, time_of_404,type_of_url=None):
 	"""
@@ -2359,11 +2358,15 @@ def log_404_errors(type_of_404, time_of_404,type_of_url=None):
 	'1b' means the 404 error emanates from get_queryset() in UserProfilePhotosView()
 	'1c' means the 404 error emanates from get_context_data() in UserProfilePhotosView()
 	"""
-	# my_server = redis.Redis(connection_pool=POOL)
+	my_server = redis.Redis(connection_pool=POOL)
 	if type_of_404 == '0':
-		redis.Redis(connection_pool=POOL).zincrby(GENERIC_404,type_of_url,amount=1)	
+		my_server.zincrby(GENERIC_404,type_of_url,amount=1)
+		################# Deletion procedure to keep the set at a sane size #################
+		first_item_and_score = my_server.zrange(GENERIC_404,0,0,withscores=True)
+		if first_item_and_score:
+			item_value = first_item_and_score[0][0]
+			item_score = first_item_and_score[0][1]
+			if item_value != type_of_url and item_score == 1:
+				my_server.zrem(GENERIC_404,item_value)
 	else:
-		redis.Redis(connection_pool=POOL).zincrby(SPECIFIC_404,type_of_404,amount=1)
-	# if random.random() < 0.1 and not my_server.exists(ERROR_LIST_TRUNCATION_LOCKED):
-	# 	my_server.zremrangebyscore(ERRORS_404,'-inf',time_of_404-ONE_WEEK)
-	# 	my_server.setex(ERROR_LIST_TRUNCATION_LOCKED,'1',SIX_HOURS)
+		my_server.zincrby(SPECIFIC_404,type_of_404,amount=1)

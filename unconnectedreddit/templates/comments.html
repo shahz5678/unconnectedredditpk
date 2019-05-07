@@ -35,9 +35,10 @@
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
+{% if authorized %}
+
 <h1 class="cxl clb lsp" style="text-align:center">{% if target_username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{{ target_username|truncatechars:'13' }}'s foto:</h1>
 <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
-{% if authorized %}
     
     <form method="POST" style="overflow:hidden;text-align:center" action="{% url 'redirect_to_content' %}">
     {% csrf_token %}
@@ -128,11 +129,9 @@
 {{ thumbs|safe }}
 </form>
 {% endif %}
-{% else %}
-<h2 style="text-align:center" class="clb csw">Ye is terah nahi chalta!</h2>
-{% endif %}
 </div>
-    <div class="mls mbl">
+
+   <div class="mls mbl">
     <div class="cs cgy mtl mbs"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></div>
     {% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}emojis full list</a>
 
@@ -144,6 +143,20 @@
     {% endif %}
     {% endfor %}
     </div>
+
+{% else %}
+
+<h1 style="text-align:center" class="clb cxl lsp">Ye available nahi hai!</h1>
+
+<div style="background-color:white;padding:10px 7px;max-width:400px;margin:0 auto;text-align:center" class="clb bizcard">
+
+    <div class="mt lsp mbs">Damadam ke home page pe janey ke liye ye button dabain:</div>
+    <a href="{% url 'home' %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:30px;width:90%">HOME</button></a>
+
+</div>
+<br>
+{% endif %}
+
 </div>
 {% endif %}
 {% endblock %}

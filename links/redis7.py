@@ -498,7 +498,8 @@ def calculate_bayesian_affinity(vote_value, voter_id, target_user_id, my_server=
 			return 0.0
 
 
-def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_prev, is_pht, time_of_vote, target_user_id):
+def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, revert_prev, is_pht, time_of_vote, target_user_id, \
+	world_age_discount, affinity_discount):
 	"""
 	Record a vote on textual or photo objects (used in 'cast_vote')
 	
@@ -521,6 +522,8 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 	if obj_exists:
 		if revert_prev:
 			# reverting an old vote
+			score_to_revert = my_server.zscore(vote_store,own_id)
+
 			my_server.zrem(vote_store,own_id)
 			my_server.hset(hash_name,'nv',net_votes)
 			if is_upvote == '1':
@@ -531,6 +534,8 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 				# this implies previous one was an upvote
 				vote_value = '0'
 				my_server.hincrby(hash_name,'uv',amount=-1)
+			if score_to_revert:
+				my_server.hincrbyfloat(hash_name,'cvs',amount=-score_to_revert)# the negative signs ensures the vote is 'negated' from 'cvs' (i.e. cumulative voting score)
 			if is_pinkstar:
 				# reduce one pv vote
 				my_server.hincrby(hash_name,'pv',amount=-1)
@@ -542,16 +547,36 @@ def record_vote(obj_id,net_votes,is_upvote,is_pinkstar,username,own_id,revert_pr
 			return True
 		elif not my_server.exists(rate_limit_key):
 			# cast vote normally
-			my_server.zadd(vote_store,own_id, is_upvote)
-
+			vote_discount = world_age_discount*affinity_discount
 			my_server.hset(hash_name,'nv',net_votes)
+
 			if is_upvote == '1':
 				vote_value = '1'
 				my_server.hincrby(hash_name,'uv',amount=1)
+				if vote_discount:
+					if vote_discount == 1:
+						my_server.hincrbyfloat(hash_name,'cvs',amount=0.9999)# adding to 'cumulative vote score'
+						my_server.zadd(vote_store,own_id, 0.9999)
+					else:
+						my_server.hincrbyfloat(hash_name,'cvs',amount=vote_discount)# adding to 'cumulative vote score'
+						my_server.zadd(vote_store,own_id, vote_discount)
+				else:
+					my_server.hincrbyfloat(hash_name,'cvs',amount=0.0001)# a nominal value is given (useful for facilitating reversion, and small enough to not matter as 'score')
+					my_server.zadd(vote_store,own_id, 0.0001)
 			else:
 				# is a downvote
 				vote_value = '0'
 				my_server.hincrby(hash_name,'dv',amount=1)
+				if vote_discount:
+					if vote_discount == 1:
+						my_server.hincrbyfloat(hash_name,'cvs',amount=-0.9999)# subtracted from 'cumulative vote score'
+						my_server.zadd(vote_store,own_id, -0.9999)
+					else:
+						my_server.hincrbyfloat(hash_name,'cvs',amount=-vote_discount)# subtracted from 'cumulative vote score'
+						my_server.zadd(vote_store,own_id, -vote_discount)
+				else:
+					my_server.hincrbyfloat(hash_name,'cvs',amount=-0.0001)# nominal value subtracted from 0 even if no discounting takes place - this is a quirk of vote_store's need to keep '-1' booked
+					my_server.zadd(vote_store,own_id, -0.0001)
 			if is_pinkstar:
 				my_server.hincrby(hash_name,'pv',amount=1)
 			###############################################
@@ -681,7 +706,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	pipeline1.hmset(hash_name,mapping)
 	pipeline1.expireat(hash_name,expire_at)#setting TTL to one day
 	#### initialize voting sorted set ####
-	obj_vote_store_key = VOTE_ON_IMG
+	obj_vote_store_key = VOTE_ON_IMG+obj_id
 	pipeline1.zadd(obj_vote_store_key,-1,-1)
 	pipeline1.expireat(obj_vote_store_key,expire_at)
 	pipeline1.execute()
@@ -1253,9 +1278,15 @@ def get_votes(obj_id,obj_type, with_net_score=False):
 			#removing default (-1,-1) tuple since it's not a real ID,vote pair
 			pass
 		else:
-			final_data.append((tup[0],tup[1]))# list of tuples, of the sort [('16', 1.0), ('2', 1.0)]
+			final_data.append((tup[0],1.0 if tup[1] > 0 else 0.0))# produces a list of tuples, of the sort [('16', 1.0), ('2', 1.0)]
 	if with_net_score:
-		return final_data, int(sum(n for _, n in final_data))
+		net_score = 0
+		for voter_id, vote_type in final_data:
+			if vote_type > 0:
+				net_score += 1
+			else:
+				net_score += 0
+		return final_data, net_score
 	else:
 		return final_data
 

@@ -1,6 +1,7 @@
 # coding=utf-8
 
 import redis, time, ast, random
+from math import log
 from pytz import timezone
 from location import REDLOC3
 from datetime import datetime
@@ -1931,6 +1932,21 @@ def set_world_age(user_id):
 		my_server.zincrby('world_age',user_id,amount=1)
 		my_server.zadd('world_age_last_increment',user_id,time.time())
 		my_server.setex('warl:'+user_id,'1',SIX_HOURS)
+
+
+def calculate_world_age_discount(user_id):
+	"""
+	Returns the world age discount for a provided user ID
+
+	Useful for discounting votes cast by an inexperienced user
+	"""
+	voter_age_dict, highest_age = retrieve_user_world_age([user_id], with_highest_age=True)
+	if voter_age_dict and highest_age:
+		log_highest_age = log(highest_age,2.0)# taking log 2 of highest age so that large-age users' influence tapers off
+		log_user_age = log(voter_age_dict[user_id],2.0)
+		return log_user_age/log_highest_age
+	else:
+		return 0
 
 
 def retrieve_user_world_age(user_id_list, with_highest_age=False):

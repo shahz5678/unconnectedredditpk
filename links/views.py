@@ -1086,7 +1086,7 @@ def best_home_page(request):
 		############
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
 		context["link_list"] = list_of_dictionaries
-		context["fanned"] = bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id)
+		context["fanned"] = bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
 		#######################
 		replyforms = {}
 		for obj in list_of_dictionaries:
@@ -1121,142 +1121,79 @@ def home_link_list(request, lang=None, *args, **kwargs):
 	It gets the most recent conversational data from redis, and displays it on the template.
 	"""
 	if request.user.is_authenticated():
-		form = HomeLinkListForm()
-		context = {}
-		context["is_auth"] = True
-		user = request.user
-		url_ =request.resolver_match.url_name
-		ipp = ITEMS_PER_PAGE#MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-		sort_by_best = False#True if (url_ == 'home_best' or url_== 'ur_home_best') else False
-		######################################################################################################
-		######################################################################################################
-		# sort_by_best = True if get_user_type(user.id,best=True) =='True' else False
-		######################################################################################################
-		######################################################################################################
-		context["newbie_flag"] = request.session.get("newbie_flag",None)
-		context["newbie_lang"] = request.session.get("newbie_lang",None)
-		context["lang"] = lang# always none under the current scenario (it's not passed in from 'first_time_choice()' any more)
-		context["sort_by"] = 'best' if sort_by_best else 'recent'
-		context["checked"] = FEMALES
-		context["form"] = form
-		context["can_vote"] = False
-		context["authenticated"] = False
-		if request.is_feature_phone or request.is_phone or request.is_mobile:
-			context["is_mob"] = True
-		context["mobile_verified"] = request.mobile_verified
-		context["ident"] = user.id #own user id
-		context["username"] = user.username #own username
-		# enqueued_match = get_current_cricket_match()
-		# if 'team1' in enqueued_match:
-		# 	context["enqueued_match"] = enqueued_match
-		if 'list_of_dictionaries' in request.session and 'page' in request.session and 'replyforms' in request.session:
-			# called when user has voted
-			if request.session['list_of_dictionaries'] and request.session['page'] and request.session['replyforms']:
-				list_of_dictionaries = request.session['list_of_dictionaries']
-				page = request.session['page']
-				replyforms = request.session['replyforms']
-			else:
-				list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang, sort_by_best=sort_by_best)
-			del request.session['list_of_dictionaries']
-			del request.session['page']
-			del request.session['replyforms']
-		else:
-			# normal refresh or toggling between pages (via agey or wapis)
-			list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang, sort_by_best=sort_by_best)
-		context["link_list"] = list_of_dictionaries
-		context["page"] = page
-		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		context["replyforms"] = replyforms
-		secret_key = uuid.uuid4()
-		context["sk"] = secret_key
-		#set_text_input_key(context["ident"], '1', 'home', secret_key)
-		set_text_input_key(user_id= context["ident"], obj_id='1', obj_type='home', secret_key=secret_key)
+		return redirect("home")
+		# form = HomeLinkListForm()
+		# context = {}
+		# context["is_auth"] = True
+		# user = request.user
+		# url_ =request.resolver_match.url_name
+		# ipp = ITEMS_PER_PAGE
+		# sort_by_best = False
+		# context["newbie_flag"] = request.session.get("newbie_flag",None)
+		# context["newbie_lang"] = request.session.get("newbie_lang",None)
+		# context["lang"] = lang# always none under the current scenario (it's not passed in from 'first_time_choice()' any more)
+		# context["sort_by"] = 'best' if sort_by_best else 'recent'
+		# context["checked"] = FEMALES
+		# context["form"] = form
+		# context["can_vote"] = False
+		# context["authenticated"] = False
+		# if request.is_feature_phone or request.is_phone or request.is_mobile:
+		# 	context["is_mob"] = True
+		# context["mobile_verified"] = request.mobile_verified
+		# context["ident"] = user.id #own user id
+		# context["username"] = user.username #own username
+		# if 'list_of_dictionaries' in request.session and 'page' in request.session and 'replyforms' in request.session:
+		# 	# called when user has voted
+		# 	if request.session['list_of_dictionaries'] and request.session['page'] and request.session['replyforms']:
+		# 		list_of_dictionaries = request.session['list_of_dictionaries']
+		# 		page = request.session['page']
+		# 		replyforms = request.session['replyforms']
+		# 	else:
+		# 		list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang, sort_by_best=sort_by_best)
+		# 	del request.session['list_of_dictionaries']
+		# 	del request.session['page']
+		# 	del request.session['replyforms']
+		# else:
+		# 	# normal refresh or toggling between pages (via agey or wapis)
+		# 	list_of_dictionaries, page, replyforms, addendum = home_list(request=request,items_per_page=ipp, lang=lang, sort_by_best=sort_by_best)
+		# context["link_list"] = list_of_dictionaries
+		# context["page"] = page
+		# context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+		# context["replyforms"] = replyforms
+		# secret_key = uuid.uuid4()
+		# context["sk"] = secret_key
+		# #set_text_input_key(context["ident"], '1', 'home', secret_key)
+		# set_text_input_key(user_id= context["ident"], obj_id='1', obj_type='home', secret_key=secret_key)
 		
-		############################################# Home Rules #################################################
-		# context["home_rules"] = spammer_punishment_text(context["ident"])
-		############################################ Namaz feature ###############################################
-		# now = datetime.utcnow()+timedelta(hours=5)
-		# day = now.weekday()
-		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		#         'LOCATION': MEMLOC, 'TIMEOUT': 70,
-		#     })
-		# salat_timings = cache_mem.get('salat_timings')
-		# context["next_namaz_start_time"] = salat_timings['next_namaz_start_time']
-		# if salat_timings['namaz'] == 'Zuhr' and day == 4: #4 is Friday
-		#     context["current_namaz"] = 'Jummah'
+		# if "comment_form" in request.session:
+		# 	context["comment_form"] = request.session["comment_form"]
+		# 	request.session.pop("comment_form", None)
 		# else:
-		#     context["current_namaz"] = salat_timings['namaz']
-		# if salat_timings['next_namaz'] == 'Zuhr' and day == 4:#4 if Friday
-		#     context["next_namaz"] = 'Jummah'    
+		# 	context["comment_form"] = PhotoCommentForm()
+		# num = random.randint(1,4)
+		# context["random"] = num #determines which message to show at header
+		# if num > 2:
+		# 	context["newest_user"] = User.objects.latest('id') #for unauthenticated users
 		# else:
-		#     context["next_namaz"] = salat_timings['next_namaz']
-		# if not salat_timings['namaz'] and not salat_timings['next_namaz']:
-		#     # do not show namaz element at all, some error may have occurred
-		#     context["show_current"] = False
-		#     context["show_next"] = False
-		# elif not salat_timings['namaz']:
-		#     try:
-		#         latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
-		#         already_prayed = AlreadyPrayed(latest_salat, now)
-		#         if already_prayed == 2:
-		#             #if user skipped previous namaz, no need to show prompt
-		#             context["show_current"] = False
-		#             context["show_next"] = False
-		#         else:
-		#             context["show_current"] = False
-		#             context["show_next"] = True
-		#     except:
-		#         context["show_current"] = False
-		#         context["show_next"] = True
+		# 	context["newest_user"] = None
+		# context["authenticated"] = True
+		# context["fanned"] = bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),context["ident"])
+		# score = user.userprofile.score
+		# context["score"] = score #own score
+		# # if score > 9:
+		# context["can_vote"] = True #allowing user to vote
+		# if request.user_banned:
+		# 	context["process_notification"] = False #hell banned users will never see notifications
 		# else:
-		#     try:
-		#         latest_salat = LatestSalat.objects.filter(salatee=request.user).latest('when')
-		#         already_prayed = AlreadyPrayed(latest_salat, now)
-		#         if already_prayed:
-		#             if already_prayed == 2:
-		#                 context["show_current"] = False
-		#                 context["show_next"] = False
-		#             else:
-		#                 context["show_current"] = False
-		#                 context["show_next"] = True
-		#         else:
-		#             #i.e. show the CURRENT namaz the user has to offer
-		#             context["show_current"] = True
-		#             context["show_next"] = False
-		#     except:
-		#         #never logged a salat in Damadam, i.e. show the CURRENT namaz the user has to offer
-		#         context["show_current"] = True
-		#         context["show_next"] = False
-		################################################################################################################
-		if "comment_form" in request.session:
-			context["comment_form"] = request.session["comment_form"]
-			request.session.pop("comment_form", None)
-		else:
-			context["comment_form"] = PhotoCommentForm()
-		num = random.randint(1,4)
-		context["random"] = num #determines which message to show at header
-		if num > 2:
-			context["newest_user"] = User.objects.latest('id') #for unauthenticated users
-		else:
-			context["newest_user"] = None
-		context["authenticated"] = True
-		context["fanned"] = bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),context["ident"])
-		score = user.userprofile.score
-		context["score"] = score #own score
-		# if score > 9:
-		context["can_vote"] = True #allowing user to vote
-		if request.user_banned:
-			context["process_notification"] = False #hell banned users will never see notifications
-		else:
-			if "notif_form" in request.session:
-				context["notif_form"] = request.session["notif_form"]
-				request.session.pop("notif_form", None)
-			else:
-				context["notif_form"] = UnseenActivityForm()
-			context["process_notification"] = True
-			# context["salat_timings"] = salat_timings
-			return render(request, 'link_list.html', context)
-		return render(request, 'link_list.html', context)
+		# 	if "notif_form" in request.session:
+		# 		context["notif_form"] = request.session["notif_form"]
+		# 		request.session.pop("notif_form", None)
+		# 	else:
+		# 		context["notif_form"] = UnseenActivityForm()
+		# 	context["process_notification"] = True
+		# 	# context["salat_timings"] = salat_timings
+		# 	return render(request, 'link_list.html', context)
+		# return render(request, 'link_list.html', context)
 	else:
 		return redirect("unauth_home_new")
 

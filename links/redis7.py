@@ -440,7 +440,7 @@ def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, wit
 
 	Retrieval of either 'upvotes' or 'downvotes' (and not both together)
 	"""
-	voter_key = VOTER_UVOTES_AND_TIMES+str(voter_id) if upvotes else VOTER_DVOTES_AND_TIMES
+	voter_key = VOTER_UVOTES_AND_TIMES+str(voter_id) if upvotes else VOTER_DVOTES_AND_TIMES+str(voter_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	voting_data = my_server.zrange(voter_key,start_idx,end_idx, withscores=True)
 	if with_total_votes:

@@ -1,5 +1,4 @@
 import time
-from django.core.urlresolvers import resolve
 from django.shortcuts import render
 from tasks import log_404
 

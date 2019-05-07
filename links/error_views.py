@@ -6,7 +6,7 @@ def server_error(request):
 	return render(request, '500.html', status=500)
  
 def not_found(request):
-	log_404.delay(type_of_404='0',time_of_404=time.time())
+	log_404.delay(type_of_404='0',time_of_404=time.time(),type_of_url=request.path_info)
 	return render(request, '404.html', status=404)
  
 def permission_denied(request):

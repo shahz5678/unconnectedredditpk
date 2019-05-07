@@ -2344,8 +2344,9 @@ def invalid_rules_logger(banned_word,rules):
 ######################################### 404 error logging ############################################
 
 
-ERROR_LIST_TRUNCATION_LOCKED = 'eltl'#key that rate limits truncation of 404 error list
-ERRORS_404 = 'error_list_400'# sorted set containing latest 1 week worth of 404 errors
+# ERROR_LIST_TRUNCATION_LOCKED = 'eltl'#key that rate limits truncation of 404 error list
+# ERRORS_404 = 'error_list_400'# sorted set containing latest 1 week worth of 404 errors
+ERROR_404 = 'errors_404'# sorted set containing latest 1 week worth of 404 errors
 
 
 def log_404_errors(type_of_404, time_of_404):
@@ -2358,8 +2359,8 @@ def log_404_errors(type_of_404, time_of_404):
 	'1b' means the 404 error emanates from get_queryset() in UserProfilePhotosView()
 	'1c' means the 404 error emanates from get_context_data() in UserProfilePhotosView()
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zadd(ERRORS_404,type_of_404,time_of_404)
-	if random.random() < 0.1 and not my_server.exists(ERROR_LIST_TRUNCATION_LOCKED):
-		my_server.zremrangebyscore(ERRORS_404,'-inf',time_of_404-ONE_WEEK)
-		my_server.setex(ERROR_LIST_TRUNCATION_LOCKED,'1',SIX_HOURS)
+	# my_server = redis.Redis(connection_pool=POOL)
+	redis.Redis(connection_pool=POOL).zincrby(ERROR_404,type_of_404,amount=1)
+	# if random.random() < 0.1 and not my_server.exists(ERROR_LIST_TRUNCATION_LOCKED):
+	# 	my_server.zremrangebyscore(ERRORS_404,'-inf',time_of_404-ONE_WEEK)
+	# 	my_server.setex(ERROR_LIST_TRUNCATION_LOCKED,'1',SIX_HOURS)

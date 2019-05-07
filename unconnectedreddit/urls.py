@@ -30,7 +30,7 @@ profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list,\
 photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 first_time_unseen_refresh, missing_page, home_reply, home_location_pk,photo_page, photo_redirect,\
-upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
+upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,redirect_to_profile_photos,\
 public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
 #cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
 from links.redirection_views import redirect_to_content
@@ -82,6 +82,7 @@ urlpatterns = patterns('',
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
 	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
+	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),
 	# url(r'^user/(?P<slug>.+)/$', missing_page, name='profile'), #captures any kind of slug - for errors
 	url(r'^usrp/(?P<slug>[\w.@+-]+)/(?P<key>\d+)/$', profile_pk, name='profile_pk'),

@@ -49,7 +49,7 @@ AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkList
 PhotosListForm, CricketCommentForm, PublicreplyMiniForm, AdFeedbackForm, SearchAdFeedbackForm#, GroupReportForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
-from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from user_sessions.models import Session
@@ -1408,6 +1408,14 @@ def profile_pk(request, slug=None, key=None, *args, **kwargs):
 	request.session["photograph_id"] = key
 	return redirect("profile", slug, 'fotos')
 
+
+def redirect_to_profile_photos(request,slug):
+	"""
+	Permanent redirect to new user profile photos view
+	"""
+	return HttpResponsePermanentRedirect("/user/{}/fotos/".format(slug))
+
+
 class UserProfilePhotosView(ListView):
 	"""
 	Renders a user's photo page
@@ -2504,7 +2512,9 @@ class CommentView(CreateView):
 					context["obj_deleted"] = True
 					return context
 				else:
-					raise Http404("Photo does not exist")
+					context['target_username'] = 'User'
+					context['authorized'] = False
+					return context
 		else:
 			raise Http404("Photo ID does not exist")
 		context["obj_deleted"] = False

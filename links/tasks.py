@@ -402,13 +402,13 @@ def set_user_age(user_id):
 
 
 @celery_app1.task(name='tasks.log_404')
-def log_404(type_of_404, time_of_404):
+def log_404(type_of_404, time_of_404, type_of_url=None):
 	"""
 	Logs 404 errors seen throughout the website
 
 	Currently only logging 404 errors emanating from UserProfilePhotosView()
 	"""
-	log_404_errors(type_of_404, time_of_404)
+	log_404_errors(type_of_404, time_of_404, type_of_url)
 
 ########################### priv chat split test ########
 

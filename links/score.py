@@ -50,9 +50,15 @@ DOWNVOTE = -2#number to subtract from user score
 VOTING_DRIVEN_CENSORSHIP = -15# at what total vote count should a photo be completely disappeared
 VOTING_DRIVEN_PIXELATION = -7# at what total vote count should a photo be pixellated
 ###############################################################################################################
+BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING = 0.3# if a voter shows a bias of at least (or greater than) this magnitude, their vote counts for zilch!
+UPPER_RELATIONSHIP_UVOTE_CUTOFF = 4# upper threshold for 'score' used when doing a sequential scan of UVOTER_AFFINITY sorted set
+UPPER_RELATIONSHIP_DVOTE_CUTOFF = 4# upper threshold for 'score' used when doing a sequential scan of DVOTER_AFFINITY sorted set
+MEANINGFUL_VOTING_SAMPLE_SIZE = 10# threshold used to determine whether a 'voting relationship' should be investigated or not
+NUM_VOTES_TO_TGT = 5# a target user must have received these many votes from voter to make calculating their Bayesian affinity worthwhile (upvotes and downvotes both)
+###############################################################################################################
 MICRO_CACHE_TTL = 15# useful for micro caching some fast changing keys in groups (do a ctrl+f in redis6 to see examples)
 PRIVATE_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
-PRIVATE_GROUP_MAX_MEMBERSHIP = 8
+PRIVATE_GROUP_MAX_MEMBERSHIP = 50
 PUBLIC_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
 PUBLIC_GROUP_MAX_RULES_SIZE = 500 #more than 500 chars not allowed
 PUBLIC_GROUP_REPLY_LENGTH = 500
@@ -86,9 +92,9 @@ CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE = 86400#1 day after inviting, a private
 PRIVATE_GROUP_INVITE_TTL = 604800#7 days ttl for private group invites. Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE to work
 PUBLIC_GROUP_INVITE_TTL = 604800#7 days ttl for public group invites. Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE to work
 MAX_OWNER_INVITES_PER_PUBLIC_GROUP = 30 #num users an owner can invite into a group within a week
-MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 3 #num users a priv mehfil owner can invite
+MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 30 #num users a priv mehfil owner can invite
 MAX_OFFICER_INVITES_PER_PUBLIC_GROUP = 10 #num users all officers can invite into a group
-MAX_MEMBER_INVITES_PER_PRIVATE_GROUP = 1 # num users a priv mehfil member can invite
+MAX_MEMBER_INVITES_PER_PRIVATE_GROUP = 10 # num users a priv mehfil member can invite
 #######################################
 
 ########## Group transactions #########

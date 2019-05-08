@@ -13,7 +13,7 @@ from verified import FEMALES
 from tasks import vote_tasks
 from models import Link, Photo
 from redis4 import retrieve_uname
-from redis3 import tutorial_unseen, exact_date
+from redis3 import tutorial_unseen, exact_date, beautiful_date
 from judgement_views import get_usernames
 from views import secs_to_mins, get_indices
 from redirection_views import return_to_content
@@ -418,10 +418,12 @@ def user_vote_history(request,vote):
 		page_num = int(page_num)
 		final_data = []
 		for data, vote_time in voting_data:
-			# data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
+			# data contains: voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
 			data_list = data.split(":")
-			human_vote_time = exact_date(vote_time)
+			human_vote_time = beautiful_date(vote_time)#exact_date(vote_time)
 			final_data.append((data_list[1], data_list[2], data_list[3], data_list[4], human_vote_time))
-		return render(request,"voting/voting_history.html",{'data':final_data})
+		return render(request,"voting/voting_history.html",{'data':final_data,'slug':retrieve_uname(own_id,decode=True), 'own_profile':True,\
+			'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+			'previous_page_number':page_num-1,'next_page_number':page_num+1},'history_type':vote})
 	else:
 		raise Http404("No other type of voting exists")

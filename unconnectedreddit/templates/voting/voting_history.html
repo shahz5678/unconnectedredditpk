@@ -3,19 +3,113 @@
 <head><title>Voting history | Damadam.pk</title></head>
 <style>body{background: #f0f3f4}</style>
 
-<h1 class="cxl clb" style="text-align:center">Voting history</h1>
+{% include 'user_profile_navbar.html' with static_url=STATIC_URL section='voting' uname=slug is_own_profile=own_profile %}
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<h1 class="cxl clb" style="text-align:center">Voting history:</h1>
+
+
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px;max-width:600px;width:97%;margin-right:auto;margin-left:auto;text-align:center">
+
+{% if history_type == 'upvote' %}
+	
+	<div class="fx fxjscn fxaicn">
+		<div class="sp" style="border-radius:0;width:50%;border:none;background:#1edea8;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid #1edea8">JHAPPI</div>
+		<a href="{% url 'user_vote_history' 'downvote' %}" class="sp" style="width:50%"><button class="wt" style="border-radius:0;border:none;color:coral;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">CHPAIR</button></a>
+	</div>
+
+{% else %}
+
+	<div class="fx fxjscn fxaicn">
+		<a href="{% url 'user_vote_history' 'upvote' %}" class="sp" style="width:50%;"><button class="wt" style="border-radius:0;border:none;color:#1edea8;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc">JHAPPI</button></a>
+		<div class="sp cm" style="background:coral;border-radius:0;width:50%;border:none;color:white;height:40px;line-height:40px;font-weight:bold;">CHPAIR</div>
+	</div>
+
+{% endif %}
 
 	{% for target_user_id, vote_value, target_obj_type, target_obj_id, vote_time in data %}
-		<b>{{ vote_time }}:</b>
+		
+		{% if forloop.counter != 1 %}<hr size=1 color="#dcdcdc" style="margin:0">{% endif %}
+		
 		{% if vote_value == '1' %}
-			<span>Ap ne jhappi mari</span>
+
+			{% if target_obj_type == 'tx' %}
+			
+				<form method="POST" action="{% url 'publicreply_view' %}">
+					{% csrf_token %}
+					<button class="wt" name="lid" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ target_obj_id }}">
+						<div style="text-align:center;padding:18px 0;" class="lsp sp">
+							<span class="clb cs">{{ vote_time }}:</span>	
+							<span class="cm ct" style="border-bottom:1px dotted teal">text jhappi</span>
+						</div>
+					</button>
+				</form>
+
+			{% else %}
+
+				<a href="{% url 'photo_detail' target_obj_id %}">
+					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
+						<div style="text-align:center;padding:18px 0;" class="lsp sp">
+							<span class="clb cs">{{ vote_time }}:</span>	
+							<span class="cm" style="color:#e68e00;border-bottom:1px dotted orange">foto jhappi</span>
+						</div>
+					</button>
+				</a>
+
+			{% endif %}
+
 		{% else %}
-			<span>Ap ne chpair lagai</span>
+
+			{% if target_obj_type == 'tx' %}
+			
+				<form method="POST" action="{% url 'publicreply_view' %}">
+					{% csrf_token %}
+					<button name="lid" class="wt" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ target_obj_id }}">
+						<div style="text-align:center;padding:18px 0;" class="lsp sp">
+							<span class="clb cs">{{ vote_time }}:</span>
+							<span class="ct" style="border-bottom:1px dotted teal">text chpair</span>
+						</div>
+					</button>
+				</form>
+
+			{% else %}
+
+				<a href="{% url 'photo_detail' target_obj_id %}">
+					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
+						<div style="text-align:center;padding:18px 0;" class="lsp sp">
+							<span class="clb cs">{{ vote_time }}:</span>
+							<span class="cm" style="border-bottom:1px dotted orange;color:#e68e00">foto chpair</span>
+						</div>
+					</button>
+				</a>
+
+			{% endif %}
+
+		{% endif %}
+	{% empty %}
+
+		<div class="cxl lsp clb mts" style="text-align:center">Sorry! Ye khali hai ...</div>
+		<hr size=1 COLOR="#f4f4f4">
+		{% if history_type == 'upvote' %}
+		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe jhappi nahi di</div>
+		{% else %}
+		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe chpair nahi lagai</div>
 		{% endif %}
 	{% endfor %}
 
 </div>
-<br><br>
+
+<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
+	{% if page.has_previous %}
+    <div style="padding:0 10px">
+    	<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+    {% if page.has_next %}
+    <div style="padding:0 10px">
+    	<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    </div>
+    {% endif %}
+</div>
+
+
 {% endblock %}

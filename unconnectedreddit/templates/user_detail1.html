@@ -31,7 +31,7 @@
   {% endif %}
   </div>
 
-{% if page_obj.number == 1 %}
+{% if page_obj.number == 1 and not is_trending %}
  <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px">
     
     <div class="cl sp" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa"> 

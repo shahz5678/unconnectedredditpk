@@ -442,7 +442,7 @@ def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, wit
 	"""
 	voter_key = VOTER_UVOTES_AND_TIMES+str(voter_id) if upvotes else VOTER_DVOTES_AND_TIMES+str(voter_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	voting_data = my_server.zrange(voter_key,start_idx,end_idx, withscores=True)
+	voting_data = my_server.zrevrange(voter_key,start_idx,end_idx, withscores=True)
 	if with_total_votes:
 		return voting_data, my_server.zcard(voter_key)
 	else:

@@ -47,6 +47,7 @@ PhotoShareView, PhotoDetailView, \
 AdGenderChoiceView, \
 VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, \
 AdAddressView, AdCallPrefView
+from links.voting_views import user_vote_history
 from links.announcement_views import coming_soon
 from links.group_views import show_shared_photo_metrics
 admin.autodiscover()
@@ -83,6 +84,7 @@ urlpatterns = patterns('',
 	url(r'', include('user_sessions.urls', 'user_sessions')),
 	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
+	url(r'^user/voting/(?P<vote>[\w.@+-]+)/$', auth(user_vote_history), name='user_vote_history'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),
 	# url(r'^user/(?P<slug>.+)/$', missing_page, name='profile'), #captures any kind of slug - for errors
 	url(r'^usrp/(?P<slug>[\w.@+-]+)/(?P<key>\d+)/$', profile_pk, name='profile_pk'),

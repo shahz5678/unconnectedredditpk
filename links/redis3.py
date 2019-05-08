@@ -139,6 +139,24 @@ def exact_date(time_now, in_bulk=False):
 			return datetime.fromtimestamp(time_now, tz=timezone('Asia/Karachi')).strftime("%d-%m-%Y %I:%M %p")# use %H:%M:%S for 24 hour style clock time
 		else:
 			return ''
+
+
+def beautiful_date(epoch_time, format_type='1'):
+	"""
+	Provides human readable date, beautilfully formatted
+
+	Format types are:
+
+	i) 05 May - Sun 03:39 PM
+	ii) 03:39 PM, Sun - 05 May 2019
+	iii) 05-05-2019 03:39 PM
+	"""
+	if format_type == '1':
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%d %b - %a %I:%M %p")# gives "05 May - Sun 03:39 PM"
+	elif format_type == '2':
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p, %a - %d %b %Y")# gives "03:39 PM, Sun - 05 May 2019"
+	else:
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p %d-%m-%Y")# gives "05-05-2019 03:39 PM"
 #####################Process Nick#######################
 
 def decode_nick(nickname):

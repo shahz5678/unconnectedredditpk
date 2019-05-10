@@ -30,8 +30,8 @@
 	{% text_object obid=link.id ooid=submitter_id text=link.description|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on machine_time=link.machine_time oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_pinkstar=verified block_time_remaining=time_remaining %}
 
 	<div style="flex-wrap:wrap" class="mbl fx fxjscn fxaicn cxs sp cgy">
-	{% big_group_button own_id=ident target_id=submitter_id parent_object_id=link.pk object_type='link' origin='8' target_username=uname %}
-	{% big_home_reply_button link_id=link.pk comm_count=link.reply_count static_url=STATIC_URL home_history=True %}
+	{% big_group_button own_id=ident target_id=submitter_id parent_object_id=link.id object_type='link' origin='8' target_username=uname %}
+	{% big_home_reply_button link_id=link.id comm_count=link.reply_count static_url=STATIC_URL home_history=True %}
 	{% big_points_button obj_id=link.id owner_id=submitter_id is_pht=0 origin='8' net_votes=link.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
 	</div>
 

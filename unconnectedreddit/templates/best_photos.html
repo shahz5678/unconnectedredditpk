@@ -1,6 +1,4 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load human_time %}
 {% load show_error %}
 {% load get_photo_object %}
 {% load emoticons_tags %}
@@ -51,7 +49,7 @@
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=2 upload_time=photo.t|human_time vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
+	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=2 upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
 
 	<div class="mls">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">

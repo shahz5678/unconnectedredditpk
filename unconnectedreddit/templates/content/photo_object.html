@@ -9,7 +9,7 @@
 
 				  	<a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
 
-				  	<div style="word-break: break-all;"><a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<b class="clb cs sp">{{ oun }}</b></a>&nbsp;<span class="sp cxs cgy" itemprop="datePublished">- uploaded {{ ut }}</span></div>
+				  	<div style="word-break: break-all;"><a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<b class="clb cs sp">{{ oun }}</b></a>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></div>
 				
 				</div>
 					 	
@@ -91,7 +91,7 @@
 
 		</div>
 
-		<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<span class="cgy">{{ ut }}</span></div>
+		<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<time class="cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></div>
 
 		</div>
 	{% endif %}

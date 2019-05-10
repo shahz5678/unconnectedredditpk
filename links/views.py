@@ -1,4 +1,5 @@
 # coding=utf-8
+from pytz import timezone
 from math import log, ceil
 import ujson as json
 from urllib import quote
@@ -30,8 +31,10 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from templatetags.s3 import get_s3_object
+from templatetags.human_time import human_time
 from image_processing import clean_image_file, clean_image_file_with_hash, process_public_image
 from salutations import SALUTATIONS
 from forms import getip
@@ -53,7 +56,7 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpRespons
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from user_sessions.models import Session
-from django.utils import timezone
+#from django.utils import timezone
 from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
@@ -258,6 +261,40 @@ def valid_uuid(uuid):
 		regex = re.compile('^[a-f0-9]{8}-?[a-f0-9]{4}-?4[a-f0-9]{3}-?[89ab][a-f0-9]{3}-?[a-f0-9]{12}\Z', re.I)
 		match = regex.match(uuid)
 		return bool(match)
+
+
+def beautiful_date(epoch_time, format_type='1'):
+    """
+    Provides human readable date, beautilfully formatted
+
+    Format type is:
+
+    i) '10:23 AM - 30 Nov 2015'
+    """
+    if format_type == '1':
+        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%a %I:%M %p - %d %b")# gives "Sun 03:39 PM - 05 May"
+    elif format_type == '2':
+        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%Y-%m-%d %I:%M:%S %p")# gives YYYY-MM-DDThh:mm:ssTZD
+    elif format_type == '3':
+        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p, %a - %d %b %Y")# gives "03:39 PM, Sun - 05 May 2019"
+    else:
+        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p %d-%m-%Y")# gives "05-05-2019 03:39 PM"
+
+
+def format_post_times(list_of_dictionaries, with_machine_readable_times=False):
+	"""
+	Injects human readable times in place of epoch times
+
+	"""
+	if with_machine_readable_times:
+		for obj in list_of_dictionaries:
+			epoch_time = obj['t']
+			obj['t'] = human_time(epoch_time)
+			obj['mt'] = beautiful_date(epoch_time,format_type='2')
+	else:
+		for obj in list_of_dictionaries:
+			obj['t'] = human_time(obj['t'])
+	return list_of_dictionaries
 
 
 # link_id, writer_username, writer_avatar_url, writer_id, link_description
@@ -718,7 +755,6 @@ def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 def display_link_detail(request, link_id):
 	"""
 	Displays a given Link object in a separate page
-
 	Useful for defender who've banned a 'link' and consequently it's been censored
 	"""
 	try:
@@ -734,7 +770,7 @@ def display_link_detail(request, link_id):
 	if obj:
 		return render(request,"link_detail.html",{'obj':obj})
 	else:
-		return redirect("missing_page")
+		raise Http404("Object not found")
 
 
 class PhotoDetailView(DetailView):
@@ -1228,6 +1264,7 @@ def home_page(request, lang=None):
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
 	list_of_dictionaries = retrieve_obj_feed(obj_list)
+	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 	#######################
 	replyforms = {}
 	for obj in list_of_dictionaries:
@@ -1413,7 +1450,7 @@ def redirect_to_profile_photos(request,slug):
 	"""
 	Permanent redirect to new user profile photos view
 	"""
-	return HttpResponsePermanentRedirect("/user/{}/fotos/".format(slug))
+	return HttpResponsePermanentRedirect("/user/{}/fotos/".format(slug.encode('utf-8')))
 
 
 class UserProfilePhotosView(ListView):
@@ -3230,6 +3267,7 @@ def photo_page(request,list_type='best-list'):
 		max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 		page_num = int(page_num)
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 		#######################
 		secret_key = str(uuid.uuid4())
 		
@@ -4458,7 +4496,9 @@ def public_reply_view(request,*args,**kwargs):
 		if link_id:
 			# link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
 			try:
-				link = Link.objects.only('id','reply_count','description','submitted_on','submitter','net_votes').get(id=link_id)
+				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes').get(id=link_id)
+				link['machine_time'] = link['submitted_on']
+				link['submitted_on'] = naturaltime(link['submitted_on'])
 			except Link.DoesNotExist:
 				# purge single notification and matka of request.user.id
 				own_id = request.user.id
@@ -4473,12 +4513,12 @@ def public_reply_view(request,*args,**kwargs):
 			context["mob_verified"] = True if request.mobile_verified else False
 			context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 			context["user_id"] = user_id
-			parent_submitter_id = link.submitter_id
+			parent_submitter_id = link['submitter']
 			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
 			context["parent_submitter_id"] = parent_submitter_id
 			context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
 			context["parent_av_url"] = parent_avurl
-			context["vote_score"] = link.net_votes
+			parent_submitter_id = link['net_votes']
 			context["parent"] = link #the parent link
 			context["parent_submitter_username"] = parent_uname
 			context["is_parent_pinkstar"] = parent_uname in FEMALES
@@ -4583,10 +4623,10 @@ class UserActivityView(ListView):
 			target_id = retrieve_user_id(username)
 			if target_id:
 				if target_id == str(self.request.user.id):
-					data = Link.objects.only('id','description','submitted_on','net_votes','reply_count').\
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count').\
 					filter(submitter_id=target_id).order_by('-id')[:200]
 				else:
-					data = Link.objects.only('id','description','submitted_on','net_votes','reply_count').\
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count').\
 					filter(submitter_id=target_id).order_by('-id')[:60]
 				# cache_user_text_history(data,target_id)
 				return data
@@ -4600,6 +4640,9 @@ class UserActivityView(ListView):
 		context = super(UserActivityView, self).get_context_data(**kwargs)
 		username = self.kwargs['slug']
 		target_id = retrieve_user_id(username)
+		for obj in context["object_list"]:
+			obj['machine_time'] = obj['submitted_on']
+			obj['submitted_on'] = naturaltime(obj['submitted_on'])
 		if target_id:
 			context["verified"] = True if username in FEMALES else False
 			context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
@@ -4725,9 +4768,6 @@ def sharing_help(request):
 	"""
 	Renders a page about sharing ettiquette
 	"""
-	# if getattr(request, 'limits', False):
-	# 	raise Http404("You cannot view sharing help")
-	# else:
 	return render(request,"content/share_content_help.html",{})
 
 

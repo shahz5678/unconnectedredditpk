@@ -13,13 +13,13 @@ from verified import FEMALES
 from tasks import vote_tasks
 from models import Link, Photo
 from redis4 import retrieve_uname
-from redis3 import tutorial_unseen, exact_date, beautiful_date
+from redis3 import tutorial_unseen, exact_date
 from judgement_views import get_usernames
-from views import secs_to_mins, get_indices
+from views import secs_to_mins, get_indices, beautiful_date
 from redirection_views import return_to_content
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
-retrieve_voting_records#, get_vote_ban_details, check_vote_ban
+retrieve_voting_records, retrieve_users_voting_relationships#, get_vote_ban_details, check_vote_ban
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
 
 def vote_result(request):
@@ -427,3 +427,17 @@ def user_vote_history(request,vote):
 			'previous_page_number':page_num-1,'next_page_number':page_num+1},'history_type':vote})
 	else:
 		raise Http404("No other type of voting exists")
+
+
+def user_sybil_history(request, user_id):
+	"""
+	Renders suspected sybils and haters in an HTML template for super defenders
+	"""
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		return render(request,"voting/voting_sybils.html",{'sybil_data':retrieve_users_voting_relationships(user_id),\
+			'tgt_uname':retrieve_uname(user_id,decode=True)})
+	else:
+		raise Http404("Not athorized to view sybils")
+

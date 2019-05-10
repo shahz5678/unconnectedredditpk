@@ -1,10 +1,12 @@
 import redis, time
 from random import random
+from operator import itemgetter
 import json as json_backup
 import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
-from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT
+from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
+UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
 from redis3 import retrieve_user_world_age, exact_date
@@ -14,6 +16,7 @@ from models import Photo
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
+THREE_MONTHS = 3*4*7*24*60*60
 TWO_MONTHS = 2*4*7*24*60*60  
 ONE_MONTH = 4*7*24*60*60 
 TWO_WEEKS = 2*7*24*60*60 
@@ -94,10 +97,18 @@ TOP_TRENDING_SUBMITTERS = "tts"# sorted set that contains top trenders alongwith
 GLOBAL_VOTES_AND_TIMES = 'gvt'# global sorted set hold voting data of the entire user-base, sorted by time (trimmed to last 1 month)
 VOTER_UVOTES_AND_TIMES = "vuvt:"# voter specific sorted set hold upvoting data of the voter, sorted by time (trimmed to last 1 month)
 VOTER_DVOTES_AND_TIMES = "vdvt:"# voter specific sorted set hold downvoting data of the voter, sorted by time (trimmed to last 1 month)
-ALL_UVOTES_TO_TGT_USERS = "ut:"# voter and target user specific sorted set containing all upvotes given by the voter to a target (trimmed to last 1 month)
-ALL_DVOTES_TO_TGT_USERS = "dt:"# voter and target user specific sorted set containing all downvotes given by the voter to a target (trimmed to last 1 month)
+ALL_UVOTES_TO_TGT_USER = "ut:"# voter and target user specific sorted set containing all upvotes given by the voter to a target (trimmed to last 1 month)
+ALL_DVOTES_TO_TGT_USER = "dt:"# voter and target user specific sorted set containing all downvotes given by the voter to a target (trimmed to last 1 month)
 
-VOTER_AFFINITY = 'vaf'# global sorted set containing up and downvotes dropped by users - useful for catching sybil/hater behavior
+UVOTER_AFFINITY = 'uvaf'# global sorted set containing up votes dropped by users to various targets - useful for catching sybil behavior
+DVOTER_AFFINITY = 'dvaf'# global sorted set containing down votes dropped by users to various targets - useful for catching hater behavior
+DVOTER_AFFINITY_TRUNCATOR = 'dvat'# global sorted set containing the first time a voter gave a downvote vote to a target_user. Useful for truncating DVOTER_AFFINITY sorted set
+UVOTER_AFFINITY_TRUNCATOR = 'uvat'# global sorted set containing the first time a voter gave an upvote vote to a target_user. Useful for truncating UVOTER_AFFINITY sorted set
+VOTER_AFFINITY_HASH = 'vah:'# this contains the affinity (Bayesian prob) existing in the voting relationship
+VOTING_RELATIONSHIP_LOG = 'vrl'# global sorted set logging all sybil/enemy relationships for given target_user_ids
+VOTING_RELATIONSHIP_LOG_TRUNCATOR = 'vrlt'# global sorted set useful for truncating VOTING_RELATIONSHIP_LOG over time
+CACHED_VOTING_RELATIONSHIP = 'cvr:'# key that caches the sybil/data associated to a given target_user_id (for super defender's viewing pleasure)
+LATEST_REVERSION_TIMES = "lrt"# global sorted set holding latest times that a vote reversion occured between a voter_id:poster_id pairs
 
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
 
@@ -165,7 +176,7 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 		immutable_data["fbs"]='1'
 	if is_pinkstar:
 		immutable_data['p']='1'
-	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}    
+	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)
@@ -346,65 +357,23 @@ def get_voting_details(obj_id, is_pht, only_exists=False):
 			return False, None, None, None, None
 
 
-#TODO - showing voting history in user profiles (alongwith new user profile buttons)
-def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
-	"""
-	Saves user's voting history
-
-	The history is used for:
-	i) Displaying voting deeds to the users
-	ii) Calculating a Bayesian affinity to discount voting (in case of 'sybil', or 'hater' behavior)
-	"""
-	
-	voter_id, target_obj_id, target_user_id = str(voter_id), str(target_obj_id), str(target_user_id)
-	voter_target_id = voter_id+":"+target_user_id
-	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	if is_reversion:
-		# handling voting reversion
-		prev_vote_value = '0' if vote_value == '1' else '1'
-		if vote_value == '1':
-			prev_vote_value = '0'
-			voter_target_key = ALL_DVOTES_TO_TGT_USERS+voter_target_id
-			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
-			amnt = 1
-		else:
-			prev_vote_value = '1'
-			voter_target_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id
-			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
-			amnt = -1
-		payload = voter_target_id+":"+prev_vote_value+":"+obj_type+":"+target_obj_id
-		my_server.zrem(voter_target_key, target_obj_id)
-		my_server.zrem(voter_vote_key, payload)
-		my_server.zrem(GLOBAL_VOTES_AND_TIMES, payload)
-	else:
-		if vote_value == '1':
-			voter_target_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id
-			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
-			amnt = 1
-		else:
-			voter_target_key = ALL_DVOTES_TO_TGT_USERS+voter_target_id
-			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
-			amnt = -1
-		payload = voter_target_id+":"+vote_value+":"+obj_type+":"+target_obj_id
-		my_server.zadd(GLOBAL_VOTES_AND_TIMES, payload, voting_time)# for trimming
-		my_server.zadd(voter_vote_key, payload, voting_time)# for display to voter
-		my_server.zadd(voter_target_key, target_obj_id, voting_time)# for Bayesian calculation (lacking all_upvotes, all_downvotes)
-	my_server.zincrby(VOTER_AFFINITY, voter_target_id, amount=amnt)
-
-
 def cleanse_voting_records():
 	"""
-	Delete all voting data older than 1 month
+	Delete various voting data according to pre-set criteria
 
-	Called by a scheduled task every 24 hrs
+	Deletion criteria is:
+	(i) delete all records of 'voting data' older than 1 month
+	(ii) delete 'voting affinity' trackers older than 2 months
+	(iii) delete 'voting relationship' logs useful for super-defenders after 3 months
 	"""
-	one_month_ago = time.time() - ONE_MONTH
+	time_now = time.time()
+	one_month_ago = time_now - ONE_MONTH
 	my_server = redis.Redis(connection_pool=POOL)
 	voting_data_older_than_one_month = my_server.zrangebyscore(GLOBAL_VOTES_AND_TIMES,'-inf',one_month_ago)
 	if voting_data_older_than_one_month:
 		voter_uvote_set, voter_dvote_set, voter_tgt_uvote_set, voter_tgt_dvote_set = set(), set(), set(), set()
 		for vote_data in voting_data_older_than_one_month:
-			# vote_data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_id
+			# vote_data contains: voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_id
 			data_list = vote_data.split(":")
 			voter_id, target_user_id, vote_value, target_obj_id = data_list[0], data_list[1], data_list[2], data_list[3]
 			voter_target_id = voter_id+":"+target_user_id
@@ -414,17 +383,37 @@ def cleanse_voting_records():
 			else:
 				voter_dvote_set.add(voter_id)
 				voter_tgt_dvote_set.add(voter_target_id)
+		
 		pipeline1 = my_server.pipeline()
 		for voter_id in list(voter_uvote_set):
 			pipeline1.zremrangebyscore(VOTER_UVOTES_AND_TIMES+voter_id,'-inf',one_month_ago)
 		for voter_id in list(voter_dvote_set):
 			pipeline1.zremrangebyscore(VOTER_DVOTES_AND_TIMES+voter_id,'-inf',one_month_ago)
 		for voter_target_id in list(voter_tgt_uvote_set):
-			pipeline1.zremrangebyscore(ALL_UVOTES_TO_TGT_USERS+voter_target_id,'-inf',one_month_ago)
+			pipeline1.zremrangebyscore(ALL_UVOTES_TO_TGT_USER+voter_target_id,'-inf',one_month_ago)
 		for voter_target_id in list(voter_tgt_dvote_set):
-			pipeline1.zremrangebyscore(ALL_DVOTES_TO_TGT_USERS+voter_target_id,'-inf',one_month_ago)
+			pipeline1.zremrangebyscore(ALL_DVOTES_TO_TGT_USER+voter_target_id,'-inf',one_month_ago)
 		pipeline1.zremrangebyscore(GLOBAL_VOTES_AND_TIMES,'-inf',one_month_ago)
 		pipeline1.execute()
+	###################################################################################
+	two_months_ago = time_now - TWO_MONTHS
+	# these sets are used to 'mark' voting relationships that are suspect and must have their Bayesian probs calculated
+	uvoting_relationships_started_two_months_ago = my_server.zrangebyscore(UVOTER_AFFINITY_TRUNCATOR, '-inf',two_months_ago)
+	if uvoting_relationships_started_two_months_ago:
+		my_server.zrem(UVOTER_AFFINITY,*uvoting_relationships_started_two_months_ago)
+		my_server.zremrangebyscore(UVOTER_AFFINITY_TRUNCATOR,'-inf',two_months_ago)
+
+	dvoting_relationships_started_two_months_ago = my_server.zrangebyscore(DVOTER_AFFINITY_TRUNCATOR, '-inf',two_months_ago)
+	if dvoting_relationships_started_two_months_ago:
+		my_server.zrem(DVOTER_AFFINITY,*dvoting_relationships_started_two_months_ago)
+		my_server.zremrangebyscore(DVOTER_AFFINITY_TRUNCATOR,'-inf',two_months_ago)
+	###################################################################################
+	three_months_ago = time_now - THREE_MONTHS
+	# this set is used to report a list of sybils/haters to super defenders - it truncated relationships that are inactive for 3 months
+	old_logged_voting_relationships = my_server.zrangebyscore(VOTING_RELATIONSHIP_LOG_TRUNCATOR,'-inf',three_months_ago)
+	if old_logged_voting_relationships:
+		my_server.zrem(VOTING_RELATIONSHIP_LOG, *old_logged_voting_relationships)
+		my_server.zremrangebyscore(VOTING_RELATIONSHIP_LOG_TRUNCATOR,'-inf',three_months_ago)
 
 
 def retrieve_global_voting_records(start_idx=0, end_idx=-1):
@@ -447,55 +436,6 @@ def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, wit
 		return voting_data, my_server.zcard(voter_key)
 	else:
 		return voting_data
-
-def calculate_bayesian_affinity(vote_value, voter_id, target_user_id, my_server=None):
-	"""
-	Calculates the Bayesian probability of a voter being a sybil of a target user (or a 'hater')
-
-	The formula is as follows:
-	P(sybil|upvote) = (P(upvote|sybil)*P(sybil))/P(upvote)
-	where:
-	- P(upvote|sybil) is 100% (by definition)
-	- P(sybil) is calculated via (num_net_upvotes_given_to_target_user_id/total_votes_cast)
-	- num_net_upvotes_given_to_target_user_id = upvotes - downvotes
-	- P(upvote) is (P(sybil,upvoted)+P(non-sybil,upvoted)) - ',' means AND
-
-	TODO: If less than 10 votes cast by user don't calculate this at all
-	"""
-	voter_id, target_user_id = str(voter_id), str(target_user_id)
-	voter_target_id = voter_id+":"+target_user_id
-	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	upvote_key, downvote_key = ALL_UVOTES_TO_TGT_USERS+voter_target_id, ALL_DVOTES_TO_TGT_USERS+voter_target_id
-	uvotes_to_tgt = my_server.zcard(upvote_key)
-	dvotes_to_tgt = my_server.zcard(downvote_key)
-	if vote_value == '1':
-		# only proceed if upvotes are greater than downvotes - otherwise this voter isn't upvoting target because of a bias
-		if uvotes_to_tgt > dvotes_to_tgt:
-			all_upvotes = my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id)
-			all_downvotes = my_server.zcard(VOTER_DVOTES_AND_TIMES+voter_id)
-			all_votes = all_upvotes+all_downvotes
-			numerator = ((uvotes_to_tgt - dvotes_to_tgt)*1.0)/all_votes
-			denominator = numerator + ((1-numerator)*((all_upvotes*1.0)/all_votes))
-			if denominator:
-				return numerator/denominator
-			else:
-				return 0.0
-		else:
-			return 0.0
-	else:
-		# only proceed if downvotes are greater than upvotes - otherwise this voter isn't downvoting target because of a bias
-		if dvotes_to_tgt > uvotes_to_tgt:
-			all_upvotes = my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id)
-			all_downvotes = my_server.zcard(VOTER_DVOTES_AND_TIMES+voter_id)
-			all_votes = all_upvotes+all_downvotes
-			numerator = ((dvotes_to_tgt - uvotes_to_tgt)*1.0)/all_votes
-			denominator = numerator + ((1-numerator)*((all_downvotes*1.0)/all_votes))
-			if denominator:
-				return numerator/denominator
-			else:
-				return 0.0
-		else:
-			return 0.0
 
 
 def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, revert_prev, is_pht, time_of_vote, target_user_id, \
@@ -1255,10 +1195,361 @@ def is_obj_trending(prefix, obj_id, with_trending_time=False):
 
 
 ####################################################################################################
-####################################################################################################
+################################# Bayesian voting calculations #####################################
 ####################################################################################################
 
 
+def retrieve_users_voting_relationships(target_user_id):
+	"""
+	Used to populate list of potential sybils/haters for super-defenders
+
+	Uses the set called VOTING_RELATIONSHIP_LOG and VOTER_AFFINITY_HASH to generate said reports
+	"""
+	target_user_id = str(target_user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	cached_data = my_server.get(CACHED_VOTING_RELATIONSHIP+target_user_id)
+	if cached_data:
+		return json.loads(cached_data)
+	else:
+		voting_relationships = my_server.zrangebyscore(VOTING_RELATIONSHIP_LOG,target_user_id,target_user_id)
+		if voting_relationships:
+			# return list of dictionaries
+			final_data, voters = [], []
+			pipeline1 = my_server.pipeline()
+			for voter_target_pair in voting_relationships:
+				voters.append(voter_target_pair.split(":")[0])
+				pipeline1.hgetall(VOTER_AFFINITY_HASH+voter_target_pair)
+			result1, counter = pipeline1.execute(), 0
+			if result1:
+				voter_cred_dict = retrieve_bulk_credentials(voters,decode_unames=True)
+				for voter_target_pair in voting_relationships:
+					voter_id, data = voters[counter], result1[counter]
+					if data:
+						# only collate data if VOTER_AFFINITY_HASH existed
+						last_vote_time = data['vt']
+						raw_bayes_data = json.loads(data['blob'])
+						prob_p0 = float(data.get('p0',0))
+						prob_p1 = float(data.get('p1',0))
+						if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+							# relates to downvotes
+							tup = (voter_id, voter_cred_dict[int(voter_id)]['uname'], voter_cred_dict[int(voter_id)]['avurl'], 0, prob_p0, \
+								last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
+							final_data.append(tup)
+						elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+							# relates to upvotes
+							tup = (voter_id, voter_cred_dict[int(voter_id)]['uname'], voter_cred_dict[int(voter_id)]['avurl'], 1, prob_p1, \
+								last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
+							final_data.append(tup)
+					counter += 1
+				if final_data:
+					final_data.sort(key=itemgetter(3,4,5),reverse=True)
+					my_server.setex(CACHED_VOTING_RELATIONSHIP+target_user_id,json.dumps(final_data),TWENTY_MINS)
+				return final_data
+			else:
+				return []
+		else:
+			return []
+
+
+def apply_bayesian_voting_discount_policy(computed_bayes_prob):
+	"""
+	Computes discount to apply based on computed bayes prob of sybil/enemy, and the pre-decided BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING
+	"""
+	if computed_bayes_prob >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+		return 1#fully discounted
+	else:
+		return 0#not discounted at all
+
+
+def retrieve_voting_affinity(voter_id, target_user_id, vote_type):
+	"""
+	Retrieve pre-calculated voting affinity between voter and target
+	"""
+	affinity_key = VOTER_AFFINITY_HASH+str(voter_id)+":"+str(target_user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	bayes_prob = my_server.hget(affinity_key,'p'+vote_type)
+	if bayes_prob is None:
+		return 0
+	else:
+		# extend TTL of the saved affinity
+		my_server.expire(affinity_key,THREE_MONTHS)
+		bayes_prob = float(bayes_prob)
+		return apply_bayesian_voting_discount_policy(bayes_prob)
+
+
+def calculate_bayesian_affinity(suspected_affinity, voter_and_target_data):
+	"""
+	'suspected_affinity' can be 'upvote' or 'downvote'
+
+	The formula is as follows:
+	P(sybil|upvote) = (P(upvote|sybil)*P(sybil))/P(upvote)
+	where:
+	- P(upvote|sybil) is 100% (by definition)
+	- P(sybil) is calculated via (num_net_upvotes_given_to_target_user_id/total_votes_cast)
+	- num_net_upvotes_given_to_target_user_id = upvotes - downvotes
+	- P(upvote) is (P(sybil,upvoted)+P(non-sybil,upvoted)) - ',' means AND
+	"""
+	if suspected_affinity == 'upvote':
+		suspected_vote_type_keyname, other_vote_type_keyname, suspected_vote_to_tgt_keyname, other_vote_to_tgt_keyname = 'tuv', 'tdv',\
+		'uv', 'dv'
+	elif suspected_affinity == 'downvote':
+		suspected_vote_type_keyname, other_vote_type_keyname, suspected_vote_to_tgt_keyname, other_vote_to_tgt_keyname = 'tdv', 'tuv',\
+		'dv', 'uv'
+	final_result = []
+	rels_of_interest_list = voter_and_target_data.keys()
+	for voter_and_target in rels_of_interest_list:
+		# voter_and_target_data is a dictionary of dictionaries
+		vote_data_of_interest = voter_and_target_data[voter_and_target]
+		suspected_votes_of_interest, other_votes_of_interest = vote_data_of_interest[suspected_vote_type_keyname], vote_data_of_interest[other_vote_type_keyname]
+		suspected_votes_to_tgt, other_votes_to_tgt = vote_data_of_interest[suspected_vote_to_tgt_keyname], vote_data_of_interest[other_vote_to_tgt_keyname]
+		if suspected_votes_to_tgt <= other_votes_to_tgt:
+			# what we're suspecting is definitely not true
+			final_result.append((voter_and_target, 0.0, json.dumps(vote_data_of_interest)))
+		else:
+			# what we're suspecting might be true
+			all_votes = suspected_votes_of_interest+other_votes_of_interest
+			numerator = ((suspected_votes_to_tgt - other_votes_to_tgt)*1.0)/all_votes
+			denominator = numerator + ((1-numerator)*((suspected_votes_of_interest*1.0)/all_votes))
+			bayesian_prob = numerator/denominator
+			final_result.append((voter_and_target, bayesian_prob, json.dumps(vote_data_of_interest)))# list of tuples [(pair, bayes_prob, suspected_affinity, json_data),...]
+	return final_result
+
+
+
+def retrieve_voter_target_action_count(voter_target_list, vote_type, my_server=None):
+	"""
+	For each voter:target pair, we need 'upvotes to target', 'downvotes to target', 'all upvotes' and 'all downvotes'
+
+	Once retrieved, this information is used to calculate Bayesian voting affinities
+	"""
+	if voter_target_list:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		###########################################
+		pipeline0 = my_server.pipeline()
+		for voter_and_target in voter_target_list:
+			voter_id = voter_and_target.split(":")[0]
+			voter_uvote_key, voter_dvote_key = VOTER_UVOTES_AND_TIMES+voter_id, VOTER_DVOTES_AND_TIMES+voter_id
+			pipeline0.zrange(voter_uvote_key,-1,-1,withscores=True)
+			pipeline0.zrange(voter_dvote_key,-1,-1,withscores=True)
+			pipeline0.hget(VOTER_AFFINITY_HASH+voter_and_target,'vt')
+		result0, counter, voting_and_calc_times = pipeline0.execute(), 0, []
+		# result0 is a list containig [latest_upvote_time1, latest_downvote_time2, voting_affinity_hash3, ...]
+		# reorganizing result0 for ease of access
+		for voter_and_target in voter_target_list:
+			latest_uvote_tup = result0[counter]
+			if latest_uvote_tup:
+				latest_uvote_time = latest_uvote_tup[0][1] if latest_uvote_tup[0] else 0.0
+			else:
+				# the tup doesn't exist - this person never upvoted (or their set is truncated)
+				latest_uvote_time = 0
+			latest_dvote_tup = result0[counter+1]
+			if latest_dvote_tup:
+				latest_dvote_time = latest_dvote_tup[0][1] if latest_dvote_tup[0] else 0.0
+			else:
+				# the tup doesn't exist - this person never downvoted (or their set has been truncated)
+				latest_dvote_time = 0
+			latest_vote_time = max(latest_uvote_time,latest_dvote_time)
+			prev_last_vote_time = float(result0[counter+2]) if result0[counter+2] else 0.0
+			voting_and_calc_times.append((latest_vote_time, prev_last_vote_time))# this list of tuples is used in the following code (instead of the rather raw result0)
+			counter += 3
+		
+		# for voter_and_target where 'last vote time' is the same as it was in the previous instance (i.e. prev last vote time), do nothing!
+		counter, active_voter_target_list, inactive_voter_target_list, last_vote_times = 0, [], [], {}
+		for voter_and_target in voter_target_list:
+			last_vote_time = voting_and_calc_times[counter][0]
+			prev_last_vote_time = voting_and_calc_times[counter][1]
+			if last_vote_time != prev_last_vote_time:
+				# something has changed since last time this person's VOTER_AFFINITY_HASH was calculated
+				active_voter_target_list.append(voter_and_target)
+				last_vote_times[voter_and_target] = last_vote_time
+			else:
+				inactive_voter_target_list.append((voter_and_target,last_vote_time))
+			counter += 1
+		
+		# all those who reverted at least 1 vote (upvote or downvote) in the last 6 hours
+		latest_reverted_rels_and_times = my_server.zrange(LATEST_REVERSION_TIMES,0,-1,withscores=True)
+		latest_reverted_rels = [reverted_rel for reverted_rel,times in latest_reverted_rels_and_times]
+
+		# scan inactive voters for reverted votes - because it's possible they were active (but in reverting votes, not casting votes!)
+		if inactive_voter_target_list:
+			
+			# all those who reverted a vote, AND also were flagged by uvaf/dvaf
+			inactive_voter_targets_with_reversion = [(voter_and_target, last_vote_time) for voter_and_target, last_vote_time \
+			in inactive_voter_target_list if voter_and_target in latest_reverted_rels]
+
+			if inactive_voter_targets_with_reversion:
+				
+				latest_reverted_rels_and_times_dict = dict(latest_reverted_rels_and_times)
+
+				for voter_and_target, last_vote_time in inactive_voter_targets_with_reversion:
+					time_of_reversion = latest_reverted_rels_and_times_dict[voter_and_target]
+					if time_of_reversion > last_vote_time:
+						active_voter_target_list.append(voter_and_target)
+						last_vote_times[voter_and_target] = time_of_reversion
+			
+		# cleansing all reverted-vote-times so that they aren't called up again in the next calculation
+		my_server.delete(LATEST_REVERSION_TIMES)
+
+		# deleting all VOTER_AFFINITY_HASHes of vote reverters. If any voting relationships are sturdy enough - they are about to be recaclulated anyway
+		if latest_reverted_rels:
+			hashes_to_delete, pairs_to_remove = [], []
+			for voter_and_target in latest_reverted_rels:
+				pairs_to_remove.append(voter_and_target)
+				hashes_to_delete.append(VOTER_AFFINITY_HASH+voter_and_target)
+			my_server.execute_command('UNLINK', *hashes_to_delete)# using 'UNLINK' (non-blocking) instead of 'DELETE' (blocking)
+			my_server.zrem(VOTING_RELATIONSHIP_LOG,*pairs_to_remove)
+			my_server.zrem(VOTING_RELATIONSHIP_LOG_TRUNCATOR,*pairs_to_remove)
+
+		###########################################
+
+		if active_voter_target_list:
+			pipeline1 = my_server.pipeline()
+			for voter_and_target in active_voter_target_list:
+				voter_id = voter_and_target.split(":")[0]
+				pipeline1.zcard(VOTER_UVOTES_AND_TIMES+voter_id)
+				pipeline1.zcard(VOTER_DVOTES_AND_TIMES+voter_id)
+			result1, counter, rels_of_interest = pipeline1.execute(), 0, {}
+			for voter_and_target in active_voter_target_list:
+				if result1[counter]+result1[counter+1] >= MEANINGFUL_VOTING_SAMPLE_SIZE:
+					rels_of_interest[voter_and_target] = {'tuv':result1[counter],'tdv':result1[counter+1]}
+				counter += 2
+			pipeline2, rels_to_process = my_server.pipeline(), {}
+			if rels_of_interest:
+				rels_of_interest_list = rels_of_interest.keys()
+				for voter_and_target in rels_of_interest_list:
+					pipeline2.zcard(ALL_UVOTES_TO_TGT_USER+voter_and_target)
+					pipeline2.zcard(ALL_DVOTES_TO_TGT_USER+voter_and_target)
+				result2, counter = pipeline2.execute(), 0
+				for voter_and_target in rels_of_interest_list:
+					if result2[counter]+result2[counter+1] >= NUM_VOTES_TO_TGT:
+						rels_to_process[voter_and_target] = {'uv':result2[counter], 'dv':result2[counter+1], 'tuv':rels_of_interest[voter_and_target]['tuv'],\
+						'tdv':rels_of_interest[voter_and_target]['tdv']}
+					counter += 2
+			
+			return rels_to_process, last_vote_times
+		else:
+			return {}, {}
+	else:
+		return {}, {}
+
+
+def study_voting_preferences():
+	"""
+	Calculates the Bayesian probability of a voter being a sybil of a target user (or a 'hater')
+
+	Uses the UVOTER_AFFINITY/DVOTER_AFFINITY ("uvaf/dvaf") sorted sets to target which users the following needs to be calculated for:
+
+	Benchmarks:
+	- Exempt all those who have cast less than 5 votes to tgt (and don't have 'prior' affinity towards the target)
+	- Exempt all those who have cast less than 10 votes overall (and don't have 'prior' affinity towards the target)
+	- If 'prior' affinity exists, update it upon recalculation. But only recalculate if the data has changed from last time, otherwise not
+	- If affinity >= 50%, tag it as a 'probable' sybil
+	- If affinity >= 30%, tag it as a 'suspected' sybil
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	# step 1: isolate voting 'relationships' (i.e. voter_id:target_id pairs) to assess, according to how much score has accrued to the target user (by a specific voter)
+	uvote_rels_to_study = my_server.zrangebyscore(UVOTER_AFFINITY,UPPER_RELATIONSHIP_UVOTE_CUTOFF,'+inf')# 5 to '+inf'
+	dvote_rels_to_study = my_server.zrangebyscore(DVOTER_AFFINITY,UPPER_RELATIONSHIP_DVOTE_CUTOFF,'+inf')# 5 to '+inf'
+	# step 2: retrieve all metrics required to compute Bayesian affinities for each voter:target_user pair isolated in step 1
+	uvote_pair_data, last_uvote_pair_update_times = retrieve_voter_target_action_count(voter_target_list=uvote_rels_to_study, vote_type='uvote', \
+	my_server=my_server)# returns a dict of dict where voter:target_user is the 'key'
+	dvote_pair_data, last_dvote_pair_update_times = retrieve_voter_target_action_count(voter_target_list=dvote_rels_to_study, vote_type='dvote', \
+	my_server=my_server)# returns a dict of dict where voter:target_user is the 'key'
+	# step 3: calculate_bayesian_affinity for each qualifying voter:target_user relationship
+	uvote_rels_affinities = calculate_bayesian_affinity(suspected_affinity='upvote', voter_and_target_data=uvote_pair_data) if uvote_pair_data else []
+	dvote_rels_affinities = calculate_bayesian_affinity(suspected_affinity='downvote', voter_and_target_data=dvote_pair_data) if dvote_pair_data else []
+
+	# step 4: save the affinities in redis, and set expiry to THREE_MONTHS
+	pipeline1, voting_relationship_logger = my_server.pipeline(), []
+	if uvote_rels_affinities:
+		for voter_target_pair, bayes_prob, json_vote_metrics in uvote_rels_affinities:
+			key_name, last_vote_time = VOTER_AFFINITY_HASH+voter_target_pair, last_uvote_pair_update_times[voter_target_pair]
+			if bayes_prob >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+				voting_relationship_logger.append((voter_target_pair, bayes_prob))
+			pipeline1.hmset(key_name,{'p1':bayes_prob,'vt':last_vote_time,'blob':json_vote_metrics})#'vt' and 'blob' are common, but p1 and p0 are saved separately
+			pipeline1.expire(key_name,THREE_MONTHS)
+	if dvote_rels_affinities:
+		for voter_target_pair, bayes_prob, json_vote_metrics in dvote_rels_affinities:
+			key_name, last_vote_time = VOTER_AFFINITY_HASH+voter_target_pair, last_dvote_pair_update_times[voter_target_pair]
+			if bayes_prob >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+				voting_relationship_logger.append((voter_target_pair, bayes_prob))
+			pipeline1.hmset(key_name,{'p0':bayes_prob,'vt':last_vote_time,'blob':json_vote_metrics})
+			pipeline1.expire(key_name,THREE_MONTHS)
+
+	# step 5: log sybils against target users (for ease of look up)
+	if voting_relationship_logger:
+		for voter_target_pair, bayes_prob in voting_relationship_logger:
+			target_user_id = voter_target_pair.split(":")[1]
+			pipeline1.zadd(VOTING_RELATIONSHIP_LOG,voter_target_pair,target_user_id)
+			pipeline1.zadd(VOTING_RELATIONSHIP_LOG_TRUNCATOR,voter_target_pair,time.time())
+	pipeline1.execute()
+
+
+def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, my_server=None):
+	"""
+	Saves user's voting history
+
+	The history is used for:
+	i) Displaying voting deeds to the users
+	ii) Calculating a Bayesian affinity to discount voting (in case of 'sybil', or 'hater' behavior)
+	"""
+	
+	voter_id, target_obj_id, target_user_id = str(voter_id), str(target_obj_id), str(target_user_id)
+	voter_target_id = voter_id+":"+target_user_id
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if is_reversion:
+		# handling voting reversion
+		prev_vote_value = '0' if vote_value == '1' else '1'
+		if vote_value == '1':
+			prev_vote_value = '0'
+			voter_target_key = ALL_DVOTES_TO_TGT_USER+voter_target_id
+			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
+			affinity_key = DVOTER_AFFINITY
+			truncator_key = DVOTER_AFFINITY_TRUNCATOR
+			amnt = -1
+		else:
+			prev_vote_value = '1'
+			voter_target_key = ALL_UVOTES_TO_TGT_USER+voter_target_id
+			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
+			affinity_key = UVOTER_AFFINITY
+			truncator_key = UVOTER_AFFINITY_TRUNCATOR
+			amnt = -1
+		obj_hash_name = obj_type+":"+target_obj_id
+		payload = voter_target_id+":"+prev_vote_value+":"+obj_hash_name
+		my_server.zrem(voter_target_key, obj_hash_name)
+		my_server.zrem(voter_vote_key, payload)
+		my_server.zrem(GLOBAL_VOTES_AND_TIMES, payload)
+		###########################################################
+		# log the reversion separately
+		my_server.zadd(LATEST_REVERSION_TIMES,voter_target_id,voting_time)
+		###########################################################
+	else:
+		# handling votes
+		if vote_value == '1':
+			voter_target_key = ALL_UVOTES_TO_TGT_USER+voter_target_id
+			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
+			affinity_key = UVOTER_AFFINITY
+			truncator_key = UVOTER_AFFINITY_TRUNCATOR
+			amnt = 1
+		else:
+			voter_target_key = ALL_DVOTES_TO_TGT_USER+voter_target_id
+			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
+			affinity_key = DVOTER_AFFINITY
+			truncator_key = DVOTER_AFFINITY_TRUNCATOR
+			amnt = 1
+		obj_hash_name = obj_type+":"+target_obj_id
+		payload = voter_target_id+":"+vote_value+":"+obj_hash_name
+		my_server.zadd(GLOBAL_VOTES_AND_TIMES, payload, voting_time)# for trimming
+		my_server.zadd(voter_vote_key, payload, voting_time)# for display to voter
+		my_server.zadd(voter_target_key, obj_hash_name, voting_time)# for Bayesian calculation (lacking all_upvotes, all_downvotes)
+	new_score = my_server.zincrby(affinity_key, voter_target_id, amount=amnt)
+	if int(new_score) == 1:
+		# only update the time when the voting relationship is first created 
+		my_server.zadd(truncator_key, voter_target_id, voting_time)
+	elif int(new_score) == 0:
+		# the voting relationship has ended, so just remove it from the truncator and affinity sorted sets
+		my_server.zrem(truncator_key, voter_target_id)
+		my_server.zrem(affinity_key, voter_target_id)
 
 #################################################### Vote banning functionality (defenders) ############################################
 

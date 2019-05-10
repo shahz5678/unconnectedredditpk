@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% load s3 %}
+{% load human_time %}
+{% block content %}
+
+<head><title> Sybils and haters | Damadam.pk</title></head>
+<style>body{background:#f0f3f4}</style>
+
+<h1 class="cxl clb" style="text-align:center">{{ tgt_uname }}'s high-affinity voters:</h1>
+
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px;max-width:600px;width:97%;margin-right:auto;margin-left:auto;text-align:center">
+
+{% for voter_id, voter_uname, voter_avurl, rel_type, rel_prob, last_vote_time, num_uvotes, num_dvotes, total_uvotes, total_dvotes in sybil_data %}
+
+	<ul style="display:inline-block;padding:10px 10px 0 10px;list-style:none;max-width:500px;margin:5px 0">
+		<li style="text-align:left;" class="clb cm lsp sp">
+			<span class="mrs sp cxs cgy">{{ forloop.counter }}.</span><img src="{{ voter_avurl|s3:'thumb' }}" width="22" height="22" style="border-radius:50%">&nbsp;<a href="{% url 'profile' voter_uname 'fotos' %}" class="cb sp cl" style="border-bottom:1px dotted dodgerblue" target="_blank">{{ voter_uname }}</a>
+			{% if rel_type == 1 %}
+				<div class="cg sp lsp">
+					<b>serial upvoter</b>, sybil probability: {% widthratio rel_prob 1 100 %}%, last voted: {{ last_vote_time|human_time }}<br>
+					<span class="cgy cs">upvotes given: {{ num_uvotes }}, downvotes given: {{ num_dvotes }}, total upvotes: {{ total_uvotes }}, total downvotes: {{ total_dvotes }}</span>
+				</div>
+			{% else %}
+				<div class="cr sp lsp">
+					<b>serial downvoter</b>, sybil probability: {% widthratio rel_prob 1 100 %}%, last voted: {{ last_vote_time|human_time }}<br>
+					<span class="cgy cs">downvotes given: {{ num_dvotes }}, upvotes given: {{ num_uvotes}}, total downvotes: {{ total_dvotes}}, total upvotes: {{ total_uvotes }}</span>
+				</div>
+			{% endif %}
+			<hr size=1 COLOR="#f4f4f4">
+		</li>
+	</ul>
+
+{% empty %}
+
+	<div class="cgy lsp sp cxl">
+	- no data logged currently - 
+	</div>
+
+{% endfor %}
+
+<div class="cs cgy sp lsp" style="padding:0 10px;text-align:left">
+<b>Note I:</b> This list is 'cached' for 20 mins every time it is loaded<br>
+<div class="mts"><b>Note II:</b> We reset sybil data after a few months, so there could cases where users who were previously identified as serial upvoters (or downvoters) disappear from the list</div>
+<div class="mts"><b>Note III:</b> Voters whose voting behavior changes may also disappear from the list (i.e. not sybils any more)</div>
+</div>
+
+</div>
+<br><br>
+{% endblock %}

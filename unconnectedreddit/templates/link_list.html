@@ -1,9 +1,7 @@
 {% extends "base.html" %}
-{% load humanize %}
 {% load emoticons_tags %}
 {% load get_item %}
 {% load show_error %}
-{% load human_time %}
 {% load get_photo_object %}
 {% load get_text_object %}
 {% load get_transparent_buttons_js %}
@@ -52,7 +50,7 @@
 	
 	{% if forloop.counter == 2 %}
 
-		<div class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
+		<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
 			<ins class="adsbygoogle"
 			    style="display:inline-block;width:320px;height:100px"
 			    data-ad-client="ca-pub-2568547635306983"
@@ -60,21 +58,20 @@
 			<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
-		</div>
+		</aside>
 
 	{% endif %}
 
 {% endif %}
 
 {% with replyforms|get_item:link.h as replyform %}
-
 	
 {% if link.c == '6' %}
 	
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
@@ -99,7 +96,7 @@
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
 
-	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
+	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
 
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">

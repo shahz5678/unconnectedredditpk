@@ -97,7 +97,7 @@
 	{% else %}
 
 	<div itemscope itemtype="http://schema.org/CreativeWork">
-      {% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin=5 vsc=photo.vote_score upload_time=photo.upload_time|naturaltime oun=photo.owner.username static_url=STATIC_URL show_uname_credentials=False show_report=False %}
+      {% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin=5 vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=photo.owner.username static_url=STATIC_URL show_uname_credentials=False show_report=False %}
 		
 	<div style="text-align:center">
 	<div class="cs cgy sp mbl">posted by&nbsp;<a href="{% url 'profile' photo.owner.username 'fotos' %}" class="cgy">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic" width="22" height="22">{% endif %}&nbsp;<span style="border-bottom:1px dotted gray">{{ photo.owner.username }}</span></a></div>

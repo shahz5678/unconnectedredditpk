@@ -1,7 +1,5 @@
 {% extends "base.html" %}
-{% load humanize %}
 {% load get_photo_object %}
-{% load human_time %}
 {% load show_error %}
 {% load emoticons_tags %}
 {% load get_big_fan_button %}
@@ -42,7 +40,7 @@
 	{% if not fbs and forloop.counter == 3 %}
 
 		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-		<div class="mbl" style="text-align:center;background:#f0f3f4">
+		<aside class="mbl" style="text-align:center;background:#f0f3f4">
 			<ins class="adsbygoogle"
 			     style="display:block"
 			     data-ad-format="fluid"
@@ -52,14 +50,14 @@
 			<script>
 			     (adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
-		</div>
+		</aside>
 
 	{% endif %}
 
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 	
-	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=1 upload_time=photo.t|human_time vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
+	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=1 upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
 
 	<div class="mls">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">

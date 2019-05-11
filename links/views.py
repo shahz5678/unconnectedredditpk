@@ -264,21 +264,21 @@ def valid_uuid(uuid):
 
 
 def beautiful_date(epoch_time, format_type='1'):
-    """
-    Provides human readable date, beautilfully formatted
+	"""
+	Provides human readable date, beautilfully formatted
 
-    Format type is:
+	Format type is:
 
-    i) '10:23 AM - 30 Nov 2015'
-    """
-    if format_type == '1':
-        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%a %I:%M %p - %d %b")# gives "Sun 03:39 PM - 05 May"
-    elif format_type == '2':
-        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%Y-%m-%d %I:%M:%S %p")# gives YYYY-MM-DDThh:mm:ssTZD
-    elif format_type == '3':
-        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p, %a - %d %b %Y")# gives "03:39 PM, Sun - 05 May 2019"
-    else:
-        return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p %d-%m-%Y")# gives "05-05-2019 03:39 PM"
+	i) '10:23 AM - 30 Nov 2015'
+	"""
+	if format_type == '1':
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%a %I:%M %p - %d %b")# gives "Sun 03:39 PM - 05 May"
+	elif format_type == '2':
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%Y-%m-%d %I:%M:%S %p")# gives YYYY-MM-DDThh:mm:ssTZD
+	elif format_type == '3':
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p, %a - %d %b %Y")# gives "03:39 PM, Sun - 05 May 2019"
+	else:
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p %d-%m-%Y")# gives "05-05-2019 03:39 PM"
 
 
 def format_post_times(list_of_dictionaries, with_machine_readable_times=False):
@@ -4222,18 +4222,17 @@ def unseen_group(request, pk=None, *args, **kwargs):
 				if form.is_valid():
 					desc1, desc2 = form.cleaned_data.get("public_group_reply"), form.cleaned_data.get("private_group_reply")
 					description = desc1 if desc1 else desc2
-					# groupreply = Reply.objects.create(writer_id=user_id, which_group_id=pk, text=description)#,device=device)
-					reply_time = time.time()#convert_to_epoch(groupreply.submitted_on)
+					reply_time = time.time()
 					invalidate_cached_mehfil_replies(pk)
 					group_attendance_tasks.delay(group_id=pk, user_id=user_id, time_now=reply_time)
 					if grp["p"] == '1':
 						set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='priv_mehfil'
-						UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
+						# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 					else:
 						set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='public_mehfil'
-						UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+						# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 					
 					#######################################################
 					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=None, posting_time=reply_time,\

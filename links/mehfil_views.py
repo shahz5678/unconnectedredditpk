@@ -46,7 +46,7 @@ from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteFo
 ChangeGroupTopicForm, ChangeGroupRulesForm, ClosedGroupHelpForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
 OpenGroupCreateForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
 
-from score import PRIVATE_GROUP_MESSAGE, PUBLIC_GROUP_MESSAGE, POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST,\
+from score import PRIVATE_GROUP_COST,\
 PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, GROUP_FEEDBACK_SIZE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
 MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, PUBLIC_GROUP_MAX_SELLING_PRICE, USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED,\
 GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_MIN_SELLING_PRICE, GROUP_MEMBERS_PER_PAGE, GROUP_VISITORS_PER_PAGE, PRIVATE_GROUP_MAX_MEMBERSHIP,\
@@ -2354,9 +2354,9 @@ def group_hide_submission(request, *args, **kwargs):
 				# hide the submission:
 				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk)#hides group submission and returns writer ID by default
 				if action_successful:
-					if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-						# cut points only if the writer was NOT a group owner or a group officer
-						UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
+					# if not is_group_officer(gid,writer_id) and owner_id != writer_id:
+					#     # cut points only if the writer was NOT a group owner or a group officer
+					#     UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
@@ -2389,9 +2389,9 @@ def group_hide_submission(request, *args, **kwargs):
 					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide':True,'unique':data['u'],'is_public':True,\
 						'ttl':ttl})
 				elif action_successful:
-					if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-						# return points only if the writer was NOT a group owner or a group officer
-						UserProfile.objects.filter(user_id=writer_id).update(score=F('score')+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
+					# if not is_group_officer(gid,writer_id) and owner_id != writer_id:
+					#     # return points only if the writer was NOT a group owner or a group officer
+					#     UserProfile.objects.filter(user_id=writer_id).update(score=F('score')+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
@@ -3290,7 +3290,7 @@ class PrivateGroupView(FormView):
 							uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
 					else: 
 						uploaded_img_loc = None
-					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
+					# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 					time_now = time.time()
 					set_input_rate_and_history.delay(section='prv_grp',section_id=group_id,text=text,user_id=user_id,time_now=time_now)
 					# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=text, image='')
@@ -3563,7 +3563,7 @@ class PublicGroupView(FormView):
 						uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
 				else: 
 					uploaded_img_loc = None
-				UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+				# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 				topic = group_data['tp']
 				invalidate_cached_mehfil_replies(group_id)
 				invalidate_presence(group_id)
@@ -5007,7 +5007,7 @@ class DirectMessageCreateView(FormView):
 					else:
 						topic, unique = invitee+" se gupshup", str(uuid.uuid4())
 						group_id, created_at = get_group_id(), time.time()
-						UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PRIVATE_GROUP_COST)
+						# UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PRIVATE_GROUP_COST)
 						reply_time = created_at+1
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						###################

@@ -18,7 +18,7 @@ from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, T
 Video, HotUser, PhotoStream, HellBanList, UserFan
 #from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
-queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
+queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, \
 set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date, calculate_world_age_discount
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
@@ -42,7 +42,7 @@ retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
-queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records
+queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, study_voting_preferences
 #from redis8 import set_section_wise_retention
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -324,17 +324,15 @@ def upload_ecomm_photo(photo_id, user_id, ad_id):
 	# insert_hash(photo_id, avghash, 'ecomm') #perceptual hash of the item photo
 	save_used_item_photo(user_id, ad_id, photo_id)
 
-# schedule this every 2.5 hours
 @celery_app1.task(name='tasks.sanitize_unused_ecomm_photos')
-def sanitize_unused_ecomm_photos(photo_ids=None):
-	if not photo_ids:
-		photo_ids = del_orphaned_classified_photos()
-	if photo_ids:
-		# deleting model objects
-		qset = Photo.objects.filter(id__in=photo_ids)
-		images_and_hashes = qset.values_list('image_file','avg_hash')#flat=True)
-		image_names, avg_hashes= zip(*images_and_hashes)
-		qset.delete()
+def sanitize_unused_ecomm_photos():
+    """
+    Scans all votes given by users and calculates sybil affinities via a Bayesian calculation
+
+    Scheduled to run every 6 hours
+    Mislabelled for legacy reasons
+    """
+    study_voting_preferences()
 
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')

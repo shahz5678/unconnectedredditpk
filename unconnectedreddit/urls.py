@@ -179,7 +179,7 @@ urlpatterns = patterns('',
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/$', auth(photo_redirect), name='redirect_to_photo'),
 	url(r'^photo/top-trenders/$', auth(photo_top_trenders), name='top_photo'),
 	url(r'^photo/top-trenders/help/$', auth(top_photo_help), name='top_photo_help'),
-	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', auth(photo_page), name='photo'),
+	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', photo_page, name='photo'),
 	###################################################################################
 	# url(r'^freshphotos/$', photo_list, name='photo'),
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),

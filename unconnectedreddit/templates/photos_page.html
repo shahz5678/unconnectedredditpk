@@ -21,7 +21,7 @@
 	<meta property="og:description" content="Funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes from all over Pakistan!">
 	<meta property="fb:app_id" content="1758220174446684" />
 	<meta name="author" content="hb">
-	<meta name="keywords" content="damadam, photos, sad poetry, urdu poetry, urdu memes, jokes, funny, boys, girls, poetry, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
+	<meta name="keywords" content="photos, sad poetry, urdu poetry, urdu memes, jokes, funny, girls, poetry, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 	
 	{% if feed_type == 'fresh_photos' %}
 		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan| Damadam</title>
@@ -150,7 +150,7 @@
 				<div class="mls">
 
 					<section style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% big_vote_button vote_type='photo_vote' obid=photo.i origin=page_origin net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL %}
+						{% big_vote_button vote_type='photo_vote' obid=photo.i origin=page_origin net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL visible=is_auth %}
 						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
 						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
 						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
@@ -159,7 +159,7 @@
 					</section>
 
 					<section>
-						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin score=score %}
+						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin %}
 					</section>
 
 					<section class="mts mrs mbl">

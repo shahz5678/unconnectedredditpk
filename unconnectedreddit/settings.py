@@ -389,7 +389,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.sanitize_unused_ecomm_photos': {
 		'task': 'tasks.sanitize_unused_ecomm_photos',
-		'schedule': timedelta(seconds=15*10*60), # execute every 2.5 hours, deletes unused ecomm photos from the S3 bucket
+		'schedule': timedelta(seconds=6*60*60), # execute every 6 hours, re-calculate Bayesian probabilities inherent in user voting
 	},
 	'tasks.expire_classifieds': {
 		'task': 'tasks.expire_classifieds',

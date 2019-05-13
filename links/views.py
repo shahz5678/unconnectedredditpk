@@ -3268,14 +3268,28 @@ def photo_page(request,list_type='best-list'):
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
 		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 		#######################
-		secret_key = str(uuid.uuid4())
-		set_text_input_key(user_id=own_id, obj_id='1', obj_type=type_, secret_key=secret_key)
-		context = {'object_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
-		'is_auth':True,'girls':FEMALES,'ident':own_id,'process_notification':False,'newbie_lang':request.session.get("newbie_lang",None),\
-		'is_mob':True if request.is_phone or request.is_mobile else False,'newbie_flag':request.session.get("newbie_flag",None),\
-		'comment_form':request.session.pop("comment_form",PhotoCommentForm()),"mobile_verified":request.mobile_verified, 'feed_type':type_,\
-		'page_origin':page_origin,'single_notif_origin':single_notif_origin,'score':request.user.userprofile.score,'navbar_type':navbar_type,\
-		'sk':secret_key}
+		if own_id:
+			is_auth = True
+			fanned = bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
+			secret_key = str(uuid.uuid4())
+			set_text_input_key(user_id=own_id, obj_id='1', obj_type=type_, secret_key=secret_key)
+			newbie_lang, newbie_flag = request.session.get("newbie_lang",None), request.session.get("newbie_flag",None)
+			comment_form = request.session.pop("comment_form",PhotoCommentForm())
+			notif_form = request.session.pop("notif_form",UnseenActivityForm())
+			mobile_verified = request.mobile_verified
+		else:
+			is_auth = False
+			fanned = []
+			secret_key = ''
+			newbie_lang, newbie_flag = None, None
+			comment_form = PhotoCommentForm()
+			notif_form = None
+			mobile_verified = None
+		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
+		'ident':own_id, 'newbie_lang':newbie_lang,'is_mob':True if request.is_phone or request.is_mobile else False,\
+		'process_notification':False,'newbie_flag':newbie_flag,'page_origin':page_origin,'sk':secret_key,\
+		'comment_form':comment_form,"mobile_verified":mobile_verified,'single_notif_origin':single_notif_origin,\
+		'feed_type':type_,'navbar_type':navbar_type}#'score':request.user.userprofile.score
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -3286,8 +3300,8 @@ def photo_page(request,list_type='best-list'):
 		context["sort_by"] = 'recent'
 		#####################
 		context["fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		context["notif_form"] = request.session.pop("notif_form",UnseenActivityForm())
-		if not request.user_banned:
+		context["notif_form"] = notif_form
+		if own_id and not request.user_banned:
 			context["process_notification"] = True
 			context["photo_direct_reply_error_string"] = request.session.pop("photo_direct_reply_error_string",None)
 		return render(request,"photos_page.html",context)

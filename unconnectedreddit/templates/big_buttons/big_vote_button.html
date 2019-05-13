@@ -1,6 +1,8 @@
+{% if visible %}
 <form action="{% url 'cast_vote' %}" class="fx fxjsfs" style="margin-bottom:4px;margin-right:4px;padding:0" method="POST">
 {% csrf_token %}
 	<button name="vote" class="vbtn vt" style="width:50px;height:42px;font-size:8.2px;border-top-right-radius:0;border-bottom-right-radius:0;border-right:none;text-align:center;border-color:{{ border_color }}" value="1:{{ obid }}:{{ ooid }}:{{ is_pht }}:{{ from }}"><img src="{{ static_url }}img/jhappi_emoji.png" width="20" height="20"><div style="color:{{ font_color }}">JHAPPI</div></button>
 	<button name="vote" class="vt" style="width:50px;height:42px;font-size:8.2px;border-radius:0;border:1px solid {{ border_color }};border-right:1px dotted {{ border_color }};border-left:1px dotted {{ border_color }};text-align:center;color:{{ pts_color }}" value="2:{{ obid }}:{{ ooid }}:{{ is_pht }}:{{ from }}"><div class="mt mbs cxl">{% if net_votes > 999 %}999+{% elif net_votes < -999 %}-999{% else %}{{ net_votes }}{% endif %}</div><div class="mt">{% if net_votes == 1 %}POINT{% else %}POINTS{% endif %}</div></button>
 	<button value="0:{{ obid }}:{{ ooid }}:{{ is_pht }}:{{ from }}" class="vbtn vt" style="width:50px;height:42px;font-size:8.2px;border-left:none;border-top-left-radius:0;border-bottom-left-radius:0;text-align:center;border-color:{{ border_color }}" name="vote"><img src="{{ static_url }}img/chupair_emoji.png" width="20" height="20"><div style="color:{{ font_color }}">CHPAIR</div></button>
 </form>
+{% endif %}

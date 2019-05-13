@@ -24,9 +24,9 @@
 	<meta name="keywords" content="damadam, photos, sad poetry, urdu poetry, urdu memes, jokes, funny, boys, girls, poetry, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 	
 	{% if feed_type == 'fresh_photos' %}
-		<title>Latest Funny, Couple, Sad Poetry, Islamic and Girl Pics from Pakistan| Damadam</title>
+		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan| Damadam</title>
 	{% else %}
-		<title>Best Funny, Couple, Sad Poetry, Islamic and Girl Pics from Pakistan | Damadam</title>
+		<title>The Best Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
 	{% endif %}
 
 	{% if page.has_previous %}
@@ -109,18 +109,33 @@
 		
 			{% if not fbs and forloop.counter == 2 %}
 
-				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-				<aside class="mbl" style="text-align:center;background:#f0f3f4">
-					<ins class="adsbygoogle"
-					     style="display:block"
-					     data-ad-format="fluid"
-					     data-ad-layout-key="-6y+ed+2i-1n-4w"
-					     data-ad-client="ca-pub-2568547635306983"
-					     data-ad-slot="3247177655"></ins>
-					<script>
-					     (adsbygoogle = window.adsbygoogle || []).push({});
-					</script>
-				</aside>
+				{% if feed_type == 'fresh_photos' %}
+					<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+					<aside class="mbl" style="text-align:center;background:#f0f3f4">
+						<ins class="adsbygoogle"
+						     style="display:block"
+						     data-ad-format="fluid"
+						     data-ad-layout-key="-6y+ed+2i-1n-4w"
+						     data-ad-client="ca-pub-2568547635306983"
+						     data-ad-slot="3247177655"></ins>
+						<script>
+						     (adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+					</aside>
+				{% else %}
+					<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+					<aside class="mbl" style="text-align:center;background:#f0f3f4">
+						<ins class="adsbygoogle"
+						     style="display:block"
+						     data-ad-format="fluid"
+						     data-ad-layout-key="-6w+eh+2a-1h-5f"
+						     data-ad-client="ca-pub-2568547635306983"
+						     data-ad-slot="3722448669"></ins>
+						<script>
+						     (adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+					</aside>
+				{% endif %}
 
 			{% endif %}
 

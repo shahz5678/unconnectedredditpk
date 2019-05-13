@@ -1275,7 +1275,7 @@ def home_page(request, lang=None):
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'ident':own_id,\
-	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'score':request.user.userprofile.score,\
+	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,\
 	'random':num,'sk':secret_key,'process_notification':False, 'newbie_flag':request.session.get("newbie_flag",None),\
 	'newbie_lang':request.session.get("newbie_lang",None),"mobile_verified":request.mobile_verified}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\

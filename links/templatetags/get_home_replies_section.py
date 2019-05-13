@@ -4,7 +4,7 @@ from django import template
 register = template.Library()
 
 @register.inclusion_tag(file_name='home_replies_section.html')
-def home_replies_section(raw_replies, static_url, self_user_id, score, home_hash):
+def home_replies_section(raw_replies, static_url, self_user_id, home_hash):
 	if raw_replies:
 		replies, counter = [], 0
 		for payload in reversed(json.loads(raw_replies)):
@@ -13,7 +13,7 @@ def home_replies_section(raw_replies, static_url, self_user_id, score, home_hash
 			if counter >  5:
 				break
 		if replies:
-			return {'replies':replies,'static_url':static_url,'self_user_id':self_user_id, 'score':score, 'possible':True,'home_hash':home_hash} 
+			return {'replies':replies,'static_url':static_url,'self_user_id':self_user_id, 'possible':True,'home_hash':home_hash} 
 		else:
 			return {'possible':False}
 	else:

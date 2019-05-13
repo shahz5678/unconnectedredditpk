@@ -20,7 +20,7 @@ from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComme
 Publicreply, VideoComment
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, prep_image
 from redis6 import is_group_member_and_rules_signatory, human_readable_time, group_member_exists
-from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO
+from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE
 
 
 ########################################### Utilities #######################################
@@ -327,30 +327,6 @@ def clear_zalgo_text(text):
 	return ''.join((c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn'))
 
 
-def to_be_right_aligned(urdu_ratio):
-	"""
-	Returns boolean value to determine text alignment of submitted "Home" string
-	"""
-	if urdu_ratio > RIGHT_ALIGNMENT_THRESHOLD_RATIO:
-		return True
-	else:
-		return False
-
-
-def is_urdu(text):
-	"""
-	Provides a % of how much text is predominantly in "Urdu"
-
-	Can be used to right-align text that is predominantly in Urdu
-	Utilizes the fact that "0600-06FF" and "FB50-FEFF" is the Unicode range for Urdu
-	"""
-	num_urdu_chars, total_chars = 0, len(text)
-	for c in text:
-		if u'\u0600' <= c <= u'\u06FF' or u'\uFB50' <= c <= u'\uFEFF':
-			num_urdu_chars += 1
-	return (num_urdu_chars*1.0)/total_chars
-
-
 ################################################################################################
 
 
@@ -525,7 +501,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 	class Meta:
 		model = Link
-		exclude = ("submitter", "rank_score",)
+		exclude = ("submitter", "rank_score", "cagtegory",)
 		fields = ("image_file", "description",)
 
 	def __init__(self,*args,**kwargs):
@@ -570,10 +546,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 						elif len_ > MAX_HOME_SUBMISSION_SIZE:
 							raise forms.ValidationError('{0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
 						# log_gibberish_writer.delay(user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
-						is_to_be_right_algined = to_be_right_aligned(is_urdu(description))
-						data["cagtegory"] = '2' if is_to_be_right_algined else '1'
 						data["description"] = description#re.sub(r'\n\s*\n', '\n', description)#ensures multiple new-lines are collapsed into 1
-						print data
 						return data
 
 

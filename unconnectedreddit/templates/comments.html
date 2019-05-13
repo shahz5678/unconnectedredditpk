@@ -30,133 +30,146 @@
 
 {% else %}
 
-<head><title>Comments on photo titled {{ photo.caption }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam.pk</title></head>
-<div style="margin: 0 auto;max-width:600px;width:98%">
+    <head><title>Comments on photo titled {{ photo.caption }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam.pk</title></head>
+    <div style="margin: 0 auto;max-width:600px;width:98%">
 
-{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
+    {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
-{% if authorized %}
+    {% if authorized %}
 
-<h1 class="cxl clb lsp" style="text-align:center">{% if target_username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{{ target_username|truncatechars:'13' }}'s foto:</h1>
-<div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
-    
-    <form method="POST" style="overflow:hidden;text-align:center" action="{% url 'redirect_to_content' %}">
-    {% csrf_token %}
-    <input type="hidden" name="obid" value="{{ photo_id }}">
-    <input type="hidden" name="orig" value="{{ origin }}">
-    <input type="hidden" name="lid" value="{{ lid }}">
-    <input type="hidden" name="oun" value="{{ target_username }}">
-    <button type="submit" style="background:0 0;padding:0;border:none;font-size:100%">
-        {% if photo.vote_score < VDC %}
-            <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="photo" style="border-radius:4px" width="38" height="38">
-        {% else %}
-            <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt ibb" style="border:2px solid dodgerblue;width:auto;border-radius:5px">
-            <div style="text-align:center" class="clb cs sp lsp">"{% emoticons %}{{ photo.caption }}{% endemoticons %}"</div>
-        {% endif %}
-    </button>
-    </form>
-
-</div>
-<div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
-
-    {% if banned %}
-        <br><hr size=1 class="co">
-        <span class="clb">Ap tabsra kar sakein ge <b>{{ time_remaining }}</b> ke baad</span>
-        <br>
-        <span class="cs co">Aesa tabsra na likhein jo mahol khrab krey. Photo pasand nahi toh 'bekaar' dabana kafi hai</span>
-        <hr size=1 class="co">
-        <br>
-    {% else %}
-    {% if form.errors %}<div class="cr mbs">{{ form.errors|show_error }}</div>{% else %}<div class="co sp mbs"><b>Tabsra likhein:</b></div>{% endif %}
-    <form class="mt" action="{% url 'comment' photo_id %}" method="POST" style="display:inline">
-    {% csrf_token %}
-    <input type="hidden" name="sk" value="{{ sk }}">
-    <input type="hidden" name="origin" value="{{ origin }}">
-    {{ form.text }}
-        {% if warned %}
-        <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likhein jo mahol khrab krey. Photo nahi pasand toh 'chpair' dabana kafi hai</span><br>
-        {% endif %}
-    
-    <input type="hidden" name="popk" value="{{ photo.owner_id }}">
-    <button class="btn bco sp bm mts mbl mrl pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
-    </form>
-    &nbsp;
-    <a href="{% url 'comment' photo_id origin %}" rel="nofollow"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></a>
-
-    {% endif %}
-
-    <div class="mts">
-    {% for comment in comments %}
-    
-        {% if forloop.counter != 1 %}
-        <hr size=1 COLOR="#E9EBEE">
-        {% endif %}
+    <h1 class="cxl clb lsp" style="text-align:center">{% if target_username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{{ target_username|truncatechars:'13' }}'s foto:</h1>
+    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
         
-    {% if comment.abuse %}
-        <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' comment.submitted_by__username 'fotos' %}" class="clb"><bdi>{{ comment.submitted_by__username }}</bdi></a></b>&nbsp;ke tabsrey ko hide kar dia gya</span>
-    {% else %}
-
-    {% if user_id == comment.submitted_by %}
-        <div style="overflow:hidden;background-color:ivory">
-    {% else %}
-        <div style="overflow:hidden">
-    {% endif %}
-   
-        {% if authenticated and unseen %}
-            {% if not comment_time %}
-            <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
-            {% elif comment.submitted_on > comment_time %}
-            <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
+        <form method="POST" style="overflow:hidden;text-align:center" action="{% url 'redirect_to_content' %}">
+        {% csrf_token %}
+        <input type="hidden" name="obid" value="{{ photo_id }}">
+        <input type="hidden" name="orig" value="{{ origin }}">
+        <input type="hidden" name="lid" value="{{ lid }}">
+        <input type="hidden" name="oun" value="{{ target_username }}">
+        <button type="submit" style="background:0 0;padding:0;border:none;font-size:100%">
+            {% if photo.vote_score < VDC %}
+                <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="photo" style="border-radius:4px" width="38" height="38">
+            {% else %}
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt ibb" style="border:2px solid dodgerblue;width:auto;border-radius:5px">
+                <div style="text-align:center" class="clb cs sp lsp">"{% emoticons %}{{ photo.caption }}{% endemoticons %}"</div>
             {% endif %}
+        </button>
+        </form>
+
+    </div>
+    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
+
+        {% if banned %}
+            <br><hr size=1 class="co">
+            <span class="clb">Ap tabsra kar sakein ge <b>{{ time_remaining }}</b> ke baad</span>
+            <br>
+            <span class="cs co">Aesa tabsra na likhein jo mahol khrab krey. Photo pasand nahi toh 'bekaar' dabana kafi hai</span>
+            <hr size=1 class="co">
+            <br>
+        {% else %}
+        {% if form.errors %}<div class="cr mbs">{{ form.errors|show_error }}</div>{% else %}<div class="co sp mbs"><b>Tabsra likhein:</b></div>{% endif %}
+        <form class="mt" action="{% url 'comment' photo_id %}" method="POST" style="display:inline">
+        {% csrf_token %}
+        <input type="hidden" name="sk" value="{{ sk }}">
+        <input type="hidden" name="origin" value="{{ origin }}">
+        {{ form.text }}
+            {% if warned %}
+            <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likhein jo mahol khrab krey. Photo nahi pasand toh 'chpair' dabana kafi hai</span><br>
+            {% endif %}
+        
+        <input type="hidden" name="popk" value="{{ photo.owner_id }}">
+        <button class="btn bco sp bm mts mbl mrl pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
+        </form>
+        &nbsp;
+        <a href="{% url 'comment' photo_id origin %}" rel="nofollow"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></a>
+
+        {% endif %}
+
+        <div class="mts">
+        {% for comment in comments %}
+        
+        {% if forloop.counter != 1 %}<hr size=1 COLOR="#E9EBEE">{% endif %}
+            
+        {% if not on_fbs and forloop.counter == 3 %}
+
+            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <div style="background:snow;text-align:center;padding-bottom:5px">
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:320px;height:50px"
+                     data-ad-client="ca-pub-2568547635306983"
+                     data-ad-slot="5048924461"></ins>
+                <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
+        {% endif %}
+
+        {% if comment.abuse %}
+            <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' comment.submitted_by__username 'fotos' %}" class="clb"><bdi>{{ comment.submitted_by__username }}</bdi></a></b>&nbsp;ke tabsrey ko hide kar dia gya</span>
+        {% else %}
+
+        {% if user_id == comment.submitted_by %}
+            <div style="overflow:hidden;background-color:ivory">
+        {% else %}
+            <div style="overflow:hidden">
+        {% endif %}
+       
+            {% if authenticated and unseen %}
+                {% if not comment_time %}
+                <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
+                {% elif comment.submitted_on > comment_time %}
+                <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
+                {% endif %}
+            {% endif %}
+            
+        <a href="{% url 'profile' comment.submitted_by__username 'fotos' %}#section0" class="cm clb">
+        {% if comment.submitted_by__username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="11" width="11">&nbsp;{% endif %}<b>{{ comment.submitted_by__username }}</b></a>
+        :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>{% if authenticated and user == photo.owner %}<form action="{% url 'hide_comment' comment_id=comment.id photo_id=photo.pk origin=origin %}" method="POST" style="display:inline" class="mrl">{% csrf_token %}{% if origin == '3' %}<input type="hidden" name="slug" value="{{ photo.owner_id }}">{% elif origin == '4' %}<input type="hidden" name="slug" value="{{ slug_id }}">{% elif origin == '6' %}{% if link_ident %}<input type="hidden" name="slug" value="{{ link_ident }}">{% endif %}{% endif %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>{% endif %}<span class="mrs">{% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}</span>{% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+            </div>
         {% endif %}
         
-    <a href="{% url 'profile' comment.submitted_by__username 'fotos' %}#section0" class="cm clb">
-    {% if comment.submitted_by__username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="11" width="11">&nbsp;{% endif %}<b>{{ comment.submitted_by__username }}</b></a>
-    :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>{% if authenticated and user == photo.owner %}<form action="{% url 'hide_comment' comment_id=comment.id photo_id=photo.pk origin=origin %}" method="POST" style="display:inline" class="mrl">{% csrf_token %}{% if origin == '3' %}<input type="hidden" name="slug" value="{{ photo.owner_id }}">{% elif origin == '4' %}<input type="hidden" name="slug" value="{{ slug_id }}">{% elif origin == '6' %}{% if link_ident %}<input type="hidden" name="slug" value="{{ link_ident }}">{% endif %}{% endif %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>{% endif %}<span class="mrs">{% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}</span>{% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+        {% endfor %}
         </div>
+
+    <hr size=1 COLOR="#ffd7b3">
+    <p style="margin-top:-0.9em;"></p>
+    <hr size=1 COLOR="#ffd7b3">
+
+    {% if thumbs != None %}
+    <span class="cgy sp">More fotos by <a href="{% url 'profile' photo.owner 'fotos' %}">{{ target_username }}</a>:</span>
+    <form method="POST" action="{% url 'go_to_user_photo' photo.owner 0 %}" class="mts">{% csrf_token %}
+    {{ thumbs|safe }}
+    </form>
     {% endif %}
-    
-    {% endfor %}
     </div>
 
-<hr size=1 COLOR="#ffd7b3">
-<p style="margin-top:-0.9em;"></p>
-<hr size=1 COLOR="#ffd7b3">
+       <div class="mls mbl">
+        <div class="cs cgy mtl mbs"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></div>
+        {% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}emojis full list</a>
 
-{% if thumbs != None %}
-<span class="cgy sp">More fotos by <a href="{% url 'profile' photo.owner 'fotos' %}">{{ target_username }}</a>:</span>
-<form method="POST" action="{% url 'go_to_user_photo' photo.owner 0 %}" class="mts">{% csrf_token %}
-{{ thumbs|safe }}
-</form>
-{% endif %}
-</div>
+        {% emoticons_index as emoticons_list %}
 
-   <div class="mls mbl">
-    <div class="cs cgy mtl mbs"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></div>
-    {% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}emojis full list</a>
+        {% for emoticons in emoticons_list %}
+        {% if forloop.counter in random %}
+        <p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></p>
+        {% endif %}
+        {% endfor %}
+        </div>
 
-    {% emoticons_index as emoticons_list %}
+    {% else %}
 
-    {% for emoticons in emoticons_list %}
-    {% if forloop.counter in random %}
-    <p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></p>
-    {% endif %}
-    {% endfor %}
+    <h1 style="text-align:center" class="clb cxl lsp">Ye available nahi hai!</h1>
+
+    <div style="background-color:white;padding:10px 7px;max-width:400px;margin:0 auto;text-align:center" class="clb bizcard">
+
+        <div class="mt lsp mbs">Damadam ke home page pe janey ke liye ye button dabain:</div>
+        <a href="{% url 'home' %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:30px;width:90%">HOME</button></a>
+
     </div>
+    <br>
+    {% endif %}
 
-{% else %}
-
-<h1 style="text-align:center" class="clb cxl lsp">Ye available nahi hai!</h1>
-
-<div style="background-color:white;padding:10px 7px;max-width:400px;margin:0 auto;text-align:center" class="clb bizcard">
-
-    <div class="mt lsp mbs">Damadam ke home page pe janey ke liye ye button dabain:</div>
-    <a href="{% url 'home' %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:30px;width:90%">HOME</button></a>
-
-</div>
-<br>
-{% endif %}
-
-</div>
+    </div>
 {% endif %}
 {% endblock %}

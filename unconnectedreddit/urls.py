@@ -182,7 +182,7 @@ urlpatterns = patterns('',
 	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', auth(photo_page), name='photo'),
 	###################################################################################
 	# url(r'^freshphotos/$', photo_list, name='photo'),
-	# url(r'^topphotos/$', best_photos_list, name='best_photo'),
+	url(r'^topphotos/$', best_photos_list, name='best_photo'),
 	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable

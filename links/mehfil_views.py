@@ -43,7 +43,7 @@ from tasks import log_private_mehfil_session, set_input_rate_and_history, group_
 construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
-ChangeGroupTopicForm, ChangeGroupRulesForm, ClosedGroupHelpForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
+ChangeGroupTopicForm, ChangeGroupRulesForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
 OpenGroupCreateForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
 
 from score import PRIVATE_GROUP_COST,\
@@ -4936,17 +4936,17 @@ def can_create_group(request, group_type):
 		raise Http404("Unable to access page via GET request")
 
 
-class ClosedGroupHelpView(FormView):
-	"""
-	Renders form where user has to decide whether they are willing to pay the required price
-	"""
-	form_class = ClosedGroupHelpForm
-	template_name = "mehfil/closed_group_help.html"
+# class ClosedGroupHelpView(FormView):
+# 	"""
+# 	Renders form where user has to decide whether they are willing to pay the required price
+# 	"""
+# 	form_class = ClosedGroupHelpForm
+# 	template_name = "mehfil/closed_group_help.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(ClosedGroupHelpView, self).get_context_data(**kwargs)
-		context["private_price"] = PRIVATE_GROUP_COST
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(ClosedGroupHelpView, self).get_context_data(**kwargs)
+# 		context["private_price"] = PRIVATE_GROUP_COST
+# 		return context
 
 
 def direct_message(request, pk=None, *args, **kwargs):

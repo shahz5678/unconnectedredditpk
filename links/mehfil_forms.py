@@ -750,12 +750,7 @@ class OfficerApplicationForm(forms.Form):
 
 class GroupTypeForm(forms.Form):
 	class Meta:
-		pass
-
-
-class ClosedGroupHelpForm(forms.Form):
-	class Meta:
-		pass		
+		pass	
 
 
 class ReinviteForm(forms.Form):

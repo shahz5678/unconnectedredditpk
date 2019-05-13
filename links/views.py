@@ -1491,7 +1491,7 @@ class UserProfilePhotosView(ListView):
 		context = super(UserProfilePhotosView, self).get_context_data(**kwargs)
 		username = self.kwargs["slug"]
 		try:
-			subject = User.objects.get(username=username)
+			subject = User.objects.only('id','date_joined').get(username=username)
 		except User.DoesNotExist:
 			log_404.delay(type_of_404='1c',time_of_404=time.time())
 			raise Http404("User ID does not compute")
@@ -1503,13 +1503,29 @@ class UserProfilePhotosView(ListView):
 		context["num_trending"] = retrieve_num_trending_photos(star_id)
 		if self.request.user:
 			user_id = self.request.user.id
+			context["user_id"] = user_id
+			context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
+			context["authenticated"] = True
 			is_defender = in_defenders(user_id)
+			if is_defender:
+				context["manageable"] = True
 			own_profile = star_id == user_id
 			context["own_profile"] = own_profile
+			if not own_profile:
+				# someone else's profile AND user is logged in
+				context["subject_id"] = star_id
+				if is_fan(star_id, user_id):
+					context["not_fan"] = False
+					context["fanned"] = [str(star_id)]
+				else:
+					context["not_fan"] = True
+					context["fanned"] = []#[] must be passed, otherwise code fails
 		else:
 			user_id = None
 			is_defender = False
 			own_profile = False
+			context["authenticated"] = False
+			context["not_fan"] = True
 			context["own_profile"] = False
 		context["mobile_verified"] = self.request.mobile_verified if own_profile else is_mobile_verified(star_id)
 		###########
@@ -1530,23 +1546,6 @@ class UserProfilePhotosView(ListView):
 		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(star_id,ids_with_urls)
-		if user_id:#i.e. if authenticated
-			context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
-			context["authenticated"] = True
-			context["user_id"] = user_id
-			if is_defender:
-				context["manageable"] = True
-			if is_fan(star_id, user_id):
-				context["not_fan"] = False
-				context["fanned"] = [star_id]
-			else:
-				context["not_fan"] = True
-				context["fanned"] = []#[] must be passed, otherwise code fails
-			if star_id != user_id:
-				context["subject_id"] = star_id
-		else:
-			context["authenticated"] = False
-			context["not_fan"] = True
 		return context
 
 
@@ -1985,7 +1984,7 @@ class UserProfileDetailView(FormView):
 			raise Http404("User ID does not compute")
 		if star_id:
 			user_id = self.request.user.id
-			context["own_id"] = self.request.user.id
+			context["own_id"] = user_id
 			context["star_id"] = star_id
 			user_id = str(user_id) if user_id else None
 			is_defender, is_own_profile, ban_detail = in_defenders(user_id), user_id == star_id, None
@@ -2008,7 +2007,7 @@ class UserProfileDetailView(FormView):
 				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
 				context["blocked"] = get_banned_users_count(user_id)
 			else:
-				context["fanned"] = [user_obj.id] if is_fan(star_id, user_id) else []
+				context["fanned"] = [str(user_obj.id)] if is_fan(star_id, user_id) else []
 		else:
 			# user does not exist
 			raise Http404("User ID does not exist")
@@ -3242,9 +3241,9 @@ def photo_redirect(request, list_type='best-list', pk=None):
 		pk = request.session.pop('photo_hash_id',None)
 		index = retrieve_photo_feed_index("img:"+str(pk),feed_type=feed_type) if pk else 0
 	if index is None:
-		url = reverse_lazy("photo", args=[list_type])
+		url = reverse_lazy("photo", args=[list_type])+'?page=1#section0'
 	else:
-		addendum = get_addendum(index, ITEMS_PER_PAGE, only_addendum=True)
+		addendum = get_addendum(index, PHOTOS_PER_PAGE, only_addendum=True)
 		url = reverse_lazy("photo", args=[list_type])+addendum
 	return redirect(url)
 
@@ -3255,32 +3254,33 @@ def photo_page(request,list_type='best-list'):
 	"""
 	if list_type in ('best-list','fresh-list'):
 		own_id, page_num = request.user.id, request.GET.get('page', '1')
-		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
+		start_index, end_index = get_indices(page_num, PHOTOS_PER_PAGE)
 		if list_type == 'best-list':
-			type_ = 'best_photos'
-			template_name = 'best_photos.html'
+			type_, page_origin = 'best_photos', '2'
+			navbar_type, single_notif_origin = 'best', '20'
 		else:
-			type_ = 'fresh_photos'
-			template_name = 'photos.html'
+			type_, page_origin = 'fresh_photos', '1'
+			navbar_type, single_notif_origin = 'fresh', '21'
 		obj_list, list_total_size = get_photo_feed(start_idx=start_index, end_idx=end_index, feed_type=type_, with_feed_size=True)
 		num_pages = list_total_size/PHOTOS_PER_PAGE
-		max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
+		max_pages = num_pages if list_total_size % PHOTOS_PER_PAGE == 0 else (num_pages+1)
 		page_num = int(page_num)
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
 		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 		#######################
 		secret_key = str(uuid.uuid4())
-		
 		set_text_input_key(user_id=own_id, obj_id='1', obj_type=type_, secret_key=secret_key)
 		context = {'object_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
-		'is_auth':True,'girls':FEMALES,'ident':own_id,'score':request.user.userprofile.score,'sk':secret_key,'process_notification':False,\
-		'newbie_lang':request.session.get("newbie_lang",None),'is_mob':True if request.is_phone or request.is_mobile else False,\
-		'newbie_flag':request.session.get("newbie_flag",None),'comment_form':request.session.pop("comment_form",PhotoCommentForm()),\
-		"mobile_verified":request.mobile_verified}
+		'is_auth':True,'girls':FEMALES,'ident':own_id,'process_notification':False,'newbie_lang':request.session.get("newbie_lang",None),\
+		'is_mob':True if request.is_phone or request.is_mobile else False,'newbie_flag':request.session.get("newbie_flag",None),\
+		'comment_form':request.session.pop("comment_form",PhotoCommentForm()),"mobile_verified":request.mobile_verified, 'feed_type':type_,\
+		'page_origin':page_origin,'single_notif_origin':single_notif_origin,'score':request.user.userprofile.score,'navbar_type':navbar_type,\
+		'sk':secret_key}
+		next_page_number = page_num+1 if page_num<max_pages else 1
+		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
-		'previous_page_number':page_num-1,'next_page_number':page_num+1}
+		'previous_page_number':previous_page_number,'next_page_number':next_page_number}
 		#####################
-		
 		# extraneous
 		context["lang"] = 'None'
 		context["sort_by"] = 'recent'
@@ -3290,7 +3290,7 @@ def photo_page(request,list_type='best-list'):
 		if not request.user_banned:
 			context["process_notification"] = True
 			context["photo_direct_reply_error_string"] = request.session.pop("photo_direct_reply_error_string",None)
-		return render(request,template_name,context)
+		return render(request,"photos_page.html",context)
 	else:
 		raise Http404("Such a photo listing does not exist")
 
@@ -3315,71 +3315,75 @@ def photo_page(request,list_type='best-list'):
 
 
 def best_photos_list(request,*args,**kwargs):
-	user_id = request.user.id
-	if request.user.is_authenticated():
-		context = {}
-		context["is_auth"] = True
-		form = BestPhotosListForm()
-		if 'best_photos' in request.session and 'best_photo_page' in request.session:
-			if request.session['best_photos'] and request.session['best_photo_page']:
-				# "called when user has voted or commented"
-				context["object_list"] = request.session['best_photos']
-				context["page"] = request.session['best_photo_page']
-			else:
-				# "doesn't do anything"
-				obj_list = get_best_photo_feed()
-				obj_list_keys = map(itemgetter(0), obj_list)
-				page_num = request.GET.get('page', '1')
-				page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-				# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
-				context["page"] = page_obj
-				context["object_list"] = retrieve_obj_feed(page_obj.object_list)
-				# cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
-			del request.session['best_photos']
-			del request.session['best_photo_page']
-		else:
-			# "normal refresh or toggling between pages"
-			page_num = request.GET.get('page', '1')
-			obj_list = get_best_photo_feed()
-			obj_list_keys = map(itemgetter(0), obj_list)
-			page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
-			context["page"] = page_obj
-			context["object_list"] = retrieve_obj_feed(page_obj.object_list)
-		user = request.user
-		context["username"] = user.username
-		context["newbie_flag"] = request.session.get("newbie_flag",None)
-		context["newbie_lang"] = request.session.get("newbie_lang",None)
-		context["ident"] = user_id
-		context["score"] = user.userprofile.score
-		context["girls"] = FEMALES
-		context["mobile_verified"] = request.mobile_verified
-		secret_key = uuid.uuid4()
-		context["sk"] = secret_key
-		set_text_input_key(user_id, '1', 'best_photos', secret_key)
-		############################################# Home Rules #################################################
-		# context["home_rules"] = spammer_punishment_text(user_id)
-		##########################################################################################################
-		context["lang"] = None
-		context["sort_by"] = None
-		if request.is_feature_phone or request.is_phone or request.is_mobile:
-			context["is_mob"] = True
-		context["comment_form"] = request.session.pop("comment_form") if "comment_form" in request.session else PhotoCommentForm()
-		if request.user_banned:
-			context["process_notification"] = False
-		else:
-			context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]), user_id)
-			# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			# 'LOCATION': MEMLOC, 'TIMEOUT': 70,})
-			context["salat_timings"] = {}#cache_mem.get('salat_timings')
-			if "notif_form" in request.session:
-				context["notif_form"] = request.session["notif_form"]
-				request.session.pop("notif_form", None)
-			else:
-				context["notif_form"] = UnseenActivityForm()
-			context["process_notification"] = True
-		return render(request,'best_photos.html',context)
-	else:
-		return redirect("unauth_home_new")
+	"""
+	Redirects to the trending page
+	"""
+	return redirect("photo",'best-list')
+	# user_id = request.user.id
+	# if request.user.is_authenticated():
+	# 	context = {}
+	# 	context["is_auth"] = True
+	# 	form = BestPhotosListForm()
+	# 	if 'best_photos' in request.session and 'best_photo_page' in request.session:
+	# 		if request.session['best_photos'] and request.session['best_photo_page']:
+	# 			# "called when user has voted or commented"
+	# 			context["object_list"] = request.session['best_photos']
+	# 			context["page"] = request.session['best_photo_page']
+	# 		else:
+	# 			# "doesn't do anything"
+	# 			obj_list = get_best_photo_feed()
+	# 			obj_list_keys = map(itemgetter(0), obj_list)
+	# 			page_num = request.GET.get('page', '1')
+	# 			page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+	# 			# cache.set('best_photos_page_obj'+str(page_num), page_obj, timeout=5*60)
+	# 			context["page"] = page_obj
+	# 			context["object_list"] = retrieve_obj_feed(page_obj.object_list)
+	# 			# cache.set('best_photos'+str(page_num), context["object_list"], timeout=5*60)
+	# 		del request.session['best_photos']
+	# 		del request.session['best_photo_page']
+	# 	else:
+	# 		# "normal refresh or toggling between pages"
+	# 		page_num = request.GET.get('page', '1')
+	# 		obj_list = get_best_photo_feed()
+	# 		obj_list_keys = map(itemgetter(0), obj_list)
+	# 		page_obj = get_page_obj(page_num,obj_list_keys,PHOTOS_PER_PAGE)
+	# 		context["page"] = page_obj
+	# 		context["object_list"] = retrieve_obj_feed(page_obj.object_list)
+	# 	user = request.user
+	# 	context["username"] = user.username
+	# 	context["newbie_flag"] = request.session.get("newbie_flag",None)
+	# 	context["newbie_lang"] = request.session.get("newbie_lang",None)
+	# 	context["ident"] = user_id
+	# 	context["score"] = user.userprofile.score
+	# 	context["girls"] = FEMALES
+	# 	context["mobile_verified"] = request.mobile_verified
+	# 	secret_key = uuid.uuid4()
+	# 	context["sk"] = secret_key
+	# 	set_text_input_key(user_id, '1', 'best_photos', secret_key)
+	# 	############################################# Home Rules #################################################
+	# 	# context["home_rules"] = spammer_punishment_text(user_id)
+	# 	##########################################################################################################
+	# 	context["lang"] = None
+	# 	context["sort_by"] = None
+	# 	if request.is_feature_phone or request.is_phone or request.is_mobile:
+	# 		context["is_mob"] = True
+	# 	context["comment_form"] = request.session.pop("comment_form") if "comment_form" in request.session else PhotoCommentForm()
+	# 	if request.user_banned:
+	# 		context["process_notification"] = False
+	# 	else:
+	# 		context["fanned"] = bulk_is_fan(set([photo['si'] for photo in context["object_list"]]), user_id)
+	# 		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+	# 		# 'LOCATION': MEMLOC, 'TIMEOUT': 70,})
+	# 		context["salat_timings"] = {}#cache_mem.get('salat_timings')
+	# 		if "notif_form" in request.session:
+	# 			context["notif_form"] = request.session["notif_form"]
+	# 			request.session.pop("notif_form", None)
+	# 		else:
+	# 			context["notif_form"] = UnseenActivityForm()
+	# 		context["process_notification"] = True
+	# 	return render(request,'best_photos.html',context)
+	# else:
+	# 	return redirect("unauth_home_new")
 
 
 ##################################################################

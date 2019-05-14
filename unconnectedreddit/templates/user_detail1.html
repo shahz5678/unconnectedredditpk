@@ -14,21 +14,25 @@
 <head><title>{{ slug }}'s photos and memes | Damadam.pk</title></head>
 <style>body{background:#f0f3f4}</style>
 
-<div class="clb" style="margin: 0 auto;max-width:600px;width:98%">
+<main itemscope itemtype="https://schema.org/CollectionPage" class="clb" style="margin: 0 auto;max-width:600px;width:98%">
 
 {% user_profile_navbar static_url=STATIC_URL section='fotos' uname=slug is_own_profile=own_profile %}
 
   <div class="mbl" style="text-align:center">  
   {% if own_profile %}
-    <h1 class="cxl lsp" style="display:inline">Your shared fotos:</h1>
+    {% if is_trending %}
+      <h1 class="cxl lsp" style="display:inline">Your trending fotos:<br><span class="cs cgy sp lsp" style="font-weight:lighter">- last 7 days -</span></h1>
+    {% else %}
+      <h1 class="cxl lsp" style="display:inline">Your shared fotos:</h1>
+    {% endif %}
   {% else %}
     {% load get_group_button %}
-    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if slug in legit %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{{ slug|truncatechars:"10" }}'s shared fotos:</h1>
+    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if slug in legit %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{% if is_trending %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s trending fotos</span>:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s shared fotos</span>:{% endif %}</h1>
   {% endif %}
   </div>
 
-{% if page_obj.number == 1 %}
- <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px">
+{% if page_obj.number == 1 and not is_trending %}
+ <article class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px">
     
     <div class="cl sp" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa"> 
         
@@ -47,10 +51,10 @@
       
         {% if star_av_url != 'empty' %}
          <div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
-          <img src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="pic loading ...">
+          <img itemprop="image" src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="pic loading ...">
         </div>
         {% endif %}
-        <div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ subject.date_joined|naturaltime }}</div>
+        <section class="mt mbl" style="text-align:center"><h3 style="font-weight:normal;margin:0" class="cs cgy sp lsp">joined <time itemprop="dateCreated" datetime="{{ subject.date_joined }}">{{ subject.date_joined|naturaltime }}</time></h3></section>
 
      {% endif %}
       <div style="text-align:center;padding-bottom:5px"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px">Edit your<br>profile</button></a></div>
@@ -60,12 +64,12 @@
        {% if not is_profile_banned %}
           {% if star_av_url != 'empty' %}
            <div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
-            <img src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="pic loading ...">
+            <img itemprop="image" src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="pic loading ...">
           </div>
           {% else %}
           <div style="text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0;padding:5px 0" class="mbs clb cm sp">in sey kahein aik profile foto tou laga lein ...</div>
           {% endif %}
-          <div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ subject.date_joined|naturaltime }}</div>
+          <section class="mt mbl" style="text-align:center"><h3 style="font-weight:normal;margin:0" class="cs cgy sp lsp">joined <time itemprop="dateCreated" datetime="{{ subject.date_joined }}">{{ subject.date_joined|naturaltime }}</time></h3></section>
 
       {% endif %}
 
@@ -83,31 +87,20 @@
       {% endif %}
 
     {% endif %}
-</div>
+</article>
 
 {% endif %}
 <a name="sectionJ"></a>
-  <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
-    {% if page_obj.has_previous %}
-      <div style="padding:0 10px">
-      <a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-      </div>
-      {% endif %}
-      {% if page_obj.has_next %}
-      <div style="padding:0 10px">
-      <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-      </div>
-      {% endif %}
-  </div>
 
-<div class="mtl">
+{% if is_trending %}{% include 'user_profile_mini_navbar.html' with static_url=STATIC_URL section='trending' slug=slug num_trending=num_trending %}{% else %}{% include 'user_profile_mini_navbar.html' with static_url=STATIC_URL section='latest' slug=slug num_trending=num_trending %}{% endif %}
+
+  
+<div itemprop="hasPart" itemscope itemtype="https://schema.org/ImageGallery" class="mtl">
 {% for photo in object_list %}
-  <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+  <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
       <a name="section{{ forloop.counter }}"></a>
-
-      <div itemscope itemtype="http://schema.org/CreativeWork">
         
-        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending=photo.device %}
+        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending=photo.device %}
         
         <div class="mbs mtl">
           <div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -118,40 +111,54 @@
           </div>
         </div>
 
-      </div>
-  </div>                  
+  </article>                  
 {% empty %}
   <div class="bizcard mbl" style="background-color:white;padding:10px;text-align:center">
   {% if own_profile %}
+    {% if is_trending %}
+    <div class="cxl lsp">Pichley 7 days mein apki koi foto trending mein shamil nahi hui</div>
+    <hr size=1 COLOR="#f4f4f4">
+    <div class="cgy mbl sp">Trending me fotos shamil honay ka criteria <a href="{% url 'top_photo_help' %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue">ye hai</a></div>
+    {% else %}
     <div class="cxl lsp">Ap ne Damadam pe koi foto share nahi ki</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Share karney ke liye neechay 'share' dabain:</div>
       <a href="{% url 'upload_public_photo' %}#section0"><button class="btn bco sp pg_ok_res bl" style="height:26px">Share</button></a>
     </div>
+    {% endif %}
   {% else %}
+    {% if is_trending %}
+    <div class="cxl lsp">Pichley 7 days mein <b>{{ slug }}</b> ki koi foto trending mein shamil nahi hui</div>
+    <hr size=1 COLOR="#f4f4f4">
+    <div class="mbs">
+      <div class="cgy mbl sp">Trending fotos view karein:</div>
+      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+    </div>
+    {% else %}
     <div class="cxl lsp"><b>{{ slug }}</b> ne Damadam pe koi foto nahi share ki</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
-    <div class="cgy mbl sp">Dusrey users ki fotos view karein:</div>
-    <a href="{% url 'photo' 'best-list' %}#section0"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+      <div class="cgy mbl sp">Dusrey users ki trending fotos view karein:</div>
+      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
     </div>
+    {% endif %}
   {% endif %}
   </div><br>
 {% endfor %}
 </div>
 
-</div>
+</main>
 
-  <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+  <div class="fx fxjscn">
     {% if page_obj.has_previous %}
       <div style="padding:0 10px">
-      <a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+      <a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
       </div>
-      {% endif %}
-      {% if page_obj.has_next %}
+    {% endif %}
+    {% if page_obj.has_next %}
       <div class="mbs" style="padding:0 10px">
-      <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+      <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
       </div>
     {% endif %}
   </div>

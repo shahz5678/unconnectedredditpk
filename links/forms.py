@@ -304,9 +304,10 @@ def strip_zero_width_characters(string):
 	u"\u200F" - Right-To-Left Mark
 	u"\u2060" - Word Joiner
 	u"\uFEFF" - Zero Width No-Break Space
+	u"\u3164" - Hangful filler
 	"""
 	if string:
-		return ''.join( c for c in string if  c not in (u"\u200B",u"\u200C",u"\u200D",u"\u200E",u"\u200F",u"\u2060",u"\uFEFF"))
+		return ''.join( c for c in string if  c not in (u"\u200B",u"\u200C",u"\u200D",u"\u200E",u"\u200F",u"\u2060",u"\uFEFF",u"\u3164"))
 	else:
 		return string
 

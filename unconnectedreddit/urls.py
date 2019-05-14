@@ -28,9 +28,9 @@ star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, home_location, reauth, reset_password, fan_list, best_photos_list,\
-photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,\
+photo_list, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 first_time_unseen_refresh, missing_page, home_reply, home_location_pk,photo_page, photo_redirect,\
-upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,\
+upload_public_photo, website_rules, photo_comment, public_reply_view, post_public_reply,redirect_to_profile_photos,\
 public_photo_upload_denied, hide_jawab, hide_comment, logout_rules, display_link_detail
 #cull_single_photo, ban_photo_upload_and_voters, curate_photo,comment_chat_pk
 from links.redirection_views import redirect_to_content
@@ -42,11 +42,12 @@ UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, 
 WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdTitleView,TestAdsView, AdAddressYesNoView,\
 SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSettingsEditView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
-RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, TopPhotoView, \
+RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, \
 PhotoShareView, PhotoDetailView, \
 AdGenderChoiceView, \
 VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, \
 AdAddressView, AdCallPrefView
+from links.voting_views import user_vote_history
 from links.announcement_views import coming_soon
 from links.group_views import show_shared_photo_metrics
 admin.autodiscover()
@@ -81,8 +82,10 @@ urlpatterns = patterns('',
 	################################################################################################
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
-	url(r'^user/(?P<slug>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),
 	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
+	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
+	url(r'^user/voting/(?P<vote>[\w.@+-]+)/$', auth(user_vote_history), name='user_vote_history'),
+	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),
 	# url(r'^user/(?P<slug>.+)/$', missing_page, name='profile'), #captures any kind of slug - for errors
 	url(r'^usrp/(?P<slug>[\w.@+-]+)/(?P<key>\d+)/$', profile_pk, name='profile_pk'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),
@@ -128,13 +131,11 @@ urlpatterns = patterns('',
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
 	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
 	url(r'^top/$', auth(TopView.as_view()), name='top'),
-	url(r'^best_photo_uploaders/$', auth(TopPhotoView.as_view()), name='top_photo'),
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
 	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
 	url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
-	url(r'^top_photo/help/$', auth(top_photo_help), name='top_photo_help'),
 	url(r'^comment/(?P<pk>\d+)/$', CommentView.as_view(), name='comment'),
 	url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
 	# url(r'^comment_chat_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', comment_chat_pk, name='comment_chat_pk'),
@@ -176,10 +177,12 @@ urlpatterns = patterns('',
 	###################################################################################
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/(?P<pk>\d+)/$', auth(photo_redirect), name='redirect_to_photo'),
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/$', auth(photo_redirect), name='redirect_to_photo'),
-	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', auth(photo_page), name='photo'),
+	url(r'^photo/top-trenders/$', auth(photo_top_trenders), name='top_photo'),
+	url(r'^photo/top-trenders/help/$', auth(top_photo_help), name='top_photo_help'),
+	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', photo_page, name='photo'),
 	###################################################################################
 	# url(r'^freshphotos/$', photo_list, name='photo'),
-	# url(r'^topphotos/$', best_photos_list, name='best_photo'),
+	url(r'^topphotos/$', best_photos_list, name='best_photo'),
 	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable

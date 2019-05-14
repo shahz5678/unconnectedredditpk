@@ -9,13 +9,15 @@ from datetime import datetime
 from collections import defaultdict
 from templatetags.s3 import get_s3_object
 from score import GROUP_SOFT_DELETION_CUTOFF, GROUP_IDLE_DOT_CUTOFF, MSGS_TO_SHOW_IN_GROUP,NUM_TO_DELETE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
-MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, CANCEL_INVITE_AFTER_TIME_PASSAGE, GROUP_HARD_DELETION_CUTOFF, GROUP_GREEN_DOT_CUTOFF, MICRO_CACHE_TTL,\
-MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, MAX_OWNER_INVITES_PER_PRIVATE_GROUP, PRIVATE_GROUP_MAX_MEMBERSHIP, INVITE_LOCK_DURATION, EXIT_DISCOUNT,\
+MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, GROUP_HARD_DELETION_CUTOFF, GROUP_GREEN_DOT_CUTOFF, MICRO_CACHE_TTL,PUBLIC_GROUP_INVITE_TTL,\
+MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, MAX_OWNER_INVITES_PER_PRIVATE_GROUP, PRIVATE_GROUP_MAX_MEMBERSHIP,GROUP_INVITE_LOCK_DURATION, EXIT_DISCOUNT,\
 KICK_DISCOUNT, GROUP_SIZE_PERCENTILE_CUTOFF, MAX_OFFICER_APPOINTMENTS_ALLWD, NUM_PUBLIC_GROUPS_OWNED_SHOWN_ON_PROFILE, OFFICER_APPLICATION_EXPIRY_TIME,\
 OFFICER_APPLICATIONS_RATE_LIMIT, OFFICER_APP_ARCHIVE_EXPIRY_TIME, MAX_ARCHIVED_OFFICER_APPS_PER_GROUP, GROUP_TRANSACTION_RATE_LIMIT,FOLLOW_UP_REQUEST_RATE_LIMIT,\
 PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_REENTRY_LOCK, EXCESSIVE_ATTEMPTS_TO_CHANGE_TOPIC_RATE_LIMIT, MAX_TIME_BETWEEN_TOPIC_CHANGE_ATTEMPTS,\
 RULES_CHANGE_RATE_LIMIT, MAX_TIME_BETWEEN_RULE_CHANGE_ATTEMPTS, EXCESSIVE_ATTEMPTS_TO_CHANGE_RULES_RATE_LIMIT, TOPIC_LONG_RATE_LIMIT, TOPIC_SHORT_RATE_LIMIT,\
-NUM_RULES_CHANGE_ATTEMPTS_ALLOWED, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, FEEDBACK_TTL, FEEDBACK_RATELIMIT, FEEDBACK_CACHE, GROUP_INVITE_TTL
+NUM_RULES_CHANGE_ATTEMPTS_ALLOWED, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, FEEDBACK_TTL, FEEDBACK_RATELIMIT, FEEDBACK_CACHE,PRIVATE_GROUP_INVITE_TTL,\
+CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE, PRIVATE_GROUP_CREATION_RATE_LIMIT, PUBLIC_GROUP_CREATION_RATE_LIMIT,\
+INVITER_PRIVATE_INVITE_LOCK_DURATION, INVITER_PUBLIC_INVITE_LOCK_DURATION
 from redis4 import retrieve_bulk_unames, retrieve_uname, retrieve_bulk_credentials, retrieve_credentials
 from redis2 import remove_group_notification
 from redis3 import exact_date
@@ -30,6 +32,7 @@ TEN_MINS = 60*10
 FIFTEEN_MINS = 60*15
 FORTY_MINS = 60*40
 THREE_HOURS = 60*60*3
+SIX_HOURS = 60*60*6
 FIFTEEN_HOURS = 60*60*15
 ONE_DAY = 60*60*24
 THREE_DAYS = 60*60*24*3
@@ -90,6 +93,9 @@ GROUP_PRESENCE_CACHE = 'gpc:'# key containing cached status data for a group (i.
 GROUP_EXIT_TRACKER = 'ge:'# sorted set containing exited members from last 45 days
 GROUP_KICK_TRACKER = 'gk:'# sorted set containing kicked members from last 45 days
 GROUP_VISITOR_PRUNING_LOCK = 'gvpl:'# key that locks re-pruning of group visitors too soon
+PUBLIC_GROUP_OWNER_LAST_ADMINISTRATIVE_ACTION_TIME = 'admin_action_times'# sorted set containing last time a public mehfil's owner accessed the settings dashboard
+PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT = 'group_att_freq'# Keeps a 'world age' type count of how often an owner attends their group
+PUBLIC_GROUP_OWNER_ADMINISTARTIVE_ACTION_RATE_LIMIT = 'goirl:'# key that rate limits the increments in PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT
 
 ######################### Caching mehfil popularity data #########################
 
@@ -133,6 +139,8 @@ GROUP_OWNER_INVITES = 'gowi:'#sorted set containing invites sent by public mehfi
 PRIVATE_GROUP_MEMBER_INVITES = 'pgmi:'#sorted set containing invites sent by a specific private mehfil member
 PRIVATE_GROUP_OWNER_INVITES = 'pgowi:'#sorted set containing invites sent by private mehfil owner
 GROUP_INVITE_LOCK = 'giv:'# key that locks further invites to a user from a certain group
+INVITER_PRIVATE_INVITE_LOCK = 'iprvivl:'# key that locks further invites to a user from a certain inviter ID (sent from a private group)
+INVITER_PUBLIC_INVITE_LOCK = 'ipubivl:'# key that locks further invites to a user from a certain inviter ID (sent from a public group)
 GROUP_EXITING_LOCKED = 'gel:'# key used to rate limit users from joining and then abruptly leaving a public mehfil
 GROUP_REENTRY_LOCKED = 'grl:'# key used to rate limit users from rejoining a group immediately after exiting
 EXPIRING_GROUP_INVITES_RATE_LIMIT = 'egirl:'# key used to rate limit auto invite culling in groups
@@ -1550,6 +1558,21 @@ def retrieve_officer_stats(user_id, stat_type=None):
 ############################# Tracking mehfil visitors ############################
 
 
+def group_owner_administrative_interest(group_id, time_now):
+	"""
+	This marks the most recent time a public group owner accessed their dashboard, or checked out their recent visitors, or went into the 'info' section
+
+	We take these actions as a signal of the owner taking interest in group administration (instead of just 'passively visiting' the group)
+	We also keep incremental count of how frequently the owner takes administrative interest in their group (kind of like 'world age')
+	All these measures help us enrich our "popular" rankings
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zadd(PUBLIC_GROUP_OWNER_LAST_ADMINISTRATIVE_ACTION_TIME,group_id,time_now)# gives 'last administrative activity' for owner
+	if not my_server.exists(PUBLIC_GROUP_OWNER_ADMINISTARTIVE_ACTION_RATE_LIMIT+group_id):#locks group attendance frequency calculation
+		my_server.zincrby(PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT,group_id,amount=1)#incrementing group attendance (useful measure for sorting groups)
+		my_server.setex(PUBLIC_GROUP_OWNER_ADMINISTARTIVE_ACTION_RATE_LIMIT+group_id,'1',SIX_HOURS)
+
+
 def group_attendance(group_id,visitor_id, time_now):
 	"""
 	Marking attendance in mehfils (public and private both). Called every time the group is refreshed
@@ -1836,12 +1859,14 @@ def get_temporarily_saved_group_credentials(user_id,only_raw=False):
 
 def rate_limit_group_creation(user_id, which_group):
 	"""
-	Rate limits creation of public groups
+	Rate limits creation of public and private groups
 	"""
 	if which_group == 'public':
-		redis.Redis(connection_pool=POOL).setex(PUBLIC_GROUP_CREATION_RATE_LIMIT_KEY+str(user_id),'1',ONE_WEEK)
+		redis.Redis(connection_pool=POOL).setex(PUBLIC_GROUP_CREATION_RATE_LIMIT_KEY+str(user_id),'1',\
+			PUBLIC_GROUP_CREATION_RATE_LIMIT)
 	elif which_group == 'private':
-		redis.Redis(connection_pool=POOL).setex(PRIVATE_GROUP_CREATION_RATE_LIMIT_KEY+str(user_id),'1',FORTY_MINS)
+		redis.Redis(connection_pool=POOL).setex(PRIVATE_GROUP_CREATION_RATE_LIMIT_KEY+str(user_id),'1',\
+			PRIVATE_GROUP_CREATION_RATE_LIMIT)
 	else:
 		pass
 
@@ -2321,28 +2346,37 @@ def filter_non_recents(user_ids,group_id,time_now):
 		return []
 
 
-def filter_invite_locks(user_ids, group_id):
+def filter_invite_locks(user_ids, group_id, inviter_id, is_public):
 	"""
-	Given a list of user_ids, only returns ids that a group isn't locked from inviting
+	Given a list of user_ids, only returns ids that aren't locked out from inviting
+
+	Locked IDs may exist because they've:
+	(i) Already been invited to that particular group
+	(ii) Already been invited by that particular inviter
 	"""
 	if user_ids:
+		inviter_lock_key = INVITER_PUBLIC_INVITE_LOCK if is_public else INVITER_PRIVATE_INVITE_LOCK
 		user_ids = map(str, user_ids)
-		all_lock_keys = []
+		all_group_invite_lock_keys, all_inviter_invite_lock_keys = [], []
 		for user_id in user_ids:
-			all_lock_keys.append(GROUP_INVITE_LOCK+group_id+":"+user_id)
-		lock_keys = redis.Redis(connection_pool=POOL).mget(*all_lock_keys)
+			all_group_invite_lock_keys.append(GROUP_INVITE_LOCK+group_id+":"+user_id)
+			all_inviter_invite_lock_keys.append(inviter_lock_key+inviter_id+":"+user_id)
+		my_server = redis.Redis(connection_pool=POOL)
+		group_invite_lock_keys = my_server.mget(*all_group_invite_lock_keys)
+		all_inviter_invite_lock_keys = my_server.mget(*all_inviter_invite_lock_keys)
 		final_ids, counter = [], 0
-		for lock_key in lock_keys:
-			if lock_key:
+		for user_id in user_ids:
+			if group_invite_lock_keys[counter] or all_inviter_invite_lock_keys[counter]:
 				# this is locked
 				pass
 			else:
 				# this is not locked
-				final_ids.append(user_ids[counter])
+				final_ids.append(user_id)
 			counter += 1
 		return final_ids
 	else:
 		return []
+
 
 def retrieve_expired_group_invites(group_id, my_server=None, override_rl=False):
 	"""
@@ -2472,11 +2506,16 @@ def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, s
 	Used for both public and private mehfil invites
 	These details are saved for each invite: group_privacy, inviter_id, invite_time
 	"""
-	group_id, target_ids, expire_target_time = str(group_id), map(str,target_ids), int(time_now+GROUP_INVITE_TTL)
+	group_invite_ttl = PUBLIC_GROUP_INVITE_TTL if is_public else PRIVATE_GROUP_INVITE_TTL
+	group_id, target_ids, expire_target_time = str(group_id), map(str,target_ids), int(time_now+group_invite_ttl)
 	group_invites = GROUP_INVITES+group_id
-	json_payload = json.dumps({'p':'0' if is_public else '1','iid':sent_by_id,'iun':sent_by_uname,'it':time_now,'gid':group_id,'uuid':group_uuid})
+	if is_public:
+		inviter_lock, inviter_lock_duration = INVITER_PUBLIC_INVITE_LOCK, INVITER_PUBLIC_INVITE_LOCK_DURATION
+		json_payload = json.dumps({'p':'0','iid':sent_by_id,'iun':sent_by_uname,'it':time_now,'gid':group_id,'uuid':group_uuid})
+	else:
+		inviter_lock, inviter_lock_duration = INVITER_PRIVATE_INVITE_LOCK, INVITER_PRIVATE_INVITE_LOCK_DURATION
+		json_payload = json.dumps({'p':'1','iid':sent_by_id,'iun':sent_by_uname,'it':time_now,'gid':group_id,'uuid':group_uuid})
 	my_server = redis.Redis(connection_pool=POOL)
-	
 	pipeline1 = my_server.pipeline()
 	for target_id in target_ids:
 		user_invites_list = USER_INVITES+target_id
@@ -2487,8 +2526,8 @@ def save_group_invite(group_id, target_ids, time_now, is_public, sent_by=None, s
 		pipeline1.expireat(user_invites_list,expire_target_time)
 		pipeline1.expireat(group_invites, expire_target_time)
 		pipeline1.expireat(invite_obj,expire_target_time)
-		pipeline1.setex(GROUP_INVITE_LOCK+group_id+":"+target_id,'1',INVITE_LOCK_DURATION)
-	
+		pipeline1.setex(GROUP_INVITE_LOCK+group_id+":"+target_id,'1',GROUP_INVITE_LOCK_DURATION)
+		pipeline1.setex(inviter_lock+sent_by_id+":"+target_id,'1',inviter_lock_duration)
 	if is_public:
 		# processing public mehfil invites
 		if sent_by == 'owner':
@@ -2584,16 +2623,17 @@ def retrieve_user_group_invites(user_id):
 
 def cancel_invite(group_id, member_id, is_public, time_now):
 	"""
-	Invite cancelation triggered by owner of the open (or closed) group
+	Invite cancellation triggered by owner of the open (or closed) group
 	"""
 	if group_id and member_id:
 		group_id = str(group_id)
+		cancel_invite_after_time_passage = CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE if is_public else CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE
 		my_server = redis.Redis(connection_pool=POOL)
 		invite_time = my_server.zscore(GROUP_INVITES+group_id,member_id)
 		if invite_time:
 			# invite actually exists
 			time_elapsed = time_now-float(invite_time)
-			if time_elapsed > CANCEL_INVITE_AFTER_TIME_PASSAGE:
+			if time_elapsed > cancel_invite_after_time_passage:
 				# invite is actually cancelable
 				purge_group_invitation(group_id, member_id, is_public=is_public, my_server=my_server)
 				return True
@@ -2757,11 +2797,12 @@ def show_private_group_invite_instructions(unique,own_id):
 		return None, None
 
 
-def filter_uninvitables(invitee_ids, group_uuid):
+def filter_uninvitables(invitee_ids, group_uuid, inviter_id, is_public):
 	"""
 	Given a list of invitees, filters out:
 
-	1) Invitees already invited to the group 
+	1) Invitees already invited to the group
+	2) Invitees already invited by the inviter to the same 'kind' of group (i.e. public or private)
 	2) Those who're already members!
 	3) Those who are in the "kicked list" of the group
 	"""
@@ -2771,7 +2812,7 @@ def filter_uninvitables(invitee_ids, group_uuid):
 		if group_id:
 			non_member_invitee_ids = filter_members(invitee_ids, group_id)
 			non_member_non_invited_ids = filter_invitees(non_member_invitee_ids, group_id)
-			locked_non_member_non_invited_ids = filter_invite_locks(non_member_non_invited_ids, group_id)
+			locked_non_member_non_invited_ids = filter_invite_locks(non_member_non_invited_ids, group_id, inviter_id, is_public)
 			return filter_kicked_users(locked_non_member_non_invited_ids, group_id)
 		else:
 			return []
@@ -4002,6 +4043,8 @@ def permanently_delete_group(group_id, group_type, return_member_ids=False):
 		pipeline1.delete(GROUP_EXIT_TRACKER+group_id)
 		pipeline1.delete(GROUP_UUID_TO_ID_MAPPING+group_uuid)
 		pipeline1.delete(group_key)
+		pipeline1.zrem(PUBLIC_GROUP_OWNER_LAST_ADMINISTRATIVE_ACTION_TIME, group_id)
+		pipeline1.zrem(PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT, group_id)
 		pipeline1.execute()
 		invalidate_cached_ranked_groups(my_server=my_server)
 		invalidate_group_membership_cache(group_id,my_server=my_server)
@@ -4337,8 +4380,9 @@ def rank_mehfil_active_users():
 def get_ranked_mehfils():
 	"""
 	Returns groups ranked by their active user counts
-	"""
-	return redis.Redis(connection_pool=POOL).zrevrange(GROUP_BIWEEKLY_STICKINESS,0,9,withscores=True)
+	# """
+	# return redis.Redis(connection_pool=POOL).zrevrange(GROUP_BIWEEKLY_STICKINESS,0,9,withscores=True)
+	return redis.Redis(connection_pool=POOL).zrangebyscore(GROUP_BIWEEKLY_STICKINESS,'0.09','+inf',withscores=True)
 
 
 def cache_ranked_groups(json_data):

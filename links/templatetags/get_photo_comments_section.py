@@ -5,7 +5,7 @@ from links.redis7 import get_raw_comments
 register = template.Library()
 
 @register.inclusion_tag(file_name='photo_comments_section.html')
-def photo_comments_section(raw_comments, static_url, self_user_id, origin=None, score=None, home_hash=None):
+def photo_comments_section(raw_comments, static_url, self_user_id, origin=None, home_hash=None):
 	# if originates from home ('3'), raw_comments contains 'photo_id' in that case
 	if origin == '3':
 		raw_comments = get_raw_comments(raw_comments)
@@ -18,7 +18,7 @@ def photo_comments_section(raw_comments, static_url, self_user_id, origin=None, 
 				# this ensure only 6 comments can show up on the photo page (at max)
 				break
 		if comments:
-			return {'comments':comments, 'static_url':static_url,'self_user_id':self_user_id,'score':score,'origin':origin,'possible':True, 'home_hash':home_hash}
+			return {'comments':comments, 'static_url':static_url,'self_user_id':self_user_id,'origin':origin,'possible':True, 'home_hash':home_hash}
 		else:
 			return {'possible':False}
 	else:

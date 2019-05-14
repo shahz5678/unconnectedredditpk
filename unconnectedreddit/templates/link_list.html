@@ -1,10 +1,7 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load mathfilters %}
 {% load emoticons_tags %}
 {% load get_item %}
 {% load show_error %}
-{% load human_time %}
 {% load get_photo_object %}
 {% load get_text_object %}
 {% load get_transparent_buttons_js %}
@@ -22,7 +19,7 @@
 {% block content %}
 <head><title>Home | Damadam.pk</title></head>
 <style>body{background:#f0f3f4}</style>
-<div style="max-width:600px;margin:0 auto;width:96%;position:relative;">
+<div style="max-width:600px;margin:0 auto;width:97%;position:relative;">
 
 <a name="error"></a>
 {% if home_direct_reply_error_string %}
@@ -51,9 +48,9 @@
 
 {% if not on_fbs %}
 	
-	{% if forloop.counter == 3 %}
+	{% if forloop.counter == 2 %}
 
-		<div class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
+		<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
 			<ins class="adsbygoogle"
 			    style="display:inline-block;width:320px;height:100px"
 			    data-ad-client="ca-pub-2568547635306983"
@@ -61,45 +58,20 @@
 			<script>
 			(adsbygoogle = window.adsbygoogle || []).push({});
 			</script>
-		</div>
-
-	{% elif forloop.counter == 10 %}
-
-		<div class="mbl" style="text-align:center;background:#f0f3f4">
-			<ins class="adsbygoogle"
-			     style="display:inline-block;width:320px;height:100px"
-			     data-ad-client="ca-pub-2568547635306983"
-			     data-ad-slot="6326691312"></ins>
-			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
-		</div>
-
-	{% elif forloop.counter == 17 %}
-
-		<div class="mbl" style="text-align:center;background:#f0f3f4">
-			<ins class="adsbygoogle"
-			     style="display:inline-block;width:320px;height:100px"
-			     data-ad-client="ca-pub-2568547635306983"
-			     data-ad-slot="1018524312"></ins>
-			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
-		</div>
+		</aside>
 
 	{% endif %}
 
 {% endif %}
 
 {% with replyforms|get_item:link.h as replyform %}
-
 	
 {% if link.c == '6' %}
 	
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p score=link.sc %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
@@ -111,7 +83,7 @@
 	</div>
 
 	<div class="mls mbl"> 
-	{% photo_comments_section raw_comments=link.i static_url=STATIC_URL self_user_id=ident origin='3' score=score home_hash=link.h %}
+	{% photo_comments_section raw_comments=link.i static_url=STATIC_URL self_user_id=ident origin='3' home_hash=link.h %}
 	</div>
 
 	<div class="mls mrs mbl">
@@ -124,7 +96,7 @@
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
 
-	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t|human_time oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p score=link.sc %}
+	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
 
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -137,7 +109,7 @@
 
 
 		<div class="mts mls mbl">
-		{% home_replies_section link.cb STATIC_URL ident score link.h %}
+		{% home_replies_section raw_replies=link.cb static_url=STATIC_URL self_user_id=ident home_hash=link.h %}
 		</div>
 
 		<div class="mls mrs mbl">
@@ -172,6 +144,4 @@
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<!-- separate report_modal, case_vote and copy link into different modules -->
-<!-- report modal required user ident separately -->
 {% endblock %}

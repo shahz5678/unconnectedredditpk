@@ -6,7 +6,7 @@
 <div class="margin clb"> 
 
 	&nbsp;<img src="{{ photo_url|s3:'thumb' }}" alt="no pic">
-	&nbsp;Ye photo <a href="{% url 'profile' photo_owner %}#section0">{{ photo_owner }}</a> ne charhai hai. Kya is photo ko bahal kar diya jaye?
+	&nbsp;Ye photo <a href="{% url 'profile' photo_owner 'fotos' %}#section0">{{ photo_owner }}</a> ne charhai hai. Kya is photo ko bahal kar diya jaye?
 	<br>
 	&nbsp;<a href="{% url 'resurrect_photo' pk ident '1' photo_owner origin link_id %}"><button class="btn bcg bl mtl mbs">Haan</button></a><br>
 	&nbsp;<a href="{% url 'resurrect_photo' pk ident '0' photo_owner origin link_id %}"><button class="btn bcr bl mts mbs">Nahi</button></a><br><span class="cgy cs">&nbsp;(sirf score <b>+1</b> kar do)</span>

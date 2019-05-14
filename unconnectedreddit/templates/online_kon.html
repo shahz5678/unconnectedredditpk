@@ -12,7 +12,7 @@
     <div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 
     <div class="sp" style="text-align:center;padding-bottom:10px;border-bottom:1px dashed lightgray">
-    <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a>&nbsp;<span class="cs" ></span>
+        <a href="{% url 'verified' %}#section0" class="cxs cdp" ><b>verified girls</b></a>&nbsp;<span class="cs" ></span>
     </div>
 
         {% if not whose_online %}
@@ -23,7 +23,7 @@
             <span class="cgy sp cs"><b>{{ page_obj.paginator.count }}</b> user(s) online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-                 <a href="{% url 'profile' slug=obj.username %}#section0">
+                 <a href="{% url 'profile' obj.username 'fotos' %}#section0">
                 {% if obj.userprofile__avatar %}
                     <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                 {% else %}
@@ -34,13 +34,7 @@
                     <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink">
                 {% endif %}
                 </a>
-                {% if obj.userprofile__score %}
-                    {% if obj.userprofile__score|add:"0" < 0 %}
-                        <span class="cg cs">(1)</span>
-                    {% else %}
-                        <span class="cg cs">({{ obj.userprofile__score }})</span>
-                    {% endif %}
-                {% endif %}
+               
                 {% if obj.thumbs != None %}
                 <form method="POST" action="{% url 'go_to_user_photo' obj.username 0 %}" class="mts">{% csrf_token %}
                 {{ obj.thumbs|safe }}
@@ -54,7 +48,7 @@
             <span class="cgy cs"><b>{{ page_obj.paginator.count }}</b> users online</span><br><br>
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
-                        <a href="{% url 'profile' slug=obj.username %}#section0">
+                        <a href="{% url 'profile' obj.username 'fotos' %}#section0">
                         {% if obj.userprofile__avatar %}
                             <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
                         {% else %}
@@ -65,13 +59,6 @@
                                 <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink">
                             {% endif %}
                         </a>
-                        {% if obj.userprofile__score %}
-                            {% if obj.userprofile__score|add:"0" < 0 %}
-                                <span class="cg cs">(1)</span>
-                            {% else %}
-                                <span class="cg cs">({{ obj.userprofile__score }})</span>
-                            {% endif %}
-                        {% endif %}
                 <br>
             {% endfor %}
         <hr size=1 COLOR="#E9EBEE">

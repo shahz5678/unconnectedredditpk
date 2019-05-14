@@ -40,20 +40,21 @@ from redis2 import update_notification, remove_group_notification, remove_group_
 bulk_remove_group_notification
 
 from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks,\
-construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity
+construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
-ChangeGroupTopicForm, ChangeGroupRulesForm, ClosedGroupHelpForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
-OpenGroupCreateForm, OpenGroupHelpForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
+ChangeGroupTopicForm, ChangeGroupRulesForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
+OpenGroupCreateForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
 
-from score import PRIVATE_GROUP_MESSAGE, PUBLIC_GROUP_MESSAGE, POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN, PRIVATE_GROUP_COST, PUBLIC_GROUP_COST,\
+from score import PRIVATE_GROUP_COST,\
 PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, GROUP_FEEDBACK_SIZE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
-MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, CANCEL_INVITE_AFTER_TIME_PASSAGE, PUBLIC_GROUP_MAX_SELLING_PRICE, USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED,\
+MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, PUBLIC_GROUP_MAX_SELLING_PRICE, USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED,\
 GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_MIN_SELLING_PRICE, GROUP_MEMBERS_PER_PAGE, GROUP_VISITORS_PER_PAGE, PRIVATE_GROUP_MAX_MEMBERSHIP,\
 MAX_OWNER_INVITES_PER_PRIVATE_GROUP, MIN_MEMBERSHIP_AGE_FOR_GIVING_PUBLIC_GRP_FEEDBACK, MIN_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OWNERSHIP, \
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, DELETION_THRESHOLD, MEHFIL_REPORT_PROMPT, MAX_OFFICER_APPOINTMENTS_ALLWD, GROUP_OFFICER_QUESTIONS, \
 MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE,\
-PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF
+PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF,CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE
+
 
 from redis6 import appoint_public_mehfil_officer, is_officer_appointments_rate_limited, retrieve_cached_attendance_data, get_latest_presence, \
 cache_group_attendance_data, get_attendance, retrieve_all_officers, remove_public_mehfil_officers, retrieve_group_category, save_group_submission, \
@@ -92,13 +93,16 @@ def display_group_info_page(request):
 		group_uuid = request.POST.get("guid",None)
 		if group_uuid:
 			group_id = retrieve_group_id(group_uuid)
+			group_owner_id, group_id, group_privacy = retrieve_group_owner_id(group_uuid=group_uuid,with_group_id=True,with_group_privacy=True)
 			own_id = request.user.id
 			if group_member_exists(group_id, own_id):
-				is_public = False if retrieve_group_privacy(group_id) == '1' else True
+				is_public = False if group_privacy == '1' else True
 				data = get_group_info(group_id, is_public = is_public)
 				data['uj'] = retrieve_group_joining_time(group_id, own_id)# this is different for each user, so retrieved separately
 				if is_public:
 					data['7nm'] = int(data['7nm']) if '7nm' in data else 0
+					if str(own_id) == group_owner_id:
+						log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 				return render(request,"mehfil/group_info.html",{'data':data,'guid':group_uuid, 'is_public':is_public})
 			else:
 				# not a member or group does not exist
@@ -259,7 +263,6 @@ def processing_group_ownership_transfer(request, slug):
 							if is_mobile_verified(offerer_id):# offerer must be mobile verified
 								offer_details = retrieve_offer_details(group_id, offerer_id)    
 								if offer_details:
-									# {'sid':submitter_id,'suname':submitter_uname,'savurl':submitter_avurl,'t':time_now,'pts':points_offered,'gid':group_id}
 									points_offered = offer_details.get('pts',0)
 									submitter_uname = retrieve_uname(offerer_id,decode=True)
 									if submitter_uname:
@@ -279,11 +282,11 @@ def processing_group_ownership_transfer(request, slug):
 												return render(request,"mehfil/notify_and_redirect.html",{'member_too_young_to_become_owner':True,'unique':group_uuid,\
 													'is_public':is_public})
 											elif is_public and points_offered < PUBLIC_GROUP_MIN_SELLING_PRICE:
-												# not enough points offered (i.e. less than 5000 points)
+												# not enough points offered
 												rescind_offer(group_id=group_id, offerer_id=offerer_id)
 												return render(request,"mehfil/notify_and_redirect.html",{'not_enough_price_offered':True,'unique':group_uuid,\
 													'min_price':PUBLIC_GROUP_MIN_SELLING_PRICE})
-											elif is_public and points_offered > PUBLIC_GROUP_MAX_SELLING_PRICE:
+											elif is_public and PUBLIC_GROUP_MAX_SELLING_PRICE > 0 and points_offered > PUBLIC_GROUP_MAX_SELLING_PRICE:
 												# too much price offered
 												rescind_offer(group_id=group_id, offerer_id=offerer_id)
 												return render(request,"mehfil/notify_and_redirect.html",{'too_much_price_offered':True,'unique':group_uuid})
@@ -318,23 +321,20 @@ def processing_group_ownership_transfer(request, slug):
 															ttl = rules_ttl
 														return render(request,"mehfil/notify_and_redirect.html",{'topic_or_rules_rl_cannot_transfer':True,\
 															'unique':group_uuid,'ttl':ttl,'ttl_type':ttl_type,'is_public':is_public})
-													elif is_public and UserProfile.objects.only('score').get(user_id=offerer_id).score < points_offered:
-														# the offerer can't keep their end of the bargain any more - i.e. they dont have enough score :(
-														rescind_offer(group_id=group_id, offerer_id=offerer_id)
-														return render(request,"mehfil/notify_and_redirect.html",{'cannot_afford':True,'unique':group_uuid})
+													# elif is_public and UserProfile.objects.only('score').get(user_id=offerer_id).score < points_offered:
+													#     # the offerer can't keep their end of the bargain any more - i.e. they dont have enough score :(
+													#     rescind_offer(group_id=group_id, offerer_id=offerer_id)
+													#     return render(request,"mehfil/notify_and_redirect.html",{'cannot_afford':True,'unique':group_uuid})
 													elif HellBanList.objects.filter(condemned_id=offerer_id).exists():
 														# the offerer is hell banned
 														rescind_offer(group_id=group_id, offerer_id=offerer_id)
 														return render(request,"mehfil/notify_and_redirect.html",{'offerer_is_hellbanned':True,'unique':group_uuid,\
 															'is_public':is_public})
 													else:
-														# change owner object in Group model and create a reply
-														# Group.objects.filter(unique=group_uuid).update(owner=target_user)
 														### process redis6 related stuff ### 
 														# change owner object in redis6 data
 														# ensure ownership change is seen in administrative activity
 														# ensure ownership change is reflected in information page
-														# ensure price paid by new owner is reflected in information page if it's a public mehfil
 														own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 														accept_group_ownership_transfer_request(group_id=group_id, group_uuid=group_uuid, owner_id=own_id, \
 															own_uname=own_uname, requestor_id=offerer_id, requestor_uname=submitter_uname, time_now=time_now, \
@@ -346,9 +346,9 @@ def processing_group_ownership_transfer(request, slug):
 														invalidate_presence(group_id)
 														 ###################################
 														# charge the offerer the score they offered - and transfer it to the original owner
-														if is_public:
-															UserProfile.objects.filter(user_id=offerer_id).update(score=F('score') - points_offered)
-															UserProfile.objects.filter(user_id=own_id).update(score=F('score') + points_offered)
+														# if is_public:
+														#     UserProfile.objects.filter(user_id=offerer_id).update(score=F('score') - points_offered)
+														#     UserProfile.objects.filter(user_id=own_id).update(score=F('score') + points_offered)
 														return render(request,"mehfil/transfer_final_status.html",{'guid':group_uuid,'ouname':submitter_uname,\
 															 'is_public':is_public})
 												else:
@@ -598,7 +598,7 @@ def private_mehfil_oversight_dashboard(request):
 				elif help_decision == '2':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_invite.html','guid':group_uuid,\
 						'max_owner_invites':MAX_OWNER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP,\
-						'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+						'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '3':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_owner_kick.html','guid':group_uuid})
 				elif help_decision == '4':
@@ -659,7 +659,7 @@ def private_mehfil_oversight_dashboard(request):
 				elif help_decision == '2':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_invite.html','guid':group_uuid,\
 						'max_member_invites':MAX_MEMBER_INVITES_PER_PRIVATE_GROUP,'max_members':PRIVATE_GROUP_MAX_MEMBERSHIP,\
-						'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+						'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '6':
 					return render(request,"mehfil/mehfil_help.html",{'section':'private_member_ownership_request.html','guid':group_uuid})
 				elif help_decision == '7':
@@ -814,6 +814,7 @@ def public_mehfil_oversight_dashboard(request):
 			return redirect("group_page")
 		if owner_id == own_id:
 			# group admin
+			log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
 			if help_decision in ('1','2','3','4','5','6','11','13','17'):
@@ -823,7 +824,7 @@ def public_mehfil_oversight_dashboard(request):
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_kick.html','guid':group_uuid})
 				elif help_decision == '3':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_invite.html','guid':group_uuid,\
-						'max_owner_invites':MAX_OWNER_INVITES_PER_PUBLIC_GROUP,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+						'max_owner_invites':MAX_OWNER_INVITES_PER_PUBLIC_GROUP,'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '4':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_owner_read_feedback.html','guid':group_uuid})
 				elif help_decision == '5':
@@ -904,7 +905,7 @@ def public_mehfil_oversight_dashboard(request):
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_kick.html','guid':group_uuid})
 				elif help_decision == '3':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_invite.html','guid':group_uuid,\
-						'max_officer_invites':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+						'max_officer_invites':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP,'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)})
 				elif help_decision == '5':
 					return render(request,"mehfil/mehfil_help.html",{'section':'public_officer_change_topic.html','guid':group_uuid})
 				elif help_decision == '7':
@@ -2353,9 +2354,9 @@ def group_hide_submission(request, *args, **kwargs):
 				# hide the submission:
 				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk)#hides group submission and returns writer ID by default
 				if action_successful:
-					if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-						# cut points only if the writer was NOT a group owner or a group officer
-						UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
+					# if not is_group_officer(gid,writer_id) and owner_id != writer_id:
+					#     # cut points only if the writer was NOT a group owner or a group officer
+					#     UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
@@ -2388,9 +2389,9 @@ def group_hide_submission(request, *args, **kwargs):
 					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide':True,'unique':data['u'],'is_public':True,\
 						'ttl':ttl})
 				elif action_successful:
-					if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-						# return points only if the writer was NOT a group owner or a group officer
-						UserProfile.objects.filter(user_id=writer_id).update(score=F('score')+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
+					# if not is_group_officer(gid,writer_id) and owner_id != writer_id:
+					#     # return points only if the writer was NOT a group owner or a group officer
+					#     UserProfile.objects.filter(user_id=writer_id).update(score=F('score')+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
@@ -2466,9 +2467,12 @@ def display_group_users_list(request, grp_priv, list_type):
 						final_visitor_data.append((visitor_id,credentials[int(visitor_id)],visit_time,row_num,status))
 						row_num += 1
 					cache_group_attendance_data(json.dumps(final_visitor_data),group_id)
+			is_owner = group_owner_id == str(own_id)
 			if group_privacy == '0':
 				which_tutorial = '15'
 				template_name = 'public_group_online_kon'
+				if is_owner:
+					log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 			else:
 				which_tutorial = '16'
 				template_name = 'group_online_kon'
@@ -2480,7 +2484,7 @@ def display_group_users_list(request, grp_priv, list_type):
 			return render(request,"mehfil/{0}.html".format(template_name),{'object_list':visitor_data,'group_owner_id':group_owner_id,\
 				'show_init_msg':tutorial_unseen(user_id=own_id, which_tut=which_tutorial, renew_lease=True),'unique':group_uuid, \
 				'legit':FEMALES,'is_paginated': True if len(final_visitor_data) > GROUP_VISITORS_PER_PAGE else False, 'page_obj':page,\
-				'is_owner':group_owner_id == str(own_id),'visitors':True})
+				'is_owner':is_owner,'visitors':True})
 		elif list_type == 'members':
 			# this is for displaying all members
 			membership_data = retrieve_cached_membership_data(group_id)
@@ -2753,7 +2757,7 @@ class ChangeGroupRulesView(FormView):
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		user_id = str(self.request.user.id)
 		if self.request.user_banned:
-			return redirect("profile", slug=user.username)
+			return redirect("profile", slug=user.username, type='fotos')
 		else:
 			rules, raw_rules = form.cleaned_data.get("rules")
 			unique = self.request.session.get("public_uuid",None)
@@ -3286,7 +3290,7 @@ class PrivateGroupView(FormView):
 							uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
 					else: 
 						uploaded_img_loc = None
-					UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
+					# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 					time_now = time.time()
 					set_input_rate_and_history.delay(section='prv_grp',section_id=group_id,text=text,user_id=user_id,time_now=time_now)
 					# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=text, image='')
@@ -3559,7 +3563,7 @@ class PublicGroupView(FormView):
 						uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
 				else: 
 					uploaded_img_loc = None
-				UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
+				# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 				topic = group_data['tp']
 				invalidate_cached_mehfil_replies(group_id)
 				invalidate_presence(group_id)
@@ -3816,7 +3820,7 @@ def owner_rejoining_public_group(request):
 		group_id = request.POST.get("gid",None)
 		category = request.POST.get("cat",None)
 		if group_id and decision is None:
-			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified, score=request.user.userprofile.score, rejoin='1')
+			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified, rejoin='1')
 			if form.is_valid():
 				# form is valid
 				topic = form.cleaned_data.get("topic")
@@ -4223,7 +4227,7 @@ def process_public_group_invite(request, *args, **kwargs):
 								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'legit':FEMALES})
 						else:
 							# can invite them all - proceed
-							invitable_ids = filter_uninvitables(invitee_ids, uuid)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
+							invitable_ids = filter_uninvitables(invitee_ids, uuid, inviter_id=own_id, is_public=True)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
 							invited_nicknames_string = nickname_strings(invitable_ids)
 							own_uname = retrieve_uname(own_id,decode=True)
 							save_group_invite(group_id=group_id, target_ids=invitable_ids, time_now=time.time(),is_public=True,sent_by='owner' if is_owner \
@@ -4233,15 +4237,11 @@ def process_public_group_invite(request, *args, **kwargs):
 							document_administrative_activity.delay(group_id, main_sentence, 'public_invite')
 							for invitee_id in invitable_ids:
 								invalidate_cached_mehfil_invites(invitee_id)
-							##############################
-							# Redirect to invite cancellation page instead of group_invites_sent.html
+							# Redirect to invite cancellation page (instead of group_invites_sent.html)
 							request.session["public_invites_sent"+str(own_id)] = '1'
 							request.session["public_invites_uuid"+str(own_id)] = uuid
 							request.session.modified = True
 							return redirect("unaccepted_public_mehfil_invites")
-							##############################
-							# return render(request,'mehfil/group_invites_sent.html',{'invited_usernames':retrieve_bulk_unames(invitable_ids,decode=True).values(),'group_uuid':uuid,\
-							#     'is_public':True})
 					else:
 						# slots are used up
 						if reason == 'ivt_overflow':
@@ -4298,7 +4298,7 @@ def process_private_group_invite(request, *args, **kwargs):
 								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'legit':FEMALES})
 						else:
 							# can invite them all - proceed
-							invitable_ids = filter_uninvitables(invitee_ids, uuid)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
+							invitable_ids = filter_uninvitables(invitee_ids, uuid, inviter_id=user_id, is_public=False)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
 							time_now = time.time()
 							own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 							invited_nicknames_string = nickname_strings(invitable_ids)
@@ -4316,15 +4316,11 @@ def process_private_group_invite(request, *args, **kwargs):
 							document_administrative_activity.delay(group_id, main_sentence, 'private_invite')
 							for invitee_id in invitable_ids:
 								invalidate_cached_mehfil_invites(invitee_id)
-							##############################
-							# Redirect to invite cancellation page instead of group_invites_sent.html
+							# Redirect to invite cancellation page (instead of group_invites_sent.html)
 							request.session["private_invites_sent"+user_id] = '1'
 							request.session["private_invites_uuid"+user_id] = uuid
 							request.session.modified = True
 							return redirect("unaccepted_private_mehfil_invites")
-							##############################
-							# return render(request,'mehfil/group_invites_sent.html',{'invited_usernames':retrieve_bulk_unames(invitable_ids,decode=True).values(),'group_uuid':uuid,\
-							#     'is_public':False})
 					else:
 						# slots are used up
 						if reason == 'mem_overflow':
@@ -4372,7 +4368,7 @@ class InviteUsersToPrivateGroupView(ListView):
 					# user_ids = [18,114,113,128,164,132,123,133,150,160]
 					if user_ids:
 						users_purified = [pk for pk in user_ids if pk not in condemned]# remove hell-banned users
-						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified,group_uuid)
+						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified, group_uuid, inviter_id=own_id, is_public=False)
 						username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
 						if username_data:
 							return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
@@ -4461,7 +4457,7 @@ def private_group_invite_help(request):
 		if group_member_exists(group_id, own_id):
 			return render(request,'mehfil/private_group_invite_help.html',{'owner_max':MAX_OWNER_INVITES_PER_PRIVATE_GROUP,'guid':unique,\
 				'member_max':MAX_MEMBER_INVITES_PER_PRIVATE_GROUP,'one_less_owner':MAX_OWNER_INVITES_PER_PRIVATE_GROUP-1,\
-				'private_max_members': PRIVATE_GROUP_MAX_MEMBERSHIP,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+				'private_max_members': PRIVATE_GROUP_MAX_MEMBERSHIP,'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4490,10 +4486,10 @@ def unaccepted_private_mehfil_invites(request):
 			final_data, time_now = [], time.time()
 			for invite_id, invite_time in invites_and_times:
 				invited_id = int(invite_id)
-				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
+				can_cancel = (time_now - int(invite_time)) > CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES,\
-				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE),'just_invited_users':just_invited_users})
+				'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE),'just_invited_users':just_invited_users})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4532,10 +4528,10 @@ def cancel_closed_group_invite(request):
 			final_data, time_now = [], time_now
 			for invite_id, invite_time in invites_and_times:
 				invited_id = int(invite_id)
-				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
+				can_cancel = (time_now - int(invite_time)) > CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES,\
-				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+				'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
 			return redirect("group_page")
@@ -4560,12 +4556,12 @@ class InviteUsersToGroupView(ListView):
 				own_id = str(self.request.user.id)
 				allowed_to_invite = own_id == group_owner_id or is_group_officer(group_id,own_id)
 				if allowed_to_invite:
-					user_ids = get_most_recent_online_users()#cache_mem.get('online')
+					user_ids = get_most_recent_online_users()
 					# user_ids = [1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,154,155]
 					#user_ids = [18,114,113,128,164,132,123,133,150,160]
 					if user_ids:
 						users_purified = [pk for pk in user_ids if pk not in condemned]
-						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified,group_uuid)
+						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified, group_uuid, inviter_id=own_id, is_public=True)
 						username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
 						if username_data:
 							return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
@@ -4654,7 +4650,7 @@ def public_group_invite_help(request):
 		if group_owner_id == own_id or is_group_officer(group_id, own_id):
 			return render(request,'mehfil/public_group_invite_help.html',{'owner_max':MAX_OWNER_INVITES_PER_PUBLIC_GROUP,'guid':unique,\
 				'officer_max':MAX_OFFICER_INVITES_PER_PUBLIC_GROUP,'one_less_owner':MAX_OWNER_INVITES_PER_PUBLIC_GROUP-1,\
-				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+				'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4684,10 +4680,10 @@ def unaccepted_public_mehfil_invites(request):
 			final_data, time_now = [], time.time()
 			for invite_id, invite_time in invites_and_times:
 				invited_id = int(invite_id)
-				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
+				can_cancel = (time_now - int(invite_time)) > CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/open_group_invited_list.html',{'owner':is_owner,'guid':unique,'final_data':final_data,'females':FEMALES,\
-				'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE),'just_invited_users':just_invited_users})
+				'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE),'just_invited_users':just_invited_users})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4727,10 +4723,10 @@ def cancel_open_group_invite(request):
 			final_data, time_now = [], time_now
 			for invite_id, invite_time in invites_and_times:
 				invited_id = int(invite_id)
-				can_cancel = (time_now - int(invite_time)) > CANCEL_INVITE_AFTER_TIME_PASSAGE
+				can_cancel = (time_now - int(invite_time)) > CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/open_group_invited_list.html',{'owner':True,'guid':unique,'final_data':final_data,\
-				'females':FEMALES,'cancellation_time':human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)})
+				'females':FEMALES,'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
 			return redirect("public_group")
@@ -4890,9 +4886,7 @@ class GroupTypeView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(GroupTypeView, self).get_context_data(**kwargs)
-		context["private_price"] = PRIVATE_GROUP_COST
-		context["public_price"] = PUBLIC_GROUP_COST
-		context["public_invite_cancellation"] = human_readable_time(CANCEL_INVITE_AFTER_TIME_PASSAGE)
+		context["public_invite_cancellation"] = human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)
 		context["public_owner_invites"] = MAX_OWNER_INVITES_PER_PUBLIC_GROUP
 		context["public_officer_invites"] = MAX_OFFICER_INVITES_PER_PUBLIC_GROUP
 		context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
@@ -4901,42 +4895,58 @@ class GroupTypeView(FormView):
 		return context
 
 
-class OpenGroupHelpView(FormView):
+@csrf_protect
+def can_create_group(request, group_type):
 	"""
-	Renders form where user has to decide whether they are willing to pay the required price
+	Checks whether the user has the privilege to create a public mehfil at this point in time
+
+	Replacement for OpenGroupHelpView()
 	"""
-	form_class = OpenGroupHelpForm
-	template_name = "mehfil/open_group_help.html"
+	if request.method == 'POST':
+		if group_type in ('public','private'):
+			own_id = request.user.id
+			if not request.mobile_verified:
+				return render(request,"mehfil/group_type.html",{'not_verified':True})
+			else:
+				try:
+					join_date = User.objects.only('date_joined').get(id=own_id).date_joined
+				except User.DoesNotExist:
+					# this user does not exist thus data incomplete
+					raise Http404("Unable to access user joining date")
+				if group_type == 'public':
+					ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - convert_to_epoch(join_date))
+					if ttl > 4:
+						# this user isn't allowed to create a group
+						return render(request,"mehfil/group_type.html",{'age_inadequate_ttl':ttl,'user_age_inadequate':True})
+					else:
+						ttl = is_group_creation_rate_limited(own_id, which_group='public')
+						if ttl:
+							return render(request,"mehfil/group_type.html",{'ttl':ttl})
+						else:
+							return redirect("open_group_preview")
+				else:
+					ttl = is_group_creation_rate_limited(own_id, which_group='private')
+					if ttl:
+						return render(request,"mehfil/group_type.html",{'ttl':ttl})
+					else:
+						return redirect("closed_group_create")
+		else:
+			raise Http404("Unknown group type")
+	else:
+		raise Http404("Unable to access page via GET request")
 
-	def get_context_data(self, **kwargs):
-		context = super(OpenGroupHelpView, self).get_context_data(**kwargs)
-		own_id = self.request.user.id
-		context["public_price"] = PUBLIC_GROUP_COST
-		try:
-			join_date = User.objects.only('date_joined').get(id=own_id).date_joined
-		except User.DoesNotExist:
-			# this user does not exist thus data incomplete
-			context["invalid_user"] = True
-			return context
-		ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - convert_to_epoch(join_date))
-		if ttl > 4:
-			# this user isn't allowed to create a group
-			context["user_age_inadequate"] = True
-			context["age_inadequate_ttl"] = ttl
-		return context
 
+# class ClosedGroupHelpView(FormView):
+# 	"""
+# 	Renders form where user has to decide whether they are willing to pay the required price
+# 	"""
+# 	form_class = ClosedGroupHelpForm
+# 	template_name = "mehfil/closed_group_help.html"
 
-class ClosedGroupHelpView(FormView):
-	"""
-	Renders form where user has to decide whether they are willing to pay the required price
-	"""
-	form_class = ClosedGroupHelpForm
-	template_name = "mehfil/closed_group_help.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(ClosedGroupHelpView, self).get_context_data(**kwargs)
-		context["private_price"] = PRIVATE_GROUP_COST
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(ClosedGroupHelpView, self).get_context_data(**kwargs)
+# 		context["private_price"] = PRIVATE_GROUP_COST
+# 		return context
 
 
 def direct_message(request, pk=None, *args, **kwargs):
@@ -4997,7 +5007,7 @@ class DirectMessageCreateView(FormView):
 					else:
 						topic, unique = invitee+" se gupshup", str(uuid.uuid4())
 						group_id, created_at = get_group_id(), time.time()
-						UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PRIVATE_GROUP_COST)
+						# UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PRIVATE_GROUP_COST)
 						reply_time = created_at+1
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						###################
@@ -5020,7 +5030,7 @@ class DirectMessageCreateView(FormView):
 						self.request.session["unique_id"] = unique
 						return redirect("private_group_reply")
 				else:
-					return redirect("profile",slug=invitee)
+					return redirect("profile", slug=invitee, type='fotos')
 			else:
 				# invitee doesn't exist
 				return redirect("home")
@@ -5035,7 +5045,7 @@ class ClosedGroupCreateView(FormView):
 
 	def get_form_kwargs(self):
 		kwargs = super(ClosedGroupCreateView,self).get_form_kwargs()
-		kwargs['score'] = self.request.user.userprofile.score
+		kwargs['is_verified'] = self.request.mobile_verified
 		return kwargs
 
 	def get_context_data(self, **kwargs):
@@ -5046,21 +5056,20 @@ class ClosedGroupCreateView(FormView):
 	def form_valid(self, form):
 		if not self.request.mobile_verified:
 			return render(self.request,"verification/unable_to_submit_without_verifying.html",{'create_private_mehfil':True})
-		elif self.request.user.userprofile.score >= PRIVATE_GROUP_COST:
+		elif self.request.user_banned:
+			return redirect("error")
+		else:
 			user_id = self.request.user.id
 			ttl = is_group_creation_rate_limited(user_id, which_group='private')
 			if ttl:
 				return render(self.request,"mehfil/group_type.html",{'ttl':ttl})
 			else:
-				# f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 				topic = form.cleaned_data["topic"]
 				user = self.request.user
 				unique = str(uuid.uuid4())
 				created_at = time.time()
 				creation_text = 'meri new mehfil mein welcome'
-				# subtract cost of private mehfil
-				UserProfile.objects.filter(user_id=user_id).update(score=F('score')-PRIVATE_GROUP_COST)
-				reply_time = created_at+1#convert_to_epoch(reply.submitted_on)
+				reply_time = created_at+1
 				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 				####################
 				group_id = get_group_id()
@@ -5072,16 +5081,14 @@ class ClosedGroupCreateView(FormView):
 				main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
 				document_administrative_activity.delay(group_id, main_sentence, 'create')
 				invalidate_cached_mehfil_pages(user_id)
-				####################
 				group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=user_id,topic=topic,reply_time=reply_time,\
 					poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='1',slug=unique,image_url=None,\
 					priority='priv_mehfil',from_unseen=False)
+				####################
 				# rate limit further public mehfil creation by this user (for 1 day)
 				rate_limit_group_creation(user_id, which_group='private')
 				self.request.session["unique_id"] = unique
 				return redirect("invite_private", slug=unique)
-		else:
-			return render(self.request,"mehfil/group_type.html",{'score_inadequate':True})
 
 
 @csrf_protect
@@ -5092,7 +5099,9 @@ def create_open_group(request):
 	if request.method == "POST":
 		own_id = request.user.id
 		decision = request.POST.get("dec",None)
-		if decision == '0':
+		if request.user_banned:
+			return redirect("error")
+		elif decision == '0':
 			return redirect("group_type")
 		elif decision == '1':
 			# re-enter the credentials
@@ -5125,15 +5134,15 @@ def create_open_group(request):
 					return render(request,"mehfil/group_type.html",{'user_age_inadequate':True,'age_inadequate_ttl':ttl})
 				else:
 					data = get_temporarily_saved_group_credentials(own_id)
-					score = request.user.userprofile.score
-					if data and score >= PUBLIC_GROUP_COST:
+					# score = request.user.userprofile.score
+					if data:# and score >= PUBLIC_GROUP_COST:
 						creation_text = 'meri public mehfil mein welcome'
 						topic, rules, group_category, raw_rules = data['topic'], data['formatted_rules'], data["category"], data['rules']
 						group_id = get_group_id()#group.id
 						# set_group_id(group_id)#set group ID in redis6
 						unique_id = str(uuid.uuid4())
 						created_at = time.time()#convert_to_epoch(group.created_at)
-						UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PUBLIC_GROUP_COST)
+						# UserProfile.objects.filter(user_id=own_id).update(score=F('score')-PUBLIC_GROUP_COST)
 						reply_time = created_at+1#convert_to_epoch(reply.submitted_on)
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						create_group_credentials(owner_id=own_id, owner_uname=own_uname, owner_join_time=epoch_join_date, group_id=group_id,privacy='0',\
@@ -5155,8 +5164,8 @@ def create_open_group(request):
 						request.session["public_uuid"] = unique_id
 						request.session.modified = True
 						return redirect("invite")
-					elif score < PUBLIC_GROUP_COST:
-						return render(request,"mehfil/group_type.html",{'score_inadequate':True})
+					# elif score < PUBLIC_GROUP_COST:
+					#     return render(request,"mehfil/group_type.html",{'score_inadequate':True})
 					else:
 						# data has expired, tell the person to redo
 						form = OpenGroupCreateForm()
@@ -5179,7 +5188,7 @@ def preview_open_group(request):
 	else:
 		own_id = request.user.id
 		if request.method == "POST":
-			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified, score=request.user.userprofile.score)
+			form = OpenGroupCreateForm(data=request.POST,verified=request.mobile_verified)#, score=request.user.userprofile.score)
 			if form.is_valid():
 				topic = form.cleaned_data.get("topic")
 				formatted_rules, rules = form.cleaned_data.get("rules")

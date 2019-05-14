@@ -16,6 +16,7 @@ CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contribu
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
+TRENDER_RANKS_TO_COUNT = 10 #of top trenders to be shown
 SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 SUPER_UPVOTE = 20# REMOVE
 PERMANENT_RESIDENT_SCORE = 300#REMOVE
@@ -49,9 +50,15 @@ DOWNVOTE = -2#number to subtract from user score
 VOTING_DRIVEN_CENSORSHIP = -15# at what total vote count should a photo be completely disappeared
 VOTING_DRIVEN_PIXELATION = -7# at what total vote count should a photo be pixellated
 ###############################################################################################################
+BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING = 0.3# if a voter shows a bias of at least (or greater than) this magnitude, their vote counts for zilch!
+UPPER_RELATIONSHIP_UVOTE_CUTOFF = 4# upper threshold for 'score' used when doing a sequential scan of UVOTER_AFFINITY sorted set
+UPPER_RELATIONSHIP_DVOTE_CUTOFF = 4# upper threshold for 'score' used when doing a sequential scan of DVOTER_AFFINITY sorted set
+MEANINGFUL_VOTING_SAMPLE_SIZE = 10# threshold used to determine whether a 'voting relationship' should be investigated or not
+NUM_VOTES_TO_TGT = 5# a target user must have received these many votes from voter to make calculating their Bayesian affinity worthwhile (upvotes and downvotes both)
+###############################################################################################################
 MICRO_CACHE_TTL = 15# useful for micro caching some fast changing keys in groups (do a ctrl+f in redis6 to see examples)
 PRIVATE_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
-PRIVATE_GROUP_MAX_MEMBERSHIP = 8
+PRIVATE_GROUP_MAX_MEMBERSHIP = 50
 PUBLIC_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
 PUBLIC_GROUP_MAX_RULES_SIZE = 500 #more than 500 chars not allowed
 PUBLIC_GROUP_REPLY_LENGTH = 500
@@ -77,13 +84,17 @@ GROUP_OFFICER_QUESTIONS = {'1':'Ap mehfil ka mahol khush gawar rakhney mein owne
 ###################################################
 
 ########## Invites in groups ##########
-INVITE_LOCK_DURATION = 1209600#2 weeks - use this key to disallow reinviting the same user again and again
-CANCEL_INVITE_AFTER_TIME_PASSAGE = 259200#3 days after inviting, a public (or private) group owner can cancel their invite
-GROUP_INVITE_TTL = 604800#7 days ttl for group invites (public and private both). Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_INVITE_AFTER_TIME_PASSAGE to work
+GROUP_INVITE_LOCK_DURATION = 1209600#2 weeks - use this key to disallow reinviting the same user again and again
+INVITER_PRIVATE_INVITE_LOCK_DURATION = 259200#3 days - use this key to disallow reinviting by the same user again and again (even to different groups)
+INVITER_PUBLIC_INVITE_LOCK_DURATION = 259200#3 days - use this key to disallow reinviting by the same user again and again (even to different groups)
+CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE = 259200#3 days after inviting, a public group owner can cancel their invite
+CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE = 86400#1 day after inviting, a private group owner can cancel their invite
+PRIVATE_GROUP_INVITE_TTL = 604800#7 days ttl for private group invites. Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE to work
+PUBLIC_GROUP_INVITE_TTL = 604800#7 days ttl for public group invites. Must be shorter than INVITE_LOCK_DURATION and longer than CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE to work
 MAX_OWNER_INVITES_PER_PUBLIC_GROUP = 30 #num users an owner can invite into a group within a week
-MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 3 #num users a priv mehfil owner can invite
+MAX_OWNER_INVITES_PER_PRIVATE_GROUP = 30 #num users a priv mehfil owner can invite
 MAX_OFFICER_INVITES_PER_PUBLIC_GROUP = 10 #num users all officers can invite into a group
-MAX_MEMBER_INVITES_PER_PRIVATE_GROUP = 1 # num users a priv mehfil member can invite
+MAX_MEMBER_INVITES_PER_PRIVATE_GROUP = 10 # num users a priv mehfil member can invite
 #######################################
 
 ########## Group transactions #########
@@ -93,10 +104,11 @@ GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED = 864000# group must be at least 10 
 FOLLOW_UP_REQUEST_RATE_LIMIT = 604800#7 days rate limit for re-requesting group transfer from the same group owner
 #######################################
 
-######## Public group creation ########
+######## Public/Private group creation ########
 USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED = 2592000# age requirement is 30 days in seconds
 PUBLIC_GROUP_COST = 5000 # cost of buying a public group
-#######################################
+PRIVATE_GROUP_CREATION_RATE_LIMIT = 14400#4 hrs
+PUBLIC_GROUP_CREATION_RATE_LIMIT = 604800#7 days
 
 ####### Group topic changing rate limits #######
 TOPIC_SHORT_RATE_LIMIT = 1800#30 mins rate limiting
@@ -140,8 +152,8 @@ GROUP_VISITORS_PER_PAGE = 50 #num of group members per page, shown in a mehfil's
 
 POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN = 2
 PRIVATE_GROUP_COST = 500 # cost of buying a private group
-PUBLIC_GROUP_MAX_SELLING_PRICE = (PUBLIC_GROUP_COST*2)-1
-PUBLIC_GROUP_MIN_SELLING_PRICE = PUBLIC_GROUP_COST#PUBLIC_GROUP_COST*0.3
+PUBLIC_GROUP_MAX_SELLING_PRICE = 0#(PUBLIC_GROUP_COST*2)-1
+PUBLIC_GROUP_MIN_SELLING_PRICE = 0#PUBLIC_GROUP_COST#PUBLIC_GROUP_COST*0.3
 GROUP_HARD_DELETION_CUTOFF = 2479680#30 days old groups are targets of hard deletion (i.e. full deletion)
 GROUP_SOFT_DELETION_CUTOFF = 604800#7 days old groups are target of soft deletion (i.e. emptying content)
 
@@ -163,7 +175,7 @@ CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni','Mult
 'Sri Lanka':'slk','England':'eng','World-XI':'wxi','Australia':'aus'}
 ###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
-REPORTED_CASE_COMPLETION_BONUS = 0#15#turning case completion bonus to '0' for now (revert if defenders complain)
+#REPORTED_CASE_COMPLETION_BONUS = 0#15#turning case completion bonus to '0' for now (revert if defenders complain)
 
 PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Foto mein nudity ya sex hai','2':'Foto mein firqa wariyat hai',\
 '3':'Foto mein khoon kharaba ya aziyat hai','4':'Foto dehshat gardi ki himayat kar rahi hai',\

@@ -1,9 +1,6 @@
 {% extends "base.html" %}
-{% load humanize %}
-{% load human_time %}
 {% load show_error %}
 {% load get_photo_object %}
-{% load mathfilters %}
 {% load emoticons_tags %}
 {% load get_big_fan_button %}
 {% load get_big_send_button %}
@@ -21,7 +18,7 @@
 
 <style>body{background:#f0f3f4}</style>
 
-<div style="max-width:600px;margin:0 auto;width:96%">
+<div style="max-width:600px;margin:0 auto;width:97%">
 
 <a name="error"></a>
 {% if photo_direct_reply_error_string %}
@@ -41,19 +38,18 @@
 
 	{% notification_bar notification=process_notification origin='21' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
-
 	{% include "photos_navbar.html" with section='best' static_url=STATIC_URL %}
 
-{% endif %}	
+{% endif %}
 
-	<h1 style="text-align:center" class="cxl lsp clb">Trending fotos <span class="cs">(page {{ page.number }})</span>:</h1>
+<h1 style="text-align:center" class="cxl lsp clb">Trending fotos <span class="cs">(page {{ page.number }})</span>:</h1>
 
 {% for photo in object_list %}
-	
+
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=2 upload_time=photo.t|human_time vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p score=photo.sc %}
+	{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=2 upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
 
 	<div class="mls">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -78,7 +74,6 @@
 <div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px" class="cxl lsp mbl clb">Sorry! Ye abhi empty hai<br>
 <div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Jab tak <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Fotos</a> check karein!</div>
 </div>
-
 
 {% endfor %}
 

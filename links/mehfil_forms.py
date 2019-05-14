@@ -11,7 +11,7 @@ from redis4 import many_short_messages, get_and_delete_text_input_key, is_limite
 from redis6 import human_readable_time, retrieve_group_creation_time, retrieve_group_privacy, retrieve_group_category, is_group_member_and_rules_signatory,\
 group_ownership_transfer_blocked_by_rate_limit, ownership_request_rate_limit, is_topic_change_frozen, is_rules_change_frozen, log_topic_change,\
 log_topic_changing_attempt, topic_change_rate_limited, log_rules_change, log_rules_changing_attempt, rules_change_rate_limited, group_member_exists
-from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, PUBLIC_GROUP_COST, PRIVATE_GROUP_COST, \
+from score import PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, \
 GROUP_FEEDBACK_SIZE, PUBLIC_GROUP_REPLY_LENGTH, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_MAX_SELLING_PRICE, PUBLIC_GROUP_MIN_SELLING_PRICE, \
 USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED, GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_OFFICER_APPLICATION_ANSWER_LEN, \
 MAX_PUNCTUATION_REPETITIONS_IN_MEHFIL_TOPIC
@@ -521,25 +521,20 @@ class ClosedGroupCreateForm(forms.Form):
 	topic = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off','autofocus': 'autofocus',\
 		'autocorrect':'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_MAX_TITLE_SIZE}),\
 	error_messages={'required': 'Topic likhna zaruri hai'})
-	# class Meta:
-	#     model = Group
-	#     exclude = ("owner","created_at", "members", "cagtegory","private", "rules", "pics_ki_ijazat")
-	#     fields = ("topic",)
 
 	def __init__(self, *args, **kwargs):
-		self.score = kwargs.pop('score',None)
+		self.is_verified = kwargs.pop('is_verified',None)
 		super(ClosedGroupCreateForm, self).__init__(*args, **kwargs)
 		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:100px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_topic(self):
-		user_score = self.score
-		if user_score >= PRIVATE_GROUP_COST:
+		if self.is_verified:
 			topic = self.cleaned_data.get("topic")
 			topic = topic.strip()
 			process_group_topic(topic, topic_len_threshold=PRIVATE_GROUP_MAX_TITLE_SIZE)# no need to send over user_id or unique_id (the latter doesn't even exist)
 			return string.capwords(topic)
 		else:
-			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PRIVATE_GROUP_COST,user_score))
+			raise forms.ValidationError('Ye mehfil create karney ke liye apna account verify karwain')
 
 
 class OpenGroupCreateForm(forms.Form):
@@ -559,42 +554,41 @@ class OpenGroupCreateForm(forms.Form):
 	category = forms.TypedChoiceField(required=False, choices=CATEGS, initial='1', widget=forms.RadioSelect, coerce=int,\
 		error_messages={'required': '"Haan" ya "Nahi" ka intekhab karein'})
 
-	# class Meta:
-	#     model = Group
-	#     exclude = ("owner","private","created_at","pics_ki_ijazat")
-	#     fields = ("topic","rules","category")
-
 	def __init__(self, *args, **kwargs):
 		self.is_mob_verified = kwargs.pop('verified',None)
-		self.score = kwargs.pop('score',None)
+		# self.score = kwargs.pop('score',None)
 		self.rejoin = kwargs.pop('rejoin',None)
 		super(OpenGroupCreateForm, self).__init__(*args, **kwargs)
 		self.fields['topic'].widget.attrs['style'] = 'width:98%;height:100px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['rules'].widget.attrs['style'] = 'width:98%;height:250px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_topic(self):
-		is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
-		if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		# is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
+		is_mob_verified, is_rejoining = self.is_mob_verified, self.rejoin
+		# if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		if (is_mob_verified) or (is_mob_verified and is_rejoining):
 			topic = self.cleaned_data.get("topic")
 			topic = topic.strip()
 			process_group_topic(topic, topic_len_threshold=PUBLIC_GROUP_MAX_TITLE_SIZE)# no need to send over user_id or unique_id (the latter doesn't even exist)
 			return string.capwords(topic)
-		elif user_score < PUBLIC_GROUP_COST:
-			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
+		# elif user_score < PUBLIC_GROUP_COST:
+		#     raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
 		else:
-			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
+			raise forms.ValidationError('Account verify kiye beghair public mehfil nahi banti')
 
 	def clean_rules(self):
-		is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
-		if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		# is_mob_verified, user_score, is_rejoining = self.is_mob_verified, self.score, self.rejoin
+		is_mob_verified, is_rejoining = self.is_mob_verified, self.rejoin
+		# if (is_mob_verified and user_score >= PUBLIC_GROUP_COST) or (is_mob_verified and is_rejoining):
+		if (is_mob_verified) or (is_mob_verified and is_rejoining):
 			rules = self.cleaned_data.get("rules")
 			rules = rules.strip()
 			process_group_rules(rules, rules_len_threshold=PUBLIC_GROUP_MAX_RULES_SIZE)
 			return number_new_lines(rules), rules
-		elif user_score < PUBLIC_GROUP_COST:
-			raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
+		# elif user_score < PUBLIC_GROUP_COST:
+		#     raise forms.ValidationError('Ye mehfil {0} points se banti hai, apka score {1} hai'.format(PUBLIC_GROUP_COST,user_score))
 		else:
-			raise forms.ValidationError('Mobile number verify kiye beghair public mehfil nahi banti')
+			raise forms.ValidationError('Account verify kiye beghair public mehfil nahi banti')
 
 class GroupFeedbackForm(forms.Form):
 	"""
@@ -623,7 +617,9 @@ class GroupFeedbackForm(forms.Form):
 
 class GroupPriceOfferForm(forms.Form):
 	"""
-	Handles price offered to public mehfil owner
+	Handles ownership transfer request sent to a public mehfil owner
+
+	Can support "price" offerings (currently set to '0')
 	"""
 	price = forms.CharField(error_messages={'invalid':"Sirf number likhein",'required':"Isey khali nahi chorein"})
 
@@ -651,7 +647,7 @@ class GroupPriceOfferForm(forms.Form):
 		price, own_id, own_uname, time_now, score, group_id, group_owner_id, is_mob_verified = self.cleaned_data["price"], self.user_id, self.user_uname, \
 		self.time_now, self.score, self.group_id, self.group_owner_id, self.is_mob_verified
 		is_public = False if retrieve_group_privacy(group_id) == '1' else True
-		if is_public and not is_mob_verified:
+		if not is_mob_verified:
 			# user's not verified their mobile number
 			raise forms.ValidationError("Sorry! Mehfil ki ownership sirf verified users ko mil sakti hai")
 		elif group_owner_id == str(own_id):
@@ -662,8 +658,15 @@ class GroupPriceOfferForm(forms.Form):
 				price = int(price)
 			except (ValueError, TypeError):
 				raise forms.ValidationError("Sirf number likhein")
-			if price > score:
-				raise forms.ValidationError('Sorry! Ap ne {} points offer kiye, lekin apka score sirf {} points hai'.format(price,score))
+			##################################################################
+			##################################################################
+			# if re-instating score, uncomment the 2 lines below, and comment the 2 lines after that
+			# if price > score:
+			#     raise forms.ValidationError('Sorry! Ap ne {} points offer kiye, lekin apka score sirf {} points hai'.format(price,score))
+			if price > 0:
+				raise forms.ValidationError('Sorry! Mehfil ka owner banney ke liye price offer nahi ki ja sakti')
+			##################################################################
+			##################################################################
 			elif is_public and price < PUBLIC_GROUP_MIN_SELLING_PRICE:
 				raise forms.ValidationError('Sorry! Offer kam az kam {} points honi chahiye'.format(int(PUBLIC_GROUP_MIN_SELLING_PRICE)))
 			elif is_public and price > PUBLIC_GROUP_MAX_SELLING_PRICE:
@@ -676,7 +679,7 @@ class GroupPriceOfferForm(forms.Form):
 					raise forms.ValidationError("Sorry! Apki tashkhees nahi ho saki")
 				young_age_ttl = (USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time_now - convert_to_epoch(join_date)))
 				user_is_freshman = True if young_age_ttl > 0 else False
-				if user_is_freshman: 
+				if user_is_freshman:
 					# user too young to own a public mehfil - old users' "young_age_ttl" statistic would be highly negative
 					raise forms.ValidationError("Sorry! Ap ye {} tak nahi kar saktey kiyunke apko Damadam join kiye ziyada time nahi guzra".\
 						format(human_readable_time(young_age_ttl)))
@@ -697,10 +700,10 @@ class GroupPriceOfferForm(forms.Form):
 						if user_ttl:
 							if ttl_type == 'owner':
 								# cannot proceed since mehfil owner is rate-limited (and can't accept your request)
-								raise forms.ValidationError("Sorry! Ye owner {} tak aisi koi offer receive nahi kar sakta kiyunke is ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))
+								raise forms.ValidationError("Sorry! Ye owner {} tak aisi koi request receive nahi kar sakta kiyunke is ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))
 							else:
 								# cannot proceed since you are rate-limited (and can't send your request)
-								raise forms.ValidationError("Sorry! Ap {} tak aisi koi request send nahi kar saktey kiyunke ap ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))		
+								raise forms.ValidationError("Sorry! Ap {} tak aisi koi request send nahi kar saktey kiyunke ap ne recently mehfil ka lain dain kiya hai".format(human_readable_time(user_ttl)))        
 						else:
 							ttl = ownership_request_rate_limit(group_id, own_id)
 							if ttl:
@@ -747,15 +750,7 @@ class OfficerApplicationForm(forms.Form):
 
 class GroupTypeForm(forms.Form):
 	class Meta:
-		pass
-
-class OpenGroupHelpForm(forms.Form):
-	class Meta:
-		pass
-
-class ClosedGroupHelpForm(forms.Form):
-	class Meta:
-		pass		
+		pass	
 
 
 class ReinviteForm(forms.Form):

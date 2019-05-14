@@ -63,7 +63,7 @@
 
 			<div class="mbl cxl">
 				{% if is_anon %}
-					<a href="{% url 'profile' tun %}"><div class="av_btn sbb" style="width:26px;height:26px;line-height: 27px;color:#01579B;">{{ tun|truncap }}</div></a>&nbsp;ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
+					<a href="{% url 'profile' tun 'fotos' %}"><div class="av_btn sbb" style="width:26px;height:26px;line-height: 27px;color:#01579B;">{{ tun|truncap }}</div></a>&nbsp;ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
 				{% else %}
 					<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
 				{% endif %}<br>

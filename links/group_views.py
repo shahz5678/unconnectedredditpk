@@ -113,56 +113,56 @@ def personal_group_sanitization(obj_count, obj_ceiling, group_id):
 		personal_group_trimming_task.delay(group_id, obj_count)
 
 
-def return_to_source(origin,parent_object_id,target_username):
-	"""
-	Redirect to a certain location
-	"""
-	if origin in ('home','home_reply'):
-		if parent_object_id:
-			return redirect("home_loc_pk",pk=parent_object_id)
-		else:
-			return redirect("home")
-	elif origin == 'history':
-		if target_username:
-			return redirect("user_activity",slug=target_username)
-		else:
-			return redirect("home")
-	elif origin == 'private':
-		return redirect("private_group_reply")
-	elif origin == 'public':
-		if parent_object_id:
-			return redirect("public_group",slug=parent_object_id)
-		else:
-			return redirect("home")
-	elif origin == 'search':
-		return redirect("search_username")
-	elif origin == 'profile':
-		if parent_object_id:
-			return redirect("user_profile",slug=parent_object_id)
-		else:
-			return redirect("home")	
-	elif origin == 'profile_photos':
-		if parent_object_id:
-			return redirect("profile",slug=parent_object_id)
-		else:
-			return redirect("home")	
-	elif origin == 'best_photos':
-		if parent_object_id:
-			return redirect("best_photo_loc_pk", parent_object_id)
-		else:
-			return redirect("home")
-	elif origin == 'photo_comments':
-		if parent_object_id:
-			return redirect("comment", parent_object_id)
-		else:
-			return redirect("home")
-	elif origin == 'fresh_photos':
-		if parent_object_id:
-			return redirect("see_photo_pk", parent_object_id)
-		else:
-			return redirect("photo")
-	else:
-		return redirect("home")
+# def return_to_source(origin,parent_object_id,target_username):
+# 	"""
+# 	Redirect to a certain location
+# 	"""
+# 	if origin in ('home','home_reply'):
+# 		if parent_object_id:
+# 			return redirect("home_loc_pk",pk=parent_object_id)
+# 		else:
+# 			return redirect("home")
+# 	elif origin == 'history':
+# 		if target_username:
+# 			return redirect("user_activity",slug=target_username)
+# 		else:
+# 			return redirect("home")
+# 	elif origin == 'private':
+# 		return redirect("private_group_reply")
+# 	elif origin == 'public':
+# 		if parent_object_id:
+# 			return redirect("public_group",slug=parent_object_id)
+# 		else:
+# 			return redirect("home")
+# 	elif origin == 'search':
+# 		return redirect("search_username")
+# 	elif origin == 'profile':
+# 		if parent_object_id:
+# 			return redirect("user_profile",slug=parent_object_id)
+# 		else:
+# 			return redirect("home")	
+# 	elif origin == 'profile_photos':
+# 		if parent_object_id:
+# 			return redirect("profile",slug=parent_object_id, type='fotos')
+# 		else:
+# 			return redirect("home")	
+# 	elif origin == 'best_photos':
+# 		if parent_object_id:
+# 			return redirect("best_photo_loc_pk", parent_object_id)
+# 		else:
+# 			return redirect("home")
+# 	elif origin == 'photo_comments':
+# 		if parent_object_id:
+# 			return redirect("comment", parent_object_id)
+# 		else:
+# 			return redirect("home")
+# 	elif origin == 'fresh_photos':
+# 		if parent_object_id:
+# 			return redirect("see_photo_pk", parent_object_id)
+# 		else:
+# 			return redirect("photo")
+# 	else:
+# 		return redirect("home")
 
 
 def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl):
@@ -2367,7 +2367,7 @@ def show_shared_photo_metrics(request,nick):
 		return render(request,"personal_group/sharing/photo_sharing_metrics.html",{'final_photo_data':final_photo_data,'num_photos':len(final_photo_data),\
 			'own_profile': their_id == own_id,'username':nick,'photo_owner_id':their_id,'first_time':first_time})
 	else:
-		return redirect('profile',nick)
+		return redirect('profile',nick,'fotos')
 
 
 def cant_share_photo(request, ttl=None,*args, **kwargs):

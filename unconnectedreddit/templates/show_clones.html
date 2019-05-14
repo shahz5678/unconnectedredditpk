@@ -7,7 +7,7 @@
 {% if usernames %}
 Pichle 10-15 mins ke beech me <b class="ct">{{ original_target_uname }}</b> ne ye nick(s) istmal kiye:<br><br>
 	{% for username in usernames %}
-	<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username %}#section0"><b>{{ username }}</b></a><br>
+	<span class="cgy">.</span>&nbsp;<a href="{% url 'profile' username 'fotos' %}#section0"><b>{{ username }}</b></a><br>
 	{% endfor %}
 {% else %}
 Pichle 10 mins me <b class="ct">{{ original_target_uname }}</b> ko Damadam pr nahi dekha gaya&nbsp;{% emoticons %}.g8{% endemoticons %}<br>

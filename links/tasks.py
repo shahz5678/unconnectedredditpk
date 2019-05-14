@@ -18,16 +18,17 @@ from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, T
 Video, HotUser, PhotoStream, HellBanList, UserFan
 #from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
-queue_punishment_amount, save_used_item_photo, del_orphaned_classified_photos, save_single_unfinished_ad, save_consumer_number, \
-process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, \
-set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date#, set_section_wise_retention
+queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, \
+process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, \
+set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date, calculate_world_age_discount
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
-log_share, logging_sharing_metrics, cache_photo_share_data, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user#, log_photo_attention_from_fresh
+log_share, logging_sharing_metrics, cache_photo_share_data, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,\
+sanitize_unused_subscriptions#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, skip_private_chat_notif, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
@@ -37,12 +38,12 @@ update_group_topic_in_obj
 # photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
-retrieve_all_member_ids
+retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
-queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records
-
+queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, study_voting_preferences
+#from redis8 import set_section_wise_retention
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -323,17 +324,15 @@ def upload_ecomm_photo(photo_id, user_id, ad_id):
 	# insert_hash(photo_id, avghash, 'ecomm') #perceptual hash of the item photo
 	save_used_item_photo(user_id, ad_id, photo_id)
 
-# schedule this every 2.5 hours
 @celery_app1.task(name='tasks.sanitize_unused_ecomm_photos')
-def sanitize_unused_ecomm_photos(photo_ids=None):
-	if not photo_ids:
-		photo_ids = del_orphaned_classified_photos()
-	if photo_ids:
-		# deleting model objects
-		qset = Photo.objects.filter(id__in=photo_ids)
-		images_and_hashes = qset.values_list('image_file','avg_hash')#flat=True)
-		image_names, avg_hashes= zip(*images_and_hashes)
-		qset.delete()
+def sanitize_unused_ecomm_photos():
+    """
+    Scans all votes given by users and calculates sybil affinities via a Bayesian calculation
+
+    Scheduled to run every 6 hours
+    Mislabelled for legacy reasons
+    """
+    study_voting_preferences()
 
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
@@ -385,12 +384,12 @@ def calc_ecomm_metrics():
 
 # @celery_app1.task(name='tasks.set_section_retention')
 # def set_section_retention(which_section, user_id):
-#     """
-#     Logs users for retention calculation of various sections of the app
+# 	"""
+# 	Logs users for retention calculation of various sections of the app
 
-#     Sections include 'private_mehfil', 'public_mehfil', 'private_chat' currently
-#     """
-#     set_section_wise_retention(which_section, user_id)
+# 	Sections include 'private_mehfil', 'public_mehfil', 'private_chat' currently
+# 	"""
+# 	set_section_wise_retention(which_section, user_id)
 
 @celery_app1.task(name='tasks.set_user_age')
 def set_user_age(user_id):
@@ -399,6 +398,15 @@ def set_user_age(user_id):
 	"""
 	set_world_age(user_id)
 
+
+@celery_app1.task(name='tasks.log_404')
+def log_404(type_of_404, time_of_404, type_of_url=None):
+	"""
+	Logs 404 errors seen throughout the website
+
+	Currently only logging 404 errors emanating from UserProfilePhotosView()
+	"""
+	log_404_errors(type_of_404, time_of_404, type_of_url)
 
 ########################### priv chat split test ########
 
@@ -593,9 +601,13 @@ def delete_temporarily_saved_content_data(own_id):
 #paying back points spent by photo reporters
 @celery_app1.task(name='tasks.process_reporter_payables')
 def process_reporter_payables(payables):
+	"""
+	Paying back points spent by reporters (currently points paid are set to 0)
+	"""
 	if payables:
 		for user_id,payable_score in payables:
-			UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
+			if payable_score:
+				UserProfile.objects.filter(user_id=user_id).update(score=F('score')+payable_score)
 
 
 @celery_app1.task(name='tasks.populate_search_thumbs')
@@ -664,6 +676,14 @@ def public_group_ranking_clean_up_task():
 	Mislabeled task due to legacy reasons
 	"""
 	calculate_top_trenders()
+
+
+@celery_app1.task(name='tasks.log_group_owner_interaction')
+def log_group_owner_interaction(group_id, time_now):
+	"""
+	Logs the last 'seen' time of when a group owner did something meaninful in their public group
+	"""
+	group_owner_administrative_interest(group_id, time_now)
 
 
 @celery_app1.task(name='tasks.group_attendance_tasks')
@@ -812,7 +832,10 @@ def rank_all_photos():
 
 @celery_app1.task(name='tasks.rank_all_photos1')
 def rank_all_photos1():
-	pass
+	"""
+	Sanitize unused notification subscriptions
+	"""
+	sanitize_unused_subscriptions()
 
 
 @celery_app1.task(name='tasks.rank_home_posts')
@@ -934,12 +957,12 @@ def salat_info():
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():
-    """
-    Cleans up user voting records saved in Redis
+	"""
+	Cleans up user voting records saved in Redis
 
-    Mislabeled due to legacy reasons
-    """
-    cleanse_voting_records()
+	Mislabeled due to legacy reasons
+	"""
+	cleanse_voting_records()
 
 # @celery_app1.task(name='tasks.queue_for_deletion')
 # def queue_for_deletion(link_id_list):
@@ -1108,8 +1131,17 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 	else:
 		if vote_value == '1':
 			# is an upvote
+			if revert_prev:
+				world_age_discount_multiplier, affinity_discount_multiplier = 1, 1# these values don't matter since discounts aren't used at all in reverting
+			else:
+				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
+				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
+				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
+				affinity_discount_multiplier = 1
+
 			net_votes = old_net_votes + 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote, target_user_id)
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote,\
+				target_user_id, world_age_discount_multiplier, affinity_discount_multiplier)
 			if added:
 				# vote added
 				if is_pht == '1':
@@ -1134,8 +1166,14 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				pass
 		elif vote_value == '0':
 			# is a downvote
+			# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
+			world_age_discount = calculate_world_age_discount(user_id=own_id)
+			# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
+			affinity_discount = 1
+			
 			net_votes = old_net_votes - 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote, target_user_id)
+			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht, time_of_vote,\
+				target_user_id, world_age_discount, affinity_discount)
 			if added:
 				# vote added
 				if is_pht == '1':
@@ -1162,7 +1200,6 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		else:
 			# neither an upvote nor a downvote, do nothing
 			pass
-
 
 
 @celery_app1.task(name='tasks.registration_task')

@@ -12,7 +12,6 @@
 {% if tp == 'tx' %}<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">"{{ cap }}"</div>{% elif tp == 'pf' %}<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px"><div class="cs mbl sp"><span class="cgy">profile:&nbsp;<b>{{ owner_uname }}</b></span></div>{% else %}<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px">{% endif %}
 
 <div class="cxl lsp mt">Isko kiyun report karna hai?</div>
-<span class="cs sp">Report price: {{ price }} points</span><br>
 
 		<form method="post" class="mts lsp" action="{% url 'report_content' %}">
 			{% csrf_token %}
@@ -21,7 +20,6 @@
 				<input type="hidden" name="ooid" value="{{ oid }}">
 				<input type="hidden" name="orig" value="{{ orig }}">
 				<input type="hidden" name="purl" value="{{ purl }}">
-				<input type="hidden" name="prc" value="{{ price }}">
 				<input type="hidden" name="oun" value="{{ owner_uname }}">
 				{% if tp == 'tx' or tp == 'img' %}
 					<input type="hidden" name="cap" value="{{ cap }}">
@@ -39,8 +37,7 @@
 			</ul><br>
 			<button type="submit" name="obid" class="btn bm bcr mbs pg_ok_res" style="height:26px" value="{{ obj_id }}">OK</button>
 		</form>
-<hr size=1 COLOR="#D3D3D3">
-<span class="cgy cs sp">Agar report sach sabit hui tou points wapis kar diye jaien ge</span><br>
+
 
 </div><br><br>
 {% endblock %}

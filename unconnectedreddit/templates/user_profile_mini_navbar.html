@@ -1,0 +1,23 @@
+{% if section == 'latest' %}
+
+	<div class="mbl fx fxjscn fxaicn">
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;font-weight:bold"><img src="{{ static_url }}img/stack.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts" style="color:#1edea8">LATEST</div></button>
+		{% if num_trending > 0 %}
+			<a href="{% url 'profile' slug 'trending-fotos' %}#section1"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div class="sp" style="margin:0 auto;font-size:14px;font-weight:bold">{{ num_trending }}</div><div class="mts">TRENDING</div></button></a>
+		{% else %}
+			<a href="{% url 'profile' slug 'trending-fotos' %}#section1"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div class="sp" style="margin:0 auto;font-size:14px;color:darkgray;font-weight:bold">0</div><div class="mts">TRENDING</div></button></a>
+		{% endif %}
+	</div>
+
+{% elif section == 'trending' %}
+
+	<div class="mbl fx fxjscn fxaicn">
+		<a href="{% url 'profile' slug 'fotos' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/stack-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">LATEST</div></button></a>
+		{% if num_trending > 0 %}
+			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:white"><div class="sp" style="margin:0 auto;font-size:14px;font-weight:bold">{{ num_trending }}</div><div class="mts">TRENDING</div></button>
+		{% else %}
+			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:white"><div class="sp" style="margin:0 auto;font-size:14px;font-weight:bold">{{ num_trending }}</div><div class="mts">TRENDING</div></button>
+		{% endif %}
+	</div>
+
+{% endif %}

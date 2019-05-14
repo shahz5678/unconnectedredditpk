@@ -1,6 +1,7 @@
 # coding=utf-8
 
-import redis, time, ast
+import redis, time, ast, random
+from math import log
 from pytz import timezone
 from location import REDLOC3
 from datetime import datetime
@@ -138,6 +139,8 @@ def exact_date(time_now, in_bulk=False):
 			return datetime.fromtimestamp(time_now, tz=timezone('Asia/Karachi')).strftime("%d-%m-%Y %I:%M %p")# use %H:%M:%S for 24 hour style clock time
 		else:
 			return ''
+
+
 #####################Process Nick#######################
 
 def decode_nick(nickname):
@@ -1933,6 +1936,21 @@ def set_world_age(user_id):
 		my_server.setex('warl:'+user_id,'1',SIX_HOURS)
 
 
+def calculate_world_age_discount(user_id):
+	"""
+	Returns the world age discount for a provided user ID
+
+	Useful for discounting votes cast by an inexperienced user
+	"""
+	voter_age_dict, highest_age = retrieve_user_world_age([user_id], with_highest_age=True)
+	if voter_age_dict and highest_age:
+		log_highest_age = log(highest_age,2.0)# taking log 2 of highest age so that large-age users' influence tapers off
+		log_user_age = log(voter_age_dict[user_id],2.0)
+		return log_user_age/log_highest_age
+	else:
+		return 0
+
+
 def retrieve_user_world_age(user_id_list, with_highest_age=False):
 	"""
 	Given a list of user_ids, this retrieves their world age and returns a dictionary
@@ -1966,7 +1984,6 @@ def create_random_pool(my_server=None):
 	"""
 	Create a random pool of 5 digit numbers, append leading 0's, store in a list
 	"""
-	import random
 	pin_codes = []
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	pool_ver = str(my_server.incr("pin_code_pool_ver"))
@@ -2324,4 +2341,34 @@ def invalid_rules_logger(banned_word,rules):
 	"""
 	myserver = redis.Redis(connection_pool=POOL)
 	myserver.lpush("invalid_rules",rules+":"+banned_word)
-	myserver.ltrim("invalid_rules",0,999)	
+	myserver.ltrim("invalid_rules",0,999)
+
+######################################### 404 error logging ############################################
+
+
+SPECIFIC_404 = 'specific_404'# sorted set containing latest 1 week worth of 404 errors
+GENERIC_404 = 'generic_404'
+
+
+def log_404_errors(type_of_404, time_of_404,type_of_url=None):
+	"""
+	Logs all 404 errors in the project 
+
+	The list is truncated to 1 week for memory saving:
+	'0' means a 404 error which didn't match any url and ended up in links.error_views.not_found()
+	'1a' means the 404 error emanates from get_queryset() in UserProfilePhotosView()
+	'1b' means the 404 error emanates from get_queryset() in UserProfilePhotosView()
+	'1c' means the 404 error emanates from get_context_data() in UserProfilePhotosView()
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if type_of_404 == '0':
+		my_server.zincrby(GENERIC_404,type_of_url,amount=1)
+		################# Deletion procedure to keep the set at a sane size #################
+		first_item_and_score = my_server.zrange(GENERIC_404,0,0,withscores=True)
+		if first_item_and_score:
+			item_value = first_item_and_score[0][0]
+			item_score = first_item_and_score[0][1]
+			if item_value != type_of_url and item_score == 1:
+				my_server.zrem(GENERIC_404,item_value)
+	else:
+		my_server.zincrby(SPECIFIC_404,type_of_404,amount=1)

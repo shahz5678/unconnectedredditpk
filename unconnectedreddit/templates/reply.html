@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load humanize %}
 {% load human_time %}
 {% load get_block_button %}
 {% load get_transparent_buttons_js %}
@@ -12,7 +11,7 @@
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}Home reply{% endif %} | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
-<div style="margin: 0 auto;max-width:600px;width:93%" class="clb">
+<div style="margin: 0 auto;max-width:600px;width:97%" class="clb">
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
@@ -20,7 +19,7 @@
 
 <div class="bizcard mbl" style="background-color:white;padding:3px">
 
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on|naturaltime oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar score=parent_submitter_score %}
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar %}
 
 </div>
 
@@ -46,7 +45,7 @@
 
     {% if forloop.counter != 1 %}<hr size=1 COLOR="#E9EBEE">{% endif %}
 
-    {% if not on_fbs and forloop.counter == 5 %}
+    {% if not on_fbs and forloop.counter == 3 %}
 
         <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <div class="mbs" style="text-align:center;background:snow">
@@ -69,7 +68,7 @@
     {% endif %}
 
         {% if reply.abuse %}
-            <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' slug=reply.submitted_by__username %}" class="clb"><bdi>{{ reply.submitted_by__username }}</bdi></a></b>&nbsp;ka jawab hide kar dia gya</span>
+            <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' reply.submitted_by__username 'fotos' %}" class="clb"><bdi>{{ reply.submitted_by__username }}</bdi></a></b>&nbsp;ka jawab hide kar dia gya</span>
         {% else %}
             {% if unseen %}
                 {% if not reply_time %}
@@ -78,8 +77,8 @@
                     <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
                 {% endif %}
             {% endif %}
-           <a href="{% url 'profile' slug=reply.submitted_by__username %}" class="clb"><bdi>{% if reply.submitted_by__username in ensured %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="11" width="11">&nbsp;{% endif %}<b>{{ reply.submitted_by__username }}</b></bdi></a>
-               :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>{% if user_id == parent_submitter_id %}<form action="{% url 'hide_jawab' publicreply_id=reply.id link_id=parent.pk %}" style="display:inline" method="POST" class="mrl">{% csrf_token %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>{% endif %}<span class="mrs">{% block_button reply.submitted_by reply.submitted_by__username user_id parent.pk '9' STATIC_URL %}</span>{% group_button user_id reply.submitted_by parent.pk 'home' '9' reply.submitted_by__username %}
+           <a href="{% url 'profile' reply.submitted_by__username 'fotos' %}" class="clb"><bdi>{% if reply.submitted_by__username in ensured %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="11" width="11">&nbsp;{% endif %}<b>{{ reply.submitted_by__username }}</b></bdi></a>
+               :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>{% if user_id == parent_submitter_id %}<form action="{% url 'hide_jawab' publicreply_id=reply.id link_id=parent.id %}" style="display:inline" method="POST" class="mrl">{% csrf_token %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>{% endif %}<span class="mrs">{% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}</span>{% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
         {% endif %}
         </div>
     

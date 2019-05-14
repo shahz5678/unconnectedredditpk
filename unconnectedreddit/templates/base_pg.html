@@ -1,4 +1,3 @@
-
 {% load google_analytics %}
 <!DOCTYPE html>
 <html>
@@ -47,7 +46,7 @@
 	{% load count_group_invites %}
     {% check_group_invite_count as group_invite_count %}
     <!-- bunched HTML removes spaces between li elements -->
-	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Search</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li>{% endif %}<li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' slug=user.username %}#section0"><bdi>Profile</bdi>{% if own_score > 0 %}<span style="color:green;font-size:90%;"> ({{ own_score }})</span>{% else %}<span style="color:green;font-size:90%;"> (1)</span>{% endif %}</a></li>
+	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Search</a></li>{% endif %}<li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
 {% else %}
     <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 {% endif %}

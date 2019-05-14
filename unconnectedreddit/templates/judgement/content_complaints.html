@@ -19,12 +19,11 @@
 			<div style="text-align:center;font-weight:bold;text-decoration:underline" class="cl sp">Instructions:</div>
 			<div class="mt lsp">1) Neechay reported items nazr aien ge</div>
 			<div class="mt lsp">2) Har reported item ke sath munsalik aik (ya ziyada) complaints hain</div>
-			<div class="mt lsp">3) Report kartey waqt users apne points ko qeemat ke taur pe ada kartey hain</div>
-			<div class="mt lsp">4) Ye points report correct honay pe wapis ho jatey hain</div>
-			<div class="mt lsp">5) Lekin agar incorrect report ho tou apki marzi points wapis karney hain ya nahi</div>
-			<div class="mt lsp">6) Points wapis nahi karein jab report karney waley ki neeyat kharab ho (maslan mazaq mein report), warna kar dein</div>
-			<div class="mt lsp">7) Aik item pe decision dene ke liye sirf us item ki complaints ko correct ya incorrect select karein</div>
-			<div class="mt lsp">8) Apna decision final karney ke liye 'Submit' dabain</div>
+			<div class="mt lsp">3) Jo complaint sahi ho uska 'Correct' option pick karein</div> 
+			<div class="mt lsp">4) Jo complaint ghalat ho - lekin complaint karney waley ki niyat saaf ho - uske liye 'Incorrect' option pick karein</div>
+			<div class="mt lsp">5) Jo complaint ghalat ho - aur complaint karney waley ki niyat kharab ho - uske liye 'Malicious' option pick karein</div>
+			<div class="mt lsp">6) Kharab niyat wali complaint ke examples ye hain: mazaq mein complaint, kisi se zaati badla lene ke liye complaint, etc</div>
+			<div class="mt lsp">7) Apna decision final karney ke liye 'Submit' dabain</div>
 			</div>
 		{% elif already_handled %}
 			<div class="cxl cb lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
@@ -99,7 +98,7 @@
 		<div class="cl sp mt lsp">{% emoticons %}{{ complaint.nick }}{% endemoticons %}</div>
 		<div class="cl sp mts" style="font-weight:bold">Profile foto:</div>
 		<img src="{{ complaint.av_img }}" alt="pic" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
-		<a href="{% url 'profile' complaint.nick %}" target="_blank"><button class="mts cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see profile</button></a><br>
+		<a href="{% url 'profile' complaint.nick 'fotos' %}" target="_blank"><button class="mts cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see profile</button></a><br>
 		<div class="cxs mts sp cgy" style="text-align:right">profile created {{ complaint.ct|human_time }}</div>
 	</div>
 {% elif complaint.tp == 'tx' %}
@@ -153,11 +152,11 @@
 			{% endif %}
 			<input type="hidden" name="rt{{ dict.i }}" value="{{ dict.rt }}">
 
-			<div class="mt sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}1{{ dict.i }}" name="{{ dict.i }}" value="1"><label for="{{forloop.parentloop.counter}}1{{ dict.i }}"><span class="cg cs sp"><b>Correct complaint</b></span>&nbsp;<span class="cgy cs">(points wapis)</span></label></div>
+			<div class="mt sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}1{{ dict.i }}" name="{{ dict.i }}" value="1"><label for="{{forloop.parentloop.counter}}1{{ dict.i }}"><span class="cg cs sp"><b>Correct complaint</b></span></label></div>
 				
-			<div class="mts sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}2{{ dict.i }}" name="{{ dict.i }}" value="2" checked><label for="{{forloop.parentloop.counter}}2{{ dict.i }}"><span class="cr cs sp">Incorrect complaint</span>&nbsp;<span class="cgy cs">(points wapis)</span></label></div>
+			<div class="mts sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}2{{ dict.i }}" name="{{ dict.i }}" value="2" checked><label for="{{forloop.parentloop.counter}}2{{ dict.i }}"><span class="cr cs sp">Incorrect complaint</span></label></div>
 			
-			<div class="mts mbl sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}3{{ dict.i }}" name="{{ dict.i }}" value="3"><label for="{{forloop.parentloop.counter}}3{{ dict.i }}"><span class="cr cs sp">Incorrect complaint</span>&nbsp;<span class="cgy cs">(wapis <span class="cr">nahi</span>)</span></label></div>
+			<div class="mts mbl sp"><input style="vertical-align:text-bottom" type="radio" id="{{forloop.parentloop.counter}}3{{ dict.i }}" name="{{ dict.i }}" value="3"><label for="{{forloop.parentloop.counter}}3{{ dict.i }}"><span class="cr cs sp">Malicious complaint</span>&nbsp;<span class="cgy cs">(kharab niyat se complaint hui)</span></label></div>
 
 		{% endfor %}
 		<div style="text-align:center"><button class="btn bl bcb mt mbs sp pg_ok_res" type="submit" style="height:26px">Submit</button></div>

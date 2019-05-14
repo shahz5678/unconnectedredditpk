@@ -20,8 +20,8 @@ from judgement_forms import PhotoReportForm, DefenderBlockingReasonForm, AddDefe
 from tasks import process_reporter_payables, sanitize_expired_bans, post_banning_tasks, remove_target_users_posts_from_all_feeds,\
 delete_temporarily_saved_content_data
 from redis3 import set_inter_user_ban, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
-save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, tutorial_unseen
-from score import PHOTO_REPORT_PROMPT,TEXT_REPORT_PROMPT,REPORTED_CASE_COMPLETION_BONUS, HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES,\
+save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, tutorial_unseen, retrieve_user_world_age
+from score import PHOTO_REPORT_PROMPT,TEXT_REPORT_PROMPT, HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES,\
 MEHFIL_REPORT_PROMPT, PROFILE_REPORT_PROMPT, GET_TEXT_REPORT_HELP_LABEL, GET_PHOTO_REPORT_HELP_LABEL, GET_PROFILE_REPORT_HELP_LABEL,\
 GET_MEHFIL_REPORT_HELP_LABEL
 from redis7 import get_complaint_details, has_super_privilege, get_content_complaints, delete_complaint, \
@@ -648,8 +648,8 @@ def cull_content(request,*args,**kwargs):
 					retrieve_uname(own_id,decode=True), tp)
 				
 				# give defender their bonus score (but this will give away the fact that someone is a DEFENDER by visibly increasing their score by 15!)
-				if REPORTED_CASE_COMPLETION_BONUS > 0:
-					UserProfile.objects.filter(user_id=own_id).update(score=F('score')+REPORTED_CASE_COMPLETION_BONUS)
+				# if REPORTED_CASE_COMPLETION_BONUS > 0:
+				# 	UserProfile.objects.filter(user_id=own_id).update(score=F('score')+REPORTED_CASE_COMPLETION_BONUS)
 				
 				# delete the report in the end (so that other defenders can't process a punishment again, nor does it appear in cull list)
 				delete_complaint(obid, own_id, tp)
@@ -1351,7 +1351,7 @@ def judge_content_submitters(request):
 					purl = request.POST.get("purl",None)
 					cap = request.POST.get("cap",None)
 					tp = request.POST.get("tp",None)
-					offender_score = UserProfile.objects.only('score').get(user_id=target_id).score
+					offender_score = int(retrieve_user_world_age([target_id])[target_id])# UserProfile.objects.only('score').get(user_id=target_id).score
 					saved = temporarily_save_content_details(obj_id=obid, owner_id=ooid, photo_url=purl, caption=cap, obj_type=tp, origin=orig, \
 						owner_uname=oun, link_id=lid, banner_id=own_id, sin=sin, target_id=ooid)
 					if saved:
@@ -1720,7 +1720,7 @@ def initiate_content_submission_and_voting_ban(obj_owner_id, obj_id, purl, capti
 	Also checks if target is already banned from submitting content and voting - and renders a different template in that case
 	"""
 	already_banned, time_remaining, ban_detail = check_content_and_voting_ban(obj_owner_id, with_details=True)
-	offender_score = UserProfile.objects.only('score').get(user_id=obj_owner_id).score
+	offender_score = int(retrieve_user_world_age([obj_owner_id])[obj_owner_id])#UserProfile.objects.only('score').get(user_id=obj_owner_id).score
 	status = 'banned_content_submitter_and_voter' if already_banned else ''
 	# show banning options according to value of 'already_banned'
 	if already_banned:
@@ -1894,19 +1894,19 @@ def report_content(request,*args,**kwargs):
 							return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 						elif dec in ('9','10'):
 							# file report - our required data is complete (and sane)
-							prc = get_price(request.user.userprofile.score)#don't rely on price POST parameter - get it again
+							# prc = get_price(request.user.userprofile.score)#don't rely on price POST parameter - get it again
 							if tp == 'tx':
 								orig_description = Link.objects.only('description').get(id=orig_obid).description
 								dup_description = Link.objects.only('description').get(id=dup_obid).description
 								ttl = set_complaint(report_desc=TEXT_REPORT_PROMPT[dec], rep_type=dec, obj_id=dup_obid, obj_owner_id=dup_submitter_id, \
-									obj_type=tp, price_paid=prc, reporter_id=own_id, time_now=time.time(), obj_txt=dup_description, orig_obid=orig_obid, \
+									obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(), obj_txt=dup_description, orig_obid=orig_obid, \
 									orig_txt=orig_description,reported_item_ct=convert_to_epoch(dup_time), orig_item_ct=convert_to_epoch(orig_time))
 							else:
 								orig_image = get_s3_object(Photo.objects.only('image_file').get(id=orig_obid).image_file)#full fledged image file, not thumb
 								data = Photo.objects.filter(id=dup_obid).values_list('image_file','caption')[0]#do not rely on 'purl' and 'cap' POST variables
 								dup_image = get_s3_object(data[0],category="thumb")
 								ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=dup_obid, obj_owner_id=dup_submitter_id, \
-									obj_type=tp, price_paid=prc, reporter_id=own_id, time_now=time.time(), img_caption=data[1], obj_url=dup_image, \
+									obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(), img_caption=data[1], obj_url=dup_image, \
 									orig_obid=orig_obid, orig_url=orig_image, reported_item_ct=convert_to_epoch(dup_time), \
 									orig_item_ct=convert_to_epoch(orig_time))
 							if ttl:
@@ -1921,8 +1921,8 @@ def report_content(request,*args,**kwargs):
 								return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 							else:
 								#charge the price and send the report
-								UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
-								return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':dup_obid,'oun':oun,'prc':prc,'tp':tp,\
+								# UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
+								return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':dup_obid,'oun':oun,'tp':tp,\
 									'payload':dup_description if tp == 'tx' else dup_image,'lid':lid})
 						else:
 							return return_to_content(request,orig,dup_obid,lid,oun)    
@@ -1942,20 +1942,20 @@ def report_content(request,*args,**kwargs):
 						cap = request.POST.get("cap",None) #caption
 						form = PhotoReportForm(request.POST)
 						if form.is_valid():
-							prc = get_price(request.user.userprofile.score)#don't rely on price post parameter - recalculate it
+							# prc = get_price(request.user.userprofile.score)#don't rely on price post parameter - recalculate it
 							feedback_text = form.cleaned_data.get("description")
 							try:
 								if tp == 'tx':
 									data = Link.objects.only('submitted_on','description','submitter').get(id=obid)#do not rely on 'cap' POST variable
 									creation_time, description, submitter_id = convert_to_epoch(data.submitted_on), data.description, data.submitter_id
 									ttl = set_complaint(report_desc=TEXT_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=submitter_id, obj_type=tp, \
-										price_paid=prc, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, obj_txt=description, \
+										price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, obj_txt=description, \
 										reported_item_ct=creation_time)
 								elif tp == 'img':
 									data = Photo.objects.only('image_file','caption','upload_time','owner').get(id=obid)#do not rely on 'purl' and 'cap' POST variables
 									img_thumb = get_s3_object(data.image_file,category="thumb")
 									ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=data.owner_id, obj_type=tp, \
-										price_paid=prc, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, img_caption=data.caption, \
+										price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, img_caption=data.caption, \
 										obj_url=img_thumb, reported_item_ct=convert_to_epoch(data.upload_time))
 								elif tp == 'pf':
 									# reported profile
@@ -1965,7 +1965,7 @@ def report_content(request,*args,**kwargs):
 									payload_tp = 'nick' if dec in ('1','2','3') else 'foto'
 									# 'mehfil_report_tp' carries profile_reporting type (i.e. 'nick' or 'foto')
 									ttl = set_complaint(report_desc=PROFILE_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=obid, obj_type=tp, \
-										price_paid=prc, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, img_caption=data[1], \
+										price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, img_caption=data[1], \
 										obj_url=av_img, mehfil_report_tp=payload_tp, reported_item_ct=convert_to_epoch(data[0]))
 									# If profile was reported, freeze critical user profile functionality, and unfreeze when case processed
 									if not ttl:
@@ -1983,15 +1983,15 @@ def report_content(request,*args,**kwargs):
 									return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 								else:
 									#go ahead and charge the price
-									UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
-									return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':obid,'oun':oun,'prc':prc,'tp':tp,\
+									# UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
+									return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':obid,'oun':oun,'tp':tp,\
 										'payload':description if tp == 'tx' else purl,'lid':lid})
 							except (TypeError,AttributeError):
 								return return_to_content(request,orig,obid,lid,oun)
 						else:
 							# form is invalid, reload
-							prc = request.POST.get("prc",None) #price of reporting
-							context={'dec':dec, 'orig':orig, 'prc':prc, 'obid':obid, 'lid':lid, 'oun':oun, 'form':form, 'purl':purl,'tp':tp,\
+							# prc = request.POST.get("prc",None) #price of reporting
+							context={'dec':dec, 'orig':orig, 'obid':obid, 'lid':lid, 'oun':oun, 'form':form, 'purl':purl,'tp':tp,\
 							'cap':cap,'reason':TEXT_REPORT_PROMPT[dec] if tp == 'tx' else PHOTO_REPORT_PROMPT[dec]}
 							return render(request,'judgement/content_report_text.html',context)
 				elif posted_from_screen == '1':
@@ -2003,7 +2003,7 @@ def report_content(request,*args,**kwargs):
 					tp = request.POST.get("tp",None)
 					purl = request.POST.get("purl",None) #photo_url
 					cap = request.POST.get("cap",None) #caption
-					prc = request.POST.get("prc",None) #price of reporting
+					# prc = request.POST.get("prc",None) #price of reporting
 					if dec == '0':
 						# they decided against reporting
 						return return_to_content(request,orig,obid,lid,oun)
@@ -2014,15 +2014,15 @@ def report_content(request,*args,**kwargs):
 							# if tp == 'tx', pull recent 'text history', else pull recent 'fotos'. Then ask user to select the copied one
 							ooid = request.POST.get("ooid",None)
 							qset = get_content_history(own_id if dec == '9' else obid, tp, dec)
-							return render(request,'judgement/duplicate_content_report.html',{'object_list':qset,'dec':dec, 'orig':orig, 'prc':prc,\
+							return render(request,'judgement/duplicate_content_report.html',{'object_list':qset,'dec':dec, 'orig':orig,\
 								'obid':obid, 'lid':lid, 'oun':oun, 'purl':purl,'cap':cap,'tp':tp,'ooid':ooid})
 						else:
 							report_options = TEXT_REPORT_PROMPT if tp == 'tx' else PHOTO_REPORT_PROMPT
-							context={'dec':dec, 'orig':orig, 'prc':prc, 'obid':obid, 'lid':lid, 'oun':oun, 'form':PhotoReportForm(), 'purl':purl,\
+							context={'dec':dec, 'orig':orig, 'obid':obid, 'lid':lid, 'oun':oun, 'form':PhotoReportForm(), 'purl':purl,\
 							'cap':cap,'reason':report_options[dec],'tp':tp}
 							return render(request,'judgement/content_report_text.html',context)
 					elif tp == 'pf':
-						context={'dec':dec, 'orig':orig, 'prc':prc, 'obid':obid, 'lid':lid, 'oun':oun, 'form':PhotoReportForm(), 'purl':purl,\
+						context={'dec':dec, 'orig':orig, 'obid':obid, 'lid':lid, 'oun':oun, 'form':PhotoReportForm(), 'purl':purl,\
 						'reason':PROFILE_REPORT_PROMPT[dec],'tp':tp}
 						return render(request,'judgement/content_report_text.html',context)
 					else:
@@ -2031,8 +2031,8 @@ def report_content(request,*args,**kwargs):
 				else:
 				# show options with radio buttons to reporting user (this is screen 1, it's the default people land on)
 					own_id = str(own_id)
-					score = request.user.userprofile.score
-					price_of_report = get_price(score)
+					# score = request.user.userprofile.score
+					# price_of_report = get_price(score)
 					obj_id = request.POST.get("report",None)
 					orig = request.POST.get("orig",None) #origin 
 					purl = request.POST.get("purl",None) #photo_url
@@ -2047,6 +2047,9 @@ def report_content(request,*args,**kwargs):
 						request.session["redirect_lid"+own_id] = lid
 						request.session["redirect_obid"+own_id] = obj_id
 						return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
+					elif not request.mobile_verified:
+						return render(request,"verification/unable_to_submit_without_verifying.html",{'file_report':True})
+
 					else:
 						if type_of_content == 'tx':
 							content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
@@ -2066,23 +2069,21 @@ def report_content(request,*args,**kwargs):
 							request.session["redirect_lid"+own_id] = lid
 							request.session["redirect_obid"+own_id] = obj_id
 							return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
-						elif price_of_report > score:
-							#disallow reporting (user doesn't have requisite score)
-							request.session["redirect_reason"+own_id] = 'not_enough_score'
-							request.session["redirect_orig"+own_id] = orig
-							request.session["redirect_oun"+own_id] = oun
-							request.session["redirect_lid"+own_id] = lid
-							request.session["redirect_obid"+own_id] = obj_id
-							return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
+						# elif price_of_report > score:
+						#     #disallow reporting (user doesn't have requisite score)
+						#     request.session["redirect_reason"+own_id] = 'not_enough_score'
+						#     request.session["redirect_orig"+own_id] = orig
+						#     request.session["redirect_oun"+own_id] = oun
+						#     request.session["redirect_lid"+own_id] = lid
+						#     request.session["redirect_obid"+own_id] = obj_id
+						#     return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 						else:
 							# show all report options to user
-							context={'price':price_of_report,'obj_id':obj_id, 'reporting_self':reporting_self,'orig':orig,'purl':purl,\
-							'owner_uname':oun,'lid':lid,'rep_opt':ordered_list_of_tup(report_options),'cap':request.POST.get("cap",None),\
-							'tp':type_of_content,'oid':ooid}
+							context={'obj_id':obj_id, 'reporting_self':reporting_self,'orig':orig,'purl':purl,'owner_uname':oun,'lid':lid,\
+							'rep_opt':ordered_list_of_tup(report_options),'cap':request.POST.get("cap",None),'tp':type_of_content,'oid':ooid}#'price':price_of_report,
 							return render(request,"judgement/content_report.html",context)
 	else:
 		return redirect("missing_page")
-
 
 
 def notify_and_redirect(request):

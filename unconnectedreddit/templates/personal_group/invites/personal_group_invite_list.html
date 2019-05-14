@@ -87,10 +87,10 @@
 			{% if forloop.counter != 1 %}<hr size=1 COLOR="#f2f2f2">{% endif %}
 			<div class="fx fxjssb fxaibl" style="color:#009973">	
 			{% if uname_1|slice:":1" == '*' %}
-			<div class="clb">Ap ne nickname khufiya rakh ke <a href="{% url 'profile' uname_2 %}" class="cb"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
+			<div class="clb">Ap ne nickname khufiya rakh ke <a href="{% url 'profile' uname_2 'fotos' %}" class="cb"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
 			<div class="sp cxs" style="text-align:right;color:#808080">- {{ creation_time|human_time }}</div>
 			{% else %}
-			<div class="clb">Ap ne <a href="{% url 'profile' uname_2 %}" class="cb"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
+			<div class="clb">Ap ne <a href="{% url 'profile' uname_2 'fotos' %}" class="cb"><b class="bw">{{ uname_2 }}</b></a> ko invite kia</div>
 			<div class="sp cxs" style="text-align:right;color:#808080">- {{ creation_time|human_time }}</div>
 			{% endif %}
 			</div>
@@ -99,12 +99,12 @@
 			<div class="fx fxjssb fxaibl" style="color:#009973">	
 				{% if uname_1|slice:":1" == '*' %}
 			
-					<div><a href="{% url 'profile' uname_1|slice:"2:" %}" class="cb"><div class="av_btn" style="border: 1px #1947D1 solid;width:22px;height:22px;line-height: 23px;"><b>{{ uname_1|slice:"1:2" }}</b></div></a> ne apko invite kia</div>
+					<div><a href="{% url 'profile' uname_1|slice:"2:" 'fotos' %}" class="cb"><div class="av_btn" style="border: 1px #1947D1 solid;width:22px;height:22px;line-height: 23px;"><b>{{ uname_1|slice:"1:2" }}</b></div></a> ne apko invite kia</div>
 					<div class="sp cxs" style="color:#009973;text-align:right">- {{ creation_time|human_time }}</div>
 			
 				{% else %}
 			
-					<div><a href="{% url 'profile' uname_1 %}" class="cb"><b class="bw">{{ uname_1 }}</b></a> ne apko invite kia</div>
+					<div><a href="{% url 'profile' uname_1 'fotos' %}" class="cb"><b class="bw">{{ uname_1 }}</b></a> ne apko invite kia</div>
 					<div class="sp cxs" style="color:#009973;text-align:right">- {{ creation_time|human_time }}</div>
 			
 				{% endif %}

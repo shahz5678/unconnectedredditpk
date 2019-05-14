@@ -1,0 +1,224 @@
+{% load google_analytics %}
+<!DOCTYPE html>
+<html>
+
+<head>
+	<!-- has to be the first tag in head -->
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	{% include "favicons.html" %}
+	{% include "css.html" %}
+   <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="Pakistan's best funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes!">
+	<meta property="og:site_name" content="Damadam.pk">
+	<meta property="og:title" content="Damadam.pk">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://damadam.pk/">
+	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
+	<meta property="og:image:width" content="300">
+	<meta property="og:image:height" content="300">
+	<meta property="og:description" content="Funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes from all over Pakistan!">
+	<meta property="fb:app_id" content="1758220174446684" />
+	<meta name="author" content="hb">
+	<meta name="keywords" content="photos, sad poetry, urdu poetry, urdu memes, jokes, funny, girls, poetry, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
+	
+	{% if feed_type == 'fresh_photos' %}
+		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan| Damadam</title>
+	{% else %}
+		<title>The Best Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
+	{% endif %}
+
+	{% if page.has_previous %}
+		<link rel="prev" href="?page={{ page.previous_page_number }}" />
+	{% endif %}
+	{% if page.has_next %}
+		<link rel="next" href="?page={{ page.next_page_number }}" />
+	{% endif %}
+
+	{% google_analytics %}
+	{% include "ga_user_analytics.html" with my_var=ident %}
+</head>
+
+<body style="background:#f0f3f4">
+	{% include "header.html" %}
+	<nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
+		<ul class="navbar">
+		{% if user.is_authenticated %}
+			{% load get_own_score %}
+			{% own_score as own_score %}
+			{% load count %}
+			{% check_notif_count as notif_count %}
+			{% load count_priv_invites %}
+			{% check_invite_count as invite_count %}
+			{% load count_group_invites %}
+			{% check_group_invite_count as group_invite_count %}
+			<!-- bunched HTML removes spaces between li elements -->
+			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Search</a></li>{% endif %}<li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' slug=user.username type='fotos' %}#section0"><bdi>Profile</bdi></a></li>
+		{% else %}
+			<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
+		{% endif %}
+		</ul>
+		<a name="section0"></a>
+	</nav>
+
+	<main itemscope itemtype="https://schema.org/ImageGallery" style="max-width:600px;margin:0 auto;width:97%">
+
+		{% load get_photo_object %}
+		{% load show_error %}
+		{% load emoticons_tags %}
+		{% load get_big_fan_button %}
+		{% load get_big_send_button %}
+		{% load get_transparent_buttons_js %}
+		{% load get_big_vote_button %}
+		{% load get_big_group_button %}
+		{% load get_photo_comment_bar %}
+		{% load get_notification_bar %}
+		{% load get_big_external_share_button %}
+		{% load get_photo_comments_section %}
+		{% load get_big_photo_comment_button %}
+
+		<a name="error"></a>
+		{% if photo_direct_reply_error_string %}
+			<div style="background:tomato;text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
+				{{ photo_direct_reply_error_string }}
+			</div>
+		{% endif %}
+
+		{% if newbie_flag %}
+		
+			<div class="mbl mts">
+			{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin=page_origin %}
+			</div>
+		
+		{% else %}
+
+			{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
+
+			{% notification_bar notification=process_notification origin=single_notif_origin notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
+
+			{% include "photos_navbar.html" with section=navbar_type static_url=STATIC_URL %}
+
+		{% endif %}
+
+		<section itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
+
+		<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest fotos</span>{% else %}<span itemprop="headline">Trending fotos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
+
+		{% for photo in object_list %}
+		
+			{% if not fbs and forloop.counter == 2 %}
+
+				{% if feed_type == 'fresh_photos' %}
+					<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+					<aside class="mbl" style="text-align:center;background:#f0f3f4">
+						<ins class="adsbygoogle"
+						     style="display:block"
+						     data-ad-format="fluid"
+						     data-ad-layout-key="-6y+ed+2i-1n-4w"
+						     data-ad-client="ca-pub-2568547635306983"
+						     data-ad-slot="3247177655"></ins>
+						<script>
+						     (adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+					</aside>
+				{% else %}
+					<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+					<aside class="mbl" style="text-align:center;background:#f0f3f4">
+						<ins class="adsbygoogle"
+						     style="display:block"
+						     data-ad-format="fluid"
+						     data-ad-layout-key="-6w+eh+2a-1h-5f"
+						     data-ad-client="ca-pub-2568547635306983"
+						     data-ad-slot="3722448669"></ins>
+						<script>
+						     (adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+					</aside>
+				{% endif %}
+
+			{% endif %}
+
+			<article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+
+				<a name="section{{ forloop.counter }}"></a>
+
+				<section>
+				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
+				</section>
+
+				<div class="mls">
+
+					<section style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+						{% big_vote_button vote_type='photo_vote' obid=photo.i origin=page_origin net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL visible=is_auth %}
+						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
+						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
+						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
+						{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+						{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+					</section>
+
+					<section>
+						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin %}
+					</section>
+
+					<section class="mts mrs mbl">
+						{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form page_origin sk %}
+					</section>
+
+				</div>
+
+			</article>
+
+		{% empty %}
+
+			<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px" class="cxl lsp mbl clb">Sorry! Ye abhi empty hai<br>
+				{% if feed_type == 'fresh_photos' %}
+					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'home' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Home</a> check karein!</div>
+				{% else %}
+					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Fotos</a> check karein!</div>
+				{% endif %}
+			</div>
+
+		{% endfor %}
+
+		</section>
+
+		<div class="fx fxjscn">
+			{% if page.has_previous %}
+		    <div style="padding:0 10px">
+		    	<a href="?page={{ page.previous_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+		    </div>
+		    {% endif %}
+		    {% if page.has_next %}
+		    <div style="padding:0 10px">
+		    	<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+		    </div>
+		    {% endif %}
+		</div>
+
+		{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+
+	</main>
+	<br>
+	<nav itemscope itemtype="http://schema.org/SiteNavigationElement">
+		<ul class="navbar">
+		{% if user.is_authenticated %}
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+		{% else %}
+		<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0">Create New Account</a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
+		{% endif %}
+		</ul>
+	</nav>
+
+	<footer style="text-align:center" class="mtl sp cxs cgy">
+	|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
+	</footer>
+
+	{% include "min_service_worker.html" %}
+
+	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
+
+</body>
+
+</html>

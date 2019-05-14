@@ -109,7 +109,7 @@
 
 
 		<div class="mts mls mbl">
-		{% home_replies_section link.cb STATIC_URL ident score link.h %}
+		{% home_replies_section raw_replies=link.cb static_url=STATIC_URL self_user_id=ident home_hash=link.h %}
 		</div>
 
 		<div class="mls mrs mbl">

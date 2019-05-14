@@ -42,7 +42,8 @@ retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
-queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, study_voting_preferences
+queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
+study_voting_preferences, retrieve_voting_affinity
 #from redis8 import set_section_wise_retention
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -326,13 +327,13 @@ def upload_ecomm_photo(photo_id, user_id, ad_id):
 
 @celery_app1.task(name='tasks.sanitize_unused_ecomm_photos')
 def sanitize_unused_ecomm_photos():
-    """
-    Scans all votes given by users and calculates sybil affinities via a Bayesian calculation
+	"""
+	Scans all votes given by users and calculates sybil affinities via a Bayesian calculation
 
-    Scheduled to run every 6 hours
-    Mislabelled for legacy reasons
-    """
-    study_voting_preferences()
+	Scheduled to run every 6 hours
+	Mislabelled for legacy reasons
+	"""
+	study_voting_preferences()
 
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
@@ -1137,7 +1138,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
 				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
 				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				affinity_discount_multiplier = 1
+				affinity_discount_multiplier = (1-retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value))
 
 			net_votes = old_net_votes + 1
 			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote,\
@@ -1166,14 +1167,17 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				pass
 		elif vote_value == '0':
 			# is a downvote
-			# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
-			world_age_discount = calculate_world_age_discount(user_id=own_id)
-			# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-			affinity_discount = 1
+			if revert_prev:
+				world_age_discount_multiplier, affinity_discount_multiplier = 1, 1
+			else:
+				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
+				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
+				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
+				affinity_discount_multiplier = (1-retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value))
 			
 			net_votes = old_net_votes - 1
 			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht, time_of_vote,\
-				target_user_id, world_age_discount, affinity_discount)
+				target_user_id, world_age_discount_multiplier, affinity_discount_multiplier)
 			if added:
 				# vote added
 				if is_pht == '1':

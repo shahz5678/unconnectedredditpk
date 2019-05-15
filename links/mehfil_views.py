@@ -39,7 +39,7 @@ get_most_recent_online_users
 from redis2 import update_notification, remove_group_notification, remove_group_object, get_replies_with_seen,create_notification, create_object, \
 bulk_remove_group_notification
 
-from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks,\
+from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, log_action,\
 construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
@@ -53,7 +53,7 @@ GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_MIN_SELLING_PRICE, GRO
 MAX_OWNER_INVITES_PER_PRIVATE_GROUP, MIN_MEMBERSHIP_AGE_FOR_GIVING_PUBLIC_GRP_FEEDBACK, MIN_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OWNERSHIP, \
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, DELETION_THRESHOLD, MEHFIL_REPORT_PROMPT, MAX_OFFICER_APPOINTMENTS_ALLWD, GROUP_OFFICER_QUESTIONS, \
 MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE,\
-PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF,CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE
+PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF,CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE, SEGMENT_STARTING_USER_ID
 
 
 from redis6 import appoint_public_mehfil_officer, is_officer_appointments_rate_limited, retrieve_cached_attendance_data, get_latest_presence, \
@@ -3290,11 +3290,12 @@ class PrivateGroupView(FormView):
 							uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
 					else: 
 						uploaded_img_loc = None
-					# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 					time_now = time.time()
 					set_input_rate_and_history.delay(section='prv_grp',section_id=group_id,text=text,user_id=user_id,time_now=time_now)
-					# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=text, image='')
-					###########################################
+					################### Segment action logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=user_id, action_categ='E', action_sub_categ='3', action_liq='h', time_of_action=time_now)
+					##############################################################
 					###########################################
 					writer_id = str(form.cleaned_data.get('wid','-1'))# the target_id of the writer we're about to directly respond to
 					if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):    
@@ -3569,7 +3570,10 @@ class PublicGroupView(FormView):
 				invalidate_presence(group_id)
 				reply_time = time.time()
 				set_input_rate_and_history.delay(section='pub_grp',section_id=group_id,text=text,user_id=user_id,time_now=reply_time)
-				############################
+				################### Segment action logging ###################
+				if user_id > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=user_id, action_categ='F', action_sub_categ='3', action_liq='h', time_of_action=reply_time)
+				##############################################################
 				############################
 				writer_id = str(form.cleaned_data.get('wid','-1'))# the target_id of the writer we're about to directly respond to
 				if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):
@@ -3794,8 +3798,11 @@ def join_private_group(request):
 				invalidate_cached_mehfil_replies(group_id)#redis6 function
 				invalidate_cached_mehfil_invites(own_id)
 				main_sentence = own_uname+" ne mehfil join ki at {0}".format(exact_date(time_now))
+				################### Segment action logging ###################
+				if int(own_id) > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=own_id, action_categ='E', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+				##############################################################
 				document_administrative_activity.delay(group_id, main_sentence, 'join')
-				##############################################
 				added = create_group_membership_and_rules_signatory(group_id=group_id, member_id=own_id, time_now=time_now, \
 					member_is_owner=joiner_is_owner)
 				if added:
@@ -4058,13 +4065,6 @@ def accept_open_group_rules(request):
 						if own_uname in FEMALES:
 							if (time_now-float(start_time)) >= float(time_to_read):
 								# rules are acceptable to the user and they took the prescribed time to read them
-								##############################################
-								# legacy functionality
-								# add_group_member(group_id, own_uname)
-								# remove_group_invite(own_id, group_id)
-								# add_user_group(own_id, group_id)
-								##############################################
-								# reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')# to take care of grouppageview
 								group_owner_id = group_meta_data['oi']
 								group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=group_owner_id,topic=group_meta_data['tp'],\
 									reply_time=time_now,poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,\
@@ -4101,13 +4101,6 @@ def accept_open_group_rules(request):
 						# this group allows users other than pink stars
 						if (time_now-float(start_time)) >= float(time_to_read):
 							# rules are acceptable to the user and they took the prescribed time to read them
-							##############################################
-							# legacy functionality
-							# add_group_member(group_id, own_uname)
-							# remove_group_invite(own_id, group_id)
-							# add_user_group(own_id, group_id)
-							##############################################
-							# reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')# to take care of grouppageview
 							group_owner_id = group_meta_data['oi']
 							group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=group_owner_id,topic=group_meta_data['tp'],\
 								reply_time=time_now,poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,\
@@ -4127,6 +4120,10 @@ def accept_open_group_rules(request):
 								join_date = None
 							added = create_group_membership_and_rules_signatory(group_id=group_id, member_id=own_id, member_join_time=join_date, \
 								time_now=time_now,is_public=True, member_is_owner=True if group_owner_id == str(own_id) else False)
+							################### Segment action logging ###################
+							if own_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=own_id, action_categ='F', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+							##############################################################
 							if added:
 								return redirect("public_group")
 							else:
@@ -5087,6 +5084,11 @@ class ClosedGroupCreateView(FormView):
 				####################
 				# rate limit further public mehfil creation by this user (for 1 day)
 				rate_limit_group_creation(user_id, which_group='private')
+				################### Segment action logging ###################
+				if user_id > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=user_id, action_categ='E', action_sub_categ='1', action_liq='l', time_of_action=reply_time)
+				##############################################################
+
 				self.request.session["unique_id"] = unique
 				return redirect("invite_private", slug=unique)
 
@@ -5160,6 +5162,10 @@ def create_open_group(request):
 						group_attendance_tasks.delay(group_id=group_id, user_id=own_id, time_now=reply_time)
 						# rate limit further public mehfil creation by this user (for 1 day)
 						rate_limit_group_creation(own_id, which_group='public')
+						################### Segment action logging ###################
+						if own_id > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=own_id, action_categ='F', action_sub_categ='1', action_liq='l', time_of_action=reply_time)
+						##############################################################
 						# go to newly created public mehfil's invite page
 						request.session["public_uuid"] = unique_id
 						request.session.modified = True

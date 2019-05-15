@@ -18,7 +18,7 @@ from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, F
 PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, CRICKET_SUPPORT_STARTING_POINT, \
 CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -63,7 +63,7 @@ from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_tasks, log_private_mehfil_session, group_notification_tasks, publicreply_notification_tasks, \
 fan_recount, vote_tasks, populate_search_thumbs, sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, \
-group_attendance_tasks, log_404
+group_attendance_tasks, log_404, log_action
 #, log_organic_attention, home_photo_tasks, queue_for_deletion, 
 #from .html_injector import create_gibberish_punishment_text
 from .check_abuse import check_video_abuse # check_photo_abuse
@@ -1037,9 +1037,14 @@ def home_reply(request,pk=None,*args,**kwargs):
 					form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk,mob_verified=request.mobile_verified)
 					if form.is_valid():
 						text=form.cleaned_data.get("description")
-						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time.time())
+						time_now=time.time()
+						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time_now)
 						target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)# target is target_username
 						request.session['home_hash_id'] = notif
+						################### Segment action logging ###################
+						if user_id > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=user_id, action_categ='C', action_sub_categ='2', action_liq='h', time_of_action=time_now)
+						##############################################################
 						if target == ":":
 							return redirect("ban_underway")
 						elif target == ';':
@@ -2667,6 +2672,11 @@ class CommentView(CreateView):
 							is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
 						photo_tasks.delay(user_id, pk, comment_time, photocomment.id, which_photo.comment_count, text, already_commented, \
 							commenter_name, url, self.request.mobile_verified)
+						################### Segment action logging ###################
+						if user_id > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=user_id, action_categ='B', action_sub_categ='1', action_liq='h', time_of_action=comment_time)
+						##############################################################
+
 						if pk and origin and link_id:
 							return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
 						elif pk and origin and star_user_id:
@@ -3069,6 +3079,10 @@ def photo_comment(request,pk=None,*args,**kwargs):
 							is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
 						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
 							commenter_name, url, is_mob_verified)
+						################### Segment action logging ###################
+						if user_id > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=user_id, action_categ='B', action_sub_categ='2', action_liq='h', time_of_action=comment_time)
+						##############################################################
 						if origin == '3':
 							request.session["home_hash_id"] = home_hash
 							request.session.modified = True
@@ -3257,10 +3271,10 @@ def photo_page(request,list_type='best-list'):
 		start_index, end_index = get_indices(page_num, PHOTOS_PER_PAGE)
 		if list_type == 'best-list':
 			type_, page_origin = 'best_photos', '2'
-			navbar_type, single_notif_origin = 'best', '20'
+			navbar_type, single_notif_origin = 'best', '21'
 		else:
 			type_, page_origin = 'fresh_photos', '1'
-			navbar_type, single_notif_origin = 'fresh', '21'
+			navbar_type, single_notif_origin = 'fresh', '20'
 		obj_list, list_total_size = get_photo_feed(start_idx=start_index, end_idx=end_index, feed_type=type_, with_feed_size=True)
 		num_pages = list_total_size/PHOTOS_PER_PAGE
 		max_pages = num_pages if list_total_size % PHOTOS_PER_PAGE == 0 else (num_pages+1)
@@ -3680,6 +3694,10 @@ def upload_public_photo(request,*args,**kwargs):
 					if on_fbs:
 						rate_limit_fbs_public_photo_uploaders(user_id)
 					bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, caption)
+					################### Segment action logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='1', action_liq='l', time_of_action=epochtime)
+					##############################################################
 					if is_ajax:
 						return HttpResponse(json.dumps({'success':True,'message':reverse('photo',kwargs={"list_type": 'fresh-list'})}),content_type='application/json',)
 					else:
@@ -4246,10 +4264,27 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					if grp["p"] == '1':
 						set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='priv_mehfil'
+						################### Segment action logging ###################
+						if origin:
+							if user_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=user_id, action_categ='E', action_sub_categ='5', action_liq='h', time_of_action=reply_time)
+						else:
+							if user_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=user_id, action_categ='E', action_sub_categ='4', action_liq='h', time_of_action=reply_time)
+						##############################################################
 						# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 					else:
 						set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='public_mehfil'
+						################### Segment action logging ###################
+						if origin:
+							if user_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=user_id, action_categ='F', action_sub_categ='5', action_liq='h', time_of_action=reply_time)
+						else:
+							if user_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=user_id, action_categ='F', action_sub_categ='4', action_liq='h', time_of_action=reply_time)
+						##############################################################
+
 						# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 					
 					#######################################################
@@ -4343,6 +4378,14 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 							is_pinkstar=('1' if username in FEMALES else '0'),latest_comm_writer_uname=username, time=comment_time)
 						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
 							username, url, request.mobile_verified)
+						################### Segment action logging ###################
+						if origin == '14':
+							if user_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=user_id, action_categ='B', action_sub_categ='3', action_liq='h', time_of_action=comment_time)
+						else:
+							if user_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=user_id, action_categ='B', action_sub_categ='4', action_liq='h', time_of_action=comment_time)
+						##############################################################
 						return return_to_content(request,origin,pk,None,username)
 					else:
 						if origin == '14':
@@ -4396,10 +4439,21 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
 					form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='',per_grp_id='')
 					if form.is_valid():
+						time_now=time.time()
 						text = form.cleaned_data.get("home_comment")
 						target = process_publicreply(request=request,link_id=pk,text=text,origin=origin if origin else 'from_unseen',\
 							link_writer_id=link_writer_id)
-						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=own_id,time_now=time.time())
+						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=own_id,time_now=time_now)
+						################### Segment action logging ###################
+						if origin == '14':
+							# from matka
+							if own_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=own_id, action_categ='C', action_sub_categ='3', action_liq='h', time_of_action=time_now)
+						else:
+							# from single notification
+							if own_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=own_id, action_categ='C', action_sub_categ='4', action_liq='h', time_of_action=time_now)
+						##############################################################
 						if target == ":":
 							return redirect("ban_underway")
 						elif target == ';':
@@ -4609,7 +4663,8 @@ def post_public_reply(request,*args,**kwargs):
 				form = PublicreplyForm(request.POST,user_id=user_id, link_id=link_id, mob_verified=request.mobile_verified)
 				if form.is_valid():
 					text = form.cleaned_data["description"]
-					set_input_rate_and_history.delay(section='home_rep',section_id=link_id,text=text,user_id=user_id,time_now=time.time())
+					time_now = time.time()
+					set_input_rate_and_history.delay(section='home_rep',section_id=link_id,text=text,user_id=user_id,time_now=time_now)
 					target = process_publicreply(request=request,link_id=link_id,text=text, link_writer_id=link_writer_id)
 					if target == ":":
 						return redirect("ban_underway")
@@ -4618,6 +4673,10 @@ def post_public_reply(request,*args,**kwargs):
 						return render(request,"object_deleted.html",{})
 					request.session["link_pk"] = link_id
 					request.session.modified = True
+					################### Segment action logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=user_id, action_categ='C', action_sub_categ='1', action_liq='h', time_of_action=time_now)
+					##############################################################
 				else:
 					request.session["publicreply_form"] = form
 					request.session["link_pk"] = link_id
@@ -4753,7 +4812,8 @@ class UserProfileEditView(UpdateView):
 		Returns the keyword arguments for instantiating the form.
 		"""
 		kwargs = super(UserProfileEditView, self).get_form_kwargs()
-		kwargs.update({'user': self.request.user,'on_fbs':self.request.META.get('HTTP_X_IORG_FBS',False)})
+		user = self.request.user
+		kwargs.update({'user': user,'on_fbs':self.request.META.get('HTTP_X_IORG_FBS',False)})
 		return kwargs
 
 	def get_object(self, queryset=None):
@@ -4764,6 +4824,24 @@ class UserProfileEditView(UpdateView):
 		context["is_own_profile"] = True
 		context["username"] = retrieve_uname(self.request.user.id,decode=True)
 		return context
+
+	################### Segment action logging ###################
+	def form_valid(self, form): #remove this when removing segment loggers
+
+		user_id = self.request.user.id
+		if user_id > SEGMENT_STARTING_USER_ID:
+			time_now = time.time()
+			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+			if f.avatar.name == 'temp.jpg':
+				# new avatar is uploaded
+				log_action.delay(user_id=user_id, action_categ='G', action_sub_categ='1', action_liq='l', time_of_action=time_now)
+			old_bio = UserProfile.objects.only('bio').get(user_id=user_id).bio
+			if f.bio != old_bio:
+				# bio has changed
+				log_action.delay(user_id=user_id, action_categ='G', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+			
+		return super(UpdateView, self).form_valid(form) # saves automatically
+	##############################################################
 
 	def get_success_url(self):
 		return reverse_lazy("user_profile", kwargs={'slug': self.request.user})
@@ -4897,6 +4975,10 @@ class LinkCreateView(CreateView):
 						submitter_score=f.submitter.userprofile.score, is_pinkstar=(True if user.username in FEMALES else False),submission_time=time_now,\
 						text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=True)
 					f.submitter.userprofile.save()
+					################### Segment action logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)
+					##############################################################
 					rate_limit_content_sharing(user_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
 					return super(CreateView, self).form_valid(form) #saves the link automatically
 				else:

@@ -32,12 +32,12 @@ is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interact
 from redis7 import check_content_and_voting_ban
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
-cache_photo_shares
+cache_photo_shares, log_action
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
 PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
-from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT
+from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT, SEGMENT_STARTING_USER_ID
 from image_processing import process_group_image
 from redirection_views import return_to_content
 from push_notification_api import send_single_push_notification
@@ -518,6 +518,10 @@ def post_to_personal_group(request, *args, **kwargs):
 									own_anon='',target_anon='',blob_id=bid, idx=idx, img_url=uploaded_image_loc,own_uname='',own_avurl='',deleted='undel',\
 									hidden='no',successful=True if bid else False)
 								personal_group_sanitization(obj_count, obj_ceiling, gid)
+								################### Segment action logging ###################
+								if own_id > SEGMENT_STARTING_USER_ID:
+									log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='3', action_liq='h', time_of_action=time.time())
+								##############################################################
 					elif reply:
 						if is_direct_response:
 							target_content_type = request.POST.get('tt',None)
@@ -541,6 +545,10 @@ def post_to_personal_group(request, *args, **kwargs):
 							own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname='',own_avurl='',deleted='undel',hidden='no',\
 							successful=True if bid else False)
 						personal_group_sanitization(obj_count, obj_ceiling, gid)
+						################### Segment action logging ###################
+						if own_id > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='3', action_liq='h', time_of_action=time.time())
+						##############################################################
 					else:
 						pass
 					request.session.modified = True
@@ -1120,6 +1128,14 @@ def unseen_per_grp(request, gid, fid):
 					own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
 					successful=True if bid else False, from_unseen=True)
 				personal_group_sanitization(obj_count, obj_ceiling, gid)
+				################### Segment action logging ###################
+				if origin:
+					if own_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='5', action_liq='h', time_of_action=time.time())
+				else:
+					if own_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='4', action_liq='h', time_of_action=time.time())
+				##############################################################
 				if origin:
 					return return_to_content(request,origin,None,None,own_id)
 				else:
@@ -1949,6 +1965,13 @@ def accept_personal_group_invite(request):
 					sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
 					own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
+					################### Segment action logging ###################
+					time_now = time.time()
+					if own_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+					if int_tid > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=target_id, action_categ='D', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+					##############################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
 						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
@@ -2045,6 +2068,13 @@ def change_personal_group_invite_privacy(request):
 						target_av_url = avatars[int(target_id)]
 						own_anon, target_anon = '1' if decision == '0' else '0', '1' if state == '3' else '0'
 						group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
+						################### Segment action logging ###################
+						time_now = time.time()
+						if own_id > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+						if int(target_id) > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=target_id, action_categ='D', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+						##############################################################
 						if not already_existed:
 							reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
 							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
@@ -2113,6 +2143,13 @@ def process_personal_group_invite(request):
 					sanitize_personal_group_invites(own_id, own_username, target_id, target_username)
 					own_anon, target_anon = '0', '1' if state == '3' else '0'
 					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
+					################### Segment action logging ###################
+					time_now = time.time()
+					if own_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+					if int_tid > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=target_id, action_categ='D', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+					##############################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
 						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
@@ -2204,6 +2241,10 @@ def post_js_reply_to_personal_group(request):
 										own_avurl='',deleted='undel',hidden='no',successful=True if bid else False)
 									add_image_to_personal_group_storage.delay(uploaded_image_loc, img_id, img_wid, hw_ratio, quality, bid, idx, own_id, gid)
 									personal_group_sanitization(obj_count, obj_ceiling, gid)
+									################### Segment action logging ###################
+									if own_id > SEGMENT_STARTING_USER_ID:
+										log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='3', action_liq='h', time_of_action=time.time())
+									##############################################################
 						elif reply:
 							# add as a 'response' blob
 							res_blob = {'target_blob_id':target_blob_id,'target_index':target_index,'target_content_type':target_content_type}
@@ -2213,6 +2254,10 @@ def post_js_reply_to_personal_group(request):
 								txt_type='text_res',own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname='',own_avurl='',\
 								deleted='undel',hidden='no',successful=True if bid else False)
 							personal_group_sanitization(obj_count, obj_ceiling, gid)
+							################### Segment action logging ###################
+							if own_id > SEGMENT_STARTING_USER_ID:
+								log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='3', action_liq='h', time_of_action=time.time())
+							##############################################################
 						else:
 							pass
 						request.session.modified = True

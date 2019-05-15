@@ -3178,8 +3178,10 @@ class PrivateGroupView(FormView):
 					context["form"] = prev_form if prev_form else PrivateGroupReplyForm()
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
-						# getting from cache
-						latest_replies = json.loads(latest_replies)
+						try:
+							latest_replies = json.loads(latest_replies)
+						except:
+							latest_replies = json_backup.loads(latest_replies)
 					else:
 						# reconstructing replies and caching them
 						latest_data = retrieve_group_submissions(group_id)

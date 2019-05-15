@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.middleware import csrf
 from redis7 import account_creation_disallowed
-from tasks import registration_task, send_user_pin
+from tasks import registration_task, send_user_pin, log_action
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
@@ -21,7 +21,7 @@ from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewFor
 ForgettersMobileNumber, ForgettersPin
 from verification_views import get_requirements
 from forms import getip
-from score import PW
+from score import PW, SEGMENT_STARTING_USER_ID
 from brake.decorators import ratelimit
 
 ######################################################################################
@@ -459,7 +459,7 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 				form.save() # creating the user
 				user = authenticate(username=username,password=password)
 				login(request,user)
-				registration_task.delay(getip(request),username,user.id)
+				registration_task.delay(getip(request),username)
 				try:
 					request.session.delete_test_cookie() #cleaning up
 				except:
@@ -474,6 +474,10 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 				#############
 				#############
 				#############
+				################### Segment action logging ###################
+				if user.id > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=user.id, action_categ='Z', action_sub_categ='1', action_liq='l', time_of_action=time.time())
+				##############################################################
 				return redirect("new_user_gateway",lang=lang)
 			else:
 				# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values

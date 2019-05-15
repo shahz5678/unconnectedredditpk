@@ -12,6 +12,7 @@ CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing pos
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
+#RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
@@ -266,3 +267,48 @@ MERCH = {
 '15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#REMOVE
 ###############################################################################################################
+SEGMENT_STARTING_TIME = 1557917198# starting time of user segment analysis
+SEGMENT_STARTING_USER_ID = 1873122# starting user ID of user segment analysis
+"""
+KEY:
+
+A, B, C, ... - actions occurring within various website sections
+1, 2, 3, ... - subsections of above
+l, h - low liquidity or high liquidity
+
+A1l: img sharing
+A2h: txt sharing
+
+B1h: img comment
+B2h: img inline comment
+B3h: img matka comment
+B4h: img single notif comment
+
+C1h: txt comment
+C2h: txt inline comment
+C3h: txt matka comment
+C4h: txt single notif comment
+
+D2l: chat created
+D3h: chat message sent
+D4h: chat message sent from matka
+D5h: chat message sent from single notif
+
+E1l: private mehfil created
+E2l: private mehfil joined (created by someone else)
+E3h: private mehfil message sent
+E4h: private mehfil message sent from matka
+E5h: private mehfil message sent from single notif
+
+F1l: public mehfil created
+F2l: public mehfil joined (created by someone else)
+F3h: public mehfil message sent
+F4h: public mehfil message sent from matka
+F5h: public mehfil message sent from single notif
+
+G1l: uploaded avatar
+G2l: edited about me
+
+Z1l: signing up
+Z2l: mobile verification
+"""

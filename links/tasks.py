@@ -12,7 +12,7 @@ from cricket_score import cricket_scr
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
 process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ, UPVOTE, DOWNVOTE,\
-GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE
+GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE,SEGMENT_STARTING_TIME 
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
@@ -42,8 +42,10 @@ retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
-queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, study_voting_preferences
-#from redis8 import set_section_wise_retention
+queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
+study_voting_preferences, retrieve_voting_affinity
+from redis8 import set_section_wise_retention, log_segment_action
+from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -326,13 +328,13 @@ def upload_ecomm_photo(photo_id, user_id, ad_id):
 
 @celery_app1.task(name='tasks.sanitize_unused_ecomm_photos')
 def sanitize_unused_ecomm_photos():
-    """
-    Scans all votes given by users and calculates sybil affinities via a Bayesian calculation
+	"""
+	Scans all votes given by users and calculates sybil affinities via a Bayesian calculation
 
-    Scheduled to run every 6 hours
-    Mislabelled for legacy reasons
-    """
-    study_voting_preferences()
+	Scheduled to run every 6 hours
+	Mislabelled for legacy reasons
+	"""
+	study_voting_preferences()
 
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
@@ -381,6 +383,15 @@ def calc_ecomm_metrics():
 # 						if third_repetition == second_repetition:
 # 							log_gibberish_text_writer(user_id)
 # 							# log_spam_text_writer(user_id, text)
+
+
+@celery_app1.task(name='tasks.log_action')
+def log_action(user_id, action_categ, action_sub_categ, action_liq, time_of_action):
+	"""
+	Logs user action for segment analysis
+	"""
+	hours_since_start_of_segment = int((time_of_action - SEGMENT_STARTING_TIME)/3600.0)
+	log_segment_action(user_id, hours_since_start_of_segment, action_categ, action_sub_categ, action_liq, time_of_action)
 
 # @celery_app1.task(name='tasks.set_section_retention')
 # def set_section_retention(which_section, user_id):
@@ -1030,18 +1041,19 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
+	photo.save()
 	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
-	if user_id != photo_owner_id and not it_exists:
-		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
-		if is_citizen:
-			photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-			photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
-			#photo.visible_score = photo.visible_score + 2000000
-			photo.owner.userprofile.save()
-	photo.save()
-	user.userprofile.save()
+	# if user_id != photo_owner_id and not it_exists:
+	# 	user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
+	# 	if is_citizen:
+	# 		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
+	# 		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
+	# 		#photo.visible_score = photo.visible_score + 2000000
+	# 		photo.owner.userprofile.save()
+	# photo.save()
+	# user.userprofile.save()
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
@@ -1096,15 +1108,14 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	photo.save()
-	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
-	if user_id != photo_owner_id and not it_exists:
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2) #giving score to the commenter
-		if is_citizen:
-			UserProfile.objects.filter(user_id=photo_owner_id).update(score=F('score')+2,media_score=F('media_score')+2) # giving scores to photo owner
-			photo.visible_score = photo.visible_score + 2
-	photo.save()
+	# if user_id != photo_owner_id and not it_exists:
+	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2) #giving score to the commenter
+	# 	if is_citizen:
+	# 		UserProfile.objects.filter(user_id=photo_owner_id).update(score=F('score')+2,media_score=F('media_score')+2) # giving scores to photo owner
+	# 		photo.visible_score = photo.visible_score + 2
+	# photo.save()
 
 @celery_app1.task(name='tasks.video_vote_tasks')
 def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
@@ -1137,7 +1148,24 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
 				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
 				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				affinity_discount_multiplier = 1
+				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
+				##############################################################################
+				######################## Vote Discount logger ################################
+				##############################################################################
+				if vote_affinity_discount == 1:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='discounted',item_type='photo')
+					else:
+						log_vote_disc(vote_type='discounted',item_type='text')
+				else:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='regular',item_type='photo')
+					else:
+						log_vote_disc(vote_type='regular',item_type='text')
+				##############################################################################
+				##############################################################################
+				##############################################################################
+				affinity_discount_multiplier = (1-vote_affinity_discount)
 
 			net_votes = old_net_votes + 1
 			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote,\
@@ -1166,14 +1194,35 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				pass
 		elif vote_value == '0':
 			# is a downvote
-			# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
-			world_age_discount = calculate_world_age_discount(user_id=own_id)
-			# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-			affinity_discount = 1
+			if revert_prev:
+				world_age_discount_multiplier, affinity_discount_multiplier = 1, 1
+			else:
+				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
+				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
+				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
+				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
+				##############################################################################
+				######################## Vote Discount logger ################################
+				##############################################################################
+				if vote_affinity_discount == 1:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='discounted',item_type='photo', downvote=True)
+					else:
+						log_vote_disc(vote_type='discounted',item_type='text', downvote=True)
+				else:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='regular',item_type='photo', downvote=True)
+					else:
+						log_vote_disc(vote_type='regular',item_type='text', downvote=True)
+				##############################################################################
+				##############################################################################
+				##############################################################################
+
+				affinity_discount_multiplier = (1-vote_affinity_discount)
 			
 			net_votes = old_net_votes - 1
 			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht, time_of_vote,\
-				target_user_id, world_age_discount, affinity_discount)
+				target_user_id, world_age_discount_multiplier, affinity_discount_multiplier)
 			if added:
 				# vote added
 				if is_pht == '1':
@@ -1203,7 +1252,7 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 
 
 @celery_app1.task(name='tasks.registration_task')
-def registration_task(ip,username,user_id):
+def registration_task(ip,username):
 	account_created(ip,username)
 
 @celery_app1.task(name='tasks.log_sharing_click')
@@ -1242,11 +1291,7 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post, link_writer_id):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
-	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
-	# set_prev_replies(user_id,description)
-	# if is_someone_elses_post:
-	#     # ensuring self commenting doesn't add anything to a post's rating
-	#     add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)
+	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')

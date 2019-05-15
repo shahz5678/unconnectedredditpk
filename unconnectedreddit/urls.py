@@ -9,7 +9,7 @@ from urls_unauth import urlpatterns as urlpatterns_unauth
 from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_maint import urlpatterns as urlpatterns_maint
 from urls_advertiser import urlpatterns as urlpatterns_adv
-#from urls_retention import urlpatterns as urlpatterns_retention
+from urls_retention import urlpatterns as urlpatterns_retention
 from urls_ads import urlpatterns as urlpatterns_ads
 from urls_feedback import urlpatterns as urlpatterns_feedback
 from urls_groups import urlpatterns as urlpatterns_groups
@@ -299,7 +299,7 @@ urlpatterns += urlpatterns_ads
 urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback
 urlpatterns += urlpatterns_unauth
-#urlpatterns += urlpatterns_retention
+urlpatterns += urlpatterns_retention
 urlpatterns += urlpatterns_maint
 urlpatterns += urlpatterns_groups
 urlpatterns += urlpatterns_sharing

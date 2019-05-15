@@ -9,8 +9,8 @@ from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate
 twiliolog_reverification_pin_sms_sent, twiliolog_user_reverified, log_fbs_please_wait, log_fbs_user_verification, save_user_account_kit_server_secret,\
 retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id, log_ak_entered, log_ak_user_verification_outcome
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
-from tasks import send_user_pin, save_consumer_credentials, increase_user_points
-from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME
+from tasks import send_user_pin, save_consumer_credentials, increase_user_points, log_action
+from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME, SEGMENT_STARTING_USER_ID
 from views import convert_to_epoch
 from redis4 import retrieve_uname
 from models import UserProfile
@@ -153,6 +153,10 @@ def account_kit_verification_processing(request):
 					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					log_ak_user_verification_outcome("verified")
+					################### Segment action logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ='2', action_liq='l', time_of_action=time.time())
+					##############################################################
 					request.session["account_kit_verification_succeeded"] = '1'
 					request.session.modified = True
 					return redirect("account_kit_verification_successful")

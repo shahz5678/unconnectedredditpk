@@ -2372,3 +2372,42 @@ def log_404_errors(type_of_404, time_of_404,type_of_url=None):
 				my_server.zrem(GENERIC_404,item_value)
 	else:
 		my_server.zincrby(SPECIFIC_404,type_of_404,amount=1)
+
+
+######################################### sybil discount logging ############################################
+REGULAR_PHOTO_VOTES = 'rpv'# sorted set containing latest 1 week worth of 404 errors
+DISCOUNTED_PHOTO_VOTES = 'dpv'
+REGULAR_TEXT_VOTES = 'rtv'# sorted set containing latest 1 week worth of 404 errors
+DISCOUNTED_TEXT_VOTES = 'dtv'
+
+
+def log_vote_disc(vote_type='regular',item_type='text', downvote=False):
+	"""
+	Logs the number of regular votes and discounted votes done by sybils
+
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if downvote:
+		if vote_type == 'regular':
+			if item_type == 'text':
+				my_server.zincrby('downvoting_logger',REGULAR_TEXT_VOTES,amount=1)
+			else:
+				my_server.zincrby('downupvoting_logger',REGULAR_PHOTO_VOTES,amount=1)
+		else:
+			if item_type == 'text':
+				my_server.zincrby('downvoting_logger',DISCOUNTED_TEXT_VOTES,amount=1)
+			else:
+				my_server.zincrby('downvoting_logger',DISCOUNTED_PHOTO_VOTES,amount=1)
+
+	else:	
+		if vote_type == 'regular':
+			if item_type == 'text':
+				my_server.zincrby('upvoting_logger',REGULAR_TEXT_VOTES,amount=1)
+			else:
+				my_server.zincrby('upvoting_logger',REGULAR_PHOTO_VOTES,amount=1)
+		else:
+			if item_type == 'text':
+				my_server.zincrby('upvoting_logger',DISCOUNTED_TEXT_VOTES,amount=1)
+			else:
+				my_server.zincrby('upvoting_logger',DISCOUNTED_PHOTO_VOTES,amount=1)
+

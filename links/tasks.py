@@ -1138,7 +1138,25 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
 				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
 				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				affinity_discount_multiplier = (1-retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value))
+				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
+				##############################################################################
+				######################## Vote Discount logger ################################
+				##############################################################################
+				from redis3 import log_vote_disc
+				if vote_affinity_discount == 1:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='discounted',item_type='photo')
+					else:
+						log_vote_disc(vote_type='discounted',item_type='text')
+				else:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='regular',item_type='photo')
+					else:
+						log_vote_disc(vote_type='regular',item_type='text')
+				##############################################################################
+				##############################################################################
+				##############################################################################
+				affinity_discount_multiplier = (1-vote_affinity_discount)
 
 			net_votes = old_net_votes + 1
 			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote,\
@@ -1173,7 +1191,26 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
 				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
 				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				affinity_discount_multiplier = (1-retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value))
+				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
+				##############################################################################
+				######################## Vote Discount logger ################################
+				##############################################################################
+				from redis3 import log_vote_disc
+				if vote_affinity_discount == 1:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='discounted',item_type='photo', downvote=True)
+					else:
+						log_vote_disc(vote_type='discounted',item_type='text', downvote=True)
+				else:
+					if int(is_pht) == 1:
+						log_vote_disc(vote_type='regular',item_type='photo', downvote=True)
+					else:
+						log_vote_disc(vote_type='regular',item_type='text', downvote=True)
+				##############################################################################
+				##############################################################################
+				##############################################################################
+
+				affinity_discount_multiplier = (1-vote_affinity_discount)
 			
 			net_votes = old_net_votes - 1
 			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht, time_of_vote,\

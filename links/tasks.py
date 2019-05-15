@@ -45,6 +45,7 @@ add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_tren
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences, retrieve_voting_affinity
 #from redis8 import set_section_wise_retention
+from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -1142,7 +1143,6 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				##############################################################################
 				######################## Vote Discount logger ################################
 				##############################################################################
-				from redis3 import log_vote_disc
 				if vote_affinity_discount == 1:
 					if int(is_pht) == 1:
 						log_vote_disc(vote_type='discounted',item_type='photo')
@@ -1195,7 +1195,6 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 				##############################################################################
 				######################## Vote Discount logger ################################
 				##############################################################################
-				from redis3 import log_vote_disc
 				if vote_affinity_discount == 1:
 					if int(is_pht) == 1:
 						log_vote_disc(vote_type='discounted',item_type='photo', downvote=True)

@@ -1041,18 +1041,19 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
+	photo.save()
 	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
-	if user_id != photo_owner_id and not it_exists:
-		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
-		if is_citizen:
-			photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-			photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
-			#photo.visible_score = photo.visible_score + 2000000
-			photo.owner.userprofile.save()
-	photo.save()
-	user.userprofile.save()
+	# if user_id != photo_owner_id and not it_exists:
+	# 	user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
+	# 	if is_citizen:
+	# 		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
+	# 		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
+	# 		#photo.visible_score = photo.visible_score + 2000000
+	# 		photo.owner.userprofile.save()
+	# photo.save()
+	# user.userprofile.save()
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
@@ -1107,15 +1108,14 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	photo.save()
-	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
-	if user_id != photo_owner_id and not it_exists:
-		UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2) #giving score to the commenter
-		if is_citizen:
-			UserProfile.objects.filter(user_id=photo_owner_id).update(score=F('score')+2,media_score=F('media_score')+2) # giving scores to photo owner
-			photo.visible_score = photo.visible_score + 2
-	photo.save()
+	# if user_id != photo_owner_id and not it_exists:
+	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2) #giving score to the commenter
+	# 	if is_citizen:
+	# 		UserProfile.objects.filter(user_id=photo_owner_id).update(score=F('score')+2,media_score=F('media_score')+2) # giving scores to photo owner
+	# 		photo.visible_score = photo.visible_score + 2
+	# photo.save()
 
 @celery_app1.task(name='tasks.video_vote_tasks')
 def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
@@ -1291,11 +1291,7 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post, link_writer_id):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
-	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
-	# set_prev_replies(user_id,description)
-	# if is_someone_elses_post:
-	#     # ensuring self commenting doesn't add anything to a post's rating
-	#     add_home_rating_ingredients(parent_id=link_id, text=description, replier_id=user_id, time=epochtime, link_writer_id=link_writer_id, photo_post=False)
+	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')

@@ -1511,8 +1511,8 @@ class UserProfilePhotosView(ListView):
 			context["user_id"] = user_id
 			context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
 			context["authenticated"] = True
-			is_defender = in_defenders(user_id)
-			if is_defender:
+			is_defender, is_super_defender = in_defenders(user_id, return_super_status=True)
+			if is_super_defender:
 				context["manageable"] = True
 			own_profile = star_id == user_id
 			context["own_profile"] = own_profile
@@ -1547,11 +1547,12 @@ class UserProfilePhotosView(ListView):
 		context["star_av_url"] = retrieve_avurl(star_id)
 		context["legit"] = FEMALES
 		total_fans, recent_fans = get_photo_fan_count(star_id)
-		context["manageable"] = False
+		# context["manageable"] = False
 		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(star_id,ids_with_urls)
 		return context
+
 
 
 	def get(self, request, *args, **kwargs):
@@ -5648,7 +5649,7 @@ def manage_user(request,*args,**kwargs):
 	else:
 		return render(request,"404.html",{})
 
-@csrf_protect   
+@csrf_protect    
 def manage_user_help(request,*args,**kwargs):
 	if request.method == "POST":
 		help_type = request.POST.get("htype")
@@ -5666,6 +5667,8 @@ def manage_user_help(request,*args,**kwargs):
 			return render(request,'ghost_ban.html',context)
 		elif help_type == 'oclone':
 			return render(request,'check_clones.html',context)
+		elif help_type == 'sybil':
+			return render(request,'check_sybils.html',context)
 		else:
 			return render(request,"404.html",{})    
 	else:

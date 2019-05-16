@@ -4510,9 +4510,10 @@ def rank_mehfil_active_users():
 			stickiness_metric = (DAU*1.0)/BWAU if BWAU else 0.0#(iii) - this is already normalized
 			# use (i), (ii) and (iii) together to determine a "score" for the group being considered
 			# we've ensured (i), (ii) and (iii) are all 'normalized' - lie between [0,1] - so that they're comparable
-			group_score = (0.33*stickiness_metric)+(0.33*normalized_last_administrative_action_time)+(0.33*normalized_administrative_interest_frequency)
-			group_data.append(rankable_group_id)
-			group_data.append(group_score)
+			if stickiness_metric >= 0.09:
+				group_score = (0.33*stickiness_metric)+(0.33*normalized_last_administrative_action_time)+(0.33*normalized_administrative_interest_frequency)
+				group_data.append(rankable_group_id)
+				group_data.append(group_score)
 		if group_data:
 			# POPULAR_GROUPS = "popular_groups"#sorted set containing public groups ranked by (i)DAU/BWAU, (ii)administrative interest, (iii) owner's "last seen"
 			my_server.delete(GROUP_BIWEEKLY_STICKINESS)

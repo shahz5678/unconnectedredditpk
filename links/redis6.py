@@ -1557,6 +1557,26 @@ def retrieve_officer_stats(user_id, stat_type=None):
 
 ############################# Tracking mehfil visitors ############################
 
+def retrieve_owner_interest_levels(group_ids, my_server=None):
+	"""
+	Retrieves group owner's interest level in each group
+
+	Interest level includes:
+	(i) How frequently the group owner takes administrative interest in the group (kind of like a 'world age' concept)
+	(ii) Last time group owner was seen taking administrative interest in the group (this is an epoch time-stamp)
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for group_id in group_ids:
+		pipeline1.zscore(PUBLIC_GROUP_OWNER_ADMINISTRATIVE_ACTION_INCREMENT, group_id)
+		pipeline1.zscore(PUBLIC_GROUP_OWNER_LAST_ADMINISTRATIVE_ACTION_TIME, group_id)
+	result1, counter = pipeline1.execute(), 0
+	final_result = {}
+	for group_id in group_ids:
+		final_result[group_id] = [result1[counter],result1[counter+1]]
+		counter += 2
+	return final_result
+
 
 def group_owner_administrative_interest(group_id, time_now):
 	"""
@@ -2335,8 +2355,10 @@ def filter_non_recents(user_ids,group_id,time_now):
 	"""
 	if user_ids:
 		user_ids = map(str, user_ids)
-		fifteen_mins_ago = time_now - FIFTEEN_MINS
-		all_recents = redis.Redis(connection_pool=POOL).zrangebyscore(GROUP_VISITORS+str(group_id),fifteen_mins_ago,'+inf')
+		# fifteen_mins_ago = time_now - FIFTEEN_MINS
+		# all_recents = redis.Redis(connection_pool=POOL).zrangebyscore(GROUP_VISITORS+str(group_id),fifteen_mins_ago,'+inf')
+		one_day_ago = time_now - ONE_DAY
+		all_recents = redis.Redis(connection_pool=POOL).zrangebyscore(GROUP_VISITORS+str(group_id),one_day_ago,'+inf')
 		recent_ids = []
 		for user_id in user_ids:
 			if user_id in all_recents:
@@ -4266,6 +4288,8 @@ def del_overflowing_group_submissions(group_id, num_to_del ,my_server=None):
 
 ###################################### Calculating group active users and ranking #######################################
 
+BIG_MAU_GROUPS = 'bmg'#key holding cached group IDs with 95th precentile MAU
+GROUP_CREATION_TIMES = 'gct'# key that holdes the times of group creation
 
 def retrieve_active_user_count(group_id, time_now, duration, exclude_exits=False):
 	"""
@@ -4299,6 +4323,84 @@ def retrieve_active_user_count(group_id, time_now, duration, exclude_exits=False
 	return total
 
 
+# def rank_mehfil_active_users():
+# 	"""
+# 	Ranks all public mehfils via DAU/BWAU
+
+# 	DAU - Daily active users
+# 	BWAU - Biweekly active users
+# 	Rules:
+# 	1) Only consider mehfils that have been in existence since two weeks (via GROUP_LIST)
+# 	2) Only consider mehfils once their size is above 95th percentile (via GROUP_SIZE_LIST)
+
+# 	The Algo:
+# 	Step 1) Get all pub-grps
+# 	Step 2) Then filter out young groups (i.e. keep groups older than TWO_WEEKS)
+# 	Step 3) Sort these pub-grps by MAU (MAU is harder to game via fake sybils - i.e. fakers would get beaten by real groups more easily)
+# 	Step 4) Sort top 95th percentile MAU pub-grps by DAU/BWAU and present to users
+# 	"""
+# 	time_now = time.time()
+# 	two_weeks_ago = time_now - TWO_WEEKS
+# 	my_server = redis.Redis(connection_pool=POOL)
+
+# 	# Calculating step 1: All public groups
+# 	all_public_group_ids = my_server.zrange(GROUP_SIZE_LIST,0,-1)
+
+# 	pipeline1 = my_server.pipeline()
+# 	for gid in all_public_group_ids:
+# 		pipeline1.zrange(GROUP_MEMBERS+gid,0,0,withscores=True)
+# 	oldest_member_and_joining_time = pipeline1.execute()# a list of list of tuples is returned (e.g. [[('2', 1540199393.074807)]])
+
+# 	counter, all_old_enough_public_group_ids = 0, []
+# 	for gid in all_public_group_ids:
+# 		if oldest_member_and_joining_time[counter]:
+# 			try:
+# 				oldest_member_joining_time = oldest_member_and_joining_time[counter][0][1]# float value
+# 			except IndexError:
+# 				# first member joining time not found, skip this group entirely
+# 				oldest_member_joining_time = None
+# 			# Calculating step 2: Filtering out young groups, keeping only mature groups (i.e. more than 2 weeks old)
+# 			if oldest_member_joining_time and oldest_member_joining_time < two_weeks_ago:
+# 				all_old_enough_public_group_ids.append(gid)
+# 		counter += 1
+
+# 	if all_old_enough_public_group_ids:
+# 		groupmau = []
+# 		for gid in all_old_enough_public_group_ids:
+# 			grp_MAU = retrieve_active_user_count(gid, time_now, duration='monthly', exclude_exits=True)# penalizing groups when they have too many exits
+# 			groupmau.append(gid)
+# 			groupmau.append(grp_MAU)
+
+# 		# Calculating step 3: Old enough public groups sorted by highest MAU
+# 		my_server.delete(GROUP_MAU)
+# 		my_server.zadd(GROUP_MAU,*groupmau)
+
+# 		num_public_grps = my_server.zcard(GROUP_MAU)
+
+# 		# only consider groups beyond the 95th percentile
+# 		num_grps_to_consider = int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
+# 		big_enough_MAU_group_ids = my_server.zrevrange(GROUP_MAU,0,num_grps_to_consider)
+
+# 		if big_enough_MAU_group_ids:
+# 			stickiness = []
+# 			# Calculating step 4: Ranking old enough and big enough MAU groups by DAU/BWAU
+# 			for rankable_group_id in big_enough_MAU_group_ids:
+# 				BWAU = retrieve_active_user_count(rankable_group_id, time_now, duration='biweekly')
+# 				DAU = retrieve_active_user_count(rankable_group_id, time_now, duration='daily')
+# 				stickiness.append(rankable_group_id)
+# 				if BWAU:
+# 					stickiness.append((DAU*1.0)/BWAU)
+# 				else:
+# 					stickiness.append(-1.0)
+# 			if stickiness:
+# 				my_server.delete(GROUP_BIWEEKLY_STICKINESS)
+# 				my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
+# 				# removed cached data
+# 				my_server.delete(CACHED_RANKED_GROUPS)
+# 				# record time of ranking
+# 				my_server.set(RANKING_LAST_UPDATE_TIME,time_now)
+
+
 def rank_mehfil_active_users():
 	"""
 	Ranks all public mehfils via DAU/BWAU
@@ -4319,68 +4421,112 @@ def rank_mehfil_active_users():
 	two_weeks_ago = time_now - TWO_WEEKS
 	my_server = redis.Redis(connection_pool=POOL)
 
-	# Calculating step 1: All public groups
-	all_public_group_ids = my_server.zrange(GROUP_SIZE_LIST,0,-1)
+	big_enough_MAU_group_ids = []
+	cached_big_mau_group_ids = my_server.get(BIG_MAU_GROUPS)
 
-	pipeline1 = my_server.pipeline()
-	for gid in all_public_group_ids:
-		pipeline1.zrange(GROUP_MEMBERS+gid,0,0,withscores=True)
-	oldest_member_and_joining_time = pipeline1.execute()# a list of list of tuples is returned (e.g. [[('2', 1540199393.074807)]])
+	if cached_big_mau_group_ids:
+		big_enough_MAU_group_ids = json.loads(cached_big_mau_group_ids)
+		group_creation_time = json.loads(my_server.get(GROUP_CREATION_TIMES))
+	else:
 
-	counter, all_old_enough_public_group_ids = 0, []
-	for gid in all_public_group_ids:
-		if oldest_member_and_joining_time[counter]:
-			try:
-				oldest_member_joining_time = oldest_member_and_joining_time[counter][0][1]# float value
-			except IndexError:
-				# first member joining time not found, skip this group entirely
-				oldest_member_joining_time = None
-			# Calculating step 2: Filtering out young groups, keeping only mature groups (i.e. more than 2 weeks old)
-			if oldest_member_joining_time and oldest_member_joining_time < two_weeks_ago:
-				all_old_enough_public_group_ids.append(gid)
-		counter += 1
+		# Calculating step 1: All public groups
+		all_public_group_ids = my_server.zrange(GROUP_SIZE_LIST,0,-1)
 
-	if all_old_enough_public_group_ids:
-		groupmau = []
-		for gid in all_old_enough_public_group_ids:
-			grp_MAU = retrieve_active_user_count(gid, time_now, duration='monthly', exclude_exits=True)# penalizing groups when they have too many exits
-			groupmau.append(gid)
-			groupmau.append(grp_MAU)
+		pipeline1 = my_server.pipeline()
+		for gid in all_public_group_ids:
+			pipeline1.zrange(GROUP_MEMBERS+gid,0,0,withscores=True)
+		oldest_member_and_joining_time = pipeline1.execute()# a list of list of tuples is returned (e.g. [[('2', 1540199393.074807)]])
 
-		# Calculating step 3: Old enough public groups sorted by highest MAU
-		my_server.delete(GROUP_MAU)
-		my_server.zadd(GROUP_MAU,*groupmau)
+		counter, all_old_enough_public_group_ids, group_creation_time = 0, [], {}
+		for gid in all_public_group_ids:
+			if oldest_member_and_joining_time[counter]:
+				try:
+					oldest_member_joining_time = oldest_member_and_joining_time[counter][0][1]# float value
+				except IndexError:
+					# first member joining time not found, skip this group entirely
+					oldest_member_joining_time = None
+				# Calculating step 2: Filtering out young groups, keeping only mature groups (i.e. more than 2 weeks old)
+				if oldest_member_joining_time and oldest_member_joining_time < two_weeks_ago:
+					all_old_enough_public_group_ids.append(gid)
+					group_creation_time[gid] = oldest_member_joining_time
+			counter += 1
 
-		num_public_grps = my_server.zcard(GROUP_MAU)
+		if all_old_enough_public_group_ids:
+			groupmau = []
+			for gid in all_old_enough_public_group_ids:
+				grp_MAU = retrieve_active_user_count(gid, time_now, duration='monthly', exclude_exits=True)# penalizing groups when they have too many exits
+				groupmau.append(gid)
+				groupmau.append(grp_MAU)
 
-		# only consider groups beyond the 95th percentile
-		num_grps_to_consider = int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
-		big_enough_MAU_group_ids = my_server.zrevrange(GROUP_MAU,0,num_grps_to_consider)
+			# Calculating step 3: Old enough public groups sorted by highest MAU
+			my_server.delete(GROUP_MAU)
+			my_server.zadd(GROUP_MAU,*groupmau)
+			num_public_grps = my_server.zcard(GROUP_MAU)
 
-		if big_enough_MAU_group_ids:
-			stickiness = []
-			# Calculating step 4: Ranking old enough and big enough MAU groups by DAU/BWAU
-			for rankable_group_id in big_enough_MAU_group_ids:
-				BWAU = retrieve_active_user_count(rankable_group_id, time_now, duration='biweekly')
-				DAU = retrieve_active_user_count(rankable_group_id, time_now, duration='daily')
-				stickiness.append(rankable_group_id)
-				if BWAU:
-					stickiness.append((DAU*1.0)/BWAU)
-				else:
-					stickiness.append(-1.0)
-			if stickiness:
-				my_server.delete(GROUP_BIWEEKLY_STICKINESS)
-				my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*stickiness)
-				# removed cached data
-				my_server.delete(CACHED_RANKED_GROUPS)
-				# record time of ranking
-				my_server.set(RANKING_LAST_UPDATE_TIME,time_now)
+			# only consider groups beyond the 95th percentile
+			num_grps_to_consider = num_public_grps#int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
+			big_enough_MAU_group_ids = my_server.zrevrange(GROUP_MAU,0,num_grps_to_consider)
+
+			# cache them
+			pipeline1 = my_server.pipeline()
+			pipeline1.setex(BIG_MAU_GROUPS,json.dumps(big_enough_MAU_group_ids),SIX_HOURS)
+			pipeline1.setex(GROUP_CREATION_TIMES,json.dumps(group_creation_time),SIX_HOURS)
+			pipeline1.execute()
+
+	if big_enough_MAU_group_ids:
+
+		group_data = []
+		group_owner_interest_levels = retrieve_owner_interest_levels(big_enough_MAU_group_ids, my_server)# returns a dictionary in {key1:[], key2:[], ...} format
+		# Calculating step 4: Ranking old enough and big enough MAU groups by DAU/BWAU
+		for rankable_group_id in big_enough_MAU_group_ids:
+			BWAU = retrieve_active_user_count(rankable_group_id, time_now, duration='biweekly')
+			DAU = retrieve_active_user_count(rankable_group_id, time_now, duration='daily')
+
+			administartive_interest_frequency = group_owner_interest_levels[rankable_group_id][0]
+			if administartive_interest_frequency:
+				group_age_benchmark = max(group_creation_time[rankable_group_id],1556281457)# this feature went live at '1556281457' epoch time
+				group_age_in_six_hourly_cohorts = (time_now-group_age_benchmark)/SIX_HOURS
+				normalized_administrative_interest_frequency = administartive_interest_frequency/group_age_in_six_hourly_cohorts#(i)
+			else:
+				normalized_administrative_interest_frequency = 0
+
+			last_administrative_action_time = group_owner_interest_levels[rankable_group_id][1]
+			if last_administrative_action_time:
+				time_since_last_administrative_action_time = time_now - last_administrative_action_time#(ii)
+				decay_rate, cutoff_in_secs = 1.003, 1800
+				translate_curve_by = decay_rate**cutoff_in_secs#1.003 raised-to-the-power 1800
+				normalized_last_administrative_action_time = 0
+				if time_since_last_administrative_action_time <= cutoff_in_secs:
+					# equation below simulates an exponential decay, flat at first, and steep at the end
+					# if last seen time was very recent, a value close to 1 is calculated
+					# if last seen time was close to 1800 seconds ago, a value close to 0 is calculated
+					# if last seen time was beyond 1800 seconds, a value of 0 is given
+					normalized_last_administrative_action_time = (translate_curve_by-(decay_rate**time_since_last_administrative_action_time))/(translate_curve_by-1)
+				if normalized_last_administrative_action_time < 0:
+					normalized_last_administrative_action_time = 0
+			else:
+				normalized_last_administrative_action_time = 0
+
+			stickiness_metric = (DAU*1.0)/BWAU if BWAU else 0.0#(iii) - this is already normalized
+			# use (i), (ii) and (iii) together to determine a "score" for the group being considered
+			# we've ensured (i), (ii) and (iii) are all 'normalized' - lie between [0,1] - so that they're comparable
+			group_score = (0.33*stickiness_metric)+(0.33*normalized_last_administrative_action_time)+(0.33*normalized_administrative_interest_frequency)
+			group_data.append(rankable_group_id)
+			group_data.append(group_score)
+		if group_data:
+			# POPULAR_GROUPS = "popular_groups"#sorted set containing public groups ranked by (i)DAU/BWAU, (ii)administrative interest, (iii) owner's "last seen"
+			my_server.delete(GROUP_BIWEEKLY_STICKINESS)
+			my_server.zadd(GROUP_BIWEEKLY_STICKINESS,*group_data)
+			# removed cached data
+			my_server.delete(CACHED_RANKED_GROUPS)
+			# record time of ranking
+			my_server.set(RANKING_LAST_UPDATE_TIME,time_now)
 
 
 def get_ranked_mehfils():
 	"""
 	Returns groups ranked by their active user counts
-	# """
+	"""
 	# return redis.Redis(connection_pool=POOL).zrevrange(GROUP_BIWEEKLY_STICKINESS,0,9,withscores=True)
 	return redis.Redis(connection_pool=POOL).zrangebyscore(GROUP_BIWEEKLY_STICKINESS,'0.09','+inf',withscores=True)
 

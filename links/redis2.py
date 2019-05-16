@@ -966,13 +966,13 @@ def get_notif_count(viewer_id):
 
 #####################Public Group Rankings#####################
 
-#get public group's last 15 mins attendance
+# #get public group's last 15 mins attendance
 
-def get_attendance(group_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	group_attendance = "ga:"+str(group_id)
-	fifteen_mins_ago = time.time() - (15*60)
-	return my_server.zrangebyscore(group_attendance, fifteen_mins_ago, '+inf')
+# def get_attendance(group_id):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	group_attendance = "ga:"+str(group_id)
+# 	fifteen_mins_ago = time.time() - (15*60)
+# 	return my_server.zrangebyscore(group_attendance, fifteen_mins_ago, '+inf')
 
 #del public group's attendance register
 

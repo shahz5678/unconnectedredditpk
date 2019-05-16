@@ -71,7 +71,7 @@ def export_logged_actions(request):
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
 				#  payload = str(user_id)+":"+user_age+":"+action_categ+":"+action_sub_categ+":"+action_liq+":"+str(time_of_action)
-				columns = ["voter ID","hours since segment init","parent category","sub category","action liquidity","time of logging"]
+				columns = ["User ID","hours since segment init","parent category","sub category","action liquidity","time of logging"]
 				wtr.writerow(columns)
 				for action_data in data_to_write_to_csv:
 					data_list = action_data.split(":")

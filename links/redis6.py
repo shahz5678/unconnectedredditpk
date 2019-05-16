@@ -4464,7 +4464,7 @@ def rank_mehfil_active_users():
 			num_public_grps = my_server.zcard(GROUP_MAU)
 
 			# only consider groups beyond the 95th percentile
-			num_grps_to_consider = num_public_grps#int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
+			num_grps_to_consider = int((1-GROUP_SIZE_PERCENTILE_CUTOFF)*num_public_grps)
 			big_enough_MAU_group_ids = my_server.zrevrange(GROUP_MAU,0,num_grps_to_consider)
 
 			# cache them

@@ -81,9 +81,9 @@ purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporar
 is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age, set_user_choice #, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
-add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, \
-prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, bulk_is_fan, retrieve_unseen_notifications, \
-get_photo_fan_count, retrieve_object_data, remove_erroneous_notif
+add_to_photo_owner_activity, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, bulk_is_fan,\
+prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, retrieve_unseen_notifications, get_photo_fan_count,\
+retrieve_object_data, remove_erroneous_notif
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \

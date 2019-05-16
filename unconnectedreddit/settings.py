@@ -437,7 +437,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_mehfils': {
 		'task': 'tasks.rank_mehfils',
-		'schedule': timedelta(seconds=24*60*60), # execute every 24 hours (ranks mehfils with highest DAU/Bi-weekly AU)
+		'schedule': timedelta(seconds=30*60), # execute every 30 mins (ranks mehfils with highest DAU/Bi-weekly AU and Owner attentiveness)
 	},
 	'tasks.empty_idle_public_and_private_groups': {
 		'task': 'tasks.empty_idle_public_and_private_groups',

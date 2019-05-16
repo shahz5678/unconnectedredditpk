@@ -14,7 +14,7 @@
 
 	<ul style="display:inline-block;padding:10px 10px 0 10px;list-style:none;max-width:500px;margin:5px 0">
 		<li style="text-align:left;" class="clb cm lsp sp">
-			<span class="mrs sp cxs cgy">{{ forloop.counter }}.</span><img src="{{ voter_avurl|s3:'thumb' }}" width="22" height="22" style="border-radius:50%">&nbsp;<a href="{% url 'profile' voter_uname %}" class="cb sp cl" style="border-bottom:1px dotted dodgerblue" target="_blank">{{ voter_uname }}</a>
+			<span class="mrs sp cxs cgy">{{ forloop.counter }}.</span><img src="{{ voter_avurl|s3:'thumb' }}" width="22" height="22" style="border-radius:50%">&nbsp;<a href="{% url 'profile' voter_uname 'fotos' %}" class="cb sp cl" style="border-bottom:1px dotted dodgerblue" target="_blank">{{ voter_uname }}</a>
 			{% if rel_type == 1 %}
 				<div class="cg sp lsp">
 					<b>serial upvoter</b>, sybil probability: {% widthratio rel_prob 1 100 %}%, last voted: {{ last_vote_time|human_time }}<br>

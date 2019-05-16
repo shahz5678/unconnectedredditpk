@@ -437,7 +437,8 @@ def user_sybil_history(request, user_id):
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
 		return render(request,"voting/voting_sybils.html",{'sybil_data':retrieve_users_voting_relationships(user_id),\
-			'tgt_uname':retrieve_uname(user_id,decode=True)})
+			'tgt_uname':retrieve_uname(user_id,decode=True),'target_id':user_id,'own_id':own_id})
 	else:
 		raise Http404("Not athorized to view sybils")
+		
 

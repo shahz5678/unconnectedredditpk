@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Check sybils of {{ target_uname }} | Damadam.pk</title></head>
+
+<div class="margin clb">
+
+{% if authorized %}
+	<b>Check Sybils</b> se ap dekh saktey hain ke <b class="co">{{ target_uname }}</b> ko kaun zyada votes deta hai<br>
+	<span class="cgy">Is terah andaza lagaya ja sakta hai ke {{ target_uname }} ki fake IDs kaunsi hain</span><br>
+	<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bco bm mtl">wapis</button></form>
+
+{% else %}
+	<h2 class="cg">Ye toh ek khokhlay matke ki terah khali hai</h2>
+	<span class="cgy">Ap kahin rasta toh nahi bhool gaye?</span>
+{% endif %}
+
+</div>
+<br><br>
+{% endblock %}

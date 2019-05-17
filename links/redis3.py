@@ -2373,6 +2373,15 @@ def log_404_errors(type_of_404, time_of_404,type_of_url=None):
 	else:
 		my_server.zincrby(SPECIFIC_404,type_of_404,amount=1)
 
+BOTS_USERAGENTS = 'bot_ua'
+
+def log_bot_user_agent(user_agent):
+	"""
+	logs user_agents of crawlers trying to access rotots.txt 
+	"""
+	print user_agent
+	redis.Redis(connection_pool=POOL).zincrby(BOTS_USERAGENTS,user_agent,amount=1)	
+
 
 ######################################### sybil discount logging ############################################
 REGULAR_PHOTO_VOTES = 'rpv'# sorted set containing latest 1 week worth of 404 errors

@@ -12,7 +12,7 @@ CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing pos
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
-#RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
+RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)

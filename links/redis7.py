@@ -68,10 +68,12 @@ CONTENT_SUBMISSION_AND_VOTING_BAN = "csv:"#prefix for hash containing details ab
 CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regarding a potentially bannable user
 #HOME_FEED = "homefeed:1000" # list containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
 HOME_SORTED_FEED = "homesortedfeed:1000" # sorted set containing latest 1000 home feed hashes (e.g. tx:234134 or img:341243)
+TRENDING_HOME_FEED = 'trendinghomefeed:1000'
 PHOTO_FEED = "photofeed:1000" # list containing latest 1000 photo feed hashes (e.g. img:234132)
 PHOTO_SORTED_FEED = "photosortedfeed:1000" # sorted set containing latest 1000 photo hashes (e.g. img:234134 or img:341243)
 ALT_BEST_PHOTO_FEED = 'altbestphotofeed'
 TRENDING_PHOTO_FEED = 'trendingphotofeed:1000'
+ALT_TRENDING_PHOTO_FEED = 'alttrendingphotofeed:1000'
 TRENDING_PHOTO_DETAILS = 'trendingphotodetails:1000'
 # TRENDING_PICS_AND_TIMES = 'trendingphotosandtimes'# list containing trending pics (as values) and times (as scores)
 # TRENDING_PICS_AND_USERS = 'trendingphotosandusers'# list containing trending pics (as values) and user_ids (as scores)
@@ -275,6 +277,46 @@ def retrieve_obj_feed(obj_list):
 	return unpack_json_blob(filter(None, pipeline1.execute()))
 
 
+def retrieve_obj_scores(obj_list, with_downvotes=False):
+	"""
+	Retrieves obj vote scores - useful for calculating trending objs
+	"""
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	if with_downvotes:
+		for obj_hash in obj_list:
+			pipeline1.hmget(obj_hash,'cvs','dv')
+		cumulative_vote_scores, counter, final_result = pipeline1.execute(), 0, []
+		for obj_hash in obj_list:
+
+			score = cumulative_vote_scores[counter][0]
+			score = float(score) if score else 0
+
+			downvotes = cumulative_vote_scores[counter][1]
+			downvotes = int(downvotes) if downvotes else 0
+
+			if cumulative_vote_scores[counter]:
+				final_result.append((obj_hash, score, downvotes))
+			else:
+				final_result.append((obj_hash, 0, 0))
+			counter += 1
+		return final_result
+	else:
+		for obj_hash in obj_list:
+			pipeline1.hget(obj_hash,'cvs')
+		cumulative_vote_scores, counter, final_result = pipeline1.execute(), 0, []
+		for obj_hash in obj_list:
+			
+			score = cumulative_vote_scores[counter]
+			score = float(score) if score else 0
+			
+			if cumulative_vote_scores[counter]:
+				final_result.append((obj_hash, score))
+			else:
+				final_result.append((obj_hash, 0))
+			counter += 1
+		return final_result
+
+
 def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
 	"""
 	Retrieve list of all home feed objects
@@ -286,11 +328,14 @@ def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
 		return redis.Redis(connection_pool=POOL).zrevrange(HOME_SORTED_FEED, start_idx, end_idx)
 
 
-def get_best_home_feed(start_idx=0,end_idx=-1):
+def get_best_home_feed(start_idx=0,end_idx=-1, trending_home=False):
 	"""
 	Retrieve list of best home feed objects
 	"""
-	return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
+	if trending_home:
+		return redis.Redis(connection_pool=POOL).zrevrange(TRENDING_HOME_FEED, start_idx, end_idx)
+	else:
+		return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
 
 
 def voted_for_link(link_id, voter_id):
@@ -1173,6 +1218,22 @@ def remove_obj_from_trending(prefix,obj_id):
 				my_server=my_server)
 	else:
 		pass
+
+
+def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
+	"""
+	Just a quick way to add trending objs in a feed
+
+	Use the sophisticated add_single_trending_object() later, sunset this
+	"""
+	if feed_type == 'home':
+		feed_name = TRENDING_HOME_FEED
+	elif feed_type == 'photos':
+		feed_name = ALT_TRENDING_HOME_FEED
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zadd(feed_name,obj_hash, time_now)
+	if random() < 0.2:
+		my_server.zremrangebyrank(feed_name, 0, -201)# to keep top 200 in the sorted set
 
 
 def is_obj_trending(prefix, obj_id, with_trending_time=False):
@@ -2946,6 +3007,7 @@ def account_created(ip,username):
 	Save the IP of the user who just created the account
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
+
 	my_server.setex("ip:"+str(ip),username,FOUR_MINS)
 
 

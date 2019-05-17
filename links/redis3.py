@@ -2379,7 +2379,6 @@ def log_bot_user_agent(user_agent):
 	"""
 	logs user_agents of crawlers trying to access rotots.txt 
 	"""
-	print user_agent
 	redis.Redis(connection_pool=POOL).zincrby(BOTS_USERAGENTS,user_agent,amount=1)	
 
 

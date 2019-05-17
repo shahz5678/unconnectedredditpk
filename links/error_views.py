@@ -8,7 +8,7 @@ def server_error(request):
 
 def not_found(request):
 	type_of_url = request.path_info
-	if type_of_url == '/robots.txt/':
+	if type_of_url == '/robots.txt':
 		log_bot_user_agent(user_agent=request.META.get('HTTP_USER_AGENT','unidentified'))
 	log_404.delay(type_of_404='0',time_of_404=time.time(),type_of_url=type_of_url)
 	return render(request, '404.html', status=404)

@@ -92,7 +92,7 @@
 
 </div>
 	
-{% elif link.c == '1' %}
+{% elif link.c == '1' or link.c == '2' %}
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
 
@@ -103,10 +103,8 @@
 		{% big_vote_button vote_type='vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
-		<!-- in the end fix cricket match commentary styling -->
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
 		</div>
-
 
 		<div class="mts mls mbl">
 		{% home_replies_section raw_replies=link.cb static_url=STATIC_URL self_user_id=ident home_hash=link.h %}

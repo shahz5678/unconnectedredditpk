@@ -4954,7 +4954,7 @@ class LinkCreateView(CreateView):
 							f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 					else:
 						f.submitter = user
-						f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
+						# f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
 					if self.request.is_feature_phone:
 						f.device = '1'
 					elif self.request.is_phone:
@@ -4969,13 +4969,13 @@ class LinkCreateView(CreateView):
 						av_url = user.userprofile.avatar.url
 					except ValueError:
 						av_url = None
-					category = '1'
-					f.cagtegory = category
+					alignment = form.cleaned_data['alignment']
+					f.cagtegory = alignment
 					f.save()
-					add_text_post(obj_id=f.id, categ=category, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
+					add_text_post(obj_id=f.id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
 						submitter_score=f.submitter.userprofile.score, is_pinkstar=(True if user.username in FEMALES else False),submission_time=time_now,\
 						text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=True)
-					f.submitter.userprofile.save()
+					# f.submitter.userprofile.save()
 					################### Segment action logging ###################
 					if user_id > SEGMENT_STARTING_USER_ID:
 						log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)

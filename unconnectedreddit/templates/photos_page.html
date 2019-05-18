@@ -24,9 +24,11 @@
 	<meta name="keywords" content="photos, sad poetry, urdu poetry, urdu memes, jokes, funny, girls, poetry, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
 	
 	{% if feed_type == 'fresh_photos' %}
-		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan| Damadam</title>
+		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
+		<link rel="canonical" href="{% url 'photo' 'fresh-list' %}" />
 	{% else %}
 		<title>The Best Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
+		<link rel="canonical" href="{% url 'photo' 'best-list' %}" />
 	{% endif %}
 
 	{% if page.has_previous %}

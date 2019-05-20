@@ -61,9 +61,9 @@ User-agent: discobot
 Disallow: /
 User-agent: Birubot
 Disallow: /
-User-Agent: trendictionbot 
+User-agent: trendictionbot 
 Disallow: /
-User agent: Flamingo_SearchEngine
+User-agent: Flamingo_SearchEngine
 Disallow: /
 User-agent: GosoSpider
 Disallow: / 

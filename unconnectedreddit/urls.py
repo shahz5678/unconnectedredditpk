@@ -53,6 +53,7 @@ from links.group_views import show_shared_photo_metrics
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^robots\.txt/$', TemplateView.as_view(template_name="robots.txt", content_type='text/plain')),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),

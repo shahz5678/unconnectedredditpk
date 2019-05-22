@@ -61,6 +61,7 @@ def unverify_user(request):
 	"""
 	This renders a form field which can take user ids and unverify them
 	"""
+	from forms import getip
 	if retrieve_uname(request.user.id,decode=True) in ['pathan-e-khan','Damadam-Feedback','mhb11','ZippoLighter']:
 		if request.method == "POST":
 			processed_form = UnverifyUserIDForm(request.POST)
@@ -73,7 +74,8 @@ def unverify_user(request):
 				return render(request,"verification/unverify_user.html",{'form':processed_form})
 		else:
 			# it's a GET request
-			return render(request,"verification/unverify_user.html",{'form':UnverifyUserIDForm()})
+			my_IP = getip(request)
+			return render(request,"verification/unverify_user.html",{'form':UnverifyUserIDForm(),'my_IP':my_IP})
 	else:
 		raise Http404("This does not work for typical users")
 

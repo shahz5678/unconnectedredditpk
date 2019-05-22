@@ -4568,7 +4568,7 @@ def public_reply_view(request,*args,**kwargs):
 		if link_id:
 			# link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
 			try:
-				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes').get(id=link_id)
+				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','cagtegory').get(id=link_id)
 				link['machine_time'] = link['submitted_on']
 				link['submitted_on'] = naturaltime(link['submitted_on'])
 			except Link.DoesNotExist:
@@ -4700,17 +4700,14 @@ class UserActivityView(ListView):
 			target_id = retrieve_user_id(username)
 			if target_id:
 				if target_id == str(self.request.user.id):
-					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count').\
-					filter(submitter_id=target_id).order_by('-id')[:200]
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','cagtegory').filter(submitter_id=target_id).order_by('-id')[:200]
 				else:
-					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count').\
-					filter(submitter_id=target_id).order_by('-id')[:60]
-				# cache_user_text_history(data,target_id)
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','cagtegory').filter(submitter_id=target_id).order_by('-id')[:60]
 				return data
 			else:
 				raise Http404("This user does not exist")
 		else:
-			raise Http404("No username provided") 
+			raise Http404("No username provided")
 
 
 	def get_context_data(self, **kwargs):

@@ -19,8 +19,7 @@
 
 <div class="bizcard mbl" style="background-color:white;padding:3px">
 
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar %}
-
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar alignment=parent.cagtegory %}
 </div>
 
 <div class="bizcard" style="background-color:white;padding:10px 7px;margin-bottom:15px">

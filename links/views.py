@@ -545,12 +545,6 @@ class AboutView(FormView):
 	form_class = AboutForm
 	template_name = "about.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(AboutView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated() and self.request.user.id == 1362004:
-			context["my_IP"] = getip(self.request)
-		return context
-
 class PrivacyPolicyView(FormView):
 	form_class = PrivacyPolicyForm
 	template_name = "privacy_policy.html"

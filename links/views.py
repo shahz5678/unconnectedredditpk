@@ -1447,8 +1447,13 @@ def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, 
 			return redirect("profile", request.user.username, 'fotos')
 
 def profile_pk(request, slug=None, key=None, *args, **kwargs):
-	request.session["photograph_id"] = key
-	return redirect("profile", slug, 'fotos')
+	"""
+	Permanent redirect to new user profile photos view
+	"""
+	if key:
+		request.session["photograph_id"] = key
+	return HttpResponsePermanentRedirect("/user/{}/fotos/".format(slug.encode('utf-8')))
+
 
 
 def redirect_to_profile_photos(request,slug):

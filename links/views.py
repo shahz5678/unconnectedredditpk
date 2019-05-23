@@ -1126,6 +1126,7 @@ def best_home_page(request):
 		obj_list = get_best_home_feed(start_idx=start_index, end_idx=end_index)# has to be written
 		############
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 		context["link_list"] = list_of_dictionaries
 		context["fanned"] = bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
 		#######################

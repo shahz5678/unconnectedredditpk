@@ -1117,43 +1117,38 @@ def best_home_page(request):
 	"""
 	Displays the 'best' home page
 	"""
-	if request.user.is_authenticated():
-		context = {}
-		context["authenticated"] = True
-		own_id, page_num = request.user.id, request.GET.get('page', '1')
-		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
-		############
-		obj_list = get_best_home_feed(start_idx=start_index, end_idx=end_index)# has to be written
-		############
-		list_of_dictionaries = retrieve_obj_feed(obj_list)
-		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
-		context["link_list"] = list_of_dictionaries
-		context["fanned"] = bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
-		#######################
-		replyforms = {}
-		for obj in list_of_dictionaries:
-			replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
-		context["replyforms"] = replyforms
-		#######################
-		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		num = random.randint(1,4)
-		context["random"] = num #determines which message to show at header
-		context["newest_user"] = User.objects.latest('id') if num > 2 else None
-		context["score"] = request.user.userprofile.score #own score
-		secret_key = str(uuid.uuid4())
-		context["sk"] = secret_key
-		set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
-		context["can_vote"] = True #allowing user to vote
-		context["process_notification"] = False
-		context["ident"] = own_id
-		# if request.user_banned:
-		#     context["process_notification"] = False #hell banned users will never see notifications
-		# else:
-		#     context["process_notification"] = True
-		#     context["notif_form"] = UnseenActivityForm()
-		return render(request, 'link_list.html', context)
-	else:
-		return redirect("unauth_home_new")
+	# if request.user.is_authenticated():
+	context = {}
+	context["authenticated"] = True
+	own_id, page_num = request.user.id, request.GET.get('page', '1')
+	start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
+	############
+	obj_list = get_best_home_feed(start_idx=start_index, end_idx=end_index)# has to be written
+	############
+	list_of_dictionaries = retrieve_obj_feed(obj_list)
+	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
+	context["link_list"] = list_of_dictionaries
+	context["fanned"] = []#bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
+	#######################
+	replyforms = {}
+	for obj in list_of_dictionaries:
+		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+	context["replyforms"] = replyforms
+	#######################
+	context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+	num = random.randint(1,4)
+	context["random"] = num #determines which message to show at header
+	context["newest_user"] = User.objects.latest('id') if num > 2 else None
+	# context["score"] = request.user.userprofile.score #own score
+	secret_key = str(uuid.uuid4())
+	# context["sk"] = secret_key
+	# set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
+	context["can_vote"] = True #allowing user to vote
+	context["process_notification"] = False
+	context["ident"] = own_id
+	return render(request, 'link_list.html', context)
+	# else:
+	# 	return redirect("unauth_home_new")
 
 
 def home_link_list(request, lang=None, *args, **kwargs):

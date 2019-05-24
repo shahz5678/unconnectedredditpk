@@ -4842,9 +4842,6 @@ class UserProfileEditView(UpdateView):
 		return super(UpdateView, self).form_valid(form) # saves automatically
 	##############################################################
 
-	def get_success_url(self):
-		return reverse_lazy("user_profile", kwargs={'slug': self.request.user})
-
 
 class UserSettingsEditView(UpdateView):
 	model = UserSettings

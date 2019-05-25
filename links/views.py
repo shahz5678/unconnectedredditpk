@@ -74,7 +74,8 @@ VideoComment
 from redirection_views import return_to_content
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
-rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, cache_photo_dim
+rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
+cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
@@ -167,6 +168,35 @@ def get_indices(page_number, obj_allotment):
 	objs_per_page = obj_allotment
 	index_ceiling = objs_per_page * page_number
 	return (index_ceiling)-objs_per_page,index_ceiling-1
+
+
+def create_sorted_invitee_list(username_data, user_ids):
+	"""
+	Prepares list of alphabetically sorted names (it's a mis-labeled function, inviting is only one of its responsibilities)
+
+	This list is available to:
+	- site-wide online listing
+	- group inviters (both public and private)
+	"""
+	user_alpha_data = []#nicks starting with an alpha character
+	user_digital_data = []#nicks starting with a digital character
+	for online_id in user_ids:
+		username = username_data[int(online_id)]
+		username_lower = username.lower()
+		if username[0].isalpha():
+			user_alpha_data.append((online_id,username,username_lower))
+		else:
+			user_digital_data.append((online_id,username,username_lower))
+	user_digital_data.sort(key=itemgetter(2))
+	user_alpha_data.sort(key=itemgetter(2))
+	user_data = user_alpha_data + user_digital_data
+	final_data, previous_lower_username_first_alphabet = [] , ''
+	for id_, uname, uname_lower in user_data:
+		first_alphabet = uname_lower[0]
+		new_alphabet = first_alphabet.upper() if (first_alphabet!=previous_lower_username_first_alphabet) else None
+		final_data.append((id_,uname,uname_lower,new_alphabet))
+		previous_lower_username_first_alphabet = first_alphabet
+	return final_data
 
 
 def get_page_obj(page_num,obj_list,items_per_page):
@@ -1423,6 +1453,26 @@ class OnlineKonView(ListView):
 				context["object_list"] = retrieve_thumbs(context["object_list"])
 				context["with_thumbs"] = True
 		return context
+
+
+def show_online_users(request):
+	"""
+	Displays online users, sorted alphabetically
+	"""
+	cached_data = retrieve_online_cached_data()
+	if cached_data:
+		try:
+			final_data = json.loads(cached_data)
+		except:
+			import json as json_backup
+			final_data = json_backup.loads(cached_data)
+	else:
+		user_ids = get_most_recent_online_users()
+		username_data = retrieve_bulk_unames(user_ids,decode=True)
+		final_data = create_sorted_invitee_list(username_data, user_ids)
+		cache_online_data(json.dumps(final_data))
+	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES})
+
 
 class LinkDeleteView(DeleteView):
 	model = Link
@@ -4841,9 +4891,6 @@ class UserProfileEditView(UpdateView):
 			
 		return super(UpdateView, self).form_valid(form) # saves automatically
 	##############################################################
-
-	def get_success_url(self):
-		return reverse_lazy("user_profile", kwargs={'slug': self.request.user})
 
 
 class UserSettingsEditView(UpdateView):

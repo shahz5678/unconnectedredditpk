@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Online users | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+
+{% include 'search/search_navbar.html' with section='online' static_url=STATIC_URL %}
+
+<h1 class="clb cxl lsp" style="text-align:center">Online users:</h1>
+
+<main class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:5px 7px;max-width:450px;margin-left:auto;margin-right:auto;text-align:center">
+	<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0">
+		<div class="mts" style="word-break: break-all">
+			{% for visitor_id, visitor_username, visitor_username_lower, section_header in online_data %}
+				{% if section_header %}<h2 style="text-align:left;font-size:60px;color:lightgray;margin:10px 0">{{ section_header }}</h2>{% endif %}
+				<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f0f3f4">
+				<a href="{% url 'profile' visitor_username 'fotos' %}" class="clb">
+					{% if visitor_username in females %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ visitor_username }}</bdi></b>
+				</a>
+				</li>
+			{% endfor %}
+		</div>
+	</ul>
+</main>
+
+<br><br>
+{% endblock %}

@@ -29,7 +29,7 @@ from group_views import retrieve_user_env
 
 from models import HellBanList, UserProfile
 
-from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices
+from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
@@ -3696,31 +3696,6 @@ def time_reqd_to_read(lenght_of_text):
 			return max_ttr
 		else:
 			return determined_ttr
-
-
-def create_sorted_invitee_list(username_data, user_ids):
-	"""
-	Prepares list of alphabetically sorted names available to mehfil inviters (both public and private)
-	"""
-	user_alpha_data = []#nicks starting with an alpha character
-	user_digital_data = []#nicks starting with a digital character
-	for online_id in user_ids:
-		username = username_data[int(online_id)]
-		username_lower = username.lower()
-		if username[0].isdigit():
-			user_digital_data.append((online_id,username,username_lower))
-		else:
-			user_alpha_data.append((online_id,username,username_lower))
-	user_digital_data.sort(key=itemgetter(2))
-	user_alpha_data.sort(key=itemgetter(2))
-	user_data = user_alpha_data + user_digital_data
-	final_data, previous_lower_username_first_alphabet = [] , ''
-	for id_, uname, uname_lower in user_data:
-		first_alphabet = uname_lower[0]
-		new_alphabet = first_alphabet.upper() if (first_alphabet!=previous_lower_username_first_alphabet) else None
-		final_data.append((id_,uname,uname_lower,new_alphabet))
-		previous_lower_username_first_alphabet = first_alphabet
-	return final_data
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

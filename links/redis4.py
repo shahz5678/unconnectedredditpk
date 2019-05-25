@@ -765,6 +765,18 @@ def get_most_recent_online_users():
 	"""
 	return redis.Redis(connection_pool=POOL).lrange('online_user_ids',0,-1)
 
+def cache_online_data(json_data):
+	"""
+	Caches prepared data to be shown in global online listing
+	"""
+	redis.Redis(connection_pool=POOL).setex('online_user_data',json_data,35)# micro-caching for 35 seconds
+
+
+def retrieve_online_cached_data():
+	"""
+	Retrieves cached online listing (with usernames etc) for display in global online listing
+	"""
+	return redis.Redis(connection_pool=POOL).get('online_user_data')
 	
 ######################################## Detect Clones of User ID ########################################
 

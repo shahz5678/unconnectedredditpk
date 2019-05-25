@@ -440,6 +440,9 @@ class UserProfile(models.Model):
 	def __unicode__(self):
 		return u"%s's profile" % self.user
 
+	def get_absolute_url(self):
+		return u'/users/%s' % self.user
+
 class Report(models.Model):
 	reporter = models.ForeignKey(User, related_name='reporter')
 	target = models.ForeignKey(User, related_name ='target')

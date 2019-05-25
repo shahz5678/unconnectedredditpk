@@ -4583,7 +4583,7 @@ def unseen_help(request,*args,**kwargs):
 	return render(request,'photo_for_fans_help.html',context)
 
 def top_photo_help(request,*args,**kwargs):
-	return render(request,'top_photo_help.html')
+	return render(request,'top_photo_help.html',{'list_size':TRENDER_RANKS_TO_COUNT})
 
 @csrf_protect
 def unseen_fans(request,pk=None,*args, **kwargs):

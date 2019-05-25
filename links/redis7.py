@@ -1040,34 +1040,36 @@ def retrieve_top_trenders():
 		all_trender_ids = [user_id for user_id, num_pics in all_trenders]
 
 		user_cred_dict = retrieve_bulk_credentials(all_trender_ids,decode_unames=False)
-		starting_score = all_trenders[0][1]
-		final_list=[]
-		rank_to_display = 0
+		if all_trenders:
+			starting_score = all_trenders[0][1]
+			final_list=[]
+			rank_to_display = 0
 
-		for row in all_trenders:
-			if starting_score == row[1]:
-				trender_id = int(row[0])
-				if (rank_to_display != rank+1):
-					rank_to_display = rank+1
-					final_list.append((trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'],rank_to_display  ) )
-				else:
-					final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
-			else:
-				starting_score = row[1]
-				rank +=1
-				if rank == TRENDER_RANKS_TO_COUNT:
-					break
-				else:
+			for row in all_trenders:
+				if starting_score == row[1]:
 					trender_id = int(row[0])
 					if (rank_to_display != rank+1):
 						rank_to_display = rank+1
-						final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'], rank_to_display  ) )
+						final_list.append((trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'],rank_to_display  ) )
 					else:
 						final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
-		if final_list:
-			my_server.setex(TOP_TRENDERS, json.dumps(final_list),THIRTY_MINS)
-		return 	final_list
-		
+				else:
+					starting_score = row[1]
+					rank +=1
+					if rank == TRENDER_RANKS_TO_COUNT:
+						break
+					else:
+						trender_id = int(row[0])
+						if (rank_to_display != rank+1):
+							rank_to_display = rank+1
+							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'], rank_to_display  ) )
+						else:
+							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
+			if final_list:
+				my_server.setex(TOP_TRENDERS, json.dumps(final_list),THIRTY_MINS)
+			return 	final_list
+		else: 
+			return []
 
 
 

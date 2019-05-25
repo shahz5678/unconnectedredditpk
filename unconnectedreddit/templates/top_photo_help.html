@@ -1,51 +1,125 @@
 {% extends "base.html" %}
 {% block content %}
 
-<head><title>Trending foto uploaders help | Damadam.pk</title></head>
+<head><title>Trending foto uploaders help | Damadam</title></head>
  
 <style>body{background:#f0f3f4}</style>
 
 {% include "photos_navbar.html" with section='top_list' static_url=STATIC_URL %}
 
-<h1 style="text-align:center" class="cxl lsp clb">Photo trending mein kaisey jati hai?</h1>
+<h1 style="text-align:center;padding:0 5px" class="cxl lsp clb">Foto trending mein kaisey jati hai:</h1>
 
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-right: auto;margin-left: auto;max-width:600px;width:97%;text-align:center">
+	<div class="fx fxjscn fxaicn">
+		<a href="{% url 'top_photo' %}" class="sp" style="width:50%;"><button class="wt" style="border-radius:0;border:none;color:#6ce9d2;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc">TOP {{list_size}}</button></a>
+		<div class="sp cm" style="background:#71adf0;border-radius:0;width:50%;border:none;color:white;height:40px;line-height:40px;font-weight:bold;">HELP</div>
+	</div>
 
-    <div class="mt" style="text-align:left;padding:0 7px">
-       
-     	<ol>
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/af5c2196-3e92-4119-a0e8-c2f850b1c9de.jpg" width="100%" style="border:2px" alt="Sample photo">
+				</div>	
+			  		<a class="cs" href="https://damadam.pk/photo_detail/4351097" target='_blank'>original post</a>
+				    <a class="cs" href="https://damadam.pk/photo_detail/4355445" target='_blank'>, aik aur misaal</a>	
+				<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>1. Khoobsoorat tasaveer</h3>
+				    <p style="text-align:justify">Baaz tasaveer aise hoti hein insaan scroll rook ker unhein ghaur say dekhta hai aur dil he dil mein qudrat ki tareef kerta hai. Aisee tasaveer users ko pasund aati hein aur trending mein aam tur pe pohench jati hein</p>
+			  	</div>
+	</div>
+<br>
 
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/6cbaf860-ee82-4f31-8bb3-d4296a8e4834.jpg" width="100%" style="border:2px" alt="Sample photo">
+				</div>
+				<a class="cs" href="https://damadam.pk/photo_detail/4325014" target='_blank'>original post</a>
+				<a class="cs" href="https://damadam.pk/photo_detail/4368362" target='_blank'>, aik aur misaal</a>	
+			  	<div class="sp cl lsp mbs" style="padding:0px 8px" >
+				    <h3>2. Damadam related posts</h3>
+				    <p style="text-align:justify">Aisee tasaveer jin ka damadam ya iss ke users ki herketon say koi taaluq ho un ke users mein maqbook hone ke chances ziada hote hein</p>
+			  	</div>
+	</div>
+<br>
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/b041dd06-e0d3-427f-a88e-2ce1b16f4386.jpg" width="100%" style="border:2px" alt="Sample photo">
+				</div>
+				<a class="cs" href="https://damadam.pk/photo_detail/4351840" target='_blank'>original post</a>	
+			  	<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>3. Khud khenchi gai tasveer</h3>
+				    <p style="text-align:justify">Apne mobile say khenchi hoi ya edit ki hoi, achi quality ki koi bhi mazedaar tasveer lagain</p>
+			  	</div>
+	</div>
+<br>
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/69a9d05e-e5a3-4492-a14b-ea55a6d20400.jpg" width="100%" alt="Sample photo">
+				</div>	
+				<a class="cs" href="https://damadam.pk/photo_detail/4347210" target='_blank'>original post</a>
+			  	<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>4. Damadam pr ki gai baatien</h3>
+				    <p style="text-align:justify">Damadam per kafi dafa users bari mazahiya ya achi baatien kerte hein. Aisee tasaveer ko users ziada pasund kerte hein</p><p> <b>Note:</b> Doosre users ka name hide ker deien, taakey kissi user ki dil-aazari na ho</p>
+			  	</div>
+	</div>
+<br> 
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/59896da9-740b-4a9d-b69c-b8db3fd588b0.jpg" width="100%" alt="Sample photo">
+				</div>	
+				<a class="cs" href="https://damadam.pk/photo_detail/4319961/" target='_blank'>original post</a>
+			  	<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>5. Breaking news</h3>
+				    <p style="text-align:justify">Breaking news ya koi bhi choti barri khaber ki tasveer share kerien</p>
+			  	</div>
+	</div>
+<br> 		  	
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/a9d0683b-44f7-448a-9f9e-61008b4763a2.jpg" width="100%" alt="Sample photo">
+				</div>	
+			  	<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>6. Memes aur Jokes</h3>
+				    <p style="text-align:justify"> Tanz-o-mazah say bharpoor memes aur tasaveer share keriern jo Damadam ke users ke taste ke mutabiq hoon.</p>
+			  	</div>
+	</div>
+<br>
 
-     		<li class="sp cl lsp mbs">
-			<b>Damadam Mawad:</b> (Damadam content) Aisee tasaveer jin ka damadam say koi taaluq ho. Misaal:<a href="https://damadam.pk/photo_detail/4315237/" target='_blank'> 1 </a>, <a href="https://damadam.pk/photo_detail/4311700/" target='_blank'> 2</a> 
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/3bab30f7-3c34-434e-9e3f-6f5e7493b729.jpg" width="100%" alt="Sample photo">
+				</div>	
+				<a class="cs" href="https://damadam.pk/photo_detail/4303975/" target='_blank'>original post</a>
+			  	<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>7. Maalomati Tasaveer</h3>
+				    <p style="text-align:justify"> Maloomati tasaveer share keriern jo Damadam ke users ke taste ke mutabiq hoon</p>
+			  	</div>
+	</div>
+<br>
 
-			</li>
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/4e4577b3-f467-4716-9e70-e4d7fdaeb00e.jpg" width="100%" alt="Sample photo">
+				</div>	
+				<a class="cs" href="https://damadam.pk/photo_detail/4319864" target='_blank'>original post</a>
+			  	<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>8. Quotes, Poetry and Attitude</h3>
+				    <p style="text-align:justify"> Aise tasaveer share kerien jin mein hikmet aur danai ki baat ho. Deen-o-duniya say taaluq rakhne wali achi baatien, sher-o-shairi, aur aap ka zindagi ki taraf attitude say taaluq rakhne wali achi tasaveer users ko pasund aati hein</p>
+			  	</div>
+	</div>
+<br>		
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/df706afc-0e89-45cf-8558-ac68b7e5c29e.jpg" width="100%" alt="Sample photo">
+				</div>	
+				<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>:: Selfie Tip ::</h3>
+				    <p style="text-align:justify"> Ager aap selfie mein apni ID shamil kerte hein tuo uss ka tareeqa ooper di gai tasveer mein dekh leien. Iss tarah ki IDs ko damadam users tarjeeh dete hain</p>
+			  	</div>
+	</div>
+<br>
+	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/ca0b49be-a0ba-4490-8ca1-1d34694fbb96.jpg" width="100%" alt="Sample photo">
+				</div>	
+				<div class="sp cl lsp mbs" style="padding:0 8px">
+				    <h3>:: General Tip ::</h3>
+				    <p style="text-align:justify">Khud khenchi hoi tasveer mein khial rakhien ke ird gird ka mahool kaisa hai. Background khoobsorat ho tuo behter hai. Opper di gai misaal ki tarah ki ghalti na kerien. Shukriya!</p>
+			  	</div>
+	</div>
+<br>
 
-			<li class="sp cl lsp mbs">
-			<b>Asli Mawad:</b> (Original content) Apne mobile say khenchi hoi ya edit ki hoi, achi quality ki koi bhi mazedaar tasveer lagain. Misaal:<a href="https://damadam.pk/photo_detail/4289947" target='_blank'> 1 </a>,<a href="https://damadam.pk/photo_detail/4319980" target='_blank'> 2 </a>
-			</li>
-
-			<li class="sp cl lsp mbs">
-			<b>Halat-e-Hazra:</b> Breaking news ya koi bhi choti barri khaber ki tasveer share kerien.<a href="https://damadam.pk/photo_detail/4319961" target='_blank'> Misaal</a>
-			</li>
-			<li class="sp cl lsp mbs">
-			<b>Memes aur Jokes:</b> Mazahia memes aur tasveerien share keriern jo Damadam ke users ko samajh aaien. <a href="https://damadam.pk/photo_detail/4300913" target='_blank'>Misaal</a>
-			</li>
-
-			<li class="sp cl lsp mbs">
-			<b>Maalomati Tasaveer:</b> Maalomati Tasaveer share kerien. Jo baatien ghair tasdeeq-shuda hoon wo trending mein nahi jaatien. <a href="https://damadam.pk/photo_detail/4303975" target='_blank'>Misaal</a>
-			</li>
-
-			<li class="sp cl lsp mbs">
-			<b>Quotes, Poetry and Attitude:</b> Hikmet aur danai wali baatien, deen say taaluq rakhne wali achi baatien, sher-o-shairi share kerien, aur aap ka zindagi ki taraf attitude. <a href="https://damadam.pk/photo_detail/4319864" target='_blank'>Misaal</a>
-			</li>
-			
-		</ol>       	
-   </div>
-   <a href="{% url 'top_photo' %}"><button class="btn bcb bxl mt mbl sp pg_ok_res" style="height:27px">Wapis</button></a>
-        <br>
-    </div>
+<div style="text-align:center">
+   <a href="{% url 'top_photo' %}"><button class="btn bcb bxl mt mbl sp pg_ok_res" style="height:30px">Wapis</button></a><br>
 </div>
 <br><br>
 

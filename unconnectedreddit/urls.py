@@ -40,7 +40,7 @@ PhotoTimeView, PhotostreamView, PicHelpView, PhotoJawabView, CommentView, \
 AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, \
 UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, PicsChatUploadView, VerifiedView, WelcomeView, \
 WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdTitleView,TestAdsView, AdAddressYesNoView,\
-SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSettingsEditView, UserProfileDetailView, \
+SmsInviteView, LoginWalkthroughView, RegisterLoginView, UserSettingsEditView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
 RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, \
 PhotoShareView, PhotoDetailView, \
@@ -130,8 +130,7 @@ urlpatterns = patterns('',
 	# url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
 	# url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
-	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
-	url(r'^online/users/$', auth(show_online_users), name='online_kon_2'),
+	url(r'^online_kon/$', auth(show_online_users), name='online_kon'),
 	url(r'^top/$', auth(TopView.as_view()), name='top'),
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),

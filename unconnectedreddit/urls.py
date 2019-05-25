@@ -23,7 +23,7 @@ from urls_push_notif import urlpatterns as urlpatterns_push_notif
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
-comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
+comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, show_online_users, \
 star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
@@ -131,6 +131,7 @@ urlpatterns = patterns('',
 	# url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
 	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
+	url(r'^online/users/$', auth(show_online_users), name='online_kon'),
 	url(r'^top/$', auth(TopView.as_view()), name='top'),
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),

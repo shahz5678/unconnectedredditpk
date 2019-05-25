@@ -1468,10 +1468,10 @@ def show_online_users(request):
 			final_data = json_backup.loads(cached_data)
 	else:
 		user_ids = get_most_recent_online_users()
-		username_data = retrieve_bulk_unames(user_ids,decode=True)
+		username_data = retrieve_bulk_unames(user_ids, decode=True)
 		final_data = create_sorted_invitee_list(username_data, user_ids)
 		cache_online_data(json.dumps(final_data))
-	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES})
+	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES, 'num_online':len(final_data)})
 
 
 class LinkDeleteView(DeleteView):

@@ -764,7 +764,7 @@ def get_recent_online():
 	for user_data in online_users:
 		data = user_data.split(":")
 		# if already appended, don't append again
-		online_ids_and_ages[data[0]] = data[1]
+		online_ids_and_ages[data[0]] = int(data[1])
 	return online_ids_and_ages.items()
 
 def get_most_recent_online_users(with_ages=False):

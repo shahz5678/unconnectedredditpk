@@ -724,52 +724,59 @@ def expire_online_users():
 
 
 
-def set_online_users(user_id,user_ip):
+def set_online_users(user_id,user_ip,user_world_age):
 	"""
 	Invoked from WhoseOnline.py middleware
 	"""
-	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-	pipeline1.zadd("online_users",user_id+":"+user_ip,time.time())
-	pipeline1.setex("lip:"+user_id,user_ip,FIVE_MINS)
-	pipeline1.execute()
-	############ logging user retention ############
-	# if random.random() < 0.45:
-	# 	log_retention(my_server,user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zadd("online_users",user_id+":"+str(user_world_age)+":"+user_ip,time.time())
+	my_server.setex("lip:"+user_id,user_ip,FIVE_MINS)
 
 
 def get_recent_online():
 	"""
-	Invoked by tasks.py to show whoever is online in OnlineKon
+	Invoked by tasks.py to show whoever is online
 	"""
-	sorted_set = "online_users"
 	ten_mins_ago = time.time() - TEN_MINS
-	online_users = redis.Redis(connection_pool=POOL).zrangebyscore(sorted_set,ten_mins_ago,'+inf')
-	online_ids = []
-	for user in online_users:
-		online_ids.append(user.split(":",1)[0])
-	return set(online_ids)
+	online_users = redis.Redis(connection_pool=POOL).zrangebyscore("online_users",ten_mins_ago,'+inf')
+	online_ids_and_ages = []
+	for user_data in online_users:
+		data = user_data.split(":")
+		online_ids_and_ages.append((data[0],data[1]))
+	return online_ids_and_ages
 
-def save_most_recent_online_users(user_ids):
+
+def save_most_recent_online_users(user_ids_and_ages):
 	"""
 	Saves a snapshot of online user ids
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	if user_ids:
-		my_server.delete("online_user_ids")
-		my_server.lpush('online_user_ids',*user_ids)
+	if user_ids_and_ages:
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.setex('online_user_ids_and_ages',json.dumps(user_ids_and_ages),TWENTY_MINS)
 
 
-def get_most_recent_online_users():
+def get_most_recent_online_users(with_ages=False):
 	"""
-	Retrieves online user ids to show in OnlineKonView()
+	Retrieves online user ids and ages to show in show_online_users()
 	"""
-	return redis.Redis(connection_pool=POOL).lrange('online_user_ids',0,-1)
+	if with_ages:
+		json_data = redis.Redis(connection_pool=POOL).get('online_user_ids_and_ages')
+		if json_data:
+			return json.loads(json_data)
+		else:
+			return []
+	else:
+		json_data = redis.Redis(connection_pool=POOL).get('online_user_ids_and_ages')
+		if json_data:
+			return [user_id for user_id, user_age in json.loads(json_data)]
+		else:
+			return []
 
 def cache_online_data(json_data):
 	"""
 	Caches prepared data to be shown in global online listing
 	"""
-	redis.Redis(connection_pool=POOL).setex('online_user_data',json_data,35)# micro-caching for 35 seconds
+	redis.Redis(connection_pool=POOL).setex('online_user_data',json_data,55)# micro-caching for 55 seconds
 
 
 def retrieve_online_cached_data():

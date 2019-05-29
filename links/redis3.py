@@ -646,8 +646,8 @@ def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_un
 
 
 # def get_global_ban_leaderboard():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	return my_server.zrange("global_inter_user_ban_list",-50,-1,withscores=True)
+#   my_server = redis.Redis(connection_pool=POOL)
+#   return my_server.zrange("global_inter_user_ban_list",-50,-1,withscores=True)
 
 ########################################################################################################
 # def populate_ad_list(which_list="photos"):
@@ -977,11 +977,11 @@ def get_item_name(ad_id):
 # helper function for move_to_approved_ads
 # incrementing ad agent "closing" score (coffee is for closers)
 # def increment_agent_score(server, username):
-# 	pipeline1 = server.pipeline()
-# 	pipeline1.incr("total_ads_closed") # keeping a count of all ads ever approved
-# 	pipeline1.incr("cb:"+username) # incrementing the score of the closing agent
-# 	pipeline1.expire("cb:"+username, ONE_WEEK) # score expires in 1 week if agent isn't at work
-# 	pipeline1.execute()
+#   pipeline1 = server.pipeline()
+#   pipeline1.incr("total_ads_closed") # keeping a count of all ads ever approved
+#   pipeline1.incr("cb:"+username) # incrementing the score of the closing agent
+#   pipeline1.expire("cb:"+username, ONE_WEEK) # score expires in 1 week if agent isn't at work
+#   pipeline1.execute()
 
 # helper function for move_to_approved_ads
 def process_ad_approval(server,ad_id, ad_hash, ad_city, ad_town, seller_id):
@@ -1920,6 +1920,18 @@ def remove_verified_mob(target_user_ids):
 
 ###################### setting user's world age ######################
 
+
+def get_world_age(user_id):
+	"""
+	Retrieve a single user's world age
+	"""
+	world_age = redis.Redis(connection_pool=POOL).zscore('world_age',user_id)
+	if world_age:
+		return int(world_age)
+	else:
+		return 0
+
+
 def set_world_age(user_id):
 	"""
 	Increments user's age on the platform
@@ -2379,7 +2391,7 @@ def log_bot_user_agent(user_agent):
 	"""
 	logs user_agents of crawlers trying to access rotots.txt 
 	"""
-	redis.Redis(connection_pool=POOL).zincrby(BOTS_USERAGENTS,user_agent,amount=1)	
+	redis.Redis(connection_pool=POOL).zincrby(BOTS_USERAGENTS,user_agent,amount=1)  
 
 
 ######################################### sybil discount logging ############################################
@@ -2406,8 +2418,7 @@ def log_vote_disc(vote_type='regular',item_type='text', downvote=False):
 				my_server.zincrby('downvoting_logger',DISCOUNTED_TEXT_VOTES,amount=1)
 			else:
 				my_server.zincrby('downvoting_logger',DISCOUNTED_PHOTO_VOTES,amount=1)
-
-	else:	
+	else:   
 		if vote_type == 'regular':
 			if item_type == 'text':
 				my_server.zincrby('upvoting_logger',REGULAR_TEXT_VOTES,amount=1)

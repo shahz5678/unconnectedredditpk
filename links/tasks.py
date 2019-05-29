@@ -18,7 +18,7 @@ from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, T
 Video, HotUser, PhotoStream, HellBanList, UserFan
 #from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
-queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, \
+queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, get_world_age, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, \
 set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date, calculate_world_age_discount
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
@@ -441,12 +441,17 @@ def log_404(type_of_404, time_of_404, type_of_url=None):
 
 @celery_app1.task(name='tasks.save_online_user')
 def save_online_user(user_id,user_ip):
-	set_online_users(str(user_id),str(user_ip))
+	set_online_users(str(user_id),str(user_ip),get_world_age(user_id))
+
 
 @celery_app1.task(name='tasks.whoseonline')
 def whoseonline():
-	user_ids = get_recent_online()
-	save_most_recent_online_users(user_ids)
+	"""
+	Periodically assesses who all is online (to be shown to users in a global online page)
+	"""
+	user_ids_and_ages = get_recent_online()
+	save_most_recent_online_users(user_ids_and_ages)
+
 
 @celery_app1.task(name='tasks.detail_click_logger')
 def detail_click_logger(ad_id, clicker_id):

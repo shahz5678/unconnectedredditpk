@@ -108,6 +108,10 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 	elif origin == '18':
 		# originated from received invites' list
 		return redirect("show_personal_group_invite_list",'received')
+	elif origin == '23':
+		# originated from online kon
+		url = reverse_lazy("online_kon")+"#top"
+		return redirect(url)
 	else:
 		# take the voter to best photos by default
 		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))

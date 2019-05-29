@@ -1510,7 +1510,7 @@ def show_online_users(request):
 		else:
 			final_data, num_online = [], 0
 	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES, 'num_online':num_online,\
-		'own_id':request.user.id,'bottom':len(final_data)})
+		'own_id':request.user.id,'bottom':len(final_data),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)})
 
 
 class LinkDeleteView(DeleteView):

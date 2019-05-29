@@ -733,17 +733,17 @@ def set_online_users(user_id,user_ip,user_world_age):
 	my_server.setex("lip:"+user_id,user_ip,FIVE_MINS)
 
 
-def get_recent_online():
-	"""
-	Invoked by tasks.py to show whoever is online
-	"""
-	ten_mins_ago = time.time() - TEN_MINS
-	online_users = redis.Redis(connection_pool=POOL).zrangebyscore("online_users",ten_mins_ago,'+inf')
-	online_ids_and_ages = []
-	for user_data in online_users:
-		data = user_data.split(":")
-		online_ids_and_ages.append((data[0],data[1]))
-	return online_ids_and_ages
+# def get_recent_online():
+# 	"""
+# 	Invoked by tasks.py to show whoever is online
+# 	"""
+# 	ten_mins_ago = time.time() - TEN_MINS
+# 	online_users = redis.Redis(connection_pool=POOL).zrangebyscore("online_users",ten_mins_ago,'+inf')
+# 	online_ids_and_ages = []
+# 	for user_data in online_users:
+# 		data = user_data.split(":")
+# 		online_ids_and_ages.append((data[0],data[1]))
+# 	return online_ids_and_ages
 
 
 def save_most_recent_online_users(user_ids_and_ages):
@@ -754,6 +754,18 @@ def save_most_recent_online_users(user_ids_and_ages):
 		my_server = redis.Redis(connection_pool=POOL)
 		my_server.setex('online_user_ids_and_ages',json.dumps(user_ids_and_ages),TWENTY_MINS)
 
+def get_recent_online():
+	"""
+	Invoked by tasks.py to show whoever is online
+	"""
+	ten_mins_ago = time.time() - TEN_MINS
+	online_users = redis.Redis(connection_pool=POOL).zrangebyscore("online_users",ten_mins_ago,'+inf')
+	online_ids_and_ages = {}#[]
+	for user_data in online_users:
+		data = user_data.split(":")
+		# if already appended, don't append again
+		online_ids_and_ages[data[0]] = data[1]
+	return online_ids_and_ages.items()
 
 def get_most_recent_online_users(with_ages=False):
 	"""

@@ -211,9 +211,9 @@ def create_sorted_online_list(username_data, user_ids_and_ages):
 			first_letter = username[0]
 			# rig world age such that everyone has the 'same age' (equal to -1), except when they're really new!
 			if first_letter.isalpha():
-				user_alpha_data[first_letter.upper()].append((user_id,username,username_lower,user_age if user_age < 6 else -1))#,user_age))
+				user_alpha_data[first_letter.upper()].append((user_id,username,username_lower,user_age if user_age < 5 else -1))#,user_age))
 			else:
-				user_nonalpha_data[first_letter].append((user_id,username,username_lower,user_age if user_age < 6 else -1))#,user_age))
+				user_nonalpha_data[first_letter].append((user_id,username,username_lower,user_age if user_age < 5 else -1))#,user_age))
 		#############################
 		alpha_list = [(header,users) for (header,users) in user_alpha_data.iteritems()] if user_alpha_data else []
 		nonalpha_list = [(header,users) for (header,users) in user_nonalpha_data.iteritems()] if user_nonalpha_data else []

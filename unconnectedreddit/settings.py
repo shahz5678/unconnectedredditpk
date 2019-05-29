@@ -409,7 +409,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.whoseonline': {
 		'task': 'tasks.whoseonline',
-		'schedule': timedelta(seconds=60),  # execute every 60 seconds, calculates who all is online
+		'schedule': timedelta(seconds=150),  # execute every 60 seconds, calculates who all is online
 		'args': (),
 	},
 	'tasks.fans': {

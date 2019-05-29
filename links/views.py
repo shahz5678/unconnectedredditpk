@@ -199,6 +199,38 @@ def create_sorted_invitee_list(username_data, user_ids):
 	return final_data
 
 
+def create_sorted_online_list(username_data, user_ids_and_ages):
+	"""
+	"""
+	if username_data and user_ids_and_ages:
+		user_alpha_data = defaultdict(list)#nicks starting with an alpha character
+		user_nonalpha_data = defaultdict(list)#nicks starting with other character
+		for user_id, user_age in user_ids_and_ages:
+			username = username_data[int(user_id)]
+			username_lower = username.lower()
+			first_letter = username[0]
+			# rig world age such that everyone has the 'same age' (equal to -1), except when they're really new!
+			if first_letter.isalpha():
+				user_alpha_data[first_letter.upper()].append((user_id,username,username_lower,user_age if user_age < 6 else -1))#,user_age))
+			else:
+				user_nonalpha_data[first_letter].append((user_id,username,username_lower,user_age if user_age < 6 else -1))#,user_age))
+		#############################
+		alpha_list = [(header,users) for (header,users) in user_alpha_data.iteritems()] if user_alpha_data else []
+		nonalpha_list = [(header,users) for (header,users) in user_nonalpha_data.iteritems()] if user_nonalpha_data else []
+		alpha_with_sorted_elems, nonalpha_with_sorted_elems, sorted_alpha, sorted_nonalpha = [], [], [], []
+		if alpha_list:
+			for header, elems in alpha_list:
+				alpha_with_sorted_elems.append((header,sorted(elems, key=itemgetter(3,2))))
+			sorted_alpha = sorted(alpha_with_sorted_elems, key=itemgetter(0))
+		if nonalpha_list:
+			for header, elems in nonalpha_list:
+				nonalpha_with_sorted_elems.append((header,sorted(elems, key=itemgetter(3,2))))
+			sorted_nonalpha = sorted(nonalpha_with_sorted_elems, key=itemgetter(0))
+		return sorted_alpha + sorted_nonalpha
+	else:
+		return []
+
+
 def get_page_obj(page_num,obj_list,items_per_page):
 	"""
 	Pass list of objects and number of objects to show per page, it does the rest
@@ -1457,21 +1489,28 @@ class OnlineKonView(ListView):
 
 def show_online_users(request):
 	"""
-	Displays online users, sorted alphabetically
+	Displays online users, sorted by world age, enriched by anchor tags for fast jumping between alphabets
 	"""
 	cached_data = retrieve_online_cached_data()
 	if cached_data:
 		try:
-			final_data = json.loads(cached_data)
+			data = json.loads(cached_data)
 		except:
 			import json as json_backup
-			final_data = json_backup.loads(cached_data)
+			data = json_backup.loads(cached_data)
+		final_data, num_online = data['final_data'], data['num_online']
 	else:
-		user_ids = get_most_recent_online_users()
-		username_data = retrieve_bulk_unames(user_ids, decode=True)
-		final_data = create_sorted_invitee_list(username_data, user_ids)
-		cache_online_data(json.dumps(final_data))
-	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES, 'num_online':len(final_data)})
+		user_ids_and_ages = get_most_recent_online_users(with_ages=True)
+		if user_ids_and_ages:
+			user_ids = [user_id for user_id, user_age in user_ids_and_ages]
+			username_data = retrieve_bulk_unames(user_ids, decode=True)
+			final_data = create_sorted_online_list(username_data, user_ids_and_ages)
+			num_online = len(user_ids)
+			cache_online_data(json.dumps({'final_data':final_data,'num_online':num_online}))
+		else:
+			final_data, num_online = [], 0
+	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES, 'num_online':num_online,\
+		'own_id':request.user.id,'bottom':len(final_data)})
 
 
 class LinkDeleteView(DeleteView):
@@ -5576,7 +5615,7 @@ def kick_ban_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",usernamem,'fotos')
+					return redirect("profile",username,'fotos')
 				except:
 					return redirect("home")
 		else:

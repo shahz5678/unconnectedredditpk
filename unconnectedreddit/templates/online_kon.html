@@ -24,22 +24,13 @@
             {% for obj in object_list %}
                 <span class="cgy cs">{{ forloop.counter0|add:page_obj.start_index }}. </span>
                  <a href="{% url 'profile' obj.username 'fotos' %}#section0">
-                {% if obj.userprofile__avatar %}
-                    <img src="{{ obj.userprofile__avatar|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic"></img>
-                {% else %}
+               
                     <img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" width="22" height="22" alt="pic"></img>
-                {% endif %}
                 <b class="cb">{{ obj.username }}</b>
                 {% if obj.username in legit %}
                     <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink">
                 {% endif %}
                 </a>
-               
-                {% if obj.thumbs != None %}
-                <form method="POST" action="{% url 'go_to_user_photo' obj.username 0 %}" class="mts">{% csrf_token %}
-                {{ obj.thumbs|safe }}
-                </form>
-                {% endif %}
                 <hr size=1 COLOR="#E9EBEE">
             {% endfor %}
             <span class="cs cgy sp">Note: nickname forun online nazr nahi aa jata, thora time lagta hai</span>

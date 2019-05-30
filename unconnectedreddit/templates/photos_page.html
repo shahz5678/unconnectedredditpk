@@ -20,8 +20,7 @@
 	<meta property="og:image:height" content="300">
 	<meta property="og:description" content="Funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes from all over Pakistan!">
 	<meta property="fb:app_id" content="1758220174446684" />
-	<meta name="author" content="hb">
-	<meta name="keywords" content="photos, sad poetry, urdu poetry, urdu memes, jokes, funny, girls, poetry, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
+	<meta name="author" content="mhb">
 	
 	{% if feed_type == 'fresh_photos' %}
 		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
@@ -44,7 +43,7 @@
 
 <body style="background:#f0f3f4">
 	{% include "header.html" %}
-	<nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
+	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
 		<ul class="navbar">
 		{% if user.is_authenticated %}
 			{% load get_own_score %}
@@ -56,7 +55,7 @@
 			{% load count_group_invites %}
 			{% check_group_invite_count as group_invite_count %}
 			<!-- bunched HTML removes spaces between li elements -->
-			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Search</a></li>{% endif %}<li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' slug=user.username type='fotos' %}#section0"><bdi>Profile</bdi></a></li>
+			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
 		{% else %}
 			<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
@@ -64,7 +63,7 @@
 		<a name="section0"></a>
 	</nav>
 
-	<main itemscope itemtype="https://schema.org/ImageGallery" style="max-width:600px;margin:0 auto;width:97%">
+	<main itemscope itemtype="https://schema.org/ImageGallery" style="display:block;max-width:750px;margin:0 auto;width:97%">
 
 		{% load get_photo_object %}
 		{% load show_error %}
@@ -103,7 +102,7 @@
 
 		{% endif %}
 
-		<section itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
+		<section style="display:block" itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
 
 		<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest fotos</span>{% else %}<span itemprop="headline">Trending fotos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
 
@@ -141,30 +140,32 @@
 
 			{% endif %}
 
-			<article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+			<article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;display:block">
 
 				<a name="section{{ forloop.counter }}"></a>
 
-				<section>
+				<section style="display:block">
 				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
 				</section>
 
 				<div class="mls">
 
-					<section style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+					<section style="display:block">
+					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 						{% big_vote_button vote_type='photo_vote' obid=photo.i origin=page_origin net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL visible=is_auth %}
 						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
 						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
 						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
 						{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
 						{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+					</div>
 					</section>
 
-					<section>
+					<section style="display:block">
 						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin %}
 					</section>
 
-					<section class="mts mrs mbl">
+					<section style="display:block" class="mts mrs mbl">
 						{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form page_origin sk %}
 					</section>
 
@@ -203,22 +204,21 @@
 
 	</main>
 	<br>
-	<nav itemscope itemtype="http://schema.org/SiteNavigationElement">
+	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
 		<ul class="navbar">
 		{% if user.is_authenticated %}
-		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
 		{% else %}
 		<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0">Create New Account</a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
 		</ul>
 	</nav>
 
-	<footer style="text-align:center" class="mtl sp cxs cgy">
+	<footer style="text-align:center;display:block" class="mtl sp cxs cgy">
 	|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
 	</footer>
 
 	{% include "min_service_worker.html" %}
-
 	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 
 </body>

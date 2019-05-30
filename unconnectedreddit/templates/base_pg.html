@@ -11,7 +11,7 @@
 <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+<meta name="description" content="1 on 1 messaging">
 <meta property="og:site_name" content="Damadam.pk">
 <meta property="og:title" content="Damadam.pk">
 <meta property="og:type" content="website">
@@ -19,11 +19,9 @@
 <meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
 <meta property="og:image:width" content="300">
 <meta property="og:image:height" content="300">
-<meta property="og:description" content="Damadam is the place for gupshup with girls and guys from Pakistan, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+<meta property="og:description" content="1 on 1 messaging">
 <meta property="fb:app_id" content="1758220174446684" />
-<meta name="author" content="hb">
-<meta name="keywords" content="damadam, urdu poetry, photos, chat, social, urdu memes, jokes, funny, boys, girls, forum, community, poetry, content, group, urdu, roman urdu, friends, dost, pakistan, pakistani, desi">
-
+<meta name="author" content="mhb">
 <meta name="google" content="notranslate" />
 
 {% google_analytics %}
@@ -41,14 +39,12 @@
 	{% check_notif_count as notif_count %}
 	{% load count_priv_invites %}
 	{% check_invite_count as invite_count %}
-	{% load get_own_score %}
-	{% own_score as own_score %}
 	{% load count_group_invites %}
     {% check_group_invite_count as group_invite_count %}
     <!-- bunched HTML removes spaces between li elements -->
-	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li>{% if own_score > 40 %}<li><a href="{% url 'search_username' %}">Search</a></li>{% endif %}<li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li>{% if own_score < 41 %}<li><a href="{% url 'help' %}#section0">Help</a></li>{% endif %}<li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
+	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
 {% else %}
-    <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
+    <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 {% endif %}
 </ul>
 
@@ -60,7 +56,7 @@
 {% endblock %}
 <ul class="navbar">
 {% if user.is_authenticated %}
-<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
 {% else %}
 <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li>
 {% endif %}

@@ -26,8 +26,7 @@
 
 {% for link in object_list %}
 	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
-	
-	{% text_object obid=link.id ooid=submitter_id text=link.description|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on machine_time=link.machine_time oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_pinkstar=verified block_time_remaining=time_remaining %}
+	{% text_object obid=link.id ooid=submitter_id text=link.description|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on machine_time=link.machine_time oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_pinkstar=verified  alignment=link.cagtegory block_time_remaining=time_remaining %}
 
 	<div style="flex-wrap:wrap" class="mbl fx fxjscn fxaicn cxs sp cgy">
 	{% big_group_button own_id=ident target_id=submitter_id parent_object_id=link.id object_type='link' origin='8' target_username=uname %}

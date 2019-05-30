@@ -12,12 +12,12 @@ CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing pos
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
-#RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
+RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
-TRENDER_RANKS_TO_COUNT = 10 #of top trenders to be shown
+TRENDER_RANKS_TO_COUNT = 15 #of top trenders to be shown
 SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 SUPER_UPVOTE = 20# REMOVE
 PERMANENT_RESIDENT_SCORE = 300#REMOVE
@@ -77,7 +77,7 @@ MAX_OFFICER_APPOINTMENTS_ALLWD = 3 #num of officers one ID can be
 MAX_ARCHIVED_OFFICER_APPS_PER_GROUP = 4#when the same user submits an officer app to the same group again and again, how many should we keep in the user history?
 OFFICER_APPLICATION_EXPIRY_TIME = 259200# 3 days
 OFFICER_APPLICATIONS_RATE_LIMIT = 345600# 4 days - must ALWAYS be greater than 'OFFICER_APPLICATION_EXPIRY_TIME'
-MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP = 259200#3 days
+MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP = 86400#1 day
 MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP = 604800#7 days
 OFFICER_APP_ARCHIVE_EXPIRY_TIME = 10368000#4 months
 GROUP_OFFICER_QUESTIONS = {'1':'Ap mehfil ka mahol khush gawar rakhney mein owner ki kya kya help karo ge?',\
@@ -106,7 +106,7 @@ FOLLOW_UP_REQUEST_RATE_LIMIT = 604800#7 days rate limit for re-requesting group 
 #######################################
 
 ######## Public/Private group creation ########
-USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED = 2592000# age requirement is 30 days in seconds
+USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED = 604800# age requirement is 7 days in seconds
 PUBLIC_GROUP_COST = 5000 # cost of buying a public group
 PRIVATE_GROUP_CREATION_RATE_LIMIT = 14400#4 hrs
 PUBLIC_GROUP_CREATION_RATE_LIMIT = 604800#7 days
@@ -134,7 +134,7 @@ PRIVATE_GROUP_MESSAGE = 2 # score for messaging in privte group
 ##########################################
 
 ########## Group exiting ##########
-PUBLIC_GROUP_EXIT_LOCK = 86400# lock public mehfil enterer from exiting for 1 day (they can however be kicked)
+PUBLIC_GROUP_EXIT_LOCK = 7200# lock public mehfil enterer from exiting for 2 hours (they can however be kicked)
 PRIVATE_GROUP_EXIT_LOCK = 2400# lock private mehfil enterer from exiting for 40 mins (they can however be kicked)
 GROUP_REENTRY_LOCK = 54000#lock group reentry (after exiting) for 15 hours (both public and private groups)
 ###################################

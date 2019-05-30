@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Online users | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+{% include 'search/search_navbar.html' with section='online' static_url=STATIC_URL %}
+
+<a name="top"></a>
+<h1 class="clb cxl lsp" style="text-align:center">Online users:</h1>
+
+<main class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:450px;margin-left:auto;margin-right:auto;text-align:center;display:block">
+
+	{% if not on_fbs %}
+		<div style="border-bottom:1px solid #f0f3f4">
+		<a class="sp" style="color:orange;font-size:14px" href="#section{{ bottom }}"><button class="vt" style="border-radius:0;height:42px;width:100%;border:none;border-bottom:1px solid #f0f3f4;color:orange;border"><span style="border-bottom:1px dotted orange">bottom</span></button></a>
+		<div style="background:#ecf0f9;padding:7px 0">
+		{% for header, users in online_data %}
+			<a href="#section{{ forloop.counter }}" style="color:#ffa707"><span class="cm sp lsp mls mrs">{{ header }}</span></a>
+		{% endfor %}
+		</div>
+		</div>
+	{% endif %}
+	<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0;padding:5px 7px 0 7px;">
+		<div class="mts" style="word-break: break-all">
+			{% load get_big_group_button %}
+
+			{% if on_fbs %}
+				{% for header, users in online_data %}
+					<a name="section{{ forloop.counter }}"></a>
+					<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{{ header }}</h2>
+					{% for user_id, username, username_lower, world_age in users %}
+						<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f0f3f4">
+							{% if username in females %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">&nbsp;{% endif %}<b class="clb"><bdi>{{ username }}</bdi></b>
+							
+							<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}
+								{% include "big_buttons/big_fotos_button.html" with username=username static_url=STATIC_URL %}
+								{% include "big_buttons/big_text_button.html" with username=username static_url=STATIC_URL %}
+								{% big_group_button own_id=own_id target_id=user_id parent_object_id='' object_type='online' origin='23' %}
+							</div>
+
+						</li>
+					{% endfor %}
+				{% empty %}
+				<div class="mtl cs sp cgy">- list empty hai -</div>
+				{% endfor %}
+			{% else %}
+				{% for header, users in online_data %}
+					<a name="section{{ forloop.counter }}"></a>
+					<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{% if not forloop.first %}<a class="mrs sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:-1 }}">prev</a>{% endif %}{{ header }}{% if not forloop.last %}<a class="mls sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:1 }}">next</a>{% endif %}</h2>
+					{% for user_id, username, username_lower, world_age in users %}
+						<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f0f3f4">
+							{% if username in females %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">&nbsp;{% endif %}<b class="clb"><bdi>{{ username }}</bdi></b>
+							
+							<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}
+								{% include "big_buttons/big_fotos_button.html" with username=username static_url=STATIC_URL %}
+								{% include "big_buttons/big_text_button.html" with username=username static_url=STATIC_URL %}
+								{% big_group_button own_id=own_id target_id=user_id parent_object_id='' object_type='online' origin='23' %}
+							</div>
+
+						</li>
+					{% endfor %}
+				{% empty %}
+				<div class="mtl cs sp cgy">- list empty hai -</div>
+				{% endfor %}
+			{% endif %}
+		</div>
+	</ul>
+	{% if not on_fbs %}
+	<div><a class="sp" style="color:orange;font-size:14px" href="#top"><button class="vt" style="border-radius:0;height:42px;width:100%;border:none;border-top:1px solid #f0f3f4;color:orange;border"><span style="border-bottom:1px dotted orange">top</span></button></a></div>
+	{% endif %}
+</main>
+<br><br>
+{% endblock %}

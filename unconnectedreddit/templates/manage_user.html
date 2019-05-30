@@ -1,30 +1,38 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>Manage {{ target_uname }} | Damadam.pk</title></head>
-<div class="margin clb">
-<h2><span class="ct">{{ target_uname }}</span> management options:</h2>
+<style>body{background:#f0f3f4}</style>
+
+<h1 class="cxl lsp clb" style="text-align:center">{{ target_uname }} management options:</h1>
+
+<article class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-top:10px;max-width: 400px;width:975;margin-left:auto;margin-right:auto;text-align:center">
+
 <!-- Cut Score -->
-<form method="POST" action="{% url 'cut_user_score' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcr bl">Cut Score</button></form>&nbsp;
+<form method="POST" action="{% url 'cut_user_score' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt mtl btn bxl" style="color:tomato;height:38px;border:1px solid tomato">Cut Score</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="ctscr" class="btn bcr cs bxs mll">?</button></form><br>
 <!-- Kick Out -->
-<form method="POST" action="{% url 'kick_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcr bl mtl">Kick Out</button></form>&nbsp;
+<form method="POST" action="{% url 'kick_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:tomato;height:38px;border:1px solid tomato">Kick Out</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="kout" class="btn bcr cs bxs mll">?</button></form><br>
 <!-- Kick and Ban -->
-<form method="POST" action="{% url 'kick_ban_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcr bl mtl">Kick and Ban</button></form>&nbsp;
+<form method="POST" action="{% url 'kick_ban_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:tomato;height:38px;border:1px solid tomato">Kick and Ban</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="kban" class="btn bcr cs bxs mll">?</button></form><br>
 <!-- Ghost Ban -->
-<form method="POST" action="{% url 'hell_ban' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcr bl mtl">Ghost Ban</button></form>&nbsp;
+<form method="POST" action="{% url 'hell_ban' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:tomato;height:38px;border:1px solid tomato">Ghost Ban</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="ghban" class="btn bcr cs bxs mll">?</button></form><br>
 <!-- Check Clones -->
-<form method="POST" action="{% url 'show_clones' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bco bl mtl">Check Clones</button></form>&nbsp;
+<form method="POST" action="{% url 'show_clones' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:darkorange;height:38px;border:1px solid darkorange">Check IP Clones</button></form>&nbsp;
 
-<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="oclone" class="btn bco cs bxs mll">?</button></form><br><br>
+<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="oclone" class="btn bco cs bxs mll">?</button></form><br>
+<!-- Check Sybils -->
+<form method="POST" action="{% url 'user_sybil_history' target_id %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:teal;height:38px;border:1px solid teal">Check Sybils</button></form>&nbsp;
+
+<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="sybil" class="btn bct cs bxs mll">?</button></form><br><br>
 <!-- Nevermind -->
-<a href="{% url 'profile' target_uname 'fotos' %}#section0"><button class="btn bcgy bl mtl">Rehne Do</button></a>&nbsp;<br>
-</div>
+<a href="{% url 'profile' target_uname 'fotos' %}#section0"><button class="btn bcgy mtl pg_ok_res sp" style="width:100%;height:40px;font-weight:bold;border-top-right-radius:0;border-top-left-radius:0">BACK</button></a>
+</article>
 <br><br>
 {% endblock %}

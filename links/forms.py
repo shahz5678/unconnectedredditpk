@@ -20,7 +20,7 @@ from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComme
 Publicreply, VideoComment
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, prep_image
 from redis6 import is_group_member_and_rules_signatory, human_readable_time, group_member_exists
-from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE
+from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO
 
 
 ########################################### Utilities #######################################
@@ -328,6 +328,23 @@ def clear_zalgo_text(text):
 	return ''.join((c for c in unicodedata.normalize('NFD', text) if unicodedata.category(c) != 'Mn'))
 
 
+def is_urdu(text):
+	"""
+	Provides a percentage of how much text is predominantly in "Urdu"
+
+	Can be used to right-align text that is predominantly in Urdu
+	Utilizes the fact that "0600-06FF" and "FB50-FEFF" is the Unicode range for Urdu
+	"""
+	num_urdu_chars, total_chars = 0, len(text)
+	if total_chars:
+		for c in text:
+			if u'\u0600' <= c <= u'\u06FF' or u'\uFB50' <= c <= u'\uFEFF':
+				num_urdu_chars += 1
+		return (num_urdu_chars*1.0)/total_chars
+	else:
+		return 0
+
+
 ################################################################################################
 
 
@@ -546,8 +563,9 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 								log_short_message(user_id,section,section_id)
 						elif len_ > MAX_HOME_SUBMISSION_SIZE:
 							raise forms.ValidationError('{0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
-						# log_gibberish_writer.delay(user_id,description,len_) # flags the user_id in case the text turned out to be gibberish
-						data["description"] = description#re.sub(r'\n\s*\n', '\n', description)#ensures multiple new-lines are collapsed into 1
+						# '2' means right-aligned text, '1' means left-aligned text
+						data['alignment'] = '2' if is_urdu(description) >= RIGHT_ALIGNMENT_THRESHOLD_RATIO else '1'
+						data["description"] = description
 						return data
 
 

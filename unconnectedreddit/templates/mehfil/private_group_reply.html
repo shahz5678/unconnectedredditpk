@@ -47,19 +47,6 @@
 
     {% for reply,status in replies %}
 
-        {% if not on_fbs and forloop.counter == 3 %}
-            <div style="text-align:center;background:snow">
-                <ins class="adsbygoogle"
-                    style="display:inline-block;vertical-align: middle;width:320px;height:100px"
-                    data-ad-client="ca-pub-2568547635306983"
-                    data-ad-slot="4784035315"></ins>
-                <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-            <hr size=1 COLOR="#f4f4f4">
-        {% endif %}
-
         {% if reply.category == '1' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b> ne <bdi><span class="clb" style="font-weight:bold">{{ reply.text }}</span></bdi> ko invite kia</span></div>
         {% elif reply.category == '2' %}

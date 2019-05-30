@@ -74,16 +74,17 @@ VideoComment
 from redirection_views import return_to_content
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
-rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, cache_photo_dim
+rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
+cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
 is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age, set_user_choice #, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
-add_to_photo_owner_activity, get_attendance, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, \
-prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, bulk_is_fan, retrieve_unseen_notifications, \
-get_photo_fan_count, retrieve_object_data, remove_erroneous_notif
+add_to_photo_owner_activity, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, bulk_is_fan,\
+prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, retrieve_unseen_notifications, get_photo_fan_count,\
+retrieve_object_data, remove_erroneous_notif
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .website_feedback_form import AdvertiseWithUsForm
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
@@ -167,6 +168,67 @@ def get_indices(page_number, obj_allotment):
 	objs_per_page = obj_allotment
 	index_ceiling = objs_per_page * page_number
 	return (index_ceiling)-objs_per_page,index_ceiling-1
+
+
+def create_sorted_invitee_list(username_data, user_ids):
+	"""
+	Prepares list of alphabetically sorted names (it's a mis-labeled function, inviting is only one of its responsibilities)
+
+	This list is available to:
+	- site-wide online listing
+	- group inviters (both public and private)
+	"""
+	user_alpha_data = []#nicks starting with an alpha character
+	user_digital_data = []#nicks starting with a digital character
+	for online_id in user_ids:
+		username = username_data[int(online_id)]
+		username_lower = username.lower()
+		if username[0].isalpha():
+			user_alpha_data.append((online_id,username,username_lower))
+		else:
+			user_digital_data.append((online_id,username,username_lower))
+	user_digital_data.sort(key=itemgetter(2))
+	user_alpha_data.sort(key=itemgetter(2))
+	user_data = user_alpha_data + user_digital_data
+	final_data, previous_lower_username_first_alphabet = [] , ''
+	for id_, uname, uname_lower in user_data:
+		first_alphabet = uname_lower[0]
+		new_alphabet = first_alphabet.upper() if (first_alphabet!=previous_lower_username_first_alphabet) else None
+		final_data.append((id_,uname,uname_lower,new_alphabet))
+		previous_lower_username_first_alphabet = first_alphabet
+	return final_data
+
+
+def create_sorted_online_list(username_data, user_ids_and_ages):
+	"""
+	"""
+	if username_data and user_ids_and_ages:
+		user_alpha_data = defaultdict(list)#nicks starting with an alpha character
+		user_nonalpha_data = defaultdict(list)#nicks starting with other character
+		for user_id, user_age in user_ids_and_ages:
+			username = username_data[int(user_id)]
+			username_lower = username.lower()
+			first_letter = username[0]
+			# rig world age such that everyone has the 'same age' (equal to -1), except when they're really new!
+			if first_letter.isalpha():
+				user_alpha_data[first_letter.upper()].append((user_id,username,username_lower,user_age if user_age < 5 else -1))#,user_age))
+			else:
+				user_nonalpha_data[first_letter].append((user_id,username,username_lower,user_age if user_age < 5 else -1))#,user_age))
+		#############################
+		alpha_list = [(header,users) for (header,users) in user_alpha_data.iteritems()] if user_alpha_data else []
+		nonalpha_list = [(header,users) for (header,users) in user_nonalpha_data.iteritems()] if user_nonalpha_data else []
+		alpha_with_sorted_elems, nonalpha_with_sorted_elems, sorted_alpha, sorted_nonalpha = [], [], [], []
+		if alpha_list:
+			for header, elems in alpha_list:
+				alpha_with_sorted_elems.append((header,sorted(elems, key=itemgetter(3,2))))
+			sorted_alpha = sorted(alpha_with_sorted_elems, key=itemgetter(0))
+		if nonalpha_list:
+			for header, elems in nonalpha_list:
+				nonalpha_with_sorted_elems.append((header,sorted(elems, key=itemgetter(3,2))))
+			sorted_nonalpha = sorted(nonalpha_with_sorted_elems, key=itemgetter(0))
+		return sorted_alpha + sorted_nonalpha
+	else:
+		return []
 
 
 def get_page_obj(page_num,obj_list,items_per_page):
@@ -1117,42 +1179,38 @@ def best_home_page(request):
 	"""
 	Displays the 'best' home page
 	"""
-	if request.user.is_authenticated():
-		context = {}
-		context["authenticated"] = True
-		own_id, page_num = request.user.id, request.GET.get('page', '1')
-		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
-		############
-		obj_list = get_best_home_feed(start_idx=start_index, end_idx=end_index)# has to be written
-		############
-		list_of_dictionaries = retrieve_obj_feed(obj_list)
-		context["link_list"] = list_of_dictionaries
-		context["fanned"] = bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
-		#######################
-		replyforms = {}
-		for obj in list_of_dictionaries:
-			replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
-		context["replyforms"] = replyforms
-		#######################
-		context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		num = random.randint(1,4)
-		context["random"] = num #determines which message to show at header
-		context["newest_user"] = User.objects.latest('id') if num > 2 else None
-		context["score"] = request.user.userprofile.score #own score
-		secret_key = str(uuid.uuid4())
-		context["sk"] = secret_key
-		set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
-		context["can_vote"] = True #allowing user to vote
-		context["process_notification"] = False
-		context["ident"] = own_id
-		# if request.user_banned:
-		#     context["process_notification"] = False #hell banned users will never see notifications
-		# else:
-		#     context["process_notification"] = True
-		#     context["notif_form"] = UnseenActivityForm()
-		return render(request, 'link_list.html', context)
-	else:
-		return redirect("unauth_home_new")
+	# if request.user.is_authenticated():
+	context = {}
+	context["authenticated"] = True
+	own_id, page_num = request.user.id, request.GET.get('page', '1')
+	start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
+	############
+	obj_list = get_best_home_feed(start_idx=start_index, end_idx=end_index)# has to be written
+	############
+	list_of_dictionaries = retrieve_obj_feed(obj_list)
+	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
+	context["link_list"] = list_of_dictionaries
+	context["fanned"] = []#bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
+	#######################
+	replyforms = {}
+	for obj in list_of_dictionaries:
+		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+	context["replyforms"] = replyforms
+	#######################
+	context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+	num = random.randint(1,4)
+	context["random"] = num #determines which message to show at header
+	context["newest_user"] = User.objects.latest('id') if num > 2 else None
+	# context["score"] = request.user.userprofile.score #own score
+	secret_key = str(uuid.uuid4())
+	# context["sk"] = secret_key
+	# set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
+	context["can_vote"] = True #allowing user to vote
+	context["process_notification"] = False
+	context["ident"] = own_id
+	return render(request, 'link_list.html', context)
+	# else:
+	# 	return redirect("unauth_home_new")
 
 
 def home_link_list(request, lang=None, *args, **kwargs):
@@ -1428,6 +1486,33 @@ class OnlineKonView(ListView):
 				context["with_thumbs"] = True
 		return context
 
+
+def show_online_users(request):
+	"""
+	Displays online users, sorted by world age, enriched by anchor tags for fast jumping between alphabets
+	"""
+	cached_data = retrieve_online_cached_data()
+	if cached_data:
+		try:
+			data = json.loads(cached_data)
+		except:
+			import json as json_backup
+			data = json_backup.loads(cached_data)
+		final_data, num_online = data['final_data'], data['num_online']
+	else:
+		user_ids_and_ages = get_most_recent_online_users(with_ages=True)
+		if user_ids_and_ages:
+			user_ids = [user_id for user_id, user_age in user_ids_and_ages]
+			username_data = retrieve_bulk_unames(user_ids, decode=True)
+			final_data = create_sorted_online_list(username_data, user_ids_and_ages)
+			num_online = len(user_ids)
+			cache_online_data(json.dumps({'final_data':final_data,'num_online':num_online}))
+		else:
+			final_data, num_online = [], 0
+	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES, 'num_online':num_online,\
+		'own_id':request.user.id,'bottom':len(final_data),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)})
+
+
 class LinkDeleteView(DeleteView):
 	model = Link
 	success_url = reverse_lazy("home")
@@ -1447,8 +1532,13 @@ def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, 
 			return redirect("profile", request.user.username, 'fotos')
 
 def profile_pk(request, slug=None, key=None, *args, **kwargs):
-	request.session["photograph_id"] = key
-	return redirect("profile", slug, 'fotos')
+	"""
+	Permanent redirect to new user profile photos view
+	"""
+	if key:
+		request.session["photograph_id"] = key
+	return HttpResponsePermanentRedirect("/user/{}/fotos/".format(slug.encode('utf-8')))
+
 
 
 def redirect_to_profile_photos(request,slug):
@@ -1511,8 +1601,8 @@ class UserProfilePhotosView(ListView):
 			context["user_id"] = user_id
 			context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
 			context["authenticated"] = True
-			is_defender = in_defenders(user_id)
-			if is_defender:
+			is_defender, is_super_defender = in_defenders(user_id, return_super_status=True)
+			if is_super_defender:
 				context["manageable"] = True
 			own_profile = star_id == user_id
 			context["own_profile"] = own_profile
@@ -1547,11 +1637,12 @@ class UserProfilePhotosView(ListView):
 		context["star_av_url"] = retrieve_avurl(star_id)
 		context["legit"] = FEMALES
 		total_fans, recent_fans = get_photo_fan_count(star_id)
-		context["manageable"] = False
+		# context["manageable"] = False
 		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(star_id,ids_with_urls)
 		return context
+
 
 
 	def get(self, request, *args, **kwargs):
@@ -4531,7 +4622,7 @@ def unseen_help(request,*args,**kwargs):
 	return render(request,'photo_for_fans_help.html',context)
 
 def top_photo_help(request,*args,**kwargs):
-	return render(request,'top_photo_help.html')
+	return render(request,'top_photo_help.html',{'list_size':TRENDER_RANKS_TO_COUNT})
 
 @csrf_protect
 def unseen_fans(request,pk=None,*args, **kwargs):
@@ -4567,7 +4658,7 @@ def public_reply_view(request,*args,**kwargs):
 		if link_id:
 			# link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
 			try:
-				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes').get(id=link_id)
+				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','cagtegory').get(id=link_id)
 				link['machine_time'] = link['submitted_on']
 				link['submitted_on'] = naturaltime(link['submitted_on'])
 			except Link.DoesNotExist:
@@ -4699,17 +4790,14 @@ class UserActivityView(ListView):
 			target_id = retrieve_user_id(username)
 			if target_id:
 				if target_id == str(self.request.user.id):
-					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count').\
-					filter(submitter_id=target_id).order_by('-id')[:200]
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','cagtegory').filter(submitter_id=target_id).order_by('-id')[:200]
 				else:
-					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count').\
-					filter(submitter_id=target_id).order_by('-id')[:60]
-				# cache_user_text_history(data,target_id)
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','cagtegory').filter(submitter_id=target_id).order_by('-id')[:60]
 				return data
 			else:
 				raise Http404("This user does not exist")
 		else:
-			raise Http404("No username provided") 
+			raise Http404("No username provided")
 
 
 	def get_context_data(self, **kwargs):
@@ -4843,9 +4931,6 @@ class UserProfileEditView(UpdateView):
 		return super(UpdateView, self).form_valid(form) # saves automatically
 	##############################################################
 
-	def get_success_url(self):
-		return reverse_lazy("user_profile", kwargs={'slug': self.request.user})
-
 
 class UserSettingsEditView(UpdateView):
 	model = UserSettings
@@ -4953,7 +5038,7 @@ class LinkCreateView(CreateView):
 							f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 					else:
 						f.submitter = user
-						f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
+						# f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
 					if self.request.is_feature_phone:
 						f.device = '1'
 					elif self.request.is_phone:
@@ -4968,13 +5053,13 @@ class LinkCreateView(CreateView):
 						av_url = user.userprofile.avatar.url
 					except ValueError:
 						av_url = None
-					category = '1'
-					f.cagtegory = category
+					alignment = form.cleaned_data['alignment']
+					f.cagtegory = alignment
 					f.save()
-					add_text_post(obj_id=f.id, categ=category, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
+					add_text_post(obj_id=f.id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
 						submitter_score=f.submitter.userprofile.score, is_pinkstar=(True if user.username in FEMALES else False),submission_time=time_now,\
 						text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=True)
-					f.submitter.userprofile.save()
+					# f.submitter.userprofile.save()
 					################### Segment action logging ###################
 					if user_id > SEGMENT_STARTING_USER_ID:
 						log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)
@@ -5530,7 +5615,7 @@ def kick_ban_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",usernamem,'fotos')
+					return redirect("profile",username,'fotos')
 				except:
 					return redirect("home")
 		else:
@@ -5648,7 +5733,7 @@ def manage_user(request,*args,**kwargs):
 	else:
 		return render(request,"404.html",{})
 
-@csrf_protect   
+@csrf_protect    
 def manage_user_help(request,*args,**kwargs):
 	if request.method == "POST":
 		help_type = request.POST.get("htype")
@@ -5666,6 +5751,8 @@ def manage_user_help(request,*args,**kwargs):
 			return render(request,'ghost_ban.html',context)
 		elif help_type == 'oclone':
 			return render(request,'check_clones.html',context)
+		elif help_type == 'sybil':
+			return render(request,'check_sybils.html',context)
 		else:
 			return render(request,"404.html",{})    
 	else:

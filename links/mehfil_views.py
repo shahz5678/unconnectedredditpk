@@ -29,7 +29,7 @@ from group_views import retrieve_user_env
 
 from models import HellBanList, UserProfile
 
-from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices
+from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
@@ -851,7 +851,7 @@ def public_mehfil_oversight_dashboard(request):
 					if attendance_data:
 						final_visitor_data = json.loads(attendance_data)
 					else:
-						attendance_data = get_attendance(group_id,withscores=True)
+						attendance_data = get_attendance(group_id,time_ago='one_day_ago',withscores=True)
 						#removing banned IDs (in case they are still showing up online)
 						filtered_attendance_data = [(visitor_id,visit_time) for (visitor_id,visit_time) in attendance_data if visitor_id not in \
 						retrieve_kicked_user_ids(group_id)]
@@ -861,7 +861,7 @@ def public_mehfil_oversight_dashboard(request):
 							credentials = retrieve_bulk_credentials(all_online_ids, decode_unames=True)#dictionary of dictionaries is returned
 							for visitor_id,visit_time in filtered_attendance_data:
 								final_visitor_data.append((str(visitor_id),credentials[int(visitor_id)],visit_time))
-							cache_group_attendance_data(json.dumps(final_visitor_data),group_id,term='short')#micro-cached for 11 seconds
+							cache_group_attendance_data(json.dumps(final_visitor_data),group_id,term='short')#micro-cached for 15 seconds
 					return render(request,'mehfil/take_action_against_group_visitors.html',{'topic':data['tp'],'visitors':final_visitor_data,\
 						'legit':FEMALES,'guid':group_uuid,'kick':True,'owner':True,'immune_ids':retrieve_immune_ids(group_id,own_id,is_officer=False),\
 						'own_id':own_id})
@@ -931,7 +931,7 @@ def public_mehfil_oversight_dashboard(request):
 						if attendance_data:
 							final_visitor_data = json.loads(attendance_data)
 						else:
-							attendance_data = get_attendance(group_id,withscores=True)
+							attendance_data = get_attendance(group_id,time_ago='one_day_ago',withscores=True)
 							#removing banned IDs (in case they are still showing up online)
 							filtered_attendance_data = [(visitor_id,visit_time) for (visitor_id,visit_time) in attendance_data if visitor_id not in \
 							retrieve_kicked_user_ids(group_id)]
@@ -941,7 +941,7 @@ def public_mehfil_oversight_dashboard(request):
 								credentials = retrieve_bulk_credentials(all_online_ids, decode_unames=True)#dictionary of dictionaries is returned
 								for visitor_id,visit_time in filtered_attendance_data:
 									final_visitor_data.append((str(visitor_id),credentials[int(visitor_id)],visit_time))
-								cache_group_attendance_data(json.dumps(final_visitor_data),group_id,term='short')#micro-cached for 11 seconds
+								cache_group_attendance_data(json.dumps(final_visitor_data),group_id,term='short')#micro-cached for 15 seconds
 						return render(request,'mehfil/take_action_against_group_visitors.html',{'topic':data['tp'],'visitors':final_visitor_data,\
 							'legit':FEMALES,'guid':group_uuid,'kick':True,'officer':True,'immune_ids':retrieve_immune_ids(group_id,own_id,is_officer=True),\
 							'own_id':own_id})
@@ -2053,7 +2053,7 @@ def kick_out(request, slug):
 					return render(request,"mehfil/notify_and_redirect.html",{'cannot_target_self':True, 'is_public':is_public,'unique':guid})
 				else:
 					culprit_ids = filter_non_members(culprit_ids, group_id)# remove non-members from the list (ensures group admins can't kick "non-members")
-					culprit_ids = filter_non_recents(culprit_ids, group_id, time_now) if is_public else culprit_ids# remove non-recents from the list if public group - in private, any user can be kicked out (even if non-recent)
+					culprit_ids = filter_non_recents(culprit_ids, group_id, time_now) if is_public else culprit_ids# remove non-recents from the list of public group - in private, any user can be kicked out (even if non-recent)
 					if culprit_ids:
 						request.session["final_kick_ids"+str(group_id)] = culprit_ids
 						request.session.modified = True
@@ -3178,8 +3178,10 @@ class PrivateGroupView(FormView):
 					context["form"] = prev_form if prev_form else PrivateGroupReplyForm()
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
-						# getting from cache
-						latest_replies = json.loads(latest_replies)
+						try:
+							latest_replies = json.loads(latest_replies)
+						except:
+							latest_replies = json_backup.loads(latest_replies)
 					else:
 						# reconstructing replies and caching them
 						latest_data = retrieve_group_submissions(group_id)
@@ -3681,8 +3683,8 @@ def time_reqd_to_read(lenght_of_text):
 	Determines time required to read rules (in seconds) so that user can be stalled for that time
 	"""
 	base_str_len = 9
-	base_ttr = 2#2 seconds
-	max_ttr = 10#20 seconds
+	base_ttr = 1#1 seconds
+	max_ttr = 3#3 seconds
 
 	if lenght_of_text < base_str_len:
 		return base_ttr
@@ -3694,31 +3696,6 @@ def time_reqd_to_read(lenght_of_text):
 			return max_ttr
 		else:
 			return determined_ttr
-
-
-def create_sorted_invitee_list(username_data, user_ids):
-	"""
-	Prepares list of alphabetically sorted names available to mehfil inviters (both public and private)
-	"""
-	user_alpha_data = []#nicks starting with an alpha character
-	user_digital_data = []#nicks starting with a digital character
-	for online_id in user_ids:
-		username = username_data[int(online_id)]
-		username_lower = username.lower()
-		if username[0].isdigit():
-			user_digital_data.append((online_id,username,username_lower))
-		else:
-			user_alpha_data.append((online_id,username,username_lower))
-	user_digital_data.sort(key=itemgetter(2))
-	user_alpha_data.sort(key=itemgetter(2))
-	user_data = user_alpha_data + user_digital_data
-	final_data, previous_lower_username_first_alphabet = [] , ''
-	for id_, uname, uname_lower in user_data:
-		first_alphabet = uname_lower[0]
-		new_alphabet = first_alphabet.upper() if (first_alphabet!=previous_lower_username_first_alphabet) else None
-		final_data.append((id_,uname,uname_lower,new_alphabet))
-		previous_lower_username_first_alphabet = first_alphabet
-	return final_data
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

@@ -23,7 +23,7 @@ from urls_push_notif import urlpatterns as urlpatterns_push_notif
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
-comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, \
+comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, show_online_users, \
 star_list, cross_salat_notif, best_home_page, home_page, home_redirect,\
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, non_fbs_vid, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
@@ -40,7 +40,7 @@ PhotoTimeView, PhotostreamView, PicHelpView, PhotoJawabView, CommentView, \
 AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, DeviceHelpView, PicPasswordView, EmoticonsHelpView, \
 UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, PicsChatUploadView, VerifiedView, WelcomeView, \
 WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdTitleView,TestAdsView, AdAddressYesNoView,\
-SmsInviteView, LoginWalkthroughView, RegisterLoginView, OnlineKonView, UserSettingsEditView, UserProfileDetailView, \
+SmsInviteView, LoginWalkthroughView, RegisterLoginView, UserSettingsEditView, UserProfileDetailView, \
 UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
 RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, \
 PhotoShareView, PhotoDetailView, \
@@ -53,6 +53,7 @@ from links.group_views import show_shared_photo_metrics
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^robots\.txt/$', TemplateView.as_view(template_name="robots.txt", content_type='text/plain')),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
 	url(r'^administer_me/', include(admin.site.urls)),
@@ -129,7 +130,7 @@ urlpatterns = patterns('',
 	# url(r'^skip_presalat/$', auth(skip_presalat), name='skip_presalat'),
 	# url(r'^closed_group/create/outside/$', auth(OutsideMessageCreateView.as_view()), name='outside_message_create'),
 	#url(r'^closed_group/recreate/outside/(?P<slug>[\w.@+-]+)/$', auth(OutsideMessageRecreateView.as_view()), name='outside_message_recreate'),
-	url(r'^online_kon/$', auth(OnlineKonView.as_view()), name='online_kon'),
+	url(r'^online_kon/$', auth(show_online_users), name='online_kon'),
 	url(r'^top/$', auth(TopView.as_view()), name='top'),
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),

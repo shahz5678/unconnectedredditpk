@@ -2,10 +2,8 @@
 {% block content %}
 <head><title>Online users | Damadam</title></head>
 <style>body{background: #f0f3f4}</style>
-{% load cache %}
 {% include 'search/search_navbar.html' with section='online' static_url=STATIC_URL %}
 
-{% cache 30 online_page %}
 <a name="top"></a>
 <h1 class="clb cxl lsp" style="text-align:center">Online users:</h1>
 
@@ -72,6 +70,5 @@
 	<div><a class="sp" style="color:orange;font-size:14px" href="#top"><button class="vt" style="border-radius:0;height:42px;width:100%;border:none;border-top:1px solid #f0f3f4;color:orange;border"><span style="border-bottom:1px dotted orange">top</span></button></a></div>
 	{% endif %}
 </main>
-{% endcache %}
 <br><br>
 {% endblock %}

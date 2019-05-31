@@ -46,8 +46,6 @@
 	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
 		<ul class="navbar">
 		{% if user.is_authenticated %}
-			{% load get_own_score %}
-			{% own_score as own_score %}
 			{% load count %}
 			{% check_notif_count as notif_count %}
 			{% load count_priv_invites %}

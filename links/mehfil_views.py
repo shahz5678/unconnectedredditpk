@@ -3174,8 +3174,8 @@ class PrivateGroupView(FormView):
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'prv_grp', secret_key)
 					context["ensured"] = FEMALES
-					prev_form = self.request.session.pop("private_group_form",None)
-					context["form"] = prev_form if prev_form else PrivateGroupReplyForm()
+					context["form_error"] = self.request.session.pop("private_group_error",None)
+					context["form"] = PrivateGroupReplyForm()
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
 						try:
@@ -3227,7 +3227,7 @@ class PrivateGroupView(FormView):
 		If the form is invalid, re-render the context data with the
 		data-filled form and errors.
 		"""
-		self.request.session["private_group_form"] = form
+		self.request.session["private_group_error"] = form.errors.as_text().split("*")[2]
 		self.request.session.modified = True
 		if self.request.is_ajax():
 			return HttpResponse(json.dumps({'success':False,'message':reverse('private_group_reply')}),content_type='application/json',)
@@ -3438,8 +3438,8 @@ class PublicGroupView(FormView):
 					secret_key = uuid.uuid4()
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'pub_grp', secret_key)
-					prev_form = self.request.session.pop("public_group_form",None)
-					context["form"] = prev_form if prev_form else PublicGroupReplyForm()
+					context["form_error"] = self.request.session.pop("public_group_error",None)
+					context["form"] = PublicGroupReplyForm()
 					context["switching"] = False
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
@@ -3498,7 +3498,7 @@ class PublicGroupView(FormView):
 		If the form is invalid, re-render the context data with the
 		data-filled form and errors.
 		"""
-		self.request.session["public_group_form"] = form
+		self.request.session["public_group_error"] = form.errors.as_text().split("*")[2]
 		self.request.session.modified = True
 		if self.request.is_ajax():
 			return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)

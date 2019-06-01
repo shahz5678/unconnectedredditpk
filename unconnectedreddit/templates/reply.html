@@ -8,21 +8,24 @@
 {% load show_error %}
 {% load s3 %}
 {% block content %}
-<head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}Home reply{% endif %} | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
+<style>body{background:#f0f3f4}</style>
 
-<div style="margin: 0 auto;max-width:600px;width:97%" class="clb">
+<main style="display: block;margin: 0 auto;max-width:750px;width:97%" class="clb">
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
 <h1 class="cxl clb" style="text-align:center">{% if is_parent_pinkstar %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16" style="color:deeppink">&nbsp;{% endif %}{{ parent_submitter_username|truncatechars:'13' }}'s post:</h1>
 
-<div class="bizcard mbl" style="background-color:white;padding:3px">
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar alignment=parent.cagtegory %}
-</div>
+<section style="display:block" itemscope itemtype="https://schema.org/SocialMediaPosting">
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
+</section>
 
-<div class="bizcard" style="background-color:white;padding:10px 7px;margin-bottom:15px">
+</article>
+
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 7px;">
     <a name="sectionJ"></a> 
 
     {% if form.errors %}<div class="cr">{{ form.errors|show_error }}</div>{% else %}<div class="ct sp"><b>Jawab likhein:</b></div>{% endif %}
@@ -83,7 +86,7 @@
     
     {% endfor %}
     </div>
-</div>    
+</article>    
 
     
 <span class="cs cgy"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></span><br>
@@ -95,7 +98,7 @@
     {% endif %}
 {% endfor %}
 
-</div><br><br>
+</main><br><br>
 {% transparent_buttons_js ident=user_id static_url=STATIC_URL %}
 {% endblock %}
 

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Suggest new topic | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+
+	<h1 class="cxl clb lsp" style="text-align:center">Suggest new topic:</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 8px;max-width:450px;margin-left:auto;margin-right:auto">
+
+		<form method="post" class="mbs mts" action="" enctype="multipart/form-data" style="text-align:center">
+		  {% csrf_token %}
+		  <input type="hidden" name="sk" value="{{ sk }}">
+		  
+		  {% if form.topic.errors %}<div class="cr cl sp">{{ form.topic.errors.0 }}</div>{% endif %}
+
+		  <div class="mbl" style="margin-right:auto;margin-left:auto;text-align:center;background:white;width:95%;border: 1px solid #ff7f50;border-radius:8px">
+		  	<div class="cs lsp sp" style="border-bottom:1px solid #ff7f50;color:#ff7f50;padding:4px 0">New topic:</div>
+		  	{{ form.topic }}
+		  </div>
+		  
+		  {% if form.description.errors %}<div class="cr cl sp">{{ form.description.errors.0 }}</div>{% endif %}
+
+		  <div class="mbl" style="margin-right:auto;margin-left:auto;text-align:center;background:white;width:95%;border: 1px solid #3cb7dd;border-radius:8px">
+		  	<div class="cs lsp sp" style="border-bottom:1px solid #3cb7dd;color:#229ec3;padding:4px 0">Ye topic kis barey mein hai:</div>
+		  	{{ form.description }}
+		  </div>
+
+		  {% if form.topic_owner_id.errors %}<div class="cr cl sp">{{ form.topic_owner_id.errors.0 }}</div>{% endif %}
+
+		  <div class="mbl" style="margin-right:auto;margin-left:auto;text-align:center;background:white;width:95%;border: 1px solid #2de0ae;border-radius:8px">
+		  	<div class="cs lsp sp" style="border-bottom:1px solid #2de0ae;color:#1bb187;padding:4px 0">Topic suggest karney waley ki ID likhein:</div>
+		  	{{ form.topic_owner_id }}
+		  </div>
+
+		  <button class="bct sp cl pg_ok_res" style="height:50px;width:95%;color:white;font-weight:bold;border: 1px solid #3cb7dd;border-radius:8px" name="btn" value="1" type="submit">SUBMIT</button>
+
+		</form>
+
+	</div>
+
+	<h1 class="cxl clb lsp" style="text-align:center">Topic suggestion help:</h1>
+
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:8px;max-width:450px;margin-left:auto;margin-right:auto">
+
+		<div class="clb sp lsp mbl" style="text-align:left">
+			<div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Kisi bhi kissam ka topic suggest kia ja sakta hai, maslan latest news, sports, poetry, humor, education, job ads, buy and sell, waghera</div>
+			<div class="mt" style="text-align:left"><span class="cgy cs">2)</span> Topic mein sirf letters and numbers likhein, kisi bhi kissam ke emojis allowed nahi</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Kafi users ke liye sirf topic se obvious nahi ho ga ke topic mein kya kya share kiya ja sakta hai. Lehaza tafseel bhi likhein ke topic mein kis kissam ki posts share hon gi</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Aik example bhi dein aisi post ka jo topic mein likhi ja sakti hai</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Agr sentence ke end mein 'new line' <img src="{{ STATIC_URL }}img/enter_key.svg" width="14" height="14" style="vertical-align:text-bottom"> dalein tou topic ki tafseel 'new line' ke sath display ho gi</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">6)</span> Vulgarity, abuse and mazhabi fasaad sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" target="_blank" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+		</div>
+
+	</div>
+
+<br><br>
+{% endblock %}

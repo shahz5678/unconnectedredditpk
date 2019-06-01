@@ -1,7 +1,6 @@
 # coding=utf-8
 import time
 import ujson as json
-from datetime import timedelta
 from brake.decorators import ratelimit
 from django.views.decorators.cache import cache_control
 from django.views.decorators.csrf import csrf_protect
@@ -44,11 +43,12 @@ def vote_result(request):
 		orig = request.session.pop("vote_origin",None)
 		return render(request,'voting/already_voted.html',{'lid':lid,'obid':obid,'orig':orig})
 	elif which_msg == '4':
+		topic = request.session.pop("vote_topic",None)
 		lid = request.session.pop("vote_lid",None)
 		orig = request.session.pop("vote_origin",None)
 		vote_obj_id = request.session.pop("vote_obj_id",None)
 		time_remaining = request.session.pop("time_remaining_to_vote",None)
-		return render(request,'voting/vote_cool_down.html',{'time_remaining':time_remaining,'lid':lid,'obid':vote_obj_id,'orig':orig})
+		return render(request,'voting/vote_cool_down.html',{'time_remaining':time_remaining,'lid':lid,'obid':vote_obj_id,'orig':orig,'topic':topic})
 	elif which_msg == '5':
 		return redirect("home")
 	# elif which_msg == '6':
@@ -89,7 +89,7 @@ def cast_vote(request,*args,**kwargs):
 	3) Can't vote on self posts
 	4) Can't double-vote
 	5) Can't vote if not verified
-	"""    
+	""" 
 	is_ajax = request.is_ajax()
 	if request.method == 'POST':
 		if request.user_banned:
@@ -107,8 +107,10 @@ def cast_vote(request,*args,**kwargs):
 			value, obj_id, obj_owner_id, is_pht, origin = '', None, None, None, None
 		if value == '2':
 			# show points page
+			topic = request.POST.get("tp",None)# in case a 'topic' parameter was passed also
+			request.session["origin_topic"] = topic
 			if is_ajax:
-				return HttpResponse(json.dumps({'success':True,'message':reverse("show_voting_summary", kwargs={"pk": obj_id, "orig":origin,'pht':is_pht}),\
+				return HttpResponse(json.dumps({'success':True,'message':reverse("show_voting_summary", kwargs={"pk": obj_id,"orig":origin,'pht':is_pht}),\
 					'type':'redirect'}),content_type='application/json',)
 			else:
 				return redirect("show_voting_summary",pk=obj_id,orig=origin,pht=is_pht)
@@ -122,11 +124,12 @@ def cast_vote(request,*args,**kwargs):
 				return redirect('vote_result')
 		else:
 			# it's a vote, carry on
-			if (is_pht == '1' and origin in ('1','2','3')) or (is_pht == '0' and origin == '3'):
+			if (is_pht == '1' and origin in ('1','2','3','22')) or (is_pht == '0' and origin in ('3','22')):
 				# voted on a photo and from a photo origin OR voted on a textual link and from a textual origin
-				# 1 is fresh photos, 2 is best photos, 3 is home photos
-				# 3 is home links
-				pass
+				# 1 is fresh photos, 2 is best photos, 3 is home photos, 22 is a certain topic
+				# 3 is also home links
+				topic = request.POST.get("tp",None)# in case a 'topic' parameter was passed also
+				request.session["origin_topic"] = topic
 			else:
 				# disallow all other patterns
 				request.session["vote_result"] = '11'
@@ -180,10 +183,11 @@ def cast_vote(request,*args,**kwargs):
 							#legit vote - proceed
 							already_voted = voted_for_single_photo(obj_id, own_id) if is_pht == '1' else voted_for_link(obj_id,own_id)
 							if already_voted is False:
+								# never voted before
 								disallowed = False
 								revert_old = None
 							else:
-								# has already voted - thus, reverting the vote
+								# has voted before - possible reversion if conditions are met
 								disallowed = True
 								revert_old = False
 								if (value == '0' and already_voted > 0.0) or (value == '1' and already_voted <= 0.0):
@@ -212,7 +216,8 @@ def cast_vote(request,*args,**kwargs):
 									time_remaining, can_vote = can_vote_on_obj(own_id, is_pht)
 								if can_vote:
 									own_name = request.user.username
-									vote_tasks.delay(own_id, target_user_id,obj_id,value,(True if own_name in FEMALES else False),own_name, revert_old,is_pht,time.time())
+									vote_tasks.delay(own_id, target_user_id,obj_id,value,(True if own_name in FEMALES else False),own_name, \
+										revert_old,is_pht,time.time())
 									message = 'old' if revert_old else 'new'#used to do some validation checks on the JS front-end, nothing more
 									if is_ajax:
 										# JS voting
@@ -221,6 +226,7 @@ def cast_vote(request,*args,**kwargs):
 										# non JS voting
 										return return_to_content(request,origin,obj_id,'img:'+obj_id if is_pht=='1' else 'tx:'+obj_id)
 								elif time_remaining:
+									request.session["vote_topic"] = request.POST.get("tp",None)
 									request.session["vote_origin"] = origin
 									request.session["vote_obj_id"] = obj_id
 									request.session["vote_lid"] = 'img:'+obj_id if is_pht=='1' else 'tx:'+obj_id
@@ -293,12 +299,8 @@ def show_voting_summary(request,pk,orig,pht):
 
 	If link data expired, merely shows its total score
 	"""
-	# was_limited = getattr(request, 'limits', False)
-	# if was_limited:
-	#     return redirect("missing_page")
-	# else:
 	if pht is None:
-		return redirect("missing_page")
+		raise Http404("No obj type provided")
 	elif pht == '1':
 		# it's a photo
 		try:
@@ -307,11 +309,11 @@ def show_voting_summary(request,pk,orig,pht):
 			oun = obj.owner.username
 			ooid = obj.owner_id
 		except Photo.DoesNotExist:
-			return redirect("missing_page")
+			raise Http404("Photo object does not exist in our DB")
 		trending_status, time_of_selection = is_obj_trending(prefix='img:', obj_id=pk, with_trending_time=True)
 		lid = None
 		tp = "img"
-		if orig == '3':
+		if orig in ('3','22'):
 			lid = tp+":"+pk
 			request.session["home_hash_id"] = lid
 			request.session.modified = True
@@ -322,19 +324,20 @@ def show_voting_summary(request,pk,orig,pht):
 			oun = obj.submitter.username
 			ooid = obj.submitter_id
 		except Link.DoesNotExist:
-			return redirect("missing_page")
+			raise Http404("Text object does not exist in our DB")
 		# trending_status, time_of_selection = is_obj_trending(prefix='img:', obj_id=pk, with_trending_time=True)# not needed yet
 		trending_status, time_of_selection = False, None
 		purl = None #not applicable, it's not a photo object
 		lid = None
 		tp = "tx"
-		if orig == '3':
+		if orig in ('3','22'):
 			lid = tp+":"+pk
 			request.session["home_hash_id"] = lid
 			request.session.modified = True
 	else:
 		# not a link neither a photo
 		return redirect("home")
+	topic = request.session.pop("origin_topic",'')
 	own_id = request.user.id
 	defender, voter_id_names_status_and_votes = False, []
 	is_pinkstar = True if oun in FEMALES else False
@@ -356,7 +359,7 @@ def show_voting_summary(request,pk,orig,pht):
 		'obj_id':pk,'pht':pht,'is_pinkstar':is_pinkstar,'defender':defender,'voter_id_names_status_and_votes':voter_id_names_status_and_votes,\
 		'tp':tp,'first_time_voting_judger':tutorial_unseen(user_id=own_id, which_tut='12', renew_lease=True) if exists else False, 'ooid':ooid,\
 		'oun':oun,'purl':purl,'lid':lid, 'show_banning_prompt':show_banning_prompt,'orig':orig,'own_id':str(own_id),'is_trending':trending_status,\
-		'time_of_trending':time_of_selection})
+		'time_of_trending':time_of_selection,'origin_topic':topic})
 
 
 def show_handpicked_count(request):

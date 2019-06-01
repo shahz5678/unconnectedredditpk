@@ -1896,7 +1896,10 @@ def render_personal_group_invite(request):
 	"""
 	if request.method == "POST":
 		own_id, target_id = request.user.id, request.POST.get('tid',None)
-		parent_object_id, object_type, origin = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None)
+		parent_object_id, object_type, origin, topic = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None),\
+		request.POST.get('tp','')
+		if topic:
+			request.session["origin_topic"] = topic
 		if str(own_id) == target_id:
 			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
 				'lid':request.POST.get('hh',None)})

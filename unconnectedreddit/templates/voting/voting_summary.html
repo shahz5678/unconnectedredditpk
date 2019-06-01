@@ -2,7 +2,7 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Points summary | Damadam.pk</title></head>
+<head><title>Points summary | Damadam</title></head>
 <style>body{background: #f0f3f4}</style>
 
 {% if defender %}
@@ -12,28 +12,34 @@
 <h1 class="cxl clb lsp" style="text-align:center">Points summary:</h1>
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 8px;max-width:450px;width:97%;text-align:center;margin-left:auto;margin-right:auto">
 
-{% if pht == '1' %}
+<div class="mbs">
+	{% if pht == '1' %}
 
-	{% if orig == '1' %}
-		<a href="{% url 'redirect_to_photo' 'fresh-list' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
-	{% elif orig == '2' %}
-		<a href="{% url 'redirect_to_photo' 'best-list' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
-	{% elif orig == '3' %}
-		<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
-	{% elif orig == '4' %}
-		<a href="{% url 'user_profile_photo' obj.owner obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
-	{% elif orig == '5' %}
-		<a href="{% url 'photo_detail' obj_id %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
+		{% if orig == '1' %}
+			<a href="{% url 'redirect_to_photo' 'fresh-list' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '2' %}
+			<a href="{% url 'redirect_to_photo' 'best-list' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '3' %}
+			<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '4' %}
+			<a href="{% url 'user_profile_photo' obj.owner obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '5' %}
+			<a href="{% url 'photo_detail' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '22' %}
+			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% else %}
+		{% endif %}
+	wapis</a>
 	{% else %}
+		{% if orig == '3' %}
+			<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '8' %}
+			<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '22' %}
+			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% endif %}wapis</a>
 	{% endif %}
-wapis</a><br>
-{% else %}
-	{% if orig == '3' %}
-		<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
-	{% elif orig == '8' %}
-		<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted gray" class="cgy cs sp">
-	{% endif %}wapis</a><br>
-{% endif %}
+</div>
 	
 	{% if defender and voter_id_names_status_and_votes %}
 		
@@ -83,8 +89,8 @@ wapis</a><br>
 				
 					<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
 					<hr size=1 COLOR="#e5e7e9">
-					<div style="color:limegreen" class="mts"><img src="{{ STATIC_URL }}img/jhappi_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ uv }}</div>
-					<div style="color:tomato" class="mt"><img src="{{ STATIC_URL }}img/chupair_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ dv }}</div>
+					<div style="color:#20cbab" class="mts"><img src="{{ STATIC_URL }}img/up.svg" width="20" height="20" style="vertical-align:sub"> x {{ uv }}</div>
+					<div style="color:tomato" class="mts"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"> x {{ dv }}</div>
 					<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
 
 				</div>
@@ -104,8 +110,8 @@ wapis</a><br>
 			
 				<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
 				<hr size=1 COLOR="#e5e7e9">
-				<div style="color:limegreen" class="mts"><img src="{{ STATIC_URL }}img/jhappi_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ uv }}</div>
-				<div style="color:tomato" class="mt"><img src="{{ STATIC_URL }}img/chupair_emoji.png" width="23" height="23" style="vertical-align:sub"> x {{ dv }}</div>
+				<div style="color:#20cbab" class="mts"><img src="{{ STATIC_URL }}img/up.svg" width="20" height="20" style="vertical-align:sub"> x {{ uv }}</div>
+				<div style="color:tomato" class="mts"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"> x {{ dv }}</div>
 				<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
 
 			</div>

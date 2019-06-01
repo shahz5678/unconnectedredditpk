@@ -14,6 +14,7 @@ from django.middleware import csrf
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from cricket_score import cricket_scr
+from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE,\
 PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, CRICKET_SUPPORT_STARTING_POINT, \
@@ -79,7 +80,8 @@ cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
-is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age, set_user_choice #, log_erroneous_passwords
+is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age, set_user_choice, \
+log_text_submissions #, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, bulk_is_fan,\
@@ -1076,9 +1078,10 @@ def home_reply(request,pk=None,*args,**kwargs):
 		user_id = request.user.id
 		ipp = ITEMS_PER_PAGE#MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
 		sort_by_best = False#True if request.POST.get("sort_by",None) == 'best' else False
-		origin = '3'
+		origin = '3'# pre-setting origin to '3' (to handle the GET request scenario)
 		notif = "tx:"+pk# appending tx: to pk to match object names in homefeed
 		if request.method == 'POST':
+			origin = request.POST.get("origin",'3')
 			banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
 			if banned:
 				# Cannot submit home_reply if banned
@@ -1086,6 +1089,9 @@ def home_reply(request,pk=None,*args,**kwargs):
 					'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':origin,'obid':pk,'lid':notif})
 			else:
 				link_writer_id = request.POST.get("lwpk",None)
+				topic = request.POST.get("tp",None)
+				if topic:
+					request.session["origin_topic"] = topic
 				banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
 				if banned_by:
 					request.session["banned_by"] = banned_by
@@ -1112,17 +1118,21 @@ def home_reply(request,pk=None,*args,**kwargs):
 						elif target == ';':
 							remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(pk), user_id=user_id)
 							return render(request,"object_deleted.html",{})
-						#elif tutorial_unseen(user_id=user_id, which_tut='5', renew_lease=True):#REMOVED - unnecessary tutorial
-						#    return render(request,'home_reply_tutorial.html', {'target':target,'own_self':request.user.username})
 						else:
-							return redirect("redirect_to_home")
+							return return_to_content(request,origin,pk,notif)
 					else:
+						#redirecting to error display position on the page
 						error_string = form.errors.as_text().split("*")[2]
-						request.session['home_direct_reply_error_string'] = error_string
-						return redirect(reverse_lazy("home")+'?page=1#error')#redirecting to special error section
+						if origin == '3':
+							request.session['home_direct_reply_error_string'] = error_string
+							url = reverse_lazy("home")+'?page=1#error'
+						else:
+							request.session['topic_direct_reply_error_string'] = error_string
+							url = reverse_lazy("topic_page",args=[topic])+'?page=1#error'
+						return redirect(url)
 		else:
 			request.session['home_hash_id'] = notif
-			return redirect("redirect_to_home")
+			return return_to_content(request,origin,pk,notif)
 
 
 def home_list(request, items_per_page, lang=None, notif=None, sort_by_best=None):
@@ -1326,7 +1336,7 @@ def home_page(request, lang=None):
 	num_pages = list_total_size/ITEMS_PER_PAGE
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
-	list_of_dictionaries = retrieve_obj_feed(obj_list)
+	list_of_dictionaries = retrieve_obj_feed(obj_list, with_colors=True)
 	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 	#######################
 	replyforms = {}
@@ -4658,7 +4668,7 @@ def public_reply_view(request,*args,**kwargs):
 		if link_id:
 			# link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
 			try:
-				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','cagtegory').get(id=link_id)
+				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','url','cagtegory').get(id=link_id)
 				link['machine_time'] = link['submitted_on']
 				link['submitted_on'] = naturaltime(link['submitted_on'])
 			except Link.DoesNotExist:
@@ -4675,12 +4685,17 @@ def public_reply_view(request,*args,**kwargs):
 			context["mob_verified"] = True if request.mobile_verified else False
 			context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 			context["user_id"] = user_id
+			if link['url']:
+				payload = link['url'].split(":")
+				theme, context['topic_name'], context['topic_url'] = payload[0], payload[1], payload[2]
+				color_grads = COLOR_GRADIENTS[theme]
+				context["c1"], context["c2"] = color_grads[0], color_grads[1]
 			parent_submitter_id = link['submitter']
 			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
 			context["parent_submitter_id"] = parent_submitter_id
 			context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
 			context["parent_av_url"] = parent_avurl
-			parent_submitter_id = link['net_votes']
+			context["vote_score"] = link['net_votes']
 			context["parent"] = link #the parent link
 			context["parent_submitter_username"] = parent_uname
 			context["is_parent_pinkstar"] = parent_uname in FEMALES
@@ -4790,9 +4805,11 @@ class UserActivityView(ListView):
 			target_id = retrieve_user_id(username)
 			if target_id:
 				if target_id == str(self.request.user.id):
-					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','cagtegory').filter(submitter_id=target_id).order_by('-id')[:200]
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','url','cagtegory').\
+					filter(submitter_id=target_id).order_by('-id')[:200]
 				else:
-					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','cagtegory').filter(submitter_id=target_id).order_by('-id')[:60]
+					data = Link.objects.values('id','description','submitted_on','net_votes','reply_count','url','cagtegory').\
+					filter(submitter_id=target_id).order_by('-id')[:60]
 				return data
 			else:
 				raise Http404("This user does not exist")
@@ -4807,6 +4824,15 @@ class UserActivityView(ListView):
 		for obj in context["object_list"]:
 			obj['machine_time'] = obj['submitted_on']
 			obj['submitted_on'] = naturaltime(obj['submitted_on'])
+			if obj['url']:
+				payload = obj['url'].split(":")
+				try:
+					theme, obj['topic_name'], obj['url'] = payload[0], payload[1], payload[2]
+					color_grads = COLOR_GRADIENTS[theme]
+					obj['c1'], obj['c2'] = color_grads[0], color_grads[1]
+				except:
+					obj['topic_name'], obj['url'] = '', ''
+					obj['c1'], obj['c2'] = '', ''
 		if target_id:
 			context["verified"] = True if username in FEMALES else False
 			context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
@@ -5056,6 +5082,7 @@ class LinkCreateView(CreateView):
 					alignment = form.cleaned_data['alignment']
 					f.cagtegory = alignment
 					f.save()
+					log_text_submissions('text')
 					add_text_post(obj_id=f.id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
 						submitter_score=f.submitter.userprofile.score, is_pinkstar=(True if user.username in FEMALES else False),submission_time=time_now,\
 						text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=True)
@@ -5419,7 +5446,6 @@ def unfan(request):
 
 
 @csrf_protect
-#@ratelimit(rate='7/s')
 def fan(request,*args,**kwargs):
 	"""
 	Responsible for processing fanning and unfanning request
@@ -5429,8 +5455,11 @@ def fan(request,*args,**kwargs):
 	elif request.method == "POST":
 		user_id = request.user.id
 		origin, object_id, star_id, home_hash = request.POST.get("org",None), request.POST.get("oid",None), request.POST.get("sid_btn",None), None
-		if origin == '3':
+		if origin in ('3','22'):
 			home_hash = request.POST.get("hh",None)# this is home_hash (e.g. tx:1231 or img:4353), in case user originated from 'home'. Helps in accurate redirection
+			topic = request.POST.get('tp','')
+			if topic:
+				request.session['origin_topic'] = topic
 		if int(user_id) == int(star_id):
 			raise Http404("You cannot fan your own self")
 		else:
@@ -5446,8 +5475,7 @@ def fan(request,*args,**kwargs):
 				else:
 					#if not shown tutorial of what 'fan' is, show tutorial
 					if tutorial_unseen(user_id=user_id, which_tut='13', renew_lease=True):
-						context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username,\
-						'home_hash':home_hash}
+						context = {'star_id': star_id,'obj_id':object_id,'origin':origin,'name':star_username,'home_hash':home_hash}
 						return render(request, 'fan_tutorial.html', context)
 					else:
 						banned_by, ban_time = is_already_banned(own_id=user_id,target_id=star_id, return_banner=True)
@@ -5467,9 +5495,9 @@ def fan(request,*args,**kwargs):
 						else:
 							UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
 							add_to_photo_owner_activity(star_id, user_id, new=True)
-			return return_to_content(request,origin,object_id,home_hash,star_username)#PUT 'tx:<link_id>' IN 'NONE'
+			return return_to_content(request,origin,object_id,home_hash,star_username)
 	else:
-		raise Http404("Not a POST request")
+		raise Http404("Fanning or unfanning doesn't work with GET requests")
 
 
 # class SalatTutorialView(FormView):

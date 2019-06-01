@@ -31,7 +31,7 @@ POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, p
 
 # 6,000,000,000 is most important priority wise
 #PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
-PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':5000000000,'photo_tabsra':5000000000,'public_mehfil':4000000000,'photo_fan':5000000000,'namaz_invite':1000000000}
+PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':5000000000,'photo_tabsra':5000000000,'public_mehfil':5000000000,'photo_fan':5000000000,'namaz_invite':1000000000}
 # Weightage of 'seen' status, used to find notification count for each user
 SEEN={True:2000000000,False:4000000000}
 

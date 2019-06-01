@@ -117,25 +117,6 @@
       <hr size=1 COLOR="#f4f4f4">
       <b class="cm sp lsp" style="color:darkgray">Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' username %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">fotos</button></a>
       <hr size=1 COLOR="#f4f4f4">
-      <img src="{{ STATIC_URL }}img/diamond.svg" width="25" height="25" style="vertical-align:sub"><b class="cm sp lsp" style="color:darkgray">:</b>&nbsp;<span class="cl sp" style="font-weight:bold;color:darkgray">{{ diamonds }}</span><span class="cgy cs sp">&nbsp;(coming soon)</span>
-      <hr size=1 COLOR="#f4f4f4">
-      <b class="cm sp lsp" style="color:darkgray">Foto score:</b>&nbsp;<span class="sp cl" style="color:#1cca99"><b>{{ object.userprofile.media_score }}</b>
-      </span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
-      <hr size=1 COLOR="#f4f4f4">
-
-		<b class="cm sp lsp" style="color:darkgray">Chat score:</b>
-		<span class="cm sp lsp">
-		{% if object.userprofile.score %}
-			{% if object.userprofile.score < 0 %}
-				<b style="color:#1cca99">1</b>
-			{% else %}
-				<b style="color:#1cca99">{{ object.userprofile.score }}</b>
-			{% endif %}
-		{% else %}
-			<b style="color:#1cca99">1</b>
-		{% endif %}
-		</span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
-		<hr size=1 COLOR="#f4f4f4">
 		<b class="cm sp lsp" style="color:darkgray">Blocked users:</b>
 		<a href="{% url 'banned_users_list' %}#section0" class="cs">
 		<button class="btn" style="background-color:tomato;padding:2px 5px;height:22px">{{ blocked }}</button>
@@ -155,24 +136,6 @@
 	      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn mrl" style="height:22px;background-color:#1edea8;padding:2px 5px">{{ recent_fans }}</button></a>
 	      <hr size=1 COLOR="#f4f4f4">
 	      <b class="cm sp lsp" style="color:darkgray">Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' username %}"><button type="submit" class="btn nw sp bm" style="background-color:#1edea8;padding:2px 0px;height:22px">fotos</button></a>
-	      <hr size=1 COLOR="#f4f4f4">
-	      <b class="cm sp lsp" style="color:darkgray">Foto score:</b>&nbsp;<span class="sp cl" style="color:#1cca99"><b>{{ object.userprofile.media_score }}</b>
-	      </span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
-	      <hr size=1 COLOR="#f4f4f4">
-
-			<b class="cm sp lsp" style="color:darkgray">Chat score:</b>
-			<span class="cl sp lsp">
-			{% if object.userprofile.score %}
-				{% if object.userprofile.score < 0 %}
-					<b style="color:#1cca99">1</b>
-				{% else %}
-					<b style="color:#1cca99">{{ object.userprofile.score }}</b>
-				{% endif %}
-			{% else %}
-				<b style="color:#1cca99">1</b>
-			{% endif %}
-			</span>&nbsp;<a href="{% url 'score_help' %}#section0" target="_blank" class="cb cs sp" style="border-bottom:1px dotted dodgerblue">what is this?</a><br>
-
 		</div>
 
   {% endif %}

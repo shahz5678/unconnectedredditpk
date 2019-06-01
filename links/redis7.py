@@ -6,13 +6,15 @@ import ujson as json
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
-UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING
+UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
+TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from location import REDLOC7
 from redis3 import retrieve_user_world_age, exact_date
 from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
 from models import Photo
+from colors import COLOR_GRADIENTS
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
@@ -196,7 +198,7 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 
 def update_comment_in_home_link(reply,writer,is_pinkstar,time,writer_id,link_pk):
 	"""
-	Appends publicreply in home_replies_section
+	Appends publicreply in home_replies_section displayed alongwith each 'text' post on 'home'
 	"""
 	hash_name = "tx:"+str(link_pk) #lk is 'link'
 	my_server = redis.Redis(connection_pool=POOL)
@@ -248,9 +250,9 @@ def retrieve_home_feed_index(obj_hash):
 	return redis.Redis(connection_pool=POOL).zrevrank(HOME_SORTED_FEED,obj_hash)
 
 
-def unpack_json_blob(hash_list):
+def unpack_json_blob(hash_list, with_colors=False):
 	"""
-	Iterates through rovided list of dictionaries and unpacks a json value called 'blob'
+	Iterates through provided list of dictionaries and unpacks a json value called 'blob'
 
 	Used by retrieve_obj_feed() and retrieve_topic_feed_data()
 	"""
@@ -262,10 +264,16 @@ def unpack_json_blob(hash_list):
 				unpacked_values = json_backup.loads(hash_data['blob'])
 			hash_data.update(unpacked_values)
 			del hash_data['blob']
+	if with_colors:
+		for hash_data in hash_list:
+			theme = hash_data.get('th',None)
+			if theme:
+				colors = COLOR_GRADIENTS[theme]
+				hash_data['c1'], hash_data['c2'] = colors[0], colors[1] 
 	return hash_list
 
 
-def retrieve_obj_feed(obj_list):
+def retrieve_obj_feed(obj_list, with_colors=False):
 	"""
 	Retrieves details to show in home, top and fresh photos (full-fledged list of dictionaries)
 
@@ -274,7 +282,7 @@ def retrieve_obj_feed(obj_list):
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for hash_name in obj_list:
 		pipeline1.hgetall(hash_name)
-	return unpack_json_blob(filter(None, pipeline1.execute()))
+	return unpack_json_blob(filter(None, pipeline1.execute()),with_colors=with_colors)
 
 
 def retrieve_obj_scores(obj_list, with_downvotes=False):
@@ -852,6 +860,351 @@ def rate_limit_fbs_public_photo_uploaders(user_id):
 	Rate limiting fbs public photo uploaders
 	"""
 	redis.Redis(connection_pool=POOL).setex(FBS_PUBLIC_PHOTO_UPLOAD_RATE_LIMIT+str(user_id),'1',FBS_PUBLIC_PHOTO_UPLOAD_RL)
+
+
+#########################################################################################################
+########################################## Topic Functionality ##########################################
+######################################################################################################### 
+
+TOPIC_ID = 'topic_id'# key that produces the unique ID for a given topic
+TOPIC_ID_MAPPING = 'tm:'# key that maps a topic to its ID
+ALL_CURRENT_TOPICS = 'all_current_topics'# list containing all topics, sorted by time of visit (or last touch). Deleted topics are removed from this list
+ALL_TOPICS_CREATED = 'all_topics_created'# list containing all topics, sorted by time of creation. Deleted topics are removed from this list
+TOPIC_TOUCH_LOCKED = 'ttl:'# a key that locks 'touching' the topic's ttl again (e.g. because of serial refreshing)
+
+SUB_TOPICS = 'st:'# sorted set containing all topics a user is subscribed to (topic_urls and times of sub)
+TOPIC_SUBS = 'ts:'# sorted set containing all topic subscribers (IDs and times of sub)
+TOPIC_UNSUB_LOCKED = 'tul:'# key that locks <user_id>:<topic_url> composite data from unsubscribing too fast
+TOPIC_FEED = 'tf:'# a sorted set containing all the posts 'within' a certain topic
+USER_FEED = 'uf:'# a sorted set containing all posts a certain user has subcribed to
+TOPIC_JSON_OBJ = 'tj:'# a key containing details of a topic (description, time of creation, who owns it, etc) in JSON form
+ONLY_TOPICS_FEED = 'only_topics_feed'
+
+
+def get_topic_feed_id(my_server=None):
+	"""
+	Generate a topic ID for every topic
+
+	Currently it's just a passive number, but might be actively useful later
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	return my_server.incr(TOPIC_ID)
+
+
+def create_topic_feed(topic_owner_id, payload, time_now):
+	"""
+	Create a new topic
+
+	Ensure that it doesn't already exist
+	"""
+	topic_url = payload['url']# i.e. topic in 'this-is-a-topic' form, which is suitable for urls
+	my_server = redis.Redis(connection_pool=POOL)
+	if retrieve_topic_credentials(topic_url, my_server=my_server, existence_only=True):
+		# topic already exists, cannot re-create it
+		return False
+	else:
+		# create the topic here
+		topic_json_obj = TOPIC_JSON_OBJ+topic_url
+		topic_id_mapping_key = TOPIC_ID_MAPPING+topic_url
+		new_topic_feed_id = get_topic_feed_id(my_server)
+		payload['tpid'] = new_topic_feed_id
+		#################################################
+		pipeline1 = my_server.pipeline()
+		pipeline1.set(topic_json_obj,json.dumps(payload))# a key that contains the details of the topic (in json obj form)
+		pipeline1.set(topic_id_mapping_key,new_topic_feed_id)# a key that contains a mapping of topic name and its ID
+		pipeline1.zadd(ALL_CURRENT_TOPICS,topic_url,time_now)#sorted by time of last visit to the topic
+		pipeline1.zadd(ALL_TOPICS_CREATED,topic_url,time_now)#sorted by time of creation
+		pipeline1.execute()
+		return True
+
+
+def subscribe_topic(subscriber_id, topic_url, sub_time):
+	"""
+	Subscribe a particular user to a topic
+
+	Lock them from unsubscribing for 2 hours (i.e. TOPIC_UNSUB_LOCKING_TIME)
+	"""
+	subscriber_id = str(subscriber_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	#####################################################
+	my_server.zadd(SUB_TOPICS+subscriber_id,topic_url, sub_time)
+	my_server.zadd(TOPIC_SUBS+topic_url, subscriber_id, sub_time)# could be useful in generating a 'topic feed' for subscribers
+	#####################################################
+	my_server.setex(TOPIC_UNSUB_LOCKED+subscriber_id+":"+topic_url, sub_time, TOPIC_UNSUB_LOCKING_TIME)
+
+
+
+def fan_out_to_subscribers(topic_url, obj_hash_id):
+	"""
+	TODO: Unused at the moment. This can go live as a second step of introducing 'topics'
+
+	Implementation details: 
+	whenever add_topic_post() is run, this function can be run as an async task to populate subscriber feeds
+	How will USER_FEEDs be trimmed or kept to a humane size? This is critical to answer
+	What to do with users who haven't touched their topic feed in a long time (e.g. dropped out or don't care about the feature)
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	all_subscribers = my_server.zrange(TOPIC_SUBS+topic_url,0,-1)
+	if len(all_subscribers) < 10:# TODO: should this number be 10 or 20 or what? Find out via testing in test_script.py (both own machine and Fahad's machine for comparison of speeds)
+		for subscriber_id in all_subscribers:
+			my_server.zadd(USER_FEED+subscriber_id,obj_hash_id)
+	else:
+		pipeline1 = my_server.pipeline()
+		for subscriber_id in all_subscribers:
+			pipeline1.zadd(USER_FEED+subscriber_id,obj_hash_id)
+		pipeline1.execute()
+
+
+def unsubscribe_topic(subscriber_id, topic_url, my_server=None):
+	"""
+	Unsubscribe a user from a topic
+	"""
+	subscriber_id = str(subscriber_id)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	ttl = my_server.ttl(TOPIC_UNSUB_LOCKED+subscriber_id+":"+topic_url)
+	if ttl:
+		return False, ttl
+	else:
+		my_server.zrem(SUB_TOPICS+subscriber_id,topic_url)
+		my_server.zrem(TOPIC_SUBS+topic_url,subscriber_id)
+		# not removing already pushed data in USER_FEED, it's cumbersome to do that
+		return True, None
+
+
+def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, submitter_username, is_pinkstar,text, submission_time, \
+	from_fbs, topic_url, topic_name, bg_theme, add_to_public_feed=False):
+	"""
+	Creating and submitting text object (used in topic feed and public feed)
+	"""
+	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
+	my_server = redis.Redis(connection_pool=POOL)
+	immutable_data = {'i':obj_id,'c':categ,'si':submitter_id,'sa':submitter_av_url,'su':submitter_username,'t':submission_time,\
+	'd':text,'h':obj_hash,'url':topic_url, 'th':bg_theme, 'tn':topic_name}
+	if from_fbs:
+		immutable_data['fbs']='1'
+	if is_pinkstar:
+		immutable_data['p']='1'
+	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
+	time_now = time.time()
+	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
+	pipeline1 = my_server.pipeline()
+	pipeline1.hmset(obj_hash,mapping)# creating the obj hash
+	pipeline1.expireat(obj_hash,expire_at)# setting a TTL of one week on this obj hash
+	######## initialize voting sorted set ########
+	pipeline1.zadd(VOTE_ON_TXT+obj_id,-1,-1)
+	pipeline1.expireat(VOTE_ON_TXT+obj_id,expire_at)#setting a TTL of one week on this obj
+	##############################################
+	pipeline1.execute()
+	######## incrementing counts in topic obj ########
+	topic_hash_obj = TOPIC_JSON_OBJ+topic_url
+	topic_obj = json.loads(my_server.get(topic_hash_obj))
+	topic_obj['num'] = topic_obj['num']+1# num posts submitted
+	topic_obj['lpt'] = time_now# latest post time
+	my_server.set(topic_hash_obj,json.dumps(topic_obj))
+	##################################################
+	add_obj_to_feeds(submitter_id, topic_url, obj_hash, time_now, my_server, add_to_public_feed)
+
+
+def add_obj_to_feeds(submitter_id, topic_url, obj_hash_name, time_now, my_server=None, add_to_public_feed=False):
+	"""
+	Adding the submitted object to the various feeds (including the topic feed)
+	"""
+	topic_key = TOPIC_FEED+topic_url
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	pipeline1.zadd(topic_key, obj_hash_name, time_now)# adding the submission to the topic's feed
+	pipeline1.zadd(ONLY_TOPICS_FEED, obj_hash_name, time_now)# add the submission to the ONLY_TOPICS_FEED sorted set
+	if add_to_public_feed:
+		pipeline1.zadd(HOME_SORTED_FEED, obj_hash_name, time_now)# add the submittion to the HOME_SORTED_FEED sorted set
+		rand = random()
+		if rand < 0.1:
+			# every now and then, trim the HOME sorted set for size
+			pipeline1.zremrangebyrank(HOME_SORTED_FEED, 0, -1001)# to keep latest 1000 in the sorted set
+		elif rand > 0.9:
+			# every now and then, trim the ONLY_TOPICS sorted set for size (but never together with HOME_SORTED_SET)
+			pipeline1.zremrangebyrank(ONLY_TOPICS_FEED, 0, -1001)# to keep latest 1000 in the sorted set
+	pipeline1.execute()
+	log_user_submission(submitter_id=submitter_id, submitted_obj=obj_hash_name, expire_at=int(time_now+TOPIC_SUBMISSION_TTL), \
+		feeds_to_add=[topic_key,ONLY_TOPICS_FEED,HOME_SORTED_FEED], my_server=my_server)# topic_key is TOPIC_FEED+topic
+
+
+def retrieve_topic_feed_index(topic, obj_hash):
+	"""
+	Returns exact index an object is stored at in TOPIC_FEED
+
+	Useful when needing to redirect to precise object after interacting with a post
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrank(TOPIC_FEED+topic,obj_hash)
+
+
+def retrieve_topic_feed_data(obj_list, topic_url):
+	"""
+	Retrieves details to show in topic
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	for hash_name in obj_list:
+		pipeline1.hgetall(hash_name)
+	result1 = pipeline1.execute()
+	return unpack_json_blob(filter(None, result1))
+
+
+def get_topic_feed(topic_url, start_idx, end_idx, with_feed_size=True, touch_topic=False):
+	"""
+	Retrieves topic feed obj hashes
+	"""
+	topic_key = TOPIC_FEED+topic_url
+	if with_feed_size:
+		my_server = redis.Redis(connection_pool=POOL)
+		if touch_topic:
+			topic_touch_ttl_key = TOPIC_TOUCH_LOCKED+topic_url
+			if not my_server.exists(topic_touch_ttl_key):
+				my_server.zadd(ALL_CURRENT_TOPICS,topic_url,time.time())#only the topic url is stored here, not the prefix. Never store prefixes, they can change!
+				my_server.setex(topic_touch_ttl_key,'1',THREE_HOURS)
+		return my_server.zrevrange(topic_key, start_idx, end_idx), my_server.zcard(topic_key)
+	else:
+		if touch_topic:
+			topic_touch_ttl_key = TOPIC_TOUCH_LOCKED+topic_url
+			if not my_server.exists(topic_touch_ttl_key):
+				my_server.zadd(ALL_CURRENT_TOPICS,topic_url,time.time())#only the topic url is stored here, not the prefix. Never store prefixes, they can change!
+				my_server.setex(topic_touch_ttl_key,'1',THREE_HOURS)
+		return redis.Redis(connection_pool=POOL).zrevrange(topic_key, start_idx, end_idx)
+
+
+def retrieve_recently_used_color_themes():
+	"""
+	Retrieves list of topics most recently appearing in ONLY_TOPICS_FEED, and then extracts the color themes they used (alongwith frequency of use)
+
+	Useful for deciding what's the next color theme to allot
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	recent_topic_enteries = redis.Redis(connection_pool=POOL).zrange(ONLY_TOPICS_FEED,0,200)
+	if recent_topic_enteries:
+		pipeline1 = my_server.pipeline()
+		for obj_hash in recent_topic_enteries:
+			pipeline1.hget(obj_hash,'blob')
+		result1 = pipeline1.execute()
+		final_result_dict = defaultdict(int)
+		for obj in result1:
+			if obj: 
+				try:
+					data = json.loads(obj)
+				except:
+					data = json_backup.loads(obj)
+				theme = data.get('th',None)
+				if theme:
+					final_result_dict[theme] += 1
+		final_result_list = final_result_dict.items()
+		return final_result_list# list of tuples [(topic_theme, frequency of occurence),...]
+	else:
+		return []
+
+
+def retrieve_topic_credentials(topic_url, my_server=None, existence_only=False, with_desc=False, with_name=False, \
+	with_theme=False, with_is_subscribed=False, retriever_id=None):
+	"""
+	Used to retrieve selective credentials about a given topic
+	"""
+	if existence_only:
+		return redis.Redis(connection_pool=POOL).exists(TOPIC_JSON_OBJ+topic_url)
+	else:
+		my_server = redis.Redis(connection_pool=POOL)
+		json_blob = my_server.get(TOPIC_JSON_OBJ+topic_url)
+		try:
+			blob = json.loads(json_blob) if json_blob else None
+		except:
+			blob = json_backup.loads(json_blob) if json_blob else None
+		if with_desc and with_name and with_theme and with_is_subscribed:
+			if blob:
+				desc, topic_name, theme = blob['d'], blob['tn'], blob['th']
+				is_subscribed = my_server.zscore(TOPIC_SUBS+topic_url, retriever_id)
+				return desc, topic_name, theme, is_subscribed
+			else:
+				return '', '', '', False
+		elif with_name and with_theme and with_is_subscribed:
+			if blob:
+				topic_name, theme = blob['tn'], blob['th']
+				is_subscribed = my_server.zscore(TOPIC_SUBS+topic_url, retriever_id)
+				return topic_name, theme, is_subscribed
+			else:
+				return '', '', False
+		elif with_desc and with_name and with_theme:
+			if blob:
+				topic_name, description, theme = blob['tn'], blob['d'], blob['th']
+				return topic_name, description, theme
+			else:
+				return '', ''
+
+def retire_abandoned_topics(topic_urls=None):
+	"""
+	Retired topics that have not been visited since a given amount of time (currently set to 20 days ago)
+
+	TODO: Called by a scheduled task (e.g. every 24 hours), or by delete_topic()
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if topic_urls:
+		inactive_topics = topic_urls
+	else:
+		cutoff_time = time.time() - TOPIC_LIFELINE
+		inactive_topics = my_server.zrangebyscore(ALL_CURRENT_TOPICS,'-inf','('+str(cutoff_time))
+	if inactive_topics:
+		for topic_url in inactive_topics:
+
+			trim_expired_topic_submissions(topic_url,my_server)# delete all topic submissions
+			my_server.zrem(ALL_CURRENT_TOPICS,topic_url)# remove topic from this sorted set
+			my_server.zrem(ALL_TOPICS_CREATED,topic_url)# remove topic from this sorted set
+			# removing topic's JSON object
+			# my_server.delete(TOPIC_JSON_OBJ+topic_url)
+			my_server.execute_command('UNLINK', TOPIC_JSON_OBJ+topic_url)# using 'UNLINK' (non-blocking) instead of 'DELETE' (blocking)
+			all_subs = my_server.zrange(TOPIC_SUBS+topic_url,0,-1)
+			pipeline1 = my_server.pipeline()
+			for sub_id in all_subs:
+				pipeline1.zrem(SUB_TOPICS+sub_id,topic_url)
+			pipeline1.execute()
+			# removing all topic subscribers' list
+			# my_server.delete(TOPIC_SUBS+topic_url)
+			my_server.execute_command('UNLINK', TOPIC_SUBS+topic_url)
+			# remove topic ID and topic_url mapping key
+			# my_server.delete(TOPIC_ID_MAPPING+topic_url)
+			my_server.execute_command('UNLINK', TOPIC_ID_MAPPING+topic_url)
+
+
+def trim_expired_topic_submissions(topic_url, my_server=None):
+	"""
+	Deletes all topic submissions and their references in various feeds (i.e. topic feed, home feed, all_topics feed, etc.)
+
+	Helper function of retire_abandoned_topics()
+	"""
+	topic_feed_key = TOPIC_FEED+topic_url
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	all_topic_submissions = my_server.zrange(topic_feed_key,0,-1)
+	###### checking which submissions exist ######
+	pipeline1 = my_server.pipeline()
+	for sub in all_topic_submissions:
+		pipeline1.exists(sub)
+	result1, counter = pipeline1.execute(), 0
+	######## commencing deletion of topic ########
+	pipeline2 = my_server.pipeline()
+	composite_keys_to_delete = []
+	for sub in all_topic_submissions:
+		composite_obj_1, composite_obj_2, composite_obj_3 = topic_feed_key+"*"+sub, ONLY_TOPICS_FEED+"*"+sub,\
+		HOME_SORTED_FEED+"*"+sub
+		composite_keys_to_delete.append(composite_obj_1)
+		composite_keys_to_delete.append(composite_obj_2)
+		composite_keys_to_delete.append(composite_obj_3)
+		pipeline2.zrem(HOME_SORTED_FEED,sub)## removing the obj from HOME_SORTED_FEED
+		pipeline2.zrem(ONLY_TOPICS_FEED,sub)## removing the obj from ONLY_TOPICS_FEED
+		if result1[counter]:
+			# pipeline2.delete(sub)# deleting the obj (if it exists)
+			pipeline2.execute_command('UNLINK', sub)# using 'UNLINK' (non-blocking) instead of 'DELETE' (blocking)
+		counter += 1
+	# pipeline2.delete(topic_feed_key)
+	pipeline2.execute_command('UNLINK', topic_feed_key)## deleting the topic feed
+	if composite_keys_to_delete:
+		# clearing out global user submission sets
+		pipeline2.zrem(USER_SUBMISSIONS_AND_EXPIRES,*composite_keys_to_delete)
+		pipeline2.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*composite_keys_to_delete)
+	pipeline2.execute()
 
 
 ######################################### Logging User Submissions ####################################

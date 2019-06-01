@@ -2430,3 +2430,23 @@ def log_vote_disc(vote_type='regular',item_type='text', downvote=False):
 			else:
 				my_server.zincrby('upvoting_logger',DISCOUNTED_PHOTO_VOTES,amount=1)
 
+
+
+######################################### text post vs topic logging ############################################
+REGULAR_TEXT_POSTS = 'rtpost'# sorted set containing latest 1 week worth of 404 errors
+TOPIC_TEXT_POSTS = 'ttpost'
+
+
+def log_text_submissions(item_type='text'):
+	"""
+	Logs the number of submisions in topic vs number of submissions of regular text posts
+
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	
+	if item_type=='text':
+		my_server.zincrby('post_submission_logger',REGULAR_TEXT_POSTS,amount=1)
+	else:   
+		my_server.zincrby('post_submission_logger',TOPIC_TEXT_POSTS,amount=1)
+
+

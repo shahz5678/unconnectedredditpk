@@ -22,8 +22,9 @@
 	<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0;padding:5px 7px 0 7px;">
 		<div class="mts" style="word-break: break-all">
 			{% load get_big_group_button %}
-
+			{% load cache %}
 			{% if on_fbs %}
+				{% cache 60 fbs_online_page own_id %}
 				{% for header, users in online_data %}
 					<a name="section{{ forloop.counter }}"></a>
 					<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{{ header }}</h2>
@@ -43,7 +44,9 @@
 				{% empty %}
 				<div class="mtl cs sp cgy">- list empty hai -</div>
 				{% endfor %}
+				{% endcache %}
 			{% else %}
+				{% cache 60 online_page own_id %}
 				{% for header, users in online_data %}
 					<a name="section{{ forloop.counter }}"></a>
 					<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{% if not forloop.first %}<a class="mrs sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:-1 }}">prev</a>{% endif %}{{ header }}{% if not forloop.last %}<a class="mls sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:1 }}">next</a>{% endif %}</h2>
@@ -63,6 +66,7 @@
 				{% empty %}
 				<div class="mtl cs sp cgy">- list empty hai -</div>
 				{% endfor %}
+				{% endcache %}
 			{% endif %}
 		</div>
 	</ul>

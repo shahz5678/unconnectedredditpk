@@ -43,7 +43,7 @@ from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_pho
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, get_best_home_feed
+study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, get_best_home_feed, retire_abandoned_topics
 from redis8 import set_section_wise_retention, log_segment_action
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
@@ -822,9 +822,28 @@ def log_private_mehfil_session(group_id,user_id):# called every time a private m
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	"""
-	Runs every 11 mins from settings.py
+	Used to find the single "best" foto from the current lot, criteria being an image with positive cumulative vote score, and at least 1 downvote
+
+	Can also push hand-picked objects into trending lists
+	Mislabeled task due to legacy reasons
 	"""
-	pass
+	pushed = push_hand_picked_obj_into_trending()
+	if pushed:
+		# TODO: send this to Facebook fan page
+		pass
+	else:
+		fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
+		best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
+		remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
+		trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
+		if trending_item_hash_name:
+			highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
+			highest_ranked_photo['tos'] = time.time()
+			highest_ranked_photo['rank_scr'] = item_score
+			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
+		# rank_photos()
+
+	
 	# photos = retrieve_obj_feed(get_photo_feed(feed_type='fresh_photos'))
 	# photo_ids_and_times = {}
 	# for photo in photos:
@@ -896,6 +915,14 @@ def rank_home_posts():
 		add_single_trending_object_in_feed(trending_item_hash_name, time.time())
 
 
+@celery_app1.task(name='tasks.set_input_history')
+def set_input_history(section,section_id,text,user_id):
+	"""
+	Keeps check of writing histories to rate limit repeated posting
+	"""
+	log_input_text(section,section_id,text,user_id)
+
+
 @celery_app1.task(name='tasks.set_input_rate_and_history')
 def set_input_rate_and_history(section,section_id,text,user_id,time_now):
 	"""
@@ -943,27 +970,12 @@ def fans():
 @celery_app1.task(name='tasks.salat_info')
 def salat_info():
 	"""
-	Used to find the single "best" foto from the current lot, criteria being an image with positive cumulative vote score, and at least 1 downvote
+	deletes topics that are not getting any traffic
 
-	Can also push hand-picked objects into trending lists
-	Mislabeled task due to legacy reasons
+	Mislabeled due to legacy reasons
 	"""
-	pushed = push_hand_picked_obj_into_trending()
-	if pushed:
-		# TODO: send this to Facebook fan page
-		pass
-	else:
-		fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
-		best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
-		remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
-		trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
-		if trending_item_hash_name:
-			highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-			highest_ranked_photo['tos'] = time.time()
-			highest_ranked_photo['rank_scr'] = item_score
-			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
-		# rank_photos()
-		
+	retire_abandoned_topics()
+
 
 @celery_app1.task(name='tasks.salat_streaks')
 def salat_streaks():

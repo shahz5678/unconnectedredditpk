@@ -123,9 +123,7 @@ def inter_user_ban_not_permitted(request):
 @csrf_protect
 def enter_inter_user_ban(request,*args,**kwargs):
 	"""
-	Responsible for setting the ban on a certain target_id
-
-	Test case: Unban a user and then quickly try to reban them (i.e. testing the REBAN ratelimit)
+	Responsible for setting the ban on a given target_id
 	"""
 	if request.method == "POST":
 		can_unban = request.POST.get("can_unban",None)
@@ -231,9 +229,14 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					obid = request.POST.get("obid",None)
 					tunm = request.POST.get("tunm",None)
 					lid = request.POST.get("lid",None)
+					topic = request.POST.get("topic",None)
+					if topic:
+						request.session['origin_topic'] = topic
+					else:
+						request.session.pop('origin_topic',None)
 					if existing_ttl is None or existing_ttl is False:
 						return render(request,"judgement/inter_user_ban.html",{'target_username':target_username,'to_ban':True,'orig':orig,'lid':lid,\
-							'tunm':tunm,'obid':obid})
+							'tunm':tunm,'obid':obid,'topic':topic})
 					else:
 						if banner_id == str(user_id):
 							return render(request,"judgement/inter_user_ban.html",{'target_username':target_username,'target_user_id':target_user_id,\
@@ -296,7 +299,10 @@ def report_or_block(request):
 	if request.method == "POST":
 		payload = request.POST.get("report",None)
 		if payload:
-			## added extra parameter at the start of the string 'img' or 'txt'.
+			topic = request.POST.get("tp",None)
+			if topic:
+				request.session["origin_topic"] = topic
+			## added extra parameter at the start of the string 'img' or 'txt'. 
 			try:
 				prefix = payload[:2]
 			except (TypeError,NameError):
@@ -309,45 +315,45 @@ def report_or_block(request):
 				report_type = "pf"
 			else:
 				# no 4th type of content
-				return redirect("missing_page")
+				raise Http404("Illegal content type")
 			if report_type == 'pf':
 				# if profile is reported
 				data = payload.split("#",4)
 				target_id, own_id = int(data[2]), request.user.id
 				if target_id == own_id:
 					return render(request,"judgement/report_or_block.html",{'type':report_type, 'allwd':False,'org':data[1],'oun':data[3],\
-						'obid':data[2],'thumb_url':data[4]})
+						'obid':data[2],'thumb_url':data[4],'topic':topic})
 				else:
 					return render(request,"judgement/report_or_block.html",{'type':report_type,'allwd':True,'org':data[1],'oun':data[3],\
-						'ooid':data[2],'thumb_url':data[4],'obid':data[2],'hid':'7f'+hex(target_id)+":a"})
+						'ooid':data[2],'thumb_url':data[4],'obid':data[2],'hid':'7f'+hex(target_id)+":a",'topic':topic})
 			elif report_type == 'tx':
 				# text type report
 				data = payload.split("#",7)
 				target_id, own_id = int(data[4]), request.user.id
 				if target_id == own_id:
 					return render(request,"judgement/report_or_block.html",{'type':report_type, 'allwd':False,'cap':data[7],'oun':data[3],\
-						'org':data[1],'obid':data[2],'lid':data[6]})
+						'org':data[1],'obid':data[2],'lid':data[6],'topic':topic})
 				else:
 					return render(request,"judgement/report_or_block.html",{'type':report_type,'allwd':True,'org':data[1],'lid':data[6],'oun':data[3],\
-						'ooid':data[4],'cap':data[7],'av_url':data[5],'obid':data[2],'hid':'7f'+hex(target_id)+":a"})
+						'ooid':data[4],'cap':data[7],'av_url':data[5],'obid':data[2],'hid':'7f'+hex(target_id)+":a",'topic':topic})
 			elif report_type == 'img':
 				# photo type report
 				data = payload.split("#",7)
 				target_id, own_id = int(data[4]), request.user.id
 				if target_id == own_id:
 					return render(request,"judgement/report_or_block.html",{'type':report_type,'allwd':False,'thumb_url':data[5],'oun':data[3],\
-						'org':data[1],'obid':data[2],'lid':data[6]})
+						'org':data[1],'obid':data[2],'lid':data[6],'topic':topic})
 				else:
-					context = {'type':report_type,'allwd':True,'org':data[1],'lid':data[6],'oun':data[3],'ooid':data[4],\
-					'cap':data[7],'thumb_url':data[5],'obid':data[2],'hid':'7f'+hex(target_id)+":a"}
-					return render(request,"judgement/report_or_block.html",context)
+					return render(request,"judgement/report_or_block.html",{'type':report_type,'allwd':True,'org':data[1],'lid':data[6],'oun':data[3],\
+						'ooid':data[4],'cap':data[7],'thumb_url':data[5],'obid':data[2],'hid':'7f'+hex(target_id)+":a",'topic':topic})
 			else:
 				# no other report type exists within this loop (mehfils aren't part of this reporting loop - they have their own loop - they can be absorbed here for better maintenance)
-				return redirect("missing_page")
+				raise Http404("This report type does not exist")
 		else:
-			return redirect("missing_page")    
+			raise Http404("Report payload does not exist")
 	else:
-		return redirect("missing_page")
+		raise Http404("Cannot report via a GET request")
+
 
 
 ######################################################## Defender Banning and Reported Content #######################################################
@@ -1786,6 +1792,9 @@ def report_content(request,*args,**kwargs):
 			own_id = request.user.id
 			is_defender = in_defenders(own_id)#, return_super_status=True)
 			lid = request.POST.get("lid",'')
+			topic = request.POST.get("topic",'')
+			if topic:
+				request.session["origin_topic"] = topic
 			if lid:
 				request.session["target_id"] = lid
 				request.session.modified = True
@@ -1925,7 +1934,7 @@ def report_content(request,*args,**kwargs):
 								return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':dup_obid,'oun':oun,'tp':tp,\
 									'payload':dup_description if tp == 'tx' else dup_image,'lid':lid})
 						else:
-							return return_to_content(request,orig,dup_obid,lid,oun)    
+							return return_to_content(request,orig,dup_obid,lid,oun) 
 				elif posted_from_screen == '2':
 				# finalize regular user report. This does NOT handle duplicates report, that is posted_from_screen == '3'
 				# Get all variables, charge the reporting user, and submit the report!
@@ -2049,7 +2058,6 @@ def report_content(request,*args,**kwargs):
 						return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 					elif not request.mobile_verified:
 						return render(request,"verification/unable_to_submit_without_verifying.html",{'file_report':True})
-
 					else:
 						if type_of_content == 'tx':
 							content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
@@ -2070,13 +2078,13 @@ def report_content(request,*args,**kwargs):
 							request.session["redirect_obid"+own_id] = obj_id
 							return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 						# elif price_of_report > score:
-						#     #disallow reporting (user doesn't have requisite score)
-						#     request.session["redirect_reason"+own_id] = 'not_enough_score'
-						#     request.session["redirect_orig"+own_id] = orig
-						#     request.session["redirect_oun"+own_id] = oun
-						#     request.session["redirect_lid"+own_id] = lid
-						#     request.session["redirect_obid"+own_id] = obj_id
-						#     return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
+						#   #disallow reporting (user doesn't have requisite score)
+						#   request.session["redirect_reason"+own_id] = 'not_enough_score'
+						#   request.session["redirect_orig"+own_id] = orig
+						#   request.session["redirect_oun"+own_id] = oun
+						#   request.session["redirect_lid"+own_id] = lid
+						#   request.session["redirect_obid"+own_id] = obj_id
+						#   return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 						else:
 							# show all report options to user
 							context={'obj_id':obj_id, 'reporting_self':reporting_self,'orig':orig,'purl':purl,'owner_uname':oun,'lid':lid,\

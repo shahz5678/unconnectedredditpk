@@ -12,9 +12,12 @@ def redirect_to_content(request):
 	Helper function for return_to_content()
 	"""
 	orig = request.POST.get("orig",None)
+	topic = request.POST.get("topic",None)
 	obid = request.POST.get("obid",None)
 	oun = request.POST.get("oun",None)
 	lid = request.POST.get("lid",None)
+	if topic:
+		request.session["origin_topic"] = topic
 	return return_to_content(request,orig,obid,lid,oun)
 
 
@@ -108,6 +111,11 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 	elif origin == '18':
 		# originated from received invites' list
 		return redirect("show_personal_group_invite_list",'received')
+	elif origin == '22':
+		# originated from a topic page
+		topic_url = request.session.pop("origin_topic",'')
+		url = reverse_lazy("topic_redirect",kwargs={'topic_url':topic_url, 'obj_hash':link_id}) if link_id else reverse_lazy("topic_redirect",kwargs={'topic_url':topic_url})
+		return redirect(url)
 	elif origin == '23':
 		# originated from online kon
 		url = reverse_lazy("online_kon")+"#top"

@@ -13,6 +13,13 @@ CONTENT_SHARING_LONG_RATELIMIT = 86400#
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
 RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
+################################################ Topics ################################################
+TOPIC_LIFELINE = 1728000#20 days - i.e. how long a topic should exist even if it has no visits
+TOPIC_SUBMISSION_TTL = 604800#7 days set as ttl for content submitted into a topic
+TOPIC_UNSUB_LOCKING_TIME = 7200#2 hours is how long a subscriber must stay inside a topic after subscribing to it
+MAX_TOPIC_SIZE = 80
+MIN_TOPIC_SIZE = 3
+MIN_TOPIC_DESCRIPTION_SIZE = 20
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)

@@ -5,7 +5,7 @@
 
 {% include 'user_profile_navbar.html' with static_url=STATIC_URL section='voting' uname=slug is_own_profile=own_profile %}
 
-<h1 class="cxl clb" style="text-align:center">Voting history:</h1>
+<h1 class="cxl clb" style="text-align:center">Your voting history:</h1>
 
 
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px;max-width:600px;width:97%;margin-right:auto;margin-left:auto;text-align:center">
@@ -13,15 +13,15 @@
 {% if history_type == 'upvote' %}
 	
 	<div class="fx fxjscn fxaicn">
-		<div class="sp" style="border-radius:0;width:50%;border:none;background:#1edea8;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid #1edea8">JHAPPI</div>
-		<a href="{% url 'user_vote_history' 'downvote' %}" class="sp" style="width:50%"><button class="wt" style="border-radius:0;border:none;color:coral;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">CHPAIR</button></a>
+		<div class="sp" style="border-radius:0;width:50%;border:none;background:#d2f9ee;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid #1edea8"><img src="{{ STATIC_URL }}img/up.svg" height="20" width="20" style="vertical-align:middle"></div>
+		<a href="{% url 'user_vote_history' 'downvote' %}" class="sp" style="width:50%"><button class="wt" style="border-radius:0;border:none;color:coral;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"></button></a>
 	</div>
 
 {% else %}
 
 	<div class="fx fxjscn fxaicn">
-		<a href="{% url 'user_vote_history' 'upvote' %}" class="sp" style="width:50%;"><button class="wt" style="border-radius:0;border:none;color:#1edea8;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc">JHAPPI</button></a>
-		<div class="sp cm" style="background:coral;border-radius:0;width:50%;border:none;color:white;height:40px;line-height:40px;font-weight:bold;">CHPAIR</div>
+		<a href="{% url 'user_vote_history' 'upvote' %}" class="sp" style="width:50%;"><button class="wt" style="border-radius:0;border:none;color:#1edea8;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc"><img src="{{ STATIC_URL }}img/up.svg" height="20" width="20" style="vertical-align:middle"></button></a>
+		<div class="sp cm" style="background:#ffece6;border-radius:0;width:50%;border:none;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid coral"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"></div>
 	</div>
 
 {% endif %}
@@ -39,7 +39,7 @@
 					<button class="wt" name="lid" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ target_obj_id }}">
 						<div style="text-align:center;padding:18px 0;" class="lsp sp">
 							<span class="clb cs">{{ vote_time }}:</span>	
-							<span class="cm ct" style="border-bottom:1px dotted teal">text jhappi</span>
+							<span class="cm ct" style="border-bottom:1px dotted teal">text thumbs up</span>
 						</div>
 					</button>
 				</form>
@@ -50,7 +50,7 @@
 					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
 						<div style="text-align:center;padding:18px 0;" class="lsp sp">
 							<span class="clb cs">{{ vote_time }}:</span>	
-							<span class="cm" style="color:#e68e00;border-bottom:1px dotted orange">foto jhappi</span>
+							<span class="cm" style="color:#e68e00;border-bottom:1px dotted orange">foto thumbs up</span>
 						</div>
 					</button>
 				</a>
@@ -66,7 +66,7 @@
 					<button name="lid" class="wt" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ target_obj_id }}">
 						<div style="text-align:center;padding:18px 0;" class="lsp sp">
 							<span class="clb cs">{{ vote_time }}:</span>
-							<span class="ct" style="border-bottom:1px dotted teal">text chpair</span>
+							<span class="ct" style="border-bottom:1px dotted teal">text thumbs down</span>
 						</div>
 					</button>
 				</form>
@@ -77,7 +77,7 @@
 					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
 						<div style="text-align:center;padding:18px 0;" class="lsp sp">
 							<span class="clb cs">{{ vote_time }}:</span>
-							<span class="cm" style="border-bottom:1px dotted orange;color:#e68e00">foto chpair</span>
+							<span class="cm" style="border-bottom:1px dotted orange;color:#e68e00">foto thumbs down</span>
 						</div>
 					</button>
 				</a>
@@ -90,9 +90,9 @@
 		<div class="cxl lsp clb mts" style="text-align:center">Sorry! Ye khali hai ...</div>
 		<hr size=1 COLOR="#f4f4f4">
 		{% if history_type == 'upvote' %}
-		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe jhappi nahi di</div>
+		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe thumbs up nahi dia</div>
 		{% else %}
-		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe chpair nahi lagai</div>
+		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe thumbs down nahi dia</div>
 		{% endif %}
 	{% endfor %}
 

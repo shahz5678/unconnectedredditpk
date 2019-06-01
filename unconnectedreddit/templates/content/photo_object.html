@@ -1,4 +1,3 @@
-
 {% if show_uname_credentials %}
 	<div class="mbs">
 
@@ -8,7 +7,7 @@
 
 			  	<a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
 
-			  	<div style="word-break: break-all;"><a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp" itemprop="author">{{ oun }}</h3></a>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></div>
+			  	<div style="word-break: break-all;"><a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp" itemprop="author">{{ oun }}</h3></a>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ ut }}</time></div>
 			
 			</div>
 				 	
@@ -81,9 +80,9 @@
 			{% if vsc < VDC %}
 				<img class="cs sp" style="vertical-align: top;" alt="hidden" src="{{ static_url }}img/broken.svg">
 			{% elif vsc < VDP %}
-				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="pic loading ..." style="border-radius:12px">
+				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="{{ cap }}" style="border-radius:12px">
 			{% else %}
-				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="pic loading ...">
+				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ cap }}">
 			{% endif %}
 		</span>
 	{% endif %}

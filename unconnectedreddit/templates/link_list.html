@@ -17,9 +17,9 @@
 {% load get_home_publicreply_bar %}
 {% load get_home_replies_section %}
 {% block content %}
-<head><title>Home | Damadam.pk</title></head>
+<head><title>Home | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
-<div style="max-width:600px;margin:0 auto;width:97%;position:relative;">
+<main style="display:block;max-width:750px;margin:0 auto;width:97%;position:relative;">
 
 <a name="error"></a>
 {% if home_direct_reply_error_string %}
@@ -39,7 +39,7 @@
 	{% notification_bar notification=process_notification origin='19' notif_form=notif_form user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user salat_timings=salat_timings lang=lang sort_by=sort_by is_home=True sk=sk %}	
 {% endif %}
 
-<div class="mbs fx fxjscn fxaibl">
+<div class="mbl fx fxjscn fxaibl">
 	<a href="{% url 'home' %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
 </div>
@@ -65,14 +65,15 @@
 {% endif %}
 
 {% with replyforms|get_item:link.h as replyform %}
-	
+
 {% if link.c == '6' %}
 	
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
 	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
+	<section style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
@@ -81,40 +82,42 @@
 		{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 	</div>
+	</section>
 
-	<div class="mls mbl"> 
+	<section style="display:block" class="mls mbl"> 
 	{% photo_comments_section raw_comments=link.i static_url=STATIC_URL self_user_id=ident origin='3' home_hash=link.h %}
-	</div>
+	</section>
 
-	<div class="mls mrs mbl">
+	<section style="display:block" class="mls mrs mbl">
 	{% home_photo_comment_bar photo_id=link.i photo_owner_id=link.si lang=lang sort_by=sort_by user_id=ident comment_form=comment_form origin='3' home_hash=link.h sk=sk %}
-	</div>
+	</section>
 
-</div>
+</article>
 	
 {% elif link.c == '1' or link.c == '2' %}
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
-
-	{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p alignment=link.c %}
-
-
+		<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
+		{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
+		</section>
+		<section style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
 		</div>
+		</section>
 
-		<div class="mts mls mbl">
+		<section style="display:block" class="mts mls mbl">
 		{% home_replies_section raw_replies=link.cb static_url=STATIC_URL self_user_id=ident home_hash=link.h %}
-		</div>
+		</section>
 
-		<div class="mls mrs mbl">
-		{% home_publicreply_bar link_pk=link.i link_writer_pk=link.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='home' sk=sk %}
-		</div>
+		<section style="display:block" class="mls mrs mbl">
+		{% home_publicreply_bar link_pk=link.i link_writer_pk=link.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='3' sk=sk %}
+		</section>
 
-</div>
+</article>
 {% else %}
 <!-- nothing -->
 {% endif %}
@@ -126,8 +129,8 @@
 
 {% endfor %}
 
-</div>
-	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
+</main>
+	<div class="mbl fx fxjscn">
 		{% if page.has_previous %}
 	    <div style="padding:0 10px">
 	    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>

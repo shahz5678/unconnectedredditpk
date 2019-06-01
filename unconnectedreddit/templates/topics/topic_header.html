@@ -1,0 +1,28 @@
+{% if topic_description %}
+	
+		<section style="border-bottom:3px solid whitesmoke;padding:2px">
+			<h1 itemprop="headline" class="cxl cgy lsp sp bw" style="text-align:center;margin:0;padding:10px 5px 0px 5px">
+			{{ topic }}
+			</h1>
+
+			<section><h2 style="padding:0 8px;font-weight:normal" class="mbs mts cm cgy sp lsp"><b>Detail:</b> <span itemprop="description">{{ topic_description }}</span></h2></section>
+		</section>
+
+{% else %}
+
+	{% if color1 %}
+		<a href="{% url 'topic_page' topic_url %}">
+			<button aria-label="enter topic page" style="padding:0;margin:0;border:none;width:100%;background: {{ color1 }};background: -moz-linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);background: -webkit-linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);background: linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);" class="pg_ok_res cm">
+			  <div class="clb bw lsp" style="font-weight:bold;text-align:center;padding:10px 5px;border-bottom:2px solid whitesmoke">
+			  	<img src="{{ static_url }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">
+			  	<h2 class="mts sp cl" itemprop="headline" style="display:inline;font-weight:bold;color:white;padding:0">{{ topic_header }}</h2>
+			  </div>
+			</button>
+		</a>
+	{% else %}
+		<section style="background:#fefefa;border-bottom:2px solid whitesmoke;text-align:center;padding:5px;">
+			<h1 itemprop="headline" style="margin:0;font-weight:normal;color:#838080;" class="sp cs lsp">{{ topic_header }}</h1>
+		</section>
+	{% endif %}
+
+{% endif %}

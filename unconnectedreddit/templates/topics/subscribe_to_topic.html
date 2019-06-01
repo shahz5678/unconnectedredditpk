@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Subscribe to topic | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+   
+   	<div style="margin-left:auto;margin-right:auto">
+		<h1 class="cxl lsp clb" style="text-align:center">Subscribe to '{{ topic_name }}':</h1>
+	</div>
+
+    <div class="mbl mts clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%">
+	    <div style="padding:10px;text-align:center">
+		    <div class="cm sp lsp">Is topic ki tafseel ye hai:</div>
+		    <blockquote class="lsp cxl sp mts mbs" style="text-align:left;background:ivory;border-radius:5px;padding:7px;margin-left:5px;margin-right:5px">{{ desc }}</blockquote>
+		    <div class="cl sp lsp" style="text-align:center">Kya ap waqai subscribe karna chahtey hain?</div>
+		</div>
+	    <div class="fx fxjscn fxaicn">
+			<form method="POST" style="width:50%;" action="{% url 'subscribe_to_topic' topic_url %}">
+				{% csrf_token %}
+				<button type="submit" name="sub_scr" class="pg_ok_res sp" style="border-radius:0;border:none;color:white;height:40px;font-weight:bold;width:100%;background: {{ c1 }};background: -moz-linear-gradient(45deg, {{ c1 }} 0%, {{ c2 }} 100%);background: -webkit-linear-gradient(45deg, {{ c1 }} 0%, {{ c2 }} 100%);background: linear-gradient(45deg, {{ c1 }} 0%, {{ c2 }} 100%)" value="2">SUBSCRIBE</button>
+			</form>
+			<a href="{% url 'topic_page' topic_url %}#section0" class="sp" style="width:50%"><button class="pg_ok_res" style="border-radius:0;border:none;color:white;background:silver;height:40px;font-weight:bold;width:100%;">CANCEL</button></a>
+		</div>
+	</div>
+
+<br><br>
+{% endblock %}

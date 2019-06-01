@@ -20,6 +20,7 @@ from urls_judgement import urlpatterns as urlpatterns_judgement
 from urls_voting import urlpatterns as urlpatterns_voting
 from urls_search import urlpatterns as urlpatterns_search
 from urls_push_notif import urlpatterns as urlpatterns_push_notif
+from urls_topics import urlpatterns as urlpatterns_topics
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import home_link_list, cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan,\
@@ -41,7 +42,7 @@ AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, Devic
 UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, PicsChatUploadView, VerifiedView, WelcomeView, \
 WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView, AdTitleView,TestAdsView, AdAddressYesNoView,\
 SmsInviteView, LoginWalkthroughView, RegisterLoginView, UserSettingsEditView, UserProfileDetailView, \
-UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, ScoreHelpView, HelpView, AdMobileNumView, \
+UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, HelpView, AdMobileNumView, \
 RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, \
 PhotoShareView, PhotoDetailView, \
 AdGenderChoiceView, \
@@ -225,7 +226,7 @@ urlpatterns = patterns('',
 
 	url(r'^group/invite/(?P<slug>[\w.@+-]+)/(?P<num>[\w.@+-]+)/(?P<name>[\w.@+-]+)/$', auth(SmsInviteView.as_view()), name='sms_invite'),
 	url(r'^bahir/invite/$', auth(SmsReinviteView.as_view()), name='sms_reinvite'),
-	url(r'^score/$', auth(ScoreHelpView.as_view()), name='score_help'),
+	# url(r'^score/$', auth(ScoreHelpView.as_view()), name='score_help'),
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
 	# url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
@@ -310,6 +311,7 @@ urlpatterns += urlpatterns_judgement
 urlpatterns += urlpatterns_voting
 urlpatterns += urlpatterns_search
 urlpatterns += urlpatterns_push_notif
+urlpatterns += urlpatterns_topics# must always be the last thing object to be concatenated
 
 handler404 = 'links.error_views.not_found'
 handler500 = 'links.error_views.server_error'

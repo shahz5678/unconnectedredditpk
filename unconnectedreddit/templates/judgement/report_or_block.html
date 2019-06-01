@@ -40,6 +40,7 @@
 				<input type="hidden" name="orig" value="{{ org }}">
 				<input type="hidden" name="lid" value="{{ lid }}">
 				<input type="hidden" name="oun" value="{{ oun }}">
+				<input type="hidden" name="topic" value="{{ topic }}">
 				<button type="submit" name="obid" class="cgy cl pg_ok_res sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" value="{{ obid }}">wapis</button>
 				</form>
 			</div>
@@ -51,6 +52,7 @@
 			<input type="hidden" name="orig" value="{{ org }}">
 			<input type="hidden" name="lid" value="{{ lid }}">
 			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="topic" value="{{ topic }}">
 			<button type="submit" name="obid" class="btn bm bcb pg_ok_res sp" style="height:26px" value="{{ obid }}">OK</button>
 			</form>
 			
@@ -70,6 +72,7 @@
 				<input type="hidden" name="cap" value="{{ cap }}">
 				<input type="hidden" name="oun" value="{{ oun }}">
 				<input type="hidden" name="tp" value="{{ type }}">
+				<input type="hidden" name="topic" value="{{ topic }}">
 				<button value="{{ obid }}" style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" name="report" type="submit"><img src="{{ STATIC_URL }}img/report_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><div style="font-size:10.2px" class="mts cgy lsp">REPORT<br>TEXT</div></button>
 			</form>
 			<form method="POST" style="padding:10px" action="{% url 'enter_inter_user_ban' %}">
@@ -78,6 +81,7 @@
 			  <input type="hidden" name="orig" value="{{ org }}">
 			  <input type="hidden" name="lid" value="{{ lid }}">
 			  <input type="hidden" name="obid" value="{{ obid }}">
+			  <input type="hidden" name="topic" value="{{ topic }}">
 			  <button style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" value="{{ hid }}" name="tuid" type="submit"><img src="{{ STATIC_URL }}img/block_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><div class="mts cgy lsp" style="font-size:10.2px">BLOCK<br>USER</div></button>
 			</form>
 			</div>
@@ -87,6 +91,7 @@
 				<input type="hidden" name="orig" value="{{ org }}">
 				<input type="hidden" name="lid" value="{{ lid }}">
 				<input type="hidden" name="oun" value="{{ oun }}">
+				<input type="hidden" name="topic" value="{{ topic }}">
 				<button type="submit" name="obid" class="cgy cl pg_ok_res sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted darkgray" value="{{ obid }}">wapis</button>
 				</form>
 			</div>
@@ -98,6 +103,7 @@
 			<input type="hidden" name="orig" value="{{ org }}">
 			<input type="hidden" name="lid" value="{{ lid }}">
 			<input type="hidden" name="oun" value="{{ oun }}">
+			<input type="hidden" name="topic" value="{{ topic }}">
 			<button type="submit" name="obid" class="btn bm bcb pg_ok_res sp" style="height:26px" value="{{ obid }}">OK</button>
 			</form>
 

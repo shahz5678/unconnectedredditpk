@@ -685,14 +685,16 @@ class PublicreplyForm(forms.ModelForm):
 
 
 class PublicreplyMiniForm(PublicreplyForm):
-	description = forms.CharField(max_length=250, error_messages={'required': 'Pehlay safed patti mein jawab likhein, phir "Jawab do" dabain'})
+	description = forms.CharField(max_length=250, \
+		error_messages={'required': 'Pehlay safed patti mein jawab likhein, phir "Jawab do" dabain'})
 	sk = forms.CharField(required=False)
 
 	def __init__(self,*args,**kwargs):
 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
+		self.fields['description'].error_messages = {'required': 'Pehlay safed patti mein jawab likhein, phir "Jawab do" dabain','max_length':'Jawab 250 characters se zyada nahi hona chahiye'}
 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt'
-		self.fields['description'].widget.attrs['style'] = 'max-width:600px;border: 1px solid lightgrey; border-radius:4px; line-height:30px;'
-		self.fields['description'].widget.attrs['autocomplete'] = 'off'                                            
+		self.fields['description'].widget.attrs['style'] = 'max-width:750px;border: 1px solid lightgrey; border-radius:4px; line-height:30px;'
+		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')

@@ -274,8 +274,8 @@ MERCH = {
 '15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#REMOVE
 ###############################################################################################################
-SEGMENT_STARTING_TIME = 1557917198# starting time of user segment analysis
-SEGMENT_STARTING_USER_ID = 1873122# starting user ID of user segment analysis
+SEGMENT_STARTING_TIME = 1559591244	# starting time of user segment analysis
+SEGMENT_STARTING_USER_ID = 1892635# starting user ID of user segment analysis
 """
 KEY:
 
@@ -315,6 +315,10 @@ F5h: public mehfil message sent from single notif
 
 G1l: uploaded avatar
 G2l: edited about me
+
+H1h: topic banner clicked on home/home-history/jawab
+H2l: topic subscribed
+H3h: topic post submitted
 
 Z1l: signing up
 Z2l: mobile verification

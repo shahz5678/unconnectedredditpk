@@ -10,7 +10,7 @@ from page_controls import ITEMS_PER_PAGE
 from verified import FEMALES
 from models import Link
 from redis2 import bulk_is_fan
-from tasks import set_input_history
+from tasks import set_input_history, log_action
 from forms import PublicreplyMiniForm
 from views import get_indices, get_addendum, beautiful_date, format_post_times
 from redis4 import retrieve_credentials, set_text_input_key, content_sharing_rate_limited, rate_limit_content_sharing
@@ -20,7 +20,7 @@ from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post,
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
 retire_abandoned_topics
 from redis3 import log_text_submissions
-
+from score import SEGMENT_STARTING_USER_ID
 
 ##########################################################################################################
 #################################### Calculate Topic Background Color ####################################
@@ -332,6 +332,12 @@ def topic_page(request,topic_url):
 				'is_subscribed':is_subscribed, 'new_subscriber':request.session.pop("subscribed"+str(own_id),None),\
 				'cannot_recreate':request.session.pop("cannot_recreate"+str(own_id),None)}
 				
+				################### Segment action logging ###################
+				is_redirect = request.GET.get('rdr',None)
+				if is_redirect and own_id > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=own_id, action_categ='H', action_sub_categ='1', action_liq='h', time_of_action=time.time())
+				##############################################################
+
 				return render(request, 'topics/topic_home.html', context)
 			else:
 				# topic does not exist - perhaps it was older than 7 days and has expired?
@@ -441,6 +447,10 @@ def submit_topic_post(request,topic_url):
 								log_text_submissions('topic')
 								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 50 submissions per day)
 								set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
+								################### Segment action logging ###################
+								if own_id > SEGMENT_STARTING_USER_ID:
+									log_action.delay(user_id=own_id, action_categ='H', action_sub_categ='3', action_liq='h', time_of_action=time_now)
+								##############################################################
 								return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
 							else:
 								error_string = form.errors.as_text().split("*")[2]
@@ -477,11 +487,15 @@ def subscribe_to_topic(request, topic_url):
 					'org':'22','c1':colors[0],'c2':colors[1]})
 			elif subscription_screen == '2':
 				if retrieve_topic_credentials(topic_url=topic_url, existence_only=True):
-					own_id = request.user.id
-					subscribe_topic(own_id, topic_url, time.time())
+					own_id, time_now = request.user.id, time.time()
+					subscribe_topic(own_id, topic_url, time_now)
 					request.session["subscribed"+str(own_id)] = '1'
 					response = redirect("topic_page",topic_url=topic_url)
 					response['Location'] += '?subscribed=True#section0'# added 'subscribe' parameter so that the act of subscription is measured separately in GA
+					################### Segment action logging ###################
+					if own_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=own_id, action_categ='H', action_sub_categ='2', action_liq='l', time_of_action=time_now)
+					##############################################################
 					return response
 				else:
 					# didn't work because topic has ceased to exist!
@@ -494,5 +508,7 @@ def subscribe_to_topic(request, topic_url):
 			return redirect("topic_page",topic_url=topic_url)
 	else:
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'subscribe_to_topic':True})
+
+
 
 

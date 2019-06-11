@@ -62,7 +62,7 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
-video_tasks, log_private_mehfil_session, group_notification_tasks, publicreply_notification_tasks, \
+video_tasks, group_notification_tasks, publicreply_notification_tasks, \
 fan_recount, vote_tasks, populate_search_thumbs, sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, \
 group_attendance_tasks, log_404, log_action
 #, log_organic_attention, home_photo_tasks, queue_for_deletion, 

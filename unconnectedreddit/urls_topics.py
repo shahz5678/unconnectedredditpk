@@ -2,11 +2,12 @@ from django.contrib import admin
 from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from links.topic_views import topic_page, submit_topic_post, suggest_new_topic_feed, topic_redirect, subscribe_to_topic, delete_topic, \
-topic_gone
+topic_gone, topic_listing
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^topic/listing/$', topic_listing, name='topic_listing'),
 	url(r'^(?P<topic_url>[\w.@+-]+)/$', topic_page, name='topic_page'),
 	url(r'^topic/redirect/$', auth(topic_redirect), name='topic_redirect'),
 	url(r'^topic/gone/(?P<topic_url>[\w.@+-]+)/$', topic_gone, name='topic_gone'),

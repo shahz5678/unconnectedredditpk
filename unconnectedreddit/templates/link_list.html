@@ -38,6 +38,8 @@
 	{% notification_bar notification=process_notification origin='19' single_notif_error=single_notif_error user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user lang=lang sort_by=sort_by is_home=True sk=sk %} 
 {% endif %}
 
+{% include "topics/topics_navbar.html" with section='home' %}
+
 <div class="mbl fx fxjscn fxaibl">
 	<a href="{% url 'home' %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>

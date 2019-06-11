@@ -1,0 +1,13 @@
+{% if section == 'home' %}
+	<div class="mbl fx fxjscn fxaicn">
+		<button class="sp" style="height:50px;width:64px;font-size:9px;border:1px solid #3cb7dd;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#229ec3;font-weight:bold"><div class="mt">ALL</div><div class="mts">POSTS</div></button>
+		
+		<a href="{% url 'topic_listing' %}"><button class="sp" style="height:50px;width:64px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div class="mt">ALL</div><div class="mts">TOPICS</div></button></a>
+	</div>
+{% else %}
+	<div class="mbl fx fxjscn fxaicn">
+		<a href="{% url 'home' %}"><button class="sp" style="height:50px;width:64px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><div class="mt">ALL</div><div class="mts">POSTS</div></button></a>
+		
+		<button class="sp" style="height:50px;width:64px;font-size:9px;border:1px solid #3cb7dd;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#229ec3;font-weight:bold;background:white"><div class="mt">ALL</div><div class="mts">TOPICS</div></button>
+	</div>
+{% endif %}

@@ -39,7 +39,7 @@ get_most_recent_online_users
 from redis2 import update_notification, remove_group_notification, remove_group_object, get_replies_with_seen,create_notification, create_object, \
 bulk_remove_group_notification
 
-from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, log_action,\
+from tasks import set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, log_action,\
 construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
@@ -3190,7 +3190,6 @@ class PrivateGroupView(FormView):
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
-					log_private_mehfil_session.delay(group_id, user_id)
 					updated_at = time.time()#convert_to_epoch(timezone.now())
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)#, private=True)# fills group visitors
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)

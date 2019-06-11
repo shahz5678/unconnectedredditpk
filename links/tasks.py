@@ -26,7 +26,7 @@ invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_person
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
-retrieve_credentials, invalidate_avurl, increment_convo_counter, increment_session, track_p2p_sms, check_p2p_sms, log_personal_group_exit_or_delete,\
+retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,\
 log_share, logging_sharing_metrics, cache_photo_share_data, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,\
 sanitize_unused_subscriptions#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
@@ -179,14 +179,15 @@ def personal_group_trimming_task(group_id, object_count):
 	trim_personal_group(group_id,object_count)
 
 
-@celery_app1.task(name='tasks.queue_personal_group_invitational_sms')
-def queue_personal_group_invitational_sms(mobile_number, sms_text, own_id, target_id, sending_time):
-	send_personal_group_sms(mobile_number, sms_text)
-	track_p2p_sms(own_id, target_id, sending_time)
+# @celery_app1.task(name='tasks.queue_personal_group_invitational_sms')
+# def queue_personal_group_invitational_sms(mobile_number, sms_text, own_id, target_id, sending_time):
+# 	send_personal_group_sms(mobile_number, sms_text)
+# 	track_p2p_sms(own_id, target_id, sending_time)
 
 @celery_app1.task(name='tasks.cache_personal_group')
 def cache_personal_group(pg_data, group_id):
 	cache_personal_group_data(pg_data,group_id)
+
 
 @celery_app1.task(name='tasks.private_chat_tasks')
 def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type, own_anon='', target_anon='', blob_id='', idx='', img_url='', own_uname='', \
@@ -209,16 +210,11 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 			updated_at=posting_time,sender_ua=True,receiver_ua=True,sender_sn=False,receiver_sn=True,sender_bump_ua=True,receiver_bump_ua=True)
 		if from_unseen or sharing:
 			update_personal_group_last_seen(own_id, group_id, posting_time)#supposed to update 'seen' of contributer
-			increment_session(group_id, own_id, group_type='pg')
-			check_p2p_sms(own_id) #Logs data in case you were sent an SMS by a friend (asking you to return to Damadam)
-		# ALL TYPES of txt_types: 'notif','img','img_res','text','text_res','action','reentry','exited','creation','shared_img'
-		if txt_type == 'exited':
+		# All txt_types are: 'notif','img','img_res','text','text_res','action','reentry','exited','creation','shared_img'
+		if txt_type in ('text','text_res','img_res','img','shared_img'):
+			set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)#Checks content and turns URLs clickable
+		elif txt_type == 'exited':
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
-		elif txt_type not in ('reentry','creation'):
-			increment_convo_counter(group_id, own_id, group_type='pg')
-			# if not img_url and txt_type in ('text','text_res','img_res'):
-			if txt_type in ('text','text_res','img_res','img','shared_img'):
-				set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)#Checks content and turns URLs clickable
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
 def update_notif_object_anon(value,which_user,which_group):
@@ -239,9 +235,12 @@ def update_notif_object_hide(action,blob_id,idx,group_id):
 
 @celery_app1.task(name='tasks.private_chat_seen')
 def private_chat_seen(own_id, group_id, curr_time):
+	"""
+	Called every time a private chat is refreshed (or 'seen'). 
+
+	But not called from 'from_unseen' or 'sharing'
+	"""
 	skip_private_chat_notif(own_id, group_id,curr_time, seen=True)
-	increment_session(group_id, own_id, group_type='pg')
-	check_p2p_sms(own_id)
 
 
 # execute every 3 days
@@ -756,7 +755,6 @@ def trim_group_submissions(group_id):
 	del_overflowing_group_submissions(group_id,NUM_TO_DELETE)
 
 
-#bulk update others' notifications in groups
 @celery_app1.task(name='tasks.group_notification_tasks')
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
 	image_url,priority,from_unseen, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
@@ -768,11 +766,6 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 		if not updated:
 			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 				unseen_activity=True, check_parent_obj=True)# matka notif won't be created if original object doesn't exist
-		# set_latest_group_reply(group_id,reply_id)# used to populate grouppageview()
-		if priv == '1':
-			increment_convo_counter(group_id, sender_id, group_type='pm')
-			increment_session(str(group_id), sender_id, group_type='pm')
-			# set_latest_group_reply(group_id,reply_id)# adding to grouppageview() for private mehfils only
 	else:
 		if from_unseen:
 			# i.e. from unseen_group() in views.py
@@ -805,18 +798,15 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 		if not updated:
 			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
 				unseen_activity=True)
-		# set_latest_group_reply(group_id,reply_id)# used to populate grouppageview(), replace with 'submission_id' later
 		if priv == '1':
-			increment_convo_counter(group_id, sender_id, group_type='pm')
-			increment_session(str(group_id), sender_id, group_type='pm')
 			log_group_chatter(group_id, sender_id)# redis 6
 			if image_url:
 				increment_pic_count(group_id, sender_id)#redis 6
 
 
-@celery_app1.task(name='tasks.log_private_mehfil_session')
-def log_private_mehfil_session(group_id,user_id):# called every time a private mehfil is refreshed
-	increment_session(str(group_id), user_id, group_type='pm')
+# @celery_app1.task(name='tasks.log_private_mehfil_session')
+# def log_private_mehfil_session(group_id,user_id):# called every time a private mehfil is refreshed
+# 	increment_session(str(group_id), user_id, group_type='pm')
 	
 
 @celery_app1.task(name='tasks.rank_all_photos')

@@ -30,7 +30,7 @@ get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rat
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
 from redis7 import check_content_and_voting_ban
-from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
+from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares, log_action
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
@@ -1542,8 +1542,6 @@ def personal_group_send_sms(request):
 							target_number = mobnums[int(mob_idx)]
 						except (ValueError,IndexError,TypeError):
 							target_number = mobnums[0]
-						queue_personal_group_invitational_sms.delay(mobile_number=target_number,sms_text=sms_text,own_id=own_id,target_id=tid, \
-							sending_time=time.time())
 						lock_sms_sending(own_id,tid)
 						smsrec, sms_text, mob_idx = get_user_sms_setting(own_id, group_id, with_cred=True)
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)

@@ -1358,8 +1358,8 @@ def home_page(request, lang=None):
 	context["lang"] = 'None'
 	context["sort_by"] = 'recent'
 	#####################
-	context["notif_form"] = request.session.pop("notif_form",UnseenActivityForm())
-	context["comment_form"] = request.session.pop("comment_form",PhotoCommentForm())
+	context["single_notif_error"] = request.session.pop("single_notif_error",None)
+	context["comment_form"] = PhotoCommentForm()
 	if not request.user_banned:
 		context["process_notification"] = True
 		context["home_direct_reply_error_string"] = request.session.pop("home_direct_reply_error_string",None)
@@ -3383,22 +3383,21 @@ def photo_page(request,list_type='best-list'):
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
 		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 		#######################
+		comment_form = PhotoCommentForm()
 		if own_id:
 			is_auth = True
 			fanned = bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
 			secret_key = str(uuid.uuid4())
 			set_text_input_key(user_id=own_id, obj_id='1', obj_type=type_, secret_key=secret_key)
 			newbie_lang, newbie_flag = request.session.get("newbie_lang",None), request.session.get("newbie_flag",None)
-			comment_form = request.session.pop("comment_form",PhotoCommentForm())
-			notif_form = request.session.pop("notif_form",UnseenActivityForm())
+			#notif_form = request.session.pop("notif_form",UnseenActivityForm())
 			mobile_verified = request.mobile_verified
 		else:
 			is_auth = False
 			fanned = []
 			secret_key = ''
 			newbie_lang, newbie_flag = None, None
-			comment_form = PhotoCommentForm()
-			notif_form = None
+			#notif_form = None
 			mobile_verified = None
 		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
 		'ident':own_id, 'newbie_lang':newbie_lang,'is_mob':True if request.is_phone or request.is_mobile else False,\
@@ -3415,7 +3414,7 @@ def photo_page(request,list_type='best-list'):
 		context["sort_by"] = 'recent'
 		#####################
 		context["fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		context["notif_form"] = notif_form
+		context["single_notif_error"] = request.session.pop("single_notif_error",None)
 		if own_id and not request.user_banned:
 			context["process_notification"] = True
 			context["photo_direct_reply_error_string"] = request.session.pop("photo_direct_reply_error_string",None)
@@ -4373,7 +4372,6 @@ def unseen_group(request, pk=None, *args, **kwargs):
 							if user_id > SEGMENT_STARTING_USER_ID:
 								log_action.delay(user_id=user_id, action_categ='E', action_sub_categ='4', action_liq='h', time_of_action=reply_time)
 						##############################################################
-						# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PRIVATE_GROUP_MESSAGE)
 					else:
 						set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='public_mehfil'
@@ -4385,8 +4383,6 @@ def unseen_group(request, pk=None, *args, **kwargs):
 							if user_id > SEGMENT_STARTING_USER_ID:
 								log_action.delay(user_id=user_id, action_categ='F', action_sub_categ='4', action_liq='h', time_of_action=reply_time)
 						##############################################################
-
-						# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
 					
 					#######################################################
 					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=None, posting_time=reply_time,\
@@ -4400,12 +4396,13 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					else:
 						return redirect("unseen_activity", username)
 				else:
+					err_string = form.errors.as_text().split("*")[2]
 					if origin:
-						request.session["notif_form"] = form
+						request.session["single_notif_error"] = err_string
 						request.session.modified = True
 						return return_to_content(request,origin,pk,None,username)
 					else:
-						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+						request.session["unseen_error_string"] = err_string
 						return redirect(reverse_lazy("unseen_activity", args=[username])+"#error")
 			else:
 				return redirect("unseen_activity", username)
@@ -4489,11 +4486,12 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						##############################################################
 						return return_to_content(request,origin,pk,None,username)
 					else:
+						err_string = form.errors.as_text().split("*")[2]
 						if origin == '14':
-							request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+							request.session["unseen_error_string"] = err_string
 							return redirect(reverse_lazy("unseen_activity", args=[username])+"#error")
 						else:
-							request.session["notif_form"] = form
+							request.session["single_notif_error"] = err_string
 							request.session.modified = True
 							return return_to_content(request,origin,pk,None,username)
 		else:
@@ -4540,7 +4538,7 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 					lang, sort_by = request.POST.get("lang",None), request.POST.get("sort_by",None)
 					form = UnseenActivityForm(request.POST,user_id=own_id,prv_grp_id='',pub_grp_id='',link_id=pk,photo_id='',per_grp_id='')
 					if form.is_valid():
-						time_now=time.time()
+						time_now = time.time()
 						text = form.cleaned_data.get("home_comment")
 						target = process_publicreply(request=request,link_id=pk,text=text,origin=origin if origin else 'from_unseen',\
 							link_writer_id=link_writer_id)
@@ -4563,13 +4561,14 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 						else:
 							return return_to_content(request,origin,pk,None,own_uname)
 					else:
+						err_string = form.errors.as_text().split("*")[2]
 						if origin == '14':
 							# from inbox
-							request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+							request.session["unseen_error_string"] = err_string
 							return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
 						else:
 							# from single notifications
-							request.session["notif_form"] = form
+							request.session["single_notif_error"] = err_string
 							request.session.modified = True
 							return return_to_content(request,origin,pk,None,own_uname)
 		else:
@@ -4676,12 +4675,12 @@ def public_reply_view(request,*args,**kwargs):
 				own_id = request.user.id
 				remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(link_id), user_id=own_id)
 				return render(request, 'object_deleted.html',{})
-			form = request.session.pop("publicreply_form",None)
+			context["form_error"] = request.session.pop("publicreply_error",None)
 			context["is_auth"] = True
 			secret_key = uuid.uuid4()
 			set_text_input_key(user_id, link_id, 'home_rep', secret_key)
 			context["sk"] = secret_key
-			context["form"] = form if form else PublicreplyForm()
+			context["form"] = PublicreplyForm()
 			context["mob_verified"] = True if request.mobile_verified else False
 			context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
 			context["user_id"] = user_id
@@ -4784,7 +4783,7 @@ def post_public_reply(request,*args,**kwargs):
 						log_action.delay(user_id=user_id, action_categ='C', action_sub_categ='1', action_liq='h', time_of_action=time_now)
 					##############################################################
 				else:
-					request.session["publicreply_form"] = form
+					request.session["publicreply_error"] = form.errors.as_text().split("*")[2]
 					request.session["link_pk"] = link_id
 					request.session.modified = True
 				return redirect("publicreply_view")

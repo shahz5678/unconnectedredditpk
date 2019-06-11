@@ -5,7 +5,6 @@
 {% load get_text_object %}
 {% load emoticons_tags %}
 {% load get_group_button %}
-{% load show_error %}
 {% load s3 %}
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
@@ -28,7 +27,7 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 7px;">
     <a name="sectionJ"></a> 
 
-    {% if form.errors %}<div class="cr">{{ form.errors|show_error }}</div>{% else %}<div class="ct sp"><b>Jawab likhein:</b></div>{% endif %}
+    {% if form_error %}<div class="cr">{{ form_error }}</div>{% else %}<div class="ct sp"><b>Jawab likhein:</b></div>{% endif %}
     <form action="{% url 'publicreply_post' %}" method="POST" style="display:inline">
         {% csrf_token %}
         <input type="hidden" name="sk" value="{{ sk }}">

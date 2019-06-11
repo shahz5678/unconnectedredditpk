@@ -26,7 +26,7 @@
 				<img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ parent.lrsn }}</bdi></a>:<bdi class="clb lsp sp lsp">{% emoticons %} {{ parent.lrtx }}{% endemoticons %}</bdi><span class="cgy cxs sp mrs"><bdi>, {{ parent.lrti|human_time }}</bdi>
 				</span>
 			</div>
-				{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
+				{% if form_error %}<span class="cr">{{ form_error }}</span>{% endif %}
 				<form method="POST" class="mts mrs mls" action="{% url 'unseen_reply' parent_pk %}">
 					{% csrf_token %}
 					<div class="box-with-button-right">
@@ -159,7 +159,7 @@
 		</a>
 		{% else %}
 
-		{% if form.errors %}<span class="mls mrs cr">{{ form.errors|show_error }}</span>{% endif %}
+		{% if form_error %}<span class="mls mrs cr">{{ form_error }}</span>{% endif %}
 		{% if ident|slugify == parent.id2 %}
 		<form method="POST" class="mts mrs mls" action="{% url 'unseen_per_grp' parent_pk parent.id1 %}">
 		{% else %}
@@ -198,7 +198,7 @@
 			<a href="{% url 'profile' parent.lrsn 'fotos' %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;{{ parent.lrsn }}</a><span class="clb lsp">: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		</div>
 
-		{% if form.errors %}<span class="mls mrs cr">{{ form.errors|show_error }}</span>{% endif %}
+		{% if form_error %}<span class="mls mrs cr">{{ form_error }}</span>{% endif %}
 		<form method="POST" class="mts mrs mls" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
@@ -236,7 +236,7 @@
 			{% if parent.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;{{ parent.lrsn }}</a><span style="color:#404040;" class="lsp">: {% emoticons %}{{ parent.lrtx }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
 		</div>
 
-		{% if form.errors %}<span class="mls mrs cr">{{ form.errors|show_error }}</span>{% endif %}
+		{% if form_error %}<span class="mls mrs cr">{{ form_error }}</span>{% endif %}
 		<form method="POST" class="mts mrs mls" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
@@ -290,7 +290,7 @@
 			<img src="{{ parent.lrau|s3:'thumb' }}" alt="pic" style="border-radius:50%" width="22" height="22">{% if latest_comment.lrsn in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ latest_comment.lrsn }}</bdi></a>:&nbsp;<span class="cl lsp clb"><bdi>{% emoticons %}{{ latest_comment.lrtx|truncatechars:40 }}{% endemoticons %}</bdi></span><span class="cgy cxs sp mrs"><bdi>, {{ latest_comment.lrti|human_time }}</bdi></span>
 		</div>
 		
-		{% if form.errors %}<span class="cr">{{ form.errors|show_error }}</span>{% endif %}
+		{% if form_error %}<span class="cr">{{ form_error }}</span>{% endif %}
 		<form method="POST" class="mts mrs mls" action="{% url 'unseen_comment' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
@@ -315,7 +315,7 @@
 		<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 		<div class="sp cs mbl cgy dby" style="border-radius:0;text-align:center;padding:5px 0;border-bottom:2px solid whitesmoke">notification from <b>{{ parent.oon }}</b></div>
 
-		<div class="cl lsp ow clb mrs mls mbs" style="text-align:center">{{ parent.od }}</div>
+		<div class="cl lsp ow clb mrs mls mbs" style="text-align:center">{% emoticons %}{{ parent.od }}{% endemoticons %}</div>
 		{% if parent.v|add:"0" < VDC %}
 			<img src="{{ static_url }}img/broken.svg" class="clb cs sp" alt="not found" style="vertical-align:top;width:100%">
 		{% elif parent.v|add:"0" < VDP %}
@@ -339,7 +339,7 @@
 		{% big_photo_comment_button photo_id=parent.oi origin=origin comm_count=parent.comment_count|default_if_none:"0"|add:"0" static_url=STATIC_URL from_single_notif='1' %}
 		</div>
 
-		{% if form.errors %}<span class="mls mrs cr">{{ form.errors|show_error }}</span>{% endif %}
+		{% if form_error %}<span class="mls mrs cr">{{ form_error }}</span>{% endif %}
 		<form method="POST" class="mts mls mrs" action="{% url 'unseen_comment' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">

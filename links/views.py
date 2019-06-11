@@ -1367,12 +1367,18 @@ def profile_pk(request, slug=None, key=None, *args, **kwargs):
 	return HttpResponsePermanentRedirect("/user/{}/fotos/".format(slug.encode('utf-8')))
 
 
-def best_photos_list(request,*args,**kwargs):
+def best_photos_list(request):
 	"""
 	Permanent redirect to the trending page
 	"""
 	return HttpResponsePermanentRedirect("/photo/best-list/")
-#	return redirect("photo",'best-list')
+
+
+def fresh_photos_list(request):
+	"""
+	Permanent redirect to the trending page
+	"""
+	return HttpResponsePermanentRedirect("/photo/fresh-list/")
 
 
 def redirect_to_profile_photos(request,slug):
@@ -1380,6 +1386,34 @@ def redirect_to_profile_photos(request,slug):
 	Permanent redirect to new user profile photos view
 	"""
 	return HttpResponsePermanentRedirect("/user/{}/fotos/".format(slug.encode('utf-8')))
+
+
+def redirect_to_search(request):
+	"""
+	Permanent redirect to search
+	"""
+	return HttpResponsePermanentRedirect("/search/nickname/")
+
+
+def redirect_to_mehfil_list(request):
+	"""
+	Permanent redirect to mehfil joined list
+	"""
+	return HttpResponsePermanentRedirect("/mehfil/joined/list/")
+
+
+def redirect_to_1on1_list(request):
+	"""
+	Permanent redirect to 1on1 friendlist
+	"""
+	return HttpResponsePermanentRedirect("/1-on-1/friends/")
+
+
+def perm_redirect_to_home(request,pk=None,origin=None,slug=None):
+	"""
+	Permanent redirect to new user profile photos view
+	"""
+	return HttpResponsePermanentRedirect("/")
 
 
 ############################################################################################################

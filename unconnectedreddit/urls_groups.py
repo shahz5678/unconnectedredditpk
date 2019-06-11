@@ -12,6 +12,7 @@ show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,pe
 post_js_reply_to_personal_group, personal_group_user_listing, unseen_per_grp, x_per_grp_notif, personal_group_metrics, share_photo_in_personal_group,\
 photo_shared, cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4#, deletion_test
 from links.number_verification import verify_personal_group_user
+from links.views import redirect_to_1on1_list
 
 admin.autodiscover()
 
@@ -74,4 +75,6 @@ urlpatterns = patterns('',
 	url(r'^1-on-1/help_page/2/$', auth(personal_group_help2), name='personal_group_help2'),
 	url(r'^1-on-1/help_page/3/$', auth(personal_group_help3), name='personal_group_help3'),
 	url(r'^1-on-1/help_page/4/$', auth(personal_group_help4), name='personal_group_help4'),
+	################################ Permanent redirects #################################
+	url(r'^priv_chat_list/$', auth(redirect_to_1on1_list), name='redirect_to_1on1_list'),
 )

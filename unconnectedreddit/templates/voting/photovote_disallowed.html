@@ -1,13 +1,12 @@
 {% extends "base.html" %}
-{% load future_time %}
 {% load get_display_ban_msg %}
-{% load emoticons_tags %}
 {% block content %}
-<head><title>Unable to vote | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-<h1 class="cxl clb" style="text-align:center">Cannot vote!</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<head><title>Unable to complete action | Damadam</title></head>
 
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb" style="text-align:center">Cannot complete action!</h1>
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 
 <form method="POST" class="mt mbl" action="{% url 'redirect_to_content' %}">
 {% csrf_token %}

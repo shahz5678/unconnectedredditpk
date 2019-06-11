@@ -2311,11 +2311,21 @@ def personal_group_user_listing(request):
 	List down personal groups of a given user
 	"""
 	own_id, page_num = request.user.id, request.GET.get('page', '1')
-	start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-	payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
-	page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-	return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,'num_pages':len(page_list),\
-		'current_page':page_num,'current_time':time.time(),'own_id':str(request.user.id),'items_in_curr_page':len(payload)})
+	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+	if banned:
+		# show "user banned" message and redirect them to home
+		tid = request.session.pop("personal_group_tid_key",'')
+		if tid:
+			request.session.pop("personal_group_gid_key:"+tid,'')
+		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+	else:
+		start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+		payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
+		page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+		return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
+			'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
+			'items_in_curr_page':len(payload)})
 
 ####################################################################################################################
 #################################################### Help Page #####################################################

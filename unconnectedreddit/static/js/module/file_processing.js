@@ -1,4 +1,4 @@
-// feeder for helper_funcs.v1.14.js
+// feeder for helper_funcs.v1.15.js
 // Compress via https://jscompress.com/ and press "download"
 var valid_img = false;
 var max_img_width = 450;
@@ -980,7 +980,7 @@ function public_photo_submit(e) {
 		e.preventDefault();
 		personal_group_preloader('create');
 		// prep_image does some asynchronous things, so utilize callback by passing process_ajax() as an argument
-		prep_image(browse_pub_img_btn.files[0],pub_img_caption_field.value, browse_pub_img_btn.files[0].name, e.target.action, 'public_img','image_file', 'caption', '/upload_public_photo/',null,process_ajax);
+		prep_image(browse_pub_img_btn.files[0],pub_img_caption_field.value, browse_pub_img_btn.files[0].name, e.target.action, 'public_img','image_file', 'caption', '/share/photo/upload/',null,process_ajax);
 	} else {
 		if (valid_public_img == null) {
 			e.preventDefault();

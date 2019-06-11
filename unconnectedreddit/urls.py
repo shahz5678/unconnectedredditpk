@@ -24,8 +24,8 @@ from urls_topics import urlpatterns as urlpatterns_topics
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan, \
-comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, show_online_users, \
-star_list, cross_salat_notif, best_home_page, home_page, home_redirect, best_photos_list, \
+comment_pk, reply_to_photo, link_create_pk, welcome_pk, unfan, show_online_users,perm_redirect_to_home, \
+star_list, cross_salat_notif, best_home_page, home_page, home_redirect, best_photos_list, fresh_photos_list, \
 see_special_photo_pk, special_photo, photo_location, unseen_reply, unseen_comment, unseen_activity, videocomment_pk, \
 profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, unseen_fans, unseen_help, make_ad, ad_finalize, \
 click_ad, cross_group_notif,suspend, top_photo_help, reauth, reset_password, fan_list,\
@@ -203,8 +203,6 @@ urlpatterns = patterns('',
 	url(r'^ftur/$', auth(first_time_unseen_refresh), name='first_time_unseen_refresh'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	#url(r'^izzat/(?P<pk>\d+)/$', photostream_izzat, name='photostream_izzat'),
-	# url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
-	# url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$', PhotoScoreView.as_view(), name='photo_izzat'),
 	# url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
 	# url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
@@ -283,6 +281,14 @@ urlpatterns = patterns('',
 	url(r'^coming-soon/stay-tuned/$', auth(coming_soon), name='coming_soon'),
 	#url(r'^maintainance_notice/stay-tuned/$', auth(maintainance_notice), name='maintainance_notice'),
 	#################################################################################################
+	############################# Permanent redirects ###############################################
+	url(r'^freshphotos/$', auth(fresh_photos_list), name='fresh_photos_list'),
+	url(r'^unauth/$',perm_redirect_to_home, name='perm_redirect_to_home'),
+	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$',perm_redirect_to_home, name='perm_redirect_to_home'),
+	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$',perm_redirect_to_home, name='perm_redirect_to_home'),
+	
+
+
 )
 urlpatterns += urlpatterns_ecomm
 urlpatterns += urlpatterns_ads

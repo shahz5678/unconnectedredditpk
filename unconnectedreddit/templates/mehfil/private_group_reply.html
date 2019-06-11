@@ -6,7 +6,7 @@
 {% block content %}
 <head><title>{% if switching %}Private mehfil{% else %}{{ group_topic }} (private mehfil){% endif %} | Damadam.pk</title></head>
 <style>body{background:#f0f3f4}</style>
-
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.14.js"></script>
 <div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl lsp">{% if switching %}Mehfil not found{% else %}{% emoticons %}{{ group_topic }}{% endemoticons %}{% endif %}:</h1>
 </div>
@@ -148,5 +148,4 @@
 <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.13.js"></script>
 {% endblock %}

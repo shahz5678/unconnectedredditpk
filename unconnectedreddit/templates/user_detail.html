@@ -68,7 +68,19 @@
 
 </div>
 
+{% if subscribed_topics %}
+    <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:7px">
 
+    <div class="cl sp lsp mbl" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Your topics:</div>
+
+    {% for topic in subscribed_topics %}
+    <div  class="mrl mll">
+    {% include "topics/topic_button.html" with static_url=STATIC_URL label=topic.name url=topic.url c1=topic.c1 c2=topic.c2 %}
+    </div>
+    {% endfor %}
+    
+    </div>
+{% endif %}
 {% if star_owner_mehfils and not is_profile_banned %}
 	
 	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:7px">
@@ -89,6 +101,7 @@
 	</div>
 
 {% endif %}
+
 
 
 <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:7px">

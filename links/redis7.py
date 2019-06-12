@@ -933,6 +933,25 @@ def subscribe_topic(subscriber_id, topic_url, sub_time):
 	my_server.setex(TOPIC_UNSUB_LOCKED+subscriber_id+":"+topic_url, sub_time, TOPIC_UNSUB_LOCKING_TIME)
 
 
+def retrieve_subscribed_topics(user_id):
+	"""
+	"""
+	final_data = []
+	if user_id:
+		my_server = redis.Redis(connection_pool=POOL)
+		topic_urls = my_server.zrevrange(SUB_TOPICS+user_id,0,-1)
+		if topic_urls:
+			topic_json_data, topic_data = [], []
+			for topic_url in topic_urls:
+				topic_json_data.append(my_server.get(TOPIC_JSON_OBJ+topic_url))
+			for json_data in topic_json_data:
+				topic_data.append(json.loads(json_data))
+			final_data = []
+			for data in topic_data:
+				colors = COLOR_GRADIENTS[data['th']]
+				final_data.append({'url':data['url'],'c1':colors[0],'c2':colors[1],'name':data['tn']})
+	return final_data
+
 
 def fan_out_to_subscribers(topic_url, obj_hash_id):
 	"""

@@ -9,7 +9,8 @@ from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_F
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED, USER_FRIEND_LIST_CACHING_TIME
-from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list, cache_meta_data, get_cached_meta_data
+from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list, cache_meta_data, get_cached_meta_data,\
+add_group_to_log
 from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
 from get_meta_data import get_meta_data
 from urlmarker import URL_REGEX1
@@ -2464,6 +2465,9 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		pipeline1.hmset("pgah:"+group_id,mapping)
 		pipeline1.mset({"pgp:"+group_id:own_id+":"+target_id,"pgrp:"+own_id+":"+target_id:group_id,"pgrp:"+target_id+":"+own_id:group_id})
 		pipeline1.zadd("all_pgs",group_id,time.time())
+		##################################### Zuck ##############################################
+		add_group_to_log(group_id)
+		#########################################################################################
 		###### No need to touch these sets, they're done in mark_personal_group_attendance ######
 		# pipeline1.zadd("pgfgm:"+own_id,group_id+":"+target_id,time_now)
 		# pipeline1.zadd("pgfgm:"+target_id,group_id+":"+own_id,time_now)

@@ -1905,3 +1905,49 @@ def avg_num_of_chats_per_type():
 		pipeline1.execute()
 		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
 		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws
+
+
+
+######################################### Project Zuck ############################################
+from score import PROJ_ZUCK_STARTING_USER_ID 
+
+new_old = 'nopair'
+new_new = 'nnpair'
+old_old = 'oopair'
+group_to_log = 'zuckers_to_log'
+
+
+def add_group_to_log(group_id):
+	# pair = get_pair(oid,tid)
+	redis.Redis(connection_pool=POOL).zincrby(group_to_log,group_id,amount=1)
+
+
+def check_if_group_to_log(group_id):
+	"""
+	legacy messages are not logged
+
+	"""
+	return redis.Redis(connection_pool=POOL).zscore(group_to_log,group_id)
+
+
+def log_1on1_chat(payload,oid,tid,group_id):
+	"""
+	Logs 1on1 messages in 3 different buckets
+
+	"""
+	if check_if_group_to_log(group_id):
+		my_server = redis.Redis(connection_pool=POOL)
+		
+		if int(oid) < PROJ_ZUCK_STARTING_USER_ID and int(tid) < PROJ_ZUCK_STARTING_USER_ID:
+			key_to_use = old_old
+		elif int(oid) < PROJ_ZUCK_STARTING_USER_ID or int(tid) < PROJ_ZUCK_STARTING_USER_ID:
+			key_to_use = new_old
+		else:
+			key_to_use = new_new
+		my_server.zadd(key_to_use,json.dumps(payload),group_id)
+		my_server.zincrby(group_to_log,group_id,amount=1)		
+	else:
+		pass				
+
+
+

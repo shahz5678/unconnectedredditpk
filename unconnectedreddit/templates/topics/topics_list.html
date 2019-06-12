@@ -18,14 +18,19 @@
 	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
 	<meta property="og:image:width" content="300">
 	<meta property="og:image:height" content="300">
-	<meta property="og:description" content="Damadam is a place to share and discover the discussions closest to your heart. And meet some great people along the way!">
+	<meta property="og:description" content="Damadam is the place for gupshup with girls and guys from Pakistan, the best funny photos and memes, and Urdu poetry. Join the fun now!">
 	<meta property="fb:app_id" content="1758220174446684" />
 	<meta name="author" content="mhb">
 	
 	{% google_analytics %}
 	<title>List of Topics | Damadam</title>
 
-	<link rel="canonical" href="{% url 'topic_listing' %}" />
+	{% if page.has_previous %}
+	<link rel="prev" href="?page={{ page.previous_page_number }}" />
+	{% endif %}
+	{% if page.has_next %}
+		<link rel="next" href="?page={{ page.next_page_number }}" />
+	{% endif %}
 
 	{% include "ga_user_analytics.html" with my_var=user.id %}
 </head>
@@ -50,7 +55,7 @@
 	<a name="section0"></a>
 </nav>
 
-<main style="display:block" itemscope itemtype="http://schema.org/CollectionPage">
+<main style="display:block" itemscope itemtype="https://schema.org/CollectionPage">
 
 	{% include "topics/topics_navbar.html" with section='topics_list' %}
 
@@ -62,34 +67,43 @@
 
 	<div style="padding:10px;">
 
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Cricket:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan vs Australia WC 2019 Match 17' url='pakistan-vs-australia-wc-2019-match-17' c1='#5cf48c' c2='#6d9eff' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan vs England WC 2019 Match 6' url='pakistan-vs-england-wc-2019-match-6' c1='#f4d140' c2='#01edd2' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan vs Sri Lanka WC 2019 Match 11' url='pakistan-vs-sri-lanka-wc-2019-match-11' c1='#c66aff' c2='#ff60e1' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='India vs Australia WC 2019 Match 14' url='india-vs-australia-wc-2019-match-14' c1='#00f0a9' c2='#ff9a84' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Internet Packages:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Zong Internet Packages' url='zong-internet-packages' c1='#5cf48c' c2='#a5ed31' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Jazz Internet Packages' url='jazz-internet-packages' c1='#f88379' c2='#fc98bc' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Telenor Internet Packages' url='telenor-internet-packages' c1='#6292ff' c2='#3bc1f0' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ufone Internet Packages' url='ufone-internet-packages' c1='#ffbe69' c2='#ff7d9c' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Games:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='PUBG' url='pubg' c1='#2ed7e1' c2='#d4d900' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ludo Star' url='ludo-star' c1='#e378ba' c2='#00f0a9' %}
+
+
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 5px 0">Poetry:</h2>
-		<a href="{% url 'topic_page' 'urdu-poetry' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #fa88a3 0%, #ffca5f 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Urdu Poetry</button></a>
-		<a href="{% url 'topic_page' 'sad-poetry' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #f4d140 0%, #3bc1f0 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Sad Poetry</button></a>
-		<a href="{% url 'topic_page' 'islamic-poetry' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #5cf48c 0%, #31e6ed 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Islamic Poetry</button></a>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Urdu Poetry' url='urdu-poetry' c1='#fa88a3' c2='#ffca5f' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Sad Poetry' url='sad-poetry' c1='#f4d140' c2='#3bc1f0' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamic Poetry' url='islamic-poetry' c1='#5cf48c' c2='#31e6ed' %}
 
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Gupshup:</h2>
-		<a href="{% url 'topic_page' 'boys-vs-girls' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #5cf48c 0%, #ff5a5a 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Boys vs Girls</button></a>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Boys vs Girls' url='boys-vs-girls' c1='#5cf48c' c2='#ff5a5a' %}
 
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Cities:</h2>
-		<a href="{% url 'topic_page' 'karachi-walay' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #977aff 0%, #01edd2 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Karachi Walay</button></a>
-		<a href="{% url 'topic_page' 'pakhair-raghley' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #d4d900 0%, #01f5a1 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Pakhair Raghley</button></a>
-		<a href="{% url 'topic_page' 'lahore-lahore-ae' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #c66aff 0%, #50f777 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Lahore Lahore Ae</button></a>
-		<a href="{% url 'topic_page' 'islamabad-capital-city' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #ffbe69 0%, #b76eff 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Islamabad Capital City</button></a>
-		<a href="{% url 'topic_page' 'faisalabad-ki-duniya' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #ffbe69 0%, #6e76ff 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Faisalabad ki Duniya</button></a>
-
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 5px 0">Games:</h2>
-		<a href="{% url 'topic_page' 'pubg' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #2ed7e1 0%, #d4d900 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">PUBG</button></a>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Karachi Walay' url='karachi-walay' c1='#977aff' c2='#01edd2' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakhair Raghley' url='pakhair-raghley' c1='#d4d900' c2='#01f5a1' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Lahore Lahore Ae' url='lahore-lahore-ae' c1='#c66aff' c2='#50f777' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamabad Capital City' url='islamabad-capital-city' c1='#ffbe69' c2='#b76eff' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Faisalabad ki Duniya' url='faisalabad-ki-duniya' c1='#ffbe69' c2='#6e76ff' %}
 
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Status:</h2>
-		<a href="{% url 'topic_page' 'whatsapp-status' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #28d7ff 0%, #46ec5c 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Whatsapp Status</button></a>
-		
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Cricket:</h2>
-		<a href="{% url 'topic_page' 'pakistan-vs-england-wc-2019-match-6' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #f4d140 0%, #01edd2 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Pakistan vs England WC 2019 Match 6</button></a>
-		<a href="{% url 'topic_page' 'pakistan-vs-sri-lanka-wc-2019-match-11' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #c66aff 0%, #ff60e1 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Pakistan vs Sri Lanka WC 2019 Match 11</button></a>
-		<a href="{% url 'topic_page' 'india-vs-australia-wc-2019-match-14' %}"><button class="mbl cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #00f0a9 0%, #ff9a84 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">India vs Australia WC 2019 Match 14</button></a>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Whatsapp Status' url='whatsapp-status' c1='#28d7ff' c2='#46ec5c' %}
 
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Eid 2019:</h2>
-		<a href="{% url 'topic_page' 'eid-2019' %}"><button class="cl clw bw lsp pg_ok_res" style="width:100%;padding:10px 5px;font-weight:bold;border:0;background: linear-gradient(45deg, #2ed7e1 0%, #f574ff 100%)"><img src="{{ STATIC_URL }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">Eid 2019</button></a>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Eid 2019' url='eid-2019' c1='#2ed7e1' c2='#f574ff' %}
 
 	</div>
 	</article>

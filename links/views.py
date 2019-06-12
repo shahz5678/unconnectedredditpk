@@ -80,7 +80,7 @@ cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
-is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, retrieve_user_world_age, set_user_choice, \
+is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, set_user_choice, \
 log_text_submissions #, log_erroneous_passwords
 from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
@@ -95,7 +95,7 @@ from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_co
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
-retrieve_trending_photo_ids, retrieve_num_trending_photos
+retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -1343,9 +1343,10 @@ class UserProfileDetailView(FormView):
 			context["star_owner_mehfils"] = retrieve_latest_user_owned_mehfils(star_id)
 			total_fans, recent_fans = get_photo_fan_count(star_id)
 			context["fans"] = total_fans if total_fans else 0
-			context["diamonds"] = int(retrieve_user_world_age([user_id])[user_id]) if is_own_profile else ''
+			# context["diamonds"] = int(retrieve_user_world_age([user_id])[user_id]) if is_own_profile else ''
 			context["recent_fans"] = recent_fans if recent_fans else 0
 			if star_id == user_id:
+				context["subscribed_topics"] = retrieve_subscribed_topics(user_id)
 				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
 				context["blocked"] = get_banned_users_count(user_id)
 			else:

@@ -276,6 +276,7 @@ MERCH = {
 ###############################################################################################################
 SEGMENT_STARTING_TIME = 1559591244	# starting time of user segment analysis
 SEGMENT_STARTING_USER_ID = 1892635# starting user ID of user segment analysis
+PROJ_ZUCK_STARTING_USER_ID = 1899552
 """
 KEY:
 

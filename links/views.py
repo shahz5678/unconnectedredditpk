@@ -895,6 +895,11 @@ def home_reply(request,pk=None,*args,**kwargs):
 						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time_now)
 						target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)# target is target_username
 						request.session['home_hash_id'] = notif
+						################### Segment action logging ###################
+						if user_id > SEGMENT_STARTING_USER_ID:
+							log_action.delay(user_id=user_id, action_categ='C', action_sub_categ='2', action_liq='h', time_of_action=time_now)
+						##############################################################
+
 						if target == ":":
 							return redirect("ban_underway")
 						elif target == ';':

@@ -50,7 +50,7 @@
 	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<div class="sp cs mbl" style="border-radius:0;text-align:center;padding:5px 0;border-bottom:2px solid whitesmoke;background-color:#77ffd1;color:#306654">notification from <b>{{ parent.lrsn }}</b></div>
 
-		<form class="mbl mls mrs" method="POST" action="{% url 'enter_personal_group' %}">
+		<form class="mbl mls mrs" method="POST" action="{% url 'enter_personal_group_from_single_notif' %}">
 		{% csrf_token %}
 		{% if ident|slugify == parent.id1 %}
 			{% if parent.id2 == parent.anon1 or parent.id2 == parent.anon2 %}
@@ -114,7 +114,7 @@
 				</div>
 			{% elif parent.type == 'img' or parent.type == 'img_res' or parent.type == 'shared_img' %}
 				<div class="cs sp mbl mls mrs" style="color:#306654">New photo:</div>
-				<form class="mrs mls mbs" action="{% url 'enter_personal_group' %}" method="POST">
+				<form class="mrs mls mbs" action="{% url 'enter_personal_group_from_single_notif' %}" method="POST">
 					{% csrf_token %}
 					<button name="tid" style="background:0 0;padding:0;border:none" value="{{ parent.lrwi }}">
 					{% if parent.h == 'no' %}

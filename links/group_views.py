@@ -368,6 +368,24 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 ########################################### Personal Group Functionality ###########################################
 ####################################################################################################################
 
+def enter_personal_group_from_single_notif(request):
+    """
+    Called from a single notification
+
+    If user is blocked, doesn't let them go through
+    """
+    own_id = request.user.id
+    banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+    if banned:
+        # show "user banned" message and redirect them to home
+        return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+            'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+    elif request.method == "POST":
+        target_id = request.POST.get("tid")
+        request.session["personal_group_tid_key"] = target_id
+        return redirect("enter_personal_group")
+    else:
+        return redirect("home")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -1119,35 +1137,41 @@ def unseen_per_grp(request, gid, fid):
 		group_id, exists = personal_group_already_exists(own_id, fid)
 		if exists and group_id == str(gid):
 			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
-			if form.is_valid():
-				text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
-				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
-					writer_id=own_id, group_id=group_id)
-				private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time.time(),text=text,txt_type=type_,\
-					own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
-					successful=True if bid else False, from_unseen=True)
-				personal_group_sanitization(obj_count, obj_ceiling, gid)
-				################### Segment action logging ###################
-				if origin:
-					if own_id > SEGMENT_STARTING_USER_ID:
-						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='5', action_liq='h', time_of_action=time.time())
-				else:
-					if own_id > SEGMENT_STARTING_USER_ID:
-						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='4', action_liq='h', time_of_action=time.time())
-				##############################################################
-				if origin:
-					return return_to_content(request,origin,None,None,own_id)
-				else:
-					return redirect("unseen_activity", own_uname)
+			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			if banned:
+				# show "user banned" message and redirect them to home
+				return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+					'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
 			else:
-				if origin:
-					request.session["notif_form"] = form
-					request.session.modified = True
-					return return_to_content(request,origin,None,None,own_id)
+				form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
+				if form.is_valid():
+					text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
+					obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
+						writer_id=own_id, group_id=group_id)
+					private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time.time(),text=text,txt_type=type_,\
+						own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
+						successful=True if bid else False, from_unseen=True)
+					personal_group_sanitization(obj_count, obj_ceiling, gid)
+					################### Segment action logging ###################      
+					if origin:      
+						if own_id > SEGMENT_STARTING_USER_ID:       
+							log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='5', action_liq='h', time_of_action=time.time())        
+					else:
+						if own_id > SEGMENT_STARTING_USER_ID:       
+							log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='4', action_liq='h', time_of_action=time.time())        
+					##############################################################
+					if origin:
+						return return_to_content(request,origin,None,None,own_id)
+					else:
+						return redirect("unseen_activity", own_uname)
 				else:
-					request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
-					return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
+					if origin:
+						request.session["notif_form"] = form
+						request.session.modified = True
+						return return_to_content(request,origin,None,None,own_id)
+					else:
+						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+						return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
 		else:
 			return redirect("unseen_activity", own_uname)
 	else:
@@ -1898,7 +1922,12 @@ def render_personal_group_invite(request):
 		request.POST.get('tp','')
 		if topic:
 			request.session["origin_topic"] = topic
-		if str(own_id) == target_id:
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		elif str(own_id) == target_id:
 			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
 				'lid':request.POST.get('hh',None)})
 		else:

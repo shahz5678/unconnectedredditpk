@@ -274,8 +274,8 @@ MERCH = {
 '15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#REMOVE
 ###############################################################################################################
-SEGMENT_STARTING_TIME = 1559591244	# starting time of user segment analysis
-SEGMENT_STARTING_USER_ID = 1892635# starting user ID of user segment analysis
+SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
+SEGMENT_STARTING_USER_ID = 1900528# starting user ID of user segment analysis
 PROJ_ZUCK_STARTING_USER_ID = 1899552
 """
 KEY:
@@ -323,4 +323,17 @@ H3h: topic post submitted
 
 Z1l: signing up
 Z2l: mobile verification
+Z3h: Inline comment on text on home
+Z4h: Inline comment on text on topic page
+Z5h: Writing in text jawab page
+Z6h: Inline comment on foto on home
+Z7h: Inline comment on fresh fotos
+Z8h: Inline comment on best fotos
+Z9h: Writing in foto tabsra page
+Z10h: Unverified user joining public mehfil
+Z11h: Unverified user joining private mehfil
+Z12h: Sharing text
+Z13h: Sharing foto
+Z14h: Subscribe to a topic
+
 """

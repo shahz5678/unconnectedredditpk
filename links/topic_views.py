@@ -519,6 +519,11 @@ def subscribe_to_topic(request, topic_url):
 			# this is a GET request
 			return redirect("topic_page",topic_url=topic_url)
 	else:
+		################### Segment action logging ###################
+		own_id, time_now = request.user.id, time.time()
+		if own_id > SEGMENT_STARTING_USER_ID:
+			log_action.delay(user_id=own_id, action_categ='Z', action_sub_categ='14', action_liq='l', time_of_action=time_now)
+		##############################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'subscribe_to_topic':True})
 
 

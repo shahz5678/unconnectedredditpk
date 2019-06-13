@@ -3712,6 +3712,10 @@ def join_private_group(request):
 			# user is hell-banned
 			return redirect("error")
 		elif not request.mobile_verified:
+			################### Segment action logging ###################
+			if own_id > SEGMENT_STARTING_USER_ID:
+				log_action.delay(user_id=own_id, action_categ='Z', action_sub_categ='11', action_liq='h', time_of_action=time.time())
+			##############################################################
 			# do not let user join a mehfil if they're not verified
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_private_mehfil':True})
 		elif is_membership_frozen(group_id):
@@ -3928,6 +3932,10 @@ def join_public_group(request):
 			return redirect("error")
 		elif not request.mobile_verified:
 			# do not let user join a mehfil if they're not verified
+			################### Segment action logging ###################
+			if own_id > SEGMENT_STARTING_USER_ID:
+				log_action.delay(user_id=own_id, action_categ='Z', action_sub_categ='10', action_liq='h', time_of_action=time.time())
+			##############################################################
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_public_mehfil':True})
 		elif is_membership_frozen(group_id):
 			# group has been reported - its membership is currently frozen

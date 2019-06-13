@@ -3220,8 +3220,11 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 	"""
 	user_id = request.user.id
 	username = retrieve_uname(user_id,decode=True)
-	if tutorial_unseen(user_id=user_id, which_tut='20', renew_lease=True):
-		return render(request, 'inbox_tutorial.html', {'username':username})
+	banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+	if banned:
+		# show "user banned" message and redirect them to home
+		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+			'time_remaining':time_remaining,'uname':username,'ban_details':ban_details,'origin':'19'})
 	else:
 		page_num = request.GET.get('page', '1')
 		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)

@@ -881,7 +881,14 @@ def home_reply(request,pk=None,*args,**kwargs):
 					request.session.modified = True
 					return redirect("ban_underway")
 				else:
-					form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk,mob_verified=request.mobile_verified)
+					is_verified = request.mobile_verified
+					################### Segment action logging ###################
+					if not is_verified and user_id > SEGMENT_STARTING_USER_ID:
+						sub_categ = '3' if origin == '3' else '4'# inline home tabsra or inline topic tabsra
+						log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ=sub_categ, action_liq='h', \
+							time_of_action=time.time())
+					##############################################################
+					form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk,mob_verified=is_verified)
 					if form.is_valid():
 						text=form.cleaned_data.get("description")
 						time_now=time.time()
@@ -892,6 +899,7 @@ def home_reply(request,pk=None,*args,**kwargs):
 						if user_id > SEGMENT_STARTING_USER_ID:
 							log_action.delay(user_id=user_id, action_categ='C', action_sub_categ='2', action_liq='h', time_of_action=time_now)
 						##############################################################
+
 						if target == ":":
 							return redirect("ban_underway")
 						elif target == ';':
@@ -1850,6 +1858,16 @@ class CommentView(CreateView):
 			context["authenticated"] = False
 		return context
 
+	################### Segment action logging ###################
+	def form_invalid(self, form):
+		"""
+		If the form is invalid, log the data point (if need be)
+		"""
+		user_id = self.request.user.id
+		if not self.request.mobile_verified and user_id > SEGMENT_STARTING_USER_ID:
+			log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ='9', action_liq='h', time_of_action=time.time())
+		return self.render_to_response(self.get_context_data(form=form))
+	##############################################################	
 
 	def form_valid(self, form):
 		if self.request.user_banned:
@@ -2057,6 +2075,16 @@ def photo_comment(request,pk=None,*args,**kwargs):
 						else:
 							return return_to_content(request,origin,pk,None,None)
 				else:
+					################### Segment action logging ###################
+					if not is_mob_verified and user_id > SEGMENT_STARTING_USER_ID:
+						if origin == '1':
+							sub_categ = '7'#inline photocomment in fresh list
+						elif origin == '2':
+							sub_categ = '8'#inline photo comment in best list
+						else:
+							sub_categ = '6'#inline photo comment on home
+						log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ=sub_categ, action_liq='h', time_of_action=time.time())
+					##############################################################
 					error_string = form.errors.as_text().split("*")[2]
 					if origin == '3':
 						request.session['home_direct_reply_error_string'] = error_string
@@ -2263,6 +2291,10 @@ def upload_public_photo(request,*args,**kwargs):
 				else:
 					return redirect('public_photo_upload_denied')
 			elif not request.mobile_verified:
+				################### Segment action logging ###################
+				if user_id > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ='13', action_liq='h', time_of_action=time.time())
+				##############################################################
 				# only verified users can upload a photo
 				request.session["public_photo_upload_denied"] = '2'
 				request.session.modified = True
@@ -2374,8 +2406,8 @@ def upload_public_photo(request,*args,**kwargs):
 					photo = Photo.objects.create(image_file = image_file, owner=user, caption=caption, comment_count=0, avg_hash=avghash, \
 						invisible_score=invisible_score)
 					photo_id = photo.id
-					time = photo.upload_time
-					epochtime = convert_to_epoch(time)
+					datetime_obj = photo.upload_time
+					epochtime = convert_to_epoch(datetime_obj)
 					banned = '1' if request.user_banned else '0'
 					name, owner_url = retrieve_credentials(user_id,decode_uname=True)
 					photo_obj = add_image_post(obj_id=photo_id, categ='6', submitter_id=user_id, submitter_av_url=owner_url, submitter_username=name, \
@@ -2950,8 +2982,8 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		grp = retrieve_group_reqd_data(group_id=pk,with_group_owner_id=True,with_uuid=True)
 		if not group_member_exists(pk, user_id):
 			return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_member':True})
-		elif not request.mobile_verified and not grp["p"] == '1':
-			return render(request, 'penalty_unseengroupreply.html', {'uname':username,'not_verified':True})
+		elif not request.mobile_verified:
+			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_public_mehfil':True})
 		else:
 			if request.method == 'POST':
 				origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
@@ -2992,6 +3024,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=None, posting_time=reply_time,\
 						writer_avurl=get_s3_object(own_avurl,category='thumb'), category='0',writer_uname=username, save_latest_submission=True)
 					#######################################################
+
 					group_notification_tasks.delay(group_id=pk, sender_id=user_id, group_owner_id=grp["oi"], topic=grp["tp"],\
 						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["p"], \
 						slug=grp["u"], image_url=None, priority=priority, from_unseen=True)
@@ -3369,7 +3402,8 @@ def post_public_reply(request,*args,**kwargs):
 				request.session.modified = True
 				return redirect("ban_underway")
 			else:
-				form = PublicreplyForm(request.POST,user_id=user_id, link_id=link_id, mob_verified=request.mobile_verified)
+				is_verified = request.mobile_verified
+				form = PublicreplyForm(request.POST,user_id=user_id, link_id=link_id, mob_verified=is_verified)
 				if form.is_valid():
 					text = form.cleaned_data["description"]
 					time_now = time.time()
@@ -3387,6 +3421,11 @@ def post_public_reply(request,*args,**kwargs):
 						log_action.delay(user_id=user_id, action_categ='C', action_sub_categ='1', action_liq='h', time_of_action=time_now)
 					##############################################################
 				else:
+					################### Segment action logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID and not is_verified:
+						log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ='5', action_liq='h', time_of_action=time.time())
+					##############################################################
+
 					request.session["publicreply_error"] = form.errors.as_text().split("*")[2]
 					request.session["link_pk"] = link_id
 					request.session.modified = True
@@ -3634,6 +3673,8 @@ class LinkCreateView(CreateView):
 				context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 				context["feature_phone"] = True if self.request.is_feature_phone else False
 		return context
+	##############################################################
+
 
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		token = self.request.session.pop("link_create_token",None)
@@ -3647,6 +3688,10 @@ class LinkCreateView(CreateView):
 			mobile_verified = self.request.mobile_verified
 			ttl, type_of_rate_limit = content_sharing_rate_limited(user_id)
 			if not mobile_verified:
+				################### Segment action logging ###################
+				if user_id > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ='12', action_liq='h', time_of_action=time.time())
+				##############################################################
 				return render(self.request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
 			elif self.request.user_banned:
 				return redirect("error")

@@ -24,23 +24,23 @@ from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan, comment_pk, reply_to_photo, \
 link_create_pk, welcome_pk, unfan, show_online_users,perm_redirect_to_home, star_list, cross_salat_notif, best_home_page, \
-home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, photo_location, unseen_reply,\
+home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
 unseen_comment, unseen_activity, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
 unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, reauth, reset_password, \
 fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 first_time_unseen_refresh, missing_page, home_reply,photo_page, photo_redirect,upload_public_photo, website_rules, photo_comment,\
 public_reply_view, post_public_reply,redirect_to_profile_photos,public_photo_upload_denied, hide_jawab, hide_comment, logout_rules,\
-display_link_detail
+unseen_reply
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
-from links.views import TopView, UserProfilePhotosView, PhotoQataarHelpView, BaqiPhotosHelpView, PhotoTimeView, PhotostreamView,\
-PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, DeviceHelpView,\
+from links.views import TopView, UserProfilePhotosView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView,\
+PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView,\
 PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, \
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
 AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, LoginWalkthroughView, RegisterLoginView, UserSettingsEditView, \
-UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, HelpView, AdMobileNumView, \
+UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkDeleteView, HelpView, AdMobileNumView, \
 RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, PhotoShareView, PhotoDetailView, \
-AdGenderChoiceView, VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressView, AdCallPrefView
+AdGenderChoiceView, VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressView
 from links.voting_views import user_vote_history
 from links.announcement_views import coming_soon
 from links.group_views import show_shared_photo_metrics
@@ -169,7 +169,7 @@ urlpatterns = patterns('',
 	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', photo_page, name='photo'),
 	###################################################################################
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),
-	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
+	# url(r'^phredi/$', auth(photo_location), name='photo_loc'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
@@ -200,8 +200,8 @@ urlpatterns = patterns('',
 	# url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
 	# url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
-	url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
-	url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
+	# url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
+	# url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
 	url(r'^damadam_par_khushamdeed/$', auth(welcome_reply), name='welcome_reply'),
 	url(r'^khushamdeed/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
 
@@ -219,7 +219,7 @@ urlpatterns = patterns('',
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),
 	url(r'^faces/$', FacesHelpView.as_view(), name='faces'),
 	url(r'^facespage/$', faces_pages, name='faces_pages'), 
-	url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
+	# url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
 	url(r'^pic_expiry/(?P<slug>[\w.@+-]+)/$', PicExpiryView.as_view(), name='pic_expiry'),
 	url(r'^delete_pic/(?P<slug>[\w.@+-]+)/$', DeletePicView.as_view(), name='delete_pic'),
 	url(r'^pic_upload/$', PicsChatUploadView.as_view(), name='pic_upload'),

@@ -3,7 +3,6 @@ import ujson as json
 import random, uuid, time
 from operator import itemgetter
 from brake.decorators import ratelimit
-# from user_sessions.models import Session
 from django.views.decorators.debug import sensitive_post_parameters
 from django.views.generic.edit import CreateView, FormView
 from django.core.urlresolvers import reverse_lazy, reverse
@@ -20,7 +19,6 @@ from django.http import Http404
 from django.db.models import F
 from verified import FEMALES
 from templatetags.s3 import get_s3_object
-from page_controls import GROUPS_PER_PAGE
 from imagestorage import upload_image_to_s3
 from judgement_views import ordered_list_of_tup
 from image_processing import process_group_image
@@ -29,9 +27,9 @@ from group_views import retrieve_user_env
 
 from models import HellBanList, UserProfile
 
-from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list
-
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
+
+from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list
 
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users
@@ -39,18 +37,18 @@ get_most_recent_online_users
 from redis2 import update_notification, remove_group_notification, remove_group_object, get_replies_with_seen,create_notification, create_object, \
 bulk_remove_group_notification
 
-from tasks import set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, log_action,\
-construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction
+from tasks import set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, construct_administrative_activity, \
+update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction, log_action
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
-ChangeGroupTopicForm, ChangeGroupRulesForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, \
-OpenGroupCreateForm, GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
+ChangeGroupTopicForm, ChangeGroupRulesForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, OpenGroupCreateForm, \
+GroupFeedbackForm, GroupPriceOfferForm, OfficerApplicationForm#, GroupOnlineKonForm
 
-from score import PRIVATE_GROUP_COST,\
-PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, GROUP_FEEDBACK_SIZE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP,\
-MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, PUBLIC_GROUP_MAX_SELLING_PRICE, USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED,\
-GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, PUBLIC_GROUP_MIN_SELLING_PRICE, GROUP_MEMBERS_PER_PAGE, GROUP_VISITORS_PER_PAGE, PRIVATE_GROUP_MAX_MEMBERSHIP,\
-MAX_OWNER_INVITES_PER_PRIVATE_GROUP, MIN_MEMBERSHIP_AGE_FOR_GIVING_PUBLIC_GRP_FEEDBACK, MIN_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OWNERSHIP, \
+from score import PRIVATE_GROUP_COST, PRIVATE_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_TITLE_SIZE, PUBLIC_GROUP_MAX_RULES_SIZE, \
+GROUP_FEEDBACK_SIZE, MAX_OWNER_INVITES_PER_PUBLIC_GROUP, MAX_OFFICER_INVITES_PER_PUBLIC_GROUP, CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, \
+PUBLIC_GROUP_MAX_SELLING_PRICE, USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED,GROUP_AGE_AFTER_WHICH_IT_CAN_BE_TRANSFERRED, \
+PUBLIC_GROUP_MIN_SELLING_PRICE, GROUP_VISITORS_PER_PAGE, PRIVATE_GROUP_MAX_MEMBERSHIP, MAX_OWNER_INVITES_PER_PRIVATE_GROUP, \
+MIN_MEMBERSHIP_AGE_FOR_GIVING_PUBLIC_GRP_FEEDBACK, MIN_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OWNERSHIP, GROUP_MEMBERS_PER_PAGE, \
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, DELETION_THRESHOLD, MEHFIL_REPORT_PROMPT, MAX_OFFICER_APPOINTMENTS_ALLWD, GROUP_OFFICER_QUESTIONS, \
 MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE,\
 PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF,CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE, SEGMENT_STARTING_USER_ID
@@ -344,13 +342,13 @@ def processing_group_ownership_transfer(request, slug):
 															category='8', writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 														invalidate_cached_mehfil_replies(group_id)
 														invalidate_presence(group_id)
-														 ###################################
+														###################################
 														# charge the offerer the score they offered - and transfer it to the original owner
 														# if is_public:
 														#     UserProfile.objects.filter(user_id=offerer_id).update(score=F('score') - points_offered)
 														#     UserProfile.objects.filter(user_id=own_id).update(score=F('score') + points_offered)
 														return render(request,"mehfil/transfer_final_status.html",{'guid':group_uuid,'ouname':submitter_uname,\
-															 'is_public':is_public})
+															'is_public':is_public})
 												else:
 													# user not old enough to own a public mehfil
 													return render(request,"mehfil/notify_and_redirect.html",{'too_young_to_become_owner':True,'unique':group_uuid})
@@ -512,7 +510,7 @@ def group_ownership_transfer_tac(request, slug):
 
 	PUBLIC:
 	i) Allows user to ask an 'officer' for an offer (in terms of points)
-	ii) If offer is agreeable, the ower can finalize transaction and change the ownership
+	ii) If offer is agreeable, the owner can finalize transaction and change the ownership
 
 	PRIVATE:
 	i) Allows user to transfer ownership to any other member (including owner rights and invite limits)
@@ -2815,7 +2813,6 @@ def reject_private_group_invite(request, *args, **kwargs):
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
-# def leave_public_group(request):
 def reject_public_group_invite(request):
 	"""
 	Called from group_invites
@@ -2841,6 +2838,7 @@ def reject_public_group_invite(request):
 		# not a POST request
 		return redirect("group_invites")
 
+
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def del_public_group(request, pk=None, unique=None, *args, **kwargs):
@@ -2864,29 +2862,6 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						remove_group_notification(user_id=own_id,group_id=group_id)
 						# removing group notification parent object (redis 2)
 						remove_group_object(group_id)
-
-						# removing from popular group list that contains top 20 ranked groups (redis 3)
-						# del_from_rankings(group_id)
-
-						# removing the group member set (redis 1)
-						# remove_all_group_members(group_id)
-						# removing group's separately saved 'latest' reply (redis 1)
-						# remove_latest_group_reply(group_id)
-						# purging group for all members (redis 1)
-						# bulk_remove_user_group(member_ids, group_id, return_member_ids=False)
-						
-						# marking postgresql group data (deprecate this later)
-						# Group.objects.filter(id=group_id).update(category='99')#'99' implies deleted
-
-						# # removing postgresql group data (canceling plans to do this since it cascades over ALL replies in the group and can lock up the table)
-						# replies = Reply.objects.filter(which_group_id=group_id).order_by('-id').values_list('id',flat=True)[:1000]
-						# if replies.exists():
-						#     # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
-						#     Reply.objects.filter(id__in=replies).delete()
-						# banned_users = GroupBanList.objects.filter(which_group_id=group_id)
-						# if banned_users.exists():
-						#     banned_users.delete()
-						# Group.objects.get(id=group_id).delete()
 
 						# purging cached group invites before deleting own group
 						invalidate_cached_mehfil_invites(own_id, group_id, all_invites=True)
@@ -2940,24 +2915,6 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 					remove_group_notification(user_id=own_id,group_id=group_id)
 					# removing group notification parent object (redis 2)
 					remove_group_object(group_id)
-
-					# removing the group member set (redis 1)
-					# remove_all_group_members(group_id)
-					# removing group's separately saved 'latest' reply (redis 1)
-					# remove_latest_group_reply(group_id)
-					# purging group for all members (redis 1)
-					# member_ids = list(User.objects.filter(username__in=get_group_members(group_id)).values_list('id',flat=True))
-					# bulk_remove_user_group(member_ids, group_id, return_member_ids=False)
-					
-					# marking postgresql group data (deprecate this later)
-					# Group.objects.filter(id=group_id).update(category='99')#'99' implies deleted
-
-					# # removing postgresql group data (didn't do it since it cascades over ALL replies - that could lock table for a long time)
-					# replies = Reply.objects.filter(which_group_id=group_id).order_by('-id').values_list('id',flat=True)[:1000]
-					# if replies.exists():
-					#     # very ambitious to delete ALL replies - just deleting the latest 1000 replies for now
-					#     Reply.objects.filter(id__in=replies).delete()
-					# Group.objects.get(id=group_id).delete()
 
 					# purging cached group invites before deleting own group
 					invalidate_cached_mehfil_invites(own_id, group_id, all_invites=True)
@@ -3122,23 +3079,8 @@ class PrivateGroupView(FormView):
 	"""
 	Renders and processes submissions to private mehfil
 	"""
-	# model = Reply
 	form_class = PrivateGroupReplyForm        
 	template_name = "mehfil/private_group_reply.html"
-
-	# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-	# def dispatch(self, request, *args, **kwargs):
-	#     # Try to dispatch to the right method; if a method doesn't exist,
-	#     # defer to the error handler. Also defer to the error handler if the
-	#     # request method isn't on the approved list.
-	#     if request.method.lower() in self.http_method_names:
-	#         handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
-	#     else:
-	#         handler = self.http_method_not_allowed
-	#     self.request = request
-	#     self.args = args
-	#     self.kwargs = kwargs
-	#     return handler(request, *args, **kwargs)
 
 	def get_form_kwargs( self ):
 		kwargs = super(PrivateGroupView,self).get_form_kwargs()
@@ -3377,23 +3319,8 @@ def public_group_request_denied(request):
 
 
 class PublicGroupView(FormView):
-	# model = Reply
 	form_class = PublicGroupReplyForm
 	template_name = "mehfil/public_group_reply.html"
-
-	# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-	# def dispatch(self, request, *args, **kwargs):
-	#     # Try to dispatch to the right method; if a method doesn't exist,
-	#     # defer to the error handler. Also defer to the error handler if the
-	#     # request method isn't on the approved list.
-	#     if request.method.lower() in self.http_method_names:
-	#         handler = getattr(self, request.method.lower(), self.http_method_not_allowed)
-	#     else:
-	#         handler = self.http_method_not_allowed
-	#     self.request = request
-	#     self.args = args
-	#     self.kwargs = kwargs
-	#     return handler(request, *args, **kwargs)
 
 	def get_form_kwargs(self):
 		kwargs = super(PublicGroupView,self).get_form_kwargs()
@@ -4539,7 +4466,6 @@ class InviteUsersToGroupView(ListView):
 				if allowed_to_invite:
 					user_ids = get_most_recent_online_users()
 					# user_ids = [1,2,3,4,5,6,7,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,154,155]
-					#user_ids = [18,114,113,128,164,132,123,133,150,160]
 					if user_ids:
 						users_purified = [pk for pk in user_ids if pk not in condemned]
 						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified, group_uuid, inviter_id=own_id, is_public=True)
@@ -4837,6 +4763,15 @@ def get_ranked_groups(request):
 	"""
 	Displays top public mehfils, sorted by 'stickiness' (DAU/BWAU)
 	"""
+	"""
+	('5',12) does not exist in test_list (used for testing purposes)
+	
+	test_list = [('12',12),('54',11),('78',54),('11',12),('53',11),('77',54),('13',12),('55',11),('79',54),\
+	('4',12),('56',11),('80',54),('5',12),('50',11),('81',54),('2',12),('44',11),('72',54),('1',12),('45',11)\
+	,('10',54),('34',12),('35',11),('36',54),('39',54),('37',12),('38',11)]
+	
+	group_ids_list = test_list
+	"""
 	groups_data = retrieve_cached_ranked_groups()
 	if groups_data:
 		trending_groups = json.loads(groups_data)
@@ -5115,7 +5050,7 @@ def create_open_group(request):
 					raise Http404("This user is non-existent")
 				epoch_join_date = convert_to_epoch(join_date)
 				ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time.time() - epoch_join_date)
-				if ttl > 4:
+				if ttl > 1:
 					# this user isn't allowed to create a group
 					return render(request,"mehfil/group_type.html",{'user_age_inadequate':True,'age_inadequate_ttl':ttl})
 				else:

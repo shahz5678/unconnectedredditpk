@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% load human_time %}
-{% load show_error %}
 {% load emoticons_tags %}
 {% load get_group_button %}
 {% block content %}
 <head><title>{% if switching %}Private mehfil{% else %}{{ group_topic }} (private mehfil){% endif %} | Damadam.pk</title></head>
 <style>body{background:#f0f3f4}</style>
-
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
 <div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl lsp">{% if switching %}Mehfil not found{% else %}{% emoticons %}{{ group_topic }}{% endemoticons %}{% endif %}:</h1>
 </div>
@@ -34,7 +33,7 @@
        <b class="sp cs">Upload foto:</b>
        <div class="mt">{{ form.image }}</div>
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
-        <div class="mtl sp">{% if form.errors %}<span class="cr lsp">{{ form.errors|show_error }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div>
+        <div class="mtl sp">{% if form_error %}<span class="cr lsp">{{ form_error }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div>
         <div class="mt">{{ form.text }}</div>
     <button class="mts mbs btn bm bcg mrl pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:28px" value="{{ group_id }}">OK</button>
     </form>&nbsp;
@@ -149,5 +148,4 @@
 <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.13.js"></script>
 {% endblock %}

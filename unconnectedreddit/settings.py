@@ -369,7 +369,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_all_photos': {
 		'task': 'tasks.rank_all_photos',
-		'schedule': timedelta(seconds=110*60), #execute every 11 mins, spew best photo on Facebook's Fan Page
+		'schedule': timedelta(seconds=5*60), #execute every 5 mins, spew best photo to trending
 	},
 	'tasks.rank_all_photos1': {
 		'task': 'tasks.rank_all_photos1',
@@ -429,7 +429,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 		'tasks.salat_info': {
 		'task': 'tasks.salat_info',
-		'schedule': timedelta(seconds=5*60), #execute every 5 mins, calculates which salat is next, which was previous, etc.
+		'schedule': timedelta(seconds=60*60*24), #execute every day, calculates which topics are non active and should be deleted
 	},
 	'tasks.delete_exited_personal_group': {
 		'task': 'tasks.delete_exited_personal_group',

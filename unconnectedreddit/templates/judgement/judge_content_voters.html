@@ -11,7 +11,7 @@
 			<div class="mt"><b class="cs">2)</b> Ban fake voters 'forever'</div>
 			<div class="mt"><b class="cs">3)</b> Agar nicks miltey jultey nahi tou shaq ka faida de kar chore dein</div>
 			<div style="text-align:center;font-weight:bold" class="sp">BAN BAD VOTERS:</div>
-			<div class="mt"><b class="cs">1)</b> Sex, nudity (topless or full) aur mazhabi fasad pe jhappi dene waley voters bhi ban karein (lekin 'forever' nahi)</div>
+			<div class="mt"><b class="cs">1)</b> Sex, nudity (topless or full) aur mazhabi fasad pe thumbs up dene waley voters bhi ban karein (lekin 'forever' nahi)</div>
 			<div class="mt"><b class="cs">2)</b> Ban bad voters for a short time</div>
 		</div>
 
@@ -35,7 +35,7 @@
 			<div class="mt"><b class="cs">2)</b> Ban fake voters 'forever'</div>
 			<div class="mt"><b class="cs">3)</b> Agar nicks miltey jultey nahi tou shaq ka faida de kar chore dein</div>
 			<div style="text-align:center;font-weight:bold" class="sp">BAN BAD VOTERS:</div>
-			<div class="mt"><b class="cs">1)</b> Sex, nudity (topless or full) aur mazhabi fasad pe jhappi dene waley voters bhi ban karein (lekin 'forever' nahi)</div>
+			<div class="mt"><b class="cs">1)</b> Sex, nudity (topless or full) aur mazhabi fasad pe thumbs up dene waley voters bhi ban karein (lekin 'forever' nahi)</div>
 			<div class="mt"><b class="cs">2)</b> Ban bad voters for a short time</div>
 		</div>
 
@@ -67,11 +67,11 @@
 			{% for user_id,username,ban_status,vote_value in voter_id_names_status_and_votes %}
 				<li style="text-align:left" class="mbs sp">
 				{% if ban_status == '1' %}
-				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
 				{% elif own_id == user_id %}
-				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
 				{% else %}
-				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">jhappi</span>{% else %}<span class="cs sp cr">chpair</span>{% endif %}
+				<input type="checkbox" name="tids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
 				{% endif %}
 				</li>
 			{% endfor %}

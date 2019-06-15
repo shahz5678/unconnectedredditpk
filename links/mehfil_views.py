@@ -39,7 +39,7 @@ get_most_recent_online_users
 from redis2 import update_notification, remove_group_notification, remove_group_object, get_replies_with_seen,create_notification, create_object, \
 bulk_remove_group_notification
 
-from tasks import log_private_mehfil_session, set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, log_action,\
+from tasks import set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, log_action,\
 construct_administrative_activity, update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
@@ -3174,8 +3174,8 @@ class PrivateGroupView(FormView):
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'prv_grp', secret_key)
 					context["ensured"] = FEMALES
-					prev_form = self.request.session.pop("private_group_form",None)
-					context["form"] = prev_form if prev_form else PrivateGroupReplyForm()
+					context["form_error"] = self.request.session.pop("private_group_error",None)
+					context["form"] = PrivateGroupReplyForm()
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
 					if latest_replies:
 						try:
@@ -3190,7 +3190,6 @@ class PrivateGroupView(FormView):
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
-					log_private_mehfil_session.delay(group_id, user_id)
 					updated_at = time.time()#convert_to_epoch(timezone.now())
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)#, private=True)# fills group visitors
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
@@ -3227,7 +3226,7 @@ class PrivateGroupView(FormView):
 		If the form is invalid, re-render the context data with the
 		data-filled form and errors.
 		"""
-		self.request.session["private_group_form"] = form
+		self.request.session["private_group_error"] = form.errors.as_text().split("*")[2]
 		self.request.session.modified = True
 		if self.request.is_ajax():
 			return HttpResponse(json.dumps({'success':False,'message':reverse('private_group_reply')}),content_type='application/json',)
@@ -3438,8 +3437,8 @@ class PublicGroupView(FormView):
 					secret_key = uuid.uuid4()
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'pub_grp', secret_key)
-					prev_form = self.request.session.pop("public_group_form",None)
-					context["form"] = prev_form if prev_form else PublicGroupReplyForm()
+					context["form_error"] = self.request.session.pop("public_group_error",None)
+					context["form"] = PublicGroupReplyForm()
 					context["switching"] = False
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
@@ -3498,7 +3497,7 @@ class PublicGroupView(FormView):
 		If the form is invalid, re-render the context data with the
 		data-filled form and errors.
 		"""
-		self.request.session["public_group_form"] = form
+		self.request.session["public_group_error"] = form.errors.as_text().split("*")[2]
 		self.request.session.modified = True
 		if self.request.is_ajax():
 			return HttpResponse(json.dumps({'success':False,'message':reverse('public_group')}),content_type='application/json',)
@@ -3713,6 +3712,10 @@ def join_private_group(request):
 			# user is hell-banned
 			return redirect("error")
 		elif not request.mobile_verified:
+			################### Segment action logging ###################
+			if own_id > SEGMENT_STARTING_USER_ID:
+				log_action.delay(user_id=own_id, action_categ='Z', action_sub_categ='11', action_liq='h', time_of_action=time.time())
+			##############################################################
 			# do not let user join a mehfil if they're not verified
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_private_mehfil':True})
 		elif is_membership_frozen(group_id):
@@ -3929,6 +3932,10 @@ def join_public_group(request):
 			return redirect("error")
 		elif not request.mobile_verified:
 			# do not let user join a mehfil if they're not verified
+			################### Segment action logging ###################
+			if own_id > SEGMENT_STARTING_USER_ID:
+				log_action.delay(user_id=own_id, action_categ='Z', action_sub_categ='10', action_liq='h', time_of_action=time.time())
+			##############################################################
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_public_mehfil':True})
 		elif is_membership_frozen(group_id):
 			# group has been reported - its membership is currently frozen

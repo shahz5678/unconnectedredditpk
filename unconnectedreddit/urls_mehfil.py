@@ -15,7 +15,7 @@ get_ranked_groups, del_public_group, view_officer_app_help, view_officer_applica
 group_page, public_group_guidance, group_invites, reject_private_group_invite,reject_public_group_invite, can_create_group, DirectMessageView, GroupTypeView,\
 PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView, PrivateGroupView, DirectMessageCreateView,\
 ReinvitePrivateView, ClosedGroupCreateView, InviteUsersToGroupView, InviteUsersToPrivateGroupView, GroupTypeView, ReinviteView
-
+from links.views import redirect_to_mehfil_list
 admin.autodiscover()
 
 urlpatterns = patterns('',
@@ -113,4 +113,6 @@ urlpatterns = patterns('',
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/transfer-ownership-request/$', auth(send_request_to_owner), name='send_request_to_owner'),
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/transfer-ownership-request/process/$', auth(processing_group_ownership_transfer), name='processing_group_ownership_transfer'),
 	url(r'^mehfil/(?P<slug>[\w.@+-]+)/transfer-ownership-request/terms-and-conditions/$', auth(group_ownership_transfer_tac), name='group_ownership_transfer_tac'),
+	######################################### Permanent Redirects #########################################
+	url(r'^mehfil/awami/$', auth(redirect_to_mehfil_list), name='redirect_to_mehfil_list'),
 )

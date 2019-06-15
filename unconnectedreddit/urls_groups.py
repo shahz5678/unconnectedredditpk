@@ -10,8 +10,9 @@ personal_group_receive_sms, personal_group_customize_sms_text, personal_group_re
 personal_group_send_sms, personal_group_sms_text_form, personal_group_exit_settings, personal_group_their_chat_buttons, personal_group_reentry,\
 show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,personal_group_delete_saved_post, personal_group_photo_settings,\
 post_js_reply_to_personal_group, personal_group_user_listing, unseen_per_grp, x_per_grp_notif, personal_group_metrics, share_photo_in_personal_group,\
-photo_shared, cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4#, deletion_test
+photo_shared, cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4, enter_personal_group_from_single_notif#, deletion_test
 from links.number_verification import verify_personal_group_user
+from links.views import redirect_to_1on1_list
 
 admin.autodiscover()
 
@@ -28,6 +29,7 @@ urlpatterns = patterns('',
 	url(r'^1-on-1/photo/hide/$', auth(hide_photo_from_personal_group_chat), name='hide_photo_from_personal_group_chat'),
 	url(r'^1-on-1/action/$', auth(post_chat_action_in_personal_group), name='post_chat_action_in_personal_group'),
 	url(r'^1-on-1/my-buttons/$', auth(personal_group_own_chat_buttons), name='personal_group_own_chat_buttons'),
+	url(r'^1-on-1/from-single-notif/$', auth(enter_personal_group_from_single_notif), name='enter_personal_group_from_single_notif'),
 	########################## Personal Group Settings ###########################
 	url(r'^1-on-1/post/save-permission/$', auth(personal_group_grant_chat_saving_perm), name='personal_group_grant_chat_saving_perm'),
 	url(r'^1-on-1/post/delete-saved-entry/$', auth(personal_group_delete_saved_post), name='personal_group_delete_saved_post'),
@@ -74,4 +76,6 @@ urlpatterns = patterns('',
 	url(r'^1-on-1/help_page/2/$', auth(personal_group_help2), name='personal_group_help2'),
 	url(r'^1-on-1/help_page/3/$', auth(personal_group_help3), name='personal_group_help3'),
 	url(r'^1-on-1/help_page/4/$', auth(personal_group_help4), name='personal_group_help4'),
+	################################ Permanent redirects #################################
+	url(r'^priv_chat_list/$', auth(redirect_to_1on1_list), name='redirect_to_1on1_list'),
 )

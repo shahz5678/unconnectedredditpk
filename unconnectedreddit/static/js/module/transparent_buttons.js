@@ -301,6 +301,8 @@ function report_modal(e) {
 
 			var payload_array = payload.split("#",8);// one more than python's split (i.e. in python, we would have split by '7')
 			
+			var content_topic = document.getElementById("tp"+payload_array[2]);
+
 			var report_content = document.getElementById("report_txt");
 			report_content.innerHTML = '"'+payload_array[7].substring(0, 40)+' ..."'; // description
 			var report_user = document.getElementById("submitter");
@@ -416,8 +418,15 @@ function report_modal(e) {
 				var block_targetid = document.getElementById('b_tid');
 				block_targetid.value = "7f"+parseInt(payload_array[4],10).toString(16)+":a"; // target_id to be blocked (converted to hex, and some 'chaff' added)
 
-			} else {
+				if (content_topic && content_topic.value) {
+					var block_topic = document.getElementById('b_top');
+					var report_topic = document.getElementById('r_top');
+					report_topic.value = content_topic.value;
+					block_topic.value = content_topic.value;
+				}
 
+			} else {
+				// handling type 'pf'
 				var obj_type = document.getElementById('r_tp');
 				obj_type.value = ob_tp; // type of object ('tx' or 'img')
 				var report_origin = document.getElementById('r_org');
@@ -471,9 +480,11 @@ function report_modal(e) {
 				report_thumburl.value = '';
 				report_linkid.value = '';
 				report_ownerid.value = '';
+				report_topic.value = '';
 
 				block_targetid.value = '';
 				block_targetusername.value = '';
+				block_topic.value = '';
 			};
 	    }
 

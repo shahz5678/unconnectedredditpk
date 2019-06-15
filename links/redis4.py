@@ -1539,80 +1539,80 @@ def track_notif_allow_behavior(status_code, my_server=None, amnt=1):
 
 ########################################### Gathering Metrics for Personal Groups ###########################################
 
-def increment_convo_counter(group_id, writer_id, group_type=None):
-	"""
-	Logs conversation quantity in personal groups and private mehfils
+# def increment_convo_counter(group_id, writer_id, group_type=None):
+# 	"""
+# 	Logs conversation quantity in personal groups and private mehfils
 
-	Helps answer questions such as:
-	1) What are avg number of chats produced per type of chat?
-	2) What are avg number of switchovers produced per type of chat?
-	"""
-	if group_type:
-		last_interaction_in_group = "lig_"+group_type+":"+str(group_id)
-		my_server = redis.Redis(connection_pool=POOL)
-		lwid = my_server.getset(last_interaction_in_group,writer_id)
-		if lwid:
-			interaction_type = 'ch' if lwid == str(writer_id) else 'both'
-		else:
-			interaction_type = 'ch'
-		if interaction_type == 'ch':
-			# this logs normal chat
-			my_server.zincrby(group_type+"_ch",group_id,amount=1)
-		elif interaction_type == 'both':
-			# this logs switchover, and normal chat
-			my_server.zincrby(group_type+"_sw",group_id,amount=1)
-			my_server.zincrby(group_type+"_ch",group_id,amount=1)
-		my_server.expire(last_interaction_in_group,ONE_DAY)
-
-
-def increment_session(group_id, user_id, group_type=None):
-	"""
-	Increments unique sessions per group per user
-
-	Helps answer questions such as:
-	1) What are avg number of sessions per type of chat
-	2) What are median number of sessions per type of chat
-	3) Calculate correlation between number of sessions and number of switchovers
-	4) Calculate coorelation between number of sessions and number of chats
-	"""
-	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
-	if not my_server.get("gs_"+group_type+":"+group_id+":"+user_id):
-		# create new session key for the user for this group
-		now = datetime.now()
-		secs_till_midnight = ((24 - now.hour - 1) * 60 * 60) + ((60 - now.minute - 1) * 60) + (60 - now.second)
-		my_server.setex("gs_"+group_type+":"+group_id+":"+user_id,group_id,secs_till_midnight)
-		# increment session counter
-		my_server.zincrby(group_type+"_sess",group_id+":"+user_id,amount=1)
+# 	Helps answer questions such as:
+# 	1) What are avg number of chats produced per type of chat?
+# 	2) What are avg number of switchovers produced per type of chat?
+# 	"""
+# 	if group_type:
+# 		last_interaction_in_group = "lig_"+group_type+":"+str(group_id)
+# 		my_server = redis.Redis(connection_pool=POOL)
+# 		lwid = my_server.getset(last_interaction_in_group,writer_id)
+# 		if lwid:
+# 			interaction_type = 'ch' if lwid == str(writer_id) else 'both'
+# 		else:
+# 			interaction_type = 'ch'
+# 		if interaction_type == 'ch':
+# 			# this logs normal chat
+# 			my_server.zincrby(group_type+"_ch",group_id,amount=1)
+# 		elif interaction_type == 'both':
+# 			# this logs switchover, and normal chat
+# 			my_server.zincrby(group_type+"_sw",group_id,amount=1)
+# 			my_server.zincrby(group_type+"_ch",group_id,amount=1)
+# 		my_server.expire(last_interaction_in_group,ONE_DAY)
 
 
-def track_p2p_sms(sent_by_id, sent_to_id, sending_time):
-	"""
-	Log which user sent whom an SMS at what time (to entice them to come to Damadam)
+# def increment_session(group_id, user_id, group_type=None):
+# 	"""
+# 	Increments unique sessions per group per user
+
+# 	Helps answer questions such as:
+# 	1) What are avg number of sessions per type of chat
+# 	2) What are median number of sessions per type of chat
+# 	3) Calculate correlation between number of sessions and number of switchovers
+# 	4) Calculate coorelation between number of sessions and number of chats
+# 	"""
+# 	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
+# 	if not my_server.get("gs_"+group_type+":"+group_id+":"+user_id):
+# 		# create new session key for the user for this group
+# 		now = datetime.now()
+# 		secs_till_midnight = ((24 - now.hour - 1) * 60 * 60) + ((60 - now.minute - 1) * 60) + (60 - now.second)
+# 		my_server.setex("gs_"+group_type+":"+group_id+":"+user_id,group_id,secs_till_midnight)
+# 		# increment session counter
+# 		my_server.zincrby(group_type+"_sess",group_id+":"+user_id,amount=1)
+
+
+# def track_p2p_sms(sent_by_id, sent_to_id, sending_time):
+# 	"""
+# 	Log which user sent whom an SMS at what time (to entice them to come to Damadam)
 	
-	Helps answer questions such as:
-	1) Number of SMSes generated per chat/per day/per user
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush("p2p_sms",str(sent_by_id)+":"+sent_to_id+":"+str(sending_time))#llen of list reveals number of SMSes sent
-	# create 'red carpet' for target user
-	my_server.setex("rc:"+sent_to_id,sending_time,ONE_DAY)
+# 	Helps answer questions such as:
+# 	1) Number of SMSes generated per chat/per day/per user
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	my_server.lpush("p2p_sms",str(sent_by_id)+":"+sent_to_id+":"+str(sending_time))#llen of list reveals number of SMSes sent
+# 	# create 'red carpet' for target user
+# 	my_server.setex("rc:"+sent_to_id,sending_time,ONE_DAY)
 
 
-def check_p2p_sms(user_id):
-	"""
-	Logs data in case you were sent an SMS by a friend (asking you to return to Damadam)
+# def check_p2p_sms(user_id):
+# 	"""
+# 	Logs data in case you were sent an SMS by a friend (asking you to return to Damadam)
 	
-	Helps answer questions such as:
-	1) Number of people responding to SMSes
-	2) How soon does an average responder take to return to the chat from which SMS was sent?
-	"""
-	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
-	sms_sent_at = my_server.get("rc:"+user_id)
-	if sms_sent_at:
-		my_server.delete("rc:"+user_id)
-		time_passed_since_sms = time.time() - float(sms_sent_at)
-		# log returned user and time taken since sending of SMS
-		my_server.lpush("sms_eft",user_id+":"+str(time_passed_since_sms))
+# 	Helps answer questions such as:
+# 	1) Number of people responding to SMSes
+# 	2) How soon does an average responder take to return to the chat from which SMS was sent?
+# 	"""
+# 	my_server, user_id = redis.Redis(connection_pool=POOL), str(user_id)
+# 	sms_sent_at = my_server.get("rc:"+user_id)
+# 	if sms_sent_at:
+# 		my_server.delete("rc:"+user_id)
+# 		time_passed_since_sms = time.time() - float(sms_sent_at)
+# 		# log returned user and time taken since sending of SMS
+# 		my_server.lpush("sms_eft",user_id+":"+str(time_passed_since_sms))
 
 
 def log_personal_group_exit_or_delete(group_id, exit_by_id=None, action_type=None):
@@ -1905,3 +1905,49 @@ def avg_num_of_chats_per_type():
 		pipeline1.execute()
 		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
 		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws
+
+
+
+######################################### Project Zuck ############################################
+from score import PROJ_ZUCK_STARTING_USER_ID 
+
+new_old = 'nopair'
+new_new = 'nnpair'
+old_old = 'oopair'
+group_to_log = 'zuckers_to_log'
+
+
+def add_group_to_log(group_id):
+	# pair = get_pair(oid,tid)
+	redis.Redis(connection_pool=POOL).zincrby(group_to_log,group_id,amount=1)
+
+
+def check_if_group_to_log(group_id):
+	"""
+	legacy messages are not logged
+
+	"""
+	return redis.Redis(connection_pool=POOL).zscore(group_to_log,group_id)
+
+
+def log_1on1_chat(payload,oid,tid,group_id):
+	"""
+	Logs 1on1 messages in 3 different buckets
+
+	"""
+	if check_if_group_to_log(group_id):
+		my_server = redis.Redis(connection_pool=POOL)
+		
+		if int(oid) < PROJ_ZUCK_STARTING_USER_ID and int(tid) < PROJ_ZUCK_STARTING_USER_ID:
+			key_to_use = old_old
+		elif int(oid) < PROJ_ZUCK_STARTING_USER_ID or int(tid) < PROJ_ZUCK_STARTING_USER_ID:
+			key_to_use = new_old
+		else:
+			key_to_use = new_new
+		my_server.zadd(key_to_use,json.dumps(payload),group_id)
+		my_server.zincrby(group_to_log,group_id,amount=1)		
+	else:
+		pass				
+
+
+

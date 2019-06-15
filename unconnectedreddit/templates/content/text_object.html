@@ -1,18 +1,19 @@
-<div itemscope itemtype="http://schema.org/SocialMediaPosting">
-<div class="mbs">
- <div class="fx fxjssb fxaicn" style="border-bottom:2px solid whitesmoke;background:#fefefa">
- 	<div class="fx fxjsfs fxaicn" style="padding:7px">
- <a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
-
- <div style="word-break: break-all;"><a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none">{% if is_pinkstar %}<img src="{{ static_url }}img/pstar.svg" alt="*" style="color:deeppink" height="13" width="13">&nbsp;{% endif %}<b class="clb cs sp" itemprop="author">{{ oun }}</b></a>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ upload_time }}</time></div>
+<div>
+  {% if topic and show_topic %}
+	{% include "topics/topic_header.html" with topic_header=topic color1=c1 color2=c2 static_url=static_url topic_url=topic_url %}
+  {% endif %}
+  <div class="fx fxjssb fxaicn mt" style="background:white">
+	<div class="fx fxjsfs fxaicn" style="padding:7px">
+		<a href="{% url 'profile' oun 'fotos' %}" class="mrs" style="text-decoration: none;"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></a>
+		<div style="word-break: break-all;"><span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none">{% if is_pinkstar %}<img src="{{ static_url }}img/pstar.svg" alt="*" style="color:deeppink" height="13" width="13">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp" itemprop="name">{{ oun }}</h3></a></span>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ upload_time }}</time></div>
+	</div>
+	<form style="padding-right:7px" method="POST" action="{% url 'report_or_block' %}">
+		{% csrf_token %}
+		<input type="hidden" id="tp{{ obid }}" name="tp" value="{{ topic_url }}">
+		<button type="submit" name="report" style="background:0 0;padding:0;border:none" class="report pg_ok_res" value="tx#{{ origin }}#{{ obid }}#{{ oun }}#{{ ooid }}#{{ av_url }}#{{ home_hash }}#{{ raw_text|truncatechars:'60' }}"><img src="{{ static_url }}img/warn_g.svg" width="16" height="16"></button>
+	</form>
+  </div>
 </div>
-     <form style="padding-right:7px" method="POST" action="{% url 'report_or_block' %}">
-     {% csrf_token %}
-     <button type="submit" name="report" style="background:0 0;padding:0;border:none" class="report pg_ok_res" value="tx#{{ origin }}#{{ obid }}#{{ oun }}#{{ ooid }}#{{ av_url }}#{{ home_hash }}#{{ raw_text|truncatechars:'60' }}"><img src="{{ static_url }}img/warn_g.svg" width="16" height="16"></button>
-     </form>
- </div>
-</div>
-    	<div class="mbs mls mrs lsp ow cxl" style="overflow:hidden">
-        {% if vsc|add:"0" < VDC or block_time_remaining %}<div class="cgy sp cs" style="text-align:center">- mita diya gya -</div>{% else %}<div class="clb" style="text-align:{{ pos }}" itemprop="text">{{ text }}</div>{% endif %}
-    	</div>
+<div class="mbs mls mrs lsp ow cxl" style="overflow:hidden">
+	{% if vsc|add:"0" < VDC or block_time_remaining %}<div class="mt cgy sp cs" style="text-align:center">- mita diya gya -</div>{% else %}<div class="clb mt mbs" style="text-align:{{ pos }}" itemprop="text">{{ text }}</div>{% endif %}
 </div>

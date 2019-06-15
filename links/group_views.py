@@ -30,7 +30,7 @@ get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rat
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
 from redis7 import check_content_and_voting_ban
-from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, queue_personal_group_invitational_sms, private_chat_tasks, \
+from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares, log_action
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
@@ -368,6 +368,24 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 ########################################### Personal Group Functionality ###########################################
 ####################################################################################################################
 
+def enter_personal_group_from_single_notif(request):
+    """
+    Called from a single notification
+
+    If user is blocked, doesn't let them go through
+    """
+    own_id = request.user.id
+    banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+    if banned:
+        # show "user banned" message and redirect them to home
+        return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+            'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+    elif request.method == "POST":
+        target_id = request.POST.get("tid")
+        request.session["personal_group_tid_key"] = target_id
+        return redirect("enter_personal_group")
+    else:
+        return redirect("home")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -1119,35 +1137,41 @@ def unseen_per_grp(request, gid, fid):
 		group_id, exists = personal_group_already_exists(own_id, fid)
 		if exists and group_id == str(gid):
 			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-			form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
-			if form.is_valid():
-				text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
-				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
-					writer_id=own_id, group_id=group_id)
-				private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time.time(),text=text,txt_type=type_,\
-					own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
-					successful=True if bid else False, from_unseen=True)
-				personal_group_sanitization(obj_count, obj_ceiling, gid)
-				################### Segment action logging ###################
-				if origin:
-					if own_id > SEGMENT_STARTING_USER_ID:
-						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='5', action_liq='h', time_of_action=time.time())
-				else:
-					if own_id > SEGMENT_STARTING_USER_ID:
-						log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='4', action_liq='h', time_of_action=time.time())
-				##############################################################
-				if origin:
-					return return_to_content(request,origin,None,None,own_id)
-				else:
-					return redirect("unseen_activity", own_uname)
+			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			if banned:
+				# show "user banned" message and redirect them to home
+				return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+					'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
 			else:
-				if origin:
-					request.session["notif_form"] = form
-					request.session.modified = True
-					return return_to_content(request,origin,None,None,own_id)
+				form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
+				if form.is_valid():
+					text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
+					obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
+						writer_id=own_id, group_id=group_id)
+					private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time.time(),text=text,txt_type=type_,\
+						own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
+						successful=True if bid else False, from_unseen=True)
+					personal_group_sanitization(obj_count, obj_ceiling, gid)
+					################### Segment action logging ###################      
+					if origin:      
+						if own_id > SEGMENT_STARTING_USER_ID:       
+							log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='5', action_liq='h', time_of_action=time.time())        
+					else:
+						if own_id > SEGMENT_STARTING_USER_ID:       
+							log_action.delay(user_id=own_id, action_categ='D', action_sub_categ='4', action_liq='h', time_of_action=time.time())        
+					##############################################################
+					if origin:
+						return return_to_content(request,origin,None,None,own_id)
+					else:
+						return redirect("unseen_activity", own_uname)
 				else:
-					request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
-					return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
+					if origin:
+						request.session["notif_form"] = form
+						request.session.modified = True
+						return return_to_content(request,origin,None,None,own_id)
+					else:
+						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
+						return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
 		else:
 			return redirect("unseen_activity", own_uname)
 	else:
@@ -1542,8 +1566,6 @@ def personal_group_send_sms(request):
 							target_number = mobnums[int(mob_idx)]
 						except (ValueError,IndexError,TypeError):
 							target_number = mobnums[0]
-						queue_personal_group_invitational_sms.delay(mobile_number=target_number,sms_text=sms_text,own_id=own_id,target_id=tid, \
-							sending_time=time.time())
 						lock_sms_sending(own_id,tid)
 						smsrec, sms_text, mob_idx = get_user_sms_setting(own_id, group_id, with_cred=True)
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
@@ -1896,8 +1918,16 @@ def render_personal_group_invite(request):
 	"""
 	if request.method == "POST":
 		own_id, target_id = request.user.id, request.POST.get('tid',None)
-		parent_object_id, object_type, origin = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None)
-		if str(own_id) == target_id:
+		parent_object_id, object_type, origin, topic = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None),\
+		request.POST.get('tp','')
+		if topic:
+			request.session["origin_topic"] = topic
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		elif str(own_id) == target_id:
 			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
 				'lid':request.POST.get('hh',None)})
 		else:
@@ -2308,11 +2338,21 @@ def personal_group_user_listing(request):
 	List down personal groups of a given user
 	"""
 	own_id, page_num = request.user.id, request.GET.get('page', '1')
-	start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-	payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
-	page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-	return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,'num_pages':len(page_list),\
-		'current_page':page_num,'current_time':time.time(),'own_id':str(request.user.id),'items_in_curr_page':len(payload)})
+	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+	if banned:
+		# show "user banned" message and redirect them to home
+		tid = request.session.pop("personal_group_tid_key",'')
+		if tid:
+			request.session.pop("personal_group_gid_key:"+tid,'')
+		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+	else:
+		start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+		payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
+		page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+		return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
+			'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
+			'items_in_curr_page':len(payload)})
 
 ####################################################################################################################
 #################################################### Help Page #####################################################

@@ -1,0 +1,200 @@
+{% load google_analytics %}
+<!DOCTYPE html>
+
+<html>
+<head>
+
+	<!-- has to be the first tag in head -->
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+	{% include "favicons.html" %}
+	{% include "css.html" %}
+	<!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="description" content="{{ topic_description }}">
+	<meta name="author" content="mhb">
+	<meta name="keywords" content="{{ topic }}"> 
+	<meta property="og:site_name" content="Damadam">
+	<meta property="og:title" content="{{ topic }}">
+	<meta property="og:type" content="website">
+	<meta property="og:description" content="{{ topic_description }}">
+	<meta property="og:url" content="https://damadam.pk/{{ topic_url }}/">
+	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
+	<meta property="og:image:width" content="300">
+	<meta property="og:image:height" content="300">
+	<meta property="fb:app_id" content="1758220174446684" />
+	{% google_analytics %}
+
+	<title>{{ topic }} | Damadam</title>
+
+	{% if page.has_previous %}
+		<link rel="prev" href="?page={{ page.previous_page_number }}" />
+	{% endif %}
+	{% if page.has_next %}
+		<link rel="next" href="?page={{ page.next_page_number }}" />
+	{% endif %}
+
+	<link rel="canonical" href="{% url 'topic_page' topic_url %}" />
+
+	{% include "ga_user_analytics.html" with my_var=user.id %}
+
+</head>
+<body style="background:#f0f3f4">
+
+{% include "header.html" %}
+
+<nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
+	<ul class="navbar">
+
+	<!-- bunched HTML removes spaces between li elements -->
+	{% load count %}
+	{% check_notif_count as notif_count %}
+	{% load count_priv_invites %}
+	{% check_invite_count as invite_count %}
+	{% load count_group_invites %}
+	{% check_group_invite_count as group_invite_count %}
+	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
+	
+	</ul>
+	<a name="section0"></a>
+</nav>
+
+{% load show_error %}
+<main style="display:block" itemscope itemtype="http://schema.org/CollectionPage">
+
+	{% if topic_started %}
+	<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff66;max-width:750px;margin-left:auto;margin-right:auto;width:97%;text-align:center;padding:7px 0;color:#202020" class="cxl lsp clb mbs">New topic started!</div>
+	{% elif new_subscriber %}
+	<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff66;max-width:750px;margin-left:auto;margin-right:auto;width:97%;text-align:center;padding:7px 0;color:#202020" class="cxl lsp clb mbs">Thanks for subscribing!</div>
+	{% elif cannot_recreate %}
+	<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff66;max-width:750px;margin-left:auto;margin-right:auto;width:97%;text-align:center;padding:7px 0;color:#202020" class="cxl lsp clb mbs">Sorry! Ye topic pehlay se mojood hai</div>
+	{% endif %}
+
+	<article style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#fefefa;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
+
+		{% include "topics/topic_header.html" with topic_header=topic topic_description=topic_description c1=c1 c2=c2 %}
+		
+		{% if is_subscribed %}
+		<section style="background:white;display:block">
+			<form method="POST" action="{% url 'submit_topic_post' topic_url %}">
+				{% csrf_token %}
+				{% if validation_error %}
+					<h2 style="background:coral;padding: 8px;margin:0;font-weight:lighter;text-align:center;border-bottom:2px solid whitesmoke" class="cm sp lsp clw">{{ validation_error }}</h2>
+				{% else %}
+					<h2 style="padding: 8px;margin:0;text-align:center;border-bottom:2px solid whitesmoke;font-weight:lighter" class="cs sp lsp clb">NEW SUBMISSION:</h2>
+				{% endif %}
+				<div>{{ form.description }}</div>
+				<button type="submit" aria-label="submit" class="cm clw sp pg_ok_res" style="padding:0;margin:0;border:none;width:100%;height:40px;border-radius:0;font-weight:bold;background: {{ c1 }};background: linear-gradient(45deg, {{ c1 }} 0%, {{ c2 }} 100%)">SUBMIT</button>
+			</form>
+		</section>
+		{% else %}
+		<form method="POST" action="{% url 'subscribe_to_topic' topic_url %}">
+			{% csrf_token %}
+			<button type="submit" aria-label="subscribe" name="sub_scr" style="padding:0;margin:0;border:none;width:100%;height:40px;border-radius:0;font-weight:bold;background: {{ c1 }};background: linear-gradient(45deg, {{ c1 }} 0%, {{ c2 }} 100%)" class="cm clw sp pg_ok_res" value="1">SUBSCRIBE</button>
+		</form>
+		{% endif %}
+
+	</article>
+
+		{% if submissions %}
+
+			{% load get_item %}
+			{% load emoticons_tags %}
+			{% load get_text_object %}
+			{% load get_big_fan_button %}
+			{% load get_big_vote_button %}
+			{% load get_big_group_button %}
+			{% load get_home_publicreply_bar %}
+			{% load get_home_replies_section %}
+			{% load get_big_home_reply_button %}
+			{% load get_transparent_buttons_js %}
+
+			<section style="display:block">
+			<div class="fx fxjscn fxaibl">
+				<a href="{% url 'topic_page' topic_url %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
+				<h2 style="text-align:center;font-weight:600" class="lsp cxl clb">Latest submissions:</h2>
+			</div>
+
+			<a name="error"></a>
+			{% if topic_direct_reply_error_string %}
+				<aside style="background:tomato;text-align:center;color:white;padding:5px 0;border-radius:12px;border:3px solid whitesmoke;max-width:750px;margin-left:auto;margin-right:auto;width:97%" class="cxl lsp mbs">
+					{{ topic_direct_reply_error_string }}
+				</aside>
+			{% endif %}
+
+			{% for submission in submissions %}
+
+			{% with replyforms|get_item:submission.h as replyform %}
+
+				<article itemprop="hasPart" itemscope itemtype="http://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
+					<div>
+						<a name="section{{ forloop.counter }}"></a>
+						
+						<section style="display:block">
+						{% text_object obid=submission.i ooid=submission.si text=submission.d|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv home_hash=submission.h static_url=STATIC_URL is_pinkstar=submission.p alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
+						</section>
+
+						<section style="display:block">
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+						{% big_vote_button vote_type='vote' obid=submission.i origin='22' net_votes=submission.nv base_color='rgb(24, 180, 136)' ooid=submission.si static_url=STATIC_URL topic=topic_url visible=ident %}
+						{% big_fan_button own_user_id=ident target_user_id=submission.si object_id=submission.i origin='22' home_hash=submission.h fan_list=fanned static_url=STATIC_URL topic=topic_url %}
+						{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
+						{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL %}
+						</div>
+						</section>
+						
+
+						<section style="display:block" class="mts mls mbl">
+						{% home_replies_section raw_replies=submission.cb static_url=STATIC_URL self_user_id=ident home_hash=submission.h %}
+						</section>
+
+						<section style="display:block" class="mls mrs mbl">
+						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
+						</section>
+
+					</div>
+				</article>
+
+			{% endwith %}
+				
+			{% endfor %}
+			</section>
+
+			<div class="fx fxjscn">
+				{% if page.has_previous %}
+				<div style="padding:0 10px">
+					<a href="?page={{ page.previous_page_number }}#section0"><button aria-label="previous_page" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+				</div>
+				{% endif %}
+				{% if page.has_next %}
+				<div style="padding:0 10px">
+					<a href="?page={{ page.next_page_number }}#section0"><button aria-label="next_page" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+				</div>
+				{% endif %}
+			</div>
+
+			{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+
+		{% else %}
+			<br>
+		{% endif %}
+
+
+</main>
+<br>
+
+<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
+	<ul class="navbar">
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+	</ul>
+</nav>
+
+<footer style="text-align:center;display:block" class="mtl sp cxs cgy">
+	|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|
+</footer>
+{% include "min_service_worker.html" %}
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
+
+</body>
+</html>

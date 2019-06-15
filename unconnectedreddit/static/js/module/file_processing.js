@@ -1,4 +1,4 @@
-// feeder for helper_funcs.v1.13.js
+// feeder for helper_funcs.v1.15.js
 // Compress via https://jscompress.com/ and press "download"
 var valid_img = false;
 var max_img_width = 450;
@@ -205,7 +205,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	// send the form via AJAX
 	var xhr = new XMLHttpRequest();
 	xhr.open('POST', target_action);
-	xhr.timeout = 45000; // time in milliseconds, i.e. 45 seconds
+	xhr.timeout = 55000; // time in milliseconds, i.e. 55 seconds
 	xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
 	xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 	xhr.onload = function () {
@@ -221,7 +221,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	};
 	xhr.onerror = function () {
 		// onerror fires when there is a failure on the network level
-		window.location.replace(fail_url);// e.g. fail_url = '/private_chat/'
+		window.location.replace(fail_url);// e.g. fail_url = '/1-on-1/'
 		personal_group_preloader('destroy');
 	};
 	xhr.ontimeout = function (e) {
@@ -242,7 +242,7 @@ function personal_group_submit(e) {
 	e.preventDefault();
 	personal_group_preloader('create');
 	// prep_image does some asynchronous things, so utilize callback by passing process_ajax() as an argument
-	prep_image(browse_image_btn.files[0],text_field.value, browse_image_btn.files[0].name, e.target.action, 'pg_main','image', 'reply', '/private_chat/', null, process_ajax);
+	prep_image(browse_image_btn.files[0],text_field.value, browse_image_btn.files[0].name, e.target.action, 'pg_main','image', 'reply', '/1-on-1/', null, process_ajax);
 }
 
 function prep_image(src_img, text, img_name, target_action, type, img_field, reply_field, fail_url, target_size, callback) {	
@@ -603,7 +603,7 @@ function personal_group_reply_submit(e) {
 		personal_group_preloader('create');
 
 		// prep_image does some asynchronous things, so utilize callback by passing process_ajax() as an argument
-		prep_image(image_file,rep_text, image_file.name, target_action, 'pg_reply','rep_image', 'rep_reply', '/private_chat/',null ,process_ajax);
+		prep_image(image_file,rep_text, image_file.name, target_action, 'pg_reply','rep_image', 'rep_reply', '/1-on-1/',null ,process_ajax);
 	} else {
 		if (valid_rep_img == null) {
 			e.preventDefault();
@@ -980,7 +980,7 @@ function public_photo_submit(e) {
 		e.preventDefault();
 		personal_group_preloader('create');
 		// prep_image does some asynchronous things, so utilize callback by passing process_ajax() as an argument
-		prep_image(browse_pub_img_btn.files[0],pub_img_caption_field.value, browse_pub_img_btn.files[0].name, e.target.action, 'public_img','image_file', 'caption', '/upload_public_photo/',null,process_ajax);
+		prep_image(browse_pub_img_btn.files[0],pub_img_caption_field.value, browse_pub_img_btn.files[0].name, e.target.action, 'public_img','image_file', 'caption', '/share/photo/upload/',null,process_ajax);
 	} else {
 		if (valid_public_img == null) {
 			e.preventDefault();

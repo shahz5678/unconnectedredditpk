@@ -13,6 +13,13 @@ CONTENT_SHARING_LONG_RATELIMIT = 86400#
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
 RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
+################################################ Topics ################################################
+TOPIC_LIFELINE = 1728000#20 days - i.e. how long a topic should exist even if it has no visits
+TOPIC_SUBMISSION_TTL = 604800#7 days set as ttl for content submitted into a topic
+TOPIC_UNSUB_LOCKING_TIME = 7200#2 hours is how long a subscriber must stay inside a topic after subscribing to it
+MAX_TOPIC_SIZE = 80
+MIN_TOPIC_SIZE = 3
+MIN_TOPIC_DESCRIPTION_SIZE = 20
 ################################################ Judgement Related Variables ##################################
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
@@ -267,8 +274,9 @@ MERCH = {
 '15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#REMOVE
 ###############################################################################################################
-SEGMENT_STARTING_TIME = 1557917198# starting time of user segment analysis
-SEGMENT_STARTING_USER_ID = 1873122# starting user ID of user segment analysis
+SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
+SEGMENT_STARTING_USER_ID = 1900528# starting user ID of user segment analysis
+PROJ_ZUCK_STARTING_USER_ID = 1899552
 """
 KEY:
 
@@ -309,6 +317,23 @@ F5h: public mehfil message sent from single notif
 G1l: uploaded avatar
 G2l: edited about me
 
+H1h: topic banner clicked on home/home-history/jawab
+H2l: topic subscribed
+H3h: topic post submitted
+
 Z1l: signing up
 Z2l: mobile verification
+Z3h: Inline comment on text on home
+Z4h: Inline comment on text on topic page
+Z5h: Writing in text jawab page
+Z6h: Inline comment on foto on home
+Z7h: Inline comment on fresh fotos
+Z8h: Inline comment on best fotos
+Z9h: Writing in foto tabsra page
+Z10h: Unverified user joining public mehfil
+Z11h: Unverified user joining private mehfil
+Z12h: Sharing text
+Z13h: Sharing foto
+Z14h: Subscribe to a topic
+
 """

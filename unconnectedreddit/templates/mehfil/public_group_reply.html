@@ -1,12 +1,11 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% load human_time %}
-{% load show_error %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>{% if switching %}Public mehfil{% else %}{{ group_topic }} (public mehfil){% endif %} | Damadam.pk</title></head>
+<head><title>{% if switching %}Public mehfil{% else %}{{ group_topic }} (public mehfil){% endif %} | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
-
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
 {% if switching %}
 
 <div class="mbs">
@@ -42,7 +41,7 @@
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
         </div>
         {% endif %}
-       <div class="mtl sp"> {% if form.errors %}<span class="cr lsp">{{ form.errors|show_error }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div><div class="mt">{{ form.text }}</div>
+       <div class="mtl sp">{% if form_error %}<span class="cr lsp">{{ form_error }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div><div class="mt">{{ form.text }}</div>
         <input id="grp_sk" type="hidden" name="sk" value="{{ sk }}">
         <input id="grp_wid" type="hidden" name="wid" value="-1">
         <input name="uid" type="hidden" value="{{ unique }}">
@@ -171,7 +170,7 @@
 
     {% for reply,status in replies %}
 
-        {% if not on_fbs and forloop.counter == 7 %}
+        {% if not on_fbs and forloop.counter == 3 %}
             <div style="text-align:center;background:snow">
                 <ins class="adsbygoogle"
                     style="display:inline-block;vertical-align: middle;width:320px;height:100px"
@@ -226,5 +225,4 @@
     <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.13.js"></script>
 {% endblock %}

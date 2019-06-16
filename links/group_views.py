@@ -4,18 +4,18 @@ import uuid, random, time
 from datetime import datetime
 from collections import defaultdict
 from django.middleware import csrf
-from django.http import HttpResponse, Http404
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
+from django.http import HttpResponse, Http404
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
-from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from redis2 import skip_private_chat_notif
-from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
-avg_num_of_switchovers_per_type, avg_sessions_per_type, get_cached_photo_dim, cache_photo_dim, retrieve_uname, retrieve_user_id, retrieve_photo_data,\
-retrieve_fresh_photo_shares_or_cached_data, push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, \
-track_notif_allow_behavior
+from redis7 import check_content_and_voting_ban
+from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
+from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\
+get_cached_photo_dim, cache_photo_dim, retrieve_user_id, retrieve_photo_data, retrieve_fresh_photo_shares_or_cached_data, \
+push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, track_notif_allow_behavior
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -29,7 +29,6 @@ toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,uns
 get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count,\
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
-from redis7 import check_content_and_voting_ban
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares, log_action
@@ -38,9 +37,9 @@ PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER,
 PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT, SEGMENT_STARTING_USER_ID
+from push_notification_api import send_single_push_notification
 from image_processing import process_group_image
 from redirection_views import return_to_content
-from push_notification_api import send_single_push_notification
 from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
@@ -368,24 +367,26 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 ########################################### Personal Group Functionality ###########################################
 ####################################################################################################################
 
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
 def enter_personal_group_from_single_notif(request):
-    """
-    Called from a single notification
+	"""
+	Called from a single notification
 
-    If user is blocked, doesn't let them go through
-    """
-    own_id = request.user.id
-    banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-    if banned:
-        # show "user banned" message and redirect them to home
-        return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-            'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
-    elif request.method == "POST":
-        target_id = request.POST.get("tid")
-        request.session["personal_group_tid_key"] = target_id
-        return redirect("enter_personal_group")
-    else:
-        return redirect("home")
+	If user is blocked, doesn't let them go through
+	"""
+	own_id = request.user.id
+	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+	if banned:
+		# show "user banned" message and redirect them to home
+		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+	elif request.method == "POST":
+		target_id = request.POST.get("tid")
+		request.session["personal_group_tid_key"] = target_id
+		return redirect("enter_personal_group")
+	else:
+		return redirect("home")
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -1116,12 +1117,6 @@ def x_per_grp_notif(request, gid, fid, from_home):
 	group_id, exists = personal_group_already_exists(own_id, fid)
 	if exists and group_id == str(gid):
 		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	# if from_home == '3':
-	#     return redirect("home")
-	# elif from_home == '2':
-	#     return redirect("photo", list_type='best-list')
-	# else:
-	#     return redirect("photo", list_type='fresh-list')
 	return return_to_content(request,from_home,group_id,None,None)
 
 
@@ -2126,13 +2121,6 @@ def change_personal_group_invite_privacy(request):
 							'lid':request.POST.get("lid",None)}
 							return render(request,"personal_group/invites/personal_group_status.html",context)
 						else:
-							# if decision == '0':
-							#     interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
-							#     if tutorial_unseen(user_id=own_id, which_tut='0', renew_lease=True):
-							#         context["personal_group_invite_privacy"] = True
-							#         context["oun"] = own_username
-							#         return render(request,"helpful_instructions.html",context)
-							# return redirect("show_personal_group_invite_list",list_type='sent')
 							reset_invite_count(target_id)# resetting invite count shown in navbar for target_id
 							if decision == '0':
 								interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
@@ -2907,17 +2895,6 @@ def decide_notification_perms_in_personal_group(request):
 				return redirect("personal_group_user_listing")
 		elif decision == '1':
 			# could not give permission since browser isn't supported
-			# already_subscribed = request.POST.get("as",None)
-			# if already_subscribed:
-			#     # the user's browser can already send notifications, just enable the permission flag in the 1on1
-			#     target_id = request.POST.get("tid",'')
-			#     save_1on1_push_subscription(receiver_id=own_id, sender_id=target_id)
-			#     is_ajax = request.is_ajax()
-			#     if is_ajax:
-			#         return HttpResponse(json.dumps({'redirect':reverse('personal_group_subscription_success')}),content_type='application/json',\
-			#             status=200)
-			#     else:
-			#         return redirect("personal_group_subscription_success")
 			if request.META.get('HTTP_X_IORG_FBS',False):
 				# fbs - option does not exist
 				return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'on_fbs':True,\
@@ -3001,7 +2978,7 @@ def render_notification_perms_in_personal_group(request):
 			if allow_key == 'allow_btn':
 				log_1on1_sent_notif(sent=False, status_code=293)# logging the fact that 'allow' button rendered correctly inside the page
 		#######################################################################################
-		#######################################################################################own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+		#######################################################################################
 		own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
 		if their_anon_status:
 			name, avatar = retrieve_uname(target_id,decode=True), None
@@ -3086,37 +3063,38 @@ def personal_group_notif_prompts(request):
 
 
 #####################################################################################################################
-################################################### Metrics Page ####################################################
+############################################### Exporting Chat Logs #################################################
 #####################################################################################################################
 
 
-def personal_group_metrics(request):
+def export_chat_logs(request, log_type):
 	"""
-	Displays metrics related to personal groups
-
-	1) How many personal groups are created each day, and how many are exited
-	2) What are avg number of chats produced per type of chat?
-	3) What are avg number of switchovers produced per type of chat?
+	Exports chat logs for viewing in a CSV
 	"""
-	total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, aggregate_pg_chats, \
-	avg_chat_per_pg, pms_with_sws, pgs_with_sws = avg_num_of_chats_per_type()
-	
-	total_pms_sw, median_pm_sw_idx, median_pm_sw_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs_sw, median_pg_sw_idx, median_pg_sw_tuple, \
-	aggregate_pg_sws, avg_sw_per_pg = avg_num_of_switchovers_per_type()
+	import json as json_backup
+	from redis7 import in_defenders
+	from redis4 import retrieve_chat_records
+	from redis3 import exact_date
 
-	total_pgs_sess, total_pms_sess, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm, \
-	avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
-	total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm = avg_sessions_per_type()
-
-	return render(request,"personal_group/metrics/personal_group_metrics.html",{'total_pms':total_pms,'agg_pm_chats':aggregate_pm_chats,\
-		'avg_pm_chats':avg_chat_per_pm,'total_pgs':total_pgs,'agg_pg_chats':aggregate_pg_chats,'avg_pg_chats':avg_chat_per_pg,\
-		'med_pm_idx':median_pm_idx,'med_pg_idx':median_pg_idx,'med_pm_tup':median_pm_tuple,'med_pg_tup':median_pg_tuple,\
-		'total_pms_sw':total_pms_sw,'agg_pm_sws':aggregate_pm_sws,'avg_pm_sws':avg_sw_per_pm,'total_pgs_sw':total_pgs_sw,\
-		'agg_pg_sws':aggregate_pg_sws,'avg_pg_sws':avg_sw_per_pg,'med_pm_idx_sw':median_pm_sw_idx,'med_pg_idx_sw':median_pg_sw_idx,\
-		'med_pm_tup_sw':median_pm_sw_tuple,'med_pg_tup_sw':median_pg_sw_tuple,'avg_sess_per_user_per_pg':avg_sess_per_user_per_pg,\
-		'avg_sess_per_user_per_pm':avg_sess_per_user_per_pm,'med_sess_per_user_per_pg':med_sess_per_user_per_pg,\
-		'med_sess_per_user_per_pm':med_sess_per_user_per_pm,'pgs_sampled_sess':total_pgs_sess,'pms_sampled_sess':total_pms_sess,\
-		'avg_users_per_pm':avg_users_per_pm, 'med_users_per_pm':med_users_per_pm,'avg_users_per_pg':avg_users_per_pg,\
-		'med_users_per_pg':med_users_per_pg,'pms_with_sws':pms_with_sws,'pgs_with_sws':pgs_with_sws,'total_two_user_pms':total_two_user_pms,\
-		'avg_sess_per_user_per_two_user_pm':avg_sess_per_user_per_two_user_pm,'med_sess_per_user_per_two_user_pm':med_sess_per_user_per_two_user_pm,\
-		'avg_users_per_two_user_pm':avg_users_per_two_user_pm, 'med_users_per_two_user_pm':med_users_per_two_user_pm})
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		data_to_write_to_csv = retrieve_chat_records(log_type)# list of lists (where each list is a list of dictionaries)
+		if data_to_write_to_csv:
+			import csv
+			filename = 'chat_data_{}.csv'.format(log_type)
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["Posting time (human)","sender ID","receiver ID","msg type","msg text","img url (if any)"]
+				wtr.writerow(columns)
+				for chat_data, group_id in data_to_write_to_csv:
+					try:
+						chat_data = json.loads(chat_data)
+					except:
+						chat_data = json_backup.loads(chat_data)
+					chat_data_list = chat_data.split(":")
+					posting_time, msg_type, img_url, sender_id, receiver_id, msg = float(chat_data_list[0]), chat_data_list[1],\
+					chat_data_list[2], chat_data_list[3], chat_data_list[4], chat_data_list[5]
+					to_write = [exact_date(posting_time),sender_id,receiver_id,msg_type,msg,img_url]
+					wtr.writerows([to_write])
+	raise Http404("Completed :-)")

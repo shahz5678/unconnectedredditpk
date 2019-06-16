@@ -8,7 +8,7 @@
 
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='text' %}
 
-<h1 class="cxl clb lsp" style="text-align:center">Share text on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Share text post on Damadam:</h1>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden">
 
 	{% if show_instructions %}
@@ -30,39 +30,25 @@
 
 	{% else %}
 
-		{% if form.errors %}<div style="text-align:center" class="cr cxl">{{ form.errors|show_error }}</div>{% else %}<div style="font-weight:bold;text-align:center" class="cl sp">{% emoticons %}Don't be boring .e4{% endemoticons %}</div>{% endif %}
-		<form method="post" class="mbs" action="" enctype="multipart/form-data">
+		{% if form.errors %}<div style="text-align:center" class="cr cl">{{ form.errors|show_error }}</div>{% endif %}
+		<form method="post" style="text-align:center" class="mbs" action="" enctype="multipart/form-data">
 		  {% csrf_token %}
 		  <input type="hidden" name="sk" value="{{ sk }}">
 		  <div class="mt mbs">{{ form.description }}</div>
-			<button class="btn bl bct mt mbs sp pg_ok_res" style="height:28px" name="btn" value="1" type="submit">Share</button>
+			<button class="btn bl bct mt mbs sp pg_ok_res" style="width:100%;height:38px" name="btn" value="1" type="submit"><b>SHARE</b></button>
 		</form>
 
 		{% if not show_instructions %}
 
-		<div class="cgy sp cs lsp mbl" style="text-align:left">
-			<div style="font-weight:bold">Note:</div>
-			<div class="mt" style="text-align:left">1) Agr sentence ke end mein 'new line' <img src="{{ STATIC_URL }}img/enter_key.svg" width="14" height="14" style="vertical-align:text-bottom"> dalein tou post 'new line' ke sath display ho gi</div>
-			<div class="mts" style="text-align:left">2) One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
-			<div class="mts" style="text-align:left">3) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" target="_blank" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-			<div class="mts" style="text-align:left">4) In categories ki posts share karein: latest news, paheliyan (riddles), poetry, quotes, jokes and stories, sports, politics, religion, celebrities, fashion, nature and philosophy waghera</div>
-			
+		<div class="cgy sp cs lsp mbs" style="text-align:left">
+			<div style="font-weight:bold">HELP:</div>
+			<div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is kisam ki posts share karein: latest news, paheliyan (riddles), poetry and attitude quotes, jokes, your stories, sports, politics, religion, celebrities, fashion, nature waghera</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" target="_blank" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">3)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Agr sentence ke end mein 'new line' <img src="{{ STATIC_URL }}img/enter_key.svg" width="14" height="14" style="vertical-align:text-bottom"> dalein tou post 'new line' ke sath display ho gi</div>
 		</div>
 
 		{% endif %}
-
-		<hr size=1 COLOR="#E9EBEE">
-		<span class="lsp sp">Emojis banane ke liye unke sath likhey characters type karein:</span><br>
-		{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cs sp" target="_blank" style="border-bottom:1px dotted blue">{% else %}<a href="{% url 'faces' %}" class="cs sp" target="_blank" style="border-bottom:1px dotted blue">{% endif %}faces full list</a>
-
-		{% emoticons_index as emoticons_list %}
-
-		{% for emoticons in emoticons_list %}
-		{% if forloop.counter in random %}
-		
-		<p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="cm">{{ emoticons.0 }}</b></p>
-		{% endif %}
-		{% endfor %}
 
 	{% endif %}
 

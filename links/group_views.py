@@ -3085,7 +3085,7 @@ def export_chat_logs(request, log_type):
 			filename = 'chat_data_{}.csv'.format(log_type)
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["Posting time (human)","sender ID","receiver ID","msg type","msg text","img url (if any)"]
+				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID","receiver ID","msg type","img url","msg text"]
 				wtr.writerow(columns)
 				for chat_data, group_id in data_to_write_to_csv:
 					try:
@@ -3095,6 +3095,6 @@ def export_chat_logs(request, log_type):
 					chat_data_list = chat_data.split(":")
 					posting_time, msg_type, img_url, sender_id, receiver_id, msg = float(chat_data_list[0]), chat_data_list[1],\
 					chat_data_list[2], chat_data_list[3], chat_data_list[4], (chat_data_list[5].encode('utf-8')).replace('\n', ' ').replace('\r', ' ')
-					to_write = [exact_date(posting_time),sender_id,receiver_id,msg_type,msg,img_url]
+					to_write = [posting_time,exact_date(posting_time),group_id,sender_id,receiver_id,msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")

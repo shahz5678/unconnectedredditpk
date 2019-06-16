@@ -38,7 +38,7 @@ from templatetags.human_time import human_time
 from image_processing import process_public_image, clean_image_file#, clean_image_file_with_hash
 from salutations import SALUTATIONS
 from forms import getip
-from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
+from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, AdFeedbackForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ContactForm, AboutForm, \
 PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, \
 PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
@@ -49,7 +49,7 @@ CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInvi
 PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, \
 AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm, BestPhotosListForm, \
-PhotosListForm, CricketCommentForm, PublicreplyMiniForm, AdFeedbackForm, SearchAdFeedbackForm#, GroupReportForm
+PhotosListForm, CricketCommentForm, PublicreplyMiniForm, SearchAdFeedbackForm#, GroupReportForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect

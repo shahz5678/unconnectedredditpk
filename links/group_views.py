@@ -3070,6 +3070,8 @@ def personal_group_notif_prompts(request):
 def export_chat_logs(request, log_type):
 	"""
 	Exports chat logs for viewing in a CSV
+
+	TODO: Add world ages of sender and receiver!
 	"""
 	import json as json_backup
 	from redis7 import in_defenders

@@ -1089,7 +1089,7 @@ class UploadPhotoForm(forms.Form):
 			caption_len = len(caption)
 			if caption_len < 1:
 				raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
-			if caption_len < 11:
+			if caption_len < 8:
 				raise forms.ValidationError('Zyada tafseel likhein ke foto mein kya hai')
 			elif caption_len > MAX_PHOTO_CAPTION_SIZE:
 				raise forms.ValidationError('{} chars se zyada nahi likhein, ap ne {} chars likhey'.format(MAX_PHOTO_CAPTION_SIZE,caption_len))

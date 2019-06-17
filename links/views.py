@@ -816,8 +816,11 @@ class PhotoDetailView(DetailView):
 		except:
 			context["av_url"] = None
 		context["defender"] = False
+		context["oun"] = retrieve_uname(photo.owner_id,decode=True)
+		context["is_pinkstar"] = True if context["oun"] in FEMALES else False
 		context["from_cull_queue"] = False
 		context["latest_photocomments"] = None
+		context["other_photos"] = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id').values('image_file','caption','id')[:10] #list of dictionaries
 		if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
 			context["is_mob"] = True
 		if self.request.user.is_authenticated():
@@ -825,8 +828,6 @@ class PhotoDetailView(DetailView):
 				if self.kwargs['origin'] == '6':
 					context["from_cull_queue"] = True
 				context["latest_photocomments"] = PhotoComment.objects.select_related('submitted_by').filter(which_photo_id=pk).order_by('-id')[:25]
-				context["other_photos"] = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id')[:10] #list of dictionaries
-				# test = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id').only('id','image_file')[:10] #list of dictionaries
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
 				context["defender"] = True

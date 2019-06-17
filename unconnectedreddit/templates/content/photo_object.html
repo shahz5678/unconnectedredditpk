@@ -71,7 +71,8 @@
 
 	</div>
 
-	<div itemprop="image" itemscope itemtype="https://schema.org/ImageObject" class="mbs mt" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+	<span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+	<div class="mbs mt" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 	
 	{% if block_time_remaining %}
 		<img class="cs sp" alt="hidden" style="vertical-align: top;" src="{{ static_url }}img/broken.svg">
@@ -80,16 +81,18 @@
 			{% if vsc < VDC %}
 				<img class="cs sp" style="vertical-align: top;" alt="hidden" src="{{ static_url }}img/broken.svg">
 			{% elif vsc < VDP %}
-				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="{{ cap }}" style="border-radius:12px">
+				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="{{ raw_caption }}" style="border-radius:12px">
 			{% else %}
-				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ cap }}">
+				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
 			{% endif %}
 		</span>
 	{% endif %}
 
 	</div>
 
-	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<time class="cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></div>
+	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></a></div>
+	</span>
+
 
 	</div>
 {% endif %}

@@ -7,7 +7,7 @@
 
 			  	<a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
 
-			  	<div style="word-break: break-all;"><a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp" itemprop="author">{{ oun }}</h3></a>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ ut }}</time></div>
+			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'profile' oun 'fotos' %}" itemprop="url" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3></a></span>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ ut }}</time></div>
 			
 			</div>
 				 	
@@ -22,7 +22,7 @@
 	</div>
 	
 	<div>	
-
+	
 		{% if vsc < VDC %}
 			<div class="lsp mbs cl sp" style="color:darkgray;text-align:center">- hidden -</div>
 		{% else %}

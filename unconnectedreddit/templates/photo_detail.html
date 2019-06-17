@@ -32,6 +32,8 @@
 	<meta property="fb:app_id" content="1758220174446684" />
     {% google_analytics %}
 
+    <link rel="canonical" href="{% url 'photo_detail' photo.id %}" />
+
 </head>
 <body style="background:#f0f3f4">
 
@@ -55,7 +57,8 @@
 {% load emoticons_tags %}
 {% load humanize %}
 <br>
-<main style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;width:98%;max-width:600px;margin-right:auto;margin-left:auto;padding-top:5px">
+
+<main style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;width:98%;max-width:600px;margin-right:auto;margin-left:auto">
 <a name="section0"></a>
 
 {% if not absent %}
@@ -92,20 +95,33 @@
 		<a href="{% url 'cull_content_loc' photo.id 'img' %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
 	{% else %}
 
-	<article itemscope itemtype="https://schema.org/SocialMediaPosting">
-		{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin=5 vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=photo.owner.username static_url=STATIC_URL show_uname_credentials=False show_report=False %}
-		
-		<div itemprop="author" itemscope itemtype="https://schema.org/Person" style="text-align:center">
-		<div class="cs cgy sp mbl">posted by&nbsp;<a href="{% url 'profile' photo.owner.username 'fotos' %}" itemprop="url" class="cgy">{% if av_url %}<img itemprop="image" src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic" width="22" height="22">{% endif %}&nbsp;<span style="border-bottom:1px dotted gray" itemprop="alternateName">{{ photo.owner.username }}</span></a></div>
-		</div>
+	<article style="display:block">
+
+		<section itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" style="display:block">
+			{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin='5' vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=oun av_url=av_url static_url=STATIC_URL is_pinkstar=is_pinkstar %}
+		</section>
 
 		<section class="mbs">
-		  <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
-			  {% big_external_share_button owner_username=photo.owner.username is_mobile=is_mob photo_id=photo.id origin='5' static_url=STATIC_URL %}
-			  {% big_photo_comment_button photo_id=photo.id origin='5' comm_count=photo.comment_count static_url=STATIC_URL %}
-			  {% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
-		  </div>
+			<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+				{% big_external_share_button owner_username=oun is_mobile=is_mob photo_id=photo.id origin='5' static_url=STATIC_URL %}
+				{% big_photo_comment_button photo_id=photo.id origin='5' comm_count=photo.comment_count static_url=STATIC_URL %}
+				{% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+			</div>
 		</section>
+
+		<section style="text-align:center;border-top:2px solid #f5f5f5;padding:10px 0;background:#fefefa">
+			<div class="cs sp cgy">more images by {{ oun }}:</div>
+			<div class="fx fxjscn fxaicn" style="flex-wrap:wrap">
+			{% for pht in other_photos %}
+				<span itemscope itemtype="https://schema.org/ViewAction">
+				<a class="mrs mls" href="{% url 'profile_pk' oun pht.id %}" itemprop="target">
+				<img src="{{ pht.image_file|s3:'thumb' }}" class="mts cxs sp" style="overflow:hidden" alt="{{ pht.caption }}">
+				</a>
+				</span>
+			{% endfor %}
+			</div>
+		</section>
+
 	</article>
 
 	{% endif %}

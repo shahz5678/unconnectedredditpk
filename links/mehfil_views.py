@@ -23,13 +23,12 @@ from imagestorage import upload_image_to_s3
 from judgement_views import ordered_list_of_tup
 from image_processing import process_group_image
 
-from group_views import retrieve_user_env
-
 from models import HellBanList, UserProfile
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
-from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list
+from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list,\
+retrieve_user_env
 
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users

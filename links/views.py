@@ -798,8 +798,9 @@ class PhotoDetailView(DetailView):
 		context = super(PhotoDetailView, self).get_context_data(**kwargs)
 		context["can_vote"] = False
 		context["authenticated"] = False
+		pk = self.kwargs.get("pk",None)
+		origin = self.kwargs.get("origin",None)
 		try:
-			pk = self.kwargs["pk"]
 			photo = Photo.objects.get(id=pk)
 			context["photo_id"] = pk
 			context["photo"] = photo
@@ -817,6 +818,9 @@ class PhotoDetailView(DetailView):
 			context["av_url"] = photo.owner.userprofile.avatar.url
 		except:
 			context["av_url"] = None
+		if origin:
+			context["show_copy_prompt"] = True
+			context["regular_url"] = "https://damadam.pk"+reverse('photo_detail',kwargs={"pk": pk})
 		context["defender"] = False
 		context["oun"] = retrieve_uname(photo.owner_id,decode=True)
 		context["is_pinkstar"] = True if context["oun"] in FEMALES else False
@@ -826,9 +830,8 @@ class PhotoDetailView(DetailView):
 		if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
 			context["is_mob"] = True
 		if self.request.user.is_authenticated():
-			if 'origin' in self.kwargs:
-				if self.kwargs['origin'] == '6':
-					context["from_cull_queue"] = True
+			if origin == '6':
+				context["from_cull_queue"] = True
 				context["latest_photocomments"] = PhotoComment.objects.select_related('submitted_by').filter(which_photo_id=pk).order_by('-id')[:25]
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):

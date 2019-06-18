@@ -328,6 +328,8 @@ def beautiful_date(epoch_time, format_type='1'):
 		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%Y-%m-%d %I:%M:%S %p")# gives YYYY-MM-DDThh:mm:ssTZD
 	elif format_type == '3':
 		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p, %a - %d %b %Y")# gives "03:39 PM, Sun - 05 May 2019"
+	elif format_type == '4':
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%Y-%m-%d %I:%M:%S")# gives YYYY-MM-DDThh:mm:ssTZD
 	else:
 		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p %d-%m-%Y")# gives "05-05-2019 03:39 PM"
 
@@ -4198,8 +4200,8 @@ def sitemap(request):
 	Renders a sitemap
 	"""
 	latest_trending_mod_time, latest_fresh_mod_time = retrieve_photo_feed_latest_mod_time(both=True)
-	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='2'),\
-	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='2')},content_type="application/xml")
+	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='4'),\
+	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='4')},content_type="application/xml")
 
 
 @ratelimit(rate='3/s')

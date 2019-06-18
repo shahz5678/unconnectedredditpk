@@ -366,6 +366,21 @@ class CreateAccountForm(forms.ModelForm):
 			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_.'))
 		elif '._' in username:
 			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='._'))
+		elif 'lll' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='lll'))
+		elif 'III' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='III'))
+		elif 'IlI' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='IlI'))
+		elif 'lIl' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='lIl'))
+		elif 'lII' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='lII'))
+		elif 'llI' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='llI'))
+		elif 'iii' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='iii'))
+
 		
 		is_valid, err_string, payload = validate_string_chars(username, BANNED_NICKS, lang)
 		if is_valid:
@@ -646,6 +661,21 @@ class CreateNickNewForm(forms.Form):
 			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='_.'))
 		elif '._' in username:
 			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='._'))
+		elif 'lll' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='lll'))
+		elif 'III' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='III'))
+		elif 'IlI' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='IlI'))
+		elif 'lIl' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='lIl'))
+		elif 'lII' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='lII'))
+		elif 'llI' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='llI'))
+		elif 'iii' in username:
+			raise ValidationError(retrieve_validation_error_string('illegal_sequence_in_nick',lang=lang,payload='iii'))
+
 		
 		is_valid, err_string, payload = validate_string_chars(username, BANNED_NICKS, lang)
 		if is_valid:

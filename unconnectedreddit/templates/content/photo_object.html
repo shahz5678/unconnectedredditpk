@@ -7,7 +7,7 @@
 
 			  	<a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
 
-			  	<div style="word-break: break-all;"><a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp" itemprop="author">{{ oun }}</h3></a>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ ut }}</time></div>
+			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'profile' oun 'fotos' %}" itemprop="url" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3></a></span>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ ut }}</time></div>
 			
 			</div>
 				 	
@@ -22,7 +22,7 @@
 	</div>
 	
 	<div>	
-
+	
 		{% if vsc < VDC %}
 			<div class="lsp mbs cl sp" style="color:darkgray;text-align:center">- hidden -</div>
 		{% else %}
@@ -71,7 +71,8 @@
 
 	</div>
 
-	<div itemprop="image" itemscope itemtype="https://schema.org/ImageObject" class="mbs mt" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+	<span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+	<div class="mbs mt" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 	
 	{% if block_time_remaining %}
 		<img class="cs sp" alt="hidden" style="vertical-align: top;" src="{{ static_url }}img/broken.svg">
@@ -80,16 +81,18 @@
 			{% if vsc < VDC %}
 				<img class="cs sp" style="vertical-align: top;" alt="hidden" src="{{ static_url }}img/broken.svg">
 			{% elif vsc < VDP %}
-				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="{{ cap }}" style="border-radius:12px">
+				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="{{ raw_caption }}" style="border-radius:12px">
 			{% else %}
-				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ cap }}">
+				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
 			{% endif %}
 		</span>
 	{% endif %}
 
 	</div>
 
-	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<time class="cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></div>
+	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></a></div>
+	</span>
+
 
 	</div>
 {% endif %}

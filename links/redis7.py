@@ -241,6 +241,33 @@ def retrieve_photo_feed_index(obj_hash, feed_type='best_photos'):
 		return redis.Redis(connection_pool=POOL).zrevrank(PHOTO_SORTED_FEED, obj_hash)
 
 
+def retrieve_photo_feed_latest_mod_time(feed_type='best_photos', both=False):
+	"""
+	Returns time of latest item's input in the page
+
+	Useful for SEO purposes
+	"""
+	if both:
+		latest_trending_mod_time, latest_regular_mod_time = None, None
+		my_server = redis.Redis(connection_pool=POOL)
+		latest_trending_data = my_server.zrange(TRENDING_PHOTO_FEED,-1,-1,withscores=True)
+		latest_regular_data = my_server.zrange(PHOTO_SORTED_FEED,-1,-1,withscores=True)
+		if latest_trending_data:
+			latest_trending_mod_time = latest_trending_data[0][1]
+		if latest_regular_data:
+			latest_regular_mod_time = latest_regular_data[0][1]
+		return latest_trending_mod_time, latest_regular_mod_time
+	else:
+		if feed_type == 'best_photos':
+			latest_data = redis.Redis(connection_pool=POOL).zrange(TRENDING_PHOTO_FEED,-1,-1,withscores=True)
+		else:
+			latest_data = redis.Redis(connection_pool=POOL).zrange(PHOTO_SORTED_FEED,-1,-1,withscores=True)
+		if latest_data:
+			return latest_data[0][1]
+		else:
+			return None
+
+
 def retrieve_home_feed_index(obj_hash):
 	"""
 	Returns exact index an object is stored at in HOME_SORTED_FEED

@@ -19,7 +19,7 @@
         </div>
     </div>
 {% else %}
-<h1 class="cxl clb lsp" style="text-align:center">Share foto on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Share foto post on Damadam:</h1>
     <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:left">
         {% if show_instructions %}
             <div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
@@ -30,28 +30,26 @@
             <div class="mts sp lsp">3) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
             </div>
         {% endif %}
-        <div style="font-weight:bold;text-align:center" class="cl sp">{% emoticons %}Don't be boring .e4{% endemoticons %}</div>
-        <hr size=1 COLOR="#E9EBEE">
-        <form action="{% url 'upload_public_photo' %}" id="public_photo_form" class="mtl" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'upload_public_photo' %}" id="public_photo_form" class="mt" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="opt" value="0">
         
-        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr sp">{{ form.image_file.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 1: Foto select karein</b></div>{% endif %}
+        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp">{{ form.image_file.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 1: Foto select karein</b></div>{% endif %}
         <div class="mts mbl">{{ form.image_file }}</div>
-        {% if form.caption.errors %}<div class="cr sp">{{ form.caption.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 2: Foto ka title likhein:</b></div>{% endif %}
+        {% if form.caption.errors %}<div class="cr cl sp">{{ form.caption.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 2: Neechay likhein ye foto kis barey mein hai:</b></div>{% endif %}
         <div class="mts mbs" style="padding-right:5px">{{ form.caption }}</div>
 
-        <button id="pub_img_subform" class="btn bco bl mt pg_ok_res sp" style="height:28px" type="submit">Share</button>
+        <button id="pub_img_subform" class="btn bco bl mts pg_ok_res sp" style="width:100%;height:38px" type="submit"><b>SHARE</b></button>
 
         </form>
 
         {% if not show_instructions %}
         <div class="cgy lsp sp cs mbl mtl" style="text-align:left">
-            <div class="mt" style="font-weight:bold">Note:</div>
-            <div class="mts" style="text-align:left">1) One day mein {{ sharing_limit }} se ziyada items share nahi hotay. Sirf apney pasandeeda items share karein</div>
-            <div class="mts" style="text-align:left">2) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-            <div class="mts" style="text-align:left">3) In categories ki fotos share karein: poetry, paheliyan (riddles), jokes, quotes, latest news, sports, politics, religion, celebrities, fashion, nature and philosophy</div>
+            <div class="mt" style="font-weight:bold">HELP:</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is kisam ki fotos share karein: poetry, paheliyan (riddles), jokes, quotes, latest news, sports, politics, religion, celebrities, fashion, nature and philosophy</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay. Sirf apney pasandeeda items share karein</div>
         </div>
         {% endif %}
 

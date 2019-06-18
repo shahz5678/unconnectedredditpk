@@ -230,9 +230,7 @@ def set_text_input_key(user_id, obj_id, obj_type, secret_key):
 	"""
 	Used to prevent double form submission
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	sec_key = "tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id)
-	my_server.setex(sec_key,secret_key,TWENTY_MINS)
+	redis.Redis(connection_pool=POOL).setex("tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id),secret_key,TWENTY_MINS)
 
 
 def get_and_delete_text_input_key(user_id, obj_id, obj_type):
@@ -600,8 +598,8 @@ def retrieve_user_id(username):
 		return user_id
 	else:
 		try:
-			user_id = User.objects.filter(username=username).values_list('id',flat=True)[0]
-		except IndexError:
+			user_id = User.objects.only('id').get(username=username).id
+		except User.DoesNotExist:
 			return None
 		my_server.setex(key,user_id,ONE_DAY)
 		return str(user_id)
@@ -616,8 +614,7 @@ def retrieve_avurl(user_id):
 	avurl = my_server.hget(hash_name,'avurl')
 	if not avurl:
 		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
-		if not avurl:
-			avurl = 'empty'
+		avurl = avurl if avurl else 'empty'
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'avurl',avurl)
 		pipeline1.expire(hash_name,ONE_DAY)
@@ -733,27 +730,6 @@ def set_online_users(user_id,user_ip,user_world_age):
 	my_server.setex("lip:"+user_id,user_ip,FIVE_MINS)
 
 
-# def get_recent_online():
-# 	"""
-# 	Invoked by tasks.py to show whoever is online
-# 	"""
-# 	ten_mins_ago = time.time() - TEN_MINS
-# 	online_users = redis.Redis(connection_pool=POOL).zrangebyscore("online_users",ten_mins_ago,'+inf')
-# 	online_ids_and_ages = []
-# 	for user_data in online_users:
-# 		data = user_data.split(":")
-# 		online_ids_and_ages.append((data[0],data[1]))
-# 	return online_ids_and_ages
-
-
-def save_most_recent_online_users(user_ids_and_ages):
-	"""
-	Saves a snapshot of online user ids
-	"""
-	if user_ids_and_ages:
-		my_server = redis.Redis(connection_pool=POOL)
-		my_server.setex('online_user_ids_and_ages',json.dumps(user_ids_and_ages),TWENTY_MINS)
-
 def get_recent_online():
 	"""
 	Invoked by tasks.py to show whoever is online
@@ -766,6 +742,16 @@ def get_recent_online():
 		# if already appended, don't append again
 		online_ids_and_ages[data[0]] = int(data[1])
 	return online_ids_and_ages.items()
+
+
+def save_most_recent_online_users(user_ids_and_ages):
+	"""
+	Saves a snapshot of online user ids
+	"""
+	if user_ids_and_ages:
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.setex('online_user_ids_and_ages',json.dumps(user_ids_and_ages),TWENTY_MINS)
+
 
 def get_most_recent_online_users(with_ages=False):
 	"""
@@ -1498,13 +1484,13 @@ def retrieve_subscription_info(user_id):
 		return {}
 
 
+
 def sanitize_unused_subscriptions():
 	"""
 	Cleanses old subscriptions that are ununsed (helps prevent data-leaks)
 
 	Is to be periodically called by tasks.py (e.g. every 7 days)
 	"""
-
 	three_months_ago = time.time() - THREE_MONTHS
 	my_server = redis.Redis(connection_pool=POOL)
 	subscriptions_to_delete = my_server.zrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
@@ -1649,262 +1635,262 @@ def purge_exit_list(group_id, user_id):
 
 ########################################### Reporting Metrics for Personal Groups ###########################################
 
-def avg_sessions_per_type():
-	"""
-	Retrieves session information for personal groups
+# def avg_sessions_per_type():
+# 	"""
+# 	Retrieves session information for personal groups
 
-	1) What are avg number of sessions per type of chat
-	2) What are median number of sessions per type of chat
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	pgs_sampled = my_server.get('pgs_sampled_for_sess')
-	if pgs_sampled:
-		results = my_server.mget(['pms_sampled_for_sess','med_sess_per_user_per_pg','med_sess_per_user_per_pm','avg_sess_per_user_per_pg',\
-			'avg_sess_per_user_per_pm','avg_users_per_pm','med_users_per_pm','avg_users_per_pg','med_users_per_pg','avg_sess_per_user_per_two_user_pm',\
-			'med_sess_per_user_per_two_user_pm','total_two_user_pms','avg_users_per_two_user_pm','med_users_per_two_user_pm'])
-		return pgs_sampled, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9],\
-		results[10],results[11], results[12], results[13]
-	else:
-		pg_data = my_server.zrange('pg_sess',0,-1,withscores=True)
-		pg_sample_size = len(pg_data)
-		pg_med_idx = int(pg_sample_size/2)
+# 	1) What are avg number of sessions per type of chat
+# 	2) What are median number of sessions per type of chat
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	pgs_sampled = my_server.get('pgs_sampled_for_sess')
+# 	if pgs_sampled:
+# 		results = my_server.mget(['pms_sampled_for_sess','med_sess_per_user_per_pg','med_sess_per_user_per_pm','avg_sess_per_user_per_pg',\
+# 			'avg_sess_per_user_per_pm','avg_users_per_pm','med_users_per_pm','avg_users_per_pg','med_users_per_pg','avg_sess_per_user_per_two_user_pm',\
+# 			'med_sess_per_user_per_two_user_pm','total_two_user_pms','avg_users_per_two_user_pm','med_users_per_two_user_pm'])
+# 		return pgs_sampled, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9],\
+# 		results[10],results[11], results[12], results[13]
+# 	else:
+# 		pg_data = my_server.zrange('pg_sess',0,-1,withscores=True)
+# 		pg_sample_size = len(pg_data)
+# 		pg_med_idx = int(pg_sample_size/2)
 
-		pm_data = my_server.zrange('pm_sess',0,-1,withscores=True)
-		pm_sample_size = len(pm_data)
-		pm_med_idx = int(pm_sample_size/2)
+# 		pm_data = my_server.zrange('pm_sess',0,-1,withscores=True)
+# 		pm_sample_size = len(pm_data)
+# 		pm_med_idx = int(pm_sample_size/2)
 
-		# data contains <group_id>:<user_id> tuples
-		pg_sessions, all_pgs, all_pg_users = 0, set(), {}
-		for tup in pg_data:
-			pg_sessions += int(tup[1])
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pgs.add(group_id)
-			all_pg_users[group_id] = {}
-		pgs_sampled = len(all_pgs)
-		for tup in pg_data:
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pg_users[group_id].update({user_id:'user_id'})
-		total_pg_users, pg_users_set = 0, []
-		for key, value in all_pg_users.iteritems():
-			num_users_in_group = len(value)
-			pg_users_set.append(num_users_in_group)
-			total_pg_users += num_users_in_group
-		# finding median
-		array_pg = sorted(pg_users_set)
-		half, odd = divmod(len(array_pg), 2)
-		if odd:
-			med_users_per_pg = array_pg[half]
-		else:
-			med_users_per_pg = (array_pg[half - 1] + array_pg[half]) / 2.0
+# 		# data contains <group_id>:<user_id> tuples
+# 		pg_sessions, all_pgs, all_pg_users = 0, set(), {}
+# 		for tup in pg_data:
+# 			pg_sessions += int(tup[1])
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pgs.add(group_id)
+# 			all_pg_users[group_id] = {}
+# 		pgs_sampled = len(all_pgs)
+# 		for tup in pg_data:
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pg_users[group_id].update({user_id:'user_id'})
+# 		total_pg_users, pg_users_set = 0, []
+# 		for key, value in all_pg_users.iteritems():
+# 			num_users_in_group = len(value)
+# 			pg_users_set.append(num_users_in_group)
+# 			total_pg_users += num_users_in_group
+# 		# finding median
+# 		array_pg = sorted(pg_users_set)
+# 		half, odd = divmod(len(array_pg), 2)
+# 		if odd:
+# 			med_users_per_pg = array_pg[half]
+# 		else:
+# 			med_users_per_pg = (array_pg[half - 1] + array_pg[half]) / 2.0
 
-		# calculating pm data
-		pm_sessions, all_pms, all_pm_users = 0, set(), {}
-		for tup in pm_data:
-			pm_sessions += int(tup[1])
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pms.add(group_id)
-			all_pm_users[group_id] = {}
-		pms_sampled = len(all_pms)
-		for tup in pm_data:
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pm_users[group_id].update({user_id:'user_id'})
-		total_pm_users, pm_users_set, two_user_pms = 0, [], {}
-		for key, value in all_pm_users.iteritems():
-			num_users_in_group = len(value)
-			pm_users_set.append(num_users_in_group)
-			if num_users_in_group < 3:
-				# retriving 2 user pms
-				two_user_pms[key] = num_users_in_group
-			total_pm_users += num_users_in_group
+# 		# calculating pm data
+# 		pm_sessions, all_pms, all_pm_users = 0, set(), {}
+# 		for tup in pm_data:
+# 			pm_sessions += int(tup[1])
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pms.add(group_id)
+# 			all_pm_users[group_id] = {}
+# 		pms_sampled = len(all_pms)
+# 		for tup in pm_data:
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pm_users[group_id].update({user_id:'user_id'})
+# 		total_pm_users, pm_users_set, two_user_pms = 0, [], {}
+# 		for key, value in all_pm_users.iteritems():
+# 			num_users_in_group = len(value)
+# 			pm_users_set.append(num_users_in_group)
+# 			if num_users_in_group < 3:
+# 				# retriving 2 user pms
+# 				two_user_pms[key] = num_users_in_group
+# 			total_pm_users += num_users_in_group
 		
-		# retrieving sessions for 2 user pms in {gid:num_sess} form
-		two_user_pm_sess = {}
-		for tup in pm_data:
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			if group_id in two_user_pms:
-				# it's a two person pm
-				if group_id in two_user_pm_sess:
-					# already entered data for 1 user
-					num_sess = two_user_pm_sess[group_id]
-					two_user_pm_sess[group_id] = num_sess + int(tup[1])
-				else:
-					two_user_pm_sess[group_id] = int(tup[1])
+# 		# retrieving sessions for 2 user pms in {gid:num_sess} form
+# 		two_user_pm_sess = {}
+# 		for tup in pm_data:
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			if group_id in two_user_pms:
+# 				# it's a two person pm
+# 				if group_id in two_user_pm_sess:
+# 					# already entered data for 1 user
+# 					num_sess = two_user_pm_sess[group_id]
+# 					two_user_pm_sess[group_id] = num_sess + int(tup[1])
+# 				else:
+# 					two_user_pm_sess[group_id] = int(tup[1])
 
-		# we now have two_user_pms {gid:num_users} and two_user_pm_sess {gid:num_sess}
-		total_two_user_pm_sess, all_two_user_pm_sess = 0, []
-		for key,value in two_user_pm_sess.iteritems():
-			total_two_user_pm_sess += int(value)
-			all_two_user_pm_sess.append(value)
-		total_two_user_pm_users, all_two_user_pm_users = 0, []
-		for key,value in two_user_pms.iteritems():
-			total_two_user_pm_users += int(value)
-			all_two_user_pm_users.append(value)
-		avg_sess_per_user_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_sess)/total_two_user_pm_users)
-		sorted_sess = sorted(all_two_user_pm_sess)
-		halved, is_odd = divmod(len(sorted_sess), 2)
-		if is_odd:
-			med_sess_per_user_per_two_user_pm = sorted_sess[halved]
-		else:
-			med_sess_per_user_per_two_user_pm = int(sorted_sess[halved - 1] + sorted_sess[halved]) / 2.0
-		total_two_user_pms = len(two_user_pms)
-		avg_users_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_users)/total_two_user_pms)
-		sorted_users = sorted(all_two_user_pm_users)
-		bisect, isodd = divmod(len(sorted_users), 2)
-		if isodd:
-			med_users_per_two_user_pm = sorted_users[bisect]
-		else:
-			med_users_per_two_user_pm = int(sorted_users[bisect - 1] + sorted_users[bisect]) / 2.0
-		# we now have avg and median sessions per user per two user pm
+# 		# we now have two_user_pms {gid:num_users} and two_user_pm_sess {gid:num_sess}
+# 		total_two_user_pm_sess, all_two_user_pm_sess = 0, []
+# 		for key,value in two_user_pm_sess.iteritems():
+# 			total_two_user_pm_sess += int(value)
+# 			all_two_user_pm_sess.append(value)
+# 		total_two_user_pm_users, all_two_user_pm_users = 0, []
+# 		for key,value in two_user_pms.iteritems():
+# 			total_two_user_pm_users += int(value)
+# 			all_two_user_pm_users.append(value)
+# 		avg_sess_per_user_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_sess)/total_two_user_pm_users)
+# 		sorted_sess = sorted(all_two_user_pm_sess)
+# 		halved, is_odd = divmod(len(sorted_sess), 2)
+# 		if is_odd:
+# 			med_sess_per_user_per_two_user_pm = sorted_sess[halved]
+# 		else:
+# 			med_sess_per_user_per_two_user_pm = int(sorted_sess[halved - 1] + sorted_sess[halved]) / 2.0
+# 		total_two_user_pms = len(two_user_pms)
+# 		avg_users_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_users)/total_two_user_pms)
+# 		sorted_users = sorted(all_two_user_pm_users)
+# 		bisect, isodd = divmod(len(sorted_users), 2)
+# 		if isodd:
+# 			med_users_per_two_user_pm = sorted_users[bisect]
+# 		else:
+# 			med_users_per_two_user_pm = int(sorted_users[bisect - 1] + sorted_users[bisect]) / 2.0
+# 		# we now have avg and median sessions per user per two user pm
 
-		# finding overall median
-		array_pm = sorted(pm_users_set)
-		half, odd = divmod(len(array_pm), 2)
-		if odd:
-			med_users_per_pm = array_pm[half]
-		else:
-			med_users_per_pm = (array_pm[half - 1] + array_pm[half]) / 2.0
-		avg_sess_per_user_per_pg = "{0:.2f}".format(float(pg_sessions)/pg_sample_size)
-		avg_sess_per_user_per_pm = "{0:.2f}".format(float(pm_sessions)/pm_sample_size)
-		avg_users_per_pg = "{0:.2f}".format(float(total_pg_users)/pgs_sampled)
-		avg_users_per_pm = "{0:.2f}".format(float(total_pm_users)/pms_sampled)
-		med_sess_per_user_per_pg = my_server.zrange('pg_sess',pg_med_idx,pg_med_idx+1,withscores=True)[0]
-		med_sess_per_user_per_pm = my_server.zrange('pm_sess',pm_med_idx,pm_med_idx+1,withscores=True)[0]
+# 		# finding overall median
+# 		array_pm = sorted(pm_users_set)
+# 		half, odd = divmod(len(array_pm), 2)
+# 		if odd:
+# 			med_users_per_pm = array_pm[half]
+# 		else:
+# 			med_users_per_pm = (array_pm[half - 1] + array_pm[half]) / 2.0
+# 		avg_sess_per_user_per_pg = "{0:.2f}".format(float(pg_sessions)/pg_sample_size)
+# 		avg_sess_per_user_per_pm = "{0:.2f}".format(float(pm_sessions)/pm_sample_size)
+# 		avg_users_per_pg = "{0:.2f}".format(float(total_pg_users)/pgs_sampled)
+# 		avg_users_per_pm = "{0:.2f}".format(float(total_pm_users)/pms_sampled)
+# 		med_sess_per_user_per_pg = my_server.zrange('pg_sess',pg_med_idx,pg_med_idx+1,withscores=True)[0]
+# 		med_sess_per_user_per_pm = my_server.zrange('pm_sess',pm_med_idx,pm_med_idx+1,withscores=True)[0]
 
-		# caching the results
-		pipeline1 = my_server.pipeline()
-		pipeline1.setex('pgs_sampled_for_sess',pgs_sampled,TEN_MINS)
-		pipeline1.setex('pms_sampled_for_sess',pms_sampled,TEN_MINS)
-		pipeline1.setex('avg_users_per_pm',avg_users_per_pm,TEN_MINS)
-		pipeline1.setex('avg_users_per_pg',avg_users_per_pg,TEN_MINS)
-		pipeline1.setex('med_users_per_pm',med_users_per_pm,TEN_MINS)
-		pipeline1.setex('med_users_per_pg',med_users_per_pg,TEN_MINS)
-		pipeline1.setex('total_two_user_pms',total_two_user_pms,TEN_MINS)
-		pipeline1.setex('avg_sess_per_user_per_pg',avg_sess_per_user_per_pg,TEN_MINS)
-		pipeline1.setex('avg_sess_per_user_per_pm',avg_sess_per_user_per_pm,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_pg',med_sess_per_user_per_pg,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
-		pipeline1.setex('avg_users_per_two_user_pm',avg_users_per_two_user_pm,TEN_MINS)
-		pipeline1.setex('med_users_per_two_user_pm',med_users_per_two_user_pm,TEN_MINS)
-		pipeline1.setex('avg_sess_per_user_per_two_user_pm',avg_sess_per_user_per_two_user_pm,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_two_user_pm',med_sess_per_user_per_two_user_pm,TEN_MINS)
-		pipeline1.execute()
-		return pgs_sampled, pms_sampled, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm,\
-		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
-		total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm
-	"""
-	Measure 2-user pms vs 2-user pgs
-	Get 2-user pms and 2-user pgs from pm_sess and pg_sess (i.e. where sessions for 2 participants were logged)
+# 		# caching the results
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.setex('pgs_sampled_for_sess',pgs_sampled,TEN_MINS)
+# 		pipeline1.setex('pms_sampled_for_sess',pms_sampled,TEN_MINS)
+# 		pipeline1.setex('avg_users_per_pm',avg_users_per_pm,TEN_MINS)
+# 		pipeline1.setex('avg_users_per_pg',avg_users_per_pg,TEN_MINS)
+# 		pipeline1.setex('med_users_per_pm',med_users_per_pm,TEN_MINS)
+# 		pipeline1.setex('med_users_per_pg',med_users_per_pg,TEN_MINS)
+# 		pipeline1.setex('total_two_user_pms',total_two_user_pms,TEN_MINS)
+# 		pipeline1.setex('avg_sess_per_user_per_pg',avg_sess_per_user_per_pg,TEN_MINS)
+# 		pipeline1.setex('avg_sess_per_user_per_pm',avg_sess_per_user_per_pm,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_pg',med_sess_per_user_per_pg,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+# 		pipeline1.setex('avg_users_per_two_user_pm',avg_users_per_two_user_pm,TEN_MINS)
+# 		pipeline1.setex('med_users_per_two_user_pm',med_users_per_two_user_pm,TEN_MINS)
+# 		pipeline1.setex('avg_sess_per_user_per_two_user_pm',avg_sess_per_user_per_two_user_pm,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_two_user_pm',med_sess_per_user_per_two_user_pm,TEN_MINS)
+# 		pipeline1.execute()
+# 		return pgs_sampled, pms_sampled, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm,\
+# 		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
+# 		total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm
+# 	"""
+# 	Measure 2-user pms vs 2-user pgs
+# 	Get 2-user pms and 2-user pgs from pm_sess and pg_sess (i.e. where sessions for 2 participants were logged)
 
-	Get rid of less than 2 user cases to make it like for like
-	"""
+# 	Get rid of less than 2 user cases to make it like for like
+# 	"""
 
-def avg_num_of_switchovers_per_type():
-	"""
-	What are avg number of chats produced per type of chat?
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	total_pms = my_server.get('total_pms_sw')
-	if total_pms:
-		results = my_server.mget(['median_pm_idx_sw','median_pm_tuple_sw','aggregate_pm_sws','avg_sw_per_pm','total_pgs_sw','median_pg_idx_sw',\
-			'median_pg_tuple_sw','aggregate_pg_sws','avg_sw_per_pg'])
-		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
-	else:
-		pm_data = my_server.zrange('pm_sw',0,-1,withscores=True)
-		total_pms = len(pm_data)
-		median_pm_idx = int(total_pms/2)
-		median_pm_tuple = my_server.zrange('pm_sw',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+# def avg_num_of_switchovers_per_type():
+# 	"""
+# 	What are avg number of chats produced per type of chat?
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	total_pms = my_server.get('total_pms_sw')
+# 	if total_pms:
+# 		results = my_server.mget(['median_pm_idx_sw','median_pm_tuple_sw','aggregate_pm_sws','avg_sw_per_pm','total_pgs_sw','median_pg_idx_sw',\
+# 			'median_pg_tuple_sw','aggregate_pg_sws','avg_sw_per_pg'])
+# 		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+# 	else:
+# 		pm_data = my_server.zrange('pm_sw',0,-1,withscores=True)
+# 		total_pms = len(pm_data)
+# 		median_pm_idx = int(total_pms/2)
+# 		median_pm_tuple = my_server.zrange('pm_sw',median_pm_idx,median_pm_idx+1,withscores=True)[0]
 
-		pg_data = my_server.zrange('pg_sw',0,-1,withscores=True)	
-		total_pgs = len(pg_data)
-		median_pg_idx = int(total_pgs/2)
-		median_pg_tuple = my_server.zrange('pg_sw',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+# 		pg_data = my_server.zrange('pg_sw',0,-1,withscores=True)	
+# 		total_pgs = len(pg_data)
+# 		median_pg_idx = int(total_pgs/2)
+# 		median_pg_tuple = my_server.zrange('pg_sw',median_pg_idx,median_pg_idx+1,withscores=True)[0]
 
-		# data is list of (group_id,chat_num) type tuples
-		aggregate_pm_sws, aggregate_pg_sws = 0, 0
-		for tup in pm_data:
-			aggregate_pm_sws += int(tup[1])
-		for tup in pg_data:
-			aggregate_pg_sws += int(tup[1])
-		avg_sw_per_pm = "{0:.2f}".format(aggregate_pm_sws/float(total_pms))
-		avg_sw_per_pg = "{0:.2f}".format(aggregate_pg_sws/float(total_pgs))
+# 		# data is list of (group_id,chat_num) type tuples
+# 		aggregate_pm_sws, aggregate_pg_sws = 0, 0
+# 		for tup in pm_data:
+# 			aggregate_pm_sws += int(tup[1])
+# 		for tup in pg_data:
+# 			aggregate_pg_sws += int(tup[1])
+# 		avg_sw_per_pm = "{0:.2f}".format(aggregate_pm_sws/float(total_pms))
+# 		avg_sw_per_pg = "{0:.2f}".format(aggregate_pg_sws/float(total_pgs))
 
-		# caching the results
-		pipeline1 = my_server.pipeline()
-		pipeline1.setex('total_pms_sw',total_pms,TEN_MINS)
-		pipeline1.setex('median_pm_idx_sw',median_pm_idx,TEN_MINS)
-		pipeline1.setex('median_pm_tuple_sw',median_pm_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pm_sws',aggregate_pm_sws,TEN_MINS)
-		pipeline1.setex('avg_sw_per_pm',avg_sw_per_pm,TEN_MINS)
-		pipeline1.setex('total_pgs_sw',total_pgs,TEN_MINS)
-		pipeline1.setex('median_pg_idx_sw',median_pg_idx,TEN_MINS)
-		pipeline1.setex('median_pg_tuple_sw',median_pg_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pg_sws',aggregate_pg_sws,TEN_MINS)
-		pipeline1.setex('avg_sw_per_pg',avg_sw_per_pg,TEN_MINS)
-		pipeline1.execute()
-		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
-			aggregate_pg_sws, avg_sw_per_pg
+# 		# caching the results
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.setex('total_pms_sw',total_pms,TEN_MINS)
+# 		pipeline1.setex('median_pm_idx_sw',median_pm_idx,TEN_MINS)
+# 		pipeline1.setex('median_pm_tuple_sw',median_pm_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pm_sws',aggregate_pm_sws,TEN_MINS)
+# 		pipeline1.setex('avg_sw_per_pm',avg_sw_per_pm,TEN_MINS)
+# 		pipeline1.setex('total_pgs_sw',total_pgs,TEN_MINS)
+# 		pipeline1.setex('median_pg_idx_sw',median_pg_idx,TEN_MINS)
+# 		pipeline1.setex('median_pg_tuple_sw',median_pg_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pg_sws',aggregate_pg_sws,TEN_MINS)
+# 		pipeline1.setex('avg_sw_per_pg',avg_sw_per_pg,TEN_MINS)
+# 		pipeline1.execute()
+# 		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+# 			aggregate_pg_sws, avg_sw_per_pg
 
-	"""
-	Divide green mehfils into 2 person and 2+ person groups. Only 2 person green groups can be compared to private chat
-	"""
+# 	"""
+# 	Divide green mehfils into 2 person and 2+ person groups. Only 2 person green groups can be compared to private chat
+# 	"""
 
 
-def avg_num_of_chats_per_type():
-	"""
-	What are avg number of chats produced per type of chat?
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	total_pms = my_server.get('total_pms')
-	if total_pms:
-		results = my_server.mget(['median_pm_idx','median_pm_tuple','aggregate_pm_chats','avg_chat_per_pm','total_pgs','median_pg_idx','median_pg_tuple',\
-			'aggregate_pg_chats','avg_chat_per_pg','pms_with_sws','pgs_with_sws'])
-		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9], results[10]
-	else:
-		pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
-		total_pms = len(pm_data)
-		median_pm_idx = int(total_pms/2)
-		median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+# def avg_num_of_chats_per_type():
+# 	"""
+# 	What are avg number of chats produced per type of chat?
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	total_pms = my_server.get('total_pms')
+# 	if total_pms:
+# 		results = my_server.mget(['median_pm_idx','median_pm_tuple','aggregate_pm_chats','avg_chat_per_pm','total_pgs','median_pg_idx','median_pg_tuple',\
+# 			'aggregate_pg_chats','avg_chat_per_pg','pms_with_sws','pgs_with_sws'])
+# 		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9], results[10]
+# 	else:
+# 		pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
+# 		total_pms = len(pm_data)
+# 		median_pm_idx = int(total_pms/2)
+# 		median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
 
-		pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
-		total_pgs = len(pg_data)
-		median_pg_idx = int(total_pgs/2)
-		median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+# 		pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
+# 		total_pgs = len(pg_data)
+# 		median_pg_idx = int(total_pgs/2)
+# 		median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
 
-		# data is list of (group_id,chat_num) type tuples
-		aggregate_pm_chats, aggregate_pg_chats = 0, 0
-		for tup in pm_data:
-			aggregate_pm_chats += int(tup[1])
-		for tup in pg_data:
-			aggregate_pg_chats += int(tup[1])
-		avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
-		avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs))
+# 		# data is list of (group_id,chat_num) type tuples
+# 		aggregate_pm_chats, aggregate_pg_chats = 0, 0
+# 		for tup in pm_data:
+# 			aggregate_pm_chats += int(tup[1])
+# 		for tup in pg_data:
+# 			aggregate_pg_chats += int(tup[1])
+# 		avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
+# 		avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs))
 
-		pms_with_sws = "{0:.2f}".format(my_server.zcard('pm_sw')/float(total_pms)*100)
-		pgs_with_sws = "{0:.2f}".format(my_server.zcard('pg_sw')/float(total_pgs)*100)
+# 		pms_with_sws = "{0:.2f}".format(my_server.zcard('pm_sw')/float(total_pms)*100)
+# 		pgs_with_sws = "{0:.2f}".format(my_server.zcard('pg_sw')/float(total_pgs)*100)
 
-		# caching the results
-		pipeline1 = my_server.pipeline()
-		pipeline1.setex('total_pms',total_pms,TEN_MINS)
-		pipeline1.setex('median_pm_idx',median_pm_idx,TEN_MINS)
-		pipeline1.setex('median_pm_tuple',median_pm_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pm_chats',aggregate_pm_chats,TEN_MINS)
-		pipeline1.setex('avg_chat_per_pm',avg_chat_per_pm,TEN_MINS)
-		pipeline1.setex('total_pgs',total_pgs,TEN_MINS)
-		pipeline1.setex('median_pg_idx',median_pg_idx,TEN_MINS)
-		pipeline1.setex('median_pg_tuple',median_pg_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pg_chats',aggregate_pg_chats,TEN_MINS)
-		pipeline1.setex('avg_chat_per_pg',avg_chat_per_pg,TEN_MINS)
-		pipeline1.setex('pms_with_sws',pms_with_sws,TEN_MINS)
-		pipeline1.setex('pgs_with_sws',pgs_with_sws,TEN_MINS)
-		pipeline1.execute()
-		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
-		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws
+# 		# caching the results
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.setex('total_pms',total_pms,TEN_MINS)
+# 		pipeline1.setex('median_pm_idx',median_pm_idx,TEN_MINS)
+# 		pipeline1.setex('median_pm_tuple',median_pm_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pm_chats',aggregate_pm_chats,TEN_MINS)
+# 		pipeline1.setex('avg_chat_per_pm',avg_chat_per_pm,TEN_MINS)
+# 		pipeline1.setex('total_pgs',total_pgs,TEN_MINS)
+# 		pipeline1.setex('median_pg_idx',median_pg_idx,TEN_MINS)
+# 		pipeline1.setex('median_pg_tuple',median_pg_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pg_chats',aggregate_pg_chats,TEN_MINS)
+# 		pipeline1.setex('avg_chat_per_pg',avg_chat_per_pg,TEN_MINS)
+# 		pipeline1.setex('pms_with_sws',pms_with_sws,TEN_MINS)
+# 		pipeline1.setex('pgs_with_sws',pgs_with_sws,TEN_MINS)
+# 		pipeline1.execute()
+# 		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+# 		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws
 
 
 
@@ -1947,7 +1933,25 @@ def log_1on1_chat(payload,oid,tid,group_id):
 		my_server.zadd(key_to_use,json.dumps(payload),group_id)
 		my_server.zincrby(group_to_log,group_id,amount=1)		
 	else:
-		pass				
+		pass
 
 
+def retrieve_chat_records(log_type):
+	"""
+	Retrieves all chat logs from redis
 
+	Useful when exporting logs into a CSV
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if log_type == 'nn':
+		key_to_use = new_new
+	elif log_type == 'no':
+		key_to_use = new_old
+	elif log_type == 'oo':
+		key_to_use = old_old
+	else:
+		return []
+	if key_to_use:
+		return my_server.zrange(key_to_use,0,-1,withscores=True)
+	else:
+		return []

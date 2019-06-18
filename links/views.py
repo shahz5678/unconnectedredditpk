@@ -5,10 +5,11 @@ import ujson as json
 from urllib import quote
 from collections import OrderedDict, defaultdict
 from operator import attrgetter,itemgetter
-import datetime, time
+import time, datetime
 from datetime import datetime, timedelta
 import re, urlmarker, StringIO, urlparse, random, string, uuid, pytz, ast
 from target_urls import call_aasan_api
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.utils.decorators import method_decorator
 from django.middleware import csrf
 from django.core.files.uploadedfile import InMemoryUploadedFile
@@ -17,8 +18,7 @@ from cricket_score import cricket_scr
 from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE,\
 PERSONAL_GROUP_IMG_WIDTH
-from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, CRICKET_SUPPORT_STARTING_POINT, \
-CRICKET_TEAM_IDS, CRICKET_TEAM_NAMES, CRICKET_COLOR_CLASSES, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
+from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
 NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
@@ -32,25 +32,23 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
-from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from templatetags.s3 import get_s3_object
 from templatetags.human_time import human_time
-from image_processing import clean_image_file, clean_image_file_with_hash, process_public_image
+from image_processing import process_public_image, clean_image_file#, clean_image_file_with_hash
 from salutations import SALUTATIONS
 from forms import getip
-from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, PhotoQataarHelpForm, PhotoTimeForm, \
+from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, AdFeedbackForm, PhotoTimeForm, \
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ContactForm, AboutForm, \
 PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, \
 PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
-WelcomeMessageForm, WelcomeForm, MehfildecisionForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
+WelcomeMessageForm, WelcomeForm, PublicreplyMiniForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
 SearchNicknameForm, UserProfileDetailForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, \
-UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, ReportreplyForm, UnseenActivityForm, \
-CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SpecialPhotoTutorialForm, \
-PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, VoteOrProfForm, AdAddressForm, \
+UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, PhotosListForm, UnseenActivityForm, \
+CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
+PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, CricketCommentForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, \
-AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm, BestPhotosListForm, \
-PhotosListForm, CricketCommentForm, PublicreplyMiniForm, AdFeedbackForm, SearchAdFeedbackForm#, GroupReportForm
+AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm, BestPhotosListForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
@@ -62,17 +60,13 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
-video_tasks, group_notification_tasks, publicreply_notification_tasks, \
-fan_recount, vote_tasks, populate_search_thumbs, sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, \
-group_attendance_tasks, log_404, log_action
-#, log_organic_attention, home_photo_tasks, queue_for_deletion, 
+video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs,\
+sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, log_action 
 #from .html_injector import create_gibberish_punishment_text
-from .check_abuse import check_video_abuse # check_photo_abuse
+# from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
-ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, \
-HotUser, UserFan, Salat, LatestSalat, SalatInvite, Logout, Video, \
-VideoComment
-from redirection_views import return_to_content
+ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, LatestSalat, SalatInvite, \
+Logout, Video, VideoComment
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
@@ -89,13 +83,14 @@ prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, retrie
 retrieve_object_data, remove_erroneous_notif
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .website_feedback_form import AdvertiseWithUsForm
+from redirection_views import return_to_content
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
 retrieve_group_reqd_data# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
-retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics
+retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -821,8 +816,11 @@ class PhotoDetailView(DetailView):
 		except:
 			context["av_url"] = None
 		context["defender"] = False
+		context["oun"] = retrieve_uname(photo.owner_id,decode=True)
+		context["is_pinkstar"] = True if context["oun"] in FEMALES else False
 		context["from_cull_queue"] = False
 		context["latest_photocomments"] = None
+		context["other_photos"] = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id').values('image_file','caption','id')[:10] #list of dictionaries
 		if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
 			context["is_mob"] = True
 		if self.request.user.is_authenticated():
@@ -830,8 +828,6 @@ class PhotoDetailView(DetailView):
 				if self.kwargs['origin'] == '6':
 					context["from_cull_queue"] = True
 				context["latest_photocomments"] = PhotoComment.objects.select_related('submitted_by').filter(which_photo_id=pk).order_by('-id')[:25]
-				context["other_photos"] = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id')[:10] #list of dictionaries
-				# test = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id').only('id','image_file')[:10] #list of dictionaries
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
 				context["defender"] = True
@@ -1001,9 +997,9 @@ def home_page(request, lang=None):
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'ident':own_id,\
-	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,\
-	'random':num,'sk':secret_key,'process_notification':False, 'newbie_flag':request.session.get("newbie_flag",None),\
-	'newbie_lang':request.session.get("newbie_lang",None),"mobile_verified":request.mobile_verified}
+	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num,'process_notification':False, \
+	'newbie_flag':request.session.get("newbie_flag",None),'newbie_lang':request.session.get("newbie_lang",None),'sk':secret_key,\
+	'mobile_verified':request.mobile_verified}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	#####################
@@ -1071,37 +1067,37 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 ##############################################################################################################################
 ##############################################################################################################################
 
-class LinkUpdateView(UpdateView):
-	model = Link
-	form_class = LinkForm
+# class LinkUpdateView(UpdateView):
+# 	model = Link
+# 	form_class = LinkForm
 
 
-class OnlineKonView(ListView):
-	# model = Session
-	template_name = "online_kon.html"
-	paginate_by = 100
+# class OnlineKonView(ListView):
+# 	# model = Session
+# 	template_name = "online_kon.html"
+# 	paginate_by = 100
 
-	def get_queryset(self):
-		user_ids = get_most_recent_online_users()#cache_mem.get('online')
-		if user_ids:
-			queryset = User.objects.only('id','username','userprofile__score','userprofile__avatar').filter(id__in=user_ids).values('id','username', 'userprofile__score', 'userprofile__avatar')
-			return queryset
-		else:
-			return []
+# 	def get_queryset(self):
+# 		user_ids = get_most_recent_online_users()#cache_mem.get('online')
+# 		if user_ids:
+# 			queryset = User.objects.only('id','username','userprofile__score','userprofile__avatar').filter(id__in=user_ids).values('id','username', 'userprofile__score', 'userprofile__avatar')
+# 			return queryset
+# 		else:
+# 			return []
 
-	def get_context_data(self, **kwargs):
-		context = super(OnlineKonView, self).get_context_data(**kwargs)
-		context["with_thumbs"] = False
-		if self.request.user.is_authenticated():
-			context["whose_online"] = False if not context["object_list"] else True
-			context["legit"] = FEMALES
-			if self.request.is_feature_phone:
-				on_feature_phone = True
-			on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-			if not on_fbs:
-				context["object_list"] = retrieve_thumbs(context["object_list"])
-				context["with_thumbs"] = True
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(OnlineKonView, self).get_context_data(**kwargs)
+# 		context["with_thumbs"] = False
+# 		if self.request.user.is_authenticated():
+# 			context["whose_online"] = False if not context["object_list"] else True
+# 			context["legit"] = FEMALES
+# 			if self.request.is_feature_phone:
+# 				on_feature_phone = True
+# 			on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+# 			if not on_fbs:
+# 				context["object_list"] = retrieve_thumbs(context["object_list"])
+# 				context["with_thumbs"] = True
+# 		return context
 
 
 def show_online_users(request):
@@ -1485,6 +1481,8 @@ def reauth(request, *args, **kwargs):
 			else:
 				return render(request, 'change_password/reauth.html', {'form':ReauthForm()})
 
+############################################################################################################
+
 class VerifiedView(ListView):
 	model = User
 	form_class = VerifiedForm
@@ -1664,15 +1662,6 @@ def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
 def videocomment_pk(request, pk=None, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		# try:
-		#   deduction = 3 * -1
-		#   request.user.userprofile.score = request.user.userprofile.score + deduction
-		#   request.user.userprofile.save()
-		#   context = {'pk': 'pk'}
-		#   return render(request, 'penalty_videocommentpk.html', context)
-		# except:
-		#   context = {'pk': '10'}
-		#   return render(request, 'penalty_videocommentpk.html', context)
 		return redirect("missing_page")
 	else:
 		if pk.isdigit():
@@ -1811,6 +1800,7 @@ class CommentView(CreateView):
 		context["target_username"] = target_username
 		context["thumbs"] = retrieve_single_thumbs(photo.owner_id)
 		context["verified"] = FEMALES
+		context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
 		context["authorized"] = True
@@ -1947,15 +1937,6 @@ class CommentView(CreateView):
 def see_special_photo_pk(request,pk=None,*args,**kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		# try:
-		#   deduction = 3 * -1
-		#   request.user.userprofile.score = request.user.userprofile.score + deduction
-		#   request.user.userprofile.save()
-		#   context = {'pk': 'pk'}
-		#   return render(request, 'penalty_special.html', context)
-		# except:
-		#   context = {'pk': '10'}
-		#   return render(request, 'penalty_special.html', context)
 		return redirect("missing_page")
 	else:
 		if pk.isdigit():
@@ -1968,15 +1949,6 @@ def see_special_photo_pk(request,pk=None,*args,**kwargs):
 def special_photo(request, *args, **kwargs):
 	was_limited = getattr(request, 'limits', False)
 	if was_limited:
-		# try:
-		#   deduction = 3 * -1
-		#   request.user.userprofile.score = request.user.userprofile.score + deduction
-		#   request.user.userprofile.save()
-		#   context = {'pk': 'pk'}
-		#   return render(request, 'penalty_special.html', context)
-		# except:
-		#   context = {'pk': '10'}
-		#   return render(request, 'penalty_special.html', context)
 		return redirect("missing_page")
 	else:
 		if request.user.is_authenticated() and request.user.userprofile.score > 29:
@@ -2101,28 +2073,28 @@ def photo_comment(request,pk=None,*args,**kwargs):
 		return redirect("home")
 
 
-def photo_location(request,*args,**kwargs):
-	photo_id = request.session.pop('target_photo_id',0)
-	photo_ids = get_photo_feed()
-	if photo_id == 0:
-		# there is no indexing to be done, just return to the top of the page
-		page_num = request.GET.get('page', '1')
-		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
-		request.session['photos'] = retrieve_obj_feed(page_obj.object_list)
-		request.session['photo_page'] = page_obj
-		return redirect("photo")
-	else:
-		# have to return user to a specific anchor
-		try:
-			index = photo_ids.index("img:"+photo_id)
-		except ValueError:
-			index = 0
-		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
-		url = reverse_lazy("photo")+addendum
-		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
-		request.session['photos'] = retrieve_obj_feed(page_obj.object_list)
-		request.session['photo_page'] = page_obj
-		return redirect(url)
+# def photo_location(request,*args,**kwargs):
+# 	photo_id = request.session.pop('target_photo_id',0)
+# 	photo_ids = get_photo_feed()
+# 	if photo_id == 0:
+# 		# there is no indexing to be done, just return to the top of the page
+# 		page_num = request.GET.get('page', '1')
+# 		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+# 		request.session['photos'] = retrieve_obj_feed(page_obj.object_list)
+# 		request.session['photo_page'] = page_obj
+# 		return redirect("photo")
+# 	else:
+# 		# have to return user to a specific anchor
+# 		try:
+# 			index = photo_ids.index("img:"+photo_id)
+# 		except ValueError:
+# 			index = 0
+# 		page_num, addendum = get_addendum(index,PHOTOS_PER_PAGE)
+# 		url = reverse_lazy("photo")+addendum
+# 		page_obj = get_page_obj(page_num,photo_ids,PHOTOS_PER_PAGE)
+# 		request.session['photos'] = retrieve_obj_feed(page_obj.object_list)
+# 		request.session['photo_page'] = page_obj
+# 		return redirect(url)
 
 
 def photo_redirect(request, list_type='best-list', pk=None):
@@ -2205,6 +2177,9 @@ def photo_page(request,list_type='best-list'):
 		return render(request,"photos_page.html",context)
 	else:
 		raise Http404("Such a photo listing does not exist")
+
+
+##################################################################
 
 
 def public_photo_upload_denied(request):
@@ -2474,6 +2449,39 @@ def upload_public_photo(request,*args,**kwargs):
 
 ##################################################################
 
+
+class PhotoShareView(FormView):
+	form_class = PhotoShareForm
+	template_name = "photo_share_help.html"
+
+	def get_context_data(self, **kwargs):
+		context = super(PhotoShareView, self).get_context_data(**kwargs)
+		try:
+			loc = self.kwargs["loc"]
+			context["loc"] = loc
+			username = self.kwargs["slug"]
+			context["username"] = username
+		except:
+			loc = '1'
+			context["loc"] = loc
+			username = None
+		try:
+			context["no_id"] = False
+			pk = self.kwargs["pk"]
+			context["ident"] = pk
+			context["lid"] = 'img:'+str(pk)
+			context["regular_url"] = "https://damadam.pk/photo_detail/"+str(pk)
+			#context["freebasics_url"] = "https://https-damadam-pk.0.freebasics.com/photo_detail/"+str(pk)
+		except:
+			context["no_id"] = True
+		if self.request.user.is_authenticated():
+			context["authenticated"] = True
+		else:
+			context["authenticated"] = False
+		return context
+
+##################################################################
+
 class PicsChatUploadView(CreateView):
 	model = ChatPic
 	form_class = PicsChatUploadForm
@@ -2727,36 +2735,7 @@ class UserSMSView(FormView):
 			#context["authenticated"] = None
 			#context["sentence"] = None
 		return context
-				
-class PhotoShareView(FormView):
-	form_class = PhotoShareForm
-	template_name = "photo_share_help.html"
 
-	def get_context_data(self, **kwargs):
-		context = super(PhotoShareView, self).get_context_data(**kwargs)
-		try:
-			loc = self.kwargs["loc"]
-			context["loc"] = loc
-			username = self.kwargs["slug"]
-			context["username"] = username
-		except:
-			loc = '1'
-			context["loc"] = loc
-			username = None
-		try:
-			context["no_id"] = False
-			pk = self.kwargs["pk"]
-			context["ident"] = pk
-			context["lid"] = 'img:'+str(pk)
-			#context["freebasics_url"] = "https://https-damadam-pk.0.freebasics.com/photo_detail/"+str(pk)
-			context["regular_url"] = "https://damadam.pk/photo_detail/"+str(pk)
-		except:
-			context["no_id"] = True
-		if self.request.user.is_authenticated():
-			context["authenticated"] = True
-		else:
-			context["authenticated"] = False
-		return context
 
 class DeletePicView(FormView):
 	form_class = DeletePicForm
@@ -3305,7 +3284,6 @@ def public_reply_view(request,*args,**kwargs):
 		else:
 			link_id = request.session.pop("link_pk",None)
 		if link_id:
-			# link = Link.objects.select_related('submitter__userprofile').get(id=link_id)
 			try:
 				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','url','cagtegory').get(id=link_id)
 				link['machine_time'] = link['submitted_on']
@@ -3511,47 +3489,12 @@ class UserSettingDetailView(DetailView):
 		UserSettings.objects.get_or_create(user=user)
 		return user
 
-# def is_urdu(text):
-# 	# 0600-06FF and FB50-FEFF Unicode range for Urdu
-# 	for c in text:
-# 		if u'\u0600' <= c <= u'\u06FF' or u'\uFB50' <= c <= u'\uFEFF':
-# 			return True
-# 	return False
-
-
-class PhotoQataarHelpView(FormView):
-	form_class = PhotoQataarHelpForm
-	template_name = "photo_qataar.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(PhotoQataarHelpView, self).get_context_data(**kwargs)
-		context["key"] = self.kwargs["pk"]
-		return context
-
-class BaqiPhotosHelpView(FormView):
-	form_class = BaqiPhotosHelpForm
-	template_name = "baqi_photos_help.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(BaqiPhotosHelpView, self).get_context_data(**kwargs)
-		context["key"] = self.kwargs["pk"]
-		return context
-
 
 class UserProfileEditView(UpdateView):
 	model = UserProfile
 	form_class = UserProfileForm
 	template_name = "edit_profile.html"
 
-	# def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
-	# 	"""
-	# 	Returns the initial data to use for forms on this view.
-	# 	"""
-	# 	bio = UserProfile.objects.only('bio').get(user_id=self.request.user.id).bio
-	# 	if bio:
-	# 		return {'bio':bio}
-	# 	else:
-	# 		return {'bio': 'Jb mein teen saal ka tha toh sr ke bl gir gaya tha. Tb se aisa hoon...'} #initial needs to be passed a dictionary
 
 	def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
 		"""
@@ -3571,8 +3514,7 @@ class UserProfileEditView(UpdateView):
 		Returns the keyword arguments for instantiating the form.
 		"""
 		kwargs = super(UserProfileEditView, self).get_form_kwargs()
-		user = self.request.user
-		kwargs.update({'user': user,'on_fbs':self.request.META.get('HTTP_X_IORG_FBS',False)})
+		kwargs.update({'user': self.request.user,'on_fbs':self.request.META.get('HTTP_X_IORG_FBS',False)})
 		return kwargs
 
 	def get_object(self, queryset=None):
@@ -3629,19 +3571,12 @@ def share_content(request):
 
 	Redirects to text or foto sharing pages accordingly
 	"""
-	# if getattr(request, 'limits', False):
-	# 	raise Http404("You cannot share")
-	# else:
 	return render(request,"content/share_content.html",{'first_time':True if tutorial_unseen(user_id=request.user.id, which_tut='25',\
 	renew_lease=True) else False})
 
 
 # @ratelimit(rate='7/s')
 def link_create_pk(request, *args, **kwargs):
-	# was_limited = getattr(request, 'limits', False)
-	# if was_limited:
-	# 	return redirect("missing_page")
-	# else:
 	request.session["link_create_token"] = str(uuid.uuid4())
 	return redirect("link_create")
 
@@ -3855,24 +3790,12 @@ def welcome_reply(request,*args,**kwargs):
 def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_by=None, *args,**kwargs):
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
 		bump_ua=False)
-	# if from_home == '3':
-	#     return redirect("home")
-	# elif from_home == '2':
-	#     return redirect("photo",list_type='best-list')
-	# else:
-	#     return redirect("photo",list_type='fresh-list')
 	return return_to_content(request,from_home,pk,None,None)
 
 
 def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=usr, object_id=pk, object_type='0',seen=True, unseen_activity=True,\
 		single_notif=False,bump_ua=False)
-	# if from_home == '3':
-	#     return redirect("home")
-	# elif from_home == '2':
-	#     return redirect("photo",list_type='best-list')
-	# else:
-	#     return redirect("photo",list_type='fresh-list')
 	return return_to_content(request,from_home,pk,None,None)
 
 
@@ -3892,12 +3815,6 @@ def cross_salat_notif(request, pk=None, user=None, from_home=None, lang=None, so
 def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=None, *args, **kwargs):
 	update_notification(viewer_id=user, object_id=pk, object_type='2',seen=True, unseen_activity=True,\
 		single_notif=False, bump_ua=False)
-	# if from_home == '3':
-	#     return redirect("home")
-	# elif from_home == '2':
-	#     return redirect("photo",list_type='best-list')
-	# else:
-	#     return redirect("photo",list_type='fresh-list')
 	return return_to_content(request,from_home,pk,None,None)
 
 
@@ -3987,6 +3904,8 @@ def fan(request,*args,**kwargs):
 			return return_to_content(request,origin,object_id,home_hash,star_username)
 	else:
 		raise Http404("Fanning or unfanning doesn't work with GET requests")
+
+######################## HELL BANNING FUNCTIONALITY ########################
 
 
 @csrf_protect
@@ -4272,6 +4191,15 @@ def error(request):
 	TODO: Provide a more descriptive message
 	"""
 	return render(request,"500.html",{})
+
+
+def sitemap(request):
+	"""
+	Renders a sitemap
+	"""
+	latest_trending_mod_time, latest_fresh_mod_time = retrieve_photo_feed_latest_mod_time(both=True)
+	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='2'),\
+	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='2')},content_type="application/xml")
 
 
 @ratelimit(rate='3/s')
@@ -4733,3 +4661,145 @@ def show_advertisers(request,*args,**kwargs):
 		return render(request,"show_advertisers.html",{'advertisers':list_of_advertisers,\
 			'num':len(list_of_advertisers)})
 
+# Report run on 26/1/2019
+#                      relation                     |  size   
+# --------------------------------------------------+---------
+#  public.user_sessions_session_expire_date         | 13 GB
+#  public.links_publicreply                         | 8751 MB
+#  public.links_reply                               | 7889 MB
+#  public.links_photocomment                        | 5893 MB
+#  public.links_reply__which_group_id__submitted_on | 4316 MB
+#  public.links_link                                | 4020 MB
+#  public.links_link_latest_reply_id_idx            | 3680 MB
+#  public.links_reply_writer_id                     | 3051 MB
+#  public.user_sessions_session                     | 2999 MB
+#  public.links_publicreply_answer_to_id            | 2742 MB
+#  public.links_publicreply_submitted_by_id         | 2686 MB
+#  public.links_reply_submitted_on                  | 2652 MB
+#  public.links_reply_pkey                          | 2652 MB
+#  public.links_reply_which_group_id                | 2503 MB
+#  public.links_publicreply_pkey                    | 2192 MB
+#  public.user_sessions_session_user_id             | 1866 MB
+#  public.links_photocomment_which_photo_id         | 1787 MB
+#  public.links_photocomment_submitted_by_id        | 1785 MB
+#  public.links_photo_latest_comment_id             | 1609 MB
+#  public.links_photocomment_pkey                   | 1534 MB
+
+
+
+# Report run on 15/3/2018
+#             relation             | total_size 
+# ---------------------------------+------------
+#  public.links_reply              | 14 GB
+#  public.links_publicreply        | 8396 MB
+#  public.links_photocomment       | 7377 MB
+#  public.user_sessions_session    | 6689 MB
+#  public.links_link               | 3769 MB
+#  public.links_photo              | 1882 MB
+#  public.links_photo_which_stream | 429 MB
+#  public.links_photostream        | 408 MB
+#  public.auth_user                | 294 MB
+#  public.links_userprofile        | 239 MB
+#  public.links_userfan            | 214 MB
+#  public.links_salatinvite        | 152 MB
+#  public.links_hotuser            | 43 MB
+#  public.links_group              | 42 MB
+#  public.links_totalfanandphotos  | 38 MB
+#  public.links_salat              | 28 MB
+#  public.links_tutorialflag       | 13 MB
+#  public.links_cooldown           | 10112 kB
+#  public.links_latestsalat        | 6208 kB
+#  public.links_groupcaptain       | 6072 kB
+
+
+# Report run on 18/3/2017
+#              Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8583 MB | 6917 MB
+#  links_publicreply                | 5999 MB | 3078 MB
+#  links_photocomment               | 2920 MB | 1401 MB
+#  links_photo                      | 2527 MB | 2202 MB
+#  links_link                       | 1430 MB | 374 MB
+#  links_reply                      | 880 MB  | 664 MB
+#  links_photo_which_stream         | 237 MB  | 159 MB
+#  links_photostream                | 226 MB  | 119 MB
+#  links_userprofile                | 131 MB  | 54 MB
+#  links_userfan                    | 105 MB  | 67 MB
+#  auth_user                        | 99 MB   | 38 MB
+
+
+# Report run on 15/3/2017
+#               Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8578 MB | 6911 MB
+#  links_publicreply                | 5918 MB | 3040 MB
+#  links_photocomment               | 2877 MB | 1381 MB
+#  links_photo                      | 2505 MB | 2180 MB
+#  links_link                       | 1409 MB | 369 MB
+#  links_reply                      | 875 MB  | 660 MB
+#  links_salatinvite                | 439 MB  | 319 MB
+#  links_photo_which_stream         | 234 MB  | 157 MB
+#  links_photostream                | 223 MB  | 118 MB
+#  links_userprofile                | 130 MB  | 54 MB
+#  links_userfan                    | 105 MB  | 66 MB
+
+# Report run on 4/3/2017
+#               Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8578 MB | 6911 MB
+#  links_publicreply                | 5636 MB | 2904 MB
+#  links_photocomment               | 2717 MB | 1303 MB
+#  links_photo                      | 2423 MB | 2098 MB
+#  links_link                       | 1334 MB | 352 MB
+#  links_reply                      | 873 MB  | 659 MB
+#  links_vote                       | 579 MB  | 371 MB
+#  links_salatinvite                | 429 MB  | 312 MB
+#  links_groupseen                  | 394 MB  | 362 MB
+#  links_photo_which_stream         | 225 MB  | 151 MB
+#  links_photostream                | 214 MB  | 113 MB
+#  links_userprofile                | 129 MB  | 53 MB
+#  links_userfan                    | 101 MB  | 63 MB
+#  auth_user                        | 96 MB   | 36 MB
+#  links_totalfanandphotos          | 82 MB   | 73 MB
+#  links_report                     | 82 MB   | 67 MB
+#  links_photovote                  | 49 MB   | 49 MB
+
+
+# Report run on 24/2/2017
+#               Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8578 MB | 6911 MB
+#  links_publicreply                | 5453 MB | 2817 MB
+#  links_photocomment               | 2604 MB | 1249 MB
+#  links_photo                      | 2366 MB | 2040 MB
+#  links_link                       | 1277 MB | 338 MB
+#  links_reply                      | 868 MB  | 655 MB
+#  links_vote                       | 555 MB  | 356 MB
+#  links_salatinvite                | 419 MB  | 305 MB
+#  links_groupseen                  | 394 MB  | 362 MB
+#  links_photo_which_stream         | 218 MB  | 146 MB
+#  links_photostream                | 208 MB  | 110 MB
+#  links_userprofile                | 129 MB  | 52 MB
+
+
+# Report run on 12/11/2016
+#               Table               |  Size   | External Size 
+# ----------------------------------+---------+---------------
+#  user_sessions_session            | 8214 MB | 6464 MB
+#  links_publicreply                | 3666 MB | 1923 MB
+#  links_photoobjectsubscription    | 2627 MB | 2251 MB
+#  links_photo                      | 1822 MB | 1497 MB
+#  links_grouptraffic               | 1756 MB | 1724 MB
+#  links_photocomment               | 1569 MB | 749 MB
+#  links_link                       | 795 MB  | 216 MB
+#  links_reply                      | 544 MB  | 413 MB
+#  links_groupseen                  | 454 MB  | 362 MB
+#  links_vote                       | 363 MB  | 235 MB
+#  links_seen                       | 351 MB  | 351 MB
+#  links_salatinvite                | 314 MB  | 228 MB
+#  links_groupinvite                | 164 MB  | 125 MB
+#  links_photo_which_stream         | 147 MB  | 99 MB
+#  links_photostream                | 140 MB  | 74 MB
+#  links_userprofile                | 119 MB  | 43 MB
+
+###################################################

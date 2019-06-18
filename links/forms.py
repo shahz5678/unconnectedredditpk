@@ -11,9 +11,7 @@ from django import forms
 from django.forms import Textarea
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-from user_sessions.models import Session
 from tasks import invalidate_avatar_url
-from templatetags.s3 import get_s3_object
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key,\
 get_aurl
 from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
@@ -311,7 +309,8 @@ def strip_zero_width_characters(string):
 	else:
 		return string
 
-def uniform_string(text,n=8):
+
+def uniform_string(text,n=7):
 	text = text.lower()
 	for i, c in enumerate(text):
 		if text[i:i+n] == c * n:
@@ -401,7 +400,7 @@ class UserProfileForm(forms.ModelForm):
 			pass
 		if image or image is False:    
 			user_id, on_fbs = self.user.id, self.on_fbs
-			# is_frozen = is_user_profile_frozen(user_id)# could be frozen if was reported
+			# is_frozen = is_user_profile_frozen(user_id)# TODO: could be frozen if was reported
 			# if is_frozen:
 			#     raise forms.ValidationError(retrieve_validation_error_string('display_pic_frozen'))
 			# else:
@@ -512,8 +511,8 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
-	description = forms.CharField(label='Likho:', widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autofocus': 'autofocus','autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_SUBMISSION_SIZE}),\
+	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl','autofocus': 'autofocus',\
+		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_SUBMISSION_SIZE}),\
 	error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
 
@@ -525,11 +524,12 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(LinkForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#f5f7fa;padding:5px;'
 
 	def clean(self):
 		data = self.cleaned_data
-		description, user_id, section_id, section, secret_key_from_form = data.get("description"), self.user_id, '1', 'home', data.get("sk")
+		description, user_id, section_id, section, secret_key_from_form = data.get("description"), self.user_id, '1', 'home', \
+		data.get("sk")
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1','likho')
 		description = description.strip() if description else None
 		description = strip_zero_width_characters(description)
@@ -552,7 +552,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 				else:
 					rate_limited, reason = is_limited(user_id,section='home',with_reason=True)
 					if rate_limited > 0:
-						raise forms.ValidationError('Ap home pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+						raise forms.ValidationError('Ap yahan pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 					else:
 						if len_ < 2:
 							raise forms.ValidationError('Itni choti baat nahi likh sakte')
@@ -562,7 +562,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 							else:
 								log_short_message(user_id,section,section_id)
 						elif len_ > MAX_HOME_SUBMISSION_SIZE:
-							raise forms.ValidationError('{0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
+							raise forms.ValidationError('Content {0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
 						# '2' means right-aligned text, '1' means left-aligned text
 						data['alignment'] = '2' if is_urdu(description) >= RIGHT_ALIGNMENT_THRESHOLD_RATIO else '1'
 						data["description"] = description
@@ -702,6 +702,7 @@ class PublicreplyMiniForm(PublicreplyForm):
 			raise forms.ValidationError('Phir se karein, jawab send nahi hua')
 		return secret_key_from_form
 
+
 class SearchNicknameForm(forms.Form):
 	nickname = forms.CharField(max_length=71,error_messages={'required': 'Safed patti mein "nickname" likhein jisko search karna hai'})
 
@@ -813,6 +814,7 @@ class ReportFeedbackForm(forms.Form):
 	description = forms.CharField(max_length=250)
 	class Meta:
 		fields = ("description",)
+
 
 class PhotoCommentForm(forms.Form):
 	photo_comment = forms.CharField(max_length=250, error_messages={'required': 'Pehlay safed patti mein tabsra likhein, phir "tabsra kro" dabain'})
@@ -1045,13 +1047,14 @@ class UnseenActivityForm(forms.Form):
 				pass
 			return data
 
+
 class PhotoTimeForm(forms.Form):
 	class Meta:
 		pass
 
 
 class UploadPhotoReplyForm(forms.ModelForm):
-	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab doobara karo'})
+	image_file = forms.ImageField(error_messages={'required': 'Foto ka intekhab dubara karein'})
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
 	class Meta:
 		model = Photo
@@ -1062,31 +1065,45 @@ class UploadPhotoReplyForm(forms.ModelForm):
 		super(UploadPhotoReplyForm, self).__init__(*args, **kwargs)
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 
+
 class UploadPhotoForm(forms.Form):
-	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Foto ka intekhab sahi nahi hua'})
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;','spellcheck':'false','maxlength':MAX_PHOTO_CAPTION_SIZE}),\
-		error_messages={'required': 'Foto ke barey mien likhna zaroori hai'})
+	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Foto ka intekhab sahi nahi hua','invalid':'Selected foto upload nahi ho sakti'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;','spellcheck':'false',\
+		'maxlength':MAX_PHOTO_CAPTION_SIZE}),error_messages={'required': 'Foto ke barey mien likhna zaroori hai'})
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
-		self.fields['caption'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['caption'].widget.attrs['style'] = 'width:99%;height:70px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#fffaf5;padding:5px;'
 		self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
+		self.fields['caption'].widget.attrs['class'] = 'cxl'
 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
 
 	def clean_caption(self):
 		caption = self.cleaned_data["caption"]
+		caption = caption.strip() if caption else None
+		caption = strip_zero_width_characters(caption)
 		if not caption:
 			raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
 		else:
-			caption = caption.strip()
 			caption_len = len(caption)
 			if caption_len < 1:
 				raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
+			if caption_len < 8:
+				raise forms.ValidationError('Zyada tafseel likhein ke foto mein kya hai')
 			elif caption_len > MAX_PHOTO_CAPTION_SIZE:
 				raise forms.ValidationError('{} chars se zyada nahi likhein, ap ne {} chars likhey'.format(MAX_PHOTO_CAPTION_SIZE,caption_len))
+			elif caption.isdigit():
+				raise forms.ValidationError('Sirf numbers nahi likhein, tafseel se likhein foto mein kya hai')
+			uni_str = uniform_string(caption)
+			if uni_str:
+			  if uni_str.isspace():
+			      raise forms.ValidationError('Spaces itni zyada nahi daalein')
+			  else:
+			      raise forms.ValidationError('"%s" itni zyada dafa aik hi character repeat nahi karein, foto ko sahi se describe karein' % uni_str)
 			else:
 				return caption
+
 
 class UploadVideoForm(forms.Form):
 	video_file = forms.FileField()
@@ -1096,8 +1113,6 @@ class UploadVideoForm(forms.Form):
 
 class PicsChatUploadForm(forms.ModelForm):
 	image = forms.ImageField(label='Upload')
-	#image.widget.attrs["value"] ='Upload'
-	#image.widget.attrs["type"] ='image'
 	class Meta:
 		model = ChatPic
 		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
@@ -1190,9 +1205,9 @@ class BaqiPhotosHelpForm(forms.Form):
 	class Meta:
 		pass
 
-class PhotoQataarHelpForm(forms.Form):
-	class Meta:
-		pass
+# class PhotoQataarHelpForm(forms.Form):
+# 	class Meta:
+# 		pass
 
 class ContactForm(forms.Form):
 	class Meta:
@@ -1217,7 +1232,6 @@ class DeletePicForm(forms.Form):
 class PicHelpForm(forms.Form):
 	class Meta:
 		pass
-
 
 class PicExpiryForm(forms.Form):
 	class Meta:
@@ -1251,14 +1265,6 @@ class WelcomeForm(forms.Form):
 	class Meta:
 		pass
 
-class DownvoteForm(forms.Form):
-	class Meta:
-		pass
-
-class UpvoteForm(forms.Form):
-	class Meta:
-		pass
-
 class LogoutHelpForm(forms.Form):
 	class Meta:
 		pass
@@ -1271,46 +1277,13 @@ class EmoticonsHelpForm(forms.Form):
 	class Meta:
 		pass
 
-class ReportreplyForm(forms.Form):
-	class Meta:
-		pass
-
-class LogoutReconfirmForm(forms.Form):
-	class Meta:
-		pass
-
 class LogoutPenaltyForm(forms.Form):
-	class Meta:
-		pass
-
-class ReportNicknameForm(forms.Form):
-	class Meta:
-		pass
-
-class SpecialPhotoTutorialForm(forms.Form):
 	class Meta:
 		pass
 
 class UserProfileDetailForm(forms.Form):
 	class Meta:
 		pass
-
-# class KickForm(forms.Form):
-#   class Meta:
-#       pass
-
-
-# class GroupReportForm(forms.Form):
-#   class Meta:
-#       model = Reply
-
-class MehfildecisionForm(forms.Form):
-	class Meta:
-		pass
-
-class ReportForm(forms.Form):
-	class Meta:
-		model = Publicreply
 
 class ScoreHelpForm(forms.Form):
 	class Meta:
@@ -1409,10 +1382,6 @@ class ResetPasswordForm(forms.Form):
 
 
 class LoginWalkthroughForm(forms.Form):
-	class Meta:
-		pass
-
-class VoteOrProfForm(forms.Form):
 	class Meta:
 		pass
 

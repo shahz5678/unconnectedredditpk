@@ -3,5 +3,5 @@
   <button class="vt" style="border:1px solid {{ border_color }};width:50px;height:42px;padding:0;text-align:center;"><div><img src="{{ static_url }}img/wapp.svg" width="15" height="15" style="vertical-align:middle"></div><div style="font-size:8.2px;color:#239033" class="mts">W'APP</div></button>
 </a>
 {% else %}
-<form method="GET" action="{% url 'photo_detail' photo_id %}" style="margin-bottom:4px;margin-right:4px"><button class="link vt" name="link_share" style="border:1px solid {{ border_color }};width:50px;height:42px;padding:0;text-align:center" value="{{ photo_id }}"><div><img src="{{ static_url }}img/link.svg" width="15" height="15" style="vertical-align:middle"></div><div style="font-size:8.2px;color:#944CB2" class="mts">LINK</div></button></form>
+<a href="{% url 'photo_detail' photo_id %}" style="margin-bottom:4px;margin-right:4px"><button class="link vt" name="link_share" style="border:1px solid {{ border_color }};width:50px;height:42px;padding:0;text-align:center" value="{{ photo_id }}"><div><img src="{{ static_url }}img/link.svg" width="15" height="15" style="vertical-align:middle"></div><div style="font-size:8.2px;color:#944CB2" class="mts">LINK</div></button></a>
 {% endif %}

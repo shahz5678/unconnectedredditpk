@@ -332,7 +332,7 @@ if ON_MAC == '1':
 elif ON_AZURE == '1':
 	BROKER_URL = 'redis+socket:///var/run/redis.sock'
 else:
-	BROKER_URL = 'redis+socket:///var/run/redis/redis.sock'
+	BROKER_URL = 'redis+socket:///var/run/redis.sock'
 
 BROKER_TRANSPORT = 'redis'
 
@@ -347,7 +347,7 @@ if ON_MAC == '1':
 elif ON_AZURE == '1':
 	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
 else:
-	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis/redis.sock'
+	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'

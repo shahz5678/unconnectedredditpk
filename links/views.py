@@ -90,7 +90,7 @@ from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_co
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
-retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics
+retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 
@@ -4191,6 +4191,15 @@ def error(request):
 	TODO: Provide a more descriptive message
 	"""
 	return render(request,"500.html",{})
+
+
+def sitemap(request):
+	"""
+	Renders a sitemap
+	"""
+	latest_trending_mod_time, latest_fresh_mod_time = retrieve_photo_feed_latest_mod_time(both=True)
+	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='2'),\
+	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='2')},content_type="application/xml")
 
 
 @ratelimit(rate='3/s')

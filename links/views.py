@@ -43,12 +43,12 @@ ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, Up
 PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, \
 PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
 WelcomeMessageForm, WelcomeForm, PublicreplyMiniForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
-SearchNicknameForm, UserProfileDetailForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, \
+SearchNicknameForm, UserProfileDetailForm, TopForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, BestPhotosListForm, \
 UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, PhotosListForm, UnseenActivityForm, \
 CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
 PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, CricketCommentForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, \
-AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm, BestPhotosListForm
+AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
@@ -102,6 +102,23 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
 mp = Mixpanel(MIXPANEL_TOKEN)
+
+
+def retrieve_user_env(user_agent, fbs):
+	"""
+	Checks whether environment can support JS
+
+	Opera mini (extreme mode) and free basics do not support JS
+	"""
+	if fbs:
+		return False#, True
+	elif user_agent:
+		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
+			return False#, False
+		else:
+			return True#, False
+	else:
+		return True#, False
 
 
 def secs_to_mins(seconds):
@@ -544,11 +561,6 @@ class PhotosHelpView(FormView):
 		context["decision"] = self.kwargs.get("pk")
 		return context
 
-
-class LoginWalkthroughView(FormView):   
-	form_class = LoginWalkthroughForm
-	template_name = "login_walkthrough.html"
-
 class SmsReinviteView(FormView):
 	form_class = SmsReinviteForm
 	template_name = "sms_reinvite.html"
@@ -799,7 +811,6 @@ class PhotoDetailView(DetailView):
 		context["can_vote"] = False
 		context["authenticated"] = False
 		pk = self.kwargs.get("pk",None)
-		origin = self.kwargs.get("origin",None)
 		try:
 			photo = Photo.objects.get(id=pk)
 			context["photo_id"] = pk
@@ -818,9 +829,13 @@ class PhotoDetailView(DetailView):
 			context["av_url"] = photo.owner.userprofile.avatar.url
 		except:
 			context["av_url"] = None
-		if origin:
+		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		if on_fbs:
 			context["show_copy_prompt"] = True
 			context["regular_url"] = "https://damadam.pk"+reverse('photo_detail',kwargs={"pk": pk})
+		else:
+			is_js_env = retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+			context["on_opera"] = True if not is_js_env else False
 		context["defender"] = False
 		context["oun"] = retrieve_uname(photo.owner_id,decode=True)
 		context["is_pinkstar"] = True if context["oun"] in FEMALES else False
@@ -830,6 +845,7 @@ class PhotoDetailView(DetailView):
 		if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
 			context["is_mob"] = True
 		if self.request.user.is_authenticated():
+			origin = self.kwargs.get("origin",None)
 			if origin == '6':
 				context["from_cull_queue"] = True
 				context["latest_photocomments"] = PhotoComment.objects.select_related('submitted_by').filter(which_photo_id=pk).order_by('-id')[:25]
@@ -997,14 +1013,17 @@ def home_page(request, lang=None):
 	for obj in list_of_dictionaries:
 		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 	#######################
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+	on_opera = True if (not on_fbs and not is_js_env) else False
 	num = random.randint(1,4)
 	secret_key = str(uuid.uuid4())
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
-	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'ident':own_id,\
-	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num,'process_notification':False, \
-	'newbie_flag':request.session.get("newbie_flag",None),'newbie_lang':request.session.get("newbie_lang",None),'sk':secret_key,\
-	'mobile_verified':request.mobile_verified}
+	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
+	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
+	'newbie_flag':request.session.get("newbie_flag",None),'newbie_lang':request.session.get("newbie_lang",None),\
+	'mobile_verified':request.mobile_verified,'on_opera':on_opera}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	#####################
@@ -1232,14 +1251,16 @@ class UserProfilePhotosView(ListView):
 		context["noindex"] = True if banned else False
 		context["defender"] = is_defender
 		context["time_remaining"] = time_remaining
-		context["is_mob"] = False if banned else (self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile)
+		###########
+		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		is_js_env = retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		context["on_opera"] = True if (not on_fbs and not is_js_env) else False
 		###########
 		context["subject"] = subject
 		context["star_id"] = star_id
 		context["star_av_url"] = retrieve_avurl(star_id)
 		context["legit"] = FEMALES
 		total_fans, recent_fans = get_photo_fan_count(star_id)
-		# context["manageable"] = False
 		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(star_id,ids_with_urls)
@@ -1424,7 +1445,6 @@ def perm_redirect_to_home(request,pk=None,origin=None,slug=None):
 	Permanent redirect to new user profile photos view
 	"""
 	return HttpResponsePermanentRedirect("/")
-
 
 ############################################################################################################
 
@@ -2160,11 +2180,13 @@ def photo_page(request,list_type='best-list'):
 			newbie_lang, newbie_flag = None, None
 			#notif_form = None
 			mobile_verified = None
+		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		on_opera = True if (not on_fbs and not is_js_env) else False
 		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
-		'ident':own_id, 'newbie_lang':newbie_lang,'is_mob':True if request.is_phone or request.is_mobile else False,\
-		'process_notification':False,'newbie_flag':newbie_flag,'page_origin':page_origin,'sk':secret_key,\
-		'comment_form':comment_form,"mobile_verified":mobile_verified,'single_notif_origin':single_notif_origin,\
-		'feed_type':type_,'navbar_type':navbar_type}#'score':request.user.userprofile.score
+		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
+		'page_origin':page_origin,'sk':secret_key,'comment_form':comment_form,"mobile_verified":mobile_verified,\
+		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera}#'score':request.user.userprofile.score
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -3238,8 +3260,9 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				'last_visit_time':last_visit_time,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),'VDP':(VOTING_DRIVEN_PIXELATION+1),'fanned':fanned,\
 				'validation_error_string':error, 'page':{'has_previous':True if page_num>1 else False,'previous_page_number':page_num-1,\
 				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num}}
-				if request.is_phone or request.is_mobile:
-					context["is_mob"] = True
+				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+				context["on_opera"] = True if (not on_fbs and not is_js_env) else False
 				return render(request, 'user_unseen_activity.html', context)
 			else:
 				# page turned out to be empty since all notifications have been deleted.

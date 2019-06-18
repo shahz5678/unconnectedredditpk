@@ -1380,11 +1380,6 @@ class ResetPasswordForm(forms.Form):
 			user.save()
 		return user
 
-
-class LoginWalkthroughForm(forms.Form):
-	class Meta:
-		pass
-
 class SmsReinviteForm(forms.Form):
 	class Meta:
 		pass

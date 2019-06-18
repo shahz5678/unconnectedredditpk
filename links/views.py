@@ -4200,7 +4200,7 @@ def sitemap(request):
 	Renders a sitemap
 	"""
 	latest_trending_mod_time, latest_fresh_mod_time = retrieve_photo_feed_latest_mod_time(both=True)
-	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_fresh_mod_time,format_type='4'),\
+	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='4'),\
 	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='4')},content_type="application/xml")
 
 

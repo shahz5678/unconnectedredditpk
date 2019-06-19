@@ -830,12 +830,17 @@ class PhotoDetailView(DetailView):
 		except:
 			context["av_url"] = None
 		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		context["is_js_env"] = False
 		if on_fbs:
 			context["show_copy_prompt"] = True
 			context["regular_url"] = "https://damadam.pk"+reverse('photo_detail',kwargs={"pk": pk})
 		else:
 			is_js_env = retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-			context["on_opera"] = True if not is_js_env else False
+			if is_js_env:
+				context["is_js_env"] = True
+				context["on_opera"] = False
+			else:
+				context["on_opera"] = True
 		context["defender"] = False
 		context["oun"] = retrieve_uname(photo.owner_id,decode=True)
 		context["is_pinkstar"] = True if context["oun"] in FEMALES else False

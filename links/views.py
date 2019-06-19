@@ -3740,16 +3740,16 @@ def welcome_reply(request,*args,**kwargs):
 			if (num-100) <= int(pk) <= (num+100):
 				option = request.POST.get("opt")
 				message = request.POST.get("msg")
-				if request.is_feature_phone:
-					device = '1'
-				elif request.is_phone:
-					device = '2'
-				elif request.is_tablet:
-					device = '4'
-				elif request.is_mobile:
-					device = '5'
-				else:
-					device = '3'
+				# if request.is_feature_phone:
+				# 	device = '1'
+				# elif request.is_phone:
+				# 	device = '2'
+				# elif request.is_tablet:
+				# 	device = '4'
+				# elif request.is_mobile:
+				# 	device = '5'
+				# else:
+				# 	device = '3'
 				request.user.userprofile.score = request.user.userprofile.score + 1
 				request.user.userprofile.save()
 				try:
@@ -3763,37 +3763,37 @@ def welcome_reply(request,*args,**kwargs):
 					num = random.randint(1,len(SALUTATIONS))
 					text = SALUTATIONS[num-1]
 					target_username = target.username
-					parent = Link.objects.create(description=text, submitter=target, reply_count=1, device=device)
+					parent = Link.objects.create(description=text, submitter=target, reply_count=1)
 					add_text_post(obj_id=parent.id, categ='1', submitter_id=target.id, submitter_av_url=av_url, submitter_username=target_username, \
 						submitter_score=target.userprofile.score, is_pinkstar=(True if target_username in FEMALES else False),submission_time=time.time(),\
 						text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=False)
 				if option == '1' and message == 'Barfi khao aur mazay urao!':
 					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
 					description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '1' and message == 'Is barfi se mu meetha karo!':
 					description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '2' and message == 'Aik plate laddu se life set!':
 					description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '2' and message == 'Ye saray laddu aap ke liye!':
 					description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '2' and message == 'Laddu khao, jaan banao yar!':
 					description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
 					description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '3' and message == 'Jalebi meri pasandida hai!':
 					description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '3' and message == 'Is jalebi se mu metha karo!':
 					description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				else:
 					return redirect("home")
 				parent.latest_reply = reply

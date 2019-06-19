@@ -380,17 +380,17 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	parent_username = parent.submitter.username
 	user_id = request.user.id
 	username = request.user.username
-	if request.is_feature_phone:
-		device = '1'
-	elif request.is_phone:
-		device = '2'
-	elif request.is_tablet:
-		device = '4'
-	elif request.is_mobile:
-		device = '5'
-	else:
-		device = '3'
-	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id, device=device)
+	# if request.is_feature_phone:
+	# 	device = '1'
+	# elif request.is_phone:
+	# 	device = '2'
+	# elif request.is_tablet:
+	# 	device = '4'
+	# elif request.is_mobile:
+	# 	device = '5'
+	# else:
+	# 	device = '3'
+	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id)
 	invalidate_cached_public_replies(link_id)
 	reply_time = convert_to_epoch(reply.submitted_on)
 	url = retrieve_avurl(user_id)

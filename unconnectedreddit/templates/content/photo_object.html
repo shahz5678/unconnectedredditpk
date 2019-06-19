@@ -7,7 +7,7 @@
 
 			  	<a href="{% url 'profile' oun 'fotos' %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
 
-			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'profile' oun 'fotos' %}" itemprop="url" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3></a></span>&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ ut }}</time></div>
+			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'profile' oun 'fotos' %}" itemprop="url" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3></a></span></div>
 			
 			</div>
 				 	
@@ -21,17 +21,18 @@
 
 	</div>
 	
-	<div>	
+	<div style="text-align:center">	
 	
 		{% if vsc < VDC %}
-			<div class="lsp mbs cl sp" style="color:darkgray;text-align:center">- hidden -</div>
+			<div class="lsp mbs cl sp" style="color:darkgray">- hidden -</div>
 		{% else %}
-			<div class="mbs ow" style="overflow:hidden;text-align:center;padding:0 5px">
+			<div class="mbs ow" style="overflow:hidden;padding:0 5px">
 				<span class="cxl clb lsp" itemprop="headline"><bdi>{{ cap }}</bdi></span>{% if is_fbs == '1' %}<span class="mls cxs sp cgy">(fbs)</span>{% endif %}
 			</div>
 		{% endif %}
 
-		<div itemprop="image" itemscope itemtype="https://schema.org/ImageObject" class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
+		<span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
+		<div style="overflow:hidden;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 			{% if block_time_remaining %}
 			<img alt="hidden" style="vertical-align: top;" class="cs sp" src="{{ static_url }}img/broken.svg">
 			{% else %}
@@ -39,13 +40,22 @@
 				{% if vsc < VDC %}
 					<img alt="hidden" style="vertical-align: top;" class="sp cs" src="{{ static_url }}img/broken.svg">
 				{% elif vsc < VDP %}
-					<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="pic loading ...">
+					<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
 				{% else %}
-					<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="pic loading ...">
+					<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
 				{% endif %}
 			</span>
 			{% endif %}
 		</div>
+
+		<div class="mbl">
+			{% if ex_url %}
+			<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">uploaded {{ ut }}</time>
+			{% else %}
+			<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}" style="border-bottom:1px dotted lightgray">uploaded {{ ut }}</time></a>
+			{% endif %}
+		</div>
+		</span>
 
 	</div>
 
@@ -90,7 +100,7 @@
 
 	</div>
 
-	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" datetime="{{ mt }}">{{ ut }}</time></a></div>
+	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" style="border-bottom:1px dotted lightgray" datetime="{{ mt }}">{{ ut }}</time></a></div>
 	</span>
 
 

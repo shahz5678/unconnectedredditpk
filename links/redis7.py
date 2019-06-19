@@ -1179,7 +1179,7 @@ def retrieve_topic_credentials(topic_url, my_server=None, existence_only=False, 
 				topic_name, description, theme = blob['tn'], blob['d'], blob['th']
 				return topic_name, description, theme
 			else:
-				return '', ''
+				return '', '', ''
 
 def retire_abandoned_topics(topic_urls=None):
 	"""

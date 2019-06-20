@@ -3084,3 +3084,29 @@ def export_chat_logs(request, log_type):
 					to_write = [posting_time,exact_date(posting_time),group_id,sender_id,receiver_id,msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
+
+
+def export_chat_counts(request):
+	"""
+	Exports all group_ids and their chat counts in CSV format
+	"""
+	from redis7 import in_defenders
+	from redis4 import retrieve_chat_count
+
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if True:#is_super_defender:
+		group_ids_and_chat_counts = retrieve_chat_count()
+		if group_ids_and_chat_counts:
+			import csv
+			filename = 'chat_count.csv'
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["group_id","num_chats"]
+				wtr.writerow(columns)
+				for group_id, chat_count in group_ids_and_chat_counts:
+					to_write = [group_id,chat_count]
+					wtr.writerows([to_write])
+	raise Http404("Completed :-)")
+
+

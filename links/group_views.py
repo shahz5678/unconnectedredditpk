@@ -3095,7 +3095,7 @@ def export_chat_counts(request):
 
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-	if True:#is_super_defender:
+	if is_super_defender:
 		group_ids_and_chat_counts = retrieve_chat_count()
 		if group_ids_and_chat_counts:
 			import csv

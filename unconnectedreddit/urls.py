@@ -37,10 +37,10 @@ from links.views import TopView, UserProfilePhotosView, PhotoTimeView, Photostre
 PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView,\
 PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, \
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
-AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, LoginWalkthroughView, RegisterLoginView, UserSettingsEditView, \
-UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkDeleteView, HelpView, AdMobileNumView, \
-RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, PhotoShareView, PhotoDetailView, \
-AdGenderChoiceView, VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressView
+AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, UserSettingsEditView, UserProfileDetailView, UserProfileEditView,\
+LinkCreateView, CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, VerifyHelpView, UserActivityView, \
+HistoryHelpView, AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, FacesHelpView, \
+AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressView
 from links.voting_views import user_vote_history
 from links.announcement_views import coming_soon
 from links.group_views import show_shared_photo_metrics
@@ -212,10 +212,10 @@ urlpatterns = patterns('',
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
 	# url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
-	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),
-	url(r'^login_walkthrough/$', LoginWalkthroughView.as_view(), name='login_walkthrough'),
+	url(r'^register_login/$', perm_redirect_to_home, name='register_login'),
+	url(r'^login_walkthrough/$', perm_redirect_to_home, name='login_walkthrough'),
 	url(r'^reset_pass/$', auth(reset_password), name='reset_password'),
-	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
+	url(r'^verify_help/$', perm_redirect_to_home, name='verify_help'),
 
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),
 	url(r'^faces/$', FacesHelpView.as_view(), name='faces'),

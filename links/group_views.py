@@ -38,12 +38,12 @@ PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT, SEGMENT_STARTING_USER_ID
 from push_notification_api import send_single_push_notification
+from views import get_indices, retrieve_user_env
 from image_processing import process_group_image
 from redirection_views import return_to_content
 from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
-from views import get_indices
 from models import Photo
 
 ONE_DAY = 60*60*24
@@ -68,22 +68,6 @@ def get_uname_and_avurl(target_id, their_anon_status):
 		return get_target_username(target_id), None
 	else:
 		return get_single_user_credentials(target_id,as_list=False)
-
-def retrieve_user_env(user_agent, fbs):
-	"""
-	Checks whether environment can support JS
-
-	Opera mini (extreme mode) and free basics do not support JS
-	"""
-	if fbs:
-		return False#, True
-	elif user_agent:
-		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
-			return False#, False
-		else:
-			return True#, False
-	else:
-		return True#, False
 
 
 def sms_lock_time_remaining(time_of_lock):
@@ -3100,3 +3084,29 @@ def export_chat_logs(request, log_type):
 					to_write = [posting_time,exact_date(posting_time),group_id,sender_id,receiver_id,msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
+
+
+def export_chat_counts(request):
+	"""
+	Exports all group_ids and their chat counts in CSV format
+	"""
+	from redis7 import in_defenders
+	from redis4 import retrieve_chat_count
+
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		group_ids_and_chat_counts = retrieve_chat_count()
+		if group_ids_and_chat_counts:
+			import csv
+			filename = 'chat_count.csv'
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["group_id","num_chats"]
+				wtr.writerow(columns)
+				for group_id, chat_count in group_ids_and_chat_counts:
+					to_write = [group_id,chat_count]
+					wtr.writerows([to_write])
+	raise Http404("Completed :-)")
+
+

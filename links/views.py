@@ -43,12 +43,12 @@ ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, Up
 PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, \
 PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
 WelcomeMessageForm, WelcomeForm, PublicreplyMiniForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
-SearchNicknameForm, UserProfileDetailForm, TopForm, LoginWalkthroughForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, \
+SearchNicknameForm, UserProfileDetailForm, TopForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, BestPhotosListForm, \
 UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, PhotosListForm, UnseenActivityForm, \
 CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
 PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, CricketCommentForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, \
-AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm, BestPhotosListForm
+AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
@@ -102,6 +102,23 @@ from unconnectedreddit.settings import MIXPANEL_TOKEN
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
 mp = Mixpanel(MIXPANEL_TOKEN)
+
+
+def retrieve_user_env(user_agent, fbs):
+	"""
+	Checks whether environment can support JS
+
+	Opera mini (extreme mode) and free basics do not support JS
+	"""
+	if fbs:
+		return False#, True
+	elif user_agent:
+		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
+			return False#, False
+		else:
+			return True#, False
+	else:
+		return True#, False
 
 
 def secs_to_mins(seconds):
@@ -328,6 +345,8 @@ def beautiful_date(epoch_time, format_type='1'):
 		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%Y-%m-%d %I:%M:%S %p")# gives YYYY-MM-DDThh:mm:ssTZD
 	elif format_type == '3':
 		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p, %a - %d %b %Y")# gives "03:39 PM, Sun - 05 May 2019"
+	elif format_type == '4':
+		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%Y-%m-%dT%I:%M:%S+05:00")# gives YYYY-MM-DDThh:mm:ss+05:00 format
 	else:
 		return datetime.fromtimestamp(epoch_time, tz=timezone('Asia/Karachi')).strftime("%I:%M %p %d-%m-%Y")# gives "05-05-2019 03:39 PM"
 
@@ -361,17 +380,17 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	parent_username = parent.submitter.username
 	user_id = request.user.id
 	username = request.user.username
-	if request.is_feature_phone:
-		device = '1'
-	elif request.is_phone:
-		device = '2'
-	elif request.is_tablet:
-		device = '4'
-	elif request.is_mobile:
-		device = '5'
-	else:
-		device = '3'
-	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id, device=device)
+	# if request.is_feature_phone:
+	# 	device = '1'
+	# elif request.is_phone:
+	# 	device = '2'
+	# elif request.is_tablet:
+	# 	device = '4'
+	# elif request.is_mobile:
+	# 	device = '5'
+	# else:
+	# 	device = '3'
+	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id)
 	invalidate_cached_public_replies(link_id)
 	reply_time = convert_to_epoch(reply.submitted_on)
 	url = retrieve_avurl(user_id)
@@ -541,11 +560,6 @@ class PhotosHelpView(FormView):
 		context["unique"] = self.kwargs.get("slug")
 		context["decision"] = self.kwargs.get("pk")
 		return context
-
-
-class LoginWalkthroughView(FormView):   
-	form_class = LoginWalkthroughForm
-	template_name = "login_walkthrough.html"
 
 class SmsReinviteView(FormView):
 	form_class = SmsReinviteForm
@@ -796,8 +810,8 @@ class PhotoDetailView(DetailView):
 		context = super(PhotoDetailView, self).get_context_data(**kwargs)
 		context["can_vote"] = False
 		context["authenticated"] = False
+		pk = self.kwargs.get("pk",None)
 		try:
-			pk = self.kwargs["pk"]
 			photo = Photo.objects.get(id=pk)
 			context["photo_id"] = pk
 			context["photo"] = photo
@@ -815,6 +829,18 @@ class PhotoDetailView(DetailView):
 			context["av_url"] = photo.owner.userprofile.avatar.url
 		except:
 			context["av_url"] = None
+		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		context["is_js_env"] = False
+		if on_fbs:
+			context["show_copy_prompt"] = True
+			context["regular_url"] = "https://damadam.pk"+reverse('photo_detail',kwargs={"pk": pk})
+		else:
+			is_js_env = retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+			if is_js_env:
+				context["is_js_env"] = True
+				context["on_opera"] = False
+			else:
+				context["on_opera"] = True
 		context["defender"] = False
 		context["oun"] = retrieve_uname(photo.owner_id,decode=True)
 		context["is_pinkstar"] = True if context["oun"] in FEMALES else False
@@ -824,9 +850,9 @@ class PhotoDetailView(DetailView):
 		if self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile:
 			context["is_mob"] = True
 		if self.request.user.is_authenticated():
-			if 'origin' in self.kwargs:
-				if self.kwargs['origin'] == '6':
-					context["from_cull_queue"] = True
+			origin = self.kwargs.get("origin",None)
+			if origin == '6':
+				context["from_cull_queue"] = True
 				context["latest_photocomments"] = PhotoComment.objects.select_related('submitted_by').filter(which_photo_id=pk).order_by('-id')[:25]
 			context["authenticated"] = True
 			if in_defenders(self.request.user.id):
@@ -992,14 +1018,17 @@ def home_page(request, lang=None):
 	for obj in list_of_dictionaries:
 		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 	#######################
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+	on_opera = True if (not on_fbs and not is_js_env) else False
 	num = random.randint(1,4)
 	secret_key = str(uuid.uuid4())
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
-	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'ident':own_id,\
-	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num,'process_notification':False, \
-	'newbie_flag':request.session.get("newbie_flag",None),'newbie_lang':request.session.get("newbie_lang",None),'sk':secret_key,\
-	'mobile_verified':request.mobile_verified}
+	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
+	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
+	'newbie_flag':request.session.get("newbie_flag",None),'newbie_lang':request.session.get("newbie_lang",None),\
+	'mobile_verified':request.mobile_verified,'on_opera':on_opera}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	#####################
@@ -1227,14 +1256,16 @@ class UserProfilePhotosView(ListView):
 		context["noindex"] = True if banned else False
 		context["defender"] = is_defender
 		context["time_remaining"] = time_remaining
-		context["is_mob"] = False if banned else (self.request.is_feature_phone or self.request.is_phone or self.request.is_mobile)
+		###########
+		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+		is_js_env = retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		context["on_opera"] = True if (not on_fbs and not is_js_env) else False
 		###########
 		context["subject"] = subject
 		context["star_id"] = star_id
 		context["star_av_url"] = retrieve_avurl(star_id)
 		context["legit"] = FEMALES
 		total_fans, recent_fans = get_photo_fan_count(star_id)
-		# context["manageable"] = False
 		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
 			populate_search_thumbs.delay(star_id,ids_with_urls)
@@ -1419,7 +1450,6 @@ def perm_redirect_to_home(request,pk=None,origin=None,slug=None):
 	Permanent redirect to new user profile photos view
 	"""
 	return HttpResponsePermanentRedirect("/")
-
 
 ############################################################################################################
 
@@ -2155,11 +2185,13 @@ def photo_page(request,list_type='best-list'):
 			newbie_lang, newbie_flag = None, None
 			#notif_form = None
 			mobile_verified = None
+		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		on_opera = True if (not on_fbs and not is_js_env) else False
 		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
-		'ident':own_id, 'newbie_lang':newbie_lang,'is_mob':True if request.is_phone or request.is_mobile else False,\
-		'process_notification':False,'newbie_flag':newbie_flag,'page_origin':page_origin,'sk':secret_key,\
-		'comment_form':comment_form,"mobile_verified":mobile_verified,'single_notif_origin':single_notif_origin,\
-		'feed_type':type_,'navbar_type':navbar_type}#'score':request.user.userprofile.score
+		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
+		'page_origin':page_origin,'sk':secret_key,'comment_form':comment_form,"mobile_verified":mobile_verified,\
+		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera}#'score':request.user.userprofile.score
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -3233,8 +3265,9 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				'last_visit_time':last_visit_time,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),'VDP':(VOTING_DRIVEN_PIXELATION+1),'fanned':fanned,\
 				'validation_error_string':error, 'page':{'has_previous':True if page_num>1 else False,'previous_page_number':page_num-1,\
 				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num}}
-				if request.is_phone or request.is_mobile:
-					context["is_mob"] = True
+				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+				context["on_opera"] = True if (not on_fbs and not is_js_env) else False
 				return render(request, 'user_unseen_activity.html', context)
 			else:
 				# page turned out to be empty since all notifications have been deleted.
@@ -3712,16 +3745,16 @@ def welcome_reply(request,*args,**kwargs):
 			if (num-100) <= int(pk) <= (num+100):
 				option = request.POST.get("opt")
 				message = request.POST.get("msg")
-				if request.is_feature_phone:
-					device = '1'
-				elif request.is_phone:
-					device = '2'
-				elif request.is_tablet:
-					device = '4'
-				elif request.is_mobile:
-					device = '5'
-				else:
-					device = '3'
+				# if request.is_feature_phone:
+				# 	device = '1'
+				# elif request.is_phone:
+				# 	device = '2'
+				# elif request.is_tablet:
+				# 	device = '4'
+				# elif request.is_mobile:
+				# 	device = '5'
+				# else:
+				# 	device = '3'
 				request.user.userprofile.score = request.user.userprofile.score + 1
 				request.user.userprofile.save()
 				try:
@@ -3735,37 +3768,37 @@ def welcome_reply(request,*args,**kwargs):
 					num = random.randint(1,len(SALUTATIONS))
 					text = SALUTATIONS[num-1]
 					target_username = target.username
-					parent = Link.objects.create(description=text, submitter=target, reply_count=1, device=device)
+					parent = Link.objects.create(description=text, submitter=target, reply_count=1)
 					add_text_post(obj_id=parent.id, categ='1', submitter_id=target.id, submitter_av_url=av_url, submitter_username=target_username, \
 						submitter_score=target.userprofile.score, is_pinkstar=(True if target_username in FEMALES else False),submission_time=time.time(),\
 						text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=False)
 				if option == '1' and message == 'Barfi khao aur mazay urao!':
 					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '1' and message == 'Yeh zalim barfi try kar yar!':
 					description = target.username+" welcome! Kesey ho? Yeh zalim barfi try kar yar (barfi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '1' and message == 'Is barfi se mu meetha karo!':
 					description = target.username+" assalam-u-alaikum! Is barfi se mu meetha karo (barfi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '2' and message == 'Aik plate laddu se life set!':
 					description = target.username+" Damadam pe welcome! One plate laddu se life set (laddu)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '2' and message == 'Ye saray laddu aap ke liye!':
 					description = target.username+" kya haal he? Ye laddu aap ke liye (laddu)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '2' and message == 'Laddu khao, jaan banao yar!':
 					description = target.username+" welcum! Life set hei? Laddu khao, jaan banao (laddu)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '3' and message == 'Jalebi khao aur ayashi karo!':
 					description = target.username+" welcomeee! Yar kya hal he? Jalebi khao aur ayashi karo (jalebi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '3' and message == 'Jalebi meri pasandida hai!':
 					description = target.username+" kaisey ho? Jalebi meri pasandida hai! Tumhari bhi? (jalebi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				elif option == '3' and message == 'Is jalebi se mu metha karo!':
 					description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
-					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description, device=device)
+					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				else:
 					return redirect("home")
 				parent.latest_reply = reply
@@ -4198,8 +4231,8 @@ def sitemap(request):
 	Renders a sitemap
 	"""
 	latest_trending_mod_time, latest_fresh_mod_time = retrieve_photo_feed_latest_mod_time(both=True)
-	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='2'),\
-	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='2')},content_type="application/xml")
+	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='4'),\
+	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='4')},content_type="application/xml")
 
 
 @ratelimit(rate='3/s')

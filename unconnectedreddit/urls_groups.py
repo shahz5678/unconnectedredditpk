@@ -10,7 +10,8 @@ personal_group_receive_sms, personal_group_customize_sms_text, personal_group_re
 personal_group_send_sms, personal_group_sms_text_form, personal_group_exit_settings, personal_group_their_chat_buttons, personal_group_reentry,\
 show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,personal_group_delete_saved_post, personal_group_photo_settings,\
 post_js_reply_to_personal_group, personal_group_user_listing, unseen_per_grp, x_per_grp_notif, export_chat_logs, share_photo_in_personal_group,\
-photo_shared, cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4, enter_personal_group_from_single_notif#, deletion_test
+photo_shared, cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4, enter_personal_group_from_single_notif,\
+export_chat_counts#, deletion_test
 from links.number_verification import verify_personal_group_user
 from links.views import redirect_to_1on1_list
 
@@ -66,6 +67,7 @@ urlpatterns = patterns('',
 	url(r'^private_chat_ad/$', auth(private_chat_help_ad), name='private_chat_help_ad'),
 	############################ Export chat logs #############################
 	url(r'^1-on-1/export/chat/(?P<log_type>[\w.@+-]+)/$', auth(export_chat_logs), name='export_chat_logs'),
+	url(r'^1-on-1/export/chat-count/$', auth(export_chat_counts), name='export_chat_counts'),
 	############################ Personal Group Photo Sharing #############################
 	url(r'^1-on-1/share/photo/$', auth(share_photo_in_personal_group), name='share_photo_in_personal_group'),
 	url(r'^1-on-1/share/cant-share-photo/$', auth(cant_share_photo), name='cant_share_photo'),

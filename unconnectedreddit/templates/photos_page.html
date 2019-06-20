@@ -10,7 +10,7 @@
    <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Pakistan's best funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes!">
+	<meta name="description" content="See and share the best images and memes related to Pakistan, including funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes, etc.">
 	<meta property="og:site_name" content="Damadam.pk">
 	<meta property="og:title" content="Damadam.pk">
 	<meta property="og:type" content="website">
@@ -18,15 +18,15 @@
 	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
 	<meta property="og:image:width" content="300">
 	<meta property="og:image:height" content="300">
-	<meta property="og:description" content="Funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes from all over Pakistan!">
+	<meta property="og:description" content="See and share the best images and memes related to Pakistan, including funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes, etc.">
 	<meta property="fb:app_id" content="1758220174446684" />
 	<meta name="author" content="mhb">
 	
 	{% if feed_type == 'fresh_photos' %}
-		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
+		<title>The Latest Images and Memes from Pakistan | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'fresh-list' %}" />
 	{% else %}
-		<title>The Best Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
+		<title>The Best Images and Memes Trending in Pakistan Right Now! | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'best-list' %}" />
 	{% endif %}
 
@@ -153,7 +153,7 @@
 						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
 						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
 						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
-						{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+						{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
 						{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
 					</div>
 					</section>

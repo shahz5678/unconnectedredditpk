@@ -1955,3 +1955,10 @@ def retrieve_chat_records(log_type):
 		return my_server.zrange(key_to_use,0,-1,withscores=True)
 	else:
 		return []
+
+
+def retrieve_chat_count():
+	"""
+	Retrieves chat counts of all logged chat groups
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(group_to_log,0,-1,withscores=True)

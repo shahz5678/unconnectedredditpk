@@ -545,7 +545,7 @@
 		<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
 			{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL seen='1' %}
 			{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL seen='1' %}
-			{% big_external_share_button owner_username=notif.oon is_mobile=is_mob photo_id=notif.oi origin='14' static_url=STATIC_URL seen='1' %}
+			{% big_external_share_button owner_username=notif.oon on_opera=on_opera photo_id=notif.oi origin='14' static_url=STATIC_URL seen='1' %}
 			{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id seen='1' %}
 		</div>
 		<div class="mls mrs mts">
@@ -576,7 +576,7 @@
 	<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
 		{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL %}
 		{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL %}
-		{% big_external_share_button owner_username=notif.oon is_mobile=is_mob photo_id=notif.oi origin='14' static_url=STATIC_URL %}
+		{% big_external_share_button owner_username=notif.oon on_opera=on_opera photo_id=notif.oi origin='14' static_url=STATIC_URL %}
 		{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id %}
 	</div>
 	<div class="mts mrs mls">

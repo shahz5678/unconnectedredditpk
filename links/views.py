@@ -1355,8 +1355,10 @@ class UserProfileDetailView(FormView):
 		context["image_base_width"] = PERSONAL_GROUP_IMG_WIDTH
 		star_id = retrieve_user_id(username)
 		try:
-			user_obj = User.objects.get(id=star_id)# get full object
+			user_obj = User.objects.only('id','date_joined').get(id=star_id)# get required fields only
+			user_profile = UserProfile.objects.only('bio','age','gender','shadi_shuda','attractiveness','avatar').get(user_id=star_id)# get required user profile fields
 			context["object"] = user_obj
+			context["user_profile"] = user_profile
 		except User.DoesNotExist:
 			raise Http404("User ID does not compute")
 		if star_id:
@@ -1378,14 +1380,15 @@ class UserProfileDetailView(FormView):
 			context["star_owner_mehfils"] = retrieve_latest_user_owned_mehfils(star_id)
 			total_fans, recent_fans = get_photo_fan_count(star_id)
 			context["fans"] = total_fans if total_fans else 0
-			# context["diamonds"] = int(retrieve_user_world_age([user_id])[user_id]) if is_own_profile else ''
 			context["recent_fans"] = recent_fans if recent_fans else 0
 			if star_id == user_id:
 				context["subscribed_topics"] = retrieve_subscribed_topics(user_id)
 				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
 				context["blocked"] = get_banned_users_count(user_id)
+				context["mobile_verified"] = self.request.mobile_verified
 			else:
 				context["fanned"] = [str(user_obj.id)] if is_fan(star_id, user_id) else []
+				context["mobile_verified"] = is_mobile_verified(star_id)
 		else:
 			# user does not exist
 			raise Http404("User ID does not exist")

@@ -3071,8 +3071,7 @@ def export_chat_logs(request, log_type):
 			filename = 'chat_data_{}.csv'.format(log_type)
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID/wa","receiver ID/wa","sender wa","receiver wa",\
-				"msg type","img url","msg text"]
+				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID/wa","receiver ID/wa","msg type","img url","msg text"]
 				wtr.writerow(columns)
 				gid, world_ages = 0, {}
 				for chat_data, group_id in data_to_write_to_csv:
@@ -3085,10 +3084,12 @@ def export_chat_logs(request, log_type):
 					chat_data_list[2], chat_data_list[3], chat_data_list[4], (chat_data_list[5].encode('utf-8')).replace('\n', ' ').replace('\r', ' ')
 					if group_id != gid:
 						# we're logging a new group
-						world_ages = {sender_id:get_world_age(user_id=sender_id),receiver_id:get_world_age(user_id=receiver_id)}
+						world_ages = {}
+						world_ages[sender_id] = get_world_age(user_id=sender_id)
+						world_ages[receiver_id] = get_world_age(user_id=receiver_id)
 						gid = group_id
-					to_write = [posting_time,exact_date(posting_time),group_id,sender_id+" / "+str(world_ages[sender_id]),receiver_id+" / "+str(world_ages[receiver_id]),\
-					world_ages[sender_id],world_ages[receiver_id],msg_type,img_url,msg]
+					to_write = [posting_time,exact_date(posting_time),group_id,sender_id+" / "+str(world_ages[sender_id]),\
+					receiver_id+" / "+str(world_ages[receiver_id]),msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
 

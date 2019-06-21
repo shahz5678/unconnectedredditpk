@@ -3050,8 +3050,13 @@ def personal_group_notif_prompts(request):
 ############################################### Exporting Chat Logs #################################################
 #####################################################################################################################
 
+groups_of_interest = [294419,294425,294472,294475,294492,294508,294535,294552,294579,294580,294590,294607,294636,294671,294675,294711,294721,294745,294886,\
+294896,298340,298356,298396,298482,298522,298544,298547,298651,298653,298660,298736,298737,298810,298892,298915,298978,299002,299104,299120,299158,296214,\
+296218,296246,296247,296254,296294,296302,296331,296342,296347,296357,296377,296566,296652,296657,296728,296839,296930,296998,297030,300099,300103,300154,\
+300159,300163,300181,300270,300340,300378,300426,300507,300558,294418,294473,294484,294602,294651,294668,294715,294728,294738,294757,294823,294834] 
 
-def export_chat_logs(request, log_type):
+
+def export_chat_logs(request, log_type='sp'):
 	"""
 	Exports chat logs for viewing in a CSV
 
@@ -3065,7 +3070,8 @@ def export_chat_logs(request, log_type):
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		data_to_write_to_csv = retrieve_chat_records(log_type)# list of lists (where each list is a list of dictionaries)
+		# data_to_write_to_csv = retrieve_chat_records(log_type)# list of lists (where each list is a list of dictionaries)
+		data_to_write_to_csv = retrieve_chat_records(groups_of_interest, by_group_id=True)# list of lists (where each list is a list of dictionaries)
 		if data_to_write_to_csv:
 			import csv
 			filename = 'chat_data_{}.csv'.format(log_type)

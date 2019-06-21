@@ -76,9 +76,9 @@
 		<div class="cs sp mbl">latest message ({{ notif.lrti|human_time }}):</div>
 		<div class="mbs">
 			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
+				<a href="{% url 'user_profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
 			{% else %}
-				<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+				<a href="{% url 'user_profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
 			{% endif %}
 			<span class="sp cgy lsp mrs">msg mita dia gya</span>
 		</div>
@@ -93,18 +93,18 @@
 			<div class="cs sp mbl">Permission requested ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% endif %}
 			</div>
 		{% elif notif.type == 'action' %}
 			<div class="cs sp mbl">emoji ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl cgy lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% endif %}
 			</div>
 		{% elif notif.type == 'img' or notif.type == 'img_res' or notif.type == 'shared_img' %}
@@ -126,9 +126,9 @@
 			</form>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
 				{% endif %}
 				{% if notif.h == 'no' %}
 					{% if notif.lrtx %}
@@ -144,9 +144,9 @@
 			<div class="cs sp mbl">latest message ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy">{{ notif.lrsn|truncap }}</a>:
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cgy"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
 				{% endif %}
 				<span class="cl cgy lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
 			</div>
@@ -204,9 +204,9 @@
 		<div class="cs sp mbl">new pegham aya {{ notif.lrti|human_time }}:</div>
 		<div class="mbs">
 			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-				<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb">{{ notif.lrsn|truncap }}</a>:
+				<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
 			{% else %}
-				<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+				<a href="{% url 'user_profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
 			{% endif %}
 			<span class="sp cgy lsp mrs">msg mita dia gya</span>
 		</div>
@@ -221,18 +221,18 @@
 			<div class="cs sp mbl">new permission manga {{ notif.lrti|human_time }}:</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.anon == '1' %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% endif %}
 			</div>
 		{% elif notif.type == 'action' %}
 			<div class="cs sp mbl">new emoji aya {{ notif.lrti|human_time }}:</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
 				{% endif %}
 			</div>
 		{% elif notif.type == 'img' or notif.type == 'img_res' or notif.type == 'shared_img' %}
@@ -249,9 +249,9 @@
 			</form>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb">{{ notif.lrsn|truncap }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
 				{% endif %}
 				{% if notif.h == 'no' %}
 					{% if notif.lrtx %}
@@ -267,9 +267,9 @@
 			<div class="cs sp mbl">new pegham aya {{ notif.lrti|human_time }}:</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb">{{ notif.lrsn|truncap }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
 				{% else %}
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
+					<a href="{% url 'user_profile' notif.lrsn %}" class="cb"><img src="{{ notif.lrau|s3:'thumb' }}" alt="{{ notif.lrsn|slice:":1" }}" width="22" height="22" style="border-radius: 50%">&nbsp;{{ notif.lrsn|truncatechars:15 }}</a>:
 				{% endif %}
 				<span class="cl clb lsp mrs"><bdi>{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</bdi></span>
 			</div>
@@ -298,14 +298,14 @@
 {% if notif.s == 'True' %}
 	<div class="mls mrs mts mbl">
 		<div style="overflow:hidden">
-			<a href="{% url 'profile' notif.oon 'fotos' %}" class="cgy">
+			<a href="{% url 'user_profile' notif.oon %}" class="cgy">
 			<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
 			{{ notif.oon }}</a><span class="cgy bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token %}<button name="lid" style="height:20px" class="btn nw bcgy bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
 		</div>
 		<div class="mtl">
 			<div class="cgy cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs mts" style="overflow:hidden">
-				<a href="{% url 'profile' notif.lrsn 'fotos' %}" class="cgy">
+				<a href="{% url 'user_profile' notif.lrsn %}" class="cgy">
 				{% if notif.lrau != 'None' %}
 				<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
 				{% else %}
@@ -329,14 +329,14 @@
 	
 	<div class="mls mrs mbl mts">
 		<div style="overflow:hidden">
-			<a href="{% url 'profile' notif.oon 'fotos' %}" class="cgy">
+			<a href="{% url 'user_profile' notif.oon %}" class="cgy">
 			<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
 			<span class="ct">{{ notif.oon }}</span></a><span class="ct bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" style="height:20px" type="submit" value="{{ notif.oi }}">post</button></form>
 		</div>
 		<div class="mtl">
 			<div class="ct cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
 			<div class="lsp mts mbs" style="overflow:hidden">
-				<span class="clb lsp"><a href="{% url 'profile' notif.lrsn 'fotos' %}">
+				<span class="clb lsp"><a href="{% url 'user_profile' notif.lrsn %}">
 				{% if notif.lrau != 'None' %}
 				<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibt">
 				{% else %}
@@ -378,7 +378,7 @@
 			{% endif %}
 
 			<div class="mls mrs mts mbs" style="overflow:hidden">
-				<a href="{% url 'profile' notif.lrsn 'fotos' %}">
+				<a href="{% url 'user_profile' notif.lrsn %}">
 				{% if notif.lrau != 'None' %}
 				<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
 				{% else %}
@@ -432,7 +432,7 @@
 				{% endif %}
 
 				<div class="mrs mls mts mbs" style="overflow:hidden">
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}">
+					<a href="{% url 'user_profile' notif.lrsn %}">
 					{% if notif.lrau != 'None' %}
 					<img style="width:auto;border-radius:50%" height="22" width="22" src="{{ notif.lrau|s3:'thumb' }}" class="ibgn">
 					{% else %}
@@ -467,7 +467,7 @@
 				{% endif %}
 
 				<div class="mls mrs mbs mts" style="overflow:hidden">
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}">
+					<a href="{% url 'user_profile' notif.lrsn %}">
 					{% if notif.lrau != 'None' %}
 					<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibp">
 					{% else %}
@@ -553,7 +553,7 @@
 				{% if notif.lrti != 'None' %}
 				<div class="cgy cs sp">latest tabsra ({{ notif.lrti|human_time }}):</div>
 				<div class="mts" style="overflow:hidden">
-					<a href="{% url 'profile' notif.lrsn 'fotos' %}">
+					<a href="{% url 'user_profile' notif.lrsn %}">
 					<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
 					<span class="cgy">{{ notif.lrsn }}</span></a><span class="cgy lsp">:&nbsp;{% emoticons %}{{ notif.lrtx }}{% endemoticons %}</span>
 				</div>
@@ -583,7 +583,7 @@
 	{% if notif.nc != 'True' %}
 		<div class="co cs sp">new tabsra aya <b>{{ notif.lrti|human_time }}</b>:</div>
 		<div class="mbs mts" style="overflow:hidden">
-			<a href="{% url 'profile' notif.lrsn 'fotos' %}">
+			<a href="{% url 'user_profile' notif.lrsn %}">
 			{% if notif.lrau != 'None' %}
 			<img src="{{ notif.lrau|s3:'thumb' }}" style="width:auto;border-radius:50%" width="22" height="22" alt="pic" class="ibo">
 			{% else %}

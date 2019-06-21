@@ -49,7 +49,7 @@
         {% if reply.category == '1' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b> ne <bdi><span class="clb" style="font-weight:bold">{{ reply.text }}</span></bdi> ko invite kia</span></div>
         {% elif reply.category == '2' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.text 'fotos' %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko mehfil se kick out kar dia gya</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'user_profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko mehfil se kick out kar dia gya</span></div>
         {% elif reply.category == '3' %}
             <div class="lsp sp cs mrl" style="display:inline"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ki baat hide kar di geyi</span></div>
             <form method="POST" action="{% url 'private_group_hide_submission' %}" style="display:inline">
@@ -61,15 +61,15 @@
         {% elif reply.category == '4' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new topic rakha: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
         {% elif reply.category == '6' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.writer_uname 'fotos' %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil se exit kia</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'user_profile' reply.writer_uname %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil se exit kia</span></div>
         {% elif reply.category == '7' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.writer_uname 'fotos' %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil ka invite reject kia</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'user_profile' reply.writer_uname  %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil ka invite reject kia</span></div>
         {% elif reply.category == '8' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ka new owner <bdi><a href="{% url 'profile' reply.text 'fotos' %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko bana dia</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ka new owner <bdi><a href="{% url 'user_profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko bana dia</span></div>
         {% elif reply.category == '9' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.writer_uname 'fotos' %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil join ki</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'user_profile' reply.writer_uname %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil join ki</span></div>
         {% elif reply.category == '10' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'profile' reply.writer_uname 'fotos' %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> inactivity ki wajah se exit ho gya</span></div>
+            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'user_profile' reply.writer_uname %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> inactivity ki wajah se exit ho gya</span></div>
         {% else %}
             {% if reply.image %}
             <div style="text-align:center"><img src="{{ reply.image|s3 }}" style="border-radius:12px;max-width:100%" alt="foto"></div>
@@ -95,7 +95,7 @@
                     {% endif %}
                 {% endif %}
         
-            <a href="{% url 'profile' reply.writer_uname 'fotos' %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
 
             <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
 

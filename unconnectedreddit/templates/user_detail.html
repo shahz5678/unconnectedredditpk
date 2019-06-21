@@ -28,6 +28,11 @@
 		Ap {{ username }} ke sath mehfil bana sakein ge {{ mehfil_creation_ttl|future_time }}
 		</div>
 	{% else %}
+
+		{% if not mobile_verified %}
+			<div class="cs sp" style="text-align:center;font-weight:bold;background:tomato;color:white;padding:6px 0">UNVERIFIED USER</div>
+		{% endif %}
+
 		{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=username ban_detail=ban_detail %}
 	{% endif %}
 
@@ -38,8 +43,8 @@
         </div>
 
 		<div style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
-		{% if object.userprofile.avatar %}
-		<img style="vertical-align:top;width:100%;max-width:450px" src="{{ object.userprofile.avatar|s3 }}" alt="pic loading ..."><br>
+		{% if user_profile.avatar %}
+		<img style="vertical-align:top;width:100%;max-width:450px" src="{{ user_profile.avatar|s3 }}" alt="pic loading ..."><br>
 		{% else %}
 			{% if is_own_profile %}
 			<img src="{{ STATIC_URL }}img/broken.svg" style="max-width:{{ image_base_width }}px;vertical-align:top" alt="no pic"><br>
@@ -168,8 +173,8 @@
 			<span class="cgy sp cl">- hidden -</span>
 		{% else %}
 			<span class="cl sp lsp">
-			{% if object.userprofile.bio %}
-			{% emoticons %}{{ object.userprofile.bio }}{% endemoticons %}
+			{% if user_profile.bio %}
+			{% emoticons %}{{ user_profile.bio }}{% endemoticons %}
 			{% endif %}
 			</span>
 		{% endif %}
@@ -177,13 +182,13 @@
 	<hr size=1 COLOR="#f4f4f4">
 
 	<b class="cm sp lsp" style="color:darkgray">Age:</b>
-		{% if object.userprofile.age %}
-		<span class="cl sp lsp">{{ object.userprofile.age }}</span>
+		{% if user_profile.age %}
+		<span class="cl sp lsp">{{ user_profile.age }}</span>
 		{% endif %}
 	<hr size=1 COLOR="#f4f4f4">
 
 	<b class="cm sp lsp" style="color:darkgray">Gender:</b>
-		{% if object.userprofile.gender == '1' %}
+		{% if user_profile.gender == '1' %}
 			{% if username in ratified %}
 	    	<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="13" width="13">&nbsp;<span class="cl sp lsp" style="color:#ff4d4d">Girl</span>
 	    	{% else %}
@@ -196,7 +201,7 @@
 
 	<b class="cm sp lsp" style="color:darkgray">Shaadi shuda:</b>
 		<span class="cl sp lsp">
-		{% if object.userprofile.shadi_shuda == '1' %}
+		{% if user_profile.shadi_shuda == '1' %}
 			Yes
 		{% else %}
 			No
@@ -206,9 +211,9 @@
 
 	<b class="cm sp lsp" style="color:darkgray">Shakal soorat:</b>
 		<span class="cl sp lsp">
-		{% if object.userprofile.attractiveness == '0' %}
+		{% if user_profile.attractiveness == '0' %}
 			Ek dum kadak
-		{% elif object.userprofile.attractiveness == '1' %}
+		{% elif user_profile.attractiveness == '1' %}
 			Fifty fifty
 		{% else %}
 			Shakal pe mat ja

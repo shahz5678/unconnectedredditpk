@@ -1936,25 +1936,36 @@ def log_1on1_chat(payload,oid,tid,group_id):
 		pass
 
 
-def retrieve_chat_records(log_type):
+def retrieve_chat_records(log_type, by_group_id=False):
 	"""
 	Retrieves all chat logs from redis
 
 	Useful when exporting logs into a CSV
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	if log_type == 'nn':
-		key_to_use = new_new
-	elif log_type == 'no':
-		key_to_use = new_old
-	elif log_type == 'oo':
-		key_to_use = old_old
+	if by_group_id:
+		# 'log_type' is a list contaning group_ids
+		final_data = []
+		for group_id in log_type:
+			nn_chat = my_server.zrangebyscore(new_new, group_id, group_id,withscores=True)
+			no_chat = [] if nn_chat else my_server.zrangebyscore(new_old, group_id, group_id,withscores=True)
+			oo_chat = [] if (nn_chat or no_chat) else my_server.zrangebyscore(old_old, group_id, group_id,withscores=True)
+			final_data = final_data+nn_chat+no_chat+oo_chat
+		return final_data
 	else:
-		return []
-	if key_to_use:
-		return my_server.zrange(key_to_use,0,-1,withscores=True)
-	else:
-		return []
+		# 'log_type' defines which bucket to dip into
+		if log_type == 'nn':
+			key_to_use = new_new
+		elif log_type == 'no':
+			key_to_use = new_old
+		elif log_type == 'oo':
+			key_to_use = old_old
+		else:
+			return []
+		if key_to_use:
+			return my_server.zrange(key_to_use,0,-1,withscores=True)
+		else:
+			return []
 
 
 def retrieve_chat_count():

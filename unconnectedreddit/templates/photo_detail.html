@@ -48,7 +48,7 @@
     {% check_invite_count as invite_count %}
     {% load count_group_invites %}
     {% check_group_invite_count as group_invite_count %}
-    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
+    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 {% else %}
     <li itemprop="name"><a href="{% url 'unauth_home_new' %}" itemprop="url">Home</a></li><li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}">Fotos</a></li><li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Existing Account</a></li>
 {% endif %}
@@ -78,11 +78,11 @@
 		<img class="pht" src="{{ photo.image_file|s3 }}" style="border-radius:12px">
 		
 		<br>
-		<a href="{% url 'profile' photo.owner.username 'fotos' %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22" style="border-radius:50%">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22" style="border-radius:50%">{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this {{ photo.upload_time|naturaltime }}</span><br>
+		<a href="{% url 'user_profile' photo.owner.username %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22" style="border-radius:50%">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22" style="border-radius:50%">{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this {{ photo.upload_time|naturaltime }}</span><br>
 		{% if latest_photocomments %}
 		<br><span class="csw co"><b>Latest Tabsrey:</b></span><br><br>
 		{% for photocomment in latest_photocomments %}
-		<a href="{% url 'profile' photocomment.submitted_by 'fotos' %}"><span class="cb cl">{{ photocomment.submitted_by }}</span></a><span class="clb cl">:&nbsp;{{ photocomment.text }}&nbsp;&nbsp;<span class="cs cgy">{{ photocomment.submitted_on|naturaltime }}</span></span>
+		<a href="{% url 'user_profile' photocomment.submitted_by %}"><span class="cb cl">{{ photocomment.submitted_by }}</span></a><span class="clb cl">:&nbsp;{{ photocomment.text }}&nbsp;&nbsp;<span class="cs cgy">{{ photocomment.submitted_on|naturaltime }}</span></span>
 		<hr size=1 COLOR="ORANGE">
 		{% endfor %}
 		{% else %}

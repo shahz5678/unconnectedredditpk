@@ -3060,7 +3060,7 @@ def export_chat_logs(request, log_type):
 	import json as json_backup
 	from redis7 import in_defenders
 	from redis4 import retrieve_chat_records
-	from redis3 import exact_date
+	from redis3 import exact_date, get_world_age
 
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
@@ -3071,8 +3071,9 @@ def export_chat_logs(request, log_type):
 			filename = 'chat_data_{}.csv'.format(log_type)
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID","receiver ID","msg type","img url","msg text"]
+				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID/wa","receiver ID/wa","msg type","img url","msg text"]
 				wtr.writerow(columns)
+				gid, world_ages = 0, {}
 				for chat_data, group_id in data_to_write_to_csv:
 					try:
 						chat_data = json.loads(chat_data)
@@ -3081,7 +3082,12 @@ def export_chat_logs(request, log_type):
 					chat_data_list = chat_data.split(":")
 					posting_time, msg_type, img_url, sender_id, receiver_id, msg = float(chat_data_list[0]), chat_data_list[1],\
 					chat_data_list[2], chat_data_list[3], chat_data_list[4], (chat_data_list[5].encode('utf-8')).replace('\n', ' ').replace('\r', ' ')
-					to_write = [posting_time,exact_date(posting_time),group_id,sender_id,receiver_id,msg_type,img_url,msg]
+					if group_id != gid:
+						# we're logging a new group
+						world_ages = {sender_id:get_world_age(user_id=sender_id),receiver_id:get_world_age(user_id=receiver_id)}
+						gid = group_id
+					to_write = [posting_time,exact_date(posting_time),group_id,sender_id+" / "+str(world_ages[sender_id]),receiver_id+" / "+str(world_ages[receiver_id]),\
+					world_ages[sender_id],world_ages[receiver_id],msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
 

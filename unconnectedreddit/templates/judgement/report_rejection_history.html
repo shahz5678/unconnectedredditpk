@@ -27,13 +27,13 @@
 
             <div class="mt lsp sp"><b>Submission:</b>&nbsp;<a href="{% url 'user_activity' data.oun %}" class="cb bw mrs" target="_blank">"{% emoticons %}{{ data.txt|linebreaksbr }}{% endemoticons %}"</a><a href="{% url 'display_link_detail' data.obj_id %}" target="_blank"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a></div>
            
-           <div class="mt lsp sp"><b>Submitted by:</b>&nbsp;<a href="{% url 'profile' data.oun 'fotos' %}" class="cb" target="_blank"><b>{{ data.oun }}</b></a></div>
+           <div class="mt lsp sp"><b>Submitted by:</b>&nbsp;<a href="{% url 'user_profile' data.oun %}" class="cb" target="_blank"><b>{{ data.oun }}</b></a></div>
 
-           <div class="mt lsp sp"><b>Rejected by:</b>&nbsp;<a href="{% url 'profile' data.dun 'fotos' %}" class="cb mrs" style="border-bottom:1px dotted blue" target="_blank">{{ data.dun }}</a><a href="{% url 'defender_history_super_admin_view' data.did %}" target="_blank" class="cb"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
+           <div class="mt lsp sp"><b>Rejected by:</b>&nbsp;<a href="{% url 'user_profile' data.dun %}" class="cb mrs" style="border-bottom:1px dotted blue" target="_blank">{{ data.dun }}</a><a href="{% url 'defender_history_super_admin_view' data.did %}" target="_blank" class="cb"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
            
            {% for reporter_uname, report_generic_text, report_result in data.reporter_data %}
             <div class="mls cs" style="background:whitesmoke">
-            <div class="mt lsp sp" style="border-top:1px dashed silver;padding-top:4px"><b>Reporter:</b>&nbsp;<a href="{% url 'profile' reporter_uname 'fotos' %}" class="cb" target="_blank"><b>{{ reporter_uname }}</b></a></div>
+            <div class="mt lsp sp" style="border-top:1px dashed silver;padding-top:4px"><b>Reporter:</b>&nbsp;<a href="{% url 'user_profile' reporter_uname %}" class="cb" target="_blank"><b>{{ reporter_uname }}</b></a></div>
             <div class="mt lsp sp"><b>Report reason:</b>&nbsp;"{{ report_generic_text }}"</div>
             <div class="mt lsp sp"><b>Report decision:</b>&nbsp;{% if report_result == 'malicious' %}<span class="cr">{% else %}<span class="cg">{% endif %}{{ report_result }}</span></div>
             </div>
@@ -50,13 +50,13 @@
 
             <div class="mt lsp sp"><b>Submission:</b>&nbsp;<a href="{% url 'user_profile_photo' data.oun data.obj_id %}" target="_blank"><img src="{{ data.purl|s3:'thumb' }}" style="border-radius:4px;border:2px solid dodgerblue" alt="pic"></a><a rel="nofollow" href="{{ data.purl }}" target="_blank"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a></div>
            
-           <div class="mt lsp sp"><b>Submitted by:</b>&nbsp;<a href="{% url 'profile' data.oun 'fotos' %}" class="cb" target="_blank"><b>{{ data.oun }}</b></a></div>
+           <div class="mt lsp sp"><b>Submitted by:</b>&nbsp;<a href="{% url 'user_profile' data.oun %}" class="cb" target="_blank"><b>{{ data.oun }}</b></a></div>
 
-           <div class="mt lsp sp"><b>Rejected by:</b>&nbsp;<a href="{% url 'profile' data.dun 'fotos' %}" class="cb mrs" style="border-bottom:1px dotted blue" target="_blank">{{ data.dun }}</a><a href="{% url 'defender_history_super_admin_view' data.did %}" target="_blank" class="cb"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
+           <div class="mt lsp sp"><b>Rejected by:</b>&nbsp;<a href="{% url 'user_profile' data.dun %}" class="cb mrs" style="border-bottom:1px dotted blue" target="_blank">{{ data.dun }}</a><a href="{% url 'defender_history_super_admin_view' data.did %}" target="_blank" class="cb"><img src="{{ STATIC_URL }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
 
            {% for reporter_uname, report_generic_text, report_result in data.reporter_data %}
             <div class="mls cs" style="background:whitesmoke">
-            <div class="mt lsp sp" style="border-top:1px dashed silver;padding-top:4px"><b>Reporter:</b>&nbsp;<a href="{% url 'profile' reporter_uname 'fotos' %}" class="cb" target="_blank"><b>{{ reporter_uname }}</b></a></div>
+            <div class="mt lsp sp" style="border-top:1px dashed silver;padding-top:4px"><b>Reporter:</b>&nbsp;<a href="{% url 'user_profile' reporter_uname %}" class="cb" target="_blank"><b>{{ reporter_uname }}</b></a></div>
             <div class="mt lsp sp"><b>Report reason:</b>&nbsp;"{{ report_generic_text }}"</div>
             <div class="mt lsp sp"><b>Report decision:</b>&nbsp;{% if report_result == 'malicious' %}<span class="cr">{% else %}<span class="cg">{% endif %}{{ report_result }}</span></div>
             </div>

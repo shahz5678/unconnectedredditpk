@@ -3071,7 +3071,8 @@ def export_chat_logs(request, log_type):
 			filename = 'chat_data_{}.csv'.format(log_type)
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID/wa","receiver ID/wa","msg type","img url","msg text"]
+				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID/wa","receiver ID/wa","sender wa","receiver wa",\
+				"msg type","img url","msg text"]
 				wtr.writerow(columns)
 				gid, world_ages = 0, {}
 				for chat_data, group_id in data_to_write_to_csv:

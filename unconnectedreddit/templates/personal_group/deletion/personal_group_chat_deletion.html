@@ -33,7 +33,7 @@
     <div class="card csb" style="margin-top:1.3em;text-align:right;">
         
         <div class="mbs tr_cnr">
-            <a href="{% url 'profile' usr 'fotos' %}">
+            <a href="{% url 'user_profile' usr %}">
             {% if own_nick == 'False' %}
               <div class="av_btn sbb" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ usr|truncap }}</div>
             {% else %}
@@ -59,7 +59,7 @@
               
               <div class="mrl mll mbl card ca" style="text-align:left">  
                 <div class="mbs cs tl_cnr">
-                    <a href="{% url 'profile' t_usr 'fotos' %}">
+                    <a href="{% url 'user_profile' t_usr %}">
                     {% if their_nick == 'False' %}
                       <div class="av_btn ab" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ t_usr|truncap }}</div>
                     {% else %}

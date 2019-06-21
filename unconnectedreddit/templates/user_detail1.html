@@ -34,13 +34,12 @@
 {% if page_obj.number == 1 and not is_trending %}
  <article class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px">
     
+    {% if not mobile_verified %}
+      <div class="cs sp" style="text-align:center;font-weight:bold;background:tomato;color:white;padding:6px 0">UNVERIFIED USER</div>
+    {% endif %}
+
     <div class="cl sp" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa"> 
-        
-          {% if not mobile_verified %}
-          <div class="mbs cr cs sp" style="font-weight:bold">- UNVERIFIED -</div>
-          {% endif %}
-          Profile foto:
-      
+        Profile foto:
     </div>
 
     {% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=slug ban_detail=ban_detail %}

@@ -2,21 +2,21 @@
 {% block content %}
 
 {% if temp_data_missing %}
-	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<head><title>Cannot impose ban | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ban nahi kia ja saka, dubara koshish karein</div>
 
 {% elif not_enough_score_to_report_mehfil %}
-	<head><title>Cannot report mehfil | Damadam.pk</title></head>
+	<head><title>Cannot report mehfil | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report mehfil</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Apke paas itna score nahi</div>
 
 {% elif mehfil_does_not_exist %}
-	<head><title>Cannot report mehfil | Damadam.pk</title></head>
+	<head><title>Cannot report mehfil | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report mehfil</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -24,7 +24,7 @@
 
 {% elif already_banned %}
 	{% load future_time %}
-	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<head><title>Cannot impose ban | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -34,7 +34,7 @@
 
 {% elif multi_already_banned %}
 
-	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<head><title>Cannot impose ban | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -42,7 +42,7 @@
 
 {% elif cannot_ban_self %}
 
-	<head><title>Cannot impose ban | Damadam.pk</title></head>
+	<head><title>Cannot impose ban | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to ban</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -51,7 +51,7 @@
 {% elif ban_imposed %}
 	
 	{% load future_time %}
-	<head><title>Ban imposed | Damadam.pk</title></head>
+	<head><title>Ban imposed | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">{{ oun }} banned!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -62,7 +62,7 @@
 {% elif ban_removed %}
 	
 	{% load future_time %}
-	<head><title>Ban removed | Damadam.pk</title></head>
+	<head><title>Ban removed | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Ban removed!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -73,7 +73,7 @@
 {% elif ban_edited %}
 	
 	{% load future_time %}
-	<head><title>Ban changed | Damadam.pk</title></head>
+	<head><title>Ban changed | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Ban time changed!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -92,22 +92,22 @@
 {% elif multi_ban_imposed %}
 	
 	{% load future_time %}
-	<head><title>Ban imposed | Damadam.pk</title></head>
+	<head><title>Ban imposed | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">User(s) banned!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if iun %}
-		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username 'fotos' %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}{% if ban_time == '-1' %}ko forever ban kar dia gya!{% else %}ko ban kar dia gya. Ye ban khatam ho ga {{ ban_time|future_time }}{% endif %}</div>
-		<hr size=1 COLOR="#e5e7e9"><div class="sp lsp mts cgy">Ye user(s) ban nahi kiye gaye kiyun ke pehlay se banned thay:&nbsp;{% for ignored_uname in iun %}<a href="{% url 'profile' ignored_uname 'fotos' %}" class="mrs clb" style="font-weight:bold">{{ ignored_uname }}</a>{% endfor %}</div>
+		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'user_profile' username %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}{% if ban_time == '-1' %}ko forever ban kar dia gya!{% else %}ko ban kar dia gya. Ye ban khatam ho ga {{ ban_time|future_time }}{% endif %}</div>
+		<hr size=1 COLOR="#e5e7e9"><div class="sp lsp mts cgy">Ye user(s) ban nahi kiye gaye kiyun ke pehlay se banned thay:&nbsp;{% for ignored_uname in iun %}<a href="{% url 'user_profile' ignored_uname %}" class="mrs clb" style="font-weight:bold">{{ ignored_uname }}</a>{% endfor %}</div>
 	{% else %}
-		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'profile' username 'fotos' %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}ko ban kar dia gya!</div>
+		<div class="cxl lsp">{% for username in tunm %}<a href="{% url 'user_profile' username %}" class="mrs clb" style="font-weight:bold">{{ username }}</a>{% endfor %}ko ban kar dia gya!</div>
 		<hr size=1 COLOR="#e5e7e9">
 		{% if ban_time == '-1' %}<div class="sp lsp mts">Ye ban forever ke liye hai</div>{% else %}<div class="sp lsp mts">Ye ban khatam ho ga {{ ban_time|future_time }}</div>{% endif %}
 	{% endif %}
 
 {% elif not_your_ban %}
 
-	<head><title>Cannot change ban | Damadam.pk</title></head>
+	<head><title>Cannot change ban | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to change ban</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -116,7 +116,7 @@
 {% elif mehfil_report_ttl %}
 
 	{% load future_time %}
-	<head><title>Cannot report mehfil | Damadam.pk</title></head>
+	<head><title>Cannot report mehfil | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -124,7 +124,7 @@
 
 {% elif reporting_own_mehfil %}
 
-	<head><title>Cannot report own mehfil | Damadam.pk</title></head>
+	<head><title>Cannot report own mehfil | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -132,7 +132,7 @@
 
 {% elif reporting_own_profile %}
 
-	<head><title>Cannot report own profile | Damadam.pk</title></head>
+	<head><title>Cannot report own profile | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -140,7 +140,7 @@
 
 {% elif locked_by_super %}
 
-	<head><title>Cannot change ban | Damadam.pk</title></head>
+	<head><title>Cannot change ban | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to change ban</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -151,7 +151,7 @@
 
 {% elif not_enough_score %}
 
-	<head><title>Cannot report item | Damadam.pk</title></head>
+	<head><title>Cannot report item | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -160,7 +160,7 @@
 
 {% elif report_tinkered %}
 
-	<head><title>Cannot report | Damadam.pk</title></head>
+	<head><title>Cannot report | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -168,7 +168,7 @@
 
 {% elif reporting_own_content %}
 
-	<head><title>Cannot report own item | Damadam.pk</title></head>
+	<head><title>Cannot report own item | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -176,7 +176,7 @@
 
 {% elif item_already_downgraded %}
 
-	<head><title>Cannot report item | Damadam.pk</title></head>
+	<head><title>Cannot report item | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -184,7 +184,7 @@
 
 {% elif not_original %}
 
-	<head><title>Cannot report item | Damadam.pk</title></head>
+	<head><title>Cannot report item | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -192,7 +192,7 @@
 
 {% elif already_reported %}
 
-	<head><title>Cannot report item | Damadam.pk</title></head>
+	<head><title>Cannot report item | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot report:</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -228,7 +228,7 @@
 
 {% else %}
 
-	<head><title>Cannot complete action | Damadam.pk</title></head>
+	<head><title>Cannot complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Please press OK</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -246,7 +246,7 @@
 
 {% elif reporting_own_profile %}
 
-	<div class="mtl mbl"><a href="{% url 'profile' uname 'fotos' %}#section0"><button class="btn bct bm pg_ok_res sp" style="height:26px">wapis</button></a></div>
+	<div class="mtl mbl"><a href="{% url 'user_profile' uname %}#section0"><button class="btn bct bm pg_ok_res sp" style="height:26px">wapis</button></a></div>
 
 {% else %}
 

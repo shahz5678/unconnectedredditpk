@@ -22,7 +22,7 @@
     	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" style="border-radius:5px;" height="38"></img>
     {% endif %}
 {% endif %}
-<div class="mts mbs cgy mrs sp cs"><a href="{% url 'profile' photo.owner.username 'fotos' %}" class="cb sp">{% if photo.owner.username in females %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="10" width="10">&nbsp;{% endif %}{{ photo.owner.username|truncatechars:'13' }}</a>
+<div class="mts mbs cgy mrs sp cs"><a href="{% url 'user_profile' photo.owner.username %}" class="cb sp">{% if photo.owner.username in females %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="10" width="10">&nbsp;{% endif %}{{ photo.owner.username|truncatechars:'13' }}</a>
 ne&nbsp;upload ki, {{ photo.upload_time|naturaltime }}</div>
 <hr size=1 COLOR="#E9EBEE">
 <div class="cl sp lsp" style="font-weight:bold">Kuch new upload karein!</div>

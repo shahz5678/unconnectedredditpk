@@ -139,7 +139,7 @@
         {% if own_id|slugify == post.id %}
          <div class="card mbl {{ bgclass }}" style="margin-top:1em;text-align:right;">
           <div class="mbs tr_cnr">
-          <a href="{% url 'profile' post.username 'fotos' %}">
+          <a href="{% url 'user_profile' post.username %}">
           {% if own_anon %}
             <div class="av_btn {{ bclass }}" style="width:22px;height:22px;line-height: 23px;color:#01579B;">{{ post.username|truncap }}</div>
           {% else %}
@@ -251,7 +251,7 @@
                   <div class="mrl mll mbl card ca" style="text-align:left">
 
                     <div class="mbs cs tl_cnr">
-                        <a href="{% url 'profile' post.t_username 'fotos' %}">
+                        <a href="{% url 'user_profile' post.t_username %}">
                         {% if their_anon %}
                           <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654;font-size:118%;">{{ post.t_username|truncap }}</div></a>
                         {% else %}
@@ -299,7 +299,7 @@
          <div class="card mbl {{ their_bgclass }}" style="margin-top:1em;text-align:left;">
 
           <div class="mbs tl_cnr">
-            <a href="{% url 'profile' post.username 'fotos' %}">
+            <a href="{% url 'user_profile' post.username %}">
             {% if their_anon %}
             <div class="av_btn {{ their_bclass }}" style="width:22px;height:22px;line-height: 23px;color:#306654;">{{ post.username|truncap }}</div>
             {% else %}
@@ -412,7 +412,7 @@
                      <div class="mrl mll mbl card csb" style="text-align:right">
                       
                       <div class="mbs cs tr_cnr">
-                          <a href="{% url 'profile' post.t_username 'fotos' %}">
+                          <a href="{% url 'user_profile' post.t_username %}">
                            {% if own_anon %}
                             <div class="av_btn sbb" style="width:22px;height:22px;line-height:23px;color:#01579B;font-size: 118%">{{ post.t_username|truncap }}</div>
                           {% else %}

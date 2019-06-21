@@ -30,7 +30,7 @@
 	{% else %}
 
 		{% if not mobile_verified %}
-			<div class="mts cs cr sp" style="text-align:center;font-weight:bold">- UNVERIFIED -</div>
+			<div class="cs sp" style="text-align:center;font-weight:bold;background:tomato;color:white;padding:6px 0">UNVERIFIED USER</div>
 		{% endif %}
 
 		{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=username ban_detail=ban_detail %}

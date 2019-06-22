@@ -27,6 +27,6 @@
       <form method="POST" action="{% url 'post_chat_action_in_personal_group' %}" style="display:inline">
         {% csrf_token %}
         <input type="hidden" name="opt" value="6">
-        <button type="submit" class="cp cp-bg mls" style="background-image: url('{{ static_url }}img/settings1.svg')" name="tid" value="{{ tid }}">&nbsp;</button>
+        <button type="submit" class="cp cp-bg mls" style="background-image: url('{{ static_url }}img/gear.svg')" name="tid" value="{{ tid }}">&nbsp;</button>
       </form>
 </div>

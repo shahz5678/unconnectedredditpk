@@ -2953,14 +2953,13 @@ class WelcomeView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(WelcomeView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			try:
-				target_user = User.objects.get(id=self.request.session["welcome_pk"])
-				context["authenticated"] = True
-				context["target_user"] = target_user
-			except:
-				context["authenticated"] = False
-				context["target_user"] = []
+		try:
+			target_user = User.objects.get(id=self.request.session["welcome_pk"])
+			context["authenticated"] = True
+			context["target_user"] = target_user
+		except:
+			context["authenticated"] = False
+			context["target_user"] = []
 		return context
 
 class WelcomeMessageView(CreateView):
@@ -3346,7 +3345,7 @@ def public_reply_view(request,*args,**kwargs):
 			parent_submitter_id = link['submitter']
 			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
 			context["parent_submitter_id"] = parent_submitter_id
-			context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
+			# context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
 			context["parent_av_url"] = parent_avurl
 			context["vote_score"] = link['net_votes']
 			context["parent"] = link #the parent link
@@ -3494,7 +3493,7 @@ class UserActivityView(ListView):
 					obj['c1'], obj['c2'] = '', ''
 		if target_id:
 			context["verified"] = True if username in FEMALES else False
-			context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
+			# context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
 			context["is_profile_banned"] = False
 			if self.request.user.is_authenticated():
 				own_id = self.request.user.id
@@ -3758,8 +3757,8 @@ def welcome_reply(request,*args,**kwargs):
 				# 	device = '5'
 				# else:
 				# 	device = '3'
-				request.user.userprofile.score = request.user.userprofile.score + 1
-				request.user.userprofile.save()
+				# request.user.userprofile.score = request.user.userprofile.score + 1
+				# request.user.userprofile.save()
 				try:
 					av_url = target.userprofile.avatar.url
 				except ValueError:

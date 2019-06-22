@@ -23,7 +23,7 @@
 		<input type="hidden" name="counter" value="{{ counter }}">
 		<input type="hidden" name="original_target_username" value="{{ original_target_uname }}">
 		{% for target in targets %}
-		<input type="checkbox" name="target{{ forloop.counter }}" value="{{ target.id }}" checked>&nbsp;<a href="{% url 'profile' target.username 'fotos' %}#section0">{{ target.username }}</a><br>
+		<input type="checkbox" name="target{{ forloop.counter }}" value="{{ target.id }}" checked>&nbsp;<a href="{% url 'user_profile' target.username %}#section0">{{ target.username }}</a><br>
 		{% endfor %}
 		<button class="btn bl bcr mbl mtl" type="submit">Kick</button><br>
 	</form>

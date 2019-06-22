@@ -16,7 +16,7 @@
             {% load get_block_button %}
             {% load get_unfan_button %}
             
-            <div class="mt mbl"><a href="{% url 'profile' star.username 'fotos' %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>
+            <div class="mt mbl"><a href="{% url 'user_profile' star.username %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>
 
             <div class="cxl lsp" style="border-top:1px dashed lightgray;padding-top:10px">
             {% if count == 1 %}1 fan:{% else %}{{ count }} fans:{% endif %}
@@ -36,7 +36,7 @@
                 <li style="text-align:left;border-bottom:1px dashed lightgray;padding:15px 0" class="sp">
                     <div style="word-break: break-all;">
                     <span class="cgy cxs sp">{{ forloop.counter0|add:page_obj.start_index }}.</span>
-                    <a href="{% url 'profile' fan.username 'fotos' %}#section0" class="clb" style="font-weight:bold">
+                    <a href="{% url 'user_profile' fan.username %}#section0" class="clb" style="font-weight:bold">
                 	<img src="{{ fan.userprofile.avatar|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">
                     {{ fan.username }}</a>{% if fan.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*">{% endif %}
                 	{% if fan.userprofile.score %}

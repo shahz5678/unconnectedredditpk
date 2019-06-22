@@ -34,7 +34,7 @@
         {% else %}
             <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
         {% endif %}
-		&nbsp;<a href="{% url 'profile' visitor.uname 'fotos' %}" class="cb"><img src="{{ visitor.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if visitor.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ visitor.uname }}</a>{% if group_owner_id == visitor_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:text-bottom" height="23" width="23" alt="(owner)" class="mll cxs sp cp">{% endif %}<span class="cxs sp cgy mll">seen {{ visit_time|human_time }}</span>
+		&nbsp;<a href="{% url 'user_profile' visitor.uname %}" class="cb"><img src="{{ visitor.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if visitor.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ visitor.uname }}</a>{% if group_owner_id == visitor_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:text-bottom" height="23" width="23" alt="(owner)" class="mll cxs sp cp">{% endif %}<span class="cxs sp cgy mll">seen {{ visit_time|human_time }}</span>
 		</div>
 		</li>
 	{% endfor %}
@@ -60,7 +60,7 @@
 		<li style="text-align:left;border-bottom:1px dashed lightgray">
 		<div class="mtl mbl">
 		<span class="cgy cs sp">{{ row_num }}. </span>
-		<a href="{% url 'profile' member.uname 'fotos' %}" class="cb"><img src="{{ member.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if member.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ member.uname }}</a>{% if group_owner_id == member_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:sub" height="23" width="23" alt="(owner)" class="mll sp cp">{% endif %}<span class="cxs sp cgy mll">joined {{ joining_time|human_time }}</span>
+		<a href="{% url 'user_profile' member.uname %}" class="cb"><img src="{{ member.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if member.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ member.uname }}</a>{% if group_owner_id == member_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:sub" height="23" width="23" alt="(owner)" class="mll sp cp">{% endif %}<span class="cxs sp cgy mll">joined {{ joining_time|human_time }}</span>
 		</div>
 		</li>
 	{% endfor %}

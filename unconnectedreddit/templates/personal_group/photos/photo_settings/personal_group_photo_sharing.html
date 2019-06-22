@@ -136,7 +136,7 @@
 						<div class="sh cvs ext-cvs ctr csb" style="max-width:{{ photo.img_width }}px">
 							{% if photo.is_shared %}
 							<div class="cxs sp mbl mt">
-							<a href="{% url 'profile' photo.owner_uname 'fotos' %}" style="color:#4C5EA3;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							<a href="{% url 'user_profile' photo.owner_uname %}" style="color:#4C5EA3;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
 							</div>
 							{% endif %}
 							<img src="{{ photo.img_url|s3 }}" alt="pic loading ..." class="pgpic">
@@ -156,7 +156,7 @@
 						<div class="sh mbl cvs ctr csb" style="max-width:{{ photo.img_b_width }}px">
 							{% if photo.is_shared %}
 							<div class="cxs sp mbl mt">
-							<a href="{% url 'profile' photo.owner_uname 'fotos' %}" style="color:#4C5EA3;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							<a href="{% url 'user_profile' photo.owner_uname %}" style="color:#4C5EA3;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
 							</div>
 							{% endif %}
 							{% personal_group_hidden_pht_from_settings hw_ratio=photo.hw_ratio %}
@@ -193,7 +193,7 @@
 						<div class="sh cvs ext-cvs ctr ca" style="max-width:{{ photo.img_width }}px">
 							{% if photo.is_shared %}
 							<div class="cxs sp mbl mt">
-							<a href="{% url 'profile' photo.owner_uname 'fotos' %}" style="color:#069E9C;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							<a href="{% url 'user_profile' photo.owner_uname %}" style="color:#069E9C;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
 							</div>
 							{% endif %}
 							<img src="{{ photo.img_url|s3 }}" alt="pic loading ..." class="pgpic">
@@ -215,7 +215,7 @@
 						<div class="sh mbl cvs ctr ca" style="max-width:{{ photo.img_b_width }}px">
 							{% if photo.is_shared %}
 							<div class="cxs sp mbl mt">
-							<a href="{% url 'profile' photo.owner_uname 'fotos' %}" style="color:#069E9C;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
+							<a href="{% url 'user_profile' photo.owner_uname %}" style="color:#069E9C;text-decoration:none">foto via {{ photo.owner_uname|truncatechars:'13' }}</a>
 							</div>
 							{% endif %}
 							{% personal_group_hidden_pht_from_settings hw_ratio=photo.hw_ratio %}

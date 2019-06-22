@@ -1,6 +1,6 @@
 <div class="{{ css_shadow }} bx pol" style="max-width:{{ max_width }}px;width:100%;padding:10px 10px 30px 10px;">
 {% if original_poster %}
-<a href="{% url 'profile' original_poster 'fotos' %}" style="text-decoration:none">
+<a href="{% url 'user_profile' original_poster %}" style="text-decoration:none">
 <div class="cxs sp cgy mbl" style="text-align:center">foto via {{ original_poster|truncatechars:'15' }}</div>
 </a>
 {% endif %}

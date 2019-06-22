@@ -6,13 +6,13 @@
 
       {% if sin == 'bad_submission' %}
         
-          <div class="mt lsp sp"><b>Ban target:</b>&nbsp;<a href="{% url 'profile' oun 'fotos' %}" class="cb"><b>{{ oun }}</b></a></div>
+          <div class="mt lsp sp"><b>Ban target:</b>&nbsp;<a href="{% url 'user_profile' oun %}" class="cb"><b>{{ oun }}</b></a></div>
           <div class="mt lsp sp"><b>Banned for:</b>&nbsp;bad content submission</div>
           <div class="mt lsp sp"><b>Submission:</b>&nbsp;{% if tp == 'tx' %}<a href="{% url 'user_activity' oun %}" class="cb mrs bw">"{% emoticons %}{{ txt|linebreaksbr }}{% endemoticons %}"</a><a href="{% url 'display_link_detail' obid %}" target="_blank"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a>{% else %}{% load get_thumb_to_img_url %}<a href="{% url 'user_profile_photo' oun obid %}"><img src="{{ pu }}" style="border-radius:4px;border:2px solid dodgerblue" alt="pic" class="mrs"></a><a rel="nofollow" href="{{ pu|thumb_to_img }}" target="_blank"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a>{% endif %}</div>
       
       {% elif sin == 'bad_voting' %}
         
-          <div class="mt lsp sp"><b>Ban target <span class="cxs sp cgy">(1)</span>:</b>&nbsp;<a href="{% url 'profile' utunm 'fotos' %}" class="cb"><b>{{ utunm }}</b></a></div>
+          <div class="mt lsp sp"><b>Ban target <span class="cxs sp cgy">(1)</span>:</b>&nbsp;<a href="{% url 'user_profile' utunm %}" class="cb"><b>{{ utunm }}</b></a></div>
           <div class="mt lsp sp"><b>Banned for:</b>&nbsp;bad voting</div>
           <div class="mt lsp sp"><b>Voted on:</b>&nbsp;{% if tp == 'tx' %}<a href="{% url 'user_activity' oun %}" class="cb mrs bw">"{% emoticons %}{{ txt|linebreaksbr }}{% endemoticons %}"</a><a href="{% url 'display_link_detail' obid %}" target="_blank"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a>{% else %}{% load get_thumb_to_img_url %}<a href="{% url 'user_profile_photo' oun obid %}"><img src="{{ pu }}" style="border-radius:4px;border:2px solid dodgerblue" alt="pic" class="mrs"></a><a rel="nofollow" href="{{ pu|thumb_to_img }}" target="_blank"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="22" height="22"></a>{% endif %}</div>
       
@@ -20,10 +20,10 @@
       
       <div class="mt lsp sp"><b>Action <span class="cgy cs sp">{% if oeunm %}(changed){% endif %}</span>:</b>{% if dur == '1' %} banned content submission and voting for 3 hours{% elif dur == '2' %} banned content submission and voting for 1 day{% elif dur == '3' %} banned content submission and voting for 3 days{% elif dur == '4' %} banned content submission and voting for 1 week{% elif dur == '5' %} banned content submission and voting for 1 month{% elif dur == '6' %} banned content submission and voting forever{% else %}{% endif %}</div>
       {% if oeunm %}
-        <div class="mt lsp sp"><b>Ban changer:</b>&nbsp;<a href="{% url 'profile' oeunm 'fotos' %}" target="_blank" class="cb mrs" style="border-bottom:1px dotted darkgray">{{ oeunm }}</a><a href="{% url 'defender_history_super_admin_view' oeid %}" target="_blank" class="cb"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
+        <div class="mt lsp sp"><b>Ban changer:</b>&nbsp;<a href="{% url 'user_profile' oeunm %}" target="_blank" class="cb mrs" style="border-bottom:1px dotted darkgray">{{ oeunm }}</a><a href="{% url 'defender_history_super_admin_view' oeid %}" target="_blank" class="cb"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
       {% endif %}
       {% if dunm %}
-      <div class="mt lsp sp"><b>Ban created by:</b>&nbsp;<a href="{% url 'profile' dunm 'fotos' %}" target="_blank" class="cb mrs" style="border-bottom:1px dotted darkgray">{{ dunm }}</a><a href="{% url 'defender_history_super_admin_view' did %}" target="_blank" class="cb"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
+      <div class="mt lsp sp"><b>Ban created by:</b>&nbsp;<a href="{% url 'user_profile' dunm %}" target="_blank" class="cb mrs" style="border-bottom:1px dotted darkgray">{{ dunm }}</a><a href="{% url 'defender_history_super_admin_view' did %}" target="_blank" class="cb"><img src="{{ static_url }}img/redirect.svg" class="mls" style="vertical-align:sub" width="20" height="20"></a></div>
       {% endif %}
       <div class="mt lsp sp"><b>Ban creator remarks:</b>&nbsp;<span style="font-style:italic">"{% load emoticons_tags %}{% emoticons %}{{ remark }}{% endemoticons %}"</span></div>
 

@@ -11,7 +11,7 @@ Ye photo <img src="{{ photo_url|s3:'thumb' }}" style="border:1px solid #ff9933;w
 	{% else %}
 	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic">
 	{% endif %}
-	<a href="{% url 'profile' fan.username 'fotos' %}">{{ fan.username }}</a><span class="cg cs">&nbsp;({{ fan.userprofile.score }})</span><br>
+	<a href="{% url 'user_profile' fan.username %}">{{ fan.username }}</a><span class="cg cs">&nbsp;({{ fan.userprofile.score }})</span><br>
 {% endfor %}
 <br>
 <a href="{% url 'unseen_activity' nickname %}"><button class="btn bco bm mtl mbs">wapis</button></a>

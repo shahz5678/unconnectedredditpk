@@ -12,4 +12,4 @@ def personal_group_own_chat_buttons(blob_id, tid, index, username, av_url, tt, c
 	'posting_time':pt, 'is_res':is_res,'static_url':static_url,'t_usr':target_username,'t_aurl':target_av_url,'their_anon':their_anon_status,\
 	't_tt':target_content_type,'t_ct':target_content,'t_ic':target_img_caption,'t_pt':target_posting_time,'t_st':target_status, 'id_name':id_name,\
 	't_isc':target_img_s_caption,'incl_save':'' if is_minus else 'display:none;','img_width':img_width,'add_margin':'mrl' if is_minus else '', \
-	'own_anon':own_anon_status,'original_poster':original_poster}
+	'own_anon':own_anon_status,'original_poster':original_poster,'del_label':"DELETE" if is_minus else 'UNDELETE'}

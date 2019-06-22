@@ -1,19 +1,12 @@
 <form action="{% url 'personal_group_own_chat_buttons' %}" class="mrl" method="POST" style="display:inline-block">
-   {% csrf_token %}
-   <input type="hidden" name="pl" value="{{ blob_id }}:{{ index }}:{{ username }}:{{ tt }}:{{ posting_time }}:{{ av_url }}:{{ is_res }}:{{ tid }}:{{ own_anon }}:{{ their_anon }}:{{ img_width }}">
-   <input type="hidden" name="pl_ct" value="{{ ct }}">
-   <input type="hidden" name="imc" value="{{ img_caption }}">
-   {% if original_poster %}<input type="hidden" name="op" value="{{ original_poster }}">{% endif %}
-   {% if is_res == 'res' %}
-   <input type="hidden" name="rpl" value="{{ t_usr }}:{{ t_aurl }}:{{ t_tt }}:{{ t_pt }}:{{ t_st }}">
-   <input type="hidden" name="rpl_ct" value="{{ t_ct }}">
-     {% if t_ic %}
-     <input type="hidden" name="t_ic" value="{{ t_ic }}">
-     <input type="hidden" name="t_isc" value="{{ t_isc }}">
-     {% endif %}
-   {% endif %}
-
-   <button type="submit" class="no-bg own-bt cxs sp {{ add_margin }}" style="height:19px;vertical-align: middle;color:#27579b;" name="dec" value="1">{{ del_label }}</button>
-   
-   <button type="submit" class="no-bg own-bt cxs sp" style="height:19px;vertical-align:middle;{{ incl_save }};color:#27579b;" name="dec" value="2">SAVE</button>
+{% csrf_token %}
+<input type="hidden" name="pl" value="{{ blob_id }}:{{ index }}:{{ username }}:{{ tt }}:{{ posting_time }}:{{ av_url }}:{{ is_res }}:{{ tid }}:{{ own_anon }}:{{ their_anon }}:{{ img_width }}"><input type="hidden" name="pl_ct" value="{{ ct }}"><input type="hidden" name="imc" value="{{ img_caption }}">
+{% if original_poster %}<input type="hidden" name="op" value="{{ original_poster }}">{% endif %}
+{% if is_res == 'res' %}
+<input type="hidden" name="rpl" value="{{ t_usr }}:{{ t_aurl }}:{{ t_tt }}:{{ t_pt }}:{{ t_st }}"><input type="hidden" name="rpl_ct" value="{{ t_ct }}">
+ {% if t_ic %}
+ <input type="hidden" name="t_ic" value="{{ t_ic }}"><input type="hidden" name="t_isc" value="{{ t_isc }}">
+ {% endif %}
+{% endif %}
+<button type="submit" class="no-bg own-bt cxs sp {{ add_margin }}" style="height:19px;vertical-align: middle;color:#27579b;" name="dec" value="1">{{ del_label }}</button><button type="submit" class="no-bg own-bt cxs sp" style="height:19px;vertical-align:middle;{{ incl_save }};color:#27579b;" name="dec" value="2">SAVE</button>
 </form>

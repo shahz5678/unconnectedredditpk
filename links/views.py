@@ -3589,7 +3589,7 @@ class UserSettingsEditView(UpdateView):
 		return UserSettings.objects.get_or_create(user=self.request.user)[0]
 
 	def get_success_url(self): #which URL to go back once settings are saved?
-		return reverse_lazy("profile", kwargs={'slug': self.request.user,'type':'fotos'})
+		return reverse_lazy("user_profile", kwargs={'slug': self.request.user})
 
 # @ratelimit(rate='7/s')
 def sharing_help(request):
@@ -3741,7 +3741,7 @@ def welcome_reply(request,*args,**kwargs):
 			try:
 				target = User.objects.get(pk=pk)
 			except User.DoesNotExist:
-				return redirect("profile", slug=username,type='fotos')
+				return redirect("user_profile", slug=username)# redirecting to own profile
 			current = User.objects.latest('id')
 			num = current.id
 			if (num-100) <= int(pk) <= (num+100):

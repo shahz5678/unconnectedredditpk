@@ -1,5 +1,6 @@
 // feeder for ''
 // Compress via https://jscompress.com/ and press "download"
+// Or use http://esprima.org/demo/minify.html in case above gives an error
 
 var sv = false; // self_voting
 var uv_cids = {}; // upvoted content IDs

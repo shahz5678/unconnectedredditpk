@@ -359,18 +359,22 @@ def enter_personal_group_from_single_notif(request):
 
 	If user is blocked, doesn't let them go through
 	"""
-	own_id = request.user.id
-	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-	if banned:
-		# show "user banned" message and redirect them to home
-		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
-	elif request.method == "POST":
-		target_id = request.POST.get("tid")
-		request.session["personal_group_tid_key"] = target_id
-		return redirect("enter_personal_group")
+	if request.mobile_verified:
+		own_id = request.user.id
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		elif request.method == "POST":
+			target_id = request.POST.get("tid")
+			request.session["personal_group_tid_key"] = target_id
+			return redirect("enter_personal_group")
+		else:
+			return redirect("home")
 	else:
-		return redirect("home")
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -1110,7 +1114,9 @@ def unseen_per_grp(request, gid, fid):
 	"""
 	Processes reply given in personal group straight from a notification or unseen activity
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		own_id = request.user.id
 		own_uname = get_target_username(str(own_id))
 		group_id, exists = personal_group_already_exists(own_id, fid)
@@ -1895,7 +1901,9 @@ def render_personal_group_invite(request):
 	"""
 	Renders private chat invite page
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		own_id, target_id = request.user.id, request.POST.get('tid',None)
 		parent_object_id, object_type, origin, topic = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None),\
 		request.POST.get('tp','')
@@ -2012,7 +2020,9 @@ def send_personal_group_invite(request):
 	"""
 	Forward to privacy setting of invite, don't send invite yet
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		invite_decision = request.POST.get('invite_dec',None)
 		if invite_decision == '1':
 			context = {'set_privacy':True,'target_av_url':request.session.get("personal_group_invite_target_av_url",None),\
@@ -2309,22 +2319,25 @@ def personal_group_user_listing(request):
 	"""
 	List down personal groups of a given user
 	"""
-	own_id, page_num = request.user.id, request.GET.get('page', '1')
-	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-	if banned:
-		# show "user banned" message and redirect them to home
-		tid = request.session.pop("personal_group_tid_key",'')
-		if tid:
-			request.session.pop("personal_group_gid_key:"+tid,'')
-		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	else:
-		start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-		payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
-		page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-		return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
-			'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
-			'items_in_curr_page':len(payload)})
+		own_id, page_num = request.user.id, request.GET.get('page', '1')
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			tid = request.session.pop("personal_group_tid_key",'')
+			if tid:
+				request.session.pop("personal_group_gid_key:"+tid,'')
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		else:
+			start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+			payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
+			page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+			return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
+				'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
+				'items_in_curr_page':len(payload)})
 
 ####################################################################################################################
 #################################################### Help Page #####################################################

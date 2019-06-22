@@ -16,7 +16,7 @@
         <br><br>
         {% for invitee in user_list %}
             <span class="numbers">{{ forloop.counter }}.</span>
-            <a href="{% url 'profile' invitee.username 'fotos' %}#section0">
+            <a href="{% url 'user_profile' invitee.username %}#section0">
             {% if invitee.userprofile.avatar %}
             <img src="{{ invitee.userprofile.avatar|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
             {% else %}

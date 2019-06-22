@@ -1,22 +1,9 @@
 <form action="{% url 'personal_group_their_chat_buttons' %}" method="POST" style="display:inline">
- {% csrf_token %}
- <input id="payload" type="hidden" name="pl" value="{{ blob_id }}:{{ username }}:{{ idx }}:{{ t }}:{{ tt }}:{{ tid }}:{{ img_width }}:{{ their_nick }}:{{ own_nick }}:{{ is_res }}:{{ av_url }}">
- <input type="hidden" name="pl_ct" value="{{ ct }}">
- <input type="hidden" name="cp" value="{{ img_caption }}">
- <input type="hidden" name="scp" value="{{ img_s_caption }}">
- <input type="hidden" name="hval" value="{{ hval }}">
- <input type="hidden" name="iid" value="{{ img_id }}">
- {% if original_poster %}<input type="hidden" name="op" value="{{ original_poster }}">{% endif %}
- {% if incl_tgt %}
- <input type="hidden" name="t_pl" value="{{ t_uname }}:{{ t_st }}:{{ t_ctype }}:{{ t_time }}:{{ t_aurl }}">
- <input type="hidden" name="t_pl_ct" value="{{ t_ct }}">
- <input type="hidden" name="t_scp" value="{{ t_s_img_cap }}">
- {% endif %}
-
-<button type="submit" class="no-bg th-bt cxs sp mrl" style="height:19px;vertical-align: middle;{{ incl_hide }};color:#2e6b54" name="dec" value="3">{{ hide_label }}</button>
-
-<button type="submit" class="no-bg th-bt rep cxs sp mrl" name="dec" style="height:19px;vertical-align:middle;color:#2e6b54;{{ incl_dresp }}" value="1">REPLY</button>
- 
-<button type="submit" class="no-bg th-bt cxs sp" style="height:19px;vertical-align:middle;{{ incl_save }};color:#2e6b54" name="dec" value="2">SAVE</button>
- 
+{% csrf_token %}
+<input id="payload" type="hidden" name="pl" value="{{ blob_id }}:{{ username }}:{{ idx }}:{{ t }}:{{ tt }}:{{ tid }}:{{ img_width }}:{{ their_nick }}:{{ own_nick }}:{{ is_res }}:{{ av_url }}"><input type="hidden" name="pl_ct" value="{{ ct }}"><input type="hidden" name="cp" value="{{ img_caption }}"><input type="hidden" name="scp" value="{{ img_s_caption }}"><input type="hidden" name="hval" value="{{ hval }}"><input type="hidden" name="iid" value="{{ img_id }}">
+{% if original_poster %}<input type="hidden" name="op" value="{{ original_poster }}">{% endif %}
+{% if incl_tgt %}
+<input type="hidden" name="t_pl" value="{{ t_uname }}:{{ t_st }}:{{ t_ctype }}:{{ t_time }}:{{ t_aurl }}"><input type="hidden" name="t_pl_ct" value="{{ t_ct }}"><input type="hidden" name="t_scp" value="{{ t_s_img_cap }}">
+{% endif %}
+<button type="submit" class="no-bg th-bt cxs sp mrl" style="height:19px;vertical-align: middle;{{ incl_hide }};color:#2e6b54" name="dec" value="3">{{ hide_label }}</button><button type="submit" class="no-bg th-bt rep cxs sp mrl" name="dec" style="height:19px;vertical-align:middle;color:#2e6b54;{{ incl_dresp }}" value="1">REPLY</button><button type="submit" class="no-bg th-bt cxs sp" style="height:19px;vertical-align:middle;{{ incl_save }};color:#2e6b54" name="dec" value="2">SAVE</button>
 </form>

@@ -24,7 +24,7 @@
 	{% endif %}
 	</a>
 	<span style="color:#404040;font-size:90%;">{{ video.caption|truncatechars:30 }}</span>
-	<br><span style="color:#a6a6a6;font-size:80%;">video by <a href="{% url 'profile' video.owner 'fotos' %}#section0">{{ video.owner }}</a></span><br>
+	<br><span style="color:#a6a6a6;font-size:80%;">video by <a href="{% url 'user_profile' video.owner %}#section0">{{ video.owner }}</a></span><br>
 
 	<br><b style="font-size:98%;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);color:#0b63c1;">Tabsra likho:</b>
 	<form action="{% url 'video_comment' %}" method="POST">
@@ -53,7 +53,7 @@
 	    <hr size=1 COLOR="#59A5F5">
 	    {% endif %}
 
-	     <a href="{% url 'profile' comment.submitted_by.username 'fotos' %}#section0" style="font-size:90%;">
+	     <a href="{% url 'user_profile' comment.submitted_by.username %}#section0" style="font-size:90%;">
         {% if comment.submitted_by.userprofile.avatar %}
             <img src="{{ comment.submitted_by.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
         {% else %}

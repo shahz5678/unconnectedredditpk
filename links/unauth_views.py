@@ -57,16 +57,10 @@ def create_dummy_user(request):
 @csrf_protect
 def logout_then_login(request):
 	if request.method == "POST":
-		if request.mobile_verified:
-			logout(request)
-			request.session["logged_out"] = '1'
-			request.session.modified = True
-			return redirect("login")
-		else:
-			# CSRF = csrf.get_token(request)
-			# temporarily_save_user_csrf(str(request.user.id), CSRF)
-			# return render(request, 'cant_logout_without_verifying.html', {'csrf':CSRF})
-			return render(request, 'verification/unable_to_submit_without_verifying.html', {'logout':True})
+		logout(request)
+		request.session["logged_out"] = '1'
+		request.session.modified = True
+		return redirect("login")
 	else:
 		return redirect("home")
 

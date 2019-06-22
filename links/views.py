@@ -632,14 +632,10 @@ class RegisterHelpView(FormView):
 @sensitive_post_parameters()
 @csrf_protect
 def logout_rules(request):
-	user_id = request.user.id
-	if request.mobile_verified:
-		if request.method == "POST":
-			return render(request,"logout/logout_rules.html",{})
-		else:
-			return render(request,"logout/logout_tutorial.html",{})
+	if request.method == "POST":
+		return render(request,"logout/logout_rules.html",{})
 	else:
-		return render(request, 'verification/unable_to_submit_without_verifying.html', {'logout':True})
+		return render(request,"logout/logout_tutorial.html",{})
 
 
 class LogoutPenaltyView(FormView):
@@ -687,13 +683,6 @@ class SalatRankingView(ListView):
 	paginate_by = 50
 
 	def get_queryset(self):
-		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		# 	'LOCATION': MEMLOC, 'TIMEOUT': 120,
-		# })
-		# users_fans = cache_mem.get('salat_streaks')
-		# if users_fans:
-		# 	return users_fans
-		# else:
 		return []
 
 	def get_context_data(self, **kwargs):
@@ -708,13 +697,6 @@ class SalatSuccessView(ListView):
 	paginate_by = 50
 
 	def get_queryset(self):
-		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		# 	'LOCATION': MEMLOC, 'TIMEOUT': 120,
-		# })
-		# users_fans = cache_mem.get('salat_streaks')
-		# if users_fans:
-		# 	return users_fans
-		# else:
 		return []
 
 	def get_context_data(self, **kwargs):

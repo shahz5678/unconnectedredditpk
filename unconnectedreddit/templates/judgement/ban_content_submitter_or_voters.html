@@ -91,9 +91,9 @@
 			{% for user_id,username,status,vote_value in voter_payload %}
 				<li style="text-align:left" class="mbl">
 				{% if status == '1' %}
-				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
+				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'user_profile' username %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
 				{% else %}
-				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'profile' username 'fotos' %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
+				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'user_profile' username %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
 				{% endif %}
 				</li>
 			{% endfor %}

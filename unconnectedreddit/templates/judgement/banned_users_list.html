@@ -38,7 +38,7 @@
 {% endif %}
 {% for banned_user, ttl in banned_users_with_ttl %}
 	<span class="cgy cs"><span class="cxs">{{ forloop.counter }}.</span>
-	<a href="{% url 'profile' banned_user.username 'fotos' %}#section0">
+	<a href="{% url 'user_profile' banned_user.username %}#section0">
         <img src='{{ banned_user.userprofile.avatar|s3:"thumb" }}' width="22" height="22" alt="pic" style="border-radius:50%">
         <b class="cb cl"><bdi>{{ banned_user.username }}</bdi></b>
         {% if banned_user.username in females %}

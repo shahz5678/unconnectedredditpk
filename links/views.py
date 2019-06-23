@@ -2982,7 +2982,13 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		else:
 			if request.method == 'POST':
 				origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-				if grp["p"] == '1':
+				banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+				if banned:
+					# Cannot submit unseen_group response if banned
+					return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+						'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':origin if origin else '14', \
+						'tun':username})
+				elif grp["p"] == '1':
 					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='',per_grp_id='')
 				else:
 					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='',per_grp_id='')

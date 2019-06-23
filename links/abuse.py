@@ -14,7 +14,7 @@ CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc
 'vegina','se_x','leso','vigina','pen@is','ediut','kiss','b0o0b','b.o.o.b','sixe','shemaale','cex','iesbo','fu-ck','sperm','xnx','penes','s+e+x+y','sucker',\
 'girlfriend','boyfriend','couple','romance','klss','_hot_','-hot-','_hot-','-hot_','.hot.','_hot.','-hot.','.hot-','.hot_','_h0t_','-h0t-','_h0t-','-h0t_',\
 '.h0t.','_h0t.','-h0t.','.h0t-','.h0t_','sekxy','l_e_s_b','l-e-s-b','l.e.s.b','lezb','horny','h0rny','7inch','8inch','9inch','10inch','11inch','12inch',\
-'seexy','1.on.1','hsband','lesvian','saaxy','nepples','f-u-c-k','lsbian','buoob','bu00b','biitCh','nipals','hotchat']#'semen','anus',butt','kok','anal','ana1','hot','fanny','qhus'
+'seexy','1.on.1','hsband','lesvian','saaxy','nepples','f-u-c-k','lsbian','buoob','bu00b','biitCh','nipals','hotchat','pussi','sixie']#'semen','anus',butt','kok','anal','ana1','hot','fanny','qhus'
 
 
 CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','lun','choot','gashti','gandu','luun','gshti','randi','rndi','hijra','phatti','nanga',\
@@ -38,7 +38,7 @@ CORE_URDU_ABUSE_WORDS = ['aunty','besharm','baysharm','phudd','phudi','phodi','l
 '_l_','@l@','-l_','_l-','.l_','_l.','.l-','-l.','@l.','@l_','@l-','.l@','_l@','-l@','lool','looora','lauda','gaaram','chosn','gaasht','chudo','puda','bhond','b-0-0-b',\
 'r-a-n-d-i','lolla','raaaand','phouuuudi','phar','c.h.u.d.a.i','p0ddi','c.u.d.a.i','gaaaand','ghhashti','c.h.u.t','phuti','ch_ut','ga-nddo','l-esbo','bnd','chdi','gannnd',\
 'choso','leooon','chooopa','chuddakr','gondo','chuuut','peenis','chudaye','ph.udi','thrki','kmeni','chusti','codu','gan.do','cho0t','thuko','tharak','aunti','poddi',\
-'mammy','hotlark','hotbachi','bh3n','phidi','ph0ud','chuudai','s3cs','phudh','thark1','g@@nd','g@nd','ch@@t','phrne','randhi','thaarki']#salle,lanti,lant,soor,ph0di,ph0de
+'mammy','hotlark','hotbachi','bh3n','phidi','ph0ud','chuudai','s3cs','phudh','thark1','g@@nd','g@nd','ch@@t','phrne','randhi','thaarki','mamy']#salle,lanti,lant,soor,ph0di,ph0de
 
 
 CORE_POLITICALLY_SENSITIVE_WORDS = ['isis','hitler','hit1er','h!tler','h!t1er','h1t!er','hytler','hyt1er','hitla','hit1a','h!t1a','h!t!er','1s1s',\

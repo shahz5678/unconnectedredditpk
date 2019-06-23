@@ -7793,129 +7793,129 @@ SECONDARY_COLOR_DISTANCE = {\
 "#c97fff:#6e76ff":7,\
 
 #indigo (v2):turquoise
-"#c97fff:#01edd2":40,\
+"#6e76ff:#01edd2":40,\
 #indigo (v2):medium purple
-"#c97fff:#c66aff":7,\
+"#6e76ff:#c66aff":7,\
 #indigo (v2):light electric pink (v1)
-"#c97fff:#eb61ff":20,\
+"#6e76ff:#eb61ff":20,\
 #indigo (v2):light electric pink (v2)
-"#c97fff:#fc90ff":25,\
+"#6e76ff:#fc90ff":25,\
 #indigo (v2):electric pink
-"#c97fff:#f574ff":10,\
+"#6e76ff:#f574ff":10,\
 #indigo (v2):dark electric pink
-"#c97fff:#ff60e1":20,\
+"#6e76ff:#ff60e1":20,\
 #indigo (v2):coral
-"#c97fff:#f88379":45,\
+"#6e76ff:#f88379":45,\
 #indigo (v2):purple (v1)
-"#c97fff:#977aff":1,\
+"#6e76ff:#977aff":1,\
 #indigo (v2):purple (v2)
-"#c97fff:#a971fc":5,\
+"#6e76ff:#a971fc":5,\
 #indigo (v2):purple (v3)
-"#c97fff:#b76eff":10,\
+"#6e76ff:#b76eff":10,\
 #indigo (v2):purple (v4)
-"#c97fff:#d985f7":15,\
+"#6e76ff:#d985f7":15,\
 #indigo (v2):purple (v5)
-"#c97fff:#7f5fff":1,\
+"#6e76ff:#7f5fff":1,\
 #indigo (v2):purple (v6)
-"#c97fff:#a991ff":5,\
+"#6e76ff:#a991ff":5,\
 #indigo (v2):purple (v7)
-"#c97fff:#a293ff":5,\
+"#6e76ff:#a293ff":5,\
 #indigo (v2):pink (v2)
-"#c97fff:#ff7d9c":60,\
+"#6e76ff:#ff7d9c":60,\
 #indigo (v2):pink (v3)
-"#c97fff:#fc98bc":50,\
+"#6e76ff:#fc98bc":50,\
 #indigo (v2):reddish (v1)
-"#c97fff:#ff5f5f":45,\
+"#6e76ff:#ff5f5f":45,\
 #indigo (v2):reddish (v2)
-"#c97fff:#ff5a5a":60,\
+"#6e76ff:#ff5a5a":60,\
 #indigo (v2):tomato
-"#c97fff:#ff8282":65,\
+"#6e76ff:#ff8282":65,\
 #indigo (v2):greenish yellow
-"#c97fff:#d4d900":80,\
+"#6e76ff:#d4d900":80,\
 #indigo (v2):greenish
-"#c97fff:#c8ff28":70,\
+"#6e76ff:#c8ff28":70,\
 #indigo (v2):aquamarine (v1)
-"#c97fff:#28ffaa":60,\
+"#6e76ff:#28ffaa":60,\
 #indigo (v2):aquamarine (v2)
-"#c97fff:#00eccb":55,\
+"#6e76ff:#00eccb":55,\
 #indigo (v2):firozi (v2)
-"#c97fff:#2ff6ea":35,\
+"#6e76ff:#2ff6ea":35,\
 #indigo (v2):firozi (v3)
-"#c97fff:#49d9ff":25,\
+"#6e76ff:#49d9ff":25,\
 #indigo (v2):firozi (v4)
-"#c97fff:#31e6ed":45,\
+"#6e76ff:#31e6ed":45,\
 #indigo (v2):dull green
-"#c97fff:#89e46c":65,\
+"#6e76ff:#89e46c":65,\
 #indigo (v2):mint greenish
-"#c97fff:#9de245":50,\
+"#6e76ff:#9de245":50,\
 #indigo (v2):mint green
-"#c97fff:#66ff3a":70,\
+"#6e76ff:#66ff3a":70,\
 #indigo (v2):light mint green
-"#c97fff:#00f0a9":55,\
+"#6e76ff:#00f0a9":55,\
 #indigo (v2):light green
-"#c97fff:#a5ed31":55,\
+"#6e76ff:#a5ed31":55,\
 #indigo (v2):green (v2)
-"#c97fff:#2ff06f":60,\
+"#6e76ff:#2ff06f":60,\
 #indigo (v2):green (v3)
-"#c97fff:#26e99c":60,\
+"#6e76ff:#26e99c":60,\
 #indigo (v2):green (v4)
-"#c97fff:#42ec72":75,\
+"#6e76ff:#42ec72":75,\
 #indigo (v2):green (v5)
-"#c97fff:#46ec5c":75,\
+"#6e76ff:#46ec5c":75,\
 #indigo (v2):green (v6)
-"#c97fff:#50f777":65,\
+"#6e76ff:#50f777":65,\
 #indigo (v2):green (v7)
-"#c97fff:#01f5a1":80,\
+"#6e76ff:#01f5a1":80,\
 #indigo (v2):green (v8)
-"#c97fff:#42e966":70,\
+"#6e76ff:#42e966":70,\
 #indigo (v2):green (v9)
-"#c97fff:#52f578":65,\
+"#6e76ff:#52f578":65,\
 #indigo (v2):sky blue (v1)
-"#c97fff:#69baf5":5,\
+"#6e76ff:#69baf5":5,\
 #indigo (v2):sky blue (v2)
-"#c97fff:#6d9eff":5,\
+"#6e76ff:#6d9eff":5,\
 #indigo (v2):sky blue (v3)
-"#c97fff:#32a8f8":5,\
+"#6e76ff:#32a8f8":5,\
 #indigo (v2):sky blue (v4)
-"#c97fff:#5caeff":7,\
+"#6e76ff:#5caeff":7,\
 #indigo (v2):sky blue (v5)
-"#c97fff:#7ba6fc":5,\
+"#6e76ff:#7ba6fc":5,\
 #indigo (v2):blue
-"#c97fff:#6292ff":5,\
+"#6e76ff:#6292ff":5,\
 #indigo (v2):sky-teal-blue
-"#c97fff:#28d7ff":10,\
+"#6e76ff:#28d7ff":10,\
 #indigo (v2):purple blue
-"#c97fff:#9380ff":1,\
+"#6e76ff:#9380ff":1,\
 #indigo (v2):teal-blue (v1)
-"#c97fff:#3bc1f0":5,\
+"#6e76ff:#3bc1f0":5,\
 #indigo (v2):teal-blue (v2)
-"#c97fff:#34caf0":10,\
+"#6e76ff:#34caf0":10,\
 #indigo (v2):teal-blue (v3)
-"#c97fff:#01b0ed":5,\
+"#6e76ff:#01b0ed":5,\
 #indigo (v2):gold (v2)
-"#c97fff:#f9cd48":70,\
+"#6e76ff:#f9cd48":70,\
 #indigo (v2):gold (v3)
-"#c97fff:#fed940":65,\
+"#6e76ff:#fed940":65,\
 #indigo (v2):gold (v4)
-"#c97fff:#ffd700":75,\
+"#6e76ff:#ffd700":75,\
 #indigo (v2):orange (v2)
-"#c97fff:#ffaa5f":60,\
+"#6e76ff:#ffaa5f":60,\
 #indigo (v2):light orange
-"#c97fff:#ffae7c":55,\
+"#6e76ff:#ffae7c":55,\
 #indigo (v2):yellow-orange
-"#c97fff:#ffca5f":65,\
+"#6e76ff:#ffca5f":65,\
 #indigo (v2):yellow (v1)
-"#c97fff:#fff03a":50,\
+"#6e76ff:#fff03a":50,\
 #indigo (v2):yellow (v2)
-"#c97fff:#ebdf59":65,\
+"#6e76ff:#ebdf59":65,\
 #indigo (v2):yellow (v3)
-"#c97fff:#f1e157":60,\
+"#6e76ff:#f1e157":60,\
 #indigo (v2):pink orange
-"#c97fff:#ff9a84":40,\
+"#6e76ff:#ff9a84":40,\
 #indigo (v2):indigo (v1)
-"#c97fff:#c97fff":7,\
+"#6e76ff:#c97fff":7,\
 #indigo (v2):indigo (v2)
-"#c97fff:#6e76ff":0,\
+"#6e76ff:#6e76ff":0,\
 
 }
 

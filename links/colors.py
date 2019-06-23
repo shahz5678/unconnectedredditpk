@@ -1168,7 +1168,7 @@ SECONDARY_COLOR_DISTANCE = {\
 "#977aff:#6e76ff":1,\
 
 #purple (v2):turquoise
-"#b76eff:#01edd2":65,\
+"#a971fc:#01edd2":45,\
 #purple (v2):medium purple
 "#a971fc:#c66aff":1,\
 #purple (v2):light electric pink (v1)

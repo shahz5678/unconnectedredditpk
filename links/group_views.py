@@ -3077,8 +3077,8 @@ def personal_group_notif_prompts(request):
 # 299292,299498,294502,296086]
 
 groups_of_interest = [294543,295918,294577,294852,296045,297068,297353,299480,299795,296163,299160,295591,295947,297736,297538,295847,296667,297939,295679,\
-295891,298250,295671,295934,296957,296668,297278,298300,296013,296041,297269,297592,297779,298102,299313,296224,297548,299831,296988,298178,294392,299157,\
-294797,297958,294802,295434,295743,294373,295470,296349,299825,298885,295412,297916,299309,297193,299300,299583,295245,295381,299917]
+295891,298250,295671,295934,296957,296668,297278,298300,296013,296041,297269,297592,297779,298102,299313,297548,299831,296988,298178,294392,299157,294797,\
+297958,294802,295434,295743,294373,295470,296349,299825,298885,295412,297916,299309,297193,299300,299583,295245,295381,299917,296660]
 
 def export_chat_logs(request, log_type='sp'):
 	"""
@@ -3118,7 +3118,7 @@ def export_chat_logs(request, log_type='sp'):
 						world_ages[sender_id] = get_world_age(user_id=sender_id)
 						world_ages[receiver_id] = get_world_age(user_id=receiver_id)
 						gid = group_id
-					to_write = [posting_time,exact_date(posting_time),group_id,sender_id+" / "+str(world_ages[sender_id]),\
+					to_write = [posting_time, exact_date(posting_time), group_id, sender_id+" / "+str(world_ages[sender_id]),\
 					receiver_id+" / "+str(world_ages[receiver_id]),msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")

@@ -25,14 +25,7 @@
                     <a href="{% url 'user_profile' star.username %}#section0" class="clb" style="font-weight:bold">
                     <img src="{{ star.userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">
                     {{ star.username }}</a>{% if star.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*">{% endif %}
-                        {% if star.userprofile__score %}
-                            <span class="cg cxs sp">
-                            {% if star.userprofile__score < 0 %}
-                                (1)
-                            {% else %}
-                                ({{ star.userprofile__score }})
-                            {% endif %}</span>:
-                        {% endif %}
+                    :
                     <a href="{% url 'user_profile' star.username %}#section0" class="co mrs"><bdi><b>{{ star.photo_count }}</b> fotos</bdi></a>
                     <form method="POST" action="{% url 'fan' %}" style="display:inline">
                     {% csrf_token %}

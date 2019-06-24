@@ -39,15 +39,7 @@
                     <a href="{% url 'user_profile' fan.username %}#section0" class="clb" style="font-weight:bold">
                 	<img src="{{ fan.userprofile.avatar|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">
                     {{ fan.username }}</a>{% if fan.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*">{% endif %}
-                	{% if fan.userprofile.score %}
-                		<span class="cg cxs sp">
-                        {% if fan.userprofile.score < 0 %}
-                	    	(1)
-                	    {% else %}
-                	    	({{ fan.userprofile.score }})
-                		{% endif %}
-                        </span>
-                    {% endif %}
+
                     {% if is_new %}
                     <div style="padding:2px 5px;border-radius:4px;background-color:tomato;color:white;font-weight:bold;display:inline-block;" class="cs sp">new</div>
                     {% endif %}

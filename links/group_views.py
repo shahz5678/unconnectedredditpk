@@ -3083,8 +3083,6 @@ groups_of_interest = [294543,295918,294577,294852,296045,297068,297353,299480,29
 def export_chat_logs(request, log_type='sp'):
 	"""
 	Exports chat logs for viewing in a CSV
-
-	TODO: Add world ages of sender and receiver!
 	"""
 	import json as json_backup
 	from redis7 import in_defenders
@@ -3101,7 +3099,7 @@ def export_chat_logs(request, log_type='sp'):
 			filename = 'chat_data_{}.csv'.format(log_type)
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID/wa","receiver ID/wa","msg type","img url","msg text"]
+				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID","receiver ID","sender wa","receiver wa","msg type","img url","msg text"]
 				wtr.writerow(columns)
 				gid, world_ages = 0, {}
 				for chat_data, group_id in data_to_write_to_csv:
@@ -3118,8 +3116,8 @@ def export_chat_logs(request, log_type='sp'):
 						world_ages[sender_id] = get_world_age(user_id=sender_id)
 						world_ages[receiver_id] = get_world_age(user_id=receiver_id)
 						gid = group_id
-					to_write = [posting_time, exact_date(posting_time), group_id, sender_id+" / "+str(world_ages[sender_id]),\
-					receiver_id+" / "+str(world_ages[receiver_id]),msg_type,img_url,msg]
+					to_write = [posting_time, exact_date(posting_time), group_id, sender_id,receiver_id,world_ages[sender_id],world_ages[receiver_id],\
+					msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
 

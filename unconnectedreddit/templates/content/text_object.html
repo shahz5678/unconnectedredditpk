@@ -14,6 +14,6 @@
 	</form>
   </div>
 </div>
-<div class="mbs mls mrs lsp ow cxl" style="overflow:hidden">
-	{% if vsc|add:"0" < VDC or block_time_remaining %}<div class="mt cgy sp cs" style="text-align:center">- mita diya gya -</div>{% else %}<div class="clb mt mbs" style="text-align:{{ pos }}" itemprop="text">{{ text }}</div>{% endif %}
+<div class="mbs mls mrs lsp" style="overflow:hidden">
+	{% if vsc|add:"0" < VDC or block_time_remaining %}<div class="mt cgy sp cs cxl" style="text-align:center">- mita diya gya -</div>{% else %}<h2 class="cxl clb mt mbs ow" style="text-align:{{ pos }};font-weight:lighter" itemprop="text">{{ text }}</h2>{% endif %}
 </div>

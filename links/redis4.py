@@ -813,6 +813,86 @@ def get_clones(user_id):
 
 #########################################################
 
+CITY_CHANGE = 'cch:'
+ZODIAC_CHANGE = 'zch:'
+
+
+def is_attribute_change_rate_limited(user_id, time_now, attribute_value, rate_limit_type='zodiac'):
+	"""
+	"""
+	if rate_limit_type == 'zodiac':
+		setting_null = attribute_value in [0,1,2]
+		key_name = ZODIAC_CHANGE+str(user_id)
+	elif rate_limit_type == 'city':
+		setting_null = attribute_value == 0
+		key_name = CITY_CHANGE+str(user_id)
+	else:
+		setting_null = False
+		key_name = None
+	if key_name:
+		my_server = redis.Redis(connection_pool=POOL)
+		rate_limited_till, prev_attribute_value = my_server.hmget(key_name, 'rt','v')
+		if str(attribute_value) == prev_attribute_value or setting_null:
+			return False, None
+		elif rate_limited_till:
+			rate_limited_till = float(rate_limited_till)
+			if time_now >= rate_limited_till:
+				return False, None
+			else:
+				return True, (rate_limited_till-time_now) 
+		else:
+			return False, None
+	else:
+		return False, None
+
+
+def set_attribute_change_rate_limit(user_id, zodiac_value, city_value, time_now):
+	"""
+	Rate limits user from changing their 'city' and 'zodiac' sign too often
+
+	These should be relatively static attributes of a person
+	"""
+	user_id = str(user_id)
+	zodiac_key_name = ZODIAC_CHANGE+user_id
+	my_server = redis.Redis(connection_pool=POOL)
+	####################################################################
+	previous_zodiac_value = my_server.hget(zodiac_key_name, 'v')
+	if zodiac_value != previous_zodiac_value and int(zodiac_value) not in [0,1,2]:
+		num_zodiac_changes = my_server.hincrby(zodiac_key_name,'n',amount=1)
+		if num_zodiac_changes < 2:
+			# it's the first attempt, rate limit them from changing it for the next 1 min
+			rate_limit = ONE_MIN
+		elif num_zodiac_changes < 3:
+			# it's the second attempt, rate limit them for 30 mins
+			rate_limit = THIRTY_MINS
+		else:
+			# it's the third attempt, rate limit them for 3 months
+			rate_limit = THREE_MONTHS
+		my_server.hset(zodiac_key_name, 'v', zodiac_value)
+		my_server.hset(zodiac_key_name, 'rt', time_now+rate_limit)
+		my_server.expire(zodiac_key_name,THREE_MONTHS)
+	####################################################################
+	city_key_name = CITY_CHANGE+user_id
+	previous_city_value = my_server.hget(city_key_name, 'v')
+	if city_value != previous_city_value and city_value != 0:
+		num_city_changes = my_server.hincrby(city_key_name,'n',amount=1)
+		if num_city_changes < 2:
+			# it's the first attempt, rate limit them from changing it for the next 1 min
+			rate_limit = ONE_MIN
+		elif num_city_changes < 3:
+			# it's the second attempt, rate limit them for 30 mins
+			rate_limit = THIRTY_MINS
+		else:
+			# it's the third attempt, rate limit them for 3 months
+			rate_limit = THREE_MONTHS
+		my_server.hset(city_key_name, 'v', city_value)
+		my_server.hset(city_key_name, 'rt', time_now+rate_limit)
+		my_server.expire(city_key_name,THREE_MONTHS)
+
+
+#########################################################
+
+
 #calculating installment amount for mobile devices
 def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_installment=None, ending_value=None):
 	my_server = redis.Redis(connection_pool=POOL)

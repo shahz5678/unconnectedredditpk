@@ -15,7 +15,7 @@
     {% if form.streak.errors %}<div class="sp cr"><b>{{ form.streak.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apka city:</b></div>{% endif %}
     <select class="cl lsp sp" type="text" name="streak">
         {% for city,value in cities %}
-          {% if value == streak %}<option value="{{ value }}" selected>{{ city }}</option>{% else %}<option value="{{ value }}">{{ city }}</option>{% endif %}
+          {% if value == 226 %}<option value="{{ value }}" disabled>{{ city }}</option>{% elif value == streak %}<option value="{{ value }}" selected>{{ city }}</option>{% else %}<option value="{{ value }}">{{ city }}</option>{% endif %}
         {% endfor %}
     </select>
   </div>

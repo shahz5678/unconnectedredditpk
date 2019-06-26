@@ -57,8 +57,15 @@
 
 	<url>
 
+		<loc>https://damadam.pk/english-for-beginners/</loc>
+		<changefreq>daily</changefreq>
+
+	</url>
+
+	<url>
+
 		<loc>https://damadam.pk/computers-for-beginners/</loc>
-		<changefreq>hourly</changefreq>
+		<changefreq>daily</changefreq>
 
 	</url>
 

@@ -22,6 +22,62 @@
 
 	<url>
 
+		<loc>https://damadam.pk/signup/</loc>
+		<changefreq>yearly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/signup/ur/</loc>
+		<changefreq>yearly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/login/</loc>
+		<changefreq>yearly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/login/ur/</loc>
+		<changefreq>yearly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/pakistan-vs-new-zealand-wc-2019-match-33/</loc>
+		<changefreq>hourly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/computers-for-beginners/</loc>
+		<changefreq>hourly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/pakistani-siasat/</loc>
+		<changefreq>hourly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/urdu-poetry/</loc>
+		<changefreq>hourly</changefreq>
+
+	</url>
+
+	<url>
+
 		<loc>https://damadam.pk/urdu-poetry/</loc>
 		<changefreq>hourly</changefreq>
 

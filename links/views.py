@@ -3328,9 +3328,12 @@ def public_reply_view(request,*args,**kwargs):
 			context["user_id"] = user_id
 			if link['url']:
 				payload = link['url'].split(":")
-				theme, context['topic_name'], context['topic_url'] = payload[0], payload[1], payload[2]
-				color_grads = COLOR_GRADIENTS[theme]
-				context["c1"], context["c2"] = color_grads[0], color_grads[1]
+				try:
+					theme, context['topic_name'], context['topic_url'] = payload[0], payload[1], payload[2]
+					color_grads = COLOR_GRADIENTS[theme]
+					context["c1"], context["c2"] = color_grads[0], color_grads[1]
+				except IndexError:
+					pass
 			parent_submitter_id = link['submitter']
 			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
 			context["parent_submitter_id"] = parent_submitter_id

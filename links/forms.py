@@ -451,6 +451,8 @@ class UserProfileForm(forms.ModelForm):
 		Actually contains 'city' data. Mislabelled for legacy reasons
 		"""
 		city = self.cleaned_data.get("streak")
+		if not city:
+			city = 0
 		is_rate_limited, rate_limit_time = is_attribute_change_rate_limited(user_id=self.user.id, time_now=time.time(), attribute_value=city,\
 			rate_limit_type='city')
 		if is_rate_limited:

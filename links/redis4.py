@@ -874,7 +874,7 @@ def set_attribute_change_rate_limit(user_id, zodiac_value, city_value, time_now)
 	####################################################################
 	city_key_name = CITY_CHANGE+user_id
 	previous_city_value = my_server.hget(city_key_name, 'v')
-	if city_value != previous_city_value and city_value != 0:
+	if str(city_value) != previous_city_value and city_value not in [0,226]:
 		num_city_changes = my_server.hincrby(city_key_name,'n',amount=1)
 		if num_city_changes < 2:
 			# it's the first attempt, rate limit them from changing it for the next 1 min

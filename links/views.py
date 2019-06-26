@@ -19,7 +19,7 @@ from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE,\
 PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -70,7 +70,7 @@ Logout, Video, VideoComment
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
-cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data
+cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data, set_attribute_change_rate_limit
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
@@ -93,6 +93,7 @@ invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_r
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
+from cities import CITY_TUP_LIST, REV_CITY_DICT
 
 # from optimizely_config_manager import OptimizelyConfigManager
 # from unconnectedreddit.optimizely_settings import PID
@@ -1235,7 +1236,7 @@ class UserProfilePhotosView(ListView):
 		banned, time_remaining, ban_details = check_content_and_voting_ban(star_id, with_details=True)
 		context["ban_detail"] = ban_details
 		context["is_profile_banned"] = banned
-		context["noindex"] = True if banned else False
+		context["noindex"] = True if (banned or not context["mobile_verified"]) else False
 		context["defender"] = is_defender
 		context["time_remaining"] = time_remaining
 		###########
@@ -1331,14 +1332,13 @@ class UserProfileDetailView(FormView):
 
 	def get_context_data(self,**kwargs):
 		context = super(UserProfileDetailView, self).get_context_data(**kwargs)
-		context["ratified"] = FEMALES
 		username = self.kwargs["slug"]
 		context["username"] = username
 		context["image_base_width"] = PERSONAL_GROUP_IMG_WIDTH
 		star_id = retrieve_user_id(username)
 		try:
 			user_obj = User.objects.only('id','date_joined').get(id=star_id)# get required fields only
-			user_profile = UserProfile.objects.only('bio','age','gender','shadi_shuda','attractiveness','avatar').get(user_id=star_id)# get required user profile fields
+			user_profile = UserProfile.objects.only('bio','age','gender','shadi_shuda','attractiveness','avatar','streak').get(user_id=star_id)# get required user profile fields
 			context["object"] = user_obj
 			context["user_profile"] = user_profile
 		except User.DoesNotExist:
@@ -1347,12 +1347,13 @@ class UserProfileDetailView(FormView):
 			user_id = self.request.user.id
 			context["own_id"] = user_id
 			context["star_id"] = star_id
+			context["city_name"] = REV_CITY_DICT.get(user_profile.streak,0)
+			context["zodiac"] = ZODIAC.get(user_profile.attractiveness,'None')
 			user_id = str(user_id) if user_id else None
 			is_defender, is_own_profile, ban_detail = in_defenders(user_id), user_id == star_id, None
 			banned, time_remaining, ban_detail = check_content_and_voting_ban(star_id, with_details=True)
 			context["star_av_url"] = retrieve_avurl(star_id)
 			context["is_profile_banned"] = banned
-			context["noindex"] = True if banned else False
 			context["is_own_profile"] = is_own_profile
 			context["ban_detail"] = ban_detail
 			context["is_defender"] = is_defender
@@ -1371,12 +1372,28 @@ class UserProfileDetailView(FormView):
 			else:
 				context["fanned"] = [str(user_obj.id)] if is_fan(star_id, user_id) else []
 				context["mobile_verified"] = is_mobile_verified(star_id)
+			context["noindex"] = True if (banned or not context["mobile_verified"]) else False
 		else:
 			# user does not exist
 			raise Http404("User ID does not exist")
 		return context
 
 ################################## Permanent redirects ################################################
+
+
+def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
+	"""
+	Permanent redirect to comment page of an image
+	"""
+	request.session["photo_id"] = pk
+	if ident:
+		request.session["user_ident"] = ident
+	else:
+		request.session["user_ident"] = None
+	if origin:
+		return HttpResponsePermanentRedirect("/comment/{0}/{1}/".format(pk, origin))
+	else:
+		return HttpResponsePermanentRedirect("/comment/{}/".format(pk))
 
 
 def profile_pk(request, slug=None, key=None, *args, **kwargs):
@@ -1755,22 +1772,6 @@ class VideoCommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
-
-@ratelimit(rate='7/s')
-def comment_pk(request, pk=None, origin=None, ident=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		return redirect("missing_page")
-	else:
-		request.session["photo_id"] = pk
-		if ident:
-			request.session["user_ident"] = ident
-		else:
-			request.session["user_ident"] = None
-		if origin:
-			return redirect("comment", pk=pk,origin=origin)
-		else:
-			return redirect("comment", pk=pk)
 	
 class CommentView(CreateView):
 	model = PhotoComment
@@ -3523,12 +3524,9 @@ class UserProfileEditView(UpdateView):
 		"""
 		Returns the initial data to use for forms on this view.
 		"""
-		bio_mob = UserProfile.objects.only('bio','mobilenumber').get(user_id=self.request.user.id)
-		bio = bio_mob.bio
-		mob = bio_mob.mobilenumber
+		bio = UserProfile.objects.only('bio').get(user_id=self.request.user.id).bio
 		context = {}
 		context['bio'] = bio if bio else 'I am a Damadamer'
-		context['mobilenumber'] = mob if mob else None
 		return context# initial needs to be passed a dictionary
 
 	
@@ -3544,18 +3542,25 @@ class UserProfileEditView(UpdateView):
 		return UserProfile.objects.get_or_create(user=self.request.user)[0]
 
 	def get_context_data(self, **kwargs):
+		own_id = self.request.user.id
 		context = super(UserProfileEditView, self).get_context_data(**kwargs)
 		context["is_own_profile"] = True
-		context["username"] = retrieve_uname(self.request.user.id,decode=True)
+		context["cities"] = CITY_TUP_LIST
+		context["streak"] =  UserProfile.objects.only('streak').get(user_id=own_id).streak
+		context["zodiac"] =  UserProfile.objects.only('attractiveness').get(user_id=own_id).attractiveness
+		context["username"] = retrieve_uname(own_id,decode=True)
 		return context
 
-	################### Segment action logging ###################
-	def form_valid(self, form): #remove this when removing segment loggers
-
+	def form_valid(self, form):
 		user_id = self.request.user.id
+		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+		zodiac_value = f.attractiveness# using 'attractiveness' attribute for legacy reasons
+		city_value = f.streak# using 'streak' attribute for legacy reasons
+		set_attribute_change_rate_limit(user_id, zodiac_value, city_value, time.time())
+		################### Segment action logging ###################
+		#remove this when removing segment loggers
 		if user_id > SEGMENT_STARTING_USER_ID:
 			time_now = time.time()
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
 			if f.avatar.name == 'temp.jpg':
 				# new avatar is uploaded
 				log_action.delay(user_id=user_id, action_categ='G', action_sub_categ='1', action_liq='l', time_of_action=time_now)
@@ -3563,9 +3568,8 @@ class UserProfileEditView(UpdateView):
 			if f.bio != old_bio:
 				# bio has changed
 				log_action.delay(user_id=user_id, action_categ='G', action_sub_categ='2', action_liq='l', time_of_action=time_now)
-			
+		##############################################################
 		return super(UpdateView, self).form_valid(form) # saves automatically
-	##############################################################
 
 
 class UserSettingsEditView(UpdateView):
@@ -3735,18 +3739,6 @@ def welcome_reply(request,*args,**kwargs):
 			if (num-100) <= int(pk) <= (num+100):
 				option = request.POST.get("opt")
 				message = request.POST.get("msg")
-				# if request.is_feature_phone:
-				# 	device = '1'
-				# elif request.is_phone:
-				# 	device = '2'
-				# elif request.is_tablet:
-				# 	device = '4'
-				# elif request.is_mobile:
-				# 	device = '5'
-				# else:
-				# 	device = '3'
-				# request.user.userprofile.score = request.user.userprofile.score + 1
-				# request.user.userprofile.save()
 				try:
 					av_url = target.userprofile.avatar.url
 				except ValueError:
@@ -4221,8 +4213,23 @@ def sitemap(request):
 	Renders a sitemap
 	"""
 	latest_trending_mod_time, latest_fresh_mod_time = retrieve_photo_feed_latest_mod_time(both=True)
-	return render(request, 'sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='4'),\
+	return render(request, 'sitemap/sitemap.xml', {'latest_trending_mod_time': beautiful_date(latest_trending_mod_time,format_type='4'),\
 	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='4')},content_type="application/xml")
+
+
+# def photo_sitemap(request):
+# 	"""
+# 	Renders a sitemap for photo_detail pages
+# 	"""
+# 	return render(request, 'sitemap/photo_sitemap.xml', {'indexable_photos': retrieve_indexable_photo_detail_pages()},content_type="application/xml")
+
+
+# def retrieve_indexable_photo_detail_pages():
+# 	"""
+# 	Retrieves IDs of photos that have trended since 26th June 2019
+# 	"""
+# 	return Logout.objects.all().values('pre_logout_score','logout_time')
+
 
 
 @ratelimit(rate='3/s')

@@ -2,29 +2,75 @@
 {% load s3 %}
 {% load truncap %}
 {% block content %}
-<head><title>All settings for 1 on 1 messaging | Damadam.pk</title></head>
+<head><title>1 on 1 settings | Damadam</title></head>
 <style>body{background: #f0f3f4}</style>
 
 <h1 class="cxl lsp clb" style="text-align:center">
 	{% if their_anon %}
-		<div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div> <span style="font-weight:lighter">se 1 on 1</span>
+		<span style="font-weight:lighter"><b>Settings:</b> 1 on 1 with <div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>
 	{% else %}
-		<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> <span style="font-weight:lighter">se 1 on 1</span>
+		<span style="font-weight:lighter"><b>Settings:</b> 1 on 1 with {{ name|truncatechars:15 }}</span>
 	{% endif %}
 </h1>
 
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:96%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:98%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
 
 
 	<form method="POST" class="mts" action="{% url 'enter_personal_group' %}" style="text-align:center">
 	{% csrf_token %}
 	<input type="hidden" name="tid" value="{{ tid }}">
-	<button type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mls" name="anon_dec">wapis</button>
+	<button type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted dodgerblue" class="cb cl mls" name="anon_dec">back</button>
 	</form>
 
 		<table style="border-collapse: separate;border-spacing: 10px;">
+		<tr>
+			{% if own_anon %}
+			<td>
+				<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
+				{% csrf_token %}
+				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/un_anon.svg" width="60" height="60" style="vertical-align:middle"></button>
+				</form>
+			</td>
+			<td><div class="lsp"><b>Show Nickname:</b>&nbsp;apna nick (and profile foto) is 1 on 1 mein show karein</div></td>
+			{% else %}
+			<td>
+				<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
+				{% csrf_token %}
+				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/anon.svg" width="60" height="60" style="vertical-align:middle"></button>
+				</form>
+			</td>
+			<td><div class="lsp"><b>Hide Nickname:</b>&nbsp;apna nick (and profile foto) is 1 on 1 mein hide kar dein</div></td>
+			{% endif %}
+		</tr>
+		<tr>
+			<td>
+				<form method="POST" action="{% url 'personal_group_photo_settings' %}">
+				{% csrf_token %}
+				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/photo.svg" width="60" height="60"></button>
+				</form>
+			</td>
+			<td><div class="lsp"><b>Foto Settings:</b>&nbsp;fotos ki permission dein, fotos hide karein, ya all fotos view karein</div></td>
+		</tr>
+		<tr>
+			<td>
+				<form method="POST" action="{% url 'delete_all_posts_from_personal_group' %}">
+				{% csrf_token %}
+				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/delundel.svg" width="60" height="60"></button>
+				</form>
+			</td>
+			<td><div class="lsp"><b>Hide Messages:</b>&nbsp;apney sent messages hide (ya unhide) karein<div></td>
+		</tr>
+		<tr>
+			<td>
+				<form method="POST" action="{% url 'personal_group_exit_settings' %}">
+				{% csrf_token %}
+				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/exit.svg" width="60" height="60"></button>
+				</form>
+			</td>
+			<td><div class="lsp"><b>Exit 1 on 1:</b>&nbsp;is 1 on 1 ko exit karein</div></td>
+		</tr>
 		<tr>
 			<td>
 				<form method="POST" action="{% url 'render_notification_perms_in_personal_group' %}">
@@ -35,59 +81,13 @@
 			<td><div class="lsp"><b>Notification:</b>&nbsp;Notification send ya receive karein</div></td>
 		</tr>
 		<tr>
-			{% if own_anon %}
-			<td>
-				<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
-				{% csrf_token %}
-				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/un_anon.svg" width="60" height="60" style="vertical-align:middle"></button>
-				</form>
-			</td>
-			<td><div class="lsp"><b>Visible:</b>&nbsp;apna nick aur profile foto is 1 on 1 mein dikhanein</div></td>
-			{% else %}
-			<td>
-				<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
-				{% csrf_token %}
-				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/anon.svg" width="60" height="60" style="vertical-align:middle"></button>
-				</form>
-			</td>
-			<td><div class="lsp"><b>Invisible:</b>&nbsp;apna nick aur profile foto is 1 on 1 se ghayeb karein</div></td>
-			{% endif %}
-		</tr>
-		<tr>
-			<td>
-				<form method="POST" action="{% url 'personal_group_photo_settings' %}">
-				{% csrf_token %}
-				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/photo.svg" width="60" height="60"></button>
-				</form>
-			</td>
-			<td><div class="lsp"><b>Fotos:</b>&nbsp;foto permissions change karein ya fotos hide/unhide karein</div></td>
-		</tr>
-		<tr>
-			<td>
-				<form method="POST" action="{% url 'delete_all_posts_from_personal_group' %}">
-				{% csrf_token %}
-				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/delundel.svg" width="60" height="60"></button>
-				</form>
-			</td>
-			<td><div class="lsp"><b>Hide messages:</b>&nbsp;apney sent messages hide (ya unhide) karein<div></td>
-		</tr>
-		<tr>
 			<td>
 				<form method="POST" action="{% url 'show_all_saved_posts_in_personal_group' %}">
 				{% csrf_token %}
 				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/sv.svg" width="60" height="60"></button>
 				</form>
 			</td>
-			<td><div class="lsp"><b>Saved messages:</b>&nbsp;apney saved messages dekhein</div></td>
-		</tr>
-		<tr>
-			<td>
-				<form method="POST" action="{% url 'personal_group_exit_settings' %}">
-				{% csrf_token %}
-				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/exit.svg" width="60" height="60"></button>
-				</form>
-			</td>
-			<td><div class="lsp"><b>Exit:</b>&nbsp;1 on 1 se hamesha ke liye exit karein</div></td>
+			<td><div class="lsp"><b>Saved Messages:</b>&nbsp;apney saved messages dekhein</div></td>
 		</tr>
 		<tr>
 			<td>
@@ -96,14 +96,14 @@
 				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/help.svg" width="60" height="60"></button>
 				</form>
 			</td>
-			<td><div class="lsp"><b>Help:</b>&nbsp;1 on 1 ke mukhtalif options pe help hasil karnein</div></td>
+			<td><div class="lsp"><b>Help:</b>&nbsp;1 on 1 ke tamam options ki tafseel se help dekhein</div></td>
 		</tr>
 		</table>
 
 	<form method="POST" class="mts mbs" action="{% url 'enter_personal_group' %}" style="text-align:center">
 	{% csrf_token %}
 	<input type="hidden" name="tid" value="{{ tid }}">
-	<button type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted #BDBDBD;color:#9E9E9E" class="cl mls" name="anon_dec">wapis</button>
+	<button type="submit" style="border:none;background-color:transparent;border-bottom:1px dotted dodgerblue" class="cb cl mls" name="anon_dec">back</button>
 	</form>
 
 </div>

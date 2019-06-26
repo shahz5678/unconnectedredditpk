@@ -1,5 +1,6 @@
 // feeder for ''
 // Compress via https://jscompress.com/ and press "download"
+// Or use http://esprima.org/demo/minify.html in case above gives an error
 
 var sv = false; // self_voting
 var uv_cids = {}; // upvoted content IDs
@@ -498,15 +499,25 @@ function report_modal(e) {
 var link_btns = document.getElementsByClassName('link');
 for (var i=0, len=link_btns.length; i < len; i++) link_btns[i].onclick = copy_url;
 
-function copy_url(e) {
+
+function copy_url(e) {// this is iOS friendly
 	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.currentTarget.value) return;
  	e.preventDefault();
  	var target_url = 'https://damadam.pk/photo_detail/'+e.currentTarget.value;
- 	var dummy_element = document.createElement("input");// Create a dummy input to copy the url inside it
+ 	var dummy_element = document.createElement('textarea');// Create a dummy textarea to copy the url inside it
+ 	dummy_element.setAttribute('readonly', true);// Set to readonly
+    dummy_element.setAttribute('contenteditable', true);// Set to contenteditable
+    dummy_element.style.position = 'fixed'; // prevent scroll from jumping to the bottom when focus is set.
+    dummy_element.value = target_url;
  	document.body.appendChild(dummy_element);// Add it to the document
- 	dummy_element.setAttribute("id", "copied_url");// Set its ID
- 	document.getElementById("copied_url").value=target_url;// Output the value into it
+ 	// dummy_element.focus();
  	dummy_element.select();// Select it
+ 	const range = document.createRange();
+    range.selectNodeContents(dummy_element);
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    dummy_element.setSelectionRange(0, dummy_element.value.length);
  	document.execCommand("copy");// Copy its contents
  	document.body.removeChild(dummy_element);
  	// now display the copied link

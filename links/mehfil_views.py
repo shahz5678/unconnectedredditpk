@@ -25,6 +25,8 @@ from image_processing import process_group_image
 
 from models import HellBanList, UserProfile
 
+from redis7 import check_content_and_voting_ban
+
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
 from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list,\
@@ -3047,7 +3049,13 @@ def priv_group(request,*args,**kwargs):
 	"""
 	Redirecting incoming to PrivateGroupView()
 	"""
-	if request.method == 'POST':
+	banned, time_remaining, ban_details = check_content_and_voting_ban(request.user.id, with_details=True)
+	if banned:
+		# Cannot open group page if banned
+		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+			'org':'19'})
+	elif request.method == 'POST':
 		slug = request.POST.get("private_uuid")
 		if valid_uuid(slug):
 			request.session["unique_id"] = slug
@@ -3283,21 +3291,22 @@ class PrivateGroupView(FormView):
 
 ############################## Rendering and posting to public mehfil ##############################
 
-@ratelimit(rate='7/s')
 def public_group(request, slug=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if not slug:
-		slug = request.session.get("public_uuid",None)
+	banned, time_remaining, ban_details = check_content_and_voting_ban(request.user.id, with_details=True)
+	if banned:
+		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+			'org':'19'})
 	else:
-		request.session["public_uuid"] = slug
-		request.session.modified = True
-	if valid_uuid(slug):
-		if was_limited:
-			return redirect("missing_page")
+		if not slug:
+			slug = request.session.get("public_uuid",None)
 		else:
+			request.session["public_uuid"] = slug
+			request.session.modified = True
+		if valid_uuid(slug):
 			return redirect("public_group_reply")
-	else:
-		return redirect("group_page")
+		else:
+			return redirect("group_page")
 
 
 def public_group_request_denied(request):
@@ -3568,6 +3577,12 @@ def group_page(request):
 	Renders list of all mehfils joined by a user (public and private both)
 	"""
 	own_id, page_num = request.user.id, request.GET.get('page', '1')
+	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+	if banned:
+		# Cannot open group page if banned
+		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+			'org':'19'})
 	page_data_from_micro_cache, num_pages = retrieve_cached_mehfil_pages(own_id,page_num)
 	if page_data_from_micro_cache:
 		final_data = json.loads(page_data_from_micro_cache)
@@ -3634,7 +3649,13 @@ def join_private_group(request):
 		own_id = str(request.user.id)
 		group_owner_id = retrieve_group_owner_id(group_id=group_id)
 		joiner_is_owner = group_owner_id == own_id
-		if request.user_banned:
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# Cannot open group page if banned
+			return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+				'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+				'org':'19'})
+		elif request.user_banned:
 			# user is hell-banned
 			return redirect("error")
 		elif not request.mobile_verified:
@@ -3686,13 +3707,6 @@ def join_private_group(request):
 				# proceed and add the joiner as a member
 				time_now = time.time()
 				own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
-				##############################################
-				# legacy redis 1 functionality
-				# add_group_member(group_id, own_uname)
-				# remove_group_invite(own_id, group_id)
-				# add_user_group(own_id, group_id)
-				##############################################
-				# reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')# to take care of grouppageview
 				group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=group_owner_id, topic=retrieve_group_topic(group_id=group_id),\
 					reply_time=time_now,poster_url=own_avurl,poster_username=own_uname,reply_text='join', priv='1',image_url=None,priority='priv_mehfil',\
 					from_unseen=False, txt_type='join')# to take care of matka, priv is group privacy. uniqud_id is group uniqud
@@ -3850,9 +3864,15 @@ def join_public_group(request):
 	"""
 	Officially joining a public group (step BEFORE signing the rules)
 	"""
-	if request.method == "POST":
+	own_id = request.user.id
+	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+	if banned:
+		# Cannot open group page if banned
+		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+			'org':'19'})
+	elif request.method == "POST":
 		group_id = request.POST.get("gid",None)
-		own_id = request.user.id
 		if request.user_banned:
 			# user is hell-banned
 			return redirect("error")
@@ -4771,22 +4791,29 @@ def get_ranked_groups(request):
 	
 	group_ids_list = test_list
 	"""
-	groups_data = retrieve_cached_ranked_groups()
-	if groups_data:
-		trending_groups = json.loads(groups_data)
+	banned, time_remaining, ban_details = check_content_and_voting_ban(request.user.id, with_details=True)
+	if banned:
+		# Cannot open group page if banned
+		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+			'org':'19'})
 	else:
-		trending_groups = []
-		group_ids_list = get_ranked_mehfils()
-		group_ids_dict = dict(group_ids_list)
-		group_ids = map(itemgetter(0), group_ids_list)
-		groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
-		for group in groups:
-			if group['oun']:
-				group_id = group['gi']
-				trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
-		trending_groups.sort(key=itemgetter(4), reverse=True)
-		cache_ranked_groups(json.dumps(trending_groups))
-	return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
+		groups_data = retrieve_cached_ranked_groups()
+		if groups_data:
+			trending_groups = json.loads(groups_data)
+		else:
+			trending_groups = []
+			group_ids_list = get_ranked_mehfils()
+			group_ids_dict = dict(group_ids_list)
+			group_ids = map(itemgetter(0), group_ids_list)
+			groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
+			for group in groups:
+				if group['oun']:
+					group_id = group['gi']
+					trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
+			trending_groups.sort(key=itemgetter(4), reverse=True)
+			cache_ranked_groups(json.dumps(trending_groups))
+		return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
 
 
 ########################## Mehfil creation #########################
@@ -4975,40 +5002,47 @@ class ClosedGroupCreateView(FormView):
 			return redirect("error")
 		else:
 			user_id = self.request.user.id
-			ttl = is_group_creation_rate_limited(user_id, which_group='private')
-			if ttl:
-				return render(self.request,"mehfil/group_type.html",{'ttl':ttl})
+			banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+			if banned:
+				# Cannot open group page if banned
+				return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+					'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+					'org':'19'})
 			else:
-				topic = form.cleaned_data["topic"]
-				user = self.request.user
-				unique = str(uuid.uuid4())
-				created_at = time.time()
-				creation_text = 'meri new mehfil mein welcome'
-				reply_time = created_at+1
-				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-				####################
-				group_id = get_group_id()
-				create_group_credentials(owner_id=user_id, owner_uname=own_uname,owner_join_time=None, group_id=group_id,privacy='1',uuid=unique,\
-					topic=topic,pics='1',created_at=created_at, grp_categ='1')
-				save_group_submission(writer_id=user_id, group_id=group_id, text=creation_text, posting_time=reply_time,category='0',\
-					writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_uname=own_uname, save_latest_submission=True)
-				group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=reply_time)#, private=True)
-				main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
-				document_administrative_activity.delay(group_id, main_sentence, 'create')
-				invalidate_cached_mehfil_pages(user_id)
-				group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=user_id,topic=topic,reply_time=reply_time,\
-					poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='1',slug=unique,image_url=None,\
-					priority='priv_mehfil',from_unseen=False)
-				####################
-				# rate limit further public mehfil creation by this user (for 1 day)
-				rate_limit_group_creation(user_id, which_group='private')
-				################### Segment action logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					log_action.delay(user_id=user_id, action_categ='E', action_sub_categ='1', action_liq='l', time_of_action=reply_time)
-				##############################################################
+				ttl = is_group_creation_rate_limited(user_id, which_group='private')
+				if ttl:
+					return render(self.request,"mehfil/group_type.html",{'ttl':ttl})
+				else:
+					topic = form.cleaned_data["topic"]
+					user = self.request.user
+					unique = str(uuid.uuid4())
+					created_at = time.time()
+					creation_text = 'meri new mehfil mein welcome'
+					reply_time = created_at+1
+					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
+					####################
+					group_id = get_group_id()
+					create_group_credentials(owner_id=user_id, owner_uname=own_uname,owner_join_time=None, group_id=group_id,privacy='1',uuid=unique,\
+						topic=topic,pics='1',created_at=created_at, grp_categ='1')
+					save_group_submission(writer_id=user_id, group_id=group_id, text=creation_text, posting_time=reply_time,category='0',\
+						writer_avurl=get_s3_object(own_avurl,category='thumb'),writer_uname=own_uname, save_latest_submission=True)
+					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=reply_time)#, private=True)
+					main_sentence = own_uname+" ne mehfil create ki at {0}".format(exact_date(reply_time))
+					document_administrative_activity.delay(group_id, main_sentence, 'create')
+					invalidate_cached_mehfil_pages(user_id)
+					group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=user_id,topic=topic,reply_time=reply_time,\
+						poster_url=own_avurl,poster_username=own_uname,reply_text=creation_text,priv='1',slug=unique,image_url=None,\
+						priority='priv_mehfil',from_unseen=False)
+					####################
+					# rate limit further public mehfil creation by this user (for 1 day)
+					rate_limit_group_creation(user_id, which_group='private')
+					################### Segment action logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						log_action.delay(user_id=user_id, action_categ='E', action_sub_categ='1', action_liq='l', time_of_action=reply_time)
+					##############################################################
 
-				self.request.session["unique_id"] = unique
-				return redirect("invite_private", slug=unique)
+					self.request.session["unique_id"] = unique
+					return redirect("invite_private", slug=unique)
 
 
 @csrf_protect
@@ -5016,8 +5050,14 @@ def create_open_group(request):
 	"""
 	Creating open group after successful validation/submission in preview_open_group()
 	"""
-	if request.method == "POST":
-		own_id = request.user.id
+	own_id = request.user.id
+	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+	if banned:
+		# Cannot open group page if banned
+		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+			'org':'19'})
+	elif request.method == "POST":
 		decision = request.POST.get("dec",None)
 		if request.user_banned:
 			return redirect("error")

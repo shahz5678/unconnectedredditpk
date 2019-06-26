@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load emoticons_tags %}
 {% block content %}
 <style>body{background: #E9EBEE}</style>
 <head><title>Send welcome message {% if authenticated %}to {{ target_user.username }}{% endif %} | Damadam.pk</title></head>
@@ -7,18 +6,14 @@
 <h1 class="cxl clb lsp" style="text-align:center">Welcome karein!</h1>
 
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
-	{% if authenticated %}
-		<div class="cxl lsp">{{ target_user.username }} ko kaunsi mithai bhejni hai?</div>
 
-		<span class="cgy cs sp lsp">is se apka score <span style="color:mediumseagreen;">+1</span> ho ga</span><br><br>
+		<div class="cxl lsp">{{ target_user.username }} ko kaunsi mithai bhejni hai?</div>
 		
 		<a href="{% url 'welcome_message' option=1 %}" class="cb"><b>barfi</b></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/barfi.png" alt="barfi" height="45" width="46" style="vertical-align:sub"><hr size=1 COLOR="#E9EBEE">
 		<a href="{% url 'welcome_message' option=2 %}" class="cb"><b>laddu</b></a>&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/laddu.png" alt="laddu" height="24" width="46" style="vertical-align:sub"><hr size=1 COLOR="#E9EBEE">
 		<a href="{% url 'welcome_message' option=3 %}" class="cb"><b>jalebi</b></a>&nbsp;&nbsp;&nbsp;<img src="{{ STATIC_URL }}img/jalebi.png" alt="jalebi" height="28" width="46" style="vertical-align:sub">
 		<br><br>
-	{% else %}
-		<div class="cxl lsp">Ye nahi ho sakta{% emoticons %} .e1.e2.e3.e4{% endemoticons %}</div>
-	{% endif %}
+
 </div>
 <br>
 <br>

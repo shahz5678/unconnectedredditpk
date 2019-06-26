@@ -1,27 +1,10 @@
 {% extends "base_pg.html" %}
 {% block content %}
-<head><title>1 on 1 messaging help (page 3) | Damadam.pk</title></head>
-<style>
+<head><title>1 on 1 messaging help (page 3) | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
 
-body{background: #f0f3f4}
+<div style="margin:0 auto;max-width:520px;width:98%;">
 
-.helpitem {
-	padding:10px;
-}
-
-.nav-btn {
-
-	display:inline-block;
-	font-weight:bold;
-	 background-color:white; 
-	 border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
-    border-style: solid;
-    border-width: 1px;
-    padding: 1px 7px 2px;
-}
-
-</style>
-<div style="margin:0 auto;max-width:520px;width:96%;">
 <div style="margin:0 auto; text-align:center">
 	<h1 class="cxl mbs lsp clb">1 on 1 help:</h1>
 </div>
@@ -29,7 +12,7 @@ body{background: #f0f3f4}
 {% if tid %}
 <form method="POST" style="text-align:center" class="mbl" action="{% url 'enter_personal_group' %}" >
 {% csrf_token %}
-<button name="tid" value="{{ tid }}" class="cl" style="padding:0;background:0 0;border:none;border-bottom:1px dotted #666666;color:#666666;border-radius:0">wapis</button>
+<button name="tid" value="{{ tid }}" class="cl cb" style="padding:0;background:0 0;border:none;border-bottom:1px dotted dodgerblue;border-radius:0">back</button>
 </form>
 {% endif %}
 
@@ -46,18 +29,13 @@ body{background: #f0f3f4}
 <div class="cl mts clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;">
 
 <div style="border-bottom: 1px solid lightgrey" class="fx fxjsfs">
-    <div class="helpitem"><img src="{{ STATIC_URL }}img/photo.svg" width="30" height="30"></div>
-    <div class="helpitem lsp">Is main 4 options hain:<br>
-        <div class="mtl lsp"><b>- Allow:</b> Ap dusrey ko pic send karne ki ijazat de sakte hain</div>
-        <div class="mts lsp"><b>- Delete:</b> Ap apni share ki hui tamam pics aik sath delete kar sakte hain</div>
-        <div class="mts lsp"><b>- Restore:</b> Ap apni delete ki hui tamam pics aik sath bahal kar sakte hain</div>
-        <div class="mts mbs lsp"><b>- All Photos:</b> Ap apni aur dusrey ki share ki hui tamam pics aik sath dekh sakte hain</div>
-    </div>
+	<div class="helpitem"><img src="{{ STATIC_URL }}img/delundel.svg" width="30" height="30"></div>
+	<div class="helpitem lsp">Ap apney tamam sent messages aik hi button daba kar mita sakte hain. Issi terah, aik hi button daba ke bahal bhi kar saktey hain</div>
 </div>
 
 <div style="border-bottom: 1px solid lightgrey" class="fx fxjsfs">
-	<div class="helpitem"><img src="{{ STATIC_URL }}img/delundel.svg" width="30" height="30"></div>
-	<div class="helpitem lsp">Ap apney tamam messages aik hi button daba kar mita sakte hain</div>
+	<div class="helpitem"><img src="{{ STATIC_URL }}img/exit.svg" width="30" height="30"></div>
+	<div class="helpitem lsp">Ap ye daba ke 1 on 1 ko exit kar sakte hain. Apki exited 1 on 1 forun ghayeb nahi hoti. Agr 7 days tak ap exited 1 on 1 mein wapis nahi aien tou woh delete ho jati hai</div>
 </div>
 
 </div>

@@ -359,18 +359,22 @@ def enter_personal_group_from_single_notif(request):
 
 	If user is blocked, doesn't let them go through
 	"""
-	own_id = request.user.id
-	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-	if banned:
-		# show "user banned" message and redirect them to home
-		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
-	elif request.method == "POST":
-		target_id = request.POST.get("tid")
-		request.session["personal_group_tid_key"] = target_id
-		return redirect("enter_personal_group")
+	if request.mobile_verified:
+		own_id = request.user.id
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		elif request.method == "POST":
+			target_id = request.POST.get("tid")
+			request.session["personal_group_tid_key"] = target_id
+			return redirect("enter_personal_group")
+		else:
+			return redirect("home")
 	else:
-		return redirect("home")
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -1110,7 +1114,9 @@ def unseen_per_grp(request, gid, fid):
 	"""
 	Processes reply given in personal group straight from a notification or unseen activity
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		own_id = request.user.id
 		own_uname = get_target_username(str(own_id))
 		group_id, exists = personal_group_already_exists(own_id, fid)
@@ -1895,7 +1901,9 @@ def render_personal_group_invite(request):
 	"""
 	Renders private chat invite page
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		own_id, target_id = request.user.id, request.POST.get('tid',None)
 		parent_object_id, object_type, origin, topic = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None),\
 		request.POST.get('tp','')
@@ -2012,7 +2020,9 @@ def send_personal_group_invite(request):
 	"""
 	Forward to privacy setting of invite, don't send invite yet
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		invite_decision = request.POST.get('invite_dec',None)
 		if invite_decision == '1':
 			context = {'set_privacy':True,'target_av_url':request.session.get("personal_group_invite_target_av_url",None),\
@@ -2309,22 +2319,25 @@ def personal_group_user_listing(request):
 	"""
 	List down personal groups of a given user
 	"""
-	own_id, page_num = request.user.id, request.GET.get('page', '1')
-	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-	if banned:
-		# show "user banned" message and redirect them to home
-		tid = request.session.pop("personal_group_tid_key",'')
-		if tid:
-			request.session.pop("personal_group_gid_key:"+tid,'')
-		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	else:
-		start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-		payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
-		page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-		return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
-			'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
-			'items_in_curr_page':len(payload)})
+		own_id, page_num = request.user.id, request.GET.get('page', '1')
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			tid = request.session.pop("personal_group_tid_key",'')
+			if tid:
+				request.session.pop("personal_group_gid_key:"+tid,'')
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		else:
+			start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+			payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
+			page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+			return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
+				'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
+				'items_in_curr_page':len(payload)})
 
 ####################################################################################################################
 #################################################### Help Page #####################################################
@@ -3064,14 +3077,12 @@ def personal_group_notif_prompts(request):
 # 299292,299498,294502,296086]
 
 groups_of_interest = [294543,295918,294577,294852,296045,297068,297353,299480,299795,296163,299160,295591,295947,297736,297538,295847,296667,297939,295679,\
-295891,298250,295671,295934,296957,296668,297278,298300,296013,296041,297269,297592,297779,298102,299313,296224,297548,299831,296988,298178,294392,299157,\
-294797,297958,294802,295434,295743,294373,295470,296349,299825,298885,295412,297916,299309,297193,299300,299583,295245,295381,299917]
+295891,298250,295671,295934,296957,296668,297278,298300,296013,296041,297269,297592,297779,298102,299313,297548,299831,296988,298178,294392,299157,294797,\
+297958,294802,295434,295743,294373,295470,296349,299825,298885,295412,297916,299309,297193,299300,299583,295245,295381,299917,296660]
 
 def export_chat_logs(request, log_type='sp'):
 	"""
 	Exports chat logs for viewing in a CSV
-
-	TODO: Add world ages of sender and receiver!
 	"""
 	import json as json_backup
 	from redis7 import in_defenders
@@ -3088,7 +3099,7 @@ def export_chat_logs(request, log_type='sp'):
 			filename = 'chat_data_{}.csv'.format(log_type)
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID/wa","receiver ID/wa","msg type","img url","msg text"]
+				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID","receiver ID","sender wa","receiver wa","msg type","img url","msg text"]
 				wtr.writerow(columns)
 				gid, world_ages = 0, {}
 				for chat_data, group_id in data_to_write_to_csv:
@@ -3105,8 +3116,8 @@ def export_chat_logs(request, log_type='sp'):
 						world_ages[sender_id] = get_world_age(user_id=sender_id)
 						world_ages[receiver_id] = get_world_age(user_id=receiver_id)
 						gid = group_id
-					to_write = [posting_time,exact_date(posting_time),group_id,sender_id+" / "+str(world_ages[sender_id]),\
-					receiver_id+" / "+str(world_ages[receiver_id]),msg_type,img_url,msg]
+					to_write = [posting_time, exact_date(posting_time), group_id, sender_id,receiver_id,world_ages[sender_id],world_ages[receiver_id],\
+					msg_type,img_url,msg]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
 

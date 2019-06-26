@@ -632,14 +632,10 @@ class RegisterHelpView(FormView):
 @sensitive_post_parameters()
 @csrf_protect
 def logout_rules(request):
-	user_id = request.user.id
-	if request.mobile_verified:
-		if request.method == "POST":
-			return render(request,"logout/logout_rules.html",{})
-		else:
-			return render(request,"logout/logout_tutorial.html",{})
+	if request.method == "POST":
+		return render(request,"logout/logout_rules.html",{})
 	else:
-		return render(request, 'verification/unable_to_submit_without_verifying.html', {'logout':True})
+		return render(request,"logout/logout_tutorial.html",{})
 
 
 class LogoutPenaltyView(FormView):
@@ -687,13 +683,6 @@ class SalatRankingView(ListView):
 	paginate_by = 50
 
 	def get_queryset(self):
-		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		# 	'LOCATION': MEMLOC, 'TIMEOUT': 120,
-		# })
-		# users_fans = cache_mem.get('salat_streaks')
-		# if users_fans:
-		# 	return users_fans
-		# else:
 		return []
 
 	def get_context_data(self, **kwargs):
@@ -708,13 +697,6 @@ class SalatSuccessView(ListView):
 	paginate_by = 50
 
 	def get_queryset(self):
-		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-		# 	'LOCATION': MEMLOC, 'TIMEOUT': 120,
-		# })
-		# users_fans = cache_mem.get('salat_streaks')
-		# if users_fans:
-		# 	return users_fans
-		# else:
 		return []
 
 	def get_context_data(self, **kwargs):
@@ -2953,14 +2935,13 @@ class WelcomeView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(WelcomeView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			try:
-				target_user = User.objects.get(id=self.request.session["welcome_pk"])
-				context["authenticated"] = True
-				context["target_user"] = target_user
-			except:
-				context["authenticated"] = False
-				context["target_user"] = []
+		try:
+			target_user = User.objects.get(id=self.request.session["welcome_pk"])
+			context["authenticated"] = True
+			context["target_user"] = target_user
+		except:
+			context["authenticated"] = False
+			context["target_user"] = []
 		return context
 
 class WelcomeMessageView(CreateView):
@@ -3001,7 +2982,13 @@ def unseen_group(request, pk=None, *args, **kwargs):
 		else:
 			if request.method == 'POST':
 				origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-				if grp["p"] == '1':
+				banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+				if banned:
+					# Cannot submit unseen_group response if banned
+					return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+						'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':origin if origin else '14', \
+						'tun':username})
+				elif grp["p"] == '1':
 					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id=pk,pub_grp_id='',photo_id='',link_id='',per_grp_id='')
 				else:
 					form = UnseenActivityForm(request.POST,user_id=user_id,prv_grp_id='',pub_grp_id=pk,photo_id='',link_id='',per_grp_id='')
@@ -3346,7 +3333,7 @@ def public_reply_view(request,*args,**kwargs):
 			parent_submitter_id = link['submitter']
 			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
 			context["parent_submitter_id"] = parent_submitter_id
-			context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
+			# context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
 			context["parent_av_url"] = parent_avurl
 			context["vote_score"] = link['net_votes']
 			context["parent"] = link #the parent link
@@ -3494,7 +3481,7 @@ class UserActivityView(ListView):
 					obj['c1'], obj['c2'] = '', ''
 		if target_id:
 			context["verified"] = True if username in FEMALES else False
-			context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
+			# context["score"] = UserProfile.objects.filter(user__username=username).values_list('score',flat=True)[0]
 			context["is_profile_banned"] = False
 			if self.request.user.is_authenticated():
 				own_id = self.request.user.id
@@ -3590,7 +3577,7 @@ class UserSettingsEditView(UpdateView):
 		return UserSettings.objects.get_or_create(user=self.request.user)[0]
 
 	def get_success_url(self): #which URL to go back once settings are saved?
-		return reverse_lazy("profile", kwargs={'slug': self.request.user,'type':'fotos'})
+		return reverse_lazy("user_profile", kwargs={'slug': self.request.user})
 
 # @ratelimit(rate='7/s')
 def sharing_help(request):
@@ -3742,7 +3729,7 @@ def welcome_reply(request,*args,**kwargs):
 			try:
 				target = User.objects.get(pk=pk)
 			except User.DoesNotExist:
-				return redirect("profile", slug=username,type='fotos')
+				return redirect("user_profile", slug=username)# redirecting to own profile
 			current = User.objects.latest('id')
 			num = current.id
 			if (num-100) <= int(pk) <= (num+100):
@@ -3758,8 +3745,8 @@ def welcome_reply(request,*args,**kwargs):
 				# 	device = '5'
 				# else:
 				# 	device = '3'
-				request.user.userprofile.score = request.user.userprofile.score + 1
-				request.user.userprofile.save()
+				# request.user.userprofile.score = request.user.userprofile.score + 1
+				# request.user.userprofile.save()
 				try:
 					av_url = target.userprofile.avatar.url
 				except ValueError:

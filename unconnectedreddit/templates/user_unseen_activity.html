@@ -44,7 +44,7 @@
 {% if notif.ot == '5' %}
 {% if notif.s == 'True' %}
 	<div class="mrs mls mbl mts">
-	<form class="mbl" method="POST" action="{% url 'enter_personal_group' %}">
+	<form class="mbl" method="POST" action="{% url 'enter_personal_group_from_single_notif' %}">
 	{% csrf_token %}
 
 	{% if user_id|slugify == notif.id1 %}
@@ -172,7 +172,7 @@
 	</div>
 {% else %}
 	<div class="mrs mls mbl mts">
-	<form class="mbl" method="POST" action="{% url 'enter_personal_group' %}">
+	<form class="mbl" method="POST" action="{% url 'enter_personal_group_from_single_notif' %}">
 	{% csrf_token %}
 
 	{% if user_id|slugify == notif.id1 %}

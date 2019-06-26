@@ -1,28 +1,10 @@
 {% extends "base_pg.html" %}
 {% block content %}
-<head><title>1 on 1 messaging help (page 2) | Damadam.pk</title></head>
-<style>
+<head><title>1 on 1 messaging help (page 2) | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
 
-body{background: #f0f3f4}
+<div style="margin:0 auto;max-width:520px;width:98%;">
 
-.helpitem {
-	padding:10px;
-}
-
-.nav-btn {
-
-	display:inline-block;
-	font-weight:bold;
-	background-color:white; 
-	border-color: rgb(216, 216, 216) rgb(209, 209, 209) rgb(186, 186, 186);
-    border-style: solid;
-    border-width: 1px;
-    padding: 1px 7px 2px;
-}
-
-</style>
-
-<div style="margin:0 auto;max-width:520px;width:96%;">
 <div style="margin:0 auto; text-align:center">
 	<h1 class="cxl mbs lsp clb">1 on 1 help:</h1>
 </div>
@@ -30,7 +12,7 @@ body{background: #f0f3f4}
 {% if tid %}
 <form method="POST" style="text-align:center" class="mbl" action="{% url 'enter_personal_group' %}" >
 {% csrf_token %}
-<button name="tid" value="{{ tid }}" class="cl" style="padding:0;background:0 0;border:none;border-bottom:1px dotted #666666;color:#666666;border-radius:0">wapis</button>
+<button name="tid" value="{{ tid }}" class="cb cl" style="padding:0;background:0 0;border:none;border-bottom:1px dotted dodgerblue;border-radius:0">back</button>
 </form>
 {% endif %}
 
@@ -48,19 +30,19 @@ body{background: #f0f3f4}
 
 <div class="cl mts clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;">
 
-
 <div style="border-bottom: 1px solid lightgrey" class="fx fxjsfs">
-
-    <div class="helpitem"><img src="{{ STATIC_URL }}img/notification.svg" alt="🔔" height="30" width="30"></div>
-    <div class="helpitem lsp">Is main 2 options hain:<br>
-        <div class="mtl lsp"><b>- Send notification:</b> Ap dusrey ko notification send kar ke online bulwa sakte hain</div>
-        <div class="mts mbs lsp"><b>- Allow notification:</b> Ap dusrey ko ijazat de sakte hain ke apko notification send kar ke online bulwaye</div>
-    </div>
+    <div class="helpitem"><img src="{{ STATIC_URL }}img/anon.svg" alt="👁" height="30" width="30"></div>
+    <div class="helpitem lsp">Is se ap apna nickname (and display pic) 1 on 1 main hide kar sakte hain, takey apko extra privacy miley. Dusra user apka hidden nickname click kar ke apki profile phir bhi dekh sakey ga</div>
 </div>
 
 <div style="border-bottom: 1px solid lightgrey" class="fx fxjsfs">
-    <div class="helpitem"><img src="{{ STATIC_URL }}img/anon.svg" alt="👁" height="30" width="30"></div>
-    <div class="helpitem lsp">Is se ap apna nickname 1 on 1 main ghayeb kar sakte hain, takey apko extra privacy miley</div>
+    <div class="helpitem"><img src="{{ STATIC_URL }}img/photo.svg" width="30" height="30"></div>
+    <div class="helpitem lsp">Is main 4 settings hain:<br>
+        <div class="mtl lsp"><b>- Allow:</b> Dusrey user ko pic send karne ki ijazat dein</div>
+        <div class="mts lsp"><b>- Delete:</b> Apni share ki hui tamam pics aik sath delete karein</div>
+        <div class="mts lsp"><b>- Restore:</b> Apni delete ki hui tamam pics aik sath bahal karein</div>
+        <div class="mts mbs lsp"><b>- View All Pics:</b> Ap apni aur dusrey ki share ki hui tamam pics aik sath view karein</div>
+    </div>
 </div>
 
 </div>

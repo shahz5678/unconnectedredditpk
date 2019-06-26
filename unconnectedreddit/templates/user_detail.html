@@ -6,7 +6,7 @@
 {% load humanize %}
 {% load s3 %}
 {% block content %}
-<head><title>{{ username }}'s profile | Damadam.pk</title></head>
+<head><title>{{ username }}'s profile | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
 
 {% user_profile_navbar static_url=STATIC_URL section='profile' uname=username is_own_profile=is_own_profile %}
@@ -16,7 +16,7 @@
 <h1 class="cxl clb lsp" style="display:inline">Your profile:</h1>
 {% else %}
 {% load get_group_button %}
- {% group_button user.id star_id username 'profile' '10' username %}&nbsp;{% if username in ratified %}<img src="{{ STATIC_URL }}img/pstar.svg" height="16" width="16">&nbsp;{% endif %}<h1 class="cxl clb lsp" style="display:inline">{{ username }}'s profile:</h1>
+ {% group_button user.id star_id username 'profile' '10' username %}<h1 class="cxl clb lsp" style="display:inline">{{ username }}'s profile:</h1>
 {% endif %}
  </div>
 
@@ -108,6 +108,58 @@
 {% endif %}
 
 
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:10px">
+
+	<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">About:</div>
+
+	<div class="mls mrs">
+
+	<div class="ow">
+	<b class="cm sp lsp" style="color:darkgray">My story:</b>
+		{% if is_profile_banned %}
+			<span class="cgy sp cl">- hidden -</span>
+		{% else %}
+			{% if user_profile.bio == 'Ao gupshup lagain...' %}
+			<span class="cl sp lsp" style="color:#a9a9a9">Not set</span>
+			{% else %}
+			<span class="cl sp lsp">{% emoticons %}{{ user_profile.bio }}{% endemoticons %}</span>
+			{% endif %}
+		{% endif %}
+	</div>
+	<hr size=1 COLOR="#f4f4f4">
+
+	<b class="cm sp lsp" style="color:darkgray">City:</b>
+		{% if city_name == 'Not set' %}<span class="cl sp lsp" style="color:#a9a9a9">Not set</span>{% else %}<span class="cl sp lsp">{{ city_name }}</span>{% endif %}
+	<hr size=1 COLOR="#f4f4f4">
+
+	<b class="cm sp lsp" style="color:darkgray">Star sign:</b>
+		{% if zodiac == 'None' %}<span class="cl sp lsp" style="color:#a9a9a9">Not set</span>{% else %}<span class="cl sp lsp">{{ zodiac }}</span>{% endif %}
+	<hr size=1 COLOR="#f4f4f4">
+
+	<b class="cm sp lsp" style="color:darkgray">Gender:</b>
+		{% if user_profile.gender == '1' %}
+			<span class="cl sp lsp">Female</span>
+		{% else %}
+			<span class="cl sp lsp">Male</span>
+		{% endif %}
+	<hr size=1 COLOR="#f4f4f4">
+
+	<b class="cm sp lsp" style="color:darkgray">Married:</b>
+		<span class="cl sp lsp">
+		{% if user_profile.shadi_shuda == '1' %}Yes{% else %}No{% endif %}
+		</span>
+	<hr size=1 COLOR="#f4f4f4">
+
+	<b class="cm sp lsp" style="color:darkgray">Age:</b>
+		{% if user_profile.age %}
+		<span class="cl sp lsp">{{ user_profile.age }}</span>
+		{% else %}
+		<span class="cl sp lsp" style="color:#a9a9a9">Not set</span>
+		{% endif %}
+
+	</div>
+</div>
+
 
 <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:7px">
 
@@ -160,68 +212,6 @@
 
 </div>
 
-
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:10px">
-
-	<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">About:</div>
-
-	<div class="mls mrs">
-
-	<div class="ow">
-	<b class="cm sp lsp" style="color:darkgray">My story:</b>
-		{% if is_profile_banned %}
-			<span class="cgy sp cl">- hidden -</span>
-		{% else %}
-			<span class="cl sp lsp">
-			{% if user_profile.bio %}
-			{% emoticons %}{{ user_profile.bio }}{% endemoticons %}
-			{% endif %}
-			</span>
-		{% endif %}
-	</div>
-	<hr size=1 COLOR="#f4f4f4">
-
-	<b class="cm sp lsp" style="color:darkgray">Age:</b>
-		{% if user_profile.age %}
-		<span class="cl sp lsp">{{ user_profile.age }}</span>
-		{% endif %}
-	<hr size=1 COLOR="#f4f4f4">
-
-	<b class="cm sp lsp" style="color:darkgray">Gender:</b>
-		{% if user_profile.gender == '1' %}
-			{% if username in ratified %}
-	    	<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="13" width="13">&nbsp;<span class="cl sp lsp" style="color:#ff4d4d">Girl</span>
-	    	{% else %}
-			<span class="cl sp lsp">Girl</span>
-			{% endif %}
-		{% else %}
-			<span class="cl sp lsp">Boy</span>
-		{% endif %}
-	<hr size=1 COLOR="#f4f4f4">
-
-	<b class="cm sp lsp" style="color:darkgray">Shaadi shuda:</b>
-		<span class="cl sp lsp">
-		{% if user_profile.shadi_shuda == '1' %}
-			Yes
-		{% else %}
-			No
-		{% endif %}
-		</span>
-	<hr size=1 COLOR="#f4f4f4">
-
-	<b class="cm sp lsp" style="color:darkgray">Shakal soorat:</b>
-		<span class="cl sp lsp">
-		{% if user_profile.attractiveness == '0' %}
-			Ek dum kadak
-		{% elif user_profile.attractiveness == '1' %}
-			Fifty fifty
-		{% else %}
-			Shakal pe mat ja
-		{% endif %}
-		</span>
-
-	</div>
-</div>
 <br><br>
 
 {% transparent_buttons_js ident=own_id static_url=STATIC_URL %}

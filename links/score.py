@@ -274,6 +274,10 @@ MERCH = {
 '15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#REMOVE
 ###############################################################################################################
+# '2' DELIBERATELY SKIPPED DUE TO LEGACY REASONS
+ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
+'11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
+###############################################################################################################
 SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
 SEGMENT_STARTING_USER_ID = 19005280# starting user ID of user segment analysis
 PROJ_ZUCK_STARTING_USER_ID = 1899552

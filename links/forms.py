@@ -13,7 +13,7 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from tasks import invalidate_avatar_url
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key,\
-get_aurl
+get_aurl, is_attribute_change_rate_limited
 from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
 Publicreply, VideoComment
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, prep_image
@@ -352,29 +352,32 @@ class UserProfileForm(forms.ModelForm):
 	This controls the userprofile edit form
 	"""
 	MardAurat = (
-		('1','Girl'),
-		('0','Boy'),
+		('1','Female'),
+		('0','Male'),
 		)
 	MaritalStatus = (
 		('1','Yes'),
 		('0','No'),
 		)
-	RATING = (
-		('0','Ek dum kadak'),
-		('1','Fifty fifty'),
-		('2','Shakal pe mat ja'),
-	)
+	# RATING = (
+	# 	('0','Ek dum kadak'),
+	# 	('1','Fifty fifty'),
+	# 	('2','Shakal pe mat ja'),
+	# )
 	avatar = forms.ImageField(label='Photo Lagao', help_text='less than 1 mb', required=False)
 	gender = forms.TypedChoiceField(choices=MardAurat, widget=forms.RadioSelect, coerce=int)
 	shadi_shuda = forms.TypedChoiceField(choices=MaritalStatus, widget=forms.RadioSelect, coerce=int)
-	attractiveness = forms.TypedChoiceField(choices=RATING, widget=forms.RadioSelect, coerce=int)
+	# attractiveness = forms.TypedChoiceField(choices=RATING, widget=forms.RadioSelect, coerce=int)
 	bio = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'max-width:98%;height:100px;border-radius:5px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;','class':'cxl sp'}))
-	mobilenumber = forms.IntegerField(required=False,widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:80%;height:20px;border-radius:5px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;','class':'cxl sp'}))
+	# mobilenumber = forms.IntegerField(required=False,widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:80%;height:20px;border-radius:5px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;','class':'cxl sp'}))
 	age = forms.IntegerField(required=False,widget=forms.Textarea(attrs={'cols':10,'rows':1,'style':'width:50px;height:20px;border-radius:5px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;','class':'cxl sp'}))
+	streak = forms.IntegerField(required=False)
+	attractiveness = forms.IntegerField()
+
 	class Meta:
 		model = UserProfile
 		exclude = ('user','previous_retort') #so user and previous_retort doesn't show, but the extended attributes of bio and mobile number do show
-		fields=('avatar', 'mobilenumber', 'bio', 'gender', 'age', 'shadi_shuda', 'attractiveness')
+		fields=('avatar', 'streak', 'bio', 'gender', 'age', 'shadi_shuda', 'attractiveness')
 
 	def __init__(self, *args, **kwargs):
 		# you take the user out of kwargs and store it as a class attribute
@@ -385,10 +388,8 @@ class UserProfileForm(forms.ModelForm):
 		self.fields['age'].error_messages = {'required':retrieve_validation_error_string('required_age'),\
 		'invalid':retrieve_validation_error_string('age_too_large')}
 		self.fields['age'].widget.attrs['maxlength'] = 2
-		self.fields['mobilenumber'].widget.attrs['maxlength'] = 13
-		self.fields['mobilenumber'].error_messages = {'required':retrieve_validation_error_string('required_mobnum'),\
-		'invalid':retrieve_validation_error_string('not_your_mobnum')}
-		# self.fields['avatar'].widget.attrs['accept'] = 'image/*'
+		self.fields['streak'].error_messages = {'invalid':'Ye ghalat hai'}
+		
 
 	def clean_avatar(self):
 		image=self.cleaned_data.get("avatar")
@@ -445,9 +446,32 @@ class UserProfileForm(forms.ModelForm):
 				raise forms.ValidationError(retrieve_validation_error_string('age_too_large'))
 			return age
 
-	def clean_mobilenumber(self):
-		mob_num = self.cleaned_data.get("mobilenumber")
-		return mob_num if mob_num else ''
+	def clean_streak(self):
+		"""
+		Actually contains 'city' data. Mislabelled for legacy reasons
+		"""
+		city = self.cleaned_data.get("streak")
+		is_rate_limited, rate_limit_time = is_attribute_change_rate_limited(user_id=self.user.id, time_now=time.time(), attribute_value=city,\
+			rate_limit_type='city')
+		if is_rate_limited:
+			raise forms.ValidationError("Ap city change kar sakein ge {} baad".format(human_readable_time(rate_limit_time)))
+		return city
+
+	def clean_attractiveness(self):
+		"""
+		Actually contains 'zodiac' data. Mislabelled for legacy reasons
+		"""
+		zodiac = self.cleaned_data.get("attractiveness")
+		is_rate_limited, rate_limit_time = is_attribute_change_rate_limited(user_id=self.user.id, time_now=time.time(), attribute_value=zodiac,\
+			rate_limit_type='zodiac')
+		if is_rate_limited:
+			raise forms.ValidationError("Ap star sign change kar sakein ge {} baad".format(human_readable_time(rate_limit_time)))
+		return zodiac
+
+
+	# def clean_mobilenumber(self):
+	# 	mob_num = self.cleaned_data.get("mobilenumber")
+	# 	return mob_num if mob_num else ''
 
 
 class UserSettingsForm(forms.ModelForm):

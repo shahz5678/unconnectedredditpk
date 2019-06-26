@@ -129,7 +129,7 @@
 	<hr size=1 COLOR="#f4f4f4">
 
 	<b class="cm sp lsp" style="color:darkgray">City:</b>
-		{% if city_name == 'Not set' %}<span class="cl sp lsp" style="color:#a9a9a9">Not set</span>{% else %}<span class="cl sp lsp">{{ city_name }}</span>{% endif %}
+		{% if city_name == 'Not set' or city_name == '-------' %}<span class="cl sp lsp" style="color:#a9a9a9">Not set</span>{% else %}<span class="cl sp lsp">{{ city_name }}</span>{% endif %}
 	<hr size=1 COLOR="#f4f4f4">
 
 	<b class="cm sp lsp" style="color:darkgray">Star sign:</b>

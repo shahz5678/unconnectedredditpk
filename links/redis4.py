@@ -824,7 +824,7 @@ def is_attribute_change_rate_limited(user_id, time_now, attribute_value, rate_li
 		setting_null = attribute_value in [0,1,2]
 		key_name = ZODIAC_CHANGE+str(user_id)
 	elif rate_limit_type == 'city':
-		setting_null = attribute_value == 0
+		setting_null = attribute_value in [0,226]
 		key_name = CITY_CHANGE+str(user_id)
 	else:
 		setting_null = False

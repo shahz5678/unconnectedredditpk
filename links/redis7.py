@@ -1,20 +1,20 @@
 import redis, time
-from random import random
-from operator import itemgetter
-import json as json_backup
 import ujson as json
+from random import random
+import json as json_backup
+from operator import itemgetter
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
 TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
-from location import REDLOC7
 from redis3 import retrieve_user_world_age, exact_date
 from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
-from models import Photo
 from colors import COLOR_GRADIENTS
+from location import REDLOC7
+from models import Photo
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
@@ -1507,7 +1507,7 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 	"""
 	HAND_PICKED_TRENDING_PHOTOS contains photos earmarked for movement into trending - this executes the whole procedure
 	"""
-	pushed = False
+	pushed, obj_id = False, None
 	if feed_type == 'best_photos':
 		# retrieve oldest object from HAND_PICKED_TRENDING_PHOTOS and push it into trending
 		my_server = redis.Redis(connection_pool=POOL)
@@ -1525,7 +1525,8 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 						time_of_selection = time.time()
 						obj_hash['tos'] = time_of_selection
 						obj_hash = unpack_json_blob([obj_hash])[0]
-						add_single_trending_object(prefix='img:', obj_id=obj_hash['i'], obj_hash=obj_hash, my_server=my_server,\
+						obj_id = obj_hash['i']
+						add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
 							from_hand_picked=True)
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
 						pushed = True
@@ -1543,7 +1544,7 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 			pushed = False
 	else:
 		pushed = False
-	return pushed
+	return pushed, obj_id
 
 
 def queue_obj_into_trending(prefix, obj_owner_id, obj_id, picked_by_id):

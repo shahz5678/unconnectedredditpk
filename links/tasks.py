@@ -14,7 +14,7 @@ process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ,\
 GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE,SEGMENT_STARTING_TIME#, UPVOTE, DOWNVOTE,
 # from page_controls import PHOTOS_PER_PAGE
-from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, \
+from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, Logout, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
 #from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
@@ -825,7 +825,8 @@ def rank_all_photos():
 	Can also push hand-picked objects into trending lists
 	Mislabeled task due to legacy reasons
 	"""
-	pushed = push_hand_picked_obj_into_trending()
+	time_now = time.time()
+	pushed, obj_id = push_hand_picked_obj_into_trending()
 	if pushed:
 		# TODO: send this to Facebook fan page
 		pass
@@ -836,32 +837,15 @@ def rank_all_photos():
 		trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
 		if trending_item_hash_name:
 			highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-			highest_ranked_photo['tos'] = time.time()
+			highest_ranked_photo['tos'] = time_now
 			highest_ranked_photo['rank_scr'] = item_score
+			obj_id = trending_item_hash_name.split(":")[1]
 			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
-		# rank_photos()
-
-	
-	# photos = retrieve_obj_feed(get_photo_feed(feed_type='fresh_photos'))
-	# photo_ids_and_times = {}
-	# for photo in photos:
-	# 	try:
-	# 		object_id = photo['i']
-	# 		net_votes = photo['nv']
-	# 		submission_time = photo['t']
-	# 	except (TypeError,KeyError):
-	# 		net_votes, submission_time, object_id = None, None, None
-	# 	if int(net_votes) > 0 and submission_time and object_id:#remove objs with '0' votes via this
-	# 		photo_ids_and_times[object_id] = submission_time
-	# if photo_ids_and_times:
-	# 	# create a net voting of this pool via taking world age into consideration
-	# 	photo_ids = photo_ids_and_times.keys()
-	# 	photo_vote_scr_dict = get_world_age_weighted_vote_score(photo_ids,obj_type='img')
-	# 	photo_id_and_scr = []
-	# 	for photo_id in photo_ids:
-	# 		photo_id_and_scr.append("img:"+photo_id)
-	# 		photo_id_and_scr.append(set_rank(float(photo_vote_scr_dict[photo_id]),float(photo_ids_and_times[photo_id])))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo
-	# 	add_photos_to_best_photo_feed(photo_id_and_scr,consider_world_age=True)
+			pushed = True
+	###############################
+	if pushed and obj_id:
+		cohort_num = int(time_now/604800)#cohort size is 1 week
+		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
 
 
 @celery_app1.task(name='tasks.rank_all_photos1')

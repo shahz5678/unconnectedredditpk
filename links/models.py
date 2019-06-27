@@ -359,12 +359,13 @@ class GroupInvite(models.Model):
 		return u"%s was invited to %s by %s" % (self.invitee, self.which_group.topic, self.inviter)
 
 class Logout(models.Model):
-	logout_user = models.ForeignKey(User)
+	# logout_user = models.ForeignKey(User)
+	logout_user = models.ForeignKey(Photo)
 	logout_time = models.DateTimeField(auto_now_add=True)
 	pre_logout_score = models.IntegerField(null=True, blank=True, default=0)
 
 	def __unicode__(self):
-		return u"%s logged out at %s, dropping score to 10 from %s" % (self.logout_user,self.logout_time,self.pre_logout_score)
+		return u"%s trended at %s, and was inserted in cohort %s" % (self.logout_user,self.logout_time,self.pre_logout_score)
 
 class Reply(models.Model):
 	text = models.TextField("Likho:", validators=[MaxLengthValidator(500)])

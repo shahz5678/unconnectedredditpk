@@ -1121,6 +1121,8 @@ class UploadPhotoForm(forms.Form):
 				raise forms.ValidationError('{} chars se zyada nahi likhein, ap ne {} chars likhey'.format(MAX_PHOTO_CAPTION_SIZE,caption_len))
 			elif caption.isdigit():
 				raise forms.ValidationError('Sirf numbers nahi likhein, tafseel se likhein foto mein kya hai')
+			elif '#' in caption:
+				raise forms.ValidationError('Foto ki tafseel mein "#" nahi likhein')
 			uni_str = uniform_string(caption)
 			if uni_str:
 			  if uni_str.isspace():

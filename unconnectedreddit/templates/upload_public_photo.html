@@ -2,7 +2,7 @@
 {% load future_time %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Upload public photo or meme | Damadam.pk</title></head>
+<head><title>Upload public photo or meme | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
@@ -47,9 +47,11 @@
         {% if not show_instructions %}
         <div class="cgy lsp sp cs mbl mtl" style="text-align:left">
             <div class="mt" style="font-weight:bold">HELP:</div>
-            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is kisam ki fotos share karein: poetry, paheliyan (riddles), jokes, quotes, latest news, sports, politics, religion, celebrities, fashion, nature and philosophy</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay. Sirf apney pasandeeda items share karein</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Foto pe jo alfaz likhein ge, apki foto un se Google pe bhi search ho sakey gi. Foto ka title Google search mein show honay ke liye buhut important hai</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">2)</span> Maslan agr poetry ki foto ho, tou "Urdu Poetry" ya phir "Sad Poetry" likh dene se foto Google pe in alfaz se search ho paye gi</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">3)</span> Uploaded foto forun Google search mein nahi aati. Apko kuch days wait karna parey ga. Kuch days baad apki foto apkey alfaz ke sath Google search mein show ho jaye gi</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
         </div>
         {% endif %}
 

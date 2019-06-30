@@ -381,7 +381,7 @@ def topic_gone(request, topic_url):
 	if user_id:
 		is_topic_gone = request.session.pop("topic_gone"+str(user_id),'')
 		if is_topic_gone:
-			return render(request,"topics/topic_gone.html",{})
+			return render(request,"topics/topic_gone.html",status=404)
 		else:
 			# user is hitting the page without being prompted - this is a generic 404
 			raise Http404("This page cannot be populated")

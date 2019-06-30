@@ -1,17 +1,18 @@
 import time, uuid
 from operator import itemgetter
-from django.http import Http404
 from django.shortcuts import redirect, render
 from django.core.urlresolvers import reverse_lazy
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
+from django.http import Http404, HttpResponsePermanentRedirect
 from topic_forms import SubmitInTopicForm, CreateTopicform
 from page_controls import ITEMS_PER_PAGE
 from verified import FEMALES
 from models import Link
 from redis2 import bulk_is_fan
-from tasks import set_input_history, log_action
 from forms import PublicreplyMiniForm
+from redis3 import log_text_submissions
+from tasks import set_input_history, log_action
 from views import get_indices, get_addendum, beautiful_date, format_post_times
 from redis4 import retrieve_credentials, set_text_input_key, content_sharing_rate_limited, rate_limit_content_sharing
 from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_COLOR_DISTANCE, SECONDARY_COLOR_DISTANCE, \
@@ -19,7 +20,7 @@ PRIMARY_COLOR_GRADIENT_MAPPING
 from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post, create_topic_feed, retrieve_topic_feed_data, \
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
 retire_abandoned_topics
-from redis3 import log_text_submissions
+###############
 from score import SEGMENT_STARTING_USER_ID
 
 ##########################################################################################################
@@ -342,7 +343,7 @@ def topic_page(request,topic_url):
 			else:
 				# topic does not exist - perhaps it was older than 7 days and has expired?
 				request.session["topic_gone"+str(own_id)] = '1'
-				return redirect("topic_gone", topic_url)
+				return HttpResponsePermanentRedirect("/topic/gone/{}/".format(topic_url))
 		else:
 			# user is not authenticated
 			topic_name, description, bg_theme = retrieve_topic_credentials(topic_url=topic_url, existence_only=False, with_desc=True,\

@@ -19,7 +19,7 @@ from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_CO
 PRIMARY_COLOR_GRADIENT_MAPPING
 from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post, create_topic_feed, retrieve_topic_feed_data, \
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
-retire_abandoned_topics
+retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic
 ###############
 from score import SEGMENT_STARTING_USER_ID
 
@@ -479,7 +479,7 @@ def submit_topic_post(request,topic_url):
 
 
 ##########################################################################################################
-########################################## Subscribe to a Topic ##########################################
+########################################### Topic Subscription ###########################################
 ##########################################################################################################
 
 
@@ -529,4 +529,23 @@ def subscribe_to_topic(request, topic_url):
 
 
 
+def unsubscribe_topics(request):
+	"""
+	Render a list of user's topics, and provide "unsubscribe" functionalitys
+	"""
+	own_id = request.user.id
+	if request.method == "POST":
+		topic_urls = request.POST.getlist("turl",[])
+		decision = request.POST.get("dec",0)
+		if decision == '1' and topic_urls:
+			# there are topics to unsubscribe from
+			untouched_topics = bulk_unsubscribe_topic(subscriber_id=own_id, topic_urls=topic_urls)
+			if untouched_topics:
+				request.session["successfully_unsubscribed"+str(own_id)] = '2'
+			else:
+				request.session["successfully_unsubscribed"+str(own_id)] = '1'
+		return redirect("user_profile",request.user.username)
+	else:
+		# render unsubscription options
+		return render(request,"topics/unsubscribe_topics.html",{'subscribed_topics':retrieve_subscribed_topics(str(own_id))})
 

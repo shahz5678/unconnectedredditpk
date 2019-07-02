@@ -27,6 +27,8 @@
 			<a href="{% url 'photo_detail' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% elif orig == '22' %}
 			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '25' %}
+			<a href="{% url 'user_vote_history' 'upvote' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% else %}
 		{% endif %}
 	wapis</a>
@@ -37,6 +39,8 @@
 			<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% elif orig == '22' %}
 			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '25' %}
+			<a href="{% url 'user_vote_history' 'upvote' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% endif %}wapis</a>
 	{% endif %}
 </div>

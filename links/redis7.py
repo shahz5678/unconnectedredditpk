@@ -520,6 +520,60 @@ def retrieve_detailed_voting_data(page_num, user_id):
 	return redis.Redis(connection_pool=POOL).get(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num))
 
 
+###################################################
+############# Logging AB Test Results #############
+###################################################
+
+
+def retrieve_user_bucket(user_id, with_vote_value=None):
+	"""
+	'EVEN' users are shown the new variation
+	'ODD' users view the old one
+	"""
+	BENCHMARK_ID = 4
+	if with_vote_value:
+		if user_id % 2 != 0:
+			if user_id <= BENCHMARK_ID:
+				if with_vote_value == '1':
+					bucket_type = 'control-old-uvote'#'old user' in control group who upvoted
+				else:
+					bucket_type = 'control-old-dvote'#'old user' in control group who downvoted
+			else:
+				if with_vote_value == '1':
+					bucket_type = 'control-new-uvote'#'new user' in control group who upvoted
+				else:
+					bucket_type = 'control-new-dvote'#'new user' in control group who downvoted
+		else:
+			if user_id <= BENCHMARK_ID:
+				if with_vote_value == '1':
+					bucket_type = 'var-old-uvote'#'old user' in variation group who upvoted
+				else:
+					bucket_type = 'var-old-dvote'#'old user' in variation group who downvoted
+			else:
+				if with_vote_value == '1':
+					bucket_type = 'var-new-uvote'#'new user' in variation group who upvoted
+				else:
+					bucket_type = 'var-new-dvote'#'new user' in variation group who downvoted
+	else:
+		bucket_type = 'control' if user_id % 2 != 0 else 'var'
+	return bucket_type
+
+
+def log_vote_for_ab_test(voter_id ,vote_value):
+	"""
+	Logs values into various buckets to make the A/B test decisive
+	"""
+	bucket_type = retrieve_user_bucket(user_id=voter_id, with_vote_value=vote_value)
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zincrby(bucket_type,voter_id,amount=1)
+	my_server.zincrby('ab_test',bucket_type,amount=1)
+
+
+###################################################
+###################################################
+###################################################
+
+
 def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, with_total_votes=False):
 	"""
 	Retrieves voting records for display in the user's profile

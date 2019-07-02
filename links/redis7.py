@@ -1088,6 +1088,29 @@ def unsubscribe_topic(subscriber_id, topic_url, my_server=None):
 		return True, None
 
 
+def bulk_unsubscribe_topic(subscriber_id, topic_urls, my_server=None):
+	"""
+	Unsubscribe a user from topics
+	"""
+	if topic_urls:
+		subscriber_id = str(subscriber_id)
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		rate_limited_topics, other_topics = [], []
+		for topic_url in topic_urls:
+			ttl = my_server.ttl(TOPIC_UNSUB_LOCKED+subscriber_id+":"+topic_url)
+			if ttl:
+				rate_limited_topics.append(topic_url)
+			else:
+				other_topics.append(topic_url)
+		if other_topics:
+			for topic_url in other_topics:
+				my_server.zrem(SUB_TOPICS+subscriber_id,topic_url)
+				my_server.zrem(TOPIC_SUBS+topic_url,subscriber_id)
+		return rate_limited_topics
+	else:
+		return []
+
+
 def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, submitter_username, is_pinkstar,text, submission_time, \
 	from_fbs, topic_url, topic_name, bg_theme, add_to_public_feed=False):
 	"""

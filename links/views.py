@@ -1369,6 +1369,7 @@ class UserProfileDetailView(FormView):
 				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
 				context["blocked"] = get_banned_users_count(user_id)
 				context["mobile_verified"] = self.request.mobile_verified
+				context["successfully_unsubscribed"] = self.request.session.pop("successfully_unsubscribed"+str(user_id),'')
 			else:
 				context["fanned"] = [str(user_obj.id)] if is_fan(star_id, user_id) else []
 				context["mobile_verified"] = is_mobile_verified(star_id)

@@ -34,6 +34,7 @@ THIRTY_MINS = 60*30
 TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 FOUR_MINS = 4*60
+ONE_MIN = 60
 FORTY_FIVE_SECS = 45
 THREE_SECS = 3
 NINE_SECS = 9
@@ -115,6 +116,8 @@ CACHED_VOTING_RELATIONSHIP = 'cvr:'# key that caches the sybil/data associated t
 LATEST_REVERSION_TIMES = "lrt"# global sorted set holding latest times that a vote reversion occured between a voter_id:poster_id pairs
 
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
+
+CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -501,6 +504,20 @@ def retrieve_global_voting_records(start_idx=0, end_idx=-1):
 	Retrieves global voting records, useful for exporting data into a CSV
 	"""
 	return redis.Redis(connection_pool=POOL).zrange(GLOBAL_VOTES_AND_TIMES,start_idx,end_idx, withscores=True)
+
+
+def cache_detailed_voting_data(json_data, page_num, user_id):
+	"""
+	Micro-caches a particular page of upvoting history
+	"""
+	redis.Redis(connection_pool=POOL).setex(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num),json_data,ONE_MIN)
+
+
+def retrieve_detailed_voting_data(page_num, user_id):
+	"""
+	Retrieves micro-cached detailed upvoting data
+	"""
+	return redis.Redis(connection_pool=POOL).get(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num))
 
 
 def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, with_total_votes=False):

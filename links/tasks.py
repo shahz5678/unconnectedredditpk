@@ -43,7 +43,8 @@ from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_pho
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, get_best_home_feed, retire_abandoned_topics
+study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, get_best_home_feed, retire_abandoned_topics,\
+cache_detailed_voting_data
 from redis8 import set_section_wise_retention, log_segment_action
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
@@ -1114,6 +1115,14 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
 	Video.objects.filter(id=video_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
+
+
+@celery_app1.task(name='tasks.cache_voting_history')
+def cache_voting_history(user_id, page_num, json_data):
+	"""
+	Caches voting history
+	"""
+	cache_detailed_voting_data(json_data=json_data, page_num=page_num, user_id=user_id)
 
 
 @celery_app1.task(name='tasks.vote_tasks')

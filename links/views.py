@@ -4226,8 +4226,9 @@ def photo_sitemap_of_sitemaps(request):
 	"""
 	Renders a sitemap of sitemaps for photo_detail pages
 	"""
-	sitemap_cohorts = retrieve_indexable_photo_detail_cohorts()
-	return render(request, 'sitemap/photo_sitemap_of_sitemaps.xml', {'sitemap_cohorts': sitemap_cohorts},content_type="application/xml")
+	sitemap_cohorts, latest_obj_trending_time = retrieve_indexable_photo_detail_cohorts()
+	return render(request, 'sitemap/photo_sitemap_of_sitemaps.xml', {'latest_obj_trending_time':latest_obj_trending_time,\
+		'sitemap_cohorts': sitemap_cohorts},content_type="application/xml")
 
 
 def photo_sitemap(request, cohort):
@@ -4254,11 +4255,12 @@ def retrieve_indexable_photo_detail_cohorts():
 	Retrieves IDs of photos that have trended since 28th June 2019, and creates cohorts of sitemaps out of them
 	"""
 	latest_obj = Logout.objects.latest('id')
+	latest_obj_trending_time = latest_obj.logout_time.strftime("%Y-%m-%dT%I:%M:%S+00:00")
 	earliest_obj = Logout.objects.order_by('id')[:1][0]
 	latest_cohort = latest_obj.pre_logout_score# this is cohort num
 	first_cohort = earliest_obj.pre_logout_score# this is cohort num
 	cohorts = range(first_cohort, latest_cohort+1, 1)
-	return cohorts
+	return cohorts, latest_obj_trending_time
 
 
 ####################################################################################################################

@@ -3,7 +3,7 @@
 {% for cohort in sitemap_cohorts %}
 <sitemap>
   <loc>https://damadam.pk/photo_sitemap_{{ cohort }}.xml</loc>
-  {% if forloop.counter == 1 %}<changefreq>hourly</changefreq>{% endif %}
+  {% if forloop.counter == 1 %}<lastmod>{{ latest_obj_trending_time }}</lastmod>{% endif %}
 </sitemap>
 {% endfor %}
 </sitemapindex>

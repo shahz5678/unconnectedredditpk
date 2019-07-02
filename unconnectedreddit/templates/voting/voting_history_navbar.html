@@ -1,0 +1,15 @@
+{% if history_type == 'upvote' %}
+
+	<div class="mbl fx fxjscn fxaicn">
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#1edea8;font-weight:bold"><img class="mt" src="{{ STATIC_URL }}img/up.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">UP</div></button>
+		<a href="{% url 'user_vote_history' 'downvote' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img class="mt" src="{{ STATIC_URL }}img/down_cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">DOWN</div></button></a>
+	</div>
+
+{% else %}
+
+	<div class="mbl fx fxjscn fxaicn">
+		<a href="{% url 'user_vote_history' 'upvote' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img class="mt" src="{{ STATIC_URL }}img/up_cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">UP</div></button></a>
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:#f8f9fa"><img class="mt" src="{{ STATIC_URL }}img/down.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">DOWN</div></button>
+	</div>
+
+{% endif %}

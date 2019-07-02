@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+{% for photo_id, trending_time in photo_ids_and_times reversed %}
+	<url>
+		<loc>https://damadam.pk/photo_detail/{{ photo_id }}/</loc>
+		<lastmod>{{ trending_time }}</lastmod>
+	</url>
+{% endfor %}
+
+</urlset>

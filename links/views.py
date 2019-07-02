@@ -4210,6 +4210,8 @@ def error(request):
 	"""
 	return render(request,"500.html",{})
 
+##################################################### Sitemaps #####################################################
+
 
 def sitemap(request):
 	"""
@@ -4220,19 +4222,46 @@ def sitemap(request):
 	'latest_fresh_mod_time':beautiful_date(latest_fresh_mod_time,format_type='4')},content_type="application/xml")
 
 
-# def photo_sitemap(request):
-# 	"""
-# 	Renders a sitemap for photo_detail pages
-# 	"""
-# 	return render(request, 'sitemap/photo_sitemap.xml', {'indexable_photos': retrieve_indexable_photo_detail_pages()},content_type="application/xml")
+def photo_sitemap_of_sitemaps(request):
+	"""
+	Renders a sitemap of sitemaps for photo_detail pages
+	"""
+	sitemap_cohorts = retrieve_indexable_photo_detail_cohorts()
+	return render(request, 'sitemap/photo_sitemap_of_sitemaps.xml', {'sitemap_cohorts': sitemap_cohorts},content_type="application/xml")
 
 
-# def retrieve_indexable_photo_detail_pages():
-# 	"""
-# 	Retrieves IDs of photos that have trended since 26th June 2019
-# 	"""
-# 	return Logout.objects.all().values('pre_logout_score','logout_time')
+def photo_sitemap(request, cohort):
+	"""
+	Renders a sitemap for photo_detail pages falling within a certain time cohort
+	"""
+	photo_ids_and_times = retrieve_indexable_photo_detail_list(cohort=cohort)
+	return render(request, 'sitemap/photo_sitemap.xml', {'photo_ids_and_times': photo_ids_and_times},content_type="application/xml")
 
+
+def retrieve_indexable_photo_detail_list(cohort):
+	"""
+	Retreiving all photo_ids belonging to a certain sitemap cohort
+	"""
+	trending_photo_objs = Logout.objects.filter(pre_logout_score=cohort).values_list('logout_user_id','logout_time')
+	final_data = []
+	for photo_id, trending_time in trending_photo_objs:
+		final_data.append((photo_id,trending_time.strftime("%Y-%m-%dT%I:%M:%S+00:00")))
+	return final_data
+
+
+def retrieve_indexable_photo_detail_cohorts():
+	"""
+	Retrieves IDs of photos that have trended since 28th June 2019, and creates cohorts of sitemaps out of them
+	"""
+	latest_obj = Logout.objects.latest('id')
+	earliest_obj = Logout.objects.order_by('id')[:1][0]
+	latest_cohort = latest_obj.pre_logout_score# this is cohort num
+	first_cohort = earliest_obj.pre_logout_score# this is cohort num
+	cohorts = range(first_cohort, latest_cohort+1, 1)
+	return cohorts
+
+
+####################################################################################################################
 
 
 @ratelimit(rate='3/s')

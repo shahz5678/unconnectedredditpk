@@ -1,20 +1,20 @@
 import redis, time
-from random import random
-from operator import itemgetter
-import json as json_backup
 import ujson as json
+from random import random
+import json as json_backup
+from operator import itemgetter
 from multiprocessing import Pool
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
 TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
-from location import REDLOC7
 from redis3 import retrieve_user_world_age, exact_date
 from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
-from models import Photo
 from colors import COLOR_GRADIENTS
+from location import REDLOC7
+from models import Photo
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
@@ -34,6 +34,7 @@ THIRTY_MINS = 60*30
 TWENTY_MINS = 20*60
 TEN_MINS = 10*60
 FOUR_MINS = 4*60
+ONE_MIN = 60
 FORTY_FIVE_SECS = 45
 THREE_SECS = 3
 NINE_SECS = 9
@@ -115,6 +116,8 @@ CACHED_VOTING_RELATIONSHIP = 'cvr:'# key that caches the sybil/data associated t
 LATEST_REVERSION_TIMES = "lrt"# global sorted set holding latest times that a vote reversion occured between a voter_id:poster_id pairs
 
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
+
+CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -501,6 +504,74 @@ def retrieve_global_voting_records(start_idx=0, end_idx=-1):
 	Retrieves global voting records, useful for exporting data into a CSV
 	"""
 	return redis.Redis(connection_pool=POOL).zrange(GLOBAL_VOTES_AND_TIMES,start_idx,end_idx, withscores=True)
+
+
+def cache_detailed_voting_data(json_data, page_num, user_id):
+	"""
+	Micro-caches a particular page of upvoting history
+	"""
+	redis.Redis(connection_pool=POOL).setex(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num),json_data,ONE_MIN)
+
+
+def retrieve_detailed_voting_data(page_num, user_id):
+	"""
+	Retrieves micro-cached detailed upvoting data
+	"""
+	return redis.Redis(connection_pool=POOL).get(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num))
+
+
+###################################################
+############# Logging AB Test Results #############
+###################################################
+
+
+def retrieve_user_bucket(user_id, with_vote_value=None):
+	"""
+	'EVEN' users are shown the new variation
+	'ODD' users view the old one
+	"""
+	BENCHMARK_ID = 4
+	if with_vote_value:
+		if user_id % 2 != 0:
+			if user_id <= BENCHMARK_ID:
+				if with_vote_value == '1':
+					bucket_type = 'control-old-uvote'#'old user' in control group who upvoted
+				else:
+					bucket_type = 'control-old-dvote'#'old user' in control group who downvoted
+			else:
+				if with_vote_value == '1':
+					bucket_type = 'control-new-uvote'#'new user' in control group who upvoted
+				else:
+					bucket_type = 'control-new-dvote'#'new user' in control group who downvoted
+		else:
+			if user_id <= BENCHMARK_ID:
+				if with_vote_value == '1':
+					bucket_type = 'var-old-uvote'#'old user' in variation group who upvoted
+				else:
+					bucket_type = 'var-old-dvote'#'old user' in variation group who downvoted
+			else:
+				if with_vote_value == '1':
+					bucket_type = 'var-new-uvote'#'new user' in variation group who upvoted
+				else:
+					bucket_type = 'var-new-dvote'#'new user' in variation group who downvoted
+	else:
+		bucket_type = 'control' if user_id % 2 != 0 else 'var'
+	return bucket_type
+
+
+def log_vote_for_ab_test(voter_id ,vote_value):
+	"""
+	Logs values into various buckets to make the A/B test decisive
+	"""
+	bucket_type = retrieve_user_bucket(user_id=voter_id, with_vote_value=vote_value)
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zincrby(bucket_type,voter_id,amount=1)
+	my_server.zincrby('ab_test',bucket_type,amount=1)
+
+
+###################################################
+###################################################
+###################################################
 
 
 def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, with_total_votes=False):
@@ -1507,7 +1578,7 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 	"""
 	HAND_PICKED_TRENDING_PHOTOS contains photos earmarked for movement into trending - this executes the whole procedure
 	"""
-	pushed = False
+	pushed, obj_id = False, None
 	if feed_type == 'best_photos':
 		# retrieve oldest object from HAND_PICKED_TRENDING_PHOTOS and push it into trending
 		my_server = redis.Redis(connection_pool=POOL)
@@ -1525,7 +1596,8 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 						time_of_selection = time.time()
 						obj_hash['tos'] = time_of_selection
 						obj_hash = unpack_json_blob([obj_hash])[0]
-						add_single_trending_object(prefix='img:', obj_id=obj_hash['i'], obj_hash=obj_hash, my_server=my_server,\
+						obj_id = obj_hash['i']
+						add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
 							from_hand_picked=True)
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
 						pushed = True
@@ -1543,7 +1615,7 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 			pushed = False
 	else:
 		pushed = False
-	return pushed
+	return pushed, obj_id
 
 
 def queue_obj_into_trending(prefix, obj_owner_id, obj_id, picked_by_id):

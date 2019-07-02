@@ -7,14 +7,13 @@
 
 			  	<a href="{% url 'user_profile' oun %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
 
-			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'user_profile' oun %}" itemprop="url" style="text-decoration: none;">{% if is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" height="13" width="13" style="color:deeppink">&nbsp;{% endif %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3></a></span></div>
+			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'user_profile' oun %}" itemprop="url" style="text-decoration: none;">{% if ex_url %}<h2 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h2>{% else %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3>{% endif %}</a></span></div>
 			
 			</div>
 				 	
 		 	<form style="padding-right:7px;display:{{ report_display }}" method="POST" action="{% url 'report_or_block' %}">
 				{% csrf_token %}
-				<input type="hidden" name="tp" value="pht">
-				<button type="submit" name="report" style="background:0 0;padding:0;border:none" class="report mt pg_ok_res" value="img#{{ origin }}#{{ pid }}#{{ oun }}#{{ ooid }}#{{ img_thumb }}#{{ home_hash }}#{{ raw_caption }}"><img src="{{ static_url }}img/warn_g.svg" width="16" height="16"></button>
+				<input type="hidden" name="tp" value="pht"><button type="submit" name="report" style="background:0 0;padding:0;border:none" class="report mt pg_ok_res" value="img#{{ origin }}#{{ pid }}#{{ oun }}#{{ ooid }}#{{ img_thumb }}#{{ home_hash }}#{{ raw_caption }}"><img src="{{ static_url }}img/warn_g.svg" width="16" height="16"></button>
 			</form>
 
 		</div>
@@ -26,9 +25,7 @@
 		{% if vsc < VDC %}
 			<div class="lsp mbs cl sp" style="color:darkgray">- hidden -</div>
 		{% else %}
-			<h2 class="ow cxl lsp clb" style="overflow:hidden;padding:0 5px 8px 5px;margin:0;font-weight:300">
-				<span itemprop="headline"><bdi>{{ cap }}</bdi></span>{% if is_fbs == '1' %}<span class="mls cxs sp cgy">(fbs)</span>{% endif %}
-			</h2>
+			{% if ex_url %}<h1 itemprop="headline" class="ow cxl lsp clb" style="overflow:hidden;padding:0 5px 8px 5px;margin:0;font-weight:300"><bdi>{{ cap }}</bdi></h1>{% else %}<h2 itemprop="headline" class="ow cxl lsp clb" style="overflow:hidden;padding:0 5px 8px 5px;margin:0;font-weight:300"><bdi>{{ cap }}</bdi></h2>{% endif %}
 		{% endif %}
 
 		<span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
@@ -50,9 +47,9 @@
 
 		<div class="mbl">
 			{% if ex_url %}
-			<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">uploaded {{ ut }}</time>
+				<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">uploaded {{ ut }}</time>{% if is_fbs == '1' %}<span class="mls cxs sp cgy">(via fbs)</span>{% endif %}
 			{% else %}
-			<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}" style="border-bottom:1px dotted lightgray">uploaded {{ ut }}</time></a>
+				{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}" style="border-bottom:1px dotted lightgray">uploaded {{ ut }}</time></a>{% if is_fbs == '1' %}<span class="mls cxs sp cgy">(via fbs)</span>{% endif %}
 			{% endif %}
 		</div>
 		</span>
@@ -72,11 +69,7 @@
 		{% if vsc < VDC %}
 			<div class="lsp cl sp" style="color:darkgray;">- hidden -</div>
 		{% else %}
-
-			<h2 class="ow cxl lsp clb" style="overflow:hidden;padding:0 5px;margin:0;font-weight:300">
-				<span itemprop="headline"><bdi>{{ cap }}</bdi></span>{% if is_fbs == '1' %}<span class="mls cxs sp cgy">(fbs)</span>{% endif %}
-			</h2>
-
+			<h2 itemprop="headline" class="ow cxl lsp clb" style="overflow:hidden;padding:0 5px;margin:0;font-weight:300"><bdi>{{ cap }}</bdi></h2>
 		{% endif %}
 
 	</div>
@@ -100,7 +93,7 @@
 
 	</div>
 
-	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" style="border-bottom:1px dotted lightgray" datetime="{{ mt }}">{{ ut }}</time></a></div>
+	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" style="border-bottom:1px dotted lightgray" datetime="{{ mt }}">{{ ut }}</time></a>{% if is_fbs == '1' %}<span class="mls cgy">(fbs)</span>{% endif %}</div>
 	</span>
 
 

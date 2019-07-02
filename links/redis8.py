@@ -9,7 +9,7 @@ ONE_HOUR= 10
 TWO_WEEKS = 1209600# in seconds
 THREE_MONTHS = 7776000# in seconds
 
-COHORT_TIME_LENGTH = 600#86400#i.e. set to '1 day'
+COHORT_TIME_LENGTH = 86400#i.e. set to '1 day'
 
 d1 = {0:'d0',1:'d1',2:'d2',3:'d3',4:'d4',5:'d5',6:'d6',7:'d7',8:'d8',9:'d9',10:'d10',11:'d11',12:'d12'}
 COHORT_NAMES_ = defaultdict(lambda: 'd13+', d1)# populates COHORT_NAMES_ by d1, and then uses 'd13+' as default value ('d13+' means 'd13 or more' - where d13 is included)

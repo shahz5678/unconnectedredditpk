@@ -530,7 +530,7 @@ def retrieve_user_bucket(user_id, with_vote_value=None):
 	'EVEN' users are shown the new variation
 	'ODD' users view the old one
 	"""
-	BENCHMARK_ID = 4
+	BENCHMARK_ID = 1918713
 	if with_vote_value:
 		if user_id % 2 != 0:
 			if user_id <= BENCHMARK_ID:

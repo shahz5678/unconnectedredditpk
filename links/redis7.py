@@ -169,8 +169,8 @@ def delete_avg_hash(hash_list, categ=None):
 ##################################################################################################################
 
 
-def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_pinkstar,\
-	text, submission_time, from_fbs, add_to_feed=False):
+def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_pinkstar, text, submission_time, \
+	from_fbs, add_to_feed=False):
 	"""
 	Creating text object (used in home feed, etc)
 	"""

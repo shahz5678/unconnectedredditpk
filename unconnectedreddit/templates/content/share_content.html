@@ -1,32 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 {% load cache %}
-<head><title>Share content on Damadam | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Share content | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
 
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Share on Damadam:</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:400px;width:93%;padding:0;background-color:white;text-align:center">
+<div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;margin: 0 auto;max-width:500px;width:97%;padding:0;background-color:#6dc9e5;background:linear-gradient(90deg, #6dc9e5 0%, #ffb265 100%) ;text-align:center">
 
 {% if first_time %}
 <div style="padding:10px">
-<div style="background:ivory;padding:10px 5px" class="bizcard cxl cr sp lsp">Sharing se pehlay aik dafa <a href="{% url 'sharing_help' %}" class="cb" style="border-bottom:1px dotted blue">sharing help</a> zarur dekh lein. Thank you!</div>
+<div style="background:floralwhite;padding:10px 5px" class="bizcard cl clb sp lsp">Sharing se pehlay aik dafa <a href="{% url 'sharing_help' %}" class="cb" style="border-bottom:1px dotted blue">sharing help</a> zarur dekh lein. Thank you!</div>
 </div>
 {% endif %}
 
-{% cache 6000 share %}
-<div class="cxl lsp" style="padding:10px">Ap Damadam ke users se kya share karna chahtey hain?</div>
-<div class="fx fxjscn fxaicn mts" style="padding-bottom:20px;border-bottom:1px solid #E9EBEE">
+{% cache 6000 sharing_page %}
+<div class="cxl lsp" style="padding:10px;background:white">Ap kya share karna chahtey hain?</div>
+<div class="fx fxjscn fxaicn" style="padding-bottom:20px;border-bottom:1px solid #E9EBEE;background:white">
 
-<a href="{% url 'link_create_pk' %}#section0"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px;background-color:#3cb7dd" class="mrl pg_ok_res"><img src="{{ STATIC_URL }}img/share_text.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white;font-weight:bold" class="mts lsp sp">TEXT<br>ITEM</div></button></a>
+<a href="{% url 'link_create' %}#section0"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px;background-color:#3cb7dd" class="mrl pg_ok_res"><img src="{{ STATIC_URL }}img/share_text.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white;font-weight:bold" class="mts lsp sp">TEXT<br>POST</div></button></a>
 
-<a href="{% url 'upload_public_photo' %}#section0"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px;background-color:#ff9933" class="mll pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white;font-weight:bold" class="mts lsp sp">FOTO<br>ITEM</div></button></a>
+<a href="{% url 'upload_public_photo' %}#section0"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px;background-color:#ff9933" class="mll pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white;font-weight:bold" class="mts lsp sp">FOTO<br>POST</div></button></a>
 
 </div>
+{% endcache %}
 <a href="{% url 'sharing_help' %}#section0">
-	<button class="vt" style="padding-top:1em;padding-bottom:1em;border:none;width:100%"><div class="sp cb cl" style="border-bottom:1px dotted blue;display:inline-block">sharing help</div></button>
+	<button class="pg_ok_res" style="background:0 0;padding-top:0.7em;padding-bottom:0.7em;border:none;width:100%"><div class="sp clw cl"><b>sharing help</b></div></button>
 </a>
 </div>
 
-<br><br>
-{% endcache %}
+<br>
+
 {% endblock %}

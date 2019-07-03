@@ -458,7 +458,7 @@ def submit_topic_post(request,topic_url):
 									topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
 									submitter_username=submitter_name)
 								log_text_submissions('topic')
-								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 50 submissions per day)
+								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at !00 submissions per day)
 								set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
 								################### Segment action logging ###################
 								if own_id > SEGMENT_STARTING_USER_ID:

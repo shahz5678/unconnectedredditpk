@@ -106,7 +106,7 @@
 		{% big_vote_button vote_type='vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
-		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
+		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL always_show=True %}
 		</div>
 		</section>
 
@@ -133,15 +133,15 @@
 </main>
 	<div class="mbl fx fxjscn">
 		{% if page.has_previous %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
-	    {% if page.has_next %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
+		{% if page.has_next %}
+		<div style="padding:0 10px">
+		<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+		</div>
+		{% endif %}
 	</div>
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}

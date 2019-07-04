@@ -50,22 +50,29 @@
 
 	<url>
 
-		<loc>https://damadam.pk/new-zealand-vs-england-wc-2019-match-41/</loc>
+		<loc>https://damadam.pk/all-the-lonely-people/</loc>
 		<changefreq>hourly</changefreq>
+
+	</url>
+
+	<url>
+
+		<loc>https://damadam.pk/new-zealand-vs-england-wc-2019-match-41/</loc>
+		<changefreq>weekly</changefreq>
 
 	</url>
 
 	<url>
 
 		<loc>https://damadam.pk/india-vs-england-wc-2019-match-38/</loc>
-		<changefreq>hourly</changefreq>
+		<changefreq>weekly</changefreq>
 
 	</url>
 
 	<url>
 
 		<loc>https://damadam.pk/pakistan-vs-afghanistan-wc-2019-match-36/</loc>
-		<changefreq>hourly</changefreq>
+		<changefreq>weekly</changefreq>
 
 	</url>
 
@@ -79,7 +86,7 @@
 	<url>
 
 		<loc>https://damadam.pk/pakistan-vs-new-zealand-wc-2019-match-33/</loc>
-		<changefreq>hourly</changefreq>
+		<changefreq>weekly</changefreq>
 
 	</url>
 

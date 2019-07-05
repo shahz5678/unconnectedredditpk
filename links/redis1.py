@@ -549,14 +549,6 @@ def add_banner(user_id):
 
 #####################Photo objects#####################
 
-# helper function for add_photo_comment and update_comment_in_home_link
-# def truncate_payload(payload):
-# 	# on average, truncate this after 10 messages have been aggregated
-# 	if random() < 0.1:
-# 		raw_text_set = filter(None,payload.split('#el#'))[-5:] #just keeping the latest 5 entries
-# 		payload = '#el#'.join(raw_text_set)+"#el#" #reforming the payload
-# 	return payload
-	
 
 # def retrieve_photo_posts(photo_id_list):
 # 	my_server = redis.Redis(connection_pool=POOL)
@@ -865,25 +857,6 @@ def process_home_links(list_of_dicts):
 # 	hash_name = "plm:"+str(photo_pk) #plm is 'photo_link_mapping'
 # 	mapping = {'l':link_pk}
 # 	my_server.hmset(hash_name,mapping)
-
-
-# def update_comment_in_home_link(reply,writer,writer_av,time,writer_id,link_pk,is_pinkstar):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hash_name = "lk:"+str(link_pk) #lk is 'link'
-# 	if my_server.exists(hash_name):
-# 		#################################Saving latest publicreply################################
-# 		latest_reply_head = av_url_formatting(av_url=writer_av, style='round')+"&nbsp;"+username_formatting(writer.encode('utf-8'),is_pinkstar,'medium',False)
-# 		existing_payload = my_server.hget(hash_name,'replies')
-# 		payload = latest_reply_head+"#"+str(time)+"#"+str(writer_id)+"#"+writer+"#"+str(link_pk)+"#"+reply+"#el#" #el# signifies an end-of-line character
-# 		if existing_payload:
-# 			existing_payload = truncate_payload(existing_payload)
-# 			payload = existing_payload.decode('utf-8')+payload
-# 		my_server.hset(hash_name,'replies',payload)
-# 		########################################################################################
-# 		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-# 		return amnt
-# 	else:
-# 		return 0
 
 
 # # maintains a sorted set containing rate-able attributes for any given home_link ("lk:"+str(link_pk))

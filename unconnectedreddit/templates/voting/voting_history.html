@@ -37,15 +37,14 @@
 
 					{% if datum.tp == 'tx' %}
 					
-						<form method="POST" action="{% url 'publicreply_view' %}">
-							{% csrf_token %}
-							<button name="lid" class="wt" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ datum.obid }}">
+						<a href="{% url 'publicreply_view' datum.obid %}">
+							<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
 								<div style="text-align:center;padding:18px 0;" class="lsp sp">
 									<b class="clb cs">{{ datum.t }}:</b>
 									<span class="ct" style="border-bottom:1px dotted teal">text thumbs up</span>
 								</div>
 							</button>
-						</form>
+						</a>
 
 					{% else %}
 
@@ -104,15 +103,14 @@
 
 			{% if datum.tp == 'tx' %}
 			
-				<form method="POST" action="{% url 'publicreply_view' %}">
-					{% csrf_token %}
-					<button name="lid" class="wt" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ datum.obid }}">
+				<a href="{% url 'publicreply_view' datum.obid %}">
+					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
 						<div style="text-align:center;padding:18px 0;" class="lsp sp">
 							<b class="clb cs">{{ datum.t }}:</b>
 							<span class="ct" style="border-bottom:1px dotted teal">text thumbs down</span>
 						</div>
 					</button>
-				</form>
+				</a>
 
 			{% else %}
 

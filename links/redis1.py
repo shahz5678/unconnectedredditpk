@@ -579,14 +579,6 @@ def add_banner(user_id):
 # 	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
 
 
-
-# def get_raw_comments(photo_id):
-# 	"""
-# 	Returns comments associated to a photo
-# 	"""
-# 	return redis.Redis(connection_pool=POOL).hget("ph:"+str(photo_id),"comments")
-
-
 def ban_photo(photo_id,ban):
 	my_server = redis.Redis(connection_pool=POOL)
 	hash_name = "ph:"+str(photo_id)

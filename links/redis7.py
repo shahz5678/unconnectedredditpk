@@ -199,7 +199,7 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 		add_obj_to_home_feed(submitter_id, time_now, hash_name, my_server)
 
 
-def update_comment_in_home_link(reply,writer,is_pinkstar,time,writer_id,link_pk):
+def update_comment_in_home_link(reply,writer,reply_id,time,writer_id,link_pk):
 	"""
 	Appends publicreply in home_replies_section displayed alongwith each 'text' post on 'home'
 	"""
@@ -209,7 +209,7 @@ def update_comment_in_home_link(reply,writer,is_pinkstar,time,writer_id,link_pk)
 		#################################Saving latest publicreply################################
 		comment_blob = my_server.hget(hash_name,'cb')
 		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
-		payload = {'is_pinkstar':is_pinkstar,'replier_username':writer,'link_id':link_pk,'text':reply,'replier_id':writer_id,\
+		payload = {'reply_id':reply_id,'replier_username':writer,'link_id':link_pk,'text':reply,'replier_id':writer_id,\
 		'epoch_time':time}
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
@@ -810,7 +810,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 
 
 def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
-	is_pinkstar=None,latest_comm_writer_uname=None,comment_count=None, time=None):
+	comment_id=None,latest_comm_writer_uname=None,comment_count=None, time=None):
 	"""
 	Adds comment to photo object (only if it exists in redis)
 	"""
@@ -820,18 +820,18 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		#################################Saving latest photo comment################################
 		comment_blob = my_server.hget(hash_name,'cb')
 		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
-		payload = {'is_pinkstar':is_pinkstar,'writer_uname':latest_comm_writer_uname,'text':latest_comm_text,'epoch_time':time,\
+		payload = {'comment_id':comment_id,'writer_uname':latest_comm_writer_uname,'text':latest_comm_text,'epoch_time':time,\
 		'commenter_id':latest_comm_writer_id,'photo_id':photo_id}
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
 
 
-def get_raw_comments(photo_id):
-	"""
-	Returns comments associated to an image (if its redis object exists)
-	"""
-	return redis.Redis(connection_pool=POOL).hget("img:"+str(photo_id),"cb")
+# def get_raw_comments(photo_id):
+# 	"""
+# 	Returns comments associated to an image (if its redis object exists)
+# 	"""
+# 	return redis.Redis(connection_pool=POOL).hget("img:"+str(photo_id),"cb")
 
 	
 def truncate_payload(comment_blob):

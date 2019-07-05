@@ -745,13 +745,12 @@ def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 			submitted_by_id = Publicreply.objects.only('submitted_by').get(id=publicreply_id).submitted_by_id
 			# mark as abusive
 			Publicreply.objects.filter(pk=publicreply_id).update(abuse=True)
-			# cut writers points
-			# UserProfile.objects.filter(user_id=submitted_by_id).update(score=F('score')-2)
+			# invalidate cached replies
 			invalidate_cached_public_replies(link_id)
 			# prepare to redirect
-		request.session["link_pk"] = link_id
-		request.session.modified = True
-		return redirect("publicreply_view")
+		# request.session["link_pk"] = link_id
+		# request.session.modified = True
+		return redirect("publicreply_view",link_id)
 	else:
 		raise Http404("Not a POST request")
 
@@ -3286,95 +3285,81 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 
 #@ratelimit(field='sid',ip=False,rate='5/s')
 @csrf_protect
-def public_reply_view(request,*args,**kwargs):
-	if getattr(request, 'limits', False):
-		raise Http404("Refreshing too fast!")
+def public_reply_view(request,parent_id,*args,**kwargs):
+	"""
+	Renders the 'jawab' page
+	"""
+	context, user_id = {}, request.user.id
+	if request.GET.get("from_rfrsh",'0') == '1' and tutorial_unseen(user_id=user_id, which_tut='14', renew_lease=True):
+		return render(request, 'jawab_refresh.html', {'lid':parent_id})
+	try:
+		link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','url','cagtegory').get(id=parent_id)
+		link['machine_time'] = link['submitted_on']
+		link['submitted_on'] = naturaltime(link['submitted_on'])
+	except Link.DoesNotExist:
+		# purge single notification and matka of request.user.id
+		own_id = request.user.id
+		remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(parent_id), user_id=own_id)
+		return render(request, 'object_deleted.html',{})
+	context["form_error"] = request.session.pop("publicreply_error",None)
+	context["is_auth"] = True
+	secret_key = uuid.uuid4()
+	set_text_input_key(user_id, parent_id, 'home_rep', secret_key)
+	context["sk"] = secret_key
+	context["form"] = PublicreplyForm()
+	context["mob_verified"] = True if request.mobile_verified else False
+	context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+	context["user_id"] = user_id
+	if link['url']:
+		payload = link['url'].split(":")
+		try:
+			theme, context['topic_name'], context['topic_url'] = payload[0], payload[1], payload[2]
+			color_grads = COLOR_GRADIENTS[theme]
+			context["c1"], context["c2"] = color_grads[0], color_grads[1]
+		except IndexError:
+			pass
+	parent_submitter_id = link['submitter']
+	parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
+	context["parent_submitter_id"] = parent_submitter_id
+	context["parent_av_url"] = parent_avurl
+	context["vote_score"] = link['net_votes']
+	context["parent"] = link #the parent link
+	context["parent_submitter_username"] = parent_uname
+	context["feature_phone"] = True if request.is_feature_phone else False
+	context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
+	replies = retrieve_cached_public_replies(parent_id)
+	if replies:
+		replies_data = json.loads(replies)
 	else:
-		context, user_id = {}, request.user.id
-		if request.method == "POST":
-			from_refresh = request.POST.get("from_rfrsh",None)
-			link_id = request.POST.get("lid",None)
-			request.session["link_pk"] = link_id
-			request.session.modified = True
-			if from_refresh == '1' and tutorial_unseen(user_id=user_id, which_tut='14', renew_lease=True):
-				return render(request, 'jawab_refresh.html', {'lid':link_id})
-		else:
-			link_id = request.session.pop("link_pk",None)
-		if link_id:
+		replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username').\
+		values('submitted_on','description','id','submitted_by','abuse','submitted_by__username').filter(answer_to_id=parent_id).\
+		order_by('-id')[:25]
+		for reply in replies_data:
+			reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
+		cache_public_replies(json.dumps(replies_data),parent_id)
+	context["replies"] = replies_data#replies
+	#########################################################################################
+	if request.user_banned:
+		context["unseen"] = False
+		context["reply_time"] = None
+	elif replies_data:
+		updated = update_notification(viewer_id=user_id, object_id=parent_id, object_type='2', seen=True, \
+			updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
+		if updated:
+			context["unseen"] = True
 			try:
-				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','url','cagtegory').get(id=link_id)
-				link['machine_time'] = link['submitted_on']
-				link['submitted_on'] = naturaltime(link['submitted_on'])
-			except Link.DoesNotExist:
-				# purge single notification and matka of request.user.id
-				own_id = request.user.id
-				remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(link_id), user_id=own_id)
-				return render(request, 'object_deleted.html',{})
-			context["form_error"] = request.session.pop("publicreply_error",None)
-			context["is_auth"] = True
-			secret_key = uuid.uuid4()
-			set_text_input_key(user_id, link_id, 'home_rep', secret_key)
-			context["sk"] = secret_key
-			context["form"] = PublicreplyForm()
-			context["mob_verified"] = True if request.mobile_verified else False
-			context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-			context["user_id"] = user_id
-			if link['url']:
-				payload = link['url'].split(":")
-				try:
-					theme, context['topic_name'], context['topic_url'] = payload[0], payload[1], payload[2]
-					color_grads = COLOR_GRADIENTS[theme]
-					context["c1"], context["c2"] = color_grads[0], color_grads[1]
-				except IndexError:
-					pass
-			parent_submitter_id = link['submitter']
-			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
-			context["parent_submitter_id"] = parent_submitter_id
-			# context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
-			context["parent_av_url"] = parent_avurl
-			context["vote_score"] = link['net_votes']
-			context["parent"] = link #the parent link
-			context["parent_submitter_username"] = parent_uname
-			context["is_parent_pinkstar"] = parent_uname in FEMALES
-			context["ensured"] = FEMALES
-			context["feature_phone"] = True if request.is_feature_phone else False
-			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-			replies = retrieve_cached_public_replies(link_id)
-			if replies:
-				replies_data = json.loads(replies)
-			else:
-				replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username').\
-				values('submitted_on','description','id','submitted_by','abuse','submitted_by__username').filter(answer_to_id=link_id).\
-				order_by('-id')[:25]
-				for reply in replies_data:
-					reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
-				cache_public_replies(json.dumps(replies_data),link_id)
-			context["replies"] = replies_data#replies
-			#########################################################################################
-			if request.user_banned:
-				context["unseen"] = False
+				# calculating the max 'own reply' time
+				own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitted_by'] == user_id)
+				context["reply_time"] = own_reply_time
+			except (AttributeError,ValueError):
 				context["reply_time"] = None
-			elif replies_data:
-				updated = update_notification(viewer_id=user_id, object_id=link_id, object_type='2', seen=True, \
-					updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
-				if updated:
-					context["unseen"] = True
-					try:
-						# calculating the max 'own reply' time
-						own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitted_by'] == user_id)
-						context["reply_time"] = own_reply_time
-					except (AttributeError,ValueError):
-						context["reply_time"] = None
-				else:
-					context["unseen"] = False
-					context["reply_time"] = None
-			else:
-				context["unseen"] = False
-				context["reply_time"] = None
-			return render(request,"reply.html",context)
 		else:
-			context["from_publicreply"] = True
-			return render(request,"dont_click_again_and_again.html",context)
+			context["unseen"] = False
+			context["reply_time"] = None
+	else:
+		context["unseen"] = False
+		context["reply_time"] = None
+	return render(request,"reply.html",context)
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -3428,9 +3413,8 @@ def post_public_reply(request,*args,**kwargs):
 					##############################################################
 
 					request.session["publicreply_error"] = form.errors.as_text().split("*")[2]
-					request.session["link_pk"] = link_id
 					request.session.modified = True
-				return redirect("publicreply_view")
+				return redirect("publicreply_view",link_id)
 	else:
 		context["from_publicreply"] = True
 		return render(request,"dont_click_again_and_again.html",context)

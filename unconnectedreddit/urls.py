@@ -243,7 +243,7 @@ urlpatterns = patterns('',
 	#url(r'^vidvote/(?P<pk>\d+)/(?P<val>\d+)/(?P<usr>\d+)/$', auth(video_vote), name='video_vote'),
 	#url(r'^vidizz/(?P<pk>\d+)/$', VideoScoreView.as_view(), name='video_izzat'),
 	##################################################Publicreply################################################
-	url(r'^jawab/$', auth(public_reply_view), name='publicreply_view'),
+	url(r'^jawab/(?P<parent_id>\d+)/$', auth(public_reply_view), name='publicreply_view'),
 	url(r'^jawab/sent/$', auth(post_public_reply), name='publicreply_post'),
 	url(r'^unlink/(?P<pk>\d+)/$', auth(unseen_reply), name='unseen_reply'),
 	#############################################################################################################

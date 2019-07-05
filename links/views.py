@@ -383,22 +383,12 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	parent_username = parent.submitter.username
 	user_id = request.user.id
 	username = request.user.username
-	# if request.is_feature_phone:
-	# 	device = '1'
-	# elif request.is_phone:
-	# 	device = '2'
-	# elif request.is_tablet:
-	# 	device = '4'
-	# elif request.is_mobile:
-	# 	device = '5'
-	# else:
-	# 	device = '3'
 	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id)
 	invalidate_cached_public_replies(link_id)
 	reply_time = convert_to_epoch(reply.submitted_on)
 	url = retrieve_avurl(user_id)
 	owner_url = retrieve_avurl(parent.submitter_id)
-	amnt = update_comment_in_home_link(text,username,('1' if username in FEMALES else '0'),reply_time,user_id,link_id)
+	amnt = update_comment_in_home_link(text,username,reply.id,reply_time,user_id,link_id)
 	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
 	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,link_submitter_id=parent.submitter_id,\
 		link_submitter_username=parent_username,link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
@@ -1929,7 +1919,7 @@ class CommentView(CreateView):
 						comment_time = convert_to_epoch(photocomment.submitted_on)
 						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
 						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user_id,\
-							is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
+							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
 						photo_tasks.delay(user_id, pk, comment_time, photocomment.id, which_photo.comment_count, text, already_commented, \
 							commenter_name, url, self.request.mobile_verified)
 						################### Segment action logging ###################
@@ -2052,7 +2042,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 						comment_time = convert_to_epoch(photocomment.submitted_on)
 						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
 						add_photo_comment(photo_id=pk,photo_owner_id=photo["owner"],latest_comm_text=description,latest_comm_writer_id=user_id,\
-							is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
+							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
 						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
 							commenter_name, url, is_mob_verified)
 						################### Segment action logging ###################
@@ -3115,7 +3105,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						except ValueError:
 							url = None
 						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
-							is_pinkstar=('1' if username in FEMALES else '0'),latest_comm_writer_uname=username, time=comment_time)
+							comment_id=photocomment.id,latest_comm_writer_uname=username, time=comment_time)
 						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
 							username, url, request.mobile_verified)
 						################### Segment action logging ###################
@@ -3813,7 +3803,7 @@ def welcome_reply(request,*args,**kwargs):
 				except ValueError:
 					url = None
 				reply_time = convert_to_epoch(reply.submitted_on)
-				amnt = update_comment_in_home_link(description,username,('1' if username in FEMALES else '0'),reply_time,user_id,parent.id)
+				amnt = update_comment_in_home_link(description,username,reply.id,reply_time,user_id,parent.id)
 				publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url, sender_id=user_id,\
 					link_submitter_id=pk,link_submitter_username=target.username, link_desc=parent.description, \
 					reply_time=reply_time,reply_poster_url=url,reply_poster_username=username,reply_desc=reply.description,\

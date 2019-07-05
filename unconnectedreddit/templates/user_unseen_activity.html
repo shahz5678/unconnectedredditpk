@@ -300,7 +300,7 @@
 		<div style="overflow:hidden">
 			<a href="{% url 'user_profile' notif.oon %}" class="cgy">
 			<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
-			{{ notif.oon }}</a><span class="cgy bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token %}<button name="lid" style="height:20px" class="btn nw bcgy bs cs" type="submit" value="{{ notif.oi }}">post</button></form>
+			{{ notif.oon }}</a><span class="cgy bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<a href="{% url 'publicreply_view' notif.oi %}"><button style="height:20px" class="btn nw bcgy bs cs">post</button></a>
 		</div>
 		<div class="mtl">
 			<div class="cgy cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
@@ -331,7 +331,7 @@
 		<div style="overflow:hidden">
 			<a href="{% url 'user_profile' notif.oon %}" class="cgy">
 			<img src="{{ notif.ooa|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
-			<span class="ct">{{ notif.oon }}</span></a><span class="ct bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<form method="POST" action="{% url 'publicreply_view' %}" style="display:inline">{% csrf_token%}<button name="lid" class="btn nw bct bs cs" style="height:20px" type="submit" value="{{ notif.oi }}">post</button></form>
+			<span class="ct">{{ notif.oon }}</span></a><span class="ct bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<a href="{% url 'publicreply_view' notif.oi %}"><button class="btn nw bct bs cs" style="height:20px">post</button></a>
 		</div>
 		<div class="mtl">
 			<div class="ct cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>

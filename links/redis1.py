@@ -579,28 +579,6 @@ def add_banner(user_id):
 # 	my_server.expire(hash_name,ONE_DAY) #expire the key after 24 hours
 
 
-def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
-	latest_comm_av_url=None,latest_comm_writer_uname=None,comment_count=None, exists=None, citizen=None, \
-	time=None):
-	"""
-	Adds comment to photo object (only if it exists)
-	"""
-	hash_name = "ph:"+str(photo_id)
-	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.exists(hash_name):
-		#################################Saving latest photo comment################################
-		existing_payload = my_server.hget(hash_name,'comments')
-		payload = str(latest_comm_av_url)+"#"+latest_comm_writer_uname+"#"+str(time)+"#"+str(latest_comm_writer_id)+"#"+str(photo_id)+"#"+\
-		latest_comm_text+"#el#" #el# signifies an end-of-line character
-		if existing_payload:
-			existing_payload = truncate_payload(existing_payload)
-			payload = existing_payload.decode('utf-8')+payload
-		my_server.hset(hash_name,'comments',payload)
-		my_server.hincrby(hash_name,'co',amount=1)
-		if photo_owner_id != latest_comm_writer_id and not exists and citizen: #only give score if writer didn't upload photo, and hasn't written before, and is a citizen
-			my_server.hincrby(hash_name,'vi',amount=2)
-
-
 
 # def get_raw_comments(photo_id):
 # 	"""

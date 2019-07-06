@@ -147,7 +147,7 @@
 
 				<div class="mls">
 
-					<section style="display:block">
+					<section class="mbl" style="display:block">
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 						{% big_vote_button vote_type='photo_vote' obid=photo.i origin=page_origin net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL visible=is_auth %}
 						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
@@ -158,12 +158,12 @@
 					</div>
 					</section>
 
-					<section style="display:block">
-						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin %}
+					<section style="display:block" class="mrs mbl">
+						{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form page_origin sk %}
 					</section>
 
-					<section style="display:block" class="mts mrs mbl">
-						{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form page_origin sk %}
+					<section style="display:block">
+						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin %}
 					</section>
 
 				</div>

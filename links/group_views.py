@@ -2002,13 +2002,10 @@ def accept_personal_group_invite(request):
 				request.POST.get('lid',None)
 				if origin == 'publicreply':
 					if poid:
-						request.session["link_pk"] = poid
-						request.session.modified = True
-						return redirect("publicreply_view")
+						return redirect("publicreply_view",poid)
 					else:
 						return redirect("home")
 				else:
-					# return return_to_source(origin,poid,target_username)
 					return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
 		return redirect("home")
@@ -2033,9 +2030,7 @@ def send_personal_group_invite(request):
 			request.POST.get('lid',None)
 			if origin == 'publicreply':
 				if poid:
-					request.session["link_pk"] = poid
-					request.session.modified = True
-					return redirect("publicreply_view")
+					return redirect("publicreply_view",poid)
 				else:
 					return redirect("home")
 			else:

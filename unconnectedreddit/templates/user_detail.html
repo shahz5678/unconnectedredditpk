@@ -27,6 +27,14 @@
 		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cl cr mt mbs lsp">
 		Ap {{ username }} ke sath mehfil bana sakein ge {{ mehfil_creation_ttl|future_time }}
 		</div>
+	{% elif successfully_unsubscribed == '1' %}
+
+	<div class="cm sp" style="text-align:center;font-weight:bold;background:coral;color:white;padding:10px">Topic(s) unsubscribed</div>
+
+	{% elif successfully_unsubscribed == '2' %}
+
+	<div class="cm sp lsp" style="text-align:center;font-weight:bold;background:coral;color:white;padding:10px">Tamam topic(s) unsubscribe nahi ho sakey kiyun ke aap ko subscribe kiye huay zyada time nahi guzra</div>	
+
 	{% else %}
 
 		{% if not mobile_verified %}
@@ -77,6 +85,8 @@
     <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto;padding-bottom:7px">
 
     <div class="cl sp lsp mbl" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Your topics:</div>
+
+    <div style="text-align:center;background:#ececec;border:none;border-radius:4px" class="mrl mll mbl"><a href="{% url 'unsubscribe_topics' %}"><button class="cl sp vt pg_ok_res" style="border:0;color:#707070;padding:12px 5px;width:100%">Unsubscribe</button></a></div>
 
     {% for topic in subscribed_topics %}
     <div  class="mrl mll">

@@ -537,7 +537,7 @@ class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelfor
 
 
 class LinkForm(forms.ModelForm):#this controls the link edit form
-	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl','autofocus': 'autofocus',\
+	description = forms.CharField(widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
 		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_SUBMISSION_SIZE}),\
 	error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
@@ -550,7 +550,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(LinkForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#f5f7fa;padding:5px;'
+		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#f5f7fa;padding:7px;'
 
 	def clean(self):
 		data = self.cleaned_data
@@ -580,7 +580,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 					if rate_limited > 0:
 						raise forms.ValidationError('Ap yahan pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 					else:
-						if len_ < 2:
+						if len_ < 4:
 							raise forms.ValidationError('Itni choti baat nahi likh sakte')
 						elif len_ < 6:
 							if many_short_messages(user_id,section,section_id):
@@ -1094,15 +1094,15 @@ class UploadPhotoReplyForm(forms.ModelForm):
 
 class UploadPhotoForm(forms.Form):
 	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Foto ka intekhab sahi nahi hua','invalid':'Selected foto upload nahi ho sakti'})
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;','spellcheck':'false',\
-		'maxlength':MAX_PHOTO_CAPTION_SIZE}),error_messages={'required': 'Foto ke barey mien likhna zaroori hai'})
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'spellcheck':'false','maxlength':MAX_PHOTO_CAPTION_SIZE}),\
+		error_messages={'required': 'Foto ke barey mien likhna zaroori hai'})
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
-		self.fields['caption'].widget.attrs['style'] = 'width:99%;height:70px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#fffaf5;padding:5px;'
+		self.fields['caption'].widget.attrs['style'] = 'width:95%;height:70px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#fffaf5;padding:7px;'
 		self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['caption'].widget.attrs['class'] = 'cxl'
-		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
+		self.fields['image_file'].widget.attrs['style'] = 'width:95%;background:#ffe6cc;height:45px;border-radius:7px'
 		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
 
 	def clean_caption(self):

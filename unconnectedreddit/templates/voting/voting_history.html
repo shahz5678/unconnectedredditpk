@@ -37,15 +37,14 @@
 
 					{% if datum.tp == 'tx' %}
 					
-						<form method="POST" action="{% url 'publicreply_view' %}">
-							{% csrf_token %}
-							<button name="lid" class="wt" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ datum.obid }}">
+						<a href="{% url 'publicreply_view' datum.obid %}">
+							<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
 								<div style="text-align:center;padding:18px 0;" class="lsp sp">
 									<b class="clb cs">{{ datum.t }}:</b>
 									<span class="ct" style="border-bottom:1px dotted teal">text thumbs up</span>
 								</div>
 							</button>
-						</form>
+						</a>
 
 					{% else %}
 
@@ -74,7 +73,7 @@
 						{% big_points_button obj_id=datum.obid owner_id=datum.ooid is_pht=0 origin='25' net_votes=datum.nv base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
 						{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='link' origin='25' target_username=datum.ou home_hash='' %}
 						{% big_fan_button own_user_id=own_id target_user_id=datum.ooid object_id=datum.obid origin='25' home_hash='' fan_list=fanned static_url=STATIC_URL %}
-						{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL home_history=True %}
+						{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL always_show=True %}
 					</div>
 
 				</article>
@@ -104,15 +103,14 @@
 
 			{% if datum.tp == 'tx' %}
 			
-				<form method="POST" action="{% url 'publicreply_view' %}">
-					{% csrf_token %}
-					<button name="lid" class="wt" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ datum.obid }}">
+				<a href="{% url 'publicreply_view' datum.obid %}">
+					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
 						<div style="text-align:center;padding:18px 0;" class="lsp sp">
 							<b class="clb cs">{{ datum.t }}:</b>
 							<span class="ct" style="border-bottom:1px dotted teal">text thumbs down</span>
 						</div>
 					</button>
-				</form>
+				</a>
 
 			{% else %}
 

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% load cache %}
-{% cache 6000 sharing_help %}
+{% cache 6 haring_help %}
 <head><title>Sharing help | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 
@@ -9,7 +9,7 @@
 	<div class="cs cgy sp lsp" style="text-align:center">reading time: 4 minutes</div>
 	<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 		<div class="cxl lsp" style="border-bottom:1px dashed lightgray;padding-bottom:5px"><span class="cs cgy">1)</span> Damadam pe kiyun share karun?</div>
-		<div class="cl mt sp lsp">Kiyun ke Damadam pe purey Pakistan se users atey hain aur woh sab apka shared item view kar sakein ge.<br>Yeh users apkey item pe comments and voting bhi kar sakein ge. Jitney ziyada votes apko miley, apka score utna hi barhey ga and ap Damadam ke top pe chaley jaien ge.<br>Aur tou aur, best items hamarey <a href="https://www.facebook.com/DamadamOfficial/" rel="nofollow" target="_blank" class="cb" style="border-bottom:1px dotted blue">official Facebook page</a> pe bhi share kiye jatey hain. Apka item wahan bhi popular ho ga.</div>
+		<div class="cl mt sp lsp">Kiyun ke Damadam pe purey Pakistan se users apka shared item view kar sakein ge.<br>Apkey shared items jitney maqbool hon ge, ap Damadam pe utney hi mashoor hon ge.</div>
 	</div>
 
 	<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
@@ -50,9 +50,9 @@
 	</div>
 
 
-	<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:620px;width:93%;background-color:white">
+	<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:97%;background-color:#6dc9e5;background:linear-gradient(90deg, #6dc9e5 0%, #ffb265 100%) ;">
 		<a href="{% url 'share_content' %}#section0">
-			<button class="vt" style="padding-top:1em;padding-bottom:1em;border:none;width:100%"><div class="sp cb cm" style="border-bottom:1px dotted blue;display:inline-block">share now</div></button>
+			<button class="pg_ok_res" style="background:0 0;padding-top:1em;padding-bottom:1em;border:none;width:100%"><b class="sp clw cm">SHARE NOW!</b></button>
 		</a>
 	</div>
 </div>

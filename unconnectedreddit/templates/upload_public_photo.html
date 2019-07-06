@@ -2,8 +2,8 @@
 {% load future_time %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Upload public photo or meme | Damadam</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Share image | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
 
@@ -11,7 +11,7 @@
 <div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye foto kharab hai, koi aur chunein</span></div>
 
 {% if forbidden %}
-<h1 class="cxl clb lsp" style="text-align:center">Share foto on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Share foto post on Damadam:</h1>
     <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
         {% load get_display_ban_msg %}
         <div class="mtl">
@@ -20,10 +20,11 @@
     </div>
 {% else %}
 <h1 class="cxl clb lsp" style="text-align:center">Share foto post on Damadam:</h1>
-    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:left">
+    
+    <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
         {% if show_instructions %}
             <div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
-            <div style="text-align:center" class="cxl lsp">Welcome! Damadam pe purey Pakistan se users atey hain. Unke sath koi interesting foto share karein!</div>
+            <div style="text-align:center" class="cxl lsp">Welcome! Damadam pe purey Pakistan ke users se koi interesting foto share karein!</div>
             <hr size=1 COLOR="#E9EBEE">
             <div class="mt sp lsp">1) Maslan poetry, paheliyan (riddles), quotes, jokes, latest news, sports, politics, religion, celebrities, fashion, nature or philosophy</div>
             <div class="mts sp lsp">2) Apki shared fotos users voting ke zariye like ya dislike karein ge</div>
@@ -35,23 +36,29 @@
         <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="opt" value="0">
         
-        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp">{{ form.image_file.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 1: Foto select karein</b></div>{% endif %}
-        <div class="mts mbl">{{ form.image_file }}</div>
-        {% if form.caption.errors %}<div class="cr cl sp">{{ form.caption.errors.0 }}</div>{% else %}<div class="clb sp"><b>Step 2: Neechay likhein ye foto kis barey mein hai:</b></div>{% endif %}
-        <div class="mts mbs" style="padding-right:5px">{{ form.caption }}</div>
-
-        <button id="pub_img_subform" class="btn bco bl mts pg_ok_res sp" style="width:100%;height:38px" type="submit"><b>SHARE</b></button>
-
+        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="clb sp" style="text-align:left;padding:10px 10px 0 10px;">STEP 1: Select foto</div>{% endif %}
+        <div class="mts mbl" style="text-align:center">{{ form.image_file }}</div>
+        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="clb lsp sp" style="text-align:left;padding:5px 10px 0 10px;">STEP 2: Neechay likhein ke foto kis barey mein hai:</div>{% endif %}
+        
+        <div style="padding:5px 10px 0 10px;text-align:center">{{ form.caption }}</div>
+        <div style="text-align:center">
+        <button id="pub_img_subform" class="btn bco bl mtl mbl pg_ok_res sp" style="width:95%;height:38px" type="submit"><b>SHARE</b></button>
+        </div>
         </form>
+    </div>
 
         {% if not show_instructions %}
-        <div class="cgy lsp sp cs mbl mtl" style="text-align:left">
-            <div class="mt" style="font-weight:bold">HELP:</div>
-            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Foto pe jo alfaz likhein ge, apki foto un se Google pe bhi search ho sakey gi. Foto ka title Google search mein show honay ke liye buhut important hai</div>
-            <div class="mt" style="text-align:left"><span class="cgy cs">2)</span> Maslan agr poetry ki foto ho, tou "Urdu Poetry" ya phir "Sad Poetry" likh dene se foto Google pe in alfaz se search ho paye gi</div>
-            <div class="mt" style="text-align:left"><span class="cgy cs">3)</span> Uploaded foto forun Google search mein nahi aati. Apko kuch days wait karna parey ga. Kuch days baad apki foto apkey alfaz ke sath Google search mein show ho jaye gi</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
+        <h2 class="cxl clb lsp" style="text-align:center">Foto sharing help:</h2>
+    
+        <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
+        <div class="cgy lsp sp cm mbs" style="padding:0 10px;">
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is page se share ki hui foto Google search mein bhi show hogi</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Ap ne foto ke barey mein jo likha ho ga, wohi alfaz Google pe foto ko search karney mein use hon ge</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Maslan agr poetry ki foto ho, tou foto title mein "Urdu Poetry" ya phir "Sad Poetry" likh dein. Kuch days baad apki foto Google pe in alfaz se search ho paye gi</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Check karney ke liye ke foto Google search mein show ho rahi hai ke nahi, apna nickname aur foto ka title aik sath likh ke Google search karein (e.g. "user_123 Sad Poetry")</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">6)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
+        </div>
         </div>
         {% endif %}
 

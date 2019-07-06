@@ -78,9 +78,9 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 			return redirect("home")
 	elif origin == '9':
 		# originated from a publicreply
-		request.session["link_pk"] = obj_id
-		request.modified = True
-		return redirect("publicreply_view")
+		# request.session["link_pk"] = obj_id
+		# request.modified = True
+		return redirect("publicreply_view",obj_id)
 	elif origin == '10':
 		# originated from user profile (About page)
 		return redirect("user_profile", target_uname)

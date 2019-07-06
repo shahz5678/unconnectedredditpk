@@ -61,7 +61,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs,\
-sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, log_action 
+sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, log_action, \
+set_input_history 
 #from .html_injector import create_gibberish_punishment_text
 # from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -90,7 +91,8 @@ from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_co
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
-retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time
+retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
+retrieve_topic_credentials
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 from cities import CITY_TUP_LIST, REV_CITY_DICT
@@ -381,22 +383,12 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	parent_username = parent.submitter.username
 	user_id = request.user.id
 	username = request.user.username
-	# if request.is_feature_phone:
-	# 	device = '1'
-	# elif request.is_phone:
-	# 	device = '2'
-	# elif request.is_tablet:
-	# 	device = '4'
-	# elif request.is_mobile:
-	# 	device = '5'
-	# else:
-	# 	device = '3'
 	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id)
 	invalidate_cached_public_replies(link_id)
 	reply_time = convert_to_epoch(reply.submitted_on)
 	url = retrieve_avurl(user_id)
 	owner_url = retrieve_avurl(parent.submitter_id)
-	amnt = update_comment_in_home_link(text,username,('1' if username in FEMALES else '0'),reply_time,user_id,link_id)
+	amnt = update_comment_in_home_link(text,username,reply.id,reply_time,user_id,link_id)
 	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
 	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,link_submitter_id=parent.submitter_id,\
 		link_submitter_username=parent_username,link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
@@ -753,13 +745,12 @@ def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 			submitted_by_id = Publicreply.objects.only('submitted_by').get(id=publicreply_id).submitted_by_id
 			# mark as abusive
 			Publicreply.objects.filter(pk=publicreply_id).update(abuse=True)
-			# cut writers points
-			# UserProfile.objects.filter(user_id=submitted_by_id).update(score=F('score')-2)
+			# invalidate cached replies
 			invalidate_cached_public_replies(link_id)
 			# prepare to redirect
-		request.session["link_pk"] = link_id
-		request.session.modified = True
-		return redirect("publicreply_view")
+		# request.session["link_pk"] = link_id
+		# request.session.modified = True
+		return redirect("publicreply_view",link_id)
 	else:
 		raise Http404("Not a POST request")
 
@@ -1369,6 +1360,7 @@ class UserProfileDetailView(FormView):
 				context["stars"] = UserFan.objects.filter(fan_id=user_id).count()
 				context["blocked"] = get_banned_users_count(user_id)
 				context["mobile_verified"] = self.request.mobile_verified
+				context["successfully_unsubscribed"] = self.request.session.pop("successfully_unsubscribed"+str(user_id),'')
 			else:
 				context["fanned"] = [str(user_obj.id)] if is_fan(star_id, user_id) else []
 				context["mobile_verified"] = is_mobile_verified(star_id)
@@ -1926,7 +1918,7 @@ class CommentView(CreateView):
 						comment_time = convert_to_epoch(photocomment.submitted_on)
 						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
 						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user_id,\
-							is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
+							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
 						photo_tasks.delay(user_id, pk, comment_time, photocomment.id, which_photo.comment_count, text, already_commented, \
 							commenter_name, url, self.request.mobile_verified)
 						################### Segment action logging ###################
@@ -2049,7 +2041,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 						comment_time = convert_to_epoch(photocomment.submitted_on)
 						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
 						add_photo_comment(photo_id=pk,photo_owner_id=photo["owner"],latest_comm_text=description,latest_comm_writer_id=user_id,\
-							is_pinkstar=('1' if commenter_name in FEMALES else '0'),latest_comm_writer_uname=commenter_name, time=comment_time)
+							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
 						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo["comment_count"], description, exists, \
 							commenter_name, url, is_mob_verified)
 						################### Segment action logging ###################
@@ -3112,7 +3104,7 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 						except ValueError:
 							url = None
 						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
-							is_pinkstar=('1' if username in FEMALES else '0'),latest_comm_writer_uname=username, time=comment_time)
+							comment_id=photocomment.id,latest_comm_writer_uname=username, time=comment_time)
 						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
 							username, url, request.mobile_verified)
 						################### Segment action logging ###################
@@ -3293,95 +3285,81 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 
 #@ratelimit(field='sid',ip=False,rate='5/s')
 @csrf_protect
-def public_reply_view(request,*args,**kwargs):
-	if getattr(request, 'limits', False):
-		raise Http404("Refreshing too fast!")
+def public_reply_view(request,parent_id,*args,**kwargs):
+	"""
+	Renders the 'jawab' page
+	"""
+	context, user_id = {}, request.user.id
+	if request.GET.get("from_rfrsh",'0') == '1' and tutorial_unseen(user_id=user_id, which_tut='14', renew_lease=True):
+		return render(request, 'jawab_refresh.html', {'lid':parent_id})
+	try:
+		link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','url','cagtegory').get(id=parent_id)
+		link['machine_time'] = link['submitted_on']
+		link['submitted_on'] = naturaltime(link['submitted_on'])
+	except Link.DoesNotExist:
+		# purge single notification and matka of request.user.id
+		own_id = request.user.id
+		remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(parent_id), user_id=own_id)
+		return render(request, 'object_deleted.html',{})
+	context["form_error"] = request.session.pop("publicreply_error",None)
+	context["is_auth"] = True
+	secret_key = uuid.uuid4()
+	set_text_input_key(user_id, parent_id, 'home_rep', secret_key)
+	context["sk"] = secret_key
+	context["form"] = PublicreplyForm()
+	context["mob_verified"] = True if request.mobile_verified else False
+	context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+	context["user_id"] = user_id
+	if link['url']:
+		payload = link['url'].split(":")
+		try:
+			theme, context['topic_name'], context['topic_url'] = payload[0], payload[1], payload[2]
+			color_grads = COLOR_GRADIENTS[theme]
+			context["c1"], context["c2"] = color_grads[0], color_grads[1]
+		except IndexError:
+			pass
+	parent_submitter_id = link['submitter']
+	parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
+	context["parent_submitter_id"] = parent_submitter_id
+	context["parent_av_url"] = parent_avurl
+	context["vote_score"] = link['net_votes']
+	context["parent"] = link #the parent link
+	context["parent_submitter_username"] = parent_uname
+	context["feature_phone"] = True if request.is_feature_phone else False
+	context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
+	replies = retrieve_cached_public_replies(parent_id)
+	if replies:
+		replies_data = json.loads(replies)
 	else:
-		context, user_id = {}, request.user.id
-		if request.method == "POST":
-			from_refresh = request.POST.get("from_rfrsh",None)
-			link_id = request.POST.get("lid",None)
-			request.session["link_pk"] = link_id
-			request.session.modified = True
-			if from_refresh == '1' and tutorial_unseen(user_id=user_id, which_tut='14', renew_lease=True):
-				return render(request, 'jawab_refresh.html', {'lid':link_id})
-		else:
-			link_id = request.session.pop("link_pk",None)
-		if link_id:
+		replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username').\
+		values('submitted_on','description','id','submitted_by','abuse','submitted_by__username').filter(answer_to_id=parent_id).\
+		order_by('-id')[:25]
+		for reply in replies_data:
+			reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
+		cache_public_replies(json.dumps(replies_data),parent_id)
+	context["replies"] = replies_data#replies
+	#########################################################################################
+	if request.user_banned:
+		context["unseen"] = False
+		context["reply_time"] = None
+	elif replies_data:
+		updated = update_notification(viewer_id=user_id, object_id=parent_id, object_type='2', seen=True, \
+			updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
+		if updated:
+			context["unseen"] = True
 			try:
-				link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','url','cagtegory').get(id=link_id)
-				link['machine_time'] = link['submitted_on']
-				link['submitted_on'] = naturaltime(link['submitted_on'])
-			except Link.DoesNotExist:
-				# purge single notification and matka of request.user.id
-				own_id = request.user.id
-				remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(link_id), user_id=own_id)
-				return render(request, 'object_deleted.html',{})
-			context["form_error"] = request.session.pop("publicreply_error",None)
-			context["is_auth"] = True
-			secret_key = uuid.uuid4()
-			set_text_input_key(user_id, link_id, 'home_rep', secret_key)
-			context["sk"] = secret_key
-			context["form"] = PublicreplyForm()
-			context["mob_verified"] = True if request.mobile_verified else False
-			context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-			context["user_id"] = user_id
-			if link['url']:
-				payload = link['url'].split(":")
-				try:
-					theme, context['topic_name'], context['topic_url'] = payload[0], payload[1], payload[2]
-					color_grads = COLOR_GRADIENTS[theme]
-					context["c1"], context["c2"] = color_grads[0], color_grads[1]
-				except IndexError:
-					pass
-			parent_submitter_id = link['submitter']
-			parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
-			context["parent_submitter_id"] = parent_submitter_id
-			# context["parent_submitter_score"] = UserProfile.objects.only('score').get(user_id=parent_submitter_id).score
-			context["parent_av_url"] = parent_avurl
-			context["vote_score"] = link['net_votes']
-			context["parent"] = link #the parent link
-			context["parent_submitter_username"] = parent_uname
-			context["is_parent_pinkstar"] = parent_uname in FEMALES
-			context["ensured"] = FEMALES
-			context["feature_phone"] = True if request.is_feature_phone else False
-			context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-			replies = retrieve_cached_public_replies(link_id)
-			if replies:
-				replies_data = json.loads(replies)
-			else:
-				replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username').\
-				values('submitted_on','description','id','submitted_by','abuse','submitted_by__username').filter(answer_to_id=link_id).\
-				order_by('-id')[:25]
-				for reply in replies_data:
-					reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
-				cache_public_replies(json.dumps(replies_data),link_id)
-			context["replies"] = replies_data#replies
-			#########################################################################################
-			if request.user_banned:
-				context["unseen"] = False
+				# calculating the max 'own reply' time
+				own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitted_by'] == user_id)
+				context["reply_time"] = own_reply_time
+			except (AttributeError,ValueError):
 				context["reply_time"] = None
-			elif replies_data:
-				updated = update_notification(viewer_id=user_id, object_id=link_id, object_type='2', seen=True, \
-					updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
-				if updated:
-					context["unseen"] = True
-					try:
-						# calculating the max 'own reply' time
-						own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitted_by'] == user_id)
-						context["reply_time"] = own_reply_time
-					except (AttributeError,ValueError):
-						context["reply_time"] = None
-				else:
-					context["unseen"] = False
-					context["reply_time"] = None
-			else:
-				context["unseen"] = False
-				context["reply_time"] = None
-			return render(request,"reply.html",context)
 		else:
-			context["from_publicreply"] = True
-			return render(request,"dont_click_again_and_again.html",context)
+			context["unseen"] = False
+			context["reply_time"] = None
+	else:
+		context["unseen"] = False
+		context["reply_time"] = None
+	return render(request,"reply.html",context)
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -3435,9 +3413,8 @@ def post_public_reply(request,*args,**kwargs):
 					##############################################################
 
 					request.session["publicreply_error"] = form.errors.as_text().split("*")[2]
-					request.session["link_pk"] = link_id
 					request.session.modified = True
-				return redirect("publicreply_view")
+				return redirect("publicreply_view",link_id)
 	else:
 		context["from_publicreply"] = True
 		return render(request,"dont_click_again_and_again.html",context)
@@ -3607,6 +3584,9 @@ def share_content(request):
 
 # @ratelimit(rate='7/s')
 def link_create_pk(request, *args, **kwargs):
+	"""
+	Unused
+	"""
 	request.session["link_create_token"] = str(uuid.uuid4())
 	return redirect("link_create")
 
@@ -3635,6 +3615,7 @@ class LinkCreateView(CreateView):
 			else:
 				secret_key = uuid.uuid4()
 				context["sk"] = secret_key
+				context["subscribed_topics"] = retrieve_subscribed_topics(str(own_id))
 				context["sharing_limit"] = NUM_SUBMISSION_ALLWD_PER_DAY
 				context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='11', renew_lease=True) else False
 				set_text_input_key(own_id, '1', 'likho', secret_key)
@@ -3644,8 +3625,11 @@ class LinkCreateView(CreateView):
 	##############################################################
 
 
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		token = self.request.session.pop("link_create_token",None)
+	def form_valid(self, form):
+		"""
+		This processes the form before it gets saved to the database
+		"""
+		# token = self.request.session.pop("link_create_token",None)
 		user = self.request.user
 		user_id = user.id
 		banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
@@ -3666,54 +3650,64 @@ class LinkCreateView(CreateView):
 			elif ttl:
 				return render(self.request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
 			else:
-				if valid_uuid(str(token)) and mobile_verified:
-					f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-					time_now = time.time()
-					set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time_now)
-					f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-					if user.userprofile.score < -25:
-						if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-							HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-							user.userprofile.score = random.randint(10,71)
-							f.submitter = user
-						else:
-							f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-					else:
+				# if valid_uuid(str(token)) and mobile_verified:
+				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
+				topic_url = self.request.POST.get("turl",None)
+				if topic_url:
+					topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_name=True, with_theme=True, \
+						with_is_subscribed=True, retriever_id=user_id)
+					if is_subscribed:
+						f.url = bg_theme+":"+topic_name+":"+topic_url
+				time_now = time.time()
+				# set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time_now)
+				set_input_history.delay(section='home',section_id='1',text=f.description,user_id=user_id)
+				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
+				if user.userprofile.score < -25:
+					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
+						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
+						user.userprofile.score = random.randint(10,71)
 						f.submitter = user
-						# f.submitter.userprofile.score = f.submitter.userprofile.score + 1 #adding 1 point every time a user submits new content
-					if self.request.is_feature_phone:
-						f.device = '1'
-					elif self.request.is_phone:
-						f.device = '2'
-					elif self.request.is_tablet:
-						f.device = '4'
-					elif self.request.is_mobile:
-						f.device = '5'
 					else:
-						f.device = '3'
-					try:
-						av_url = user.userprofile.avatar.url
-					except ValueError:
-						av_url = None
-					alignment = form.cleaned_data['alignment']
-					f.cagtegory = alignment
-					f.save()
-					log_text_submissions('text')
-					add_text_post(obj_id=f.id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, submitter_username=user.username, \
-						submitter_score=f.submitter.userprofile.score, is_pinkstar=(True if user.username in FEMALES else False),submission_time=time_now,\
-						text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=True)
-					# f.submitter.userprofile.save()
-					################### Segment action logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)
-					##############################################################
-					rate_limit_content_sharing(user_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
-					return super(CreateView, self).form_valid(form) #saves the link automatically
+						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
 				else:
-					return redirect("home")
+					f.submitter = user
+				try:
+					av_url = user.userprofile.avatar.url
+				except ValueError:
+					av_url = None
+				alignment = form.cleaned_data['alignment']
+				f.cagtegory = alignment
+				f.save()
+				submitter_uname = retrieve_uname(user_id,decode=True)
+				obj_id = f.id
+				if topic_url and is_subscribed:
+					obj_hash = "tx:"+str(obj_id)
+					log_text_submissions('topic')#Logs the number of submisions in topic vs number of submissions of regular text posts
+					add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(user_id), \
+						submitter_av_url=av_url, is_pinkstar=(True if submitter_uname in FEMALES else False), \
+						submission_time=time_now, text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), \
+						topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
+						submitter_username=submitter_uname)
+				else:
+					log_text_submissions('text')#Logs the number of submisions in topic vs number of submissions of regular text posts
+					add_text_post(obj_id=obj_id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, \
+						submitter_username=submitter_uname, submission_time=time_now, add_to_feed=True, \
+						is_pinkstar=(True if submitter_uname in FEMALES else False), text=f.description,\
+						from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False))
+				################### Segment action logging ###################
+				if user_id > SEGMENT_STARTING_USER_ID:
+					log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)
+				##############################################################
+				rate_limit_content_sharing(user_id)#rate limiting for 1 min (and hard limit set at 100 submissions per day)
+				return super(CreateView, self).form_valid(form) #saves the link automatically
+				# else:
+				# 	return redirect("home")
 
-	def get_success_url(self): #which URL to go back once settings are saved?
-		return reverse_lazy("home")
+	def get_success_url(self):
+		"""
+		Which URL to go back once the model is saved?
+		"""
+		return reverse_lazy("home")+'#shared'
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -3755,8 +3749,8 @@ def welcome_reply(request,*args,**kwargs):
 					target_username = target.username
 					parent = Link.objects.create(description=text, submitter=target, reply_count=1)
 					add_text_post(obj_id=parent.id, categ='1', submitter_id=target.id, submitter_av_url=av_url, submitter_username=target_username, \
-						submitter_score=target.userprofile.score, is_pinkstar=(True if target_username in FEMALES else False),submission_time=time.time(),\
-						text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=False)
+						is_pinkstar=(True if target_username in FEMALES else False),submission_time=time.time(),text=text, \
+						from_fbs=request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=False)
 				if option == '1' and message == 'Barfi khao aur mazay urao!':
 					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
 					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
@@ -3793,7 +3787,7 @@ def welcome_reply(request,*args,**kwargs):
 				except ValueError:
 					url = None
 				reply_time = convert_to_epoch(reply.submitted_on)
-				amnt = update_comment_in_home_link(description,username,('1' if username in FEMALES else '0'),reply_time,user_id,parent.id)
+				amnt = update_comment_in_home_link(description,username,reply.id,reply_time,user_id,parent.id)
 				publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url, sender_id=user_id,\
 					link_submitter_id=pk,link_submitter_username=target.username, link_desc=parent.description, \
 					reply_time=reply_time,reply_poster_url=url,reply_poster_username=username,reply_desc=reply.description,\
@@ -4226,8 +4220,9 @@ def photo_sitemap_of_sitemaps(request):
 	"""
 	Renders a sitemap of sitemaps for photo_detail pages
 	"""
-	sitemap_cohorts = retrieve_indexable_photo_detail_cohorts()
-	return render(request, 'sitemap/photo_sitemap_of_sitemaps.xml', {'sitemap_cohorts': sitemap_cohorts},content_type="application/xml")
+	sitemap_cohorts, latest_obj_trending_time = retrieve_indexable_photo_detail_cohorts()
+	return render(request, 'sitemap/photo_sitemap_of_sitemaps.xml', {'latest_obj_trending_time':latest_obj_trending_time,\
+		'sitemap_cohorts': sitemap_cohorts},content_type="application/xml")
 
 
 def photo_sitemap(request, cohort):
@@ -4254,11 +4249,12 @@ def retrieve_indexable_photo_detail_cohorts():
 	Retrieves IDs of photos that have trended since 28th June 2019, and creates cohorts of sitemaps out of them
 	"""
 	latest_obj = Logout.objects.latest('id')
+	latest_obj_trending_time = latest_obj.logout_time.strftime("%Y-%m-%dT%I:%M:%S+00:00")
 	earliest_obj = Logout.objects.order_by('id')[:1][0]
 	latest_cohort = latest_obj.pre_logout_score# this is cohort num
 	first_cohort = earliest_obj.pre_logout_score# this is cohort num
 	cohorts = range(first_cohort, latest_cohort+1, 1)
-	return cohorts
+	return cohorts, latest_obj_trending_time
 
 
 ####################################################################################################################

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Unsubscribe topics | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+   
+   	<div style="margin-left:auto;margin-right:auto">
+		<h1 class="cxl lsp clb" style="text-align:center">Unsubscribe topic:</h1>
+	</div>
+
+    <div class="mbl mts clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:ivory;max-width:600px;margin-left:auto;margin-right:auto;width:97%;text-align:center">
+	    
+	    <div class="cxl lsp" style="border-bottom:1px solid gainsboro;padding:8px">Jis topic ko unsubscribe karna hai, usko select kar ke "Unsubscribe" dabain:</div>
+	    <form style="background:white;padding-top:15px" method="POST" action="{% url 'unsubscribe_topics' %}">
+		    {% csrf_token %}
+		    <ul style="display:inline-block;padding: 0;list-style:none;margin:0">
+		    {% for topic in subscribed_topics %}
+		    	<li style="text-align:left" class="mbl"><input type="checkbox" id="{{ topic.url }}" name="turl" value="{{ topic.url }}" style="vertical-align:sub">&nbsp;<label class="sp" for="{{ topic.url }}">{{ topic.name }}</label></li>
+		    {% endfor %}
+		    </ul><br>
+		    <button name="dec" type="submit" class="cl sp pg_ok_res" style="background:coral;width:50%;height:40px;border-radius:0;border:none;color:white" value="1">Unsubscribe</button><button name="dec" type="submit" class="cl sp pg_ok_res" style="background:#C0C0C0;width:50%;height:40px;border-radius:0;border:none;color:white" value="0">Cancel</button>
+	    </form>
+
+	</div>
+
+<br><br>
+{% endblock %}

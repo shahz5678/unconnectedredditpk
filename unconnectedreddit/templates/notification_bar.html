@@ -12,10 +12,7 @@
 				<div class="mls mbl" style="overflow:hidden">
 					<img src="{{ parent.ooa|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">
 					{% if parent.oon in checked %}&nbsp;<img src="{{ static_url }}img/pstar.svg" alt="*" height="10" width="10" style="color:deeppink">{% endif %}
-					<span class="cgy sp"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy lsp sp">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span>
-					<form method="POST" class="mls" action="{% url 'publicreply_view' %}" style="display:inline;">
-					{% csrf_token %}
-					<button name="lid" class="btn nw bs cs bct sp pg_ok_res" type="submit" style="padding:2px 0" value="{{ parent_pk }}">post</button></form>
+					<span class="cgy sp"><bdi>{{ parent.oon }}</bdi></span>:<span class="cgy lsp sp">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span><a href="{% url 'publicreply_view' parent_pk %}"><button name="lid" class="mls btn nw bs cs bct sp pg_ok_res" type="submit" style="padding:2px 0" value="{{ parent_pk }}">post</button></a>
 				</div>
 			
 				<div class="mls mbs ct cs sp">New jawab:</div>

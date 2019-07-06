@@ -74,23 +74,23 @@
 
 	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
 
-	<section style="display:block">
+	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
+		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
 		{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='3' static_url=STATIC_URL %}
 		{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
-		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 	</div>
-	</section>
-
-	<section style="display:block" class="mls mbl"> 
-	{% photo_comments_section raw_comments=link.cb static_url=STATIC_URL self_user_id=ident origin='3' home_hash=link.h %}
 	</section>
 
 	<section style="display:block" class="mls mrs mbl">
 	{% home_photo_comment_bar photo_id=link.i photo_owner_id=link.si lang=lang sort_by=sort_by user_id=ident comment_form=comment_form origin='3' home_hash=link.h sk=sk %}
+	</section>
+
+	<section style="display:block" class="mls mbl"> 
+	{% photo_comments_section raw_comments=link.cb static_url=STATIC_URL self_user_id=ident origin='3' home_hash=link.h %}
 	</section>
 
 </article>
@@ -101,7 +101,7 @@
 		<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
 		{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
 		</section>
-		<section style="display:block">
+		<section class="mbl" style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% big_vote_button vote_type='vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
@@ -110,12 +110,12 @@
 		</div>
 		</section>
 
-		<section style="display:block" class="mts mls mbl">
-		{% home_replies_section raw_replies=link.cb static_url=STATIC_URL self_user_id=ident home_hash=link.h %}
-		</section>
-
 		<section style="display:block" class="mls mrs mbl">
 		{% home_publicreply_bar link_pk=link.i link_writer_pk=link.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='3' sk=sk %}
+		</section>
+
+		<section style="display:block" class="mts mls mbl">
+		{% home_replies_section raw_replies=link.cb static_url=STATIC_URL self_user_id=ident home_hash=link.h %}
 		</section>
 
 </article>

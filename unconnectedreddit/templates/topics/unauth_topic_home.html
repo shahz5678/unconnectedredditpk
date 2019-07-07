@@ -91,12 +91,12 @@
 						{% text_object obid=submission.i ooid=submission.si text=submission.d|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv home_hash=submission.h static_url=STATIC_URL is_pinkstar=submission.p alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
 						</section>
 
-						<section style="display:block" class="mls mbl">
-						{% home_replies_section raw_replies=submission.cb static_url=STATIC_URL self_user_id=ident home_hash=submission.h %}
-						</section>
-
 						<section style="display:block" class="mls mrs mbl">
 						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
+						</section>
+
+						<section style="display:block" class="mls mbl">
+						{% home_replies_section raw_replies=submission.cb static_url=STATIC_URL self_user_id=ident home_hash=submission.h %}
 						</section>
 
 					</div>

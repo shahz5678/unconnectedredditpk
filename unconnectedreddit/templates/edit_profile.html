@@ -7,13 +7,13 @@
 
 <h1 class="cxl lsp clb" style="text-align:center">Edit your profile:</h1>
 
-<div class="mbl clb" style="margin-right:auto;margin-left:auto;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%">
+<div class="mbl clb" style="margin-right:auto;margin-left:auto;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:97%">
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
   <div style="padding:10px 7px 5px 7px">
     {% if form.streak.errors %}<div class="sp cr"><b>{{ form.streak.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apka city:</b></div>{% endif %}
-    <select class="cl lsp sp" type="text" name="streak">
+    <select style="width:95%;padding:6px 0;border:1px solid #1edea8;border-radius:5px;text-align:center;color:#404040" class="cl lsp sp" type="text" name="streak">
         {% for city,value in cities %}
           {% if value == 226 %}<option value="{{ value }}" disabled>{{ city }}</option>{% elif value == streak %}<option value="{{ value }}" selected>{{ city }}</option>{% else %}<option value="{{ value }}">{{ city }}</option>{% endif %}
         {% endfor %}
@@ -23,8 +23,8 @@
 
   <div style="padding:5px 7px">
   {% if form.attractiveness.errors %}<div class="cr sp"><b>{{ form.attractiveness.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apka star sign:</b></div>{% endif %}
-  <select class="cl lsp sp" type="text" name="attractiveness">
-    {% if zodiac == 0 or zodiac == 1 or zodiac == 2 %}<option value="1" selected>Not set</option>{% else %}<option value="1">Not set</option>{% endif %}
+  <select style="width:95%;padding:6px 0;border:1px solid #1edea8;border-radius:5px;text-align:center;color:#404040" class="cl lsp sp" type="text" name="attractiveness">
+    {% if zodiac == 0 or zodiac == 1 or zodiac == 2 %}<option value="1" selected>Not set</option>{% else %}<option value="1" selected>Not set</option>{% endif %}
     {% if zodiac == '3' %}<option value="3" selected>Aquarius</option>{% else %}<option value="3">Aquarius</option>{% endif %}
     {% if zodiac == '4' %}<option value="4" selected>Pisces</option>{% else %}<option value="4">Pisces</option>{% endif %}
     {% if zodiac == '5' %}<option value="5" selected>Aries</option>{% else %}<option value="5">Aries</option>{% endif %}
@@ -42,25 +42,25 @@
   <hr size=1 COLOR="#f4f4f4">
 
   <div style="padding:5px 7px">
-    {% if form.bio.errors %}<div class="sp cr"><b>{{ form.bio.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apni life story likhein:</b></div>{% endif %}
-    <div class="mt lsp">{{ form.bio }}</div>
+    {% if form.bio.errors %}<div class="sp lsp cr"><b>{{ form.bio.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apni life story likhein:</b></div>{% endif %}
+    <div class="mt">{{ form.bio }}</div>
   </div>
   <hr size=1 COLOR="#f4f4f4">
 
   <div style="padding:5px 7px">
-    {% if form.avatar.errors %}<div class="sp cr"><b>{{ form.avatar.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apki profile foto:</b></div>{% endif %}
+    {% if form.avatar.errors %}<div class="sp lsp cr"><b>{{ form.avatar.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apki profile foto:</b></div>{% endif %}
     <div class="lsp">{{ form.avatar }}</div>
   </div>
   <hr size=1 COLOR="#f4f4f4">
 
   <div style="padding:5px 7px">
-    {% if form.age.errors %}<div class="cr sp"><b>{{ form.age.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Age likhein:</b></div>{% endif %}
+    {% if form.age.errors %}<div class="cr lsp sp"><b>{{ form.age.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Age likhein:</b></div>{% endif %}
     <div class="mt lsp">{{ form.age }}</div>
   </div>
   <hr size=1 COLOR="#f4f4f4">
 
   <div style="padding:5px 7px">
-  {% if form.gender.errors %}<div class="sp cr"><b>{{ form.gender.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Male or Female:</b></div>{% endif %}
+  {% if form.gender.errors %}<div class="sp lsp cr"><b>{{ form.gender.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Male or Female:</b></div>{% endif %}
   {% for radio in form.gender %}
     <table>
       <tr>
@@ -77,7 +77,7 @@
   <hr size=1 COLOR="#f4f4f4">
 
   <div style="padding:5px 7px">
-  {% if form.shadi_shuda.errors %}<div class="sp cr"><b>{{ form.shadi_shuda.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Married:</b></div>{% endif %}
+  {% if form.shadi_shuda.errors %}<div class="sp lsp cr"><b>{{ form.shadi_shuda.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Married:</b></div>{% endif %}
   {% for radio in form.shadi_shuda %}
     <table>
       <tr>

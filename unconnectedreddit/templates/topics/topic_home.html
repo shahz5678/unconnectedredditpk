@@ -113,7 +113,7 @@
 			<section style="display:block">
 			<div class="fx fxjscn fxaibl">
 				<a href="{% url 'topic_page' topic_url %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
-				<h2 style="text-align:center;font-weight:600" class="lsp cxl clb">Latest submissions:</h2>
+				<h2 style="text-align:center;font-weight:600" class="lsp cxl clb">Latest posts:</h2>
 			</div>
 
 			<a name="error"></a>
@@ -135,7 +135,7 @@
 						{% text_object obid=submission.i ooid=submission.si text=submission.d|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv home_hash=submission.h static_url=STATIC_URL is_pinkstar=submission.p alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
 						</section>
 
-						<section style="display:block">
+						<section class="mbl" style="display:block">
 						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 						{% big_vote_button vote_type='vote' obid=submission.i origin='22' net_votes=submission.nv base_color='rgb(24, 180, 136)' ooid=submission.si static_url=STATIC_URL topic=topic_url visible=ident %}
 						{% big_fan_button own_user_id=ident target_user_id=submission.si object_id=submission.i origin='22' home_hash=submission.h fan_list=fanned static_url=STATIC_URL topic=topic_url %}
@@ -144,13 +144,12 @@
 						</div>
 						</section>
 						
+						<section style="display:block" class="mls mrs mbl">
+						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
+						</section>
 
 						<section style="display:block" class="mts mls mbl">
 						{% home_replies_section raw_replies=submission.cb static_url=STATIC_URL self_user_id=ident home_hash=submission.h %}
-						</section>
-
-						<section style="display:block" class="mls mrs mbl">
-						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
 						</section>
 
 					</div>

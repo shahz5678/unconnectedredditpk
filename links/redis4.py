@@ -1977,10 +1977,11 @@ def purge_exit_list(group_id, user_id):
 ######################################### Project Zuck ############################################
 from score import PROJ_ZUCK_STARTING_USER_ID 
 
-new_old = 'nopair'
-new_new = 'nnpair'
-old_old = 'oopair'
-group_to_log = 'zuckers_to_log'
+new_old = 'no-pair'#nopair
+new_new = 'nn-pair'#nnpair
+old_old = 'oo-pair'#oopair
+group_to_log = 'grps_to_log'#'zuckers_to_log'
+group_creation = 'grp_creation'
 
 
 def add_group_to_log(group_id):
@@ -1996,13 +1997,13 @@ def check_if_group_to_log(group_id):
 	return redis.Redis(connection_pool=POOL).zscore(group_to_log,group_id)
 
 
-def log_1on1_chat(payload,oid,tid,group_id):
+def log_1on1_chat(payload,oid,tid,group_id,is_creation):
 	"""
 	Logs 1on1 messages in 3 different buckets
 
+	Also log total messages exchanged and 1on1 creation time
 	"""
 	if check_if_group_to_log(group_id):
-		my_server = redis.Redis(connection_pool=POOL)
 		
 		if int(oid) < PROJ_ZUCK_STARTING_USER_ID and int(tid) < PROJ_ZUCK_STARTING_USER_ID:
 			key_to_use = old_old
@@ -2010,8 +2011,11 @@ def log_1on1_chat(payload,oid,tid,group_id):
 			key_to_use = new_old
 		else:
 			key_to_use = new_new
+		my_server = redis.Redis(connection_pool=POOL)
 		my_server.zadd(key_to_use,json.dumps(payload),group_id)
-		my_server.zincrby(group_to_log,group_id,amount=1)		
+		my_server.zincrby(group_to_log,group_id,amount=1)	
+		if is_creation:
+			my_server.zadd(group_creation,group_id,time.time())	
 	else:
 		pass
 
@@ -2053,3 +2057,10 @@ def retrieve_chat_count():
 	Retrieves chat counts of all logged chat groups
 	"""
 	return redis.Redis(connection_pool=POOL).zrange(group_to_log,0,-1,withscores=True)
+
+
+def retrieve_1on1_creation_times():
+	"""
+	Retrieves 1on1 chat creation times
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(group_creation,0,-1,withscores=True)

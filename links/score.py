@@ -281,7 +281,7 @@ ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'G
 ###############################################################################################################
 SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
 SEGMENT_STARTING_USER_ID = 19005280# starting user ID of user segment analysis
-PROJ_ZUCK_STARTING_USER_ID = 1899552
+PROJ_ZUCK_STARTING_USER_ID = 1923595
 """
 KEY:
 

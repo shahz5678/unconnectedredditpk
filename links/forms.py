@@ -569,7 +569,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		else:
 			len_ = len(description)
 			if len_ > MAX_HOME_SUBMISSION_SIZE+150:
-				# if post is too long, short circuit the rest of the cleaning method
+				# if post is too long, short circuit the rest of the cleaning method anyway
 				raise forms.ValidationError('Itni lambi post submit nahi hoti kiyun ke parhney waley bore ho jatey hain')
 			else:
 				description = re.sub(r'\n\s*\n', '\n', description)# collapsing multiple new lines into 1
@@ -593,7 +593,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 							else:
 								log_short_message(user_id,section,section_id)
 						elif len_ > MAX_HOME_SUBMISSION_SIZE:
-							raise forms.ValidationError('Content {0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
+							raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(len_,MAX_HOME_SUBMISSION_SIZE))
 						# '2' means right-aligned text, '1' means left-aligned text
 						data['alignment'] = '2' if is_urdu(description) >= RIGHT_ALIGNMENT_THRESHOLD_RATIO else '1'
 						data["description"] = description
@@ -624,7 +624,7 @@ class CommentForm(forms.ModelForm):
 		self.photo_id = kwargs.pop('photo_id',None)
 		self.mob_verified = kwargs.pop('mobile_verified',None)
 		super(CommentForm, self).__init__(*args,**kwargs)
-		self.fields['text'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['text'].widget.attrs['style'] = 'width:97%;height:75px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean(self):
 		user_id = self.user_id
@@ -652,8 +652,8 @@ class CommentForm(forms.ModelForm):
 							raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
 						else:
 							log_short_message(user_id,section,photo_id)
-					elif text_len > 250:
-						raise forms.ValidationError('Itna bara tabsra nahi likh sakte')
+					elif text_len > MAX_PHOTO_COMMENT_SIZE:
+						raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(text_len,MAX_PHOTO_COMMENT_SIZE))
 					return data
 
 
@@ -681,7 +681,7 @@ class PublicreplyForm(forms.ModelForm):
 		self.link_id = kwargs.pop('link_id',None)
 		self.mob_verified = kwargs.pop('mob_verified',None)
 		super(PublicreplyForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['description'].widget.attrs['style'] = 'width:97%;height:75px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,self.link_id,'home_rep')
@@ -711,7 +711,7 @@ class PublicreplyForm(forms.ModelForm):
 						else:
 							log_short_message(user_id,section,section_id)
 					elif desc_len > MAX_HOME_REPLY_SIZE:
-						raise forms.ValidationError('Itna bara jawab nahi likh sakte')
+						raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(desc_len,MAX_HOME_REPLY_SIZE))
 					return description
 
 

@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 from django_extensions.db.fields import RandomCharField
 from datetime import datetime
 from math import log
+from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_COMMENT_SIZE
 from django.core.validators import MaxLengthValidator, MaxValueValidator, URLValidator
 from django.conf import settings
 from imagestorage import upload_to_photos, upload_to_avatars, upload_to_mehfils, upload_to_links, upload_to_photocomments, upload_to_picschat
@@ -126,7 +127,7 @@ class LinkVoteCountManager(models.Manager): #this class is derived from model ma
 			 #using a parent-class function here, over-riding query_set to include count field
 # annotate allows annotating the results of any query_set with some aggregate function like sum, count, average
 class Link(models.Model):
-	description = models.TextField("Kuch likho:", validators=[MaxLengthValidator(500)])
+	description = models.TextField("Kuch likho:", validators=[MaxLengthValidator(MAX_HOME_SUBMISSION_SIZE)])
 	submitter = models.ForeignKey(User) # link.submitter is a user!
 	submitted_on = models.DateTimeField(auto_now_add=True)
 	rank_score = models.FloatField(default=0.0)
@@ -238,7 +239,7 @@ class HotUser(models.Model):
 
 class PhotoComment(models.Model):
 	which_photo = models.ForeignKey(Photo)
-	text = models.TextField("Jawab:", validators=[MaxLengthValidator(250)])
+	text = models.TextField("Jawab:", validators=[MaxLengthValidator(MAX_PHOTO_COMMENT_SIZE)])
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	submitted_by = models.ForeignKey(User)
 	submitted_on = models.DateTimeField(auto_now_add=True)
@@ -465,7 +466,7 @@ class Publicreply(models.Model):
 	submitted_by = models.ForeignKey(User)
 	answer_to = models.ForeignKey(Link)
 	submitted_on = models.DateTimeField(auto_now_add=True)
-	description = models.TextField("Jawab:", validators=[MaxLengthValidator(250)])
+	description = models.TextField("Jawab:", validators=[MaxLengthValidator(MAX_HOME_REPLY_SIZE)])
 	category = models.CharField("Category", choices=CATEGS, default=1, max_length=20)
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	seen = models.BooleanField(default=False)

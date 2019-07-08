@@ -1,8 +1,10 @@
 # coding=utf-8
-MAX_HOME_SUBMISSION_SIZE = 500
-MAX_HOME_REPLY_SIZE = 250
-MAX_PHOTO_COMMENT_SIZE = 250
+MAX_BIO_SIZE = 1000
+MAX_HOME_SUBMISSION_SIZE = 750
+MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
+MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
+###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
@@ -280,7 +282,7 @@ ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'G
 ###############################################################################################################
 SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
 SEGMENT_STARTING_USER_ID = 19005280# starting user ID of user segment analysis
-PROJ_ZUCK_STARTING_USER_ID = 1899552
+PROJ_ZUCK_STARTING_USER_ID = 1923595
 """
 KEY:
 

@@ -18,7 +18,8 @@ from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComme
 Publicreply, VideoComment
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, prep_image
 from redis6 import is_group_member_and_rules_signatory, human_readable_time, group_member_exists
-from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO
+from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO,\
+MAX_BIO_SIZE
 
 
 ########################################### Utilities #######################################
@@ -368,8 +369,8 @@ class UserProfileForm(forms.ModelForm):
 	gender = forms.TypedChoiceField(choices=MardAurat, widget=forms.RadioSelect, coerce=int)
 	shadi_shuda = forms.TypedChoiceField(choices=MaritalStatus, widget=forms.RadioSelect, coerce=int)
 	# attractiveness = forms.TypedChoiceField(choices=RATING, widget=forms.RadioSelect, coerce=int)
-	bio = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'max-width:98%;height:100px;border-radius:5px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;','class':'cxl sp'}))
-	# mobilenumber = forms.IntegerField(required=False,widget=forms.Textarea(attrs={'cols':30,'rows':1,'style':'max-width:80%;height:20px;border-radius:5px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;','class':'cxl sp'}))
+	bio = forms.CharField(widget=forms.Textarea(attrs={'class': 'cxl lsp sp','autocomplete': 'off','autocapitalize':'off','spellcheck':'false',\
+		'maxlength':MAX_BIO_SIZE}),error_messages={'required': 'Ye likhna zaruri hai'})
 	age = forms.IntegerField(required=False,widget=forms.Textarea(attrs={'cols':10,'rows':1,'style':'width:50px;height:20px;border-radius:5px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;','class':'cxl sp'}))
 	streak = forms.IntegerField(required=False)
 	attractiveness = forms.IntegerField()
@@ -385,6 +386,7 @@ class UserProfileForm(forms.ModelForm):
 		self.on_fbs = kwargs.pop('on_fbs', None)
 		super(UserProfileForm, self).__init__(*args, **kwargs)
 		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
+		self.fields['bio'].widget.attrs['style'] = 'width:95%;height:200px;border-radius:8px;border: 1px #1edea8 solid; background-color:#f2f1f0;padding:5px;'
 		self.fields['age'].error_messages = {'required':retrieve_validation_error_string('required_age'),\
 		'invalid':retrieve_validation_error_string('age_too_large')}
 		self.fields['age'].widget.attrs['maxlength'] = 2
@@ -435,6 +437,9 @@ class UserProfileForm(forms.ModelForm):
 		bio = self.cleaned_data.get("bio")
 		bio = bio.strip()
 		bio = clear_zalgo_text(bio)
+		len_bio = len(bio)
+		if len_bio > MAX_BIO_SIZE:
+			raise forms.ValidationError("Apki story {0} chars se barri nahi ho sakti. Aap ne {1} chars likhey".format(MAX_BIO_SIZE,len_bio))
 		return bio
 
 	def clean_age(self):
@@ -564,7 +569,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		else:
 			len_ = len(description)
 			if len_ > MAX_HOME_SUBMISSION_SIZE+150:
-				# if post is too long, short circuit the rest of the cleaning method
+				# if post is too long, short circuit the rest of the cleaning method anyway
 				raise forms.ValidationError('Itni lambi post submit nahi hoti kiyun ke parhney waley bore ho jatey hain')
 			else:
 				description = re.sub(r'\n\s*\n', '\n', description)# collapsing multiple new lines into 1
@@ -588,7 +593,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 							else:
 								log_short_message(user_id,section,section_id)
 						elif len_ > MAX_HOME_SUBMISSION_SIZE:
-							raise forms.ValidationError('Content {0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_))
+							raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(len_,MAX_HOME_SUBMISSION_SIZE))
 						# '2' means right-aligned text, '1' means left-aligned text
 						data['alignment'] = '2' if is_urdu(description) >= RIGHT_ALIGNMENT_THRESHOLD_RATIO else '1'
 						data["description"] = description
@@ -619,7 +624,7 @@ class CommentForm(forms.ModelForm):
 		self.photo_id = kwargs.pop('photo_id',None)
 		self.mob_verified = kwargs.pop('mobile_verified',None)
 		super(CommentForm, self).__init__(*args,**kwargs)
-		self.fields['text'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['text'].widget.attrs['style'] = 'width:97%;height:75px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean(self):
 		user_id = self.user_id
@@ -647,8 +652,8 @@ class CommentForm(forms.ModelForm):
 							raise forms.ValidationError('Har thori deir baad yahan choti baat nah likhein')
 						else:
 							log_short_message(user_id,section,photo_id)
-					elif text_len > 250:
-						raise forms.ValidationError('Itna bara tabsra nahi likh sakte')
+					elif text_len > MAX_PHOTO_COMMENT_SIZE:
+						raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(text_len,MAX_PHOTO_COMMENT_SIZE))
 					return data
 
 
@@ -676,7 +681,7 @@ class PublicreplyForm(forms.ModelForm):
 		self.link_id = kwargs.pop('link_id',None)
 		self.mob_verified = kwargs.pop('mob_verified',None)
 		super(PublicreplyForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:97%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['description'].widget.attrs['style'] = 'width:97%;height:75px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
 
 	def clean_sk(self):
 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,self.link_id,'home_rep')
@@ -706,7 +711,7 @@ class PublicreplyForm(forms.ModelForm):
 						else:
 							log_short_message(user_id,section,section_id)
 					elif desc_len > MAX_HOME_REPLY_SIZE:
-						raise forms.ValidationError('Itna bara jawab nahi likh sakte')
+						raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(desc_len,MAX_HOME_REPLY_SIZE))
 					return description
 
 

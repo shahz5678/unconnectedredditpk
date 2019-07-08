@@ -65,7 +65,7 @@
 		<div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ object.date_joined|naturaltime }}</div>
 
 		{% if is_own_profile %}
-			<div class="mbs" style="text-align:center;padding-bottom:5px"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px">Edit your<br>profile</button></a></div>
+			<div style="text-align:center"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px;width:100%;border-radius:0;background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);"><b>Edit your profile</b></button></a></div>
 		{% else %}
 			{% if own_id %}
 				{% load get_big_fan_button %}

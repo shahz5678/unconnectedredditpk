@@ -132,16 +132,20 @@
         {% endfor %}
         </div>
 
+    {% if thumbs %}
+
     <hr size=1 COLOR="#ffd7b3">
     <p style="margin-top:-0.9em;"></p>
     <hr size=1 COLOR="#ffd7b3">
 
-    {% if thumbs != None %}
-    <div style="text-align:center" class="cgy sp">More fotos by <a href="{% url 'profile' photo.owner 'fotos' %}">{{ target_username }}</a>:</div>
-    <form method="POST" style="text-align:center" action="{% url 'go_to_user_photo' photo.owner 0 %}" class="mtl">{% csrf_token %}
-    {{ thumbs|safe }}
-    </form>
+    <div style="text-align:center" class="cgy sp">See trending fotos by <a href="{% url 'profile' photo.owner 'fotos' %}" class="cb"><b>{{ target_username }}</b></a>:</div>
+        <div class="fx fxjscn fxaicn" style="flex-wrap:wrap">
+        {% for image in thumbs %}
+            <a class="mrs mls" href="{% url 'user_profile_photo' photo.owner image.id %}"><img src="{{ image.image_file|s3:'thumb' }}" class="mts cxs sp" style="overflow:hidden;border:1px solid #d9e7f2;border-radius:4px" alt="pic"></a>
+        {% endfor %}
+        </div>
     {% endif %}
+
     </div>
 
        <div class="mls mbl">

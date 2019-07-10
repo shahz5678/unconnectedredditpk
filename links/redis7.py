@@ -211,6 +211,11 @@ def update_comment_in_home_link(reply,writer,reply_id,time,writer_id,link_pk):
 		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
 		payload = {'reply_id':reply_id,'replier_username':writer,'link_id':link_pk,'text':reply,'replier_id':writer_id,\
 		'epoch_time':time}
+		# if comment_target:
+		# 	payload['ct'] = comment_target
+		# 	payload['ttxpre'] = target_text_prefix
+		# if target_text_postfix:
+		# 	payload['ttxpos'] = target_text_postfix
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
@@ -748,17 +753,49 @@ def get_recent_photos(user_id):
 
 	This list self-deletes if user doesn't upload a photo for more than 4 days
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.lrange("phts:"+str(user_id), 0, -1)
+	return redis.Redis(connection_pool=POOL).lrange("phts:"+str(user_id), 0, -1)
 
 
 def save_recent_photo(user_id, photo_id):
+	"""
+	Save last 5 photos uploaded by a user
+	"""
+	key_name = "phts:"+str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	pipeline1 = my_server.pipeline()
-	pipeline1.lpush("phts:"+str(user_id), photo_id)
-	pipeline1.ltrim("phts:"+str(user_id), 0, 4) # save the most recent 5 photos'
-	pipeline1.expire("phts:"+str(user_id),FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
-	pipeline1.execute()
+	my_server.lpush(key_name, photo_id)
+	my_server.ltrim(key_name, 0, 4) # save the most recent 5 photos'
+	my_server.expire(key_name,FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
+
+
+def get_recent_trending_photos(user_id):
+	"""
+	Returns last 5 trending photo ids
+	"""
+	return redis.Redis(connection_pool=POOL).zrange("tphts:"+str(user_id), 0, -1)
+
+
+def save_recent_trending_photo(user_id, photo_id, time_of_selection, my_server=None):
+	"""
+	Saves latest 5 trending photos of a given user
+	"""
+	estimated_trending_expiry_time = time_of_selection+561600# roughly 1 week (precisely 6 days, 12 hours - a little below full 7 days to ensure we don't run into any errors)
+	key_name = "tphts:"+str(user_id)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	my_server.zadd(key_name, photo_id, estimated_trending_expiry_time)
+	my_server.zremrangebyrank(key_name, 0, -6)# to keep top 5 items in the sorted set
+	my_server.expireat(key_name,int(estimated_trending_expiry_time))
+
+
+def cache_recent_trending_images(user_id, payload):
+	"""
+	"""
+	redis.Redis(connection_pool=POOL).setex("cti:"+str(user_id),payload,TWENTY_MINS)
+
+
+def get_cached_recent_trending_images(user_id):
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).get("cti:"+str(user_id))
 
 
 def add_obj_to_photo_feed(submitter_id, time_now, hash_name, my_server=None):
@@ -825,13 +862,6 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-
-
-# def get_raw_comments(photo_id):
-# 	"""
-# 	Returns comments associated to an image (if its redis object exists)
-# 	"""
-# 	return redis.Redis(connection_pool=POOL).hget("img:"+str(photo_id),"cb")
 
 	
 def truncate_payload(comment_blob):
@@ -1586,6 +1616,7 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_ha
 		pipeline1.zadd(TRENDING_FOTOS_AND_USERS,obj_id,float(submitter_id))
 		pipeline1.execute()
 		Photo.objects.filter(id=obj_id).update(device='6')
+		save_recent_trending_photo(user_id=submitter_id, photo_id=obj_id, time_of_selection=float_time_of_selection, my_server=my_server)
 		if random() < 0.05:
 			# sometimes trim the trending sorted set for size
 			trim_trending_list()

@@ -141,7 +141,9 @@
     <div style="text-align:center" class="cgy sp">See trending fotos by <a href="{% url 'profile' photo.owner 'fotos' %}" class="cb"><b>{{ target_username }}</b></a>:</div>
         <div class="fx fxjscn fxaicn" style="flex-wrap:wrap">
         {% for image in thumbs %}
-            <a class="mrs mls" href="{% url 'user_profile_photo' photo.owner image.id %}"><img src="{{ image.image_file|s3:'thumb' }}" class="mts cxs sp" style="overflow:hidden;border:1px solid #d9e7f2;border-radius:4px" alt="pic"></a>
+            <span itemscope itemtype="https://schema.org/ViewAction">
+            <a class="mrs mls" href="{% url 'user_profile_photo' photo.owner image.id %}" itemprop="target"><img src="{{ image.image_file|s3:'thumb' }}" class="mts cxs sp" style="overflow:hidden;border:1px solid #d9e7f2;border-radius:4px" alt="pic"></a>
+            </span>
         {% endfor %}
         </div>
     {% endif %}

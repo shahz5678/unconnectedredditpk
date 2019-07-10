@@ -92,7 +92,7 @@ update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limit
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-retrieve_topic_credentials
+retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images
 from mixpanel import Mixpanel
 from unconnectedreddit.settings import MIXPANEL_TOKEN
 from cities import CITY_TUP_LIST, REV_CITY_DICT
@@ -185,6 +185,44 @@ def get_indices(page_number, obj_allotment):
 	objs_per_page = obj_allotment
 	index_ceiling = objs_per_page * page_number
 	return (index_ceiling)-objs_per_page,index_ceiling-1
+
+
+# def break_text_into_prefix_and_postfix(target_text):
+# 	"""
+# 	Does a reasonable effort at breaking the string along 'space' character
+
+# 	TODO: test this
+# 	"""
+# 	STARTING_CHAR_IDX = 43
+# 	postfix_text = target_text[STARTING_CHAR_IDX:]
+# 	if postfix_text:
+# 		# target string is longer than 43 chars - i.e. it's a candidate for break-up
+# 		for z in xrange(STARTING_CHAR_IDX-3,STARTING_CHAR_IDX+4,1):
+# 			if target_text[z].isspace():
+# 				# break at this point
+# 				return target_text[:z], target_text[z:]
+# 			else:
+# 				# break at STARTING_CHAR_IDX
+# 				return target_text[:STARTING_CHAR_IDX], postfix_text
+# 	else:
+# 		return target_text, ''
+
+
+def retrieve_trending_thumbs(user_id):
+	"""
+	Retreives recent trending thumbs, to be shown for the user at various places in the app
+	"""
+	json_data = get_cached_recent_trending_images(user_id)
+	if json_data:
+		return json.loads(json_data)
+	else:
+		trending_photo_ids = get_recent_trending_photos(user_id)
+		if trending_photo_ids:
+			img_ids_and_urls = Photo.objects.only('image_file').filter(id__in=trending_photo_ids).values('id','image_file')
+			cache_recent_trending_images(user_id,json.dumps(img_ids_and_urls))
+			return img_ids_and_urls
+		else:
+			return []
 
 
 def create_sorted_invitee_list(username_data, user_ids):
@@ -388,7 +426,7 @@ def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
 	reply_time = convert_to_epoch(reply.submitted_on)
 	url = retrieve_avurl(user_id)
 	owner_url = retrieve_avurl(parent.submitter_id)
-	amnt = update_comment_in_home_link(text,username,reply.id,reply_time,user_id,link_id)
+	amnt = update_comment_in_home_link(reply=text,writer=username,reply_id=reply.id,time=reply_time,writer_id=user_id,link_pk=link_id)
 	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
 	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,link_submitter_id=parent.submitter_id,\
 		link_submitter_username=parent_username,link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
@@ -1806,7 +1844,8 @@ class CommentView(CreateView):
 		context["photo"] = photo
 		target_username = photo.owner.username
 		context["target_username"] = target_username
-		context["thumbs"] = retrieve_single_thumbs(photo.owner_id)
+		# context["thumbs"] = retrieve_single_thumbs(photo.owner_id)
+		context["thumbs"] = retrieve_trending_thumbs(photo.owner_id)
 		context["verified"] = FEMALES
 		context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship

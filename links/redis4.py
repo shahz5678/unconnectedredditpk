@@ -790,25 +790,20 @@ def get_clones(user_id):
 	"""
 	Invoked in views.py to show possible clones of users
 	"""
-	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
 	my_server = redis.Redis(connection_pool=POOL)
-	user_ip = my_server.get(latest_user_ip)
+	user_ip = my_server.get("lip:"+str(user_id))
 	if user_ip:
-		clones = []
-		five_mins_ago = time.time() - FIVE_MINS
+		five_mins_ago, clones = time.time() - FIVE_MINS, []
 		online_users = my_server.zrangebyscore("online_users",five_mins_ago,'+inf')
 		for user in online_users:
-			if user_ip == user.split(":",1)[1]:
-				clones.append(user.split(":",1)[0])
+			# user is in user_id+":"+str(user_world_age)+":"+user_ip format
+			data_list = user.split(":")
+			reported_user_ip = data_list[2]
+			if user_ip == reported_user_ip:
+				clones.append(data_list[0])
 		return clones
 	else:
 		return None
-
-# def set_site_ban(user_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	user_ban = "ub:"+str(user_id) # banning user's ip from logging into website
-# 	my_server.set(user_ban,1)
-# 	my_server.expire(user_ban,ONE_HOUR)
 
 
 #########################################################

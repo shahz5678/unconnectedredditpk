@@ -3123,23 +3123,25 @@ def export_chat_counts(request):
 	"""
 	from redis3 import exact_date
 	from redis7 import in_defenders
-	from redis4 import retrieve_chat_count, retrieve_1on1_creation_times
+	from redis4 import retrieve_chat_count, retrieve_1on1_creation_times, retrieve_1on1_type
 
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
 		group_ids_and_chat_counts = retrieve_chat_count()
 		group_ids_and_creation_times = dict(retrieve_1on1_creation_times())
+		group_ids_and_chat_types = retrieve_1on1_type()
 		if group_ids_and_chat_counts:
 			import csv
 			filename = 'chat_count.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["1on1 ID","Created at","Cohort #","Num chats"]
+				columns = ["1on1 ID","1on1 Type","Created at","Cohort #","Num chats"]
 				wtr.writerow(columns)
 				for group_id, chat_count in group_ids_and_chat_counts:
-					creation_epoch_time = group_ids_and_creation_times[group_id]
-					to_write = [group_id,exact_date(creation_epoch_time),int(creation_epoch_time/ONE_DAY),int(chat_count)]
+					creation_epoch_time = group_ids_and_creation_times[str(group_id)]
+					chat_type = group_ids_and_chat_types[str(group_id)]
+					to_write = [group_id,chat_type,exact_date(creation_epoch_time),int(creation_epoch_time/ONE_DAY),int(chat_count)]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
 

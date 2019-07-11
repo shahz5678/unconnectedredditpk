@@ -535,32 +535,32 @@ def retrieve_user_bucket(user_id, with_vote_value=None):
 	'EVEN' users are shown the new variation
 	'ODD' users view the old one
 	"""
-	BENCHMARK_ID = 1918713
+	BENCHMARK_ID = 1927086#1918713
 	if with_vote_value:
 		if user_id % 2 != 0:
 			if user_id <= BENCHMARK_ID:
 				if with_vote_value == '1':
-					bucket_type = 'control-old-uvote'#'old user' in control group who upvoted
+					bucket_type = 'ctrl-old-uvote'#'control-old-uvote'#'old user' in control group who upvoted
 				else:
-					bucket_type = 'control-old-dvote'#'old user' in control group who downvoted
+					bucket_type = 'ctrl-old-dvote'#'control-old-dvote'#'old user' in control group who downvoted
 			else:
 				if with_vote_value == '1':
-					bucket_type = 'control-new-uvote'#'new user' in control group who upvoted
+					bucket_type = 'ctrl-new-uvote'#'control-new-uvote'#'new user' in control group who upvoted
 				else:
-					bucket_type = 'control-new-dvote'#'new user' in control group who downvoted
+					bucket_type = 'ctrl-new-dvote'#'control-new-dvote'#'new user' in control group who downvoted
 		else:
 			if user_id <= BENCHMARK_ID:
 				if with_vote_value == '1':
-					bucket_type = 'var-old-uvote'#'old user' in variation group who upvoted
+					bucket_type = 'vari-old-uvote'#'var-old-uvote'#'old user' in variation group who upvoted
 				else:
-					bucket_type = 'var-old-dvote'#'old user' in variation group who downvoted
+					bucket_type = 'vari-old-dvote'#'var-old-dvote'#'old user' in variation group who downvoted
 			else:
 				if with_vote_value == '1':
-					bucket_type = 'var-new-uvote'#'new user' in variation group who upvoted
+					bucket_type = 'vari-new-uvote'#'var-new-uvote'#'new user' in variation group who upvoted
 				else:
-					bucket_type = 'var-new-dvote'#'new user' in variation group who downvoted
+					bucket_type = 'vari-new-dvote'#'var-new-dvote'#'new user' in variation group who downvoted
 	else:
-		bucket_type = 'control' if user_id % 2 != 0 else 'var'
+		bucket_type = 'ctrl' if user_id % 2 != 0 else 'vari'
 	return bucket_type
 
 
@@ -571,7 +571,7 @@ def log_vote_for_ab_test(voter_id ,vote_value):
 	bucket_type = retrieve_user_bucket(user_id=voter_id, with_vote_value=vote_value)
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.zincrby(bucket_type,voter_id,amount=1)
-	my_server.zincrby('ab_test',bucket_type,amount=1)
+	my_server.zincrby('abtest',bucket_type,amount=1)#ab_test
 
 
 ###################################################

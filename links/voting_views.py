@@ -418,7 +418,7 @@ def user_vote_history(request,vote):
 	######################## Setting up A/B test ########################
 	#####################################################################
 	bucket_type = retrieve_user_bucket(user_id=own_id)
-	if bucket_type == 'control':
+	if bucket_type == 'ctrl':
 		# show original code
 		if vote in ('upvote','downvote'):
 			start_index, end_index = get_indices(page_num, VOTE_HISTORY_ITEMS_PER_PAGE)

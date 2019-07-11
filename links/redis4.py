@@ -1978,3 +1978,46 @@ def retrieve_1on1_creation_times():
 	Retrieves 1on1 chat creation times
 	"""
 	return redis.Redis(connection_pool=POOL).zrange(group_creation,0,-1,withscores=True)
+
+
+def retrieve_1on1_type():
+	"""
+	Retrieves 1on1 type (i.e. 'oo', 'no', 'nn')
+	"""
+	group_types = {}
+	my_server = redis.Redis(connection_pool=POOL)
+	all_group_ids = my_server.zrange(group_creation,0,-1)
+	pipeline1 = my_server.pipeline()
+	for group_id in all_group_ids:
+		pipeline1.zcount(old_old,group_id,group_id)
+	result1, counter = pipeline1.execute(), 0
+	remainder_groups = []
+	for group_id in all_group_ids:
+		if result1[counter]:
+			group_types[group_id] = 'oo'
+		else:
+			remainder_groups.append(group_id)
+		counter += 1
+	########################################################
+	pipeline2 = my_server.pipeline()
+	for group_id in remainder_groups:
+		pipeline2.zcount(new_old,group_id,group_id)
+	result2, counter = pipeline2.execute(), 0
+	more_remainder_groups = []
+	for group_id in remainder_groups:
+		if result2[counter]:
+			group_types[group_id] = 'no'
+		else:
+			more_remainder_groups.append(group_id)
+		counter += 1
+	########################################################
+	pipeline3 = my_server.pipeline()
+	for group_id in more_remainder_groups:
+		pipeline3.zcount(new_new,group_id,group_id)
+	result3, counter = pipeline3.execute(), 0
+	for group_id in more_remainder_groups:
+		if result3[counter]:
+			group_types[group_id] = 'nn'
+		counter += 1
+	########################################################
+	return group_types

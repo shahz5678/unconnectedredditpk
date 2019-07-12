@@ -529,9 +529,37 @@ def retrieve_detailed_voting_data(page_num, user_id):
 ############# Logging AB Test Results #############
 ###################################################
 
+def retrieve_test_bucket(user_id, my_server=None):
+	"""
+	AB test for testing positioning of 'Topic' selector in 'Share'
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	bucket_val = my_server.zscore('share_bucket',user_id)
+	if bucket_val is None:
+		from random import randint
+		bucket_val = randint(0, 1)
+		my_server.zadd('share_bucket',user_id,bucket_val)
+	return int(bucket_val)
+
+
+def log_share_for_ab_test(user_id, is_topic=False):
+	"""
+	Logging results of share result
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	bucket_val = retrieve_test_bucket(user_id, my_server)
+	if bucket_val == 1:
+		bucket_type = 'top_topic' if is_topic else 'top_notop'
+	else:
+		bucket_type = 'bot_topic' if is_topic else 'bot_notop'
+	my_server.zincrby('abtest2',bucket_type,amount=1)
+	my_server.zincrby(bucket_type,user_id,amount=1)
+
 
 def retrieve_user_bucket(user_id, with_vote_value=None):
 	"""
+	AB test for testing voting history functionality
+
 	'EVEN' users are shown the new variation
 	'ODD' users view the old one
 	"""

@@ -35,21 +35,43 @@
 		<form method="post" class="mbs" action="" enctype="multipart/form-data">
 		  {% csrf_token %}
 		  <input type="hidden" name="sk" value="{{ sk }}">
-		  <div style="padding:5px 10px 0 10px">{{ form.description }}</div>
-		  {% if subscribed_topics %}
 
-		  	 <select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mtl" name="turl">
-		  	 	<option selected disabled hidden>Select Topic</option>
-		  	 	<option value="">- no topic -</option>
-		  	 	{% for topic in subscribed_topics %}
-		  	 		<option value="{{ topic.url }}">{{ topic.name }}</option>
-		  	 	{% endfor %}
-			</select> 
-		  {% else %}
-		  	<select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mtl" name="turl">
-		  	 	<option selected disabled hidden>Select Topic</option>
-		  	 	<option value="" disabled>No subscribed topics</option>
-			</select> 
+		  {% if topic_on_top %}
+			  {% if subscribed_topics %}
+
+			  	 <select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mts mbl" name="turl">
+			  	 	<option selected disabled hidden>Select Topic</option>
+			  	 	<option value="">- no topic -</option>
+			  	 	{% for topic in subscribed_topics %}
+			  	 		<option value="{{ topic.url }}">{{ topic.name }}</option>
+			  	 	{% endfor %}
+				</select> 
+			  {% else %}
+			  	<select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mts mbl" name="turl">
+			  	 	<option selected disabled hidden>Select Topic</option>
+			  	 	<option value="" disabled>No subscribed topics</option>
+				</select> 
+			  {% endif %}
+		  {% endif %}
+
+		  <div style="padding:5px 10px 0 10px">{{ form.description }}</div>
+		  
+		  {% if not topic_on_top %}
+			  {% if subscribed_topics %}
+
+			  	 <select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mtl" name="turl">
+			  	 	<option selected disabled hidden>Select Topic</option>
+			  	 	<option value="">- no topic -</option>
+			  	 	{% for topic in subscribed_topics %}
+			  	 		<option value="{{ topic.url }}">{{ topic.name }}</option>
+			  	 	{% endfor %}
+				</select> 
+			  {% else %}
+			  	<select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mtl" name="turl">
+			  	 	<option selected disabled hidden>Select Topic</option>
+			  	 	<option value="" disabled>No subscribed topics</option>
+				</select> 
+			  {% endif %}
 		  {% endif %}
 
 		  <button class="btn bl bct mtl mbs sp pg_ok_res" style="width:95%;height:38px" name="btn" value="1" type="submit"><b>SHARE</b></button>

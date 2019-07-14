@@ -10,7 +10,7 @@
    <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="See and share the best images and memes related to Pakistan, including funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes, etc.">
+	<meta name="description" content="See and share the best images and memes related to Pakistan. Genres include funny memes, sad poetry pics, Whatsapp dp pics, Islamic pics, couple pics, girl dp pics, Urdu poetry pics, attitude pics and memes, etc.">
 	<meta property="og:site_name" content="Damadam.pk">
 	<meta property="og:title" content="Damadam.pk">
 	<meta property="og:type" content="website">
@@ -18,16 +18,16 @@
 	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
 	<meta property="og:image:width" content="300">
 	<meta property="og:image:height" content="300">
-	<meta property="og:description" content="See and share the best images and memes related to Pakistan, including funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes, etc.">
+	<meta property="og:description" content="See and share the best images and memes related to Pakistan. Genres include funny memes, sad poetry pics, Whatsapp dp pics, Islamic pics, couple pics, girl dp pics, Urdu poetry pics, attitude pics and memes, etc.">
 	<meta property="fb:app_id" content="1758220174446684" />
 	<meta name="author" content="mhb">
 	<meta name=”GOOGLEBOT” content=”NOARCHIVE”>
 	
 	{% if feed_type == 'fresh_photos' %}
-		<title>The Latest Images and Memes from Pakistan | Damadam</title>
+		<title>{{ num_in_last_1_day }} Latest Images and Memes from Pakistan in the Last 24 Hours | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'fresh-list' %}" />
 	{% else %}
-		<title>The Best Images and Memes Trending in Pakistan Right Now! | Damadam</title>
+		<title>{{ num_in_last_1_day }} Best Images and Memes Trending in Pakistan in the Last 24 Hours! | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'best-list' %}" />
 	{% endif %}
 

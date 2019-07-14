@@ -24,10 +24,10 @@
 	<meta name=”GOOGLEBOT” content=”NOARCHIVE”>
 	
 	{% if feed_type == 'fresh_photos' %}
-		<title>{{ num_in_last_1_day }} Latest Images and Memes from Pakistan in the Last 24 Hours | Damadam</title>
+		<title>{{ num_in_last_1_day }} Latest Memes and Images from Pakistan in the Last 24 Hours | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'fresh-list' %}" />
 	{% else %}
-		<title>{{ num_in_last_1_day }} Best Images and Memes Trending in Pakistan in the Last 24 Hours! | Damadam</title>
+		<title>{{ num_in_last_1_day }} Best Memes and Images Trending in Pakistan in the Last 24 Hours! | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'best-list' %}" />
 	{% endif %}
 

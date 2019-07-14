@@ -71,7 +71,8 @@ Logout, Video, VideoComment
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
-cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data, set_attribute_change_rate_limit
+cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data, set_attribute_change_rate_limit,\
+retrieve_image_count, cache_image_count
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
@@ -94,8 +95,8 @@ invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_r
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_test_bucket,\
 log_share_for_ab_test
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 from cities import CITY_TUP_LIST, REV_CITY_DICT
 
 # from optimizely_config_manager import OptimizelyConfigManager
@@ -105,7 +106,7 @@ from cities import CITY_TUP_LIST, REV_CITY_DICT
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 
 def retrieve_user_env(user_agent, fbs):
@@ -2180,12 +2181,25 @@ def photo_page(request,list_type='best-list'):
 	if list_type in ('best-list','fresh-list'):
 		own_id, page_num = request.user.id, request.GET.get('page', '1')
 		start_index, end_index = get_indices(page_num, PHOTOS_PER_PAGE)
+		cached_image_count = retrieve_image_count(list_type=list_type)
 		if list_type == 'best-list':
 			type_, page_origin = 'best_photos', '2'
 			navbar_type, single_notif_origin = 'best', '21'
+			if cached_image_count:
+				num_in_last_1_day = cached_image_count
+			else:
+				one_day_ago = datetime.utcnow()-timedelta(hours=24)
+				num_in_last_1_day = Logout.objects.filter(logout_time__gte=one_day_ago).count()
+				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		else:
 			type_, page_origin = 'fresh_photos', '1'
 			navbar_type, single_notif_origin = 'fresh', '20'
+			if cached_image_count:
+				num_in_last_1_day = cached_image_count
+			else:
+				one_day_ago = datetime.utcnow()-timedelta(hours=24)
+				num_in_last_1_day = Photo.objects.filter(upload_time__gte=one_day_ago).count()
+				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		obj_list, list_total_size = get_photo_feed(start_idx=start_index, end_idx=end_index, feed_type=type_, with_feed_size=True)
 		num_pages = list_total_size/PHOTOS_PER_PAGE
 		max_pages = num_pages if list_total_size % PHOTOS_PER_PAGE == 0 else (num_pages+1)
@@ -2215,7 +2229,8 @@ def photo_page(request,list_type='best-list'):
 		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
 		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
 		'page_origin':page_origin,'sk':secret_key,'comment_form':comment_form,"mobile_verified":mobile_verified,\
-		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera}#'score':request.user.userprofile.score
+		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,\
+		'num_in_last_1_day':num_in_last_1_day}#'score':request.user.userprofile.score
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -3300,9 +3315,9 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				return render(request, 'user_unseen_activity.html', context)
 			else:
 				# page turned out to be empty since all notifications have been deleted.
-				return render(request,'user_unseen_activity.html',{'object_list':[],'page':{'number':page_num,'has_previous':True if page_num>1 else False,\
-					'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False},'nickname':username,\
-					'user_id':user_id})
+				return render(request,'user_unseen_activity.html',{'page':{'number':page_num,'has_previous':True if page_num>1 else False,\
+					'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False}, \
+					'nickname':username,'user_id':user_id,'object_list':[]})
 		else:
 			return render(request, 'user_unseen_activity.html', {'object_list': [], 'page':{},'nickname':username,'user_id':user_id})
 

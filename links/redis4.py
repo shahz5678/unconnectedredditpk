@@ -247,6 +247,23 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return '1'
 
 
+################ Caching number of images circulating in Photos section ################
+
+
+def retrieve_image_count(list_type):
+	"""
+	Retrieving number of images in circulation in best and fresh lists of the Photo section
+	"""
+	return redis.Redis(connection_pool=POOL).get("cic:"+list_type)
+
+
+def cache_image_count(num_images,list_type):
+	"""
+	Saving number of images in circulation in best and fresh lists of the Photo section
+	"""
+	redis.Redis(connection_pool=POOL).setex("cic:"+list_type,num_images,TWENTY_MINS)
+
+
 ######################## Rate limiting content sharing on feeds ########################
 
 

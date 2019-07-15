@@ -320,27 +320,34 @@ def retrieve_obj_feed(obj_list, with_colors=False):
 	return unpack_json_blob(filter(None, pipeline1.execute()),with_colors=with_colors)
 
 
-def retrieve_obj_scores(obj_list, with_downvotes=False):
+def retrieve_obj_scores(obj_list, with_votes=False):
 	"""
 	Retrieves obj vote scores - useful for calculating trending objs
 	"""
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-	if with_downvotes:
+	if with_votes:
 		for obj_hash in obj_list:
-			pipeline1.hmget(obj_hash,'cvs','dv')
+			pipeline1.hmget(obj_hash,'cvs','dv','uv','nv')
 		cumulative_vote_scores, counter, final_result = pipeline1.execute(), 0, []
 		for obj_hash in obj_list:
 
-			score = cumulative_vote_scores[counter][0]
-			score = float(score) if score else 0
-
-			downvotes = cumulative_vote_scores[counter][1]
-			downvotes = int(downvotes) if downvotes else 0
-
 			if cumulative_vote_scores[counter]:
-				final_result.append((obj_hash, score, downvotes))
+
+				score = cumulative_vote_scores[counter][0]
+				score = float(score) if score else 0
+
+				downvotes = cumulative_vote_scores[counter][1]
+				downvotes = int(downvotes) if downvotes else 0
+
+				upvotes = cumulative_vote_scores[counter][2]
+				upvotes = int(upvotes) if upvotes else 0
+
+				netvotes = cumulative_vote_scores[counter][3]
+				netvotes = int(netvotes) if netvotes else 0
+
+				final_result.append((obj_hash, score, downvotes, upvotes, netvotes))
 			else:
-				final_result.append((obj_hash, 0, 0))
+				final_result.append((obj_hash, 0, 0, 0, 0))
 			counter += 1
 		return final_result
 	else:
@@ -349,10 +356,11 @@ def retrieve_obj_scores(obj_list, with_downvotes=False):
 		cumulative_vote_scores, counter, final_result = pipeline1.execute(), 0, []
 		for obj_hash in obj_list:
 			
-			score = cumulative_vote_scores[counter]
-			score = float(score) if score else 0
-			
 			if cumulative_vote_scores[counter]:
+
+				score = cumulative_vote_scores[counter]
+				score = float(score) if score else 0
+
 				final_result.append((obj_hash, score))
 			else:
 				final_result.append((obj_hash, 0))

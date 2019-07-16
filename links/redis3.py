@@ -596,17 +596,12 @@ def is_already_banned(own_id, target_id, key_name=None, server=None, return_bann
 
 	Can optionally send the ID of the banner
 	"""
-	if not server:
-		server = redis.Redis(connection_pool=POOL)
+	server = server if server else redis.Redis(connection_pool=POOL)
 	if not key_name:
 		low, high = (own_id, target_id) if int(own_id) < int(target_id) else (target_id, own_id)
 		key_name = "b:"+str(low)+":"+str(high)
 	if return_banner:
-		pipeline1 = server.pipeline()
-		pipeline1.get(key_name)
-		pipeline1.ttl(key_name)
-		result = pipeline1.execute()
-		return result[0], result[1]
+		return server.get(key_name), server.ttl(key_name)
 	else:
 		ttl = server.ttl(key_name)
 		if ttl > -1:
@@ -633,37 +628,15 @@ def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_un
 	else:
 		existing_ttl = is_already_banned(own_id=own_id, target_id=target_id, key_name=key_name, server=my_server)
 		if existing_ttl is None or existing_ttl is False or can_unban == '1':
-			pipeline1 = my_server.pipeline()
 			# a key to help make quick decision on whether an interaction is to be allowed or not
-			pipeline1.setex(key_name,own_id,ttl)
+			my_server.setex(key_name,own_id,ttl)
 			# combined with 'solitary' keys above, this helps populate a list of all banned people for the user to see
-			pipeline1.zadd("bl:"+str(own_id),target_id, time_now)
-			# only add to the global list if it was NOT a re-ban
-			pipeline1.execute()
+			my_server.zadd("bl:"+str(own_id),target_id, time_now)
 			return True, None
 		else:
 			return False, None
 
 
-# def get_global_ban_leaderboard():
-#   my_server = redis.Redis(connection_pool=POOL)
-#   return my_server.zrange("global_inter_user_ban_list",-50,-1,withscores=True)
-
-########################################################################################################
-# def populate_ad_list(which_list="photos"):
-#   my_server = redis.Redis(connection_pool=POOL)
-#   live_ad_ids = my_server.lrange("global_ads_list",0,-1)
-#   if which_list == "photos":
-#       pipeline1 = my_server.pipeline()
-#       for ad_id in live_ad_ids:
-#           pipeline1.hmget("ad:"+ad_id,"photo_count","city")
-#       result1 = pipeline1.execute()
-#       counter = 0
-#       for ad_id in live_ad_ids:
-#           if int(result1[counter][0]) > 0:
-#               my_server.rpush("global_photo_ads_list",ad_id)
-#               my_server.rpush("afa:"+result1[counter][1],ad_id) # used for city-wide photo ad view
-#           counter += 1
 ##########################################Classifieds#################################################
 
 

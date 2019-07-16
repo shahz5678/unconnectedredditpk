@@ -610,6 +610,24 @@ def log_vote_for_ab_test(voter_id ,vote_value):
 	my_server.zincrby('abtest',bucket_type,amount=1)#ab_test
 
 
+def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
+	"""
+	Logs how many votes were received by photos from which section, to give an idea of voting liquidity
+
+	We ignore super defenders
+	Possible values of 'from_' include:
+	- 'fresh'
+	- 'trending'
+	- 'home'
+	- 'topic'
+	"""
+	if not voter_id in (1,26277,484241,868557,1362004,1410395):
+		origin_key = from_+":"+vote_value
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.zincrby(origin_key,voter_id,amount=1)
+		my_server.zincrby('voting_liquidity',origin_key,amount=1)
+
+
 ###################################################
 ###################################################
 ###################################################
@@ -1541,6 +1559,7 @@ def retrieve_handpicked_photos_count():
 		return count
 	else:
 		return 0
+
 
 def calculate_top_trenders():
 	"""

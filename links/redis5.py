@@ -2466,7 +2466,7 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		pipeline1.mset({"pgp:"+group_id:own_id+":"+target_id,"pgrp:"+own_id+":"+target_id:group_id,"pgrp:"+target_id+":"+own_id:group_id})
 		pipeline1.zadd("all_pgs",group_id,time.time())
 		##################################### Zuck ##############################################
-		add_group_to_log(group_id)
+		# add_group_to_log(group_id)
 		#########################################################################################
 		###### No need to touch these sets, they're done in mark_personal_group_attendance ######
 		# pipeline1.zadd("pgfgm:"+own_id,group_id+":"+target_id,time_now)

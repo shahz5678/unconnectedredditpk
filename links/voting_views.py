@@ -19,9 +19,9 @@ from tasks import vote_tasks, cache_voting_history
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
 from redis4 import retrieve_uname, retrieve_credentials
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
-from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
+from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
-retrieve_voting_records, retrieve_users_voting_relationships, retrieve_detailed_voting_data, retrieve_user_bucket#, get_vote_ban_details, check_vote_ban
+retrieve_users_voting_relationships, retrieve_detailed_voting_data, retrieve_user_bucket, log_section_wise_voting_liquidity#, get_vote_ban_details, check_vote_ban
 
 def vote_result(request):
 	"""
@@ -220,6 +220,22 @@ def cast_vote(request,*args,**kwargs):
 									own_name = request.user.username
 									vote_tasks.delay(own_id, target_user_id,obj_id,value,(True if own_name in FEMALES else False),own_name, \
 										revert_old,is_pht,time.time())
+									#####################################################
+									# Logging voting liquidity in 'fresh' and 'trending'#
+									#####################################################
+									if is_pht == '1':
+										if origin == '1':
+											vote_type = 'fresh'
+										elif origin == '2':
+											vote_type = 'trending'
+										elif origin == '3':
+											vote_type = 'home'
+										elif origin == '22':
+											vote_type = 'topic'
+										log_section_wise_voting_liquidity(from_=vote_type, vote_value=value, voter_id=own_id)
+									#####################################################
+									#####################################################
+									#####################################################
 									message = 'old' if revert_old else 'new'#used to do some validation checks on the JS front-end, nothing more
 									if is_ajax:
 										# JS voting

@@ -678,16 +678,22 @@ def user_vote_history(request,vote):
 			raise Http404("No other type of voting exists")
 
 
-def user_sybil_history(request, user_id):
+def user_sybil_history(request, user_id, hist_type):
 	"""
 	Renders suspected sybils and haters in an HTML template for super defenders
 	"""
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		return render(request,"voting/voting_sybils.html",{'sybil_data':retrieve_users_voting_relationships(user_id),\
-			'tgt_uname':retrieve_uname(user_id,decode=True),'target_id':user_id,'own_id':own_id})
+		if hist_type == 'sybils':
+			return render(request,"voting/voting_sybils.html",{'data':retrieve_users_voting_relationships(user_id, 'sybils'),\
+				'tgt_uname':retrieve_uname(user_id,decode=True),'target_id':user_id,'own_id':own_id,'hist_type':hist_type})
+		elif hist_type == 'reverse-sybils':
+			return render(request,"voting/voting_sybils.html",{'data':retrieve_users_voting_relationships(user_id, 'reverse-sybils'),\
+				'tgt_uname':retrieve_uname(user_id,decode=True),'target_id':user_id,'own_id':own_id,'hist_type':hist_type})
+		else:
+			raise Http404("Unrecognized sybil string")
 	else:
-		raise Http404("Not athorized to view sybils")
+		raise Http404("Not authorized to view sybils")
 		
 

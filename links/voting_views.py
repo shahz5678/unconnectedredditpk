@@ -516,7 +516,7 @@ def vote_history_admin_view(request,user_id,vote):
 			return render(request,"voting/admin_voting_history_view.html",{'data':final_data,'slug':retrieve_uname(own_id,decode=True), \
 				'own_profile':False,'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 				'previous_page_number':page_num-1,'next_page_number':page_num+1},'history_type':vote,'own_id':own_id,'on_opera':on_opera,\
-				'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id)})
+				'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id),'defender_id':defender_id})
 		elif vote == 'downvote':
 			start_index, end_index = get_indices(page_num, VOTE_HISTORY_ITEMS_PER_PAGE)
 			voting_data, list_total_size = retrieve_voting_records(voter_id=own_id, start_idx=start_index, end_idx=end_index, \
@@ -533,7 +533,7 @@ def vote_history_admin_view(request,user_id,vote):
 				final_data.append(obj)
 			return render(request,"voting/admin_voting_history_view.html",{'data':final_data,'slug':retrieve_uname(own_id,decode=True), \
 				'own_profile':False,'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
-				'previous_page_number':page_num-1,'next_page_number':page_num+1},'history_type':vote,'own_id':own_id})
+				'previous_page_number':page_num-1,'next_page_number':page_num+1},'history_type':vote,'own_id':own_id,'defender_id':defender_id})
 		else:
 			raise Http404("Erroneous keyword argument")	
 	else:

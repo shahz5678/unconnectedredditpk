@@ -41,11 +41,12 @@ log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_
 retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
+add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, get_best_home_feed, retire_abandoned_topics,\
-cache_detailed_voting_data, log_vote_for_ab_test
+study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, \
+get_best_home_feed
 from redis8 import set_section_wise_retention, log_segment_action
+# from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -293,6 +294,9 @@ def post_banning_tasks(own_id, target_id):
 	# 3) No notifications will be generated since we already sanitized each user's activity
 	# this ensures they can't private chat with eachother
 	exit_user_from_targets_priv_chat(own_id,target_id)
+	################################################################################
+	# remove any direct responses exchanged between the two
+	# delete_all_direct_responses_between_two_users(first_user_id=target_id, second_user_id=own_id)# order of passing user IDs does not matter
 	################################################################################
 	# we did a LOT of work, ensure banner didn't ban in vain!
 	ratelimit_banner_from_unbanning_target(own_id,target_id)
@@ -1235,8 +1239,6 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		else:
 			# neither an upvote nor a downvote, do nothing
 			pass
-		#################### A/B test logger ####################
-		log_vote_for_ab_test(voter_id=own_id,vote_value=vote_value)
 
 
 @celery_app1.task(name='tasks.registration_task')

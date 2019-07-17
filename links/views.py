@@ -93,8 +93,7 @@ update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limit
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_test_bucket,\
-log_share_for_ab_test
+retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images
 # from direct_response_forms import DirectResponseForm
 # from mixpanel import Mixpanel
 # from unconnectedreddit.settings import MIXPANEL_TOKEN
@@ -3669,15 +3668,6 @@ class LinkCreateView(CreateView):
 		if self.request.user.is_authenticated():
 			own_id = self.request.user.id
 			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-			###################################################
-			##################### AB Test #####################
-			###################################################
-			bucket_val = retrieve_test_bucket(user_id=own_id)# either 0.0 or 1.0
-			if bucket_val == 1:
-				context["topic_on_top"] = True
-			###################################################
-			###################################################
-			###################################################
 			if banned:
 				context["time_remaining"] = time_remaining
 				context["ban_details"] = ban_details
@@ -3761,18 +3751,12 @@ class LinkCreateView(CreateView):
 						submission_time=time_now, text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), \
 						topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
 						submitter_username=submitter_uname)
-					######################## Log AB result #######################
-					log_share_for_ab_test(user_id,is_topic=True)
-					##############################################################
 				else:
 					log_text_submissions('text')#Logs the number of submisions in topic vs number of submissions of regular text posts
 					add_text_post(obj_id=obj_id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, \
 						submitter_username=submitter_uname, submission_time=time_now, add_to_feed=True, \
 						is_pinkstar=(True if submitter_uname in FEMALES else False), text=f.description,\
 						from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False))
-					######################## Log AB result #######################
-					log_share_for_ab_test(user_id)
-					##############################################################
 				################### Segment action logging ###################
 				if user_id > SEGMENT_STARTING_USER_ID:
 					log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)

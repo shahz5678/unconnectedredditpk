@@ -169,4 +169,9 @@
     {% endif %}
 </div>
 
+<form method="POST" class="mbl" action="{% url 'manage_user' %}" style="max-width:500px;width:97%;margin-right:auto;margin-left:auto;text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ defender_id }}"><input type="hidden" name="t_id" value="{{ own_id }}"><button type="submit" class="btn bcgy pg_ok_res sp" style="height:40px;width:95%;font-weight:bold">BACK</button></form>
+
+
+<br>
+
 {% endblock %}

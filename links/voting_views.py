@@ -19,9 +19,9 @@ from tasks import vote_tasks, cache_voting_history
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
 from redis4 import retrieve_uname, retrieve_credentials
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
-from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,\
+from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
-retrieve_voting_records, retrieve_users_voting_relationships, retrieve_detailed_voting_data, retrieve_user_bucket#, get_vote_ban_details, check_vote_ban
+retrieve_users_voting_relationships, retrieve_detailed_voting_data, retrieve_user_bucket, log_section_wise_voting_liquidity#, get_vote_ban_details, check_vote_ban
 
 def vote_result(request):
 	"""
@@ -220,6 +220,22 @@ def cast_vote(request,*args,**kwargs):
 									own_name = request.user.username
 									vote_tasks.delay(own_id, target_user_id,obj_id,value,(True if own_name in FEMALES else False),own_name, \
 										revert_old,is_pht,time.time())
+									#####################################################
+									# Logging voting liquidity in 'fresh' and 'trending'#
+									#####################################################
+									if is_pht == '1':
+										if origin == '1':
+											vote_type = 'fresh'
+										elif origin == '2':
+											vote_type = 'trending'
+										elif origin == '3':
+											vote_type = 'home'
+										elif origin == '22':
+											vote_type = 'topic'
+										log_section_wise_voting_liquidity(from_=vote_type, vote_value=value, voter_id=own_id)
+									#####################################################
+									#####################################################
+									#####################################################
 									message = 'old' if revert_old else 'new'#used to do some validation checks on the JS front-end, nothing more
 									if is_ajax:
 										# JS voting
@@ -407,6 +423,123 @@ def export_voting_records(request):
 	raise Http404("Completed ;)")
 
 
+def vote_history_admin_view(request,user_id,vote):
+	"""
+	Displays a user's voting history to super defenders
+	"""
+	defender_id = request.user.id 
+	is_defender, is_super_defender = in_defenders(defender_id, return_super_status=True)
+ 	if is_super_defender:
+ 		own_id = user_id
+		page_num, upvote_listing = request.GET.get('page', '1'), True if vote == 'upvote' else False
+		if vote == 'upvote':
+			final_data = []
+			json_data = retrieve_detailed_voting_data(page_num=page_num, user_id=own_id)
+			if json_data:
+				try:
+					final_data_list = json.loads(json_data)
+				except:
+					final_data_list = json_backup.loads(json_data)
+				final_data, max_pages, all_submitters = final_data_list[0], final_data_list[1], final_data_list[2]
+			else:
+				start_index, end_index = get_indices(page_num, VOTE_HISTORY_ITEMS_PER_PAGE)
+				voting_data, list_total_size = retrieve_voting_records(voter_id=own_id, start_idx=start_index, end_idx=end_index, \
+					upvotes=upvote_listing, with_total_votes=True)
+				num_pages = list_total_size/VOTE_HISTORY_ITEMS_PER_PAGE
+				max_pages = num_pages if list_total_size % VOTE_HISTORY_ITEMS_PER_PAGE == 0 else (num_pages+1)
+				text_ids, img_ids = [], []
+				for data, vote_time in voting_data:
+					# 'data' contains: voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
+					data_list = data.split(":")
+					obj_type, obj_id = data_list[3], data_list[4]
+					human_vote_time = beautiful_date(vote_time)#exact_date(vote_time)
+					text_ids.append(obj_id) if obj_type == 'tx' else img_ids.append(obj_id)
+					obj = {'tp':obj_type,'obid':obj_id,'ooid':data_list[1],'vid':own_id,'vt':human_vote_time}
+					final_data.append(obj)
+				##############################################################
+				from colors import COLOR_GRADIENTS
+				final_text_objs = {}
+				text_objs = Link.objects.only('id','description','submitted_on','net_votes','url','cagtegory','reply_count','submitter').filter(id__in=text_ids).\
+				values('id','description','submitted_on','net_votes','url','cagtegory','reply_count','submitter') if text_ids else []
+				for text_obj in text_objs:
+					final_text_objs[str(text_obj['id'])] = text_obj
+				final_img_objs = {}
+				img_objs = Photo.objects.only('id','image_file','upload_time','comment_count','vote_score','device','caption','owner').filter(id__in=img_ids).\
+				values('id','image_file','upload_time','comment_count','vote_score','device','caption','owner') if img_ids else []
+				for img_obj in img_objs:
+					final_img_objs[str(img_obj['id'])] = img_obj
+				all_submitters = set()
+				# enriching data with more fields
+				for final_obj in final_data:
+					if final_obj['tp'] == 'tx':
+						submitter_id = final_text_objs[final_obj['obid']]['submitter']
+						all_submitters.add(str(submitter_id))
+						tgt_uname, tgt_avurl = retrieve_credentials(submitter_id, decode_uname=True)
+						final_obj['ou'] = tgt_uname
+						final_obj['av'] = tgt_avurl
+						final_obj['d'] = final_text_objs[final_obj['obid']]['description']
+						final_obj['nv'] = final_text_objs[final_obj['obid']]['net_votes']
+						final_obj['cc'] = final_text_objs[final_obj['obid']]['reply_count']
+						final_obj['mt'] = final_text_objs[final_obj['obid']]['submitted_on']
+						final_obj['t'] = convert_to_epoch(final_obj['mt'])
+						final_obj['c'] = final_text_objs[final_obj['obid']]['cagtegory']
+						url = final_text_objs[final_obj['obid']]['url']
+						if url:
+							payload = url.split(":")
+							try:
+								theme, final_obj['tn'], final_obj['url'] = payload[0], payload[1], payload[2]
+								color_grads = COLOR_GRADIENTS[theme]
+								final_obj['c1'], final_obj['c2'] = color_grads[0], color_grads[1]
+							except:
+								final_obj['tn'], final_obj['url'] = '', ''
+								final_obj['c1'], final_obj['c2'] = '', ''
+					elif final_obj['tp'] == 'img':
+						submitter_id = final_img_objs[final_obj['obid']]['owner']
+						all_submitters.add(str(submitter_id))
+						tgt_uname, tgt_avurl = retrieve_credentials(submitter_id, decode_uname=True)
+						final_obj['ou'] = tgt_uname
+						final_obj['av'] = tgt_avurl
+						final_obj['id'] = final_img_objs[final_obj['obid']]['id']
+						final_obj['i'] = final_img_objs[final_obj['obid']]['image_file']
+						final_obj['mt'] = final_img_objs[final_obj['obid']]['upload_time']
+						final_obj['t'] = convert_to_epoch(final_obj['mt'])
+						final_obj['nv'] = final_img_objs[final_obj['obid']]['vote_score']
+						final_obj['cc'] = final_img_objs[final_obj['obid']]['comment_count']
+						final_obj['tr'] = final_img_objs[final_obj['obid']]['device']
+						final_obj['cp'] = final_img_objs[final_obj['obid']]['caption']
+				cache_voting_history.delay(user_id=own_id, page_num=page_num, json_data=json.dumps([final_data,max_pages,all_submitters]))
+			##############################################################
+			page_num = int(page_num)
+			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+			is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+			on_opera = True if (not on_fbs and not is_js_env) else False
+			return render(request,"voting/admin_voting_history_view.html",{'data':final_data,'slug':retrieve_uname(own_id,decode=True), \
+				'own_profile':False,'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+				'previous_page_number':page_num-1,'next_page_number':page_num+1},'history_type':vote,'own_id':own_id,'on_opera':on_opera,\
+				'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id),'defender_id':defender_id})
+		elif vote == 'downvote':
+			start_index, end_index = get_indices(page_num, VOTE_HISTORY_ITEMS_PER_PAGE)
+			voting_data, list_total_size = retrieve_voting_records(voter_id=own_id, start_idx=start_index, end_idx=end_index, \
+				upvotes=upvote_listing, with_total_votes=True)
+			num_pages = list_total_size/VOTE_HISTORY_ITEMS_PER_PAGE
+			max_pages = num_pages if list_total_size % VOTE_HISTORY_ITEMS_PER_PAGE == 0 else (num_pages+1)
+			page_num = int(page_num)
+			final_data = []
+			for data, vote_time in voting_data:
+				# data contains: voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
+				data_list = data.split(":")
+				human_vote_time = beautiful_date(vote_time)#exact_date(vote_time)
+				obj = {'tp':data_list[3],'obid':data_list[4],'ooid':data_list[1],'vid':own_id,'t':human_vote_time}
+				final_data.append(obj)
+			return render(request,"voting/admin_voting_history_view.html",{'data':final_data,'slug':retrieve_uname(own_id,decode=True), \
+				'own_profile':False,'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+				'previous_page_number':page_num-1,'next_page_number':page_num+1},'history_type':vote,'own_id':own_id,'defender_id':defender_id})
+		else:
+			raise Http404("Erroneous keyword argument")	
+	else:
+		raise Http404("Not authorized to view user voting histories")
+
+
 def user_vote_history(request,vote):
 	"""
 	Renders the voting history of the user
@@ -418,7 +551,7 @@ def user_vote_history(request,vote):
 	######################## Setting up A/B test ########################
 	#####################################################################
 	bucket_type = retrieve_user_bucket(user_id=own_id)
-	if bucket_type == 'control':
+	if bucket_type == 'ctrl':
 		# show original code
 		if vote in ('upvote','downvote'):
 			start_index, end_index = get_indices(page_num, VOTE_HISTORY_ITEMS_PER_PAGE)

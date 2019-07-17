@@ -247,6 +247,23 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return '1'
 
 
+################ Caching number of images circulating in Photos section ################
+
+
+def retrieve_image_count(list_type):
+	"""
+	Retrieving number of images in circulation in best and fresh lists of the Photo section
+	"""
+	return redis.Redis(connection_pool=POOL).get("cic:"+list_type)
+
+
+def cache_image_count(num_images,list_type):
+	"""
+	Saving number of images in circulation in best and fresh lists of the Photo section
+	"""
+	redis.Redis(connection_pool=POOL).setex("cic:"+list_type,num_images,TWENTY_MINS)
+
+
 ######################## Rate limiting content sharing on feeds ########################
 
 
@@ -790,25 +807,20 @@ def get_clones(user_id):
 	"""
 	Invoked in views.py to show possible clones of users
 	"""
-	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
 	my_server = redis.Redis(connection_pool=POOL)
-	user_ip = my_server.get(latest_user_ip)
+	user_ip = my_server.get("lip:"+str(user_id))
 	if user_ip:
-		clones = []
-		five_mins_ago = time.time() - FIVE_MINS
+		five_mins_ago, clones = time.time() - FIVE_MINS, []
 		online_users = my_server.zrangebyscore("online_users",five_mins_ago,'+inf')
 		for user in online_users:
-			if user_ip == user.split(":",1)[1]:
-				clones.append(user.split(":",1)[0])
+			# user is in user_id+":"+str(user_world_age)+":"+user_ip format
+			data_list = user.split(":")
+			reported_user_ip = data_list[2]
+			if user_ip == reported_user_ip:
+				clones.append(data_list[0])
 		return clones
 	else:
 		return None
-
-# def set_site_ban(user_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	user_ban = "ub:"+str(user_id) # banning user's ip from logging into website
-# 	my_server.set(user_ban,1)
-# 	my_server.expire(user_ban,ONE_HOUR)
 
 
 #########################################################
@@ -1978,3 +1990,46 @@ def retrieve_1on1_creation_times():
 	Retrieves 1on1 chat creation times
 	"""
 	return redis.Redis(connection_pool=POOL).zrange(group_creation,0,-1,withscores=True)
+
+
+def retrieve_1on1_type():
+	"""
+	Retrieves 1on1 type (i.e. 'oo', 'no', 'nn')
+	"""
+	group_types = {}
+	my_server = redis.Redis(connection_pool=POOL)
+	all_group_ids = my_server.zrange(group_creation,0,-1)
+	pipeline1 = my_server.pipeline()
+	for group_id in all_group_ids:
+		pipeline1.zcount(old_old,group_id,group_id)
+	result1, counter = pipeline1.execute(), 0
+	remainder_groups = []
+	for group_id in all_group_ids:
+		if result1[counter]:
+			group_types[group_id] = 'oo'
+		else:
+			remainder_groups.append(group_id)
+		counter += 1
+	########################################################
+	pipeline2 = my_server.pipeline()
+	for group_id in remainder_groups:
+		pipeline2.zcount(new_old,group_id,group_id)
+	result2, counter = pipeline2.execute(), 0
+	more_remainder_groups = []
+	for group_id in remainder_groups:
+		if result2[counter]:
+			group_types[group_id] = 'no'
+		else:
+			more_remainder_groups.append(group_id)
+		counter += 1
+	########################################################
+	pipeline3 = my_server.pipeline()
+	for group_id in more_remainder_groups:
+		pipeline3.zcount(new_new,group_id,group_id)
+	result3, counter = pipeline3.execute(), 0
+	for group_id in more_remainder_groups:
+		if result3[counter]:
+			group_types[group_id] = 'nn'
+		counter += 1
+	########################################################
+	return group_types

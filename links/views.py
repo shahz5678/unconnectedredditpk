@@ -71,17 +71,18 @@ Logout, Video, VideoComment
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
-cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data, set_attribute_change_rate_limit
+cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data, set_attribute_change_rate_limit,\
+retrieve_image_count, cache_image_count
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
 is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, set_user_choice, \
 log_text_submissions #, log_erroneous_passwords
-from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
+from .redis2 import remove_erroneous_notif, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, bulk_is_fan,\
 prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, retrieve_unseen_notifications, get_photo_fan_count,\
-retrieve_object_data, remove_erroneous_notif
+retrieve_object_data
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .website_feedback_form import AdvertiseWithUsForm
 from redirection_views import return_to_content
@@ -92,9 +93,11 @@ update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limit
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images
-from mixpanel import Mixpanel
-from unconnectedreddit.settings import MIXPANEL_TOKEN
+retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_test_bucket,\
+log_share_for_ab_test
+# from direct_response_forms import DirectResponseForm
+# from mixpanel import Mixpanel
+# from unconnectedreddit.settings import MIXPANEL_TOKEN
 from cities import CITY_TUP_LIST, REV_CITY_DICT
 
 # from optimizely_config_manager import OptimizelyConfigManager
@@ -104,7 +107,7 @@ from cities import CITY_TUP_LIST, REV_CITY_DICT
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
-mp = Mixpanel(MIXPANEL_TOKEN)
+# mp = Mixpanel(MIXPANEL_TOKEN)
 
 
 def retrieve_user_env(user_agent, fbs):
@@ -190,20 +193,26 @@ def get_indices(page_number, obj_allotment):
 # def break_text_into_prefix_and_postfix(target_text):
 # 	"""
 # 	Does a reasonable effort at breaking the string along 'space' character
-
-# 	TODO: test this
 # 	"""
 # 	STARTING_CHAR_IDX = 43
 # 	postfix_text = target_text[STARTING_CHAR_IDX:]
 # 	if postfix_text:
 # 		# target string is longer than 43 chars - i.e. it's a candidate for break-up
-# 		for z in xrange(STARTING_CHAR_IDX-3,STARTING_CHAR_IDX+4,1):
+# 		broken = False
+# 		for z in xrange(STARTING_CHAR_IDX-5,STARTING_CHAR_IDX+4,1):
 # 			if target_text[z].isspace():
 # 				# break at this point
-# 				return target_text[:z], target_text[z:]
+# 				broken = True
+# 				break
 # 			else:
 # 				# break at STARTING_CHAR_IDX
-# 				return target_text[:STARTING_CHAR_IDX], postfix_text
+# 				pass
+# 		if broken:
+# 			prefix = target_text[:z]
+# 			postfix = target_text[z:].strip()
+# 			return prefix, postfix
+# 		else:
+# 			return target_text[:STARTING_CHAR_IDX], postfix_text
 # 	else:
 # 		return target_text, ''
 
@@ -1040,7 +1049,7 @@ def home_page(request, lang=None):
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
 	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
 	'newbie_flag':request.session.get("newbie_flag",None),'newbie_lang':request.session.get("newbie_lang",None),\
-	'mobile_verified':request.mobile_verified,'on_opera':on_opera}
+	'mobile_verified':request.mobile_verified,'on_opera':on_opera}#,'dir_rep_form':DirectResponseForm()}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	#####################
@@ -2173,12 +2182,25 @@ def photo_page(request,list_type='best-list'):
 	if list_type in ('best-list','fresh-list'):
 		own_id, page_num = request.user.id, request.GET.get('page', '1')
 		start_index, end_index = get_indices(page_num, PHOTOS_PER_PAGE)
+		cached_image_count = retrieve_image_count(list_type=list_type)
 		if list_type == 'best-list':
 			type_, page_origin = 'best_photos', '2'
 			navbar_type, single_notif_origin = 'best', '21'
+			if cached_image_count:
+				num_in_last_1_day = cached_image_count
+			else:
+				one_day_ago = datetime.utcnow()-timedelta(hours=24)
+				num_in_last_1_day = Logout.objects.filter(logout_time__gte=one_day_ago).count()
+				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		else:
 			type_, page_origin = 'fresh_photos', '1'
 			navbar_type, single_notif_origin = 'fresh', '20'
+			if cached_image_count:
+				num_in_last_1_day = cached_image_count
+			else:
+				one_day_ago = datetime.utcnow()-timedelta(hours=24)
+				num_in_last_1_day = Photo.objects.filter(upload_time__gte=one_day_ago).count()
+				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		obj_list, list_total_size = get_photo_feed(start_idx=start_index, end_idx=end_index, feed_type=type_, with_feed_size=True)
 		num_pages = list_total_size/PHOTOS_PER_PAGE
 		max_pages = num_pages if list_total_size % PHOTOS_PER_PAGE == 0 else (num_pages+1)
@@ -2208,7 +2230,8 @@ def photo_page(request,list_type='best-list'):
 		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
 		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
 		'page_origin':page_origin,'sk':secret_key,'comment_form':comment_form,"mobile_verified":mobile_verified,\
-		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera}#'score':request.user.userprofile.score
+		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,\
+		'num_in_last_1_day':num_in_last_1_day}#'score':request.user.userprofile.score
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -3286,18 +3309,19 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms,'nickname':username,'sk':secret_key,'user_id':user_id,\
 				'last_visit_time':last_visit_time,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),'VDP':(VOTING_DRIVEN_PIXELATION+1),'fanned':fanned,\
 				'validation_error_string':error, 'page':{'has_previous':True if page_num>1 else False,'previous_page_number':page_num-1,\
-				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num}}
+				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num},'section':'matka'}
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 				context["on_opera"] = True if (not on_fbs and not is_js_env) else False
 				return render(request, 'user_unseen_activity.html', context)
 			else:
 				# page turned out to be empty since all notifications have been deleted.
-				return render(request,'user_unseen_activity.html',{'object_list':[],'page':{'number':page_num,'has_previous':True if page_num>1 else False,\
-					'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False},'nickname':username,\
-					'user_id':user_id})
+				return render(request,'user_unseen_activity.html',{'page':{'number':page_num,'has_previous':True if page_num>1 else False,\
+					'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False}, \
+					'nickname':username,'user_id':user_id,'object_list':[],'section':'matka'})
 		else:
-			return render(request, 'user_unseen_activity.html', {'object_list': [], 'page':{},'nickname':username,'user_id':user_id})
+			return render(request, 'user_unseen_activity.html', {'object_list': [], 'page':{},'nickname':username,'user_id':user_id,\
+				'section':'matka'})
 
 
 def unseen_help(request,*args,**kwargs):
@@ -3359,6 +3383,7 @@ def public_reply_view(request,parent_id,*args,**kwargs):
 			pass
 	parent_submitter_id = link['submitter']
 	parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
+	# context["dir_rep_form"] = DirectResponseForm()
 	context["parent_submitter_id"] = parent_submitter_id
 	context["parent_av_url"] = parent_avurl
 	context["vote_score"] = link['net_votes']
@@ -3644,6 +3669,15 @@ class LinkCreateView(CreateView):
 		if self.request.user.is_authenticated():
 			own_id = self.request.user.id
 			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			###################################################
+			##################### AB Test #####################
+			###################################################
+			bucket_val = retrieve_test_bucket(user_id=own_id)# either 0.0 or 1.0
+			if bucket_val == 1:
+				context["topic_on_top"] = True
+			###################################################
+			###################################################
+			###################################################
 			if banned:
 				context["time_remaining"] = time_remaining
 				context["ban_details"] = ban_details
@@ -3727,12 +3761,18 @@ class LinkCreateView(CreateView):
 						submission_time=time_now, text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), \
 						topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
 						submitter_username=submitter_uname)
+					######################## Log AB result #######################
+					log_share_for_ab_test(user_id,is_topic=True)
+					##############################################################
 				else:
 					log_text_submissions('text')#Logs the number of submisions in topic vs number of submissions of regular text posts
 					add_text_post(obj_id=obj_id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, \
 						submitter_username=submitter_uname, submission_time=time_now, add_to_feed=True, \
 						is_pinkstar=(True if submitter_uname in FEMALES else False), text=f.description,\
 						from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False))
+					######################## Log AB result #######################
+					log_share_for_ab_test(user_id)
+					##############################################################
 				################### Segment action logging ###################
 				if user_id > SEGMENT_STARTING_USER_ID:
 					log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)
@@ -4222,6 +4262,8 @@ def manage_user_help(request,*args,**kwargs):
 			return render(request,'check_clones.html',context)
 		elif help_type == 'sybil':
 			return render(request,'check_sybils.html',context)
+		elif help_type == 'vhist':
+			return render(request,'check_voting_hist.html',context)
 		else:
 			return render(request,"404.html",{})    
 	else:

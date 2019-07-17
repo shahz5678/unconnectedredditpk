@@ -30,18 +30,15 @@
 		</li>
 	</ul>
 
-	<form method="POST" class="mbl" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcgy pg_ok_res sp" style="height:40px;width:95%;font-weight:bold">BACK</button></form>
-
 {% empty %}
 
 	<div class="cgy mts lsp sp cxl">
 	- no data logged currently - 
 	</div>
 
-	<form method="POST" class="mbl" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcgy pg_ok_res sp" style="height:40px;width:95%;font-weight:bold">BACK</button></form>
-
-
 {% endfor %}
+
+<form method="POST" class="mbl" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bcgy pg_ok_res sp" style="height:40px;width:95%;font-weight:bold">BACK</button></form>
 
 <div class="cs cgy sp lsp" style="padding:10px 10px 0 10px;text-align:left;border-top:1px dashed lightgray;">
 <b>Note I:</b> This list is recalculated (from scratch) roughly every six hours<br>

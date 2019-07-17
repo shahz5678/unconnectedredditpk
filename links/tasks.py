@@ -217,11 +217,11 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 		elif txt_type == 'exited':
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
 		################### Logging 1on1 message ###################
-		if txt_type == 'shared_img':
-			payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
-		else:
-			payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
-		log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
+		# if txt_type == 'shared_img':
+		# 	payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
+		# else:
+		# 	payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
+		# log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
 		##############################################################
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
@@ -862,11 +862,11 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 
 	Current criteria requires the top most obj to have the highest cumulative_vote_score but with at least one downvote
 	"""
-	obj_list = retrieve_obj_scores(obj_hash_names, with_downvotes=True)
+	obj_list = retrieve_obj_scores(obj_hash_names, with_votes=True)
 	only_downvoted = []
-	for obj_hash, score, downvotes in obj_list:
-		# ensure that the post is downvoted, but has a positive cumulative score
-		if downvotes > 0 and score > 0:
+	for obj_hash, score, downvotes, upvotes, netvotes in obj_list:
+		# ensure that the post is downvoted, but has a positive cumulative score and positive upvotes
+		if downvotes > 0 and score > 0 and netvotes > 0:
 			only_downvoted.append((obj_hash, score))
 	if only_downvoted:
 		only_downvoted.sort(key=itemgetter(1),reverse=True)

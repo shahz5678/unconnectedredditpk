@@ -320,27 +320,34 @@ def retrieve_obj_feed(obj_list, with_colors=False):
 	return unpack_json_blob(filter(None, pipeline1.execute()),with_colors=with_colors)
 
 
-def retrieve_obj_scores(obj_list, with_downvotes=False):
+def retrieve_obj_scores(obj_list, with_votes=False):
 	"""
 	Retrieves obj vote scores - useful for calculating trending objs
 	"""
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-	if with_downvotes:
+	if with_votes:
 		for obj_hash in obj_list:
-			pipeline1.hmget(obj_hash,'cvs','dv')
+			pipeline1.hmget(obj_hash,'cvs','dv','uv','nv')
 		cumulative_vote_scores, counter, final_result = pipeline1.execute(), 0, []
 		for obj_hash in obj_list:
 
-			score = cumulative_vote_scores[counter][0]
-			score = float(score) if score else 0
-
-			downvotes = cumulative_vote_scores[counter][1]
-			downvotes = int(downvotes) if downvotes else 0
-
 			if cumulative_vote_scores[counter]:
-				final_result.append((obj_hash, score, downvotes))
+
+				score = cumulative_vote_scores[counter][0]
+				score = float(score) if score else 0
+
+				downvotes = cumulative_vote_scores[counter][1]
+				downvotes = int(downvotes) if downvotes else 0
+
+				upvotes = cumulative_vote_scores[counter][2]
+				upvotes = int(upvotes) if upvotes else 0
+
+				netvotes = cumulative_vote_scores[counter][3]
+				netvotes = int(netvotes) if netvotes else 0
+
+				final_result.append((obj_hash, score, downvotes, upvotes, netvotes))
 			else:
-				final_result.append((obj_hash, 0, 0))
+				final_result.append((obj_hash, 0, 0, 0, 0))
 			counter += 1
 		return final_result
 	else:
@@ -349,10 +356,11 @@ def retrieve_obj_scores(obj_list, with_downvotes=False):
 		cumulative_vote_scores, counter, final_result = pipeline1.execute(), 0, []
 		for obj_hash in obj_list:
 			
-			score = cumulative_vote_scores[counter]
-			score = float(score) if score else 0
-			
 			if cumulative_vote_scores[counter]:
+
+				score = cumulative_vote_scores[counter]
+				score = float(score) if score else 0
+
 				final_result.append((obj_hash, score))
 			else:
 				final_result.append((obj_hash, 0))
@@ -529,38 +537,66 @@ def retrieve_detailed_voting_data(page_num, user_id):
 ############# Logging AB Test Results #############
 ###################################################
 
+def retrieve_test_bucket(user_id, my_server=None):
+	"""
+	AB test for testing positioning of 'Topic' selector in 'Share'
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	bucket_val = my_server.zscore('share_bucket',user_id)
+	if bucket_val is None:
+		from random import randint
+		bucket_val = randint(0, 1)
+		my_server.zadd('share_bucket',user_id,bucket_val)
+	return int(bucket_val)
+
+
+def log_share_for_ab_test(user_id, is_topic=False):
+	"""
+	Logging results of share result
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	bucket_val = retrieve_test_bucket(user_id, my_server)
+	if bucket_val == 1:
+		bucket_type = 'top_topic' if is_topic else 'top_notop'
+	else:
+		bucket_type = 'bot_topic' if is_topic else 'bot_notop'
+	my_server.zincrby('abtest2',bucket_type,amount=1)
+	my_server.zincrby(bucket_type,user_id,amount=1)
+
 
 def retrieve_user_bucket(user_id, with_vote_value=None):
 	"""
+	AB test for testing voting history functionality
+
 	'EVEN' users are shown the new variation
 	'ODD' users view the old one
 	"""
-	BENCHMARK_ID = 1918713
+	BENCHMARK_ID = 1927086#1918713
 	if with_vote_value:
 		if user_id % 2 != 0:
 			if user_id <= BENCHMARK_ID:
 				if with_vote_value == '1':
-					bucket_type = 'control-old-uvote'#'old user' in control group who upvoted
+					bucket_type = 'ctrl-old-uvote'#'control-old-uvote'#'old user' in control group who upvoted
 				else:
-					bucket_type = 'control-old-dvote'#'old user' in control group who downvoted
+					bucket_type = 'ctrl-old-dvote'#'control-old-dvote'#'old user' in control group who downvoted
 			else:
 				if with_vote_value == '1':
-					bucket_type = 'control-new-uvote'#'new user' in control group who upvoted
+					bucket_type = 'ctrl-new-uvote'#'control-new-uvote'#'new user' in control group who upvoted
 				else:
-					bucket_type = 'control-new-dvote'#'new user' in control group who downvoted
+					bucket_type = 'ctrl-new-dvote'#'control-new-dvote'#'new user' in control group who downvoted
 		else:
 			if user_id <= BENCHMARK_ID:
 				if with_vote_value == '1':
-					bucket_type = 'var-old-uvote'#'old user' in variation group who upvoted
+					bucket_type = 'vari-old-uvote'#'var-old-uvote'#'old user' in variation group who upvoted
 				else:
-					bucket_type = 'var-old-dvote'#'old user' in variation group who downvoted
+					bucket_type = 'vari-old-dvote'#'var-old-dvote'#'old user' in variation group who downvoted
 			else:
 				if with_vote_value == '1':
-					bucket_type = 'var-new-uvote'#'new user' in variation group who upvoted
+					bucket_type = 'vari-new-uvote'#'var-new-uvote'#'new user' in variation group who upvoted
 				else:
-					bucket_type = 'var-new-dvote'#'new user' in variation group who downvoted
+					bucket_type = 'vari-new-dvote'#'var-new-dvote'#'new user' in variation group who downvoted
 	else:
-		bucket_type = 'control' if user_id % 2 != 0 else 'var'
+		bucket_type = 'ctrl' if user_id % 2 != 0 else 'vari'
 	return bucket_type
 
 
@@ -571,7 +607,25 @@ def log_vote_for_ab_test(voter_id ,vote_value):
 	bucket_type = retrieve_user_bucket(user_id=voter_id, with_vote_value=vote_value)
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.zincrby(bucket_type,voter_id,amount=1)
-	my_server.zincrby('ab_test',bucket_type,amount=1)
+	my_server.zincrby('abtest',bucket_type,amount=1)#ab_test
+
+
+def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
+	"""
+	Logs how many votes were received by photos from which section, to give an idea of voting liquidity
+
+	We ignore super defenders
+	Possible values of 'from_' include:
+	- 'fresh'
+	- 'trending'
+	- 'home'
+	- 'topic'
+	"""
+	if not voter_id in (1,26277,484241,868557,1362004,1410395):
+		origin_key = from_+":"+vote_value
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.zincrby(origin_key,voter_id,amount=1)
+		my_server.zincrby('voting_liquidity',origin_key,amount=1)
 
 
 ###################################################
@@ -1505,6 +1559,7 @@ def retrieve_handpicked_photos_count():
 		return count
 	else:
 		return 0
+
 
 def calculate_top_trenders():
 	"""

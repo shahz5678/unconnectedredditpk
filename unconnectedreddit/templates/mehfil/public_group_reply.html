@@ -55,19 +55,6 @@
         {% include "mehfil/public_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
 
         {% for reply,status in replies %}
-
-            {% if not on_fbs and forloop.counter == 3 %}
-                <div style="text-align:center;background:snow">
-                    <ins class="adsbygoogle"
-                        style="display:inline-block;vertical-align: middle;width:320px;height:100px"
-                        data-ad-client="ca-pub-2568547635306983"
-                        data-ad-slot="9029992964"></ins>
-                    <script>
-                    (adsbygoogle = window.adsbygoogle || []).push({});
-                    </script>
-                </div>
-                <hr size=1 COLOR="#f4f4f4">
-            {% endif %}
         
         {% if reply.category == '2' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>
@@ -170,19 +157,6 @@
 
     {% for reply,status in replies %}
 
-        {% if not on_fbs and forloop.counter == 3 %}
-            <div style="text-align:center;background:snow">
-                <ins class="adsbygoogle"
-                    style="display:inline-block;vertical-align: middle;width:320px;height:100px"
-                    data-ad-client="ca-pub-2568547635306983"
-                    data-ad-slot="9029992964"></ins>
-                <script>
-                (adsbygoogle = window.adsbygoogle || []).push({});
-                </script>
-            </div>
-            <hr size=1 COLOR="#f4f4f4">
-        {% endif %}
-
         {% if reply.category == '2' %}
             <div class="lsp sp cs"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>
         {% elif reply.category == '3' %}
@@ -224,5 +198,4 @@
 {% endif %}
     <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
-<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

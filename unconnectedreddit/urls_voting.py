@@ -12,7 +12,7 @@ urlpatterns = patterns('',
 	url(r'^vote_result/$', auth(vote_result), name='vote_result'),
 	url(r'^voting/export/$', auth(export_voting_records), name='export_voting_records'),
 	url(r'^voting/super-defenders/$', auth(show_handpicked_count), name='show_handpicked_count'),
-	url(r'^voting/sybils/(?P<user_id>\d+)/$', auth(user_sybil_history), name='user_sybil_history'),
+	url(r'^voting/sybils/(?P<user_id>\d+)/(?P<hist_type>[\w.@+-]+)/$', auth(user_sybil_history), name='user_sybil_history'),
 	url(r'^voting_results/(?P<pk>\d+)/(?P<orig>\d+)/(?P<pht>\d+)/$', auth(show_voting_summary), name='show_voting_summary'),
 	url(r'^voting/history/(?P<user_id>\d+)/(?P<vote>[\w.@+-]+)/$', auth(vote_history_admin_view), name='vote_history_admin_view'),
 

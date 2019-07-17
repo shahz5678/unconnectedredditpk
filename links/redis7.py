@@ -113,6 +113,7 @@ VOTER_AFFINITY_HASH = 'vah:'# this contains the affinity (Bayesian prob) existin
 VOTING_RELATIONSHIP_LOG = 'vrl'# global sorted set logging all sybil/enemy relationships for given target_user_ids
 VOTING_RELATIONSHIP_LOG_TRUNCATOR = 'vrlt'# global sorted set useful for truncating VOTING_RELATIONSHIP_LOG over time
 CACHED_VOTING_RELATIONSHIP = 'cvr:'# key that caches the sybil/data associated to a given target_user_id (for super defender's viewing pleasure)
+CACHED_REV_SYB_RELATIONSHIP = 'crsr:'# key that caches the reverse-sybil/data associated to a given voter_id (for super defender's viewing pleasure)
 LATEST_REVERSION_TIMES = "lrt"# global sorted set holding latest times that a vote reversion occured between a voter_id:poster_id pairs
 
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
@@ -631,6 +632,7 @@ def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 ###################################################
 ###################################################
 ###################################################
+
 
 
 def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, with_total_votes=False):
@@ -1842,56 +1844,112 @@ def is_obj_trending(prefix, obj_id, with_trending_time=False):
 ####################################################################################################
 
 
-def retrieve_users_voting_relationships(target_user_id):
+def retrieve_users_voting_relationships(target_user_id, rel_type):
 	"""
 	Used to populate list of potential sybils/haters for super-defenders
 
+	Can also display reverse-sybil data, i.e. which 'clients' is a voter servicing
 	Uses the set called VOTING_RELATIONSHIP_LOG and VOTER_AFFINITY_HASH to generate said reports
 	"""
 	target_user_id = str(target_user_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	cached_data = my_server.get(CACHED_VOTING_RELATIONSHIP+target_user_id)
-	if cached_data:
-		return json.loads(cached_data)
-	else:
-		voting_relationships = my_server.zrangebyscore(VOTING_RELATIONSHIP_LOG,target_user_id,target_user_id)
-		if voting_relationships:
-			# return list of dictionaries
-			final_data, voters = [], []
-			pipeline1 = my_server.pipeline()
-			for voter_target_pair in voting_relationships:
-				voters.append(voter_target_pair.split(":")[0])
-				pipeline1.hgetall(VOTER_AFFINITY_HASH+voter_target_pair)
-			result1, counter = pipeline1.execute(), 0
-			if result1:
-				voter_cred_dict = retrieve_bulk_credentials(voters,decode_unames=True)
-				for voter_target_pair in voting_relationships:
-					voter_id, data = voters[counter], result1[counter]
-					if data:
-						# only collate data if VOTER_AFFINITY_HASH existed
-						last_vote_time = data['vt']
-						raw_bayes_data = json.loads(data['blob'])
-						prob_p0 = float(data.get('p0',0))
-						prob_p1 = float(data.get('p1',0))
-						if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
-							# relates to downvotes
-							tup = (voter_id, voter_cred_dict[int(voter_id)]['uname'], voter_cred_dict[int(voter_id)]['avurl'], 0, prob_p0, \
-								last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
-							final_data.append(tup)
-						elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
-							# relates to upvotes
-							tup = (voter_id, voter_cred_dict[int(voter_id)]['uname'], voter_cred_dict[int(voter_id)]['avurl'], 1, prob_p1, \
-								last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
-							final_data.append(tup)
-					counter += 1
-				if final_data:
-					final_data.sort(key=itemgetter(3,4,5),reverse=True)
-					my_server.setex(CACHED_VOTING_RELATIONSHIP+target_user_id,json.dumps(final_data),TWENTY_MINS)
-				return final_data
+	if rel_type == 'reverse-sybils':
+		cached_data = my_server.get(CACHED_REV_SYB_RELATIONSHIP+target_user_id)
+		if cached_data:
+			return json.loads(cached_data)
+		else:
+			reverse_sybil_relationships = []
+			voter_target_pairs = my_server.zrange(VOTING_RELATIONSHIP_LOG,0,-1)# score is voter_target_id, but we're interested in voter_ids for 'reverse sybils'
+			for pair in voter_target_pairs:
+				user_id_data = pair.split(":")
+				voter_id, voter_target_id = user_id_data[0], user_id_data[1]
+				if voter_id == target_user_id:
+					reverse_sybil_relationships.append(pair)
+				else:
+					pass
+			if reverse_sybil_relationships:
+				vote_targets = []
+				pipeline1 = my_server.pipeline()
+				for voter_target_pair in reverse_sybil_relationships:
+					vote_targets.append(voter_target_pair.split(":")[1])
+					pipeline1.hgetall(VOTER_AFFINITY_HASH+voter_target_pair)
+				result1, counter = pipeline1.execute(), 0
+				if result1:
+					vote_tgt_cred_dict, final_data = retrieve_bulk_credentials(vote_targets,decode_unames=True), []
+					for voter_target_pair in reverse_sybil_relationships:
+						vote_tgt_id, data = vote_targets[counter], result1[counter]
+						if data:
+							# only collate data if VOTER_AFFINITY_HASH existed
+							last_vote_time = data['vt']
+							raw_bayes_data = json.loads(data['blob'])
+							prob_p0 = float(data.get('p0',0))
+							prob_p1 = float(data.get('p1',0))
+							if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+								# relates to downvotes
+								tup = (vote_tgt_id, vote_tgt_cred_dict[int(vote_tgt_id)]['uname'], vote_tgt_cred_dict[int(vote_tgt_id)]['avurl'], 0, \
+									prob_p0, last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
+								final_data.append(tup)
+							elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+								# relates to upvotes
+								tup = (vote_tgt_id, vote_tgt_cred_dict[int(vote_tgt_id)]['uname'], vote_tgt_cred_dict[int(vote_tgt_id)]['avurl'], 1, \
+									prob_p1, last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
+								final_data.append(tup)
+						counter += 1
+					if final_data:
+						final_data.sort(key=itemgetter(3,4,5),reverse=True)
+						my_server.setex(CACHED_REV_SYB_RELATIONSHIP+target_user_id,json.dumps(final_data),TWENTY_MINS)
+					return final_data
+				else:
+					return []
 			else:
 				return []
+
+
+	elif rel_type == 'sybils':
+		cached_data = my_server.get(CACHED_VOTING_RELATIONSHIP+target_user_id)
+		if cached_data:
+			return json.loads(cached_data)
 		else:
-			return []
+			voting_relationships = my_server.zrangebyscore(VOTING_RELATIONSHIP_LOG,target_user_id,target_user_id)
+			if voting_relationships:
+				# return list of dictionaries
+				final_data, voters = [], []
+				pipeline1 = my_server.pipeline()
+				for voter_target_pair in voting_relationships:
+					voters.append(voter_target_pair.split(":")[0])
+					pipeline1.hgetall(VOTER_AFFINITY_HASH+voter_target_pair)
+				result1, counter = pipeline1.execute(), 0
+				if result1:
+					voter_cred_dict = retrieve_bulk_credentials(voters,decode_unames=True)
+					for voter_target_pair in voting_relationships:
+						voter_id, data = voters[counter], result1[counter]
+						if data:
+							# only collate data if VOTER_AFFINITY_HASH existed
+							last_vote_time = data['vt']
+							raw_bayes_data = json.loads(data['blob'])
+							prob_p0 = float(data.get('p0',0))
+							prob_p1 = float(data.get('p1',0))
+							if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+								# relates to downvotes
+								tup = (voter_id, voter_cred_dict[int(voter_id)]['uname'], voter_cred_dict[int(voter_id)]['avurl'], 0, prob_p0, \
+									last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
+								final_data.append(tup)
+							elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+								# relates to upvotes
+								tup = (voter_id, voter_cred_dict[int(voter_id)]['uname'], voter_cred_dict[int(voter_id)]['avurl'], 1, prob_p1, \
+									last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
+								final_data.append(tup)
+						counter += 1
+					if final_data:
+						final_data.sort(key=itemgetter(3,4,5),reverse=True)
+						my_server.setex(CACHED_VOTING_RELATIONSHIP+target_user_id,json.dumps(final_data),TWENTY_MINS)
+					return final_data
+				else:
+					return []
+			else:
+				return []
+	else:
+		return []
 
 
 def apply_bayesian_voting_discount_policy(computed_bayes_prob):

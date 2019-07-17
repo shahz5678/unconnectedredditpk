@@ -4262,6 +4262,8 @@ def manage_user_help(request,*args,**kwargs):
 			return render(request,'check_clones.html',context)
 		elif help_type == 'sybil':
 			return render(request,'check_sybils.html',context)
+		elif help_type == 'revsyb':
+			return render(request,'check_reverse_sybils.html',context)
 		elif help_type == 'vhist':
 			return render(request,'check_voting_hist.html',context)
 		else:

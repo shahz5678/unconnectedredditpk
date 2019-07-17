@@ -534,56 +534,11 @@ def retrieve_detailed_voting_data(page_num, user_id):
 	return redis.Redis(connection_pool=POOL).get(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num))
 
 
-###################################################
-############# Logging AB Test Results #############
-###################################################
+####################################################
+############# Measuring Voting Metrics #############
+####################################################
 
-
-def retrieve_user_bucket(user_id, with_vote_value=None):
-	"""
-	AB test for testing voting history functionality
-
-	'EVEN' users are shown the new variation
-	'ODD' users view the old one
-	"""
-	BENCHMARK_ID = 1927086#1918713
-	if with_vote_value:
-		if user_id % 2 != 0:
-			if user_id <= BENCHMARK_ID:
-				if with_vote_value == '1':
-					bucket_type = 'ctrl-old-uvote'#'control-old-uvote'#'old user' in control group who upvoted
-				else:
-					bucket_type = 'ctrl-old-dvote'#'control-old-dvote'#'old user' in control group who downvoted
-			else:
-				if with_vote_value == '1':
-					bucket_type = 'ctrl-new-uvote'#'control-new-uvote'#'new user' in control group who upvoted
-				else:
-					bucket_type = 'ctrl-new-dvote'#'control-new-dvote'#'new user' in control group who downvoted
-		else:
-			if user_id <= BENCHMARK_ID:
-				if with_vote_value == '1':
-					bucket_type = 'vari-old-uvote'#'var-old-uvote'#'old user' in variation group who upvoted
-				else:
-					bucket_type = 'vari-old-dvote'#'var-old-dvote'#'old user' in variation group who downvoted
-			else:
-				if with_vote_value == '1':
-					bucket_type = 'vari-new-uvote'#'var-new-uvote'#'new user' in variation group who upvoted
-				else:
-					bucket_type = 'vari-new-dvote'#'var-new-dvote'#'new user' in variation group who downvoted
-	else:
-		bucket_type = 'ctrl' if user_id % 2 != 0 else 'vari'
-	return bucket_type
-
-
-def log_vote_for_ab_test(voter_id ,vote_value):
-	"""
-	Logs values into various buckets to make the A/B test decisive
-	"""
-	bucket_type = retrieve_user_bucket(user_id=voter_id, with_vote_value=vote_value)
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zincrby(bucket_type,voter_id,amount=1)
-	my_server.zincrby('abtest',bucket_type,amount=1)#ab_test
-
+SUPER_DEFENDER_IDS = (1,26277,484241,868557,1362004,1410395)
 
 def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 	"""
@@ -596,7 +551,7 @@ def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 	- 'home'
 	- 'topic'
 	"""
-	if not voter_id in (1,26277,484241,868557,1362004,1410395):
+	if not voter_id in SUPER_DEFENDER_IDS:
 		origin_key = from_+":"+vote_value
 		my_server = redis.Redis(connection_pool=POOL)
 		my_server.zincrby(origin_key,voter_id,amount=1)
@@ -726,51 +681,6 @@ def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, rev
 			return False
 	else:
 		return False
-
-
-def get_world_age_weighted_vote_score(obj_ids, obj_type):
-	"""
-	Retrieving net_votes for each obj via weighting voter's world age
-	"""
-	if obj_type in ('tx','img'):
-		prefix = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
-		my_server = redis.Redis(connection_pool=POOL)
-		pipeline1 = my_server.pipeline()
-		for obj_id in obj_ids:
-			pipeline1.zrange(prefix+obj_id,0,-1,withscores=True)#returns list of tuples
-		result1 = pipeline1.execute()#list of list of tuples [[(user_id,user_vote),(user_id,user_vote),(user_id,user_vote),...],[(),(),(),...],...]
-		counter, voter_ids = 0, set()
-		for obj_id in obj_ids:
-			# isolate all user_ids that voted
-			if result1[counter]:
-				for user_id, user_vote in result1[counter]:
-					voter_ids.add(user_id)
-			counter += 1
-		voter_age_dict, highest_age = retrieve_user_world_age(voter_ids,with_highest_age=True)
-		if voter_age_dict and highest_age:
-			from math import log
-			log_highest_age = log(highest_age,2.0)# taking log 2 of highest age so that large-age users cannot have an undue influence
-			counter = 0 #resetting the counter
-			final_net_votes = {}
-			for obj_id in obj_ids:
-				# re-scoring the items via weighting with voter world_age
-				if result1[counter]:
-					obj_aggregate_vote_score = 0
-					for user_id, user_vote in result1[counter]:
-						if int(user_vote) == 0:
-							log_voter_age = log(voter_age_dict[user_id],2.0)
-							vote_value = -1*(log_voter_age/log_highest_age)
-						elif int(user_vote) == 1:
-							log_voter_age = log(voter_age_dict[user_id],2.0)
-							vote_value = 1*(log_voter_age/log_highest_age)
-						else:
-							vote_value = 0
-						obj_aggregate_vote_score += vote_value
-					final_net_votes[obj_id] = obj_aggregate_vote_score
-				else:
-					final_net_votes[obj_id] = 0
-				counter += 1
-		return final_net_votes
 
 
 #################################################### Updating image content objects ############################################

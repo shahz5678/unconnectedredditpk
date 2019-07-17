@@ -78,11 +78,11 @@ search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thum
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
 is_already_banned, is_mobile_verified, tutorial_unseen, log_pagination_button_click, set_user_choice, \
 log_text_submissions #, log_erroneous_passwords
-from .redis2 import set_uploader_score, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
+from .redis2 import remove_erroneous_notif, retrieve_unseen_activity, bulk_update_salat_notifications, viewer_salat_notifications, \
 update_notification, create_notification, create_object, remove_group_notification, remove_from_photo_owner_activity, \
 add_to_photo_owner_activity, retrieve_latest_notification, get_all_fans,delete_salat_notification, is_fan, bulk_is_fan,\
 prev_unseen_activity_visit, SEEN, save_user_presence,get_latest_presence, retrieve_unseen_notifications, get_photo_fan_count,\
-retrieve_object_data, remove_erroneous_notif
+retrieve_object_data
 from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
 from .website_feedback_form import AdvertiseWithUsForm
 from redirection_views import return_to_content
@@ -95,6 +95,7 @@ invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_r
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_test_bucket,\
 log_share_for_ab_test
+# from direct_response_forms import DirectResponseForm
 # from mixpanel import Mixpanel
 # from unconnectedreddit.settings import MIXPANEL_TOKEN
 from cities import CITY_TUP_LIST, REV_CITY_DICT
@@ -198,7 +199,7 @@ def get_indices(page_number, obj_allotment):
 # 	if postfix_text:
 # 		# target string is longer than 43 chars - i.e. it's a candidate for break-up
 # 		broken = False
-# 		for z in xrange(STARTING_CHAR_IDX-3,STARTING_CHAR_IDX+4,1):
+# 		for z in xrange(STARTING_CHAR_IDX-5,STARTING_CHAR_IDX+4,1):
 # 			if target_text[z].isspace():
 # 				# break at this point
 # 				broken = True
@@ -1048,7 +1049,7 @@ def home_page(request, lang=None):
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
 	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
 	'newbie_flag':request.session.get("newbie_flag",None),'newbie_lang':request.session.get("newbie_lang",None),\
-	'mobile_verified':request.mobile_verified,'on_opera':on_opera}
+	'mobile_verified':request.mobile_verified,'on_opera':on_opera}#,'dir_rep_form':DirectResponseForm()}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	#####################
@@ -3308,7 +3309,7 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms,'nickname':username,'sk':secret_key,'user_id':user_id,\
 				'last_visit_time':last_visit_time,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),'VDP':(VOTING_DRIVEN_PIXELATION+1),'fanned':fanned,\
 				'validation_error_string':error, 'page':{'has_previous':True if page_num>1 else False,'previous_page_number':page_num-1,\
-				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num}}
+				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num},'section':'matka'}
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 				context["on_opera"] = True if (not on_fbs and not is_js_env) else False
@@ -3317,9 +3318,10 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				# page turned out to be empty since all notifications have been deleted.
 				return render(request,'user_unseen_activity.html',{'page':{'number':page_num,'has_previous':True if page_num>1 else False,\
 					'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False}, \
-					'nickname':username,'user_id':user_id,'object_list':[]})
+					'nickname':username,'user_id':user_id,'object_list':[],'section':'matka'})
 		else:
-			return render(request, 'user_unseen_activity.html', {'object_list': [], 'page':{},'nickname':username,'user_id':user_id})
+			return render(request, 'user_unseen_activity.html', {'object_list': [], 'page':{},'nickname':username,'user_id':user_id,\
+				'section':'matka'})
 
 
 def unseen_help(request,*args,**kwargs):
@@ -3381,6 +3383,7 @@ def public_reply_view(request,parent_id,*args,**kwargs):
 			pass
 	parent_submitter_id = link['submitter']
 	parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
+	# context["dir_rep_form"] = DirectResponseForm()
 	context["parent_submitter_id"] = parent_submitter_id
 	context["parent_av_url"] = parent_avurl
 	context["vote_score"] = link['net_votes']
@@ -4259,6 +4262,8 @@ def manage_user_help(request,*args,**kwargs):
 			return render(request,'check_clones.html',context)
 		elif help_type == 'sybil':
 			return render(request,'check_sybils.html',context)
+		elif help_type == 'vhist':
+			return render(request,'check_voting_hist.html',context)
 		else:
 			return render(request,"404.html",{})    
 	else:

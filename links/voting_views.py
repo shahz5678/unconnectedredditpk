@@ -437,7 +437,7 @@ def export_voting_reputation_records(request):
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
 				columns = ["voter ID", "voter world age","vote value", "epoch time of logging", "sybil status", "num clients", "target obj ID", \
-				"obj owner ID", "total upvotes (till this vote)", "total downvotes (till this vote)"]
+				"obj owner ID", "total upvotes (till this vote)"]
 				# 'sybil status' can be:
 				# '0': non-partisan ID
 				# '1': general sybil ID
@@ -446,7 +446,7 @@ def export_voting_reputation_records(request):
 				for json_row in data_to_write_to_csv:
 					data = json.loads(json_row)
 					to_write = [data['vid'], data['vwa'], 'upvote', data['t'], data['ss'], data.get('num_sybs','-'),\
-					data['toid'], data['tuid'], data['tuv'], data['tdv']]
+					data['toid'], data['tuid'], data['tuv']]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

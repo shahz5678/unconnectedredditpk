@@ -21,7 +21,7 @@ from redis4 import retrieve_uname, retrieve_credentials
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
-retrieve_users_voting_relationships, retrieve_detailed_voting_data, log_section_wise_voting_liquidity#, get_vote_ban_details, check_vote_ban
+retrieve_users_voting_relationships, retrieve_detailed_voting_data, log_section_wise_voting_liquidity, retrieve_voting_reputation_records
 
 def vote_result(request):
 	"""
@@ -421,6 +421,35 @@ def export_voting_records(request):
 					to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
+
+
+def export_voting_reputation_records(request):
+	"""
+	Exports all voting reputation-related records into a CSV file for analysis
+	"""
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		data_to_write_to_csv = retrieve_voting_reputation_records()
+		if data_to_write_to_csv:
+			import csv
+			filename = 'voting_reputation_data.csv'
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["voter ID", "voter world age","vote value", "epoch time of logging", "sybil status", "num clients", "target obj ID", \
+				"obj owner ID", "total upvotes (till this vote)", "total downvotes (till this vote)"]
+				# 'sybil status' can be:
+				# '0': non-partisan ID
+				# '1': general sybil ID
+				# '2': direct sybil ID
+				wtr.writerow(columns)
+				for json_row in data_to_write_to_csv:
+					data = json.loads(json_row)
+					to_write = [data['vid'], data['vwa'], 'upvote', data['t'], data['ss'], data.get('num_sybs','-'),\
+					data['toid'], data['tuid'], data['tuv'], data['tdv']]
+					wtr.writerows([to_write])
+	raise Http404("Completed ;)")
+
 
 
 def vote_history_admin_view(request,user_id,vote):

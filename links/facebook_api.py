@@ -2,7 +2,7 @@
 
 import facebook, os
 
-def photo_poster(image_obj=None, caption=None, photo_id=None):
+def photo_poster(image_obj, owner_username, photo_id):
   # Fill in the values noted in documentation here:
 
   PAGE_ID = '1812492382364506'#os.environ.get('FACEBOOK_PAGE_ID')
@@ -12,8 +12,7 @@ def photo_poster(image_obj=None, caption=None, photo_id=None):
     "page_id"      : PAGE_ID,  # Step 1
     "access_token" : ACCESS_TOKEN   # Step 3
     }
-  caption = caption+" (https://damadam.pk/photo_detail/"+str(photo_id)+")"
-  # print cfg
+  caption = 'Trending image uploaded by Damadam user "{0}". View more trending images by {1} at: https://damadam.pk/user/{2}/fotos/'.format(owner_username,owner_username,owner_username)
   api = get_api(cfg)
   status = api.put_photo(image=(image_obj),message=caption)
   # print "status: %s" % status

@@ -570,8 +570,6 @@ def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 
 def generate_sybil_stats():
 	"""
-	TODO: run a celery task periodically to generate this (e.g. every 1 hour)
-
 	Periodically scans VOTING_RELATIONSHIP_LOG and ascertains some sybil metrics
 	"""
 	voter_centric_data = []
@@ -621,20 +619,19 @@ def are_users_specific_sybils(user_ids, target_user_id, my_server=None):
 def are_users_general_sybils(user_ids, my_server=None):
 	"""
 	Check if provided users IDs are servicing any 'clients' (i.e. upvoting users)
-	
-	TODO: create SYBIL_CLIENTS keys on the server now
 	"""
 	partisan_ids, non_partisan_ids, sybil_incidence = set(), set(), {}
-	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	sybil_data, counter = my_server.hmget(SYBIL_CLIENTS,*user_ids), 0
-	for user_id in user_ids:
-		num_sybs = sybil_data[counter]
-		if num_sybs:
-			partisan_ids.add(user_id)
-			sybil_incidence[user_id] = num_sybs
-		else:
-			non_partisan_ids.add(user_id)
-		counter += 1
+	if user_ids:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		sybil_data, counter = my_server.hmget(SYBIL_CLIENTS,*user_ids), 0
+		for user_id in user_ids:
+			num_sybs = sybil_data[counter]
+			if num_sybs:
+				partisan_ids.add(user_id)
+				sybil_incidence[user_id] = num_sybs
+			else:
+				non_partisan_ids.add(user_id)
+			counter += 1
 
 	return partisan_ids, sybil_incidence, non_partisan_ids
 
@@ -643,12 +640,12 @@ def retrieve_user_num_votes(user_ids):
 	"""
 	Retrieves number of votes given user_ids have cast in prev 1 month
 	"""
-	vote_volume = {}
+	upvote_volume = {}
 	my_server = redis.Redis(connection_pool=POOL)
 	for user_id in user_ids:
-		votes = {'tuv':my_server.zcard(VOTER_UVOTES_AND_TIMES+user_id),'tdv':my_server.zcard(VOTER_DVOTES_AND_TIMES+user_id)}
-		vote_volume[user_id] = votes
-	return vote_volume
+		votes = {'tuv':my_server.zcard(VOTER_UVOTES_AND_TIMES+user_id)}
+		upvote_volume[user_id] = votes
+	return upvote_volume
 
 
 def distribute_reputation_to_voters(photo_id, photo_owner_id):
@@ -664,10 +661,9 @@ def distribute_reputation_to_voters(photo_id, photo_owner_id):
 			all_upvoters.append(voter_id)
 	# only execute if upvoters exist, otherwise there's no reputation to distribute for this particular image
 	if all_upvoters:
-		# step 1: separate normal, target's sybils and general sybisl (alongwith 'sybil strength')
+		# step 1: separate normal, target's sybils and general sybils (alongwith 'sybil strength')
 		# Isolating direct sybils
 		direct_sybil_ids, not_sybil_ids = are_users_specific_sybils(user_ids=all_upvoters, target_user_id=photo_owner_id)
-		
 		# Filtering non-sybils into 'generic sybils' and 'non-sybils' (but ignoring general sybils who're already marked as direct sybils)
 		general_sybil_ids, general_sybil_strength, non_partisan_ids = are_users_general_sybils(user_ids=not_sybil_ids)
 		
@@ -698,13 +694,13 @@ def log_voter_statistics(direct_sybils, general_sybils, non_partisans, general_s
 		voter_total_votes = voter_num_votes_dict[voter_id]
 		if voter_id in direct_sybils:
 			payload = {'t':time_now,'ss':'2', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
-			'vid':voter_id, 'tuv':voter_total_votes['tuv'], 'tdv':voter_total_votes['tdv']}
+			'vid':voter_id, 'tuv':voter_total_votes['tuv']}
 		elif voter_id in general_sybils:
 			payload = {'t':time_now,'ss':'1', 'num_sybs':general_sybil_strength[voter_id] ,'tuid':target_user_id,\
-			'toid':target_obj_id, 'vwa':voter_world_age, 'vid':voter_id, 'tuv':voter_total_votes['tuv'], 'tdv':voter_total_votes['tdv']}
+			'toid':target_obj_id, 'vwa':voter_world_age, 'vid':voter_id, 'tuv':voter_total_votes['tuv']}
 		elif voter_id in non_partisans:
 			payload = {'t':time_now,'ss':'0', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
-			'vid':voter_id,'tuv':voter_total_votes['tuv'], 'tdv':voter_total_votes['tdv']}
+			'vid':voter_id,'tuv':voter_total_votes['tuv']}
 		redis.Redis(connection_pool=POOL).zadd(VOTER_REP_RAW_MATERIAL,json.dumps(payload),time_now)
 
 	"""
@@ -1741,7 +1737,7 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 							from_hand_picked=True)
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
 						################################
-						# distribute_reputation_to_voters(photo_id=obj_id, photo_owner_id=obj_hash['si'])
+						distribute_reputation_to_voters(photo_id=obj_id, photo_owner_id=obj_hash['si'])
 						################################
 						pushed = True
 					else:
@@ -1890,15 +1886,7 @@ def retrieve_users_voting_relationships(target_user_id, rel_type):
 		if cached_data:
 			return json.loads(cached_data)
 		else:
-			reverse_sybil_relationships = []
-			voter_target_pairs = my_server.zrange(VOTING_RELATIONSHIP_LOG,0,-1)# score is voter_target_id, but we're interested in voter_ids for 'reverse sybils'
-			for pair in voter_target_pairs:
-				user_id_data = pair.split(":")
-				voter_id, voter_target_id = user_id_data[0], user_id_data[1]
-				if voter_id == target_user_id:
-					reverse_sybil_relationships.append(pair)
-				else:
-					pass
+			reverse_sybil_relationships = my_server.zrangebyscore(SYBIL_RELATIONSHIP_LOG,target_user_id,target_user_id)
 			if reverse_sybil_relationships:
 				vote_targets = []
 				pipeline1 = my_server.pipeline()
@@ -1916,12 +1904,12 @@ def retrieve_users_voting_relationships(target_user_id, rel_type):
 							raw_bayes_data = json.loads(data['blob'])
 							prob_p0 = float(data.get('p0',0))
 							prob_p1 = float(data.get('p1',0))
-							if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+							if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# currently set to 0.3
 								# relates to downvotes
 								tup = (vote_tgt_id, vote_tgt_cred_dict[int(vote_tgt_id)]['uname'], vote_tgt_cred_dict[int(vote_tgt_id)]['avurl'], 0, \
 									prob_p0, last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
 								final_data.append(tup)
-							elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+							elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# currently set to 0.3
 								# relates to upvotes
 								tup = (vote_tgt_id, vote_tgt_cred_dict[int(vote_tgt_id)]['uname'], vote_tgt_cred_dict[int(vote_tgt_id)]['avurl'], 1, \
 									prob_p1, last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
@@ -3835,3 +3823,20 @@ def get_website_feedback():
 	for user_id in feedback_users:
 		pipeline1.hgetall("wf:"+str(user_id))
 	return pipeline1.execute()
+
+##################################### Regulating fb fan page posting #####################################
+
+
+def can_post_image_on_fb_fan_page():
+	"""
+	Regulates fan page posting
+
+	Currently, a new trending image is added every 6 hours
+	"""
+	return True if not redis.Redis(connection_pool=POOL).get("bp") else False
+
+def set_best_photo_for_fb_fan_page(photo_id):
+	"""
+	Sets a lock on posting new content for our fan page
+	"""
+	redis.Redis(connection_pool=POOL).setex("bp",photo_id,SIX_HOURS)

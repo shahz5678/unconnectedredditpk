@@ -44,7 +44,7 @@ cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cle
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, \
-get_best_home_feed
+get_best_home_feed, generate_sybil_stats
 from redis8 import set_section_wise_retention, log_segment_action
 # from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
@@ -921,18 +921,11 @@ def set_input_rate_and_history(section,section_id,text,user_id,time_now):
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
 	"""
-	Runs every 12 mins from settings.py
+	Runs every 1 hr from settings.py
+
+	Mislabeled due to legacy reasons, it actually generates some 'sybil-voter' related stats
 	"""
-	pass
-	# fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
-	# best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
-	# remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
-	# trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
-	# if trending_item_hash_name:
-	# 	highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-	# 	highest_ranked_photo['tos'] = time.time()
-	# 	highest_ranked_photo['rank_scr'] = item_score
-	# 	add_single_trending_object(prefix="img:",obj_id=trending_item.split(":")[1], obj_hash=highest_ranked_photo)
+	generate_sybil_stats()
 
 
 @celery_app1.task(name='tasks.fans')

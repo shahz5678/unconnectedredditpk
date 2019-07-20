@@ -44,7 +44,7 @@ cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cle
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, \
-get_best_home_feed, generate_sybil_stats, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page
+get_best_home_feed, create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page
 from redis8 import set_section_wise_retention, log_segment_action
 # from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
@@ -346,7 +346,7 @@ def sanitize_unused_ecomm_photos():
 	Mislabelled for legacy reasons
 	"""
 	study_voting_preferences()
-	generate_sybil_stats()
+	create_sybil_relationship_log()
 
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')

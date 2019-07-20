@@ -436,17 +436,16 @@ def export_voting_reputation_records(request):
 			filename = 'voting_reputation_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["voter ID", "voter world age","vote value", "epoch time of logging", "sybil status", "num clients", "target obj ID", \
-				"obj owner ID", "total upvotes (till this vote)"]
+				columns = ["voter ID", "world age disc","vote value", "voting time", "sybil status", "num clients", "target obj ID", \
+				"obj owner ID", "total upvotes (till this vote)", "was_handpicked", "time of selection"]
 				# 'sybil status' can be:
 				# '0': non-partisan ID
 				# '1': general sybil ID
 				# '2': direct sybil ID
 				wtr.writerow(columns)
-				for json_row in data_to_write_to_csv:
-					data = json.loads(json_row)
-					to_write = [data['vid'], data['vwa'], 'upvote', data['t'], data['ss'], data.get('num_sybs','-'),\
-					data['toid'], data['tuid'], data['tuv']]
+				for data in data_to_write_to_csv:
+					to_write = [data['vid'], data['wad'], 'upvote', data['vt'], data['ss'], data.get('num_sybs','-'),\
+					data['toid'], data['tuid'], data['tv'], data.get('hp','-'), data.get('tos','-')]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

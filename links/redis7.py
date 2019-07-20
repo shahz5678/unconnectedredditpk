@@ -582,6 +582,7 @@ def create_sybil_relationship_log():
 		if bayes_prob and float(bayes_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
 			final_voter_data.append(voter_votee)
 			final_voter_data.append(voter_votee.split(":")[0])
+		counter += 1
 	my_server.delete(SYBIL_RELATIONSHIP_LOG)
 	########## Useful for retrieve_users_voting_relationships() ##########
 	my_server.zadd(SYBIL_RELATIONSHIP_LOG,*final_voter_data)

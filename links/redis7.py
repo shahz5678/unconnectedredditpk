@@ -110,6 +110,8 @@ DVOTER_AFFINITY = 'dvaf'# global sorted set containing down votes dropped by use
 DVOTER_AFFINITY_TRUNCATOR = 'dvat'# global sorted set containing the first time a voter gave a downvote vote to a target_user. Useful for truncating DVOTER_AFFINITY sorted set
 UVOTER_AFFINITY_TRUNCATOR = 'uvat'# global sorted set containing the first time a voter gave an upvote vote to a target_user. Useful for truncating UVOTER_AFFINITY sorted set
 VOTER_AFFINITY_HASH = 'vah:'# this contains the affinity (Bayesian prob) existing in the voting relationship
+
+SYBIL_RELATIONSHIP_LOG = 'srl'# a global sorted set logging all sybil/enemy relationships for given voter_ids
 VOTING_RELATIONSHIP_LOG = 'vrl'# global sorted set logging all sybil/enemy relationships for given target_user_ids
 VOTING_RELATIONSHIP_LOG_TRUNCATOR = 'vrlt'# global sorted set useful for truncating VOTING_RELATIONSHIP_LOG over time
 CACHED_VOTING_RELATIONSHIP = 'cvr:'# key that caches the sybil/data associated to a given target_user_id (for super defender's viewing pleasure)
@@ -120,6 +122,9 @@ TOP_TRENDERS = 'tt'	# A cached json object of trenders
 
 CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
+VOTER_REP_RAW_MATERIAL = 'vrrm'# a global sorted set containing reputation data related to voters. Can be used to derive a reputation statistic for each voter
+SYBIL_CLIENTS = 'sc'# contains how many 'client' users a voter is servicing via votes. Helps in populating VOTER_REP_RAW_MATERIAL
+SYBIL_VOTERS = 'sv'# contains number of voters a content uploader has as sybils. Helps in populating VOTER_REP_RAW_MATERIAL
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
 ##################################################################################################################
@@ -534,56 +539,11 @@ def retrieve_detailed_voting_data(page_num, user_id):
 	return redis.Redis(connection_pool=POOL).get(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num))
 
 
-###################################################
-############# Logging AB Test Results #############
-###################################################
+####################################################
+############# Measuring Voting Metrics #############
+####################################################
 
-
-def retrieve_user_bucket(user_id, with_vote_value=None):
-	"""
-	AB test for testing voting history functionality
-
-	'EVEN' users are shown the new variation
-	'ODD' users view the old one
-	"""
-	BENCHMARK_ID = 1927086#1918713
-	if with_vote_value:
-		if user_id % 2 != 0:
-			if user_id <= BENCHMARK_ID:
-				if with_vote_value == '1':
-					bucket_type = 'ctrl-old-uvote'#'control-old-uvote'#'old user' in control group who upvoted
-				else:
-					bucket_type = 'ctrl-old-dvote'#'control-old-dvote'#'old user' in control group who downvoted
-			else:
-				if with_vote_value == '1':
-					bucket_type = 'ctrl-new-uvote'#'control-new-uvote'#'new user' in control group who upvoted
-				else:
-					bucket_type = 'ctrl-new-dvote'#'control-new-dvote'#'new user' in control group who downvoted
-		else:
-			if user_id <= BENCHMARK_ID:
-				if with_vote_value == '1':
-					bucket_type = 'vari-old-uvote'#'var-old-uvote'#'old user' in variation group who upvoted
-				else:
-					bucket_type = 'vari-old-dvote'#'var-old-dvote'#'old user' in variation group who downvoted
-			else:
-				if with_vote_value == '1':
-					bucket_type = 'vari-new-uvote'#'var-new-uvote'#'new user' in variation group who upvoted
-				else:
-					bucket_type = 'vari-new-dvote'#'var-new-dvote'#'new user' in variation group who downvoted
-	else:
-		bucket_type = 'ctrl' if user_id % 2 != 0 else 'vari'
-	return bucket_type
-
-
-def log_vote_for_ab_test(voter_id ,vote_value):
-	"""
-	Logs values into various buckets to make the A/B test decisive
-	"""
-	bucket_type = retrieve_user_bucket(user_id=voter_id, with_vote_value=vote_value)
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zincrby(bucket_type,voter_id,amount=1)
-	my_server.zincrby('abtest',bucket_type,amount=1)#ab_test
-
+SUPER_DEFENDER_IDS = (1,26277,484241,868557,1362004,1410395)
 
 def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 	"""
@@ -596,7 +556,7 @@ def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 	- 'home'
 	- 'topic'
 	"""
-	if not voter_id in (1,26277,484241,868557,1362004,1410395):
+	if not voter_id in SUPER_DEFENDER_IDS:
 		origin_key = from_+":"+vote_value
 		my_server = redis.Redis(connection_pool=POOL)
 		my_server.zincrby(origin_key,voter_id,amount=1)
@@ -606,6 +566,159 @@ def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 ###################################################
 ###################################################
 ###################################################
+
+def create_sybil_relationship_log():
+	"""
+	This creates a sorted set similar to VOTING_RELATIONSHIP_LOG, but with voter_IDs as the score
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	voter_votee_pairs = my_server.zrange(VOTING_RELATIONSHIP_LOG,0,-1)
+	pipeline1 = my_server.pipeline()
+	for voter_votee in voter_votee_pairs:
+		pipeline1.hget(VOTER_AFFINITY_HASH+voter_votee,'p1')
+	result1, counter, final_voter_data = pipeline1.execute(), 0, []
+	for voter_votee in voter_votee_pairs:
+		bayes_prob = result1[counter]
+		if bayes_prob and float(bayes_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+			final_voter_data.append(voter_votee)
+			final_voter_data.append(voter_votee.split(":")[0])
+	my_server.delete(SYBIL_RELATIONSHIP_LOG)
+	########## Useful for retrieve_users_voting_relationships() ##########
+	my_server.zadd(SYBIL_RELATIONSHIP_LOG,*final_voter_data)
+
+
+# def are_users_specific_sybils(user_ids, target_user_id, my_server=None):
+# 	"""
+# 	Given a list of user IDs and a target user ID, determines which users are sybils of the target
+
+# 	Two lists are returned: sybil_ids, non_sybil_ids
+# 	"""
+# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 	direct_sybil_data = my_server.zrangebyscore(VOTING_RELATIONSHIP_LOG, target_user_id, target_user_id)
+# 	if direct_sybil_data:
+# 		# direct sybils detected!
+# 		sybil_voters = set()
+# 		for voting_pair in direct_sybil_data:
+# 			sybil_voters.add(voting_pair.split(":")[0])
+# 		suspected_sybil_voters = set.intersection(sybil_voters,set(user_ids))
+# 		if suspected_sybil_voters:
+# 			confirmed_sybil_ids = set()
+# 			for suspected_sybil_id in suspected_sybil_voters:
+# 				upvoting_prob = my_server.hget(VOTER_AFFINITY_HASH+suspected_sybil_id+":"+str(target_user_id),'p1')
+# 				if upvoting_prob and float(upvoting_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+# 					confirmed_sybil_ids.add(suspected_sybil_id)
+# 			return confirmed_sybil_ids, [id_ for id_ in user_ids if id_ not in list(confirmed_sybil_ids)]
+# 		else:
+# 			return set(), user_ids
+# 	else:
+# 		# no direct sybils are known at this point
+# 		return set(), user_ids
+
+
+
+# def are_users_general_sybils(user_ids, my_server=None):
+# 	"""
+# 	Check if provided users IDs are servicing any 'clients' (i.e. upvoting users)
+# 	"""
+# 	partisan_ids, non_partisan_ids, sybil_incidence = set(), set(), {}
+# 	if user_ids:
+# 		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 		sybil_data, counter = my_server.hmget(SYBIL_CLIENTS,*user_ids), 0
+# 		for user_id in user_ids:
+# 			num_sybs = sybil_data[counter]
+# 			if num_sybs:
+# 				partisan_ids.add(user_id)
+# 				sybil_incidence[user_id] = num_sybs
+# 			else:
+# 				non_partisan_ids.add(user_id)
+# 			counter += 1
+
+# 	return partisan_ids, sybil_incidence, non_partisan_ids
+
+
+# def retrieve_user_num_votes(user_ids):
+# 	"""
+# 	Retrieves number of votes given user_ids have cast in prev 1 month
+# 	"""
+# 	upvote_volume = {}
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	for user_id in user_ids:
+# 		votes = {'tuv':my_server.zcard(VOTER_UVOTES_AND_TIMES+user_id)}
+# 		upvote_volume[user_id] = votes
+# 	return upvote_volume
+
+
+def distribute_reputation_to_voters(photo_id, photo_owner_id):
+	"""
+	Distributes reputation to other voters of a photo object, at the point of a hand-picked photo 'graduating' into the trending list
+	"""
+	vote_store = VOTE_ON_IMG+photo_id
+	my_server = redis.Redis(connection_pool=POOL)
+	voter_ids_and_values = my_server.zrange(vote_store,0,-1,withscores=True)
+	all_upvoters = []
+	for voter_id, vote_value in voter_ids_and_values:
+		if vote_value > 0:
+			all_upvoters.append(voter_id)
+	# only execute if upvoters exist, otherwise there's no reputation to distribute for this particular image
+	if all_upvoters:
+		pass
+		# mark voters' data so that reputation can be added to their records
+		# for voter_id in all_upvoters:
+		# 	payload = voter_id+":"+str(photo_owner_id)+":1:img:"+str(photo_id)
+		# 	time_of_vote = my_server.zscore(VOTER_UVOTES_AND_TIMES+voter_id,payload)
+		# 	my_server.zrangebyscore(SOME_KEY+voter_id,time_of_vote,time_of_vote)
+
+
+		# # step 1: separate normal, target's sybils and general sybils (alongwith 'sybil strength')
+		# # Isolating direct sybils
+		# direct_sybil_ids, not_sybil_ids = are_users_specific_sybils(user_ids=all_upvoters, target_user_id=photo_owner_id)
+		# # Filtering non-sybils into 'generic sybils' and 'non-sybils' (but ignoring general sybils who're already marked as direct sybils)
+		# general_sybil_ids, general_sybil_strength, non_partisan_ids = are_users_general_sybils(user_ids=not_sybil_ids)
+		
+		# # step 2: log voter stats accordingly (reputation to be based on this later)
+		# log_voter_statistics(direct_sybils=direct_sybil_ids,general_sybils=general_sybil_ids,non_partisans=non_partisan_ids, \
+		# 	general_sybil_strength=general_sybil_strength, target_user_id=photo_owner_id, target_obj_id=photo_id, \
+		# 	all_voters=all_upvoters)
+
+
+# def log_voter_statistics(direct_sybils, general_sybils, non_partisans, general_sybil_strength, target_user_id, target_obj_id,\
+# 	all_voters):
+# 	"""
+# 	'direct_sybils': ids that are purely sybils of target_user_id
+# 	'general_sybils': ids that are sybils of users other than target_user_id
+# 	'non_partisans': ids that have not been identified as sybils at all
+# 	'general_sybil_strength': dictionary containing how many users the general sybil is 'servicing'
+# 	'target_user_id': the user whose content was voted on by the aforementioned users
+# 	'target_obj_id': the content that was voted on by the aforementioned users
+# 	'all_voters': all voting IDs, taken together
+# 	"""
+# 	# differentiate new and old users, using world age
+# 	voter_age_dict = retrieve_user_world_age(user_id_list=all_voters)
+# 	# differentiate experienced and inexperienced, using num_votes_cast
+# 	voter_num_votes_dict = retrieve_user_num_votes(user_ids=all_voters)
+# 	time_now = time.time()
+# 	for voter_id in all_voters:
+# 		voter_world_age = voter_age_dict[voter_id]
+# 		voter_total_votes = voter_num_votes_dict[voter_id]
+# 		if voter_id in direct_sybils:
+# 			payload = {'t':time_now,'ss':'2', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
+# 			'vid':voter_id, 'tuv':voter_total_votes['tuv']}
+# 		elif voter_id in general_sybils:
+# 			payload = {'t':time_now,'ss':'1', 'num_sybs':general_sybil_strength[voter_id] ,'tuid':target_user_id,\
+# 			'toid':target_obj_id, 'vwa':voter_world_age, 'vid':voter_id, 'tuv':voter_total_votes['tuv']}
+# 		elif voter_id in non_partisans:
+# 			payload = {'t':time_now,'ss':'0', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
+# 			'vid':voter_id,'tuv':voter_total_votes['tuv']}
+# 		redis.Redis(connection_pool=POOL).zadd(VOTER_REP_RAW_MATERIAL,json.dumps(payload),time_now)
+
+
+def retrieve_voting_reputation_records(start_idx=0, end_idx=-1):
+	"""
+	Retrieves voting records compiled to calculate voting reputation for voters
+
+	Useful for populating a CSV and analysis
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(VOTER_REP_RAW_MATERIAL,start_idx,end_idx)
 
 
 def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, with_total_votes=False):
@@ -624,7 +737,7 @@ def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, wit
 
 
 def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, revert_prev, is_pht, time_of_vote, target_user_id, \
-	world_age_discount, affinity_discount):
+	world_age_discount, affinity_discount):#, voter_world_age=None):
 	"""
 	Record a vote on textual or photo objects (used in 'cast_vote')
 	
@@ -726,51 +839,6 @@ def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, rev
 			return False
 	else:
 		return False
-
-
-def get_world_age_weighted_vote_score(obj_ids, obj_type):
-	"""
-	Retrieving net_votes for each obj via weighting voter's world age
-	"""
-	if obj_type in ('tx','img'):
-		prefix = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
-		my_server = redis.Redis(connection_pool=POOL)
-		pipeline1 = my_server.pipeline()
-		for obj_id in obj_ids:
-			pipeline1.zrange(prefix+obj_id,0,-1,withscores=True)#returns list of tuples
-		result1 = pipeline1.execute()#list of list of tuples [[(user_id,user_vote),(user_id,user_vote),(user_id,user_vote),...],[(),(),(),...],...]
-		counter, voter_ids = 0, set()
-		for obj_id in obj_ids:
-			# isolate all user_ids that voted
-			if result1[counter]:
-				for user_id, user_vote in result1[counter]:
-					voter_ids.add(user_id)
-			counter += 1
-		voter_age_dict, highest_age = retrieve_user_world_age(voter_ids,with_highest_age=True)
-		if voter_age_dict and highest_age:
-			from math import log
-			log_highest_age = log(highest_age,2.0)# taking log 2 of highest age so that large-age users cannot have an undue influence
-			counter = 0 #resetting the counter
-			final_net_votes = {}
-			for obj_id in obj_ids:
-				# re-scoring the items via weighting with voter world_age
-				if result1[counter]:
-					obj_aggregate_vote_score = 0
-					for user_id, user_vote in result1[counter]:
-						if int(user_vote) == 0:
-							log_voter_age = log(voter_age_dict[user_id],2.0)
-							vote_value = -1*(log_voter_age/log_highest_age)
-						elif int(user_vote) == 1:
-							log_voter_age = log(voter_age_dict[user_id],2.0)
-							vote_value = 1*(log_voter_age/log_highest_age)
-						else:
-							vote_value = 0
-						obj_aggregate_vote_score += vote_value
-					final_net_votes[obj_id] = obj_aggregate_vote_score
-				else:
-					final_net_votes[obj_id] = 0
-				counter += 1
-		return final_net_votes
 
 
 #################################################### Updating image content objects ############################################
@@ -1337,8 +1405,6 @@ def retrieve_topic_credentials(topic_url, my_server=None, existence_only=False, 
 def retire_abandoned_topics(topic_urls=None):
 	"""
 	Retired topics that have not been visited since a given amount of time (currently set to 20 days ago)
-
-	TODO: Called by a scheduled task (e.g. every 24 hours), or by delete_topic()
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if topic_urls:
@@ -1353,7 +1419,6 @@ def retire_abandoned_topics(topic_urls=None):
 			my_server.zrem(ALL_CURRENT_TOPICS,topic_url)# remove topic from this sorted set
 			my_server.zrem(ALL_TOPICS_CREATED,topic_url)# remove topic from this sorted set
 			# removing topic's JSON object
-			# my_server.delete(TOPIC_JSON_OBJ+topic_url)
 			my_server.execute_command('UNLINK', TOPIC_JSON_OBJ+topic_url)# using 'UNLINK' (non-blocking) instead of 'DELETE' (blocking)
 			all_subs = my_server.zrange(TOPIC_SUBS+topic_url,0,-1)
 			pipeline1 = my_server.pipeline()
@@ -1361,10 +1426,8 @@ def retire_abandoned_topics(topic_urls=None):
 				pipeline1.zrem(SUB_TOPICS+sub_id,topic_url)
 			pipeline1.execute()
 			# removing all topic subscribers' list
-			# my_server.delete(TOPIC_SUBS+topic_url)
 			my_server.execute_command('UNLINK', TOPIC_SUBS+topic_url)
 			# remove topic ID and topic_url mapping key
-			# my_server.delete(TOPIC_ID_MAPPING+topic_url)
 			my_server.execute_command('UNLINK', TOPIC_ID_MAPPING+topic_url)
 
 
@@ -1394,10 +1457,8 @@ def trim_expired_topic_submissions(topic_url, my_server=None):
 		pipeline2.zrem(HOME_SORTED_FEED,sub)## removing the obj from HOME_SORTED_FEED
 		pipeline2.zrem(ONLY_TOPICS_FEED,sub)## removing the obj from ONLY_TOPICS_FEED
 		if result1[counter]:
-			# pipeline2.delete(sub)# deleting the obj (if it exists)
 			pipeline2.execute_command('UNLINK', sub)# using 'UNLINK' (non-blocking) instead of 'DELETE' (blocking)
 		counter += 1
-	# pipeline2.delete(topic_feed_key)
 	pipeline2.execute_command('UNLINK', topic_feed_key)## deleting the topic feed
 	if composite_keys_to_delete:
 		# clearing out global user submission sets
@@ -1446,9 +1507,6 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 					if which_feed == TRENDING_PHOTO_DETAILS:
 						obj_id = int(obj_hash_name.split(":")[1])
 						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
-					# elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
-					# 	obj_id = obj_hash_name.split(":")[1]
-					# 	my_server.zrem(which_feed,obj_id)
 					else:
 						my_server.zrem(which_feed, obj_hash_name)# no need
 						if obj_hash_name[:2] == 'tx':# removing vote stores (but after a lag of 10 mins)
@@ -1470,9 +1528,6 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 					if which_feed == TRENDING_PHOTO_DETAILS:
 						obj_id = int(obj_hash_name.split(":")[1])
 						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
-					# elif which_feed in (TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS):
-					# 	obj_id = obj_hash_name.split(":")[1]
-					# 	my_server.zrem(which_feed,obj_id)
 					else:
 						my_server.zrem(which_feed, obj_hash_name)# no need to expire vote stores of these objects, since they've already self-deleted
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES, *expired_submissions)
@@ -1488,13 +1543,12 @@ def trim_trenders_data(target_user_id=None, my_server=None):
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	if target_user_id:
-		# target_user_id = int(target_user_id)
 		target_obj_ids = my_server.zrangebyscore(TRENDING_FOTOS_AND_USERS,target_user_id, target_user_id)
 		if target_obj_ids:
 			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*target_obj_ids)
 			my_server.zrem(TRENDING_FOTOS_AND_USERS,*target_obj_ids)
 	else:
-		one_week_ago = time.time() - CONTEST_LENGTH#CONTEST_LENGTH
+		one_week_ago = time.time() - CONTEST_LENGTH
 		obj_ids_to_delete = my_server.zrangebyscore(TRENDING_FOTOS_AND_TIMES,'-inf',one_week_ago)
 		if obj_ids_to_delete:
 			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*obj_ids_to_delete)
@@ -1684,6 +1738,9 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 						add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
 							from_hand_picked=True)
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
+						################################
+						# distribute_reputation_to_voters(photo_id=obj_id, photo_owner_id=obj_hash['si'])
+						################################
 						pushed = True
 					else:
 						# don't push into trending, it's no longer in fresh
@@ -1831,15 +1888,11 @@ def retrieve_users_voting_relationships(target_user_id, rel_type):
 		if cached_data:
 			return json.loads(cached_data)
 		else:
-			reverse_sybil_relationships = []
-			voter_target_pairs = my_server.zrange(VOTING_RELATIONSHIP_LOG,0,-1)# score is voter_target_id, but we're interested in voter_ids for 'reverse sybils'
-			for pair in voter_target_pairs:
-				user_id_data = pair.split(":")
-				voter_id, voter_target_id = user_id_data[0], user_id_data[1]
-				if voter_id == target_user_id:
-					reverse_sybil_relationships.append(pair)
-				else:
-					pass
+			if my_server.exists(SYBIL_RELATIONSHIP_LOG):
+				reverse_sybil_relationships = my_server.zrangebyscore(SYBIL_RELATIONSHIP_LOG,target_user_id,target_user_id)
+			else:
+				create_sybil_relationship_log()# creating SYBIL_RELATIONSHIP_LOG
+				reverse_sybil_relationships = my_server.zrangebyscore(SYBIL_RELATIONSHIP_LOG,target_user_id,target_user_id)
 			if reverse_sybil_relationships:
 				vote_targets = []
 				pipeline1 = my_server.pipeline()
@@ -1857,12 +1910,12 @@ def retrieve_users_voting_relationships(target_user_id, rel_type):
 							raw_bayes_data = json.loads(data['blob'])
 							prob_p0 = float(data.get('p0',0))
 							prob_p1 = float(data.get('p1',0))
-							if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+							if prob_p0 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# currently set to 0.3
 								# relates to downvotes
 								tup = (vote_tgt_id, vote_tgt_cred_dict[int(vote_tgt_id)]['uname'], vote_tgt_cred_dict[int(vote_tgt_id)]['avurl'], 0, \
 									prob_p0, last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
 								final_data.append(tup)
-							elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# set to 0.3
+							elif prob_p1 >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:# currently set to 0.3
 								# relates to upvotes
 								tup = (vote_tgt_id, vote_tgt_cred_dict[int(vote_tgt_id)]['uname'], vote_tgt_cred_dict[int(vote_tgt_id)]['avurl'], 1, \
 									prob_p1, last_vote_time, raw_bayes_data['uv'],raw_bayes_data['dv'],raw_bayes_data['tuv'],raw_bayes_data['tdv'])
@@ -2156,6 +2209,7 @@ def study_voting_preferences():
 			target_user_id = voter_target_pair.split(":")[1]
 			pipeline1.zadd(VOTING_RELATIONSHIP_LOG,voter_target_pair,target_user_id)
 			pipeline1.zadd(VOTING_RELATIONSHIP_LOG_TRUNCATOR,voter_target_pair,time.time())
+
 	pipeline1.execute()
 
 
@@ -2200,12 +2254,14 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 	else:
 		# handling votes
 		if vote_value == '1':
+			# upvote
 			voter_target_key = ALL_UVOTES_TO_TGT_USER+voter_target_id
 			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
 			affinity_key = UVOTER_AFFINITY
 			truncator_key = UVOTER_AFFINITY_TRUNCATOR
 			amnt = 1
 		else:
+			# downvote - to be deprecated
 			voter_target_key = ALL_DVOTES_TO_TGT_USER+voter_target_id
 			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
 			affinity_key = DVOTER_AFFINITY
@@ -2213,10 +2269,12 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 			amnt = 1
 		obj_hash_name = obj_type+":"+target_obj_id
 		payload = voter_target_id+":"+vote_value+":"+obj_hash_name
+		###########################################################
 		my_server.zadd(GLOBAL_VOTES_AND_TIMES, payload, voting_time)# for trimming
 		my_server.zadd(voter_vote_key, payload, voting_time)# for display to voter
-		my_server.zadd(voter_target_key, obj_hash_name, voting_time)# for Bayesian calculation (lacking all_upvotes, all_downvotes)
-	new_score = my_server.zincrby(affinity_key, voter_target_id, amount=amnt)
+		my_server.zadd(voter_target_key, obj_hash_name, voting_time)# for Bayesian calculation
+		###########################################################
+	new_score = my_server.zincrby(affinity_key, voter_target_id, amount=amnt)# 'affinity_key' marks relationships where lots of votes have been given
 	if int(new_score) == 1:
 		# only update the time when the voting relationship is first created 
 		my_server.zadd(truncator_key, voter_target_id, voting_time)
@@ -2224,6 +2282,7 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 		# the voting relationship has ended, so just remove it from the truncator and affinity sorted sets
 		my_server.zrem(truncator_key, voter_target_id)
 		my_server.zrem(affinity_key, voter_target_id)
+
 
 #################################################### Vote banning functionality (defenders) ############################################
 
@@ -3776,3 +3835,20 @@ def get_website_feedback():
 	for user_id in feedback_users:
 		pipeline1.hgetall("wf:"+str(user_id))
 	return pipeline1.execute()
+
+##################################### Regulating fb fan page posting #####################################
+
+
+def can_post_image_on_fb_fan_page():
+	"""
+	Regulates fan page posting
+
+	Currently, a new trending image is added every 6 hours
+	"""
+	return True if not redis.Redis(connection_pool=POOL).get("bp") else False
+
+def set_best_photo_for_fb_fan_page(photo_id):
+	"""
+	Sets a lock on posting new content for our fan page
+	"""
+	redis.Redis(connection_pool=POOL).setex("bp",photo_id,SIX_HOURS)

@@ -45,35 +45,24 @@
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
 </div>
 
+
 {% for link in link_list %}
 
-{% if forloop.counter == 4 %}
-
-	{% if mobile_verified %}
-	<div class="cxl clb lsp sp mbl" style="text-align:center;background:#fff169;padding:10px;border-radius:12px">
-		<img src="{{ STATIC_URL }}img/cool.svg" width="60" height="60" alt="cool">
-		<div class="mbs" style="font-weight:bold">Voting ke zariye save karein apni pasandeeda posts!</div>
-		<a href="{% url 'coming_soon' %}"><button class="mbs cs sp bcb pg_ok_res" style="color:white;width:90%;height:45px;border:1px solid #accbaf;border-radius:5px"><b>Mazeed Malumaat</b></button></a>
-	</div>
-	{% endif %}
-
-{% elif not on_fbs %}
 	
-	{% if forloop.counter == 2 %}
+{% if not on_fbs and forloop.counter == 2 %}
 
-		<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
-			<ins class="adsbygoogle"
-			    style="display:inline-block;width:320px;height:100px"
-			    data-ad-client="ca-pub-2568547635306983"
-			    data-ad-slot="9571801752"></ins>
-			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
-		</aside>
-
-	{% endif %}
+	<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
+		<ins class="adsbygoogle"
+		    style="display:inline-block;width:320px;height:100px"
+		    data-ad-client="ca-pub-2568547635306983"
+		    data-ad-slot="9571801752"></ins>
+		<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+	</aside>
 
 {% endif %}
+
 
 {% with replyforms|get_item:link.h as replyform %}
 

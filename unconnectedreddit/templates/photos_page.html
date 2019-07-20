@@ -14,7 +14,6 @@
 	<meta property="og:site_name" content="Damadam.pk">
 	<meta property="og:title" content="Damadam.pk">
 	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://damadam.pk/">
 	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
 	<meta property="og:image:width" content="300">
 	<meta property="og:image:height" content="300">
@@ -26,9 +25,11 @@
 	{% if feed_type == 'fresh_photos' %}
 		<title>{{ num_in_last_1_day }} Latest Memes and Images from Pakistan in the Last 24 Hours | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'fresh-list' %}" />
+		<meta property="og:url" content="{% url 'photo' 'fresh-list' %}">
 	{% else %}
 		<title>{{ num_in_last_1_day }} Best Memes and Images Trending in Pakistan in the Last 24 Hours! | Damadam</title>
 		<link rel="canonical" href="{% url 'photo' 'best-list' %}" />
+		<meta property="og:url" content="{% url 'photo' 'best-list' %}">
 	{% endif %}
 
 	{% if page.has_previous %}

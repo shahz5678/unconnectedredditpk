@@ -41,11 +41,12 @@ log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_
 retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
+add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, get_best_home_feed, retire_abandoned_topics,\
-cache_detailed_voting_data, log_vote_for_ab_test
+study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, \
+get_best_home_feed, create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page
 from redis8 import set_section_wise_retention, log_segment_action
+# from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -294,6 +295,9 @@ def post_banning_tasks(own_id, target_id):
 	# this ensures they can't private chat with eachother
 	exit_user_from_targets_priv_chat(own_id,target_id)
 	################################################################################
+	# remove any direct responses exchanged between the two
+	# delete_all_direct_responses_between_two_users(first_user_id=target_id, second_user_id=own_id)# order of passing user IDs does not matter
+	################################################################################
 	# we did a LOT of work, ensure banner didn't ban in vain!
 	ratelimit_banner_from_unbanning_target(own_id,target_id)
 	################################################################################
@@ -342,6 +346,7 @@ def sanitize_unused_ecomm_photos():
 	Mislabelled for legacy reasons
 	"""
 	study_voting_preferences()
+	create_sybil_relationship_log()
 
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
@@ -810,11 +815,6 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 			log_group_chatter(group_id, sender_id)# redis 6
 			if image_url:
 				increment_pic_count(group_id, sender_id)#redis 6
-
-
-# @celery_app1.task(name='tasks.log_private_mehfil_session')
-# def log_private_mehfil_session(group_id,user_id):# called every time a private mehfil is refreshed
-# 	increment_session(str(group_id), user_id, group_type='pm')
 	
 
 @celery_app1.task(name='tasks.rank_all_photos')
@@ -827,9 +827,17 @@ def rank_all_photos():
 	"""
 	time_now = time.time()
 	pushed, obj_id = push_hand_picked_obj_into_trending()
-	if pushed:
-		# TODO: send this to Facebook fan page
-		pass
+	if pushed and obj_id:
+		# 
+		cohort_num = int(time_now/604800)#cohort size is 1 week
+		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
+		#####################################################
+		# Send this to Facebook fan page (every 6 hours)
+		if can_post_image_on_fb_fan_page():
+			photo = Photo.objects.only('image_file','owner__username').get(id=obj_id)
+			photo_poster(image_obj=photo.image_file, owner_username=photo.owner.username, photo_id=obj_id)
+			set_best_photo_for_fb_fan_page(obj_id)
+		#####################################################
 	else:
 		fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
 		best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
@@ -842,10 +850,6 @@ def rank_all_photos():
 			obj_id = trending_item_hash_name.split(":")[1]
 			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
 			pushed = True
-	###############################
-	if pushed and obj_id:
-		cohort_num = int(time_now/604800)#cohort size is 1 week
-		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
 
 
 @celery_app1.task(name='tasks.rank_all_photos1')
@@ -917,18 +921,11 @@ def set_input_rate_and_history(section,section_id,text,user_id,time_now):
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
 	"""
-	Runs every 12 mins from settings.py
+	Currently available
+
+	Mislabeled due to legacy reasons
 	"""
 	pass
-	# fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
-	# best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
-	# remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
-	# trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
-	# if trending_item_hash_name:
-	# 	highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-	# 	highest_ranked_photo['tos'] = time.time()
-	# 	highest_ranked_photo['rank_scr'] = item_score
-	# 	add_single_trending_object(prefix="img:",obj_id=trending_item.split(":")[1], obj_hash=highest_ranked_photo)
 
 
 @celery_app1.task(name='tasks.fans')
@@ -1235,8 +1232,6 @@ def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_na
 		else:
 			# neither an upvote nor a downvote, do nothing
 			pass
-		#################### A/B test logger ####################
-		log_vote_for_ab_test(voter_id=own_id,vote_value=vote_value)
 
 
 @celery_app1.task(name='tasks.registration_task')

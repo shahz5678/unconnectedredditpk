@@ -567,85 +567,85 @@ def log_section_wise_voting_liquidity(from_, vote_value, voter_id):
 ###################################################
 ###################################################
 
-
-def generate_sybil_stats():
+def create_sybil_relationship_log():
 	"""
-	Periodically scans VOTING_RELATIONSHIP_LOG and ascertains some sybil metrics
+	This creates a sorted set similar to VOTING_RELATIONSHIP_LOG, but with voter_IDs as the score
 	"""
-	voter_centric_data = []
-	num_sybil_clients, num_sybil_voters = defaultdict(int), defaultdict(int)
 	my_server = redis.Redis(connection_pool=POOL)
 	voter_votee_pairs = my_server.zrange(VOTING_RELATIONSHIP_LOG,0,-1)
+	pipeline1 = my_server.pipeline()
 	for voter_votee in voter_votee_pairs:
-		data = voter_votee.split(":")
-		voter_id, target_user_id = data[0], data[1]
-		num_sybil_clients[voter_id] += 1
-		num_sybil_voters[target_user_id] += 1
-		voter_centric_data.append(voter_votee)
-		voter_centric_data.append(voter_id)
-	my_server.delete(SYBIL_CLIENTS)
-	my_server.hmset(SYBIL_CLIENTS,num_sybil_clients)# contains num 'reverse sybils' (or 'clients') that sybil voters are 'servicing'
-	my_server.delete(SYBIL_VOTERS)
-	my_server.hmset(SYBIL_VOTERS,num_sybil_voters)# contains num sybils that a providing their services to a content producer
-	########## Useful for retrieve_users_voting_relationships() ##########
+		pipeline1.hget(VOTER_AFFINITY_HASH+voter_votee,'p1')
+	result1, counter, final_voter_data = pipeline1.execute(), 0, []
+	for voter_votee in voter_votee_pairs:
+		bayes_prob = result1[counter]
+		if bayes_prob and float(bayes_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+			final_voter_data.append(voter_votee)
+			final_voter_data.append(voter_votee.split(":")[0])
 	my_server.delete(SYBIL_RELATIONSHIP_LOG)
-	my_server.zadd(SYBIL_RELATIONSHIP_LOG,*voter_centric_data)
+	########## Useful for retrieve_users_voting_relationships() ##########
+	my_server.zadd(SYBIL_RELATIONSHIP_LOG,*final_voter_data)
 
 
-def are_users_specific_sybils(user_ids, target_user_id, my_server=None):
-	"""
-	Given a list of user IDs and a target user ID, determines which users are sybils of the target
+# def are_users_specific_sybils(user_ids, target_user_id, my_server=None):
+# 	"""
+# 	Given a list of user IDs and a target user ID, determines which users are sybils of the target
 
-	Two lists are returned: sybil_ids, non_sybil_ids
-	"""
-	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	direct_sybil_data = my_server.zrangebyscore(VOTING_RELATIONSHIP_LOG, target_user_id, target_user_id)
-	if direct_sybil_data:
-		# direct sybils detected!
-		sybil_voters = set()
-		for voting_pair in direct_sybil_data:
-			sybil_voters.add(voting_pair.split(":")[0])
-		current_sybil_voters = set.intersection(sybil_voters,set(user_ids))
-		if current_sybil_voters:
-			return current_sybil_voters, [id_ for id_ in user_ids if id_ not in list(current_sybil_voters)]
-		else:
-			return set(), user_ids
-	else:
-		# no direct sybils are known at this point
-		return set(), user_ids
-
-
-
-def are_users_general_sybils(user_ids, my_server=None):
-	"""
-	Check if provided users IDs are servicing any 'clients' (i.e. upvoting users)
-	"""
-	partisan_ids, non_partisan_ids, sybil_incidence = set(), set(), {}
-	if user_ids:
-		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-		sybil_data, counter = my_server.hmget(SYBIL_CLIENTS,*user_ids), 0
-		for user_id in user_ids:
-			num_sybs = sybil_data[counter]
-			if num_sybs:
-				partisan_ids.add(user_id)
-				sybil_incidence[user_id] = num_sybs
-			else:
-				non_partisan_ids.add(user_id)
-			counter += 1
-
-	return partisan_ids, sybil_incidence, non_partisan_ids
+# 	Two lists are returned: sybil_ids, non_sybil_ids
+# 	"""
+# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 	direct_sybil_data = my_server.zrangebyscore(VOTING_RELATIONSHIP_LOG, target_user_id, target_user_id)
+# 	if direct_sybil_data:
+# 		# direct sybils detected!
+# 		sybil_voters = set()
+# 		for voting_pair in direct_sybil_data:
+# 			sybil_voters.add(voting_pair.split(":")[0])
+# 		suspected_sybil_voters = set.intersection(sybil_voters,set(user_ids))
+# 		if suspected_sybil_voters:
+# 			confirmed_sybil_ids = set()
+# 			for suspected_sybil_id in suspected_sybil_voters:
+# 				upvoting_prob = my_server.hget(VOTER_AFFINITY_HASH+suspected_sybil_id+":"+str(target_user_id),'p1')
+# 				if upvoting_prob and float(upvoting_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+# 					confirmed_sybil_ids.add(suspected_sybil_id)
+# 			return confirmed_sybil_ids, [id_ for id_ in user_ids if id_ not in list(confirmed_sybil_ids)]
+# 		else:
+# 			return set(), user_ids
+# 	else:
+# 		# no direct sybils are known at this point
+# 		return set(), user_ids
 
 
-def retrieve_user_num_votes(user_ids):
-	"""
-	Retrieves number of votes given user_ids have cast in prev 1 month
-	"""
-	upvote_volume = {}
-	my_server = redis.Redis(connection_pool=POOL)
-	for user_id in user_ids:
-		votes = {'tuv':my_server.zcard(VOTER_UVOTES_AND_TIMES+user_id)}
-		upvote_volume[user_id] = votes
-	return upvote_volume
+
+# def are_users_general_sybils(user_ids, my_server=None):
+# 	"""
+# 	Check if provided users IDs are servicing any 'clients' (i.e. upvoting users)
+# 	"""
+# 	partisan_ids, non_partisan_ids, sybil_incidence = set(), set(), {}
+# 	if user_ids:
+# 		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+# 		sybil_data, counter = my_server.hmget(SYBIL_CLIENTS,*user_ids), 0
+# 		for user_id in user_ids:
+# 			num_sybs = sybil_data[counter]
+# 			if num_sybs:
+# 				partisan_ids.add(user_id)
+# 				sybil_incidence[user_id] = num_sybs
+# 			else:
+# 				non_partisan_ids.add(user_id)
+# 			counter += 1
+
+# 	return partisan_ids, sybil_incidence, non_partisan_ids
+
+
+# def retrieve_user_num_votes(user_ids):
+# 	"""
+# 	Retrieves number of votes given user_ids have cast in prev 1 month
+# 	"""
+# 	upvote_volume = {}
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	for user_id in user_ids:
+# 		votes = {'tuv':my_server.zcard(VOTER_UVOTES_AND_TIMES+user_id)}
+# 		upvote_volume[user_id] = votes
+# 	return upvote_volume
 
 
 def distribute_reputation_to_voters(photo_id, photo_owner_id):
@@ -661,50 +661,59 @@ def distribute_reputation_to_voters(photo_id, photo_owner_id):
 			all_upvoters.append(voter_id)
 	# only execute if upvoters exist, otherwise there's no reputation to distribute for this particular image
 	if all_upvoters:
-		# step 1: separate normal, target's sybils and general sybils (alongwith 'sybil strength')
-		# Isolating direct sybils
-		direct_sybil_ids, not_sybil_ids = are_users_specific_sybils(user_ids=all_upvoters, target_user_id=photo_owner_id)
-		# Filtering non-sybils into 'generic sybils' and 'non-sybils' (but ignoring general sybils who're already marked as direct sybils)
-		general_sybil_ids, general_sybil_strength, non_partisan_ids = are_users_general_sybils(user_ids=not_sybil_ids)
+		pass
+		# mark voters' data so that reputation can be added to their records
+		# for voter_id in all_upvoters:
+		# 	payload = voter_id+":"+str(photo_owner_id)+":1:img:"+str(photo_id)
+		# 	time_of_vote = my_server.zscore(VOTER_UVOTES_AND_TIMES+voter_id,payload)
+		# 	my_server.zrangebyscore(SOME_KEY+voter_id,time_of_vote,time_of_vote)
+
+
+		# # step 1: separate normal, target's sybils and general sybils (alongwith 'sybil strength')
+		# # Isolating direct sybils
+		# direct_sybil_ids, not_sybil_ids = are_users_specific_sybils(user_ids=all_upvoters, target_user_id=photo_owner_id)
+		# # Filtering non-sybils into 'generic sybils' and 'non-sybils' (but ignoring general sybils who're already marked as direct sybils)
+		# general_sybil_ids, general_sybil_strength, non_partisan_ids = are_users_general_sybils(user_ids=not_sybil_ids)
 		
-		# step 2: log voter stats accordingly (reputation to be based on this later)
-		log_voter_statistics(direct_sybils=direct_sybil_ids,general_sybils=general_sybil_ids,non_partisans=non_partisan_ids, \
-			general_sybil_strength=general_sybil_strength, target_user_id=photo_owner_id, target_obj_id=photo_id, \
-			all_voters=all_upvoters)
+		# # step 2: log voter stats accordingly (reputation to be based on this later)
+		# log_voter_statistics(direct_sybils=direct_sybil_ids,general_sybils=general_sybil_ids,non_partisans=non_partisan_ids, \
+		# 	general_sybil_strength=general_sybil_strength, target_user_id=photo_owner_id, target_obj_id=photo_id, \
+		# 	all_voters=all_upvoters)
 
 
-def log_voter_statistics(direct_sybils, general_sybils, non_partisans, general_sybil_strength, target_user_id, target_obj_id,\
-	all_voters):
-	"""
-	'direct_sybils': ids that are purely sybils of target_user_id
-	'general_sybils': ids that are sybils of users other than target_user_id
-	'non_partisans': ids that have not been identified as sybils at all
-	'general_sybil_strength': dictionary containing how many users the general sybil is 'servicing'
-	'target_user_id': the user whose content was voted on by the aforementioned users
-	'target_obj_id': the content that was voted on by the aforementioned users
-	'all_voters': all voting IDs, taken together
-	"""
-	# differentiate new and old users, using world age
-	voter_age_dict = retrieve_user_world_age(user_id_list=all_voters)
-	# differentiate experienced and inexperienced, using num_votes_cast
-	voter_num_votes_dict = retrieve_user_num_votes(user_ids=all_voters)
-	time_now = time.time()
-	for voter_id in all_voters:
-		voter_world_age = voter_age_dict[voter_id]
-		voter_total_votes = voter_num_votes_dict[voter_id]
-		if voter_id in direct_sybils:
-			payload = {'t':time_now,'ss':'2', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
-			'vid':voter_id, 'tuv':voter_total_votes['tuv']}
-		elif voter_id in general_sybils:
-			payload = {'t':time_now,'ss':'1', 'num_sybs':general_sybil_strength[voter_id] ,'tuid':target_user_id,\
-			'toid':target_obj_id, 'vwa':voter_world_age, 'vid':voter_id, 'tuv':voter_total_votes['tuv']}
-		elif voter_id in non_partisans:
-			payload = {'t':time_now,'ss':'0', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
-			'vid':voter_id,'tuv':voter_total_votes['tuv']}
-		redis.Redis(connection_pool=POOL).zadd(VOTER_REP_RAW_MATERIAL,json.dumps(payload),time_now)
+# def log_voter_statistics(direct_sybils, general_sybils, non_partisans, general_sybil_strength, target_user_id, target_obj_id,\
+# 	all_voters):
+# 	"""
+# 	'direct_sybils': ids that are purely sybils of target_user_id
+# 	'general_sybils': ids that are sybils of users other than target_user_id
+# 	'non_partisans': ids that have not been identified as sybils at all
+# 	'general_sybil_strength': dictionary containing how many users the general sybil is 'servicing'
+# 	'target_user_id': the user whose content was voted on by the aforementioned users
+# 	'target_obj_id': the content that was voted on by the aforementioned users
+# 	'all_voters': all voting IDs, taken together
+# 	"""
+# 	# differentiate new and old users, using world age
+# 	voter_age_dict = retrieve_user_world_age(user_id_list=all_voters)
+# 	# differentiate experienced and inexperienced, using num_votes_cast
+# 	voter_num_votes_dict = retrieve_user_num_votes(user_ids=all_voters)
+# 	time_now = time.time()
+# 	for voter_id in all_voters:
+# 		voter_world_age = voter_age_dict[voter_id]
+# 		voter_total_votes = voter_num_votes_dict[voter_id]
+# 		if voter_id in direct_sybils:
+# 			payload = {'t':time_now,'ss':'2', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
+# 			'vid':voter_id, 'tuv':voter_total_votes['tuv']}
+# 		elif voter_id in general_sybils:
+# 			payload = {'t':time_now,'ss':'1', 'num_sybs':general_sybil_strength[voter_id] ,'tuid':target_user_id,\
+# 			'toid':target_obj_id, 'vwa':voter_world_age, 'vid':voter_id, 'tuv':voter_total_votes['tuv']}
+# 		elif voter_id in non_partisans:
+# 			payload = {'t':time_now,'ss':'0', 'tuid':target_user_id, 'toid':target_obj_id, 'vwa':voter_world_age,\
+# 			'vid':voter_id,'tuv':voter_total_votes['tuv']}
+# 		redis.Redis(connection_pool=POOL).zadd(VOTER_REP_RAW_MATERIAL,json.dumps(payload),time_now)
 
 	"""
 	TODO: Sort CSV by voter ID to see all upvotes by a voter. Give '-1' where voter is direct sybil, '+1' where non_partisan, and '-0.1' where general sybil
+	TODO: Remove super defenders from these lists!
 	TODO: Would be really helpful if "fresh photos" were easily accessible from the navbar
 	TODO: Would be helpful if a quick "Saved!" prompt flashes at each vote
 	"""
@@ -735,7 +744,7 @@ def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, wit
 
 
 def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, revert_prev, is_pht, time_of_vote, target_user_id, \
-	world_age_discount, affinity_discount):
+	world_age_discount, affinity_discount):#, voter_world_age=None):
 	"""
 	Record a vote on textual or photo objects (used in 'cast_vote')
 	
@@ -1737,7 +1746,7 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 							from_hand_picked=True)
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
 						################################
-						distribute_reputation_to_voters(photo_id=obj_id, photo_owner_id=obj_hash['si'])
+						# distribute_reputation_to_voters(photo_id=obj_id, photo_owner_id=obj_hash['si'])
 						################################
 						pushed = True
 					else:
@@ -1886,7 +1895,11 @@ def retrieve_users_voting_relationships(target_user_id, rel_type):
 		if cached_data:
 			return json.loads(cached_data)
 		else:
-			reverse_sybil_relationships = my_server.zrangebyscore(SYBIL_RELATIONSHIP_LOG,target_user_id,target_user_id)
+			if my_server.exists(SYBIL_RELATIONSHIP_LOG):
+				reverse_sybil_relationships = my_server.zrangebyscore(SYBIL_RELATIONSHIP_LOG,target_user_id,target_user_id)
+			else:
+				create_sybil_relationship_log()# creating SYBIL_RELATIONSHIP_LOG
+				reverse_sybil_relationships = my_server.zrangebyscore(SYBIL_RELATIONSHIP_LOG,target_user_id,target_user_id)
 			if reverse_sybil_relationships:
 				vote_targets = []
 				pipeline1 = my_server.pipeline()
@@ -2203,6 +2216,7 @@ def study_voting_preferences():
 			target_user_id = voter_target_pair.split(":")[1]
 			pipeline1.zadd(VOTING_RELATIONSHIP_LOG,voter_target_pair,target_user_id)
 			pipeline1.zadd(VOTING_RELATIONSHIP_LOG_TRUNCATOR,voter_target_pair,time.time())
+
 	pipeline1.execute()
 
 
@@ -2247,12 +2261,14 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 	else:
 		# handling votes
 		if vote_value == '1':
+			# upvote
 			voter_target_key = ALL_UVOTES_TO_TGT_USER+voter_target_id
 			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
 			affinity_key = UVOTER_AFFINITY
 			truncator_key = UVOTER_AFFINITY_TRUNCATOR
 			amnt = 1
 		else:
+			# downvote - to be deprecated
 			voter_target_key = ALL_DVOTES_TO_TGT_USER+voter_target_id
 			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
 			affinity_key = DVOTER_AFFINITY
@@ -2260,10 +2276,12 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 			amnt = 1
 		obj_hash_name = obj_type+":"+target_obj_id
 		payload = voter_target_id+":"+vote_value+":"+obj_hash_name
+		###########################################################
 		my_server.zadd(GLOBAL_VOTES_AND_TIMES, payload, voting_time)# for trimming
 		my_server.zadd(voter_vote_key, payload, voting_time)# for display to voter
-		my_server.zadd(voter_target_key, obj_hash_name, voting_time)# for Bayesian calculation (lacking all_upvotes, all_downvotes)
-	new_score = my_server.zincrby(affinity_key, voter_target_id, amount=amnt)
+		my_server.zadd(voter_target_key, obj_hash_name, voting_time)# for Bayesian calculation
+		###########################################################
+	new_score = my_server.zincrby(affinity_key, voter_target_id, amount=amnt)# 'affinity_key' marks relationships where lots of votes have been given
 	if int(new_score) == 1:
 		# only update the time when the voting relationship is first created 
 		my_server.zadd(truncator_key, voter_target_id, voting_time)
@@ -2271,6 +2289,7 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 		# the voting relationship has ended, so just remove it from the truncator and affinity sorted sets
 		my_server.zrem(truncator_key, voter_target_id)
 		my_server.zrem(affinity_key, voter_target_id)
+
 
 #################################################### Vote banning functionality (defenders) ############################################
 

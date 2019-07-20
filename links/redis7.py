@@ -711,13 +711,6 @@ def distribute_reputation_to_voters(photo_id, photo_owner_id):
 # 			'vid':voter_id,'tuv':voter_total_votes['tuv']}
 # 		redis.Redis(connection_pool=POOL).zadd(VOTER_REP_RAW_MATERIAL,json.dumps(payload),time_now)
 
-	"""
-	TODO: Sort CSV by voter ID to see all upvotes by a voter. Give '-1' where voter is direct sybil, '+1' where non_partisan, and '-0.1' where general sybil
-	TODO: Remove super defenders from these lists!
-	TODO: Would be really helpful if "fresh photos" were easily accessible from the navbar
-	TODO: Would be helpful if a quick "Saved!" prompt flashes at each vote
-	"""
-
 
 def retrieve_voting_reputation_records(start_idx=0, end_idx=-1):
 	"""

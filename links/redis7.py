@@ -1764,24 +1764,24 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 				oldest_enqueued_member = oldest_enqueued_member[0]
 				obj_hash = my_server.hgetall(oldest_enqueued_member)
 				if obj_hash:	
-					obj_exists_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,oldest_enqueued_member)
-					if obj_exists_in_fresh:
-						# do the deed - push the object for members to see!
-						time_of_selection = time.time()
-						obj_hash['tos'] = time_of_selection
-						obj_hash = unpack_json_blob([obj_hash])[0]
-						obj_id = obj_hash['i']
-						add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
-							from_hand_picked=True)
-						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
-						################################
-						distribute_reputation_to_voters(photo_id=obj_id, photo_owner_id=obj_hash['si'])
-						################################
-						pushed = True
-					else:
-						# don't push into trending, it's no longer in fresh
-						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
-						pushed = False
+					# obj_exists_in_fresh = my_server.zscore(PHOTO_SORTED_FEED,oldest_enqueued_member)
+					# if obj_exists_in_fresh:
+					# do the deed - push the object for members to see!
+					time_of_selection = time.time()
+					obj_hash['tos'] = time_of_selection
+					obj_hash = unpack_json_blob([obj_hash])[0]
+					obj_id = obj_hash['i']
+					add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
+						from_hand_picked=True)
+					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
+					################################
+					distribute_reputation_to_voters(photo_id=obj_id, photo_owner_id=obj_hash['si'])
+					################################
+					pushed = True
+					# else:
+					# 	# don't push into trending, it's no longer in fresh
+					# 	my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
+					# 	pushed = False
 				else:
 					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
 					pushed = False

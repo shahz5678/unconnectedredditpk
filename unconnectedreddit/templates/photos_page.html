@@ -156,7 +156,7 @@
 						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
 						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
 						{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
-						{% if user.id == 1 and feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
+						{% if user.id == 1910467 and feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
 						{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
 					</div>
 					</section>

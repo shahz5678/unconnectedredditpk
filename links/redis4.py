@@ -1210,7 +1210,7 @@ def log_input_rate(section,user_id,time_now,text=None):
 			new_value = my_server.incr(key)
 			if new_value > 4:
 				rate_limit_user(user_id=user_id,section=section,level='0',ban_reason=BAN_REASON['flooding'],my_server=my_server)
-
+				my_server.execute_command('UNLINK', key)
 
 
 def log_input_text(section, section_id,text,user_id):

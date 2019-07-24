@@ -8,8 +8,14 @@
 <div class="lsp mt" style="color:white;font-size:23px"><bdi dir="rtl">آپ نے <b>چیٹ</b> کرنی ہے یا <b>فوٹو</b> دیکھنے ﮨیں؟</bdi></div>
 	<form method="POST" action="{% url 'first_time_choice' 'ur' %}" class="mts mbs">
 	   {% csrf_token %}
+
+	   {% if ordering == 1 %}
 	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500" class="mrs mtl mbl sp pg_ok_res" value="1">چیٹ</button>
 	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500" class="mls mbl sp pg_ok_res" value="2">فوٹو</button>
+	   {% else %}
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500" class="mrs mtl mbl sp pg_ok_res" value="2">فوٹو</button>
+	   <button name="choice" type="submit" style="color:white;background-color:#ffd600;border:solid 1px #e6bf00;width:6em;font-size:20px;font-weight:bold;text-shadow:1px 1px #b39500" class="mls mbl sp pg_ok_res" value="1">چیٹ</button>
+	   {% endif %}
 	</form>
 </div>
 

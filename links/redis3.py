@@ -11,7 +11,7 @@ from redis4 import retrieve_bulk_unames, retrieve_user_id
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
-from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT
+from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT#, THRESHOLD_WORLD_AGE
 
 '''
 ##########Redis 3 Namespace##########
@@ -1894,6 +1894,15 @@ def remove_verified_mob(target_user_ids):
 ###################### setting user's world age ######################
 
 
+# def compute_world_age_discount_value(user_world_age, highest_world_age):
+# 	"""
+# 	"""
+# 	if user_world_age > THRESHOLD_WORLD_AGE:
+# 		return 1.0
+# 	else:
+# 		return log(user_world_age,2.0)/log(highest_world_age,2.0)
+
+
 def get_world_age(user_id):
 	"""
 	Retrieve a single user's world age
@@ -2422,4 +2431,230 @@ def log_text_submissions(item_type='text'):
 	else:   
 		my_server.zincrby('post_submission_logger',TOPIC_TEXT_POSTS,amount=1)
 
+##################################################################################################################
 
+
+def get_option_ordering(user_id):
+	"""
+	Helps randomize the ordering of options shown to new users when entering the AB test funnelS
+	"""
+	order_key = "opt_order:"+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	ordering = my_server.get(order_key)
+	if not ordering:
+		ordering = str(random.randint(1,6))
+		my_server.setex(order_key,ordering,ONE_DAY)
+	return ordering
+
+
+def register_bucket(user_id, bucket_type, vari_type=None):
+	"""
+	AB test for testing various 'tutorial' variations
+
+	bucket_type is: 
+	- 'ab_test_init' (0 means control, 1 means part of the experiment)
+	- 'ab_vari_init' (1 means fans, 2 means 1on1, 3 means content, 4 means none of these)
+	"""
+	BUCKET_NAMES = {'1':'fame_bucket','2':'1on1_bucket','3':'cont_bucket','4':'exit_bucket'}
+
+	my_server = redis.Redis(connection_pool=POOL)
+	if bucket_type == 'ab_test_init':
+		bucket_val = my_server.zscore(bucket_type,user_id)
+		if bucket_val is None:
+			bucket_val = random.randint(0,1)
+			my_server.zadd(bucket_type,user_id,bucket_val)
+		return int(bucket_val)
+
+	elif bucket_type == 'ab_vari_init':
+		bucket_name = BUCKET_NAMES.get(vari_type,None)
+		if bucket_name:
+			choices_key = 'vari_choices:'+str(user_id)
+			my_server.zincrby(bucket_name, user_id, amount=1)
+			my_server.zincrby(bucket_type, bucket_name, amount=1)
+			my_server.lpush(choices_key,vari_type)
+			my_server.expire(choices_key,ONE_MONTH)
+
+	elif bucket_type == "ab_veri_click":
+		my_server.zincrby(bucket_type, user_id, amount=1)
+		latest_choice = my_server.lindex('vari_choices:'+str(user_id),0)
+		choices_key = 'veri_choices:'+str(user_id)
+		my_server.lpush(choices_key,latest_choice)
+		my_server.expire(choices_key,ONE_MONTH)
+
+	elif bucket_type == "ab_verif_done":
+		my_server.zincrby(bucket_type, user_id, amount=1)
+
+
+def retrieve_ab_test_records():
+	"""
+	Retreives records of the tutorial ab test, useful for exporting to a CSV
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	tested_user_ids = my_server.zrange('ab_test_init',0,-1,withscores=True)
+	only_ids = [user_id for user_id, opt in tested_user_ids]
+	opt_key_names = []
+	for user_id in only_ids:
+		opt_key_names.append('opt_order:'+user_id)
+	opt_order_data = my_server.mget(*opt_key_names)
+	
+	#####################################################
+
+	ordering_shown, insider_ids, outsider_ids, counter = {}, [], [], 0
+	for user_id, is_ab_init in tested_user_ids:
+		if is_ab_init == 0:
+			# not part of the new funnel
+			outsider_ids.append(user_id)# gives the column 'option_order' for a given user
+			ordering_shown[user_id] = 1 if opt_order_data[counter] in ('1','3','5') else 2# gives the column 'option_order' for a given user
+		elif is_ab_init == 1:
+			# part of the new funnel
+			insider_ids.append(user_id)
+			ordering_shown[user_id] = opt_order_data[counter]# gives the column 'option_order' for a given user
+		else:
+			# exclude this user - probably an error
+			pass
+		counter += 1
+
+	#####################################################
+
+	user_id_and_times_1on1 = dict(my_server.zrange('1on1_bucket', 0, -1, withscores=True))# gives the column 'num_1on1_selected'
+	user_id_and_times_fame = dict(my_server.zrange('fame_bucket', 0, -1, withscores=True))# gives the column 'num_fame_selected'
+	user_id_and_times_cont = dict(my_server.zrange('cont_bucket', 0, -1, withscores=True))# gives the column 'num_cont_selected'
+	user_id_and_times_exit = dict(my_server.zrange('exit_bucket', 0, -1, withscores=True))# gives the column 'num_exit_selected'
+
+	#####################################################
+
+	num_tried = {}
+	for user_id in insider_ids:
+		counter = 0
+		if user_id in user_id_and_times_1on1:
+			counter += 1
+		if user_id in user_id_and_times_fame:
+			counter += 1
+		if user_id in user_id_and_times_cont:
+			counter += 1
+		if user_id in user_id_and_times_exit:
+			counter += 1
+		num_tried[user_id] = counter# gives the column 'num_options_tried'
+
+	#####################################################
+	num_verify_pressed = {}
+
+	pipeline1 = my_server.pipeline()
+	for user_id in insider_ids:
+		pipeline1.zscore('ab_veri_click',user_id)
+	result1, counter = pipeline1.execute(), 0
+
+	for user_id in insider_ids:
+		num_pressed = result1[counter]
+		num_verify_pressed[user_id] = num_pressed if num_pressed else 0# gives the columns 'was_verify_pressed' and 'num_verify_pressed'
+		counter += 1
+
+	pipeline2 = my_server.pipeline()
+	for user_id in outsider_ids:
+		pipeline2.zscore('ab_veri_click',user_id)
+	result2, counter = pipeline2.execute(), 0
+
+	for user_id in outsider_ids:
+		num_pressed = result2[counter]
+		num_verify_pressed[user_id] = num_pressed if num_pressed else 0# gives the columns 'was_verify_pressed' and 'num_verify_pressed'
+		counter += 1
+
+	#####################################################
+
+	selected_before_verif_clicked = {}
+
+	pipeline3 = my_server.pipeline()
+	for user_id in insider_ids:
+		pipeline3.lrange('veri_choices:'+user_id,0,-1)
+	result3, counter = pipeline3.execute(), 0
+
+	for user_id in insider_ids:
+		choice_list = result3[counter]
+		selected_before_verif_clicked[user_id] = choice_list if choice_list else []# gives the column 'selected_before_verif_string'
+		counter += 1
+
+	#####################################################
+
+	num_verifications = {}
+
+	pipeline4 = my_server.pipeline()
+
+	for user_id in insider_ids:
+		pipeline4.zscore('ab_verif_done',user_id)
+
+	for user_id in outsider_ids:
+		pipeline4.zscore('ab_verif_done',user_id)
+
+	result4, counter = pipeline4.execute(), 0
+
+	for user_id in insider_ids:
+		num_verif = result4[counter]
+		num_verifications[user_id] = num_verif if num_verif else 0# gives the columns 'verified_successfully' and 'num_verifications'
+		counter += 1
+
+	for user_id in outsider_ids:
+		num_verif = result4[counter]
+		num_verifications[user_id] = num_verif if num_verif else 0# gives the columns 'verified_successfully' and 'num_verifications'
+		counter += 1
+
+	#####################################################
+
+	final_data = []
+
+	pipeline5 = my_server.pipeline()
+	for user_id in insider_ids:
+		pipeline5.lrange('vari_choices:'+user_id,0,-1)# gives the column 'selection_string'
+	result5, counter = pipeline5.execute(), 0
+		
+	for user_id in insider_ids:
+		final_data.append({'user_id':user_id,'part_of_exp':'Yes','ordering_shown':ordering_shown[user_id],\
+			'num_1on1_selected':user_id_and_times_1on1.get(user_id,0),'num_fame_selected':user_id_and_times_fame.get(user_id,0),\
+			'num_cont_selected':user_id_and_times_cont.get(user_id,0),'num_exit_selected':user_id_and_times_exit.get(user_id,0),\
+			'num_verify_pressed':num_verify_pressed.get(user_id,0),'num_options_tried':num_tried.get(user_id,0),\
+			'selection_string':" ".join(str(x) for x in result5[counter]),'was_verif_pressed':'Yes' if num_verify_pressed.get(user_id,0)>0 else 'No',\
+			'selected_before_verif_pressed':" ".join(str(x) for x in selected_before_verif_clicked.get(user_id,[])),\
+			'num_verifications':num_verifications.get(user_id,0),'was_successfully_verified':'Yes' if num_verifications.get(user_id,0)>0 else 'False'})
+		counter += 1
+
+	for user_id in outsider_ids:
+		final_data.append({'user_id':user_id,'part_of_exp':'No','ordering_shown':ordering_shown[user_id],\
+			'num_1on1_selected':'-','num_fame_selected':'-','num_cont_selected':'-','num_exit_selected':'-',\
+			'num_verify_pressed':num_verify_pressed.get(user_id,0),'num_options_tried':'-','selection_string':'-',\
+			'was_verif_pressed':'Yes' if num_verify_pressed.get(user_id,0)>0 else 'No','selected_before_verif_pressed':'-',\
+			'num_verifications':num_verifications.get(user_id,0),'was_successfully_verified':'Yes' if num_verifications.get(user_id,0)>0 else 'False'})
+
+	return final_data# it has 14 columns
+
+"""
+User lands on 1st time choice, they:
+- create a sorted set called 'ab_test_init' which contains user_ids and score between [0,1] (0 means original, 1 means new funnel)
+- create a key (with expiry) called 'opt_order:<user_id>' that stores what ordering they are to be shown in the 3 onboarding options
+
+User selects the new funnel, and is shown 3 diff options
+- User selects an option from the 3 given options:
+ -- create a sorted set called 'fame_bucket', '1on1_bucket', 'cont_bucket' or 'exit_bucket' (depending on what user selected). Add user_id, with +1 to score. If same user_id shows up in multiple sorted sets, it means the user tried all those options
+ -- create a sorted set called 'ab_vari_init', that contains the 3 types above as values, and cumulative increments as the score.
+ -- create a list (with expiry) called 'vari_choices:<user_id>' that contains all the individual options (from the 3 options) a user selected one by one (via perhaps using the 'back' button)
+
+User clicks the verification button (either from the tut pop-up, or somewhere else)
+- create a sorted set called 'ab_veri_click' which contains user_ids and score that counts how many times the user pressed the verify button
+- create a list (with expiry) called 'veri_choices:<user_id>' that contains the latest option a user had selected right before pressing 'verify'
+
+User successfully verifies
+- created a sorted set called 'ab_verif_done' which contains user_ids and a score corresponding to the number of times the user keeps hitting the 'verified successfully' page
+
+Reporting:
+
+Create a table with the following columns:
+
+user_id, part_of_exp (True or False), num_fame_selected, num_1on1_selected, num_cont_selected, num_exit_selected, num_options_tried, selection_string, verify_pressed, num_verif_pressed, selected_before_verif_string, verified_successfully, num_verifications
+
+- use 'part_of_exp' to see how many verification presses and successful verifications happened for non-experiment version
+- use 'part_of_exp' and 'only_1_selected' to guage how many verification presses and successfull verifications happened for 'fame', '1on1' and 'cont' buckets
+- use 'part_of_exp' and 'only_2_selected' to see how many rows exist in this case, also note 'selection_string'
+- use 'part_of_exp' and 'only_3_selected' to see how many rows exist in this case, also note 'selection_string'
+ -- use 'verify_pressed' additionally to see conversion rates
+ -- use 'verified_successfully' additionally to see further converstion rates
+
+TODO: Reset original funnel 'selection' metrics too before this AB test goes live
+"""

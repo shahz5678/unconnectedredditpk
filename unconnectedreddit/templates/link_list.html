@@ -28,7 +28,7 @@
 {% endif %}
 
 {% if newbie_flag %}
-	{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin='3' %}
+	{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='3' %}
 {% else %}
 
 	{% load get_notification_bar %}
@@ -48,9 +48,21 @@
 
 {% for link in link_list %}
 
-	
-{% if not on_fbs and forloop.counter == 2 %}
+{% if forloop.counter == 4 %}
 
+	{% if mobile_verified %}
+	<div class="cxl clb lsp sp mbl" style="text-align:center;background:#fff169;padding:10px;border-radius:12px">
+		<div class="mts mbs">
+			<img src="{{ STATIC_URL }}img/up.svg" style="width:30px;height:30px" class="mrs"><img class="mls" src="{{ STATIC_URL }}img/down.svg" style="width:30px;height:30px">
+		</div>
+		<div class="mbl" style="font-weight:bold">Thumbs up aur thumbs down buttons change honay waley hain!</div>
+		<a href="{% url 'coming_soon' %}"><button class="mbs cs sp bcb pg_ok_res" style="color:white;width:90%;height:45px;border:1px solid #accbaf;border-radius:5px"><b>Mazeed Malumaat</b></button></a>
+	</div>
+	{% endif %}
+
+{% elif not on_fbs %}
+
+	{% if forloop.counter == 2 %}
 	<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
 		<ins class="adsbygoogle"
 		    style="display:inline-block;width:320px;height:100px"
@@ -60,9 +72,9 @@
 		(adsbygoogle = window.adsbygoogle || []).push({});
 		</script>
 	</aside>
+	{% endif %}
 
 {% endif %}
-
 
 {% with replyforms|get_item:link.h as replyform %}
 

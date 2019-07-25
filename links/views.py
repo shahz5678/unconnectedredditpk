@@ -1113,7 +1113,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 	from redis3 import register_bucket, get_option_ordering
 	if request.method == 'POST':
 		request.session["newbie_lang"] = lang if lang else 'eng'
-		bucket_val = register_bucket(user_id, bucket_type="ab_test_init")
+		bucket_val = register_bucket(user_id, bucket_type="test_init")
 		if bucket_val == 0:
 			# original onboarding funnel
 			choice = request.POST.get("choice",None)
@@ -1132,7 +1132,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 			# new 4-pronged onboarding funnel
 			choice = request.POST.get("choice",None)
 			if choice in ('1','2','3','4'):
-				register_bucket(user_id, bucket_type="ab_vari_init", vari_type=choice)
+				register_bucket(user_id, bucket_type="vari_init", vari_type=choice)
 				request.session["newbie_flag"] = choice
 				return redirect("home")
 			else:
@@ -1143,7 +1143,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 		0 is control
 		1 means user is part of the 3-pronged test
 		"""
-		bucket_val = register_bucket(user_id, bucket_type="ab_test_init")
+		bucket_val = register_bucket(user_id, bucket_type="test_init")
 		if bucket_val == 0:
 			# original onboarding funnel
 			ordering = 1 if get_option_ordering(user_id) in ('1','3','5') else 2

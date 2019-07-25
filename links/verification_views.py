@@ -162,7 +162,7 @@ def account_kit_verification_processing(request):
 					################ AB Testing Tutorial ################
 					#####################################################
 					from redis3 import register_bucket
-					register_bucket(user_id=user_id, bucket_type='ab_verif_done')
+					register_bucket(user_id=user_id, bucket_type='verif_done')
 					#####################################################
 					#####################################################
 					#####################################################
@@ -291,7 +291,7 @@ def verify_user_mobile_unpaid(request):
 		################ AB Testing Tutorial ################
 		#####################################################
 		from redis3 import register_bucket
-		register_bucket(user_id=request.user.id, bucket_type='ab_veri_click')
+		register_bucket(user_id=request.user.id, bucket_type='veri_click')
 		#####################################################
 		#####################################################
 		#####################################################

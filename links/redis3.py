@@ -2438,7 +2438,7 @@ def get_option_ordering(user_id):
 	"""
 	Helps randomize the ordering of options shown to new users when entering the AB test funnelS
 	"""
-	order_key = "opt_order:"+str(user_id)
+	order_key = "optorder:"+str(user_id)#1
 	my_server = redis.Redis(connection_pool=POOL)
 	ordering = my_server.get(order_key)
 	if not ordering:
@@ -2452,36 +2452,36 @@ def register_bucket(user_id, bucket_type, vari_type=None):
 	AB test for testing various 'tutorial' variations
 
 	bucket_type is: 
-	- 'ab_test_init' (0 means control, 1 means part of the experiment)
-	- 'ab_vari_init' (1 means fans, 2 means 1on1, 3 means content, 4 means none of these)
+	- 'test_init' (0 means control, 1 means part of the experiment)
+	- 'vari_init' (1 means fans, 2 means 1on1, 3 means content, 4 means none of these)
 	"""
-	BUCKET_NAMES = {'1':'fame_bucket','2':'1on1_bucket','3':'cont_bucket','4':'exit_bucket'}
+	BUCKET_NAMES = {'1':'fame_buck','2':'1on1_buck','3':'cont_buck','4':'exit_buck'}
 
 	my_server = redis.Redis(connection_pool=POOL)
-	if bucket_type == 'ab_test_init':
+	if bucket_type == 'test_init':
 		bucket_val = my_server.zscore(bucket_type,user_id)
 		if bucket_val is None:
 			bucket_val = random.randint(0,1)
 			my_server.zadd(bucket_type,user_id,bucket_val)
 		return int(bucket_val)
 
-	elif bucket_type == 'ab_vari_init':
+	elif bucket_type == 'vari_init':
 		bucket_name = BUCKET_NAMES.get(vari_type,None)
 		if bucket_name:
-			choices_key = 'vari_choices:'+str(user_id)
+			choices_key = 'varichoices:'+str(user_id)
 			my_server.zincrby(bucket_name, user_id, amount=1)
 			my_server.zincrby(bucket_type, bucket_name, amount=1)
 			my_server.lpush(choices_key,vari_type)
 			my_server.expire(choices_key,ONE_MONTH)
 
-	elif bucket_type == "ab_veri_click":
+	elif bucket_type == "veri_click":
 		my_server.zincrby(bucket_type, user_id, amount=1)
-		latest_choice = my_server.lindex('vari_choices:'+str(user_id),0)
-		choices_key = 'veri_choices:'+str(user_id)
+		latest_choice = my_server.lindex('varichoices:'+str(user_id),0)
+		choices_key = 'verichoices:'+str(user_id)
 		my_server.lpush(choices_key,latest_choice)
 		my_server.expire(choices_key,ONE_MONTH)
 
-	elif bucket_type == "ab_verif_done":
+	elif bucket_type == "verif_done":
 		my_server.zincrby(bucket_type, user_id, amount=1)
 
 
@@ -2490,11 +2490,11 @@ def retrieve_ab_test_records():
 	Retreives records of the tutorial ab test, useful for exporting to a CSV
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	tested_user_ids = my_server.zrange('ab_test_init',0,-1,withscores=True)
+	tested_user_ids = my_server.zrange('test_init',0,-1,withscores=True)
 	only_ids = [user_id for user_id, opt in tested_user_ids]
 	opt_key_names = []
 	for user_id in only_ids:
-		opt_key_names.append('opt_order:'+user_id)
+		opt_key_names.append('optorder:'+user_id)
 	opt_order_data = my_server.mget(*opt_key_names)
 	
 	#####################################################
@@ -2516,10 +2516,10 @@ def retrieve_ab_test_records():
 
 	#####################################################
 
-	user_id_and_times_1on1 = dict(my_server.zrange('1on1_bucket', 0, -1, withscores=True))# gives the column 'num_1on1_selected'
-	user_id_and_times_fame = dict(my_server.zrange('fame_bucket', 0, -1, withscores=True))# gives the column 'num_fame_selected'
-	user_id_and_times_cont = dict(my_server.zrange('cont_bucket', 0, -1, withscores=True))# gives the column 'num_cont_selected'
-	user_id_and_times_exit = dict(my_server.zrange('exit_bucket', 0, -1, withscores=True))# gives the column 'num_exit_selected'
+	user_id_and_times_1on1 = dict(my_server.zrange('1on1_buck', 0, -1, withscores=True))# gives the column 'num_1on1_selected'
+	user_id_and_times_fame = dict(my_server.zrange('fame_buck', 0, -1, withscores=True))# gives the column 'num_fame_selected'
+	user_id_and_times_cont = dict(my_server.zrange('cont_buck', 0, -1, withscores=True))# gives the column 'num_cont_selected'
+	user_id_and_times_exit = dict(my_server.zrange('exit_buck', 0, -1, withscores=True))# gives the column 'num_exit_selected'
 
 	#####################################################
 
@@ -2541,7 +2541,7 @@ def retrieve_ab_test_records():
 
 	pipeline1 = my_server.pipeline()
 	for user_id in insider_ids:
-		pipeline1.zscore('ab_veri_click',user_id)
+		pipeline1.zscore('veri_click',user_id)
 	result1, counter = pipeline1.execute(), 0
 
 	for user_id in insider_ids:
@@ -2551,7 +2551,7 @@ def retrieve_ab_test_records():
 
 	pipeline2 = my_server.pipeline()
 	for user_id in outsider_ids:
-		pipeline2.zscore('ab_veri_click',user_id)
+		pipeline2.zscore('veri_click',user_id)
 	result2, counter = pipeline2.execute(), 0
 
 	for user_id in outsider_ids:
@@ -2565,7 +2565,7 @@ def retrieve_ab_test_records():
 
 	pipeline3 = my_server.pipeline()
 	for user_id in insider_ids:
-		pipeline3.lrange('veri_choices:'+user_id,0,-1)
+		pipeline3.lrange('verichoices:'+user_id,0,-1)
 	result3, counter = pipeline3.execute(), 0
 
 	for user_id in insider_ids:
@@ -2580,10 +2580,10 @@ def retrieve_ab_test_records():
 	pipeline4 = my_server.pipeline()
 
 	for user_id in insider_ids:
-		pipeline4.zscore('ab_verif_done',user_id)
+		pipeline4.zscore('verif_done',user_id)
 
 	for user_id in outsider_ids:
-		pipeline4.zscore('ab_verif_done',user_id)
+		pipeline4.zscore('verif_done',user_id)
 
 	result4, counter = pipeline4.execute(), 0
 
@@ -2603,7 +2603,7 @@ def retrieve_ab_test_records():
 
 	pipeline5 = my_server.pipeline()
 	for user_id in insider_ids:
-		pipeline5.lrange('vari_choices:'+user_id,0,-1)# gives the column 'selection_string'
+		pipeline5.lrange('varichoices:'+user_id,0,-1)# gives the column 'selection_string'
 	result5, counter = pipeline5.execute(), 0
 		
 	for user_id in insider_ids:
@@ -2627,21 +2627,21 @@ def retrieve_ab_test_records():
 
 """
 User lands on 1st time choice, they:
-- create a sorted set called 'ab_test_init' which contains user_ids and score between [0,1] (0 means original, 1 means new funnel)
-- create a key (with expiry) called 'opt_order:<user_id>' that stores what ordering they are to be shown in the 3 onboarding options
+- create a sorted set called 'test_init' which contains user_ids and score between [0,1] (0 means original, 1 means new funnel)
+- create a key (with expiry) called 'optorder:<user_id>' that stores what ordering they are to be shown in the 3 onboarding options
 
 User selects the new funnel, and is shown 3 diff options
 - User selects an option from the 3 given options:
- -- create a sorted set called 'fame_bucket', '1on1_bucket', 'cont_bucket' or 'exit_bucket' (depending on what user selected). Add user_id, with +1 to score. If same user_id shows up in multiple sorted sets, it means the user tried all those options
+ -- create a sorted set called 'fame_buck', '1on1_buck', 'cont_buck' or 'exit_buck' (depending on what user selected). Add user_id, with +1 to score. If same user_id shows up in multiple sorted sets, it means the user tried all those options
  -- create a sorted set called 'ab_vari_init', that contains the 3 types above as values, and cumulative increments as the score.
- -- create a list (with expiry) called 'vari_choices:<user_id>' that contains all the individual options (from the 3 options) a user selected one by one (via perhaps using the 'back' button)
+ -- create a list (with expiry) called 'varichoices:<user_id>' that contains all the individual options (from the 3 options) a user selected one by one (via perhaps using the 'back' button)
 
 User clicks the verification button (either from the tut pop-up, or somewhere else)
-- create a sorted set called 'ab_veri_click' which contains user_ids and score that counts how many times the user pressed the verify button
-- create a list (with expiry) called 'veri_choices:<user_id>' that contains the latest option a user had selected right before pressing 'verify'
+- create a sorted set called 'veri_click' which contains user_ids and score that counts how many times the user pressed the verify button
+- create a list (with expiry) called 'verichoices:<user_id>' that contains the latest option a user had selected right before pressing 'verify'
 
 User successfully verifies
-- created a sorted set called 'ab_verif_done' which contains user_ids and a score corresponding to the number of times the user keeps hitting the 'verified successfully' page
+- created a sorted set called 'verif_done' which contains user_ids and a score corresponding to the number of times the user keeps hitting the 'verified successfully' page
 
 Reporting:
 

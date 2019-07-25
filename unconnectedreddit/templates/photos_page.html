@@ -88,7 +88,7 @@
 		{% if newbie_flag %}
 		
 			<div class="mbl mts">
-			{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin=page_origin %}
+			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin %}
 			</div>
 		
 		{% else %}

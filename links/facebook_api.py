@@ -15,7 +15,7 @@ def photo_poster(image_obj, owner_username, photo_id):
     "page_id"      : PAGE_ID,  # Step 1
     "access_token" : ACCESS_TOKEN   # Step 3
     }
-  caption = 'Image by Damadam user "{}". View the best images trending in Pakistan right now at: https//damadam.pk/photo/best-list/'.format(owner_username)
+  caption = 'Image by Damadam user "{}". View the best images trending in Pakistan right now at: https://damadam.pk/photo/best-list/'.format(owner_username)
   api = get_api(cfg)
   status = api.put_photo(image=(image_obj),message=caption)
 

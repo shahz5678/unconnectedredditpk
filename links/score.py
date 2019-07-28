@@ -4,6 +4,7 @@ MAX_HOME_SUBMISSION_SIZE = 750
 MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
 MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
+THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
 ###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads

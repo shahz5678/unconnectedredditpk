@@ -137,7 +137,7 @@
 
 						<section class="mbl" style="display:block">
 						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% big_vote_button vote_type='vote' obid=submission.i origin='22' net_votes=submission.nv base_color='rgb(24, 180, 136)' ooid=submission.si static_url=STATIC_URL topic=topic_url visible=ident %}
+						{% if ident != submission.si %}{% big_vote_button is_pht='0' obid=submission.i origin='22' ooid=submission.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL topic=topic_url %}{% endif %}
 						{% big_fan_button own_user_id=ident target_user_id=submission.si object_id=submission.i origin='22' home_hash=submission.h fan_list=fanned static_url=STATIC_URL topic=topic_url %}
 						{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
 						{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL %}

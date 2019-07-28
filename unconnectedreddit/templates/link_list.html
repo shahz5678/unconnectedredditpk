@@ -45,24 +45,10 @@
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
 </div>
 
-
 {% for link in link_list %}
 
-{% if forloop.counter == 4 %}
+{% if not on_fbs and forloop.counter == 2 %}
 
-	{% if mobile_verified %}
-	<div class="cxl clb lsp sp mbl" style="text-align:center;background:#fff169;padding:10px;border-radius:12px">
-		<div class="mts mbs">
-			<img src="{{ STATIC_URL }}img/up.svg" style="width:30px;height:30px" class="mrs"><img class="mls" src="{{ STATIC_URL }}img/down.svg" style="width:30px;height:30px">
-		</div>
-		<div class="mbl" style="font-weight:bold">Thumbs up aur thumbs down buttons change honay waley hain!</div>
-		<a href="{% url 'coming_soon' %}"><button class="mbs cs sp bcb pg_ok_res" style="color:white;width:90%;height:45px;border:1px solid #accbaf;border-radius:5px"><b>Mazeed Malumaat</b></button></a>
-	</div>
-	{% endif %}
-
-{% elif not on_fbs %}
-
-	{% if forloop.counter == 2 %}
 	<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
 		<ins class="adsbygoogle"
 		    style="display:inline-block;width:320px;height:100px"
@@ -72,7 +58,6 @@
 		(adsbygoogle = window.adsbygoogle || []).push({});
 		</script>
 	</aside>
-	{% endif %}
 
 {% endif %}
 
@@ -87,7 +72,7 @@
 
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-		{% big_vote_button vote_type='photo_vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
+		{% if ident|stringformat:"i" != link.si|stringformat:"i" %}{% big_vote_button is_pht='1' obid=link.i origin='3' ooid=link.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL %}{% endif %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
@@ -114,7 +99,8 @@
 		</section>
 		<section class="mbl" style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-		{% big_vote_button vote_type='vote' obid=link.i origin='3' net_votes=link.nv base_color='rgb(24, 180, 136)' ooid=link.si static_url=STATIC_URL %}
+
+		{% if ident|stringformat:"i" != link.si|stringformat:"i" %}{% big_vote_button is_pht='0' obid=link.i origin='3' ooid=link.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL %}{% endif %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}

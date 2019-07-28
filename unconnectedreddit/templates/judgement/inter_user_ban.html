@@ -30,7 +30,7 @@
 
 	<div class="cxl lsp" style="text-align:center"><span class="ct">{{ target_username|truncatechars:15 }}</span> ko kitney time ke liye block karna hai?</div>
 	<hr size=1 COLOR="#e5e7e9">
-	<div class="sp lsp mts mbl"><span class="ct">{{ target_username|truncatechars:15 }}</span> kisi aur user ki post, foto ya mehfils mein ap se phir bhi bat kar sakey ga. Ap dono aik doosre ko vote bhi de sakein ge&nbsp;<form method="POST" action="{% url 'user_ban_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="orig" value="{{ orig }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="lid" value="{{ lid }}"><button name="tunm" class="cb cxs sp" type="submit" style="padding:0;background:0 0;border:none;border-bottom:1px dotted blue;border-radius:0" value="{{ target_username }}">(help)</button></form></div>
+	<div class="sp lsp mts mbl"><span class="ct">{{ target_username|truncatechars:15 }}</span> kisi aur user ki post, foto ya mehfils mein ap se phir bhi bat kar sakey ga. Ap dono aik doosre ko likes bhi de sakein ge&nbsp;<form method="POST" action="{% url 'user_ban_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="orig" value="{{ orig }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="lid" value="{{ lid }}"><button name="tunm" class="cb cxs sp" type="submit" style="padding:0;background:0 0;border:none;border-bottom:1px dotted blue;border-radius:0" value="{{ target_username }}">(help)</button></form></div>
 
 	<form action="{% url 'enter_inter_user_ban' %}" style="text-align:center" method="POST">
 	{% csrf_token %}

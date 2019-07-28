@@ -405,14 +405,16 @@ def log_action(user_id, action_categ, action_sub_categ, action_liq, time_of_acti
 	hours_since_start_of_segment = int((time_of_action - SEGMENT_STARTING_TIME)/3600.0)
 	log_segment_action(user_id, hours_since_start_of_segment, action_categ, action_sub_categ, action_liq, time_of_action)
 
-# @celery_app1.task(name='tasks.set_section_retention')
-# def set_section_retention(which_section, user_id):
-# 	"""
-# 	Logs users for retention calculation of various sections of the app
 
-# 	Sections include 'private_mehfil', 'public_mehfil', 'private_chat' currently
+# @celery_app1.task(name='tasks.set_section_retention')
+# def set_section_retention(which_exp, user_id):
 # 	"""
-# 	set_section_wise_retention(which_section, user_id)
+# 	Logs users for retention calculation of various cohorts
+
+# 	'which_exp' is the name of an experiment currently under progress
+# 	"""
+# 	set_section_wise_retention(which_exp, user_id)
+
 
 @celery_app1.task(name='tasks.set_user_age')
 def set_user_age(user_id):
@@ -867,14 +869,14 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 	Current criteria requires the top most obj to have the highest cumulative_vote_score but with at least one downvote
 	"""
 	obj_list = retrieve_obj_scores(obj_hash_names, with_votes=True)
-	only_downvoted = []
-	for obj_hash, score, downvotes, upvotes, netvotes in obj_list:
-		# ensure that the post is downvoted, but has a positive cumulative score and positive upvotes
-		if downvotes > 0 and score > 0 and netvotes > 0:
-			only_downvoted.append((obj_hash, score))
-	if only_downvoted:
-		only_downvoted.sort(key=itemgetter(1),reverse=True)
-		trending_item_hash_name = only_downvoted[0][0]
+	only_liked = []
+	for obj_hash, score, upvotes, netvotes in obj_list:
+		# ensure that the post is liked
+		if score > 0 and netvotes > 0:
+			only_liked.append((obj_hash, score))
+	if only_liked:
+		only_liked.sort(key=itemgetter(1),reverse=True)
+		trending_item_hash_name = only_liked[0][0]
 		if with_score:
 			return trending_item_hash_name, with_score
 		else:
@@ -1108,129 +1110,45 @@ def cache_voting_history(user_id, page_num, json_data):
 
 
 @celery_app1.task(name='tasks.vote_tasks')
-def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_name,revert_prev,is_pht,time_of_vote):
+def vote_tasks(own_id,target_user_id,target_obj_id,own_name,revert_prev,is_pht,time_of_vote):
 	"""
 	Processes vote on a post by a user
 
-	Handles both textual or photo voting
+	Handles both textual or photo voting, both like and like-reversion
 	"""
-	target_userprofile_score = UserProfile.objects.only('score').get(user_id=target_user_id).score
-	old_net_votes = Photo.objects.only('vote_score').get(id=target_obj_id).vote_score if is_pht == '1' \
-	else Link.objects.only('net_votes').get(id=target_obj_id).net_votes
-	#simply hellban the user in case their score is too low, and that's all
-	if target_userprofile_score < -25:
-		if not HellBanList.objects.filter(condemned_id=target_user_id).exists(): #only insert user in hell-ban list if she isn't there already
-			HellBanList.objects.create(condemned_id=target_user_id) #adding user to hell-ban list
-			UserProfile.objects.filter(user_id=target_user_id).update(score=random.randint(10,71))
-	# elif target_userprofile_score > 0:
-	else:
-		if vote_value == '1':
-			# is an upvote
-			if revert_prev:
-				world_age_discount_multiplier, affinity_discount_multiplier = 1, 1# these values don't matter since discounts aren't used at all in reverting
-			else:
-				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
-				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
-				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
-				##############################################################################
-				######################## Vote Discount logger ################################
-				##############################################################################
-				if vote_affinity_discount == 1:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='discounted',item_type='photo')
-					else:
-						log_vote_disc(vote_type='discounted',item_type='text')
-				else:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='regular',item_type='photo')
-					else:
-						log_vote_disc(vote_type='regular',item_type='text')
-				##############################################################################
-				##############################################################################
-				##############################################################################
-				affinity_discount_multiplier = (1-vote_affinity_discount)
-
-			net_votes = old_net_votes + 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote,\
-				target_user_id, world_age_discount_multiplier, affinity_discount_multiplier)
-			if added:
-				# vote added
-				if is_pht == '1':
-					# is a photo object
-					# UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+UPVOTE)
-					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
-					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
-					if revert_prev:
-						# it's a reversion of a downvote - do nothing
-						pass
-					else:
-						# it's a genuine upvote - not just a reversion of the previous step
-						is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-						if is_super_defender:
-							queue_obj_into_trending(prefix='img:',obj_owner_id=target_user_id,obj_id=target_obj_id,picked_by_id=own_id)
-				else:
-					# is a link object
-					# UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE)
-					Link.objects.filter(id=target_obj_id).update(net_votes=net_votes)
-			else:
-				# vote not added, do nothing
-				pass
-		elif vote_value == '0':
-			# is a downvote
-			if revert_prev:
-				world_age_discount_multiplier, affinity_discount_multiplier = 1, 1
-			else:
-				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
-				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
-				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
-				##############################################################################
-				######################## Vote Discount logger ################################
-				##############################################################################
-				if vote_affinity_discount == 1:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='discounted',item_type='photo', downvote=True)
-					else:
-						log_vote_disc(vote_type='discounted',item_type='text', downvote=True)
-				else:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='regular',item_type='photo', downvote=True)
-					else:
-						log_vote_disc(vote_type='regular',item_type='text', downvote=True)
-				##############################################################################
-				##############################################################################
-				##############################################################################
-				affinity_discount_multiplier = (1-vote_affinity_discount)
-			
-			net_votes = old_net_votes - 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht, time_of_vote,\
-				target_user_id, world_age_discount_multiplier, affinity_discount_multiplier)
-			if added:
-				# vote added
-				if is_pht == '1':
-					# is a photo object
-					# UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+DOWNVOTE)
-					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
-					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
-					is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-					if revert_prev:
-						# it's the reversion of an upvote - we have no confidence in this pic
-						if is_super_defender:
-							remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
-					else:
-						# it's a genuine downvote - not just a reversion of the previous step
-						if is_super_defender:
-							remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
-				else:
-					# is a link object
-					# UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+DOWNVOTE)
-					Link.objects.filter(id=target_obj_id).update(net_votes=net_votes)
-			else:
-				# vote not added, do nothing
-				pass
+	if revert_prev:
+		# undo a previous 'like'
+		world_age_discount_multiplier, affinity_discount_multiplier = 1, 1# these values don't matter since discounts aren't used at all in reverting
+		new_net_votes = record_vote(obj_id=target_obj_id,username=own_name, own_id=own_id, revert_prev=True, target_user_id=target_user_id,\
+			world_age_discount=world_age_discount_multiplier, is_pht=is_pht,time_of_vote=time_of_vote,affinity_discount=affinity_discount_multiplier)
+		if new_net_votes >= 0:
+			if is_pht == '1':
+				update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+				# if it's a 'like' by a super-defender, handpick the object
+				is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+				if is_super_defender:
+					remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
 		else:
-			# neither an upvote nor a downvote, do nothing
+			# vote not added, do nothing
+			pass
+	else:
+		# cast a simple 'like' vote
+		# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
+		world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
+		affinity_discount_multiplier = (1-retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type='1'))
+		new_net_votes = record_vote(obj_id=target_obj_id,username=own_name, own_id=own_id,revert_prev=False, is_pht=is_pht, \
+			target_user_id=target_user_id, world_age_discount=world_age_discount_multiplier,time_of_vote=time_of_vote,\
+			affinity_discount=affinity_discount_multiplier)
+		if new_net_votes >= 0:
+			if is_pht == '1':
+				# is a photo object
+				update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+				# if it's a 'like' by a super-defender, handpick the object
+				is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+				if is_super_defender:
+					queue_obj_into_trending(prefix='img:',obj_owner_id=target_user_id,obj_id=target_obj_id,picked_by_id=own_id)
+		else:
+			# vote not added, do nothing
 			pass
 
 

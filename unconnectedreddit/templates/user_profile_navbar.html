@@ -1,65 +1,25 @@
-{% if is_own_profile %}
-	{% if section == 'fotos' %}
+{% if section == 'fotos' %}
 
-		<div class="mbl fx fxjscn fxaicn">
-			<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#1edea8;font-weight:bold;background:white;border:1px solid #1edea8;">{% include 'svg/foto_img.html' with width=15 height=15 color='#1edea8' %}<div class="mts">FOTOS</div></button>
-			<a href="{% url 'user_activity' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
-			<a href="{% url 'user_vote_history' 'upvote' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/arrows-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">VOTING</div></button></a>
-		</div>
+	<div class="mbl fx fxjscn fxaicn">
+		<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#1edea8;font-weight:bold;background:white;border:1px solid #1edea8;">{% include 'svg/foto_img.html' with width=15 height=15 color='#1edea8' %}<div class="mts">FOTOS</div></button>
+		<a href="{% url 'user_activity' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
+	</div>
 
-	{% elif section == 'profile' %}
+{% elif section == 'profile' %}
 
-		<div class="mbl fx fxjscn fxaicn">
-			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#1edea8;font-weight:bold"><img src="{{ static_url }}img/user-ct.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button>
-			<a href="{% url 'profile' uname 'fotos' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;">{% include 'svg/foto_img.html' with width=15 height=15 color='#a9a9a9' %}<div class="mts">FOTOS</div></button></a>
-			<a href="{% url 'user_activity' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
-			<a href="{% url 'user_vote_history' 'upvote' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/arrows-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">VOTING</div></button></a>
-		</div>
+	<div class="mbl fx fxjscn fxaicn">
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#1edea8;font-weight:bold"><img src="{{ static_url }}img/user-ct.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button>
+		<a href="{% url 'profile' uname 'fotos' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;">{% include 'svg/foto_img.html' with width=15 height=15 color='#a9a9a9' %}<div class="mts">FOTOS</div></button></a>
+		<a href="{% url 'user_activity' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
+	</div>
 
-	{% elif section == 'posts' %}
+{% elif section == 'posts' %}
 
-		<div class="mbl fx fxjscn fxaicn">
-			<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-			<a href="{% url 'profile' uname 'fotos' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;">{% include 'svg/foto_img.html' with width=15 height=15 color='#a9a9a9' %}<div class="mts">FOTOS</div></button></a>
-			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:0;color:#1edea8;font-weight:bold;background:white"><img src="{{ static_url }}img/posts.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button>
-			<a href="{% url 'user_vote_history' 'upvote' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/arrows-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">VOTING</div></button></a>
-		</div>
+	<div class="mbl fx fxjscn fxaicn">
+		<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
+		<a href="{% url 'profile' uname 'fotos' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;">{% include 'svg/foto_img.html' with width=15 height=15 color='#a9a9a9' %}<div class="mts">FOTOS</div></button></a>
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:white"><img src="{{ static_url }}img/posts.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button>
+	</div>
 
-	{% elif section == 'voting' %}
-
-		<div class="mbl fx fxjscn fxaicn">
-			<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-			<a href="{% url 'profile' uname 'fotos' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;">{% include 'svg/foto_img.html' with width=15 height=15 color='#a9a9a9' %}<div class="mts">FOTOS</div></button></a>
-			<a href="{% url 'user_activity' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
-			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:white"><img src="{{ static_url }}img/arrows.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">VOTING</div></button>
-		</div>
-
-	{% endif %}
-{% else %}
-	{% if section == 'fotos' %}
-
-		<div class="mbl fx fxjscn fxaicn">
-			<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#1edea8;font-weight:bold;background:white;border:1px solid #1edea8;">{% include 'svg/foto_img.html' with width=15 height=15 color='#1edea8' %}<div class="mts">FOTOS</div></button>
-			<a href="{% url 'user_activity' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
-		</div>
-
-	{% elif section == 'profile' %}
-
-		<div class="mbl fx fxjscn fxaicn">
-			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#1edea8;font-weight:bold"><img src="{{ static_url }}img/user-ct.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button>
-			<a href="{% url 'profile' uname 'fotos' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;">{% include 'svg/foto_img.html' with width=15 height=15 color='#a9a9a9' %}<div class="mts">FOTOS</div></button></a>
-			<a href="{% url 'user_activity' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
-		</div>
-
-	{% elif section == 'posts' %}
-
-		<div class="mbl fx fxjscn fxaicn">
-			<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-			<a href="{% url 'profile' uname 'fotos' %}"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;">{% include 'svg/foto_img.html' with width=15 height=15 color='#a9a9a9' %}<div class="mts">FOTOS</div></button></a>
-			<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:white"><img src="{{ static_url }}img/posts.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">TEXT</div></button>
-		</div>
-
-	{% endif %}
 {% endif %}

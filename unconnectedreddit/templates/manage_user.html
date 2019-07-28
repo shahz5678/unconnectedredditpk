@@ -36,7 +36,7 @@
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="revsyb" class="btn bct cs bxs mll">?</button></form><br>
 <!-- View likes history -->
-<form method="GET" action="{% url 'vote_history_admin_view' target_id 'upvote' %}" style="display:inline"><button type="submit" class="vt btn bxl mtl" style="color:teal;height:38px;border:1px solid teal">Check Likes</button></form>&nbsp;
+<form method="GET" action="{% url 'vote_history_admin_view' target_id %}" style="display:inline"><button type="submit" class="vt btn bxl mtl" style="color:teal;height:38px;border:1px solid teal">Check Likes</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="vhist" class="btn bct cs bxs mll">?</button></form><br><br>
 <!-- Nevermind -->

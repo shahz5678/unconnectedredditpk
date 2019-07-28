@@ -1080,8 +1080,11 @@ def is_fan(photo_owner_id, fan_id):
 def bulk_is_fan(star_id_list, fan_id):
 	"""
 	Determines all the ids a user is a fan of (from a given list of stars)
+
+	Answers the question: Is fan_id actually a fan of anyone among the star_id_list?
 	"""
 	my_server, stars = redis.Redis(connection_pool=POOL), []
+	##################################
 	if len(star_id_list) > 0:
 		pipeline1 = my_server.pipeline()
 		for star_id in star_id_list:
@@ -1092,6 +1095,7 @@ def bulk_is_fan(star_id_list, fan_id):
 			if result1[counter]:
 				stars.append(star_id)
 			counter += 1
+	##################################
 	elif star_id_list:
 		for star_id in star_id_list:
 			key = "f:"+star_id

@@ -4,6 +4,7 @@ from random import random
 import json as json_backup
 from operator import itemgetter
 from multiprocessing import Pool
+from django.db.models import F
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
@@ -13,8 +14,8 @@ from redis3 import retrieve_user_world_age, exact_date
 from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
 from colors import COLOR_GRADIENTS
+from models import Photo, Link
 from location import REDLOC7
-from models import Photo
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
 
@@ -25,6 +26,7 @@ TWO_WEEKS = 2*7*24*60*60
 ONE_WEEK = 7*24*60*60
 FOUR_DAYS = 4*24*60*60
 THREE_DAYS = 3*24*60*60
+TWO_DAYS = 2*24*60*60
 ONE_DAY = 24*60*60
 TWELVE_HOURS = 12*60*60
 SIX_HOURS = 6*60*60
@@ -333,7 +335,7 @@ def retrieve_obj_scores(obj_list, with_votes=False):
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	if with_votes:
 		for obj_hash in obj_list:
-			pipeline1.hmget(obj_hash,'cvs','dv','uv','nv')
+			pipeline1.hmget(obj_hash,'cvs','uv','nv')
 		cumulative_vote_scores, counter, final_result = pipeline1.execute(), 0, []
 		for obj_hash in obj_list:
 
@@ -342,18 +344,15 @@ def retrieve_obj_scores(obj_list, with_votes=False):
 				score = cumulative_vote_scores[counter][0]
 				score = float(score) if score else 0
 
-				downvotes = cumulative_vote_scores[counter][1]
-				downvotes = int(downvotes) if downvotes else 0
-
-				upvotes = cumulative_vote_scores[counter][2]
+				upvotes = cumulative_vote_scores[counter][1]
 				upvotes = int(upvotes) if upvotes else 0
 
-				netvotes = cumulative_vote_scores[counter][3]
+				netvotes = cumulative_vote_scores[counter][2]
 				netvotes = int(netvotes) if netvotes else 0
 
-				final_result.append((obj_hash, score, downvotes, upvotes, netvotes))
+				final_result.append((obj_hash, score, upvotes, netvotes))
 			else:
-				final_result.append((obj_hash, 0, 0, 0, 0))
+				final_result.append((obj_hash, 0, 0, 0))
 			counter += 1
 		return final_result
 	else:
@@ -412,7 +411,7 @@ def voted_for_link(link_id, voter_id):
 
 def can_vote_on_obj(voter_id, is_pht):
 	"""
-	Vote blocking algorithm that cools down with time
+	Vote rate-limiting algorithm that cools down with time
 
 	Used in 'cast_vote' to check whether potential voter is eligible to vote
 	Works for both textual and image objects
@@ -621,126 +620,6 @@ def distribute_reputation_to_voters(photo_id, photo_owner_id):
 			# my_server.zrangebyscore(NEW_KEY+voter_id,time_of_vote,time_of_vote)
 
 
-		# # step 1: separate normal, target's sybils and general sybils (alongwith 'sybil strength')
-		# # Isolating direct sybils
-		# direct_sybil_ids, not_sybil_ids = are_users_specific_sybils(user_ids=all_upvoters, target_user_id=photo_owner_id)
-		# # Filtering non-sybils into 'generic sybils' and 'non-sybils' (but ignoring general sybils who're already marked as direct sybils)
-		# general_sybil_ids, general_sybil_strength, non_partisan_ids = are_users_general_sybils(user_ids=not_sybil_ids)
-		
-		# # step 2: log voter stats accordingly (reputation to be based on this later)
-		# log_voter_statistics(direct_sybils=direct_sybil_ids,general_sybils=general_sybil_ids,non_partisans=non_partisan_ids, \
-		# 	general_sybil_strength=general_sybil_strength, target_user_id=photo_owner_id, target_obj_id=photo_id, \
-		# 	all_voters=all_upvoters)
-
-
-# TODO: experimental general approach of how to calc voter rep. Use something like this, not necessarily this
-"""
-We scan recent voters
-We calculate their rep
-We destroy all saved data from users' sets to keep things nice and tight
-"""
-# def calc_voter_reputation():
-# 	"""
-# 	Run periodically, updates reputation statistics for voters
-
-# 	These stats can later be used to highlight 'good' items
-# 	Two kinds of reps are calculated:
-# 	- Long term: Effective in unearthing the best content
-# 	- Short term: Effective in quickly nerfing the voter if they go rogue
-# 	"""
-# 	# isolate all voters within the past 3 hours:
-# 	three_hours_ago, voter_ids = time.time()-THREE_HOURS, []
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	votes_in_prev_three_hrs = my_server.zrange(GLOBAL_VOTES_AND_TIMES,three_hours_ago,'+inf')# this is a global set containing all votes
-# 	for vote_obj in votes_in_prev_three_hrs:
-# 		voter_ids.append(vote_obj.split(":",1)[0])# isolating voter IDs
-# 	voting_data_of_interest = {}
-# 	pipeline1 = my_server.pipeline()
-# 	for voter_id in voter_ids:
-# 		pipeline1.zrange(VOTING_ACTION_STATS_IDX+voter_id,0,-1)# retrieving all voting objects of isolated voter IDs
-# 	result1, counter = pipeline1.execute(), 0
-# 	for voter_id in voter_ids:
-# 		vote_objects = result1[counter]# this contains the vote data for a given voter's vote. 'data' is payload on line 2364
-# 		for vote_object in vote_objects:
-# 			sybil_status, num_sybils, wa_discount, total_votes_in_past_one_month, was_handpicked = \
-# 			my_server.hmget(vote_object,'ss','num_sybs','wad','tv','hp')# TODO: can this be a json object instead of hash, for performance
-# 			if was_handpicked:
-# 				if sybil_status == '0':
-# 					# non-partisan voter
-# 					if wa_discount < 1 and total_votes_in_past_one_month < 50:
-# 						# relatively new user, discount
-# 						rep = REP_UPTICK_FOR_GETTING_HANDPICKED*wa_discount*(total_votes_in_past_one_month/100.0)# TODO: this is arbit - please tweak!
-# 					elif wa_discount == 1:
-# 						if total_votes_in_past_one_month < 50:
-# 							rep = REP_UPTICK_FOR_GETTING_HANDPICKED*(total_votes_in_past_one_month/75.0)# TODO: this is arbit - please tweak!
-# 						else:
-# 							rep = REP_UPTICK_FOR_GETTING_HANDPICKED
-# 				elif sybil_status == '2':
-# 					# direct sybil
-# 					rep = -REP_DOWNTICK_FOR_BEING_A_DIRECT_SYBIL
-# 				elif sybil_status == '1':
-# 					# general sybil
-# 					rep = -REP_DISCOUNT_MULTIPLIER_FOR_BEING_A_GENERAL_SYBIL*int(num_sybils)
-# 			else:
-# 				# this image was not handpicked
-# 				if sybil_status == '0':
-# 					# non-partisan voter is given a 0 on this 'wasted' vote
-# 					rep = 0 # give 0 rep
-# 				elif sybil_status == '2':
-# 					# direct sybil voter
-# 					rep = -REP_DOWNTICK_FOR_BEING_A_DIRECT_SYBIL
-# 				elif sybil_status == '1':
-# 					# general sybil
-# 					rep = -REP_DISCOUNT_MULTIPLIER_FOR_BEING_A_GENERAL_SYBIL*int(num_sybils)
-# 			my_server.zadd(VOTER_VOTE_REP+voter_id,vote_object,rep)
-# 		counter += 1
-
-# 	# clean-up now, since voting stats have been calculated
-# 	counter = 0
-# 	pipeline2 = my_server.pipeline()
-# 	for voter_id in voter_ids:
-# 		vote_objects = result1[counter]
-# 		for vote_object in vote_objects:
-# 			pipeline2.execute_command('UNLINK', vote_object)# removing the hash object
-# 		pipeline2.zrem(VOTING_ACTION_STATS_IDX+voter_id, *vote_objects)# removing all 'studied' voting objects of isolated voter IDs (they're not redundant)
-# 		counter += 1
-# 	pipeline2.execute()
-# 	################################
-
-# 	# for each voter, we have a set called 'VOTER_VOTE_REP+voter_id' that contains the vote rep objects
-# 	# use this set to fill global sets called SHORT_TERM_VOTING_REP and LONG_TERM_VOTING_REP
-# 	for voter_id in voter_ids:
-# 		voter_lt_cumm_vote_score, voter_st_cumm_vote_score = 0, 0
-# 		vote_rep_objs_and_scores = my_server.zrange(VOTER_VOTE_REP+voter_id,0,-1,withscores=True)
-# 		num_votes = my_server.zcard(VOTER_VOTE_REP+voter_id)
-		
-# 		# Calculating the Short Term rep
-# 		counter = 0
-# 		for vote_obj, vote_rep_score in vote_rep_objs_and_scores:
-# 			voter_st_cumm_vote_score += vote_rep_score
-# 			if counter == 15:
-# 				break
-# 			counter += 1
-# 		voter_st_rep_statistic = voter_st_cumm_vote_score/(counter*1.0)
-# 		my_server.zadd(SHORT_TERM_VOTING_REP,voter_id,voter_st_rep_statistic)# will give early warning if user is going rogue
-		
-# 		# Calculating the Long Term rep
-# 		for vote_obj, vote_rep_score in vote_rep_objs_and_scores:
-# 			voter_lt_cumm_vote_score += vote_rep_score
-# 		voter_lt_rep_statistic = voter_lt_cumm_vote_score/(num_votes*1.0)
-# 		my_server.zadd(LONG_TERM_VOTING_REP,voter_id,voter_lt_rep_statistic)# given user isn't rogue, use this 'score' to grant rep to a voted item
-
-# 		# Since our calcs are done and dusted, how about we retire VOTER_VOTE_REP+voter_id?
-# 		# this might have ill effects - or not. Will need to test, if this approach is to be finalized
-# 		my_server.execute_command('UNLINK', VOTER_VOTE_REP+voter_id)
-
-# 	"""
-# 	TODO: Sort CSV by voter ID to see all upvotes by a voter. Give '-1' where voter is direct sybil, '+1' where non_partisan, and '-0.1' where general sybil
-# 	TODO: Would be really helpful if "fresh photos" were easily accessible from the navbar
-# 	TODO: Would be helpful if a quick "Saved!" prompt flashes at each vote
-# 	"""
-
-
 def retrieve_voting_reputation_records(start_idx=0, end_idx=-1):
 	"""
 	Retrieves voting records compiled to calculate voting reputation for voters
@@ -771,8 +650,8 @@ def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, wit
 		return voting_data
 
 
-def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, revert_prev, is_pht, time_of_vote, target_user_id, \
-	world_age_discount, affinity_discount):
+def record_vote(obj_id, username, own_id, revert_prev, is_pht, time_of_vote, target_user_id, world_age_discount, \
+	affinity_discount):
 	"""
 	Record a vote on textual or photo objects (used in 'cast_vote')
 	
@@ -794,67 +673,52 @@ def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, rev
 	obj_exists = my_server.exists(hash_name)#if redis obj exists, voting is still open (otherwise consider it closed)
 	if obj_exists:
 		if revert_prev:
-			# reverting an old vote
 			score_to_revert = my_server.zscore(vote_store,own_id)
-
-			my_server.zrem(vote_store,own_id)
-			my_server.hset(hash_name,'nv',net_votes)
-			if is_upvote == '1':
-				# this implies previous one was a downvote
-				vote_value = '1'
-				my_server.hincrby(hash_name,'dv',amount=-1)
-			else:
-				# this implies previous one was an upvote
-				vote_value = '0'
-				my_server.hincrby(hash_name,'uv',amount=-1)
 			if score_to_revert:
-				my_server.hincrbyfloat(hash_name,'cvs',amount=-score_to_revert)# the negative signs ensures the vote is 'negated' from 'cvs' (i.e. cumulative voting score)
-			if is_pinkstar:
-				# reduce one pv vote
-				my_server.hincrby(hash_name,'pv',amount=-1)
-			# reverting doesn't hit voting rate limits
-			
-			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
-				obj_type=obj_type, voting_time=time_of_vote, is_reversion=True, my_server=my_server)
-
-			return True
-		elif not my_server.exists(rate_limit_key):
-			# cast vote normally
-			vote_discount = world_age_discount*affinity_discount
-			my_server.hset(hash_name,'nv',net_votes)
-
-			if is_upvote == '1':
-				vote_value = '1'
-				my_server.hincrby(hash_name,'uv',amount=1)
-				if vote_discount:
-					if vote_discount == 1:
-						my_server.hincrbyfloat(hash_name,'cvs',amount=0.9999)# adding to 'cumulative vote score'
-						my_server.zadd(vote_store,own_id, 0.9999)
-					else:
-						my_server.hincrbyfloat(hash_name,'cvs',amount=vote_discount)# adding to 'cumulative vote score'
-						my_server.zadd(vote_store,own_id, vote_discount)
-				else:
-					my_server.hincrbyfloat(hash_name,'cvs',amount=0.0001)# a nominal value is given (useful for facilitating reversion, and small enough to not matter as 'score')
-					my_server.zadd(vote_store,own_id, 0.0001)
+				new_net_votes = my_server.hincrby(hash_name,'nv',amount=-1)#atomic
+				my_server.hincrby(hash_name,'uv',amount=-1)#atomic
+				my_server.hincrbyfloat(hash_name,'cvs',amount=-score_to_revert)#atomic
 			else:
-				# is a downvote
-				vote_value = '0'
-				my_server.hincrby(hash_name,'dv',amount=1)
-				if vote_discount:
-					if vote_discount == 1:
-						my_server.hincrbyfloat(hash_name,'cvs',amount=-0.9999)# subtracted from 'cumulative vote score'
-						my_server.zadd(vote_store,own_id, -0.9999)
-					else:
-						my_server.hincrbyfloat(hash_name,'cvs',amount=-vote_discount)# subtracted from 'cumulative vote score'
-						my_server.zadd(vote_store,own_id, -vote_discount)
+				new_net_votes = my_server.hincrby(hash_name,'nv',amount=-1)#atomic
+				my_server.hincrby(hash_name,'uv',amount=-1)#atomic
+			my_server.zrem(vote_store,own_id)
+			if is_pht == '1':
+				Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')-1)#atomic
+			else:
+				Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')-1)#atomic
+			add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
+				voting_time=time_of_vote, is_reversion=True, my_server=my_server)
+			return new_net_votes
+		elif not my_server.exists(rate_limit_key):
+			# 'like' normally
+			vote_discount = world_age_discount*affinity_discount
+			pipeline1 = my_server.pipeline()
+			if vote_discount:
+				if vote_discount == 1:
+					pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
+					pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
+					pipeline1.hincrbyfloat(hash_name,'cvs',amount=0.9999)#atomic
+					pipeline1.zadd(vote_store,own_id, 0.9999)
 				else:
-					my_server.hincrbyfloat(hash_name,'cvs',amount=-0.0001)# nominal value subtracted from 0 even if no discounting takes place - this is a quirk of vote_store's need to keep '-1' booked
-					my_server.zadd(vote_store,own_id, -0.0001)
-			if is_pinkstar:
-				my_server.hincrby(hash_name,'pv',amount=1)
+					pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
+					pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
+					pipeline1.hincrbyfloat(hash_name,'cvs',amount=vote_discount)#atomic
+					pipeline1.zadd(vote_store,own_id, vote_discount)
+			else:
+				pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
+				pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
+				pipeline1.hincrbyfloat(hash_name,'cvs',amount=0.0001)# a nominal value is given (useful for facilitating reversion, and small enough to not matter as 'score')
+				pipeline1.zadd(vote_store,own_id, 0.0001)
+			new_net_votes = pipeline1.execute()[0]
+			###############################################	
+			if is_pht == '1':
+				Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')+1)
+				vote_count_key = 'fpv:'+own_id
+			else:
+				Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')+1)
+				vote_count_key = 'fv:'+own_id
 			###############################################
 			# setting voting rate limit for those voting "too fast" (i.e. 3 times within 10 secs)
-			vote_count_key = 'fpv:'+own_id if is_pht=='1' else 'fv:'+own_id
 			is_set = my_server.setnx(vote_count_key,1)
 			if is_set:
 				# key didn't hitherto exist, now set its ttl
@@ -865,16 +729,15 @@ def record_vote(obj_id, net_votes, is_upvote, is_pinkstar, username, own_id, rev
 				if new_value > 2:
 					# this person has voted 3 times in 10 seconds, rate limit them for 9 seconds
 					my_server.setex(rate_limit_key,'1',NINE_SECS)
-			
-			add_user_vote(voter_id=own_id, vote_value=vote_value, target_user_id=target_user_id, target_obj_id=obj_id, \
-				obj_type=obj_type, voting_time=time_of_vote, is_reversion=False, world_age_discount=world_age_discount,\
-				my_server=my_server)
-			
-			return True
+					my_server.execute_command('UNLINK', vote_count_key)
+			###############################################
+			add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
+				voting_time=time_of_vote, is_reversion=False, world_age_discount=world_age_discount, my_server=my_server)
+			return new_net_votes
 		else:
-			return False
+			return -1
 	else:
-		return False
+		return -1
 
 
 #################################################### Updating image content objects ############################################
@@ -1904,6 +1767,32 @@ def is_obj_trending(prefix, obj_id, with_trending_time=False):
 	else:
 		pass
 
+####################################################################################################
+###################### Helper functions for guaging objects user has voted on ######################
+####################################################################################################
+
+
+def retrieve_last_vote_time(voter_id):
+	"""
+	Retrieves the last voting time of a given voter (if it exists)
+	"""
+	tup = redis.Redis(connection_pool=POOL).zrange(VOTER_UVOTES_AND_TIMES+str(voter_id),-1,-1,withscores=True)
+	return tup[0][1] if tup else 0
+
+
+def bulk_has_voted(obj_ids, voter_id, oldest_post_time):
+	"""
+	Answers the question: Which object IDs has the voter given an upvote to among the provided obj ids
+	
+	Useful for various feeds, such as home, topics and photos, assisting us in showing various states of the 'LIKE' button
+	"""
+	voter_upvote_objs = redis.Redis(connection_pool=POOL).zrangebyscore(VOTER_UVOTES_AND_TIMES+str(voter_id),oldest_post_time,'+inf')
+	# payload in voter_upvote_objs is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+	target_objs = set()
+	for voter_upvote_obj in voter_upvote_objs:
+		target_objs.add(voter_upvote_obj.split(":")[-1])#appending obj ID (as an int)
+	return obj_ids.intersection(target_objs)
+
 
 ####################################################################################################
 ################################# Bayesian voting calculations #####################################
@@ -2038,7 +1927,6 @@ def retrieve_voting_affinity(voter_id, target_user_id, vote_type):
 		my_server.expire(affinity_key,THREE_MONTHS)
 		bayes_prob = float(bayes_prob)
 		return apply_bayesian_voting_discount_policy(bayes_prob)
-
 
 
 def calculate_bayesian_affinity(suspected_affinity, voter_and_target_data):
@@ -2250,7 +2138,8 @@ def study_voting_preferences():
 	pipeline1.execute()
 
 
-def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, world_age_discount=None,\
+
+def add_user_vote(voter_id, target_user_id, target_obj_id, obj_type, voting_time, is_reversion, world_age_discount=None,\
 	my_server=None):
 	"""
 	Saves user's voting history
@@ -2263,114 +2152,85 @@ def add_user_vote(voter_id, vote_value, target_user_id, target_obj_id, obj_type,
 	
 	voter_id, target_obj_id, target_user_id = str(voter_id), str(target_obj_id), str(target_user_id)
 	voter_target_id = voter_id+":"+target_user_id
+	voter_target_key = ALL_UVOTES_TO_TGT_USER+voter_target_id
+	voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
+	obj_hash_name = obj_type+":"+target_obj_id
+	payload = voter_target_id+":1:"+obj_hash_name
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	if is_reversion:
-		# handling voting reversion
-		prev_vote_value = '0' if vote_value == '1' else '1'
-		if vote_value == '1':
-			prev_vote_value = '0'
-			voter_target_key = ALL_DVOTES_TO_TGT_USER+voter_target_id
-			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
-			affinity_key = DVOTER_AFFINITY
-			truncator_key = DVOTER_AFFINITY_TRUNCATOR
-			amnt = -1
-		else:
-			prev_vote_value = '1'
-			voter_target_key = ALL_UVOTES_TO_TGT_USER+voter_target_id
-			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
-			affinity_key = UVOTER_AFFINITY
-			truncator_key = UVOTER_AFFINITY_TRUNCATOR
-			amnt = -1
-		obj_hash_name = obj_type+":"+target_obj_id
-		payload = voter_target_id+":"+prev_vote_value+":"+obj_hash_name
+		# handling 'like' reversion
+		amnt = -1
 		my_server.zrem(voter_target_key, obj_hash_name)
 		my_server.zrem(voter_vote_key, payload)
 		my_server.zrem(GLOBAL_VOTES_AND_TIMES, payload)
 		###########################################################
-		# log the reversion separately
+		# log the reversion separately too
 		my_server.zadd(LATEST_REVERSION_TIMES,voter_target_id,voting_time)
 		###########################################################
 	else:
-		# handling votes
-		if vote_value == '1':
-			# upvote
-			voter_target_key = ALL_UVOTES_TO_TGT_USER+voter_target_id
-			voter_vote_key = VOTER_UVOTES_AND_TIMES+voter_id
-			affinity_key = UVOTER_AFFINITY
-			truncator_key = UVOTER_AFFINITY_TRUNCATOR
-			amnt = 1
-		else:
-			# downvote - to be deprecated
-			voter_target_key = ALL_DVOTES_TO_TGT_USER+voter_target_id
-			voter_vote_key = VOTER_DVOTES_AND_TIMES+voter_id
-			affinity_key = DVOTER_AFFINITY
-			truncator_key = DVOTER_AFFINITY_TRUNCATOR
-			amnt = 1
-		obj_hash_name = obj_type+":"+target_obj_id
-		payload = voter_target_id+":"+vote_value+":"+obj_hash_name
-		###########################################################
+		# handling 'likes'
+		amnt = 1
 		my_server.zadd(GLOBAL_VOTES_AND_TIMES, payload, voting_time)# for trimming
 		my_server.zadd(voter_vote_key, payload, voting_time)# for display to voter
 		my_server.zadd(voter_target_key, obj_hash_name, voting_time)# for Bayesian calculation
 		###########################################################
-	new_score = my_server.zincrby(affinity_key, voter_target_id, amount=amnt)# 'affinity_key' marks relationships where lots of votes have been given
+	new_score = my_server.zincrby(UVOTER_AFFINITY, voter_target_id, amount=amnt)# 'UVOTER_AFFINITY' separates out relationships where lots of likes have been given
 	if int(new_score) == 1:
 		# only update the time when the voting relationship is first created 
-		my_server.zadd(truncator_key, voter_target_id, voting_time)
+		my_server.zadd(UVOTER_AFFINITY_TRUNCATOR, voter_target_id, voting_time)
 	elif int(new_score) == 0:
 		# the voting relationship has ended, so just remove it from the truncator and affinity sorted sets
-		my_server.zrem(truncator_key, voter_target_id)
-		my_server.zrem(affinity_key, voter_target_id)
+		my_server.zrem(UVOTER_AFFINITY_TRUNCATOR, voter_target_id)
+		my_server.zrem(UVOTER_AFFINITY, voter_target_id)
 	#########################################################
 	#########################################################
 	#########################################################
 	
-	VOTING_ACTION_STATS = 'vas:'#a hash object containing payload on line 2364
-	VOTING_ACTION_STATS_IDX = 'vasidx:'# a sorted set containing the names of the hash objects calculated for each voter
+	# VOTING_ACTION_STATS = 'vas:'#a hash object containing payload on line 2364
+	# VOTING_ACTION_STATS_IDX = 'vasidx:'# a sorted set containing the names of the hash objects calculated for each voter
 
-	# TODO: Remove super defenders from these lists when we enter production, since their reputation is known, and doesn't need to be calculated
-	if is_reversion and vote_value == '0':
+	# # TODO: Remove super defenders from these lists when we enter production, since their reputation is known, and doesn't need to be calculated
+	# if is_reversion:
 
-		# revert the data logged for 'rep' calculation
-		key_name = VOTING_ACTION_STATS+voter_id+":"+target_obj_id
-		my_server.zrem(VOTING_ACTION_STATS_IDX+voter_id,key_name)
-		my_server.execute_command('UNLINK', key_name)
-		my_server.zrem(VOTER_REP_RAW_MATERIAL,key_name)
-	elif vote_value == '1':
+	# 	# revert the data logged for 'rep' calculation
+	# 	key_name = VOTING_ACTION_STATS+voter_id+":"+target_obj_id
+	# 	my_server.zrem(VOTING_ACTION_STATS_IDX+voter_id,key_name)
+	# 	my_server.execute_command('UNLINK', key_name)
+	# 	my_server.zrem(VOTER_REP_RAW_MATERIAL,key_name)
+	# else:
 
-		# just a regular upvote
-		total_votes = my_server.zcard(voter_vote_key)# cast in previous 1 month
-		bayes_prob = my_server.hget(VOTER_AFFINITY_HASH+voter_target_id,'p1')# the current probability of upvoting that exists between this pair
-		if bayes_prob and float(bayes_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
-			sybil_status = '2'# this voter is a direct sybil of the target user
-		else:
-			num_general_sybils = my_server.zcount(SYBIL_RELATIONSHIP_LOG,voter_id, voter_id)
-			sybil_status = '1' if num_general_sybils > 0 else '0'
-		#####################################################
-		# 'wad' and 'tv' are a measure of user experience
-		# 'ss' declares the sybil status of the user (toward the target)
+	# 	# just a regular upvote
+	# 	total_votes = my_server.zcard(voter_vote_key)# cast in previous 1 month
+	# 	bayes_prob = my_server.hget(VOTER_AFFINITY_HASH+voter_target_id,'p1')# the current probability of upvoting that exists between this pair
+	# 	if bayes_prob and float(bayes_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+	# 		sybil_status = '2'# this voter is a direct sybil of the target user
+	# 	else:
+	# 		num_general_sybils = my_server.zcount(SYBIL_RELATIONSHIP_LOG,voter_id, voter_id)
+	# 		sybil_status = '1' if num_general_sybils > 0 else '0'
+	# 	#####################################################
+	# 	# 'wad' and 'tv' are a measure of user experience
+	# 	# 'ss' declares the sybil status of the user (toward the target)
 
-		payload = {'vt':voting_time,'ss':sybil_status,'tuid':target_user_id, 'toid':target_obj_id, 'wad':world_age_discount,\
-		'vid':voter_id,'tv':total_votes}
-		if sybil_status == '1':
-			payload['num_sybs'] = num_general_sybils
+	# 	payload = {'vt':voting_time,'ss':sybil_status,'tuid':target_user_id, 'toid':target_obj_id, 'wad':world_age_discount,\
+	# 	'vid':voter_id,'tv':total_votes}
+	# 	if sybil_status == '1':
+	# 		payload['num_sybs'] = num_general_sybils
 
-		######### Method 1 #########
-		# try pegging the following into into VOTER_UVOTES_AND_TIMES+voter_id:
-		# payload = voter_id:target_user_id:vote_value:target_obj_tp:target_obj_id (this is already stored in VOTER_UVOTES_AND_TIMES+voter_id)
-		# EXTRA to add to payload above: voting_time:sybil_status:voter_world_age:total_votes_cast_so_far
+	# 	######### Method 1 #########
+	# 	# try pegging the following into into VOTER_UVOTES_AND_TIMES+voter_id:
+	# 	# payload = voter_id:target_user_id:vote_value:target_obj_tp:target_obj_id (this is already stored in VOTER_UVOTES_AND_TIMES+voter_id)
+	# 	# EXTRA to add to payload above: voting_time:sybil_status:voter_world_age:total_votes_cast_so_far
 
-		######### Method 2 #########
-		my_server.hmset(VOTING_ACTION_STATS+voter_id+":"+target_obj_id,payload)
-		my_server.zadd(VOTING_ACTION_STATS_IDX+voter_id,VOTING_ACTION_STATS+voter_id+":"+target_obj_id,voting_time)# contains a trail of the user's votes
-		my_server.expire(VOTING_ACTION_STATS_IDX+voter_id,THREE_MONTHS)
-		my_server.expire(VOTING_ACTION_STATS+voter_id+":"+target_obj_id,THREE_MONTHS)
-		my_server.zadd(VOTER_REP_RAW_MATERIAL,VOTING_ACTION_STATS+voter_id+":"+target_obj_id,voting_time)# just for observation - won't be needed in production
-		#TODO: clean up expired entries from VOTING_ACTION_STATS_IDX+voter_id (since the 'hash' object will eventally expire). Accomplished in calc_voter_reputation()
-		#TODO: for testing purposes, take this live with smaller TTLs
+	# 	######### Method 2 #########
+	# 	my_server.hmset(VOTING_ACTION_STATS+voter_id+":"+target_obj_id,payload)
+	# 	# my_server.zadd(VOTING_ACTION_STATS_IDX+voter_id,VOTING_ACTION_STATS+voter_id+":"+target_obj_id,voting_time)# contains a trail of the user's votes
+	# 	# my_server.expire(VOTING_ACTION_STATS_IDX+voter_id,THREE_MONTHS)
+	# 	my_server.expire(VOTING_ACTION_STATS+voter_id+":"+target_obj_id,THREE_MONTHS)# better than VOTING_ACTION_STATS_IDX
+	# 	my_server.zadd(VOTER_REP_RAW_MATERIAL,VOTING_ACTION_STATS+voter_id+":"+target_obj_id,voting_time)# just for observation - won't be needed in production
+	# 	#TODO: clean up expired entries from VOTING_ACTION_STATS_IDX+voter_id (since the 'hash' object will eventally expire). Accomplished in calc_voter_reputation()
+	# 	#TODO: for testing purposes, take this live with smaller TTLs
 
-			
-		
+
 
 #################################################### Vote banning functionality (defenders) ############################################
 

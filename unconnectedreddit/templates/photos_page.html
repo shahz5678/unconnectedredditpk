@@ -23,14 +23,13 @@
 	<meta name=”GOOGLEBOT” content=”NOARCHIVE”>
 	
 	{% if feed_type == 'fresh_photos' %}
-		<title>{{ num_in_last_1_day }} Latest Memes and Images from Pakistan in the Last 24 Hours | Damadam</title>
-		<link rel="canonical" href="{% url 'photo' 'fresh-list' %}" />
-		<meta property="og:url" content="{% url 'photo' 'fresh-list' %}">
+		<title>{{ num_in_last_1_day }} Latest Images and Memes from Pakistan in the Last 24 Hours | Damadam</title>
 	{% else %}
-		<title>{{ num_in_last_1_day }} Best Memes and Images Trending in Pakistan in the Last 24 Hours! | Damadam</title>
-		<link rel="canonical" href="{% url 'photo' 'best-list' %}" />
-		<meta property="og:url" content="{% url 'photo' 'best-list' %}">
+		<title>{{ num_in_last_1_day }} Best Images and Memes Trending in Pakistan in the Last 24 Hours! | Damadam</title>
 	{% endif %}
+	
+	<link rel="canonical" href="https://damadam.pk/photo/{{ list_type }}/">
+	<meta property="og:url" content="https://damadam.pk/photo/{{ list_type }}/">
 
 	{% if page.has_previous %}
 		<link rel="prev" href="?page={{ page.previous_page_number }}" />
@@ -103,7 +102,25 @@
 
 		<section style="display:block" itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
 
-		<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest fotos</span>{% else %}<span itemprop="headline">Trending fotos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
+		{% if page.max_pages < 2 %}
+			<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest Images</span>{% else %}<span itemprop="headline">Trending Images</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
+		{% else %}
+			{% load next_page %}
+			{% load prev_page %}
+			<div class="mtl fx fxjscn fxaicn">
+				
+				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
+				<button style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|prev_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+				</form>
+
+				<div><h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest Images</span>{% else %}<span itemprop="headline">Trending Images</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1></div>
+
+				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
+				<button  style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|next_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+				</form>
+
+			</div>
+		{% endif %}
 
 		{% for photo in object_list %}
 		
@@ -151,7 +168,7 @@
 
 					<section class="mbl" style="display:block">
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% big_vote_button vote_type='photo_vote' obid=photo.i origin=page_origin net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL visible=is_auth %}
+						{% if ident != photo.si %}{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL %}{% endif %}
 						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
 						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
 						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
@@ -179,7 +196,7 @@
 				{% if feed_type == 'fresh_photos' %}
 					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'home' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Home</a> check karein!</div>
 				{% else %}
-					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Fotos</a> check karein!</div>
+					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Images</a> check karein!</div>
 				{% endif %}
 			</div>
 
@@ -200,9 +217,8 @@
 		    {% endif %}
 		</div>
 
-		{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
-
 	</main>
+	{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 	<br>
 	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
 		<ul class="navbar">

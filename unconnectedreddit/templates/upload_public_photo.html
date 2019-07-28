@@ -24,10 +24,10 @@
     <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
         {% if show_instructions %}
             <div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
-            <div style="text-align:center" class="cxl lsp">Welcome! Damadam pe purey Pakistan ke users se koi interesting foto share karein!</div>
+            <div style="text-align:center" class="cxl lsp">Welcome! Damadam pe purey Pakistan ke users se koi mazedar foto share karein!</div>
             <hr size=1 COLOR="#E9EBEE">
             <div class="mt sp lsp">1) Maslan poetry, paheliyan (riddles), quotes, jokes, latest news, sports, politics, religion, celebrities, fashion, nature or philosophy</div>
-            <div class="mts sp lsp">2) Apki shared fotos users voting ke zariye like ya dislike karein ge</div>
+            <div class="mts sp lsp">2) Apki shared fotos jin users ko pasand ai, woh unko 'like' kar ke save karein ge</div>
             <div class="mts sp lsp">3) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
             </div>
         {% endif %}
@@ -57,9 +57,10 @@
             <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Maslan agr poetry ki foto ho, tou foto title mein "Urdu Poetry" ya phir "Sad Poetry" likh dein. Kuch days baad apki foto Google pe inhi alfaz se search ho paye gi</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Check karney ke liye ke foto Google search mein show ho rahi hai ke nahi, apna nickname aur foto ka title aik sath likh ke Google search karein (e.g. "user_123 Sad Poetry")</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Agar foto ap ne khud edit ki ho (kahien se copy na ki ho) tou Google aisi fotos ko tarjeeh deta hai, aur unkey search ke top pe pohonchney ke chances barhtey hain!</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">6)</span> Google search pe sirf public ke liye uploaded fotos ja sakti hain. Mehfils ya 1 on 1 mein lagai pics Google search pe nahi jaatien</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">7)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">8)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">6)</span> Kuch alfaz Pakistani Google pe buhut search kartey hain (e.g. 'whatsapp dp', 'sad dp', 'girls dp'). In alfaz se related fotos, jinka title bhi yehi alfaz hon, Google search ke top pe ja sakti hain (lekin original fotos hon, copied nahi)</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">7)</span> Google search pe sirf 'Share' se uploaded fotos ja sakti hain. Mehfils ya 1 on 1 mein lagai pics Google search pe nahi jaatien</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">8)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">9)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
         </div>
         </div>
         {% endif %}

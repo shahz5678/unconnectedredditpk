@@ -73,9 +73,6 @@
         <input type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="origin" value="{{ origin }}">
         {{ form.text }}
-            {% if warned %}
-            <br><span class="cs cr csw"><b>Warning:</b> aesa tabsra na likhein jo mahol khrab krey. Photo nahi pasand toh 'thumbs down' dabana kafi hai</span><br>
-            {% endif %}
         
         <input type="hidden" name="popk" value="{{ photo.owner_id }}">
         <button class="btn bco sp bm mts mbl mrl pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>

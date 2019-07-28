@@ -28,11 +28,11 @@ USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
 TRENDER_RANKS_TO_COUNT = 15 #of top trenders to be shown
-SEARCH_FEATURE_THRESHOLD = 100# REMOVE
-SUPER_UPVOTE = 20# REMOVE
-PERMANENT_RESIDENT_SCORE = 300#REMOVE
-SUPER_DOWNVOTE = -20# REMOVE
-PHOTO_CASE_COMPLETION_BONUS = 6#REMOVE
+# SEARCH_FEATURE_THRESHOLD = 100# REMOVE
+# SUPER_UPVOTE = 20# REMOVE
+# PERMANENT_RESIDENT_SCORE = 300#REMOVE
+# SUPER_DOWNVOTE = -20# REMOVE
+# PHOTO_CASE_COMPLETION_BONUS = 6#REMOVE
 GIBBERISH_PUNISHMENT_MULTIPLIER = 5#REMOVE
 CITIES = ["Rawalpindi","Islamabad"]#REMOVE
 SHARE_ORIGIN = {'1':'fresh_photos','3':'user_albums'}#REMOVE

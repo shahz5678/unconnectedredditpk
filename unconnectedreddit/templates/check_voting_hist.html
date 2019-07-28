@@ -1,12 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Check voting history of {{ target_uname }} | Damadam.pk</title></head>
+<head><title>Check liking history of {{ target_uname }} | Damadam.pk</title></head>
 
 <div class="margin clb">
 
 {% if authorized %}
-	<b>Check Votes</b> se ap dekh saktey hain ke <b class="co">{{ target_uname }}</b> ne kin posts pe kya voting ki<br>
-	<span class="cgy">Is terah andaza lagaya ja sakta hai ke {{ target_uname }} serial downvoter ya sybil voter hai ke nahi</span><br>
+	<b>Check Likes</b> se ap dekh saktey hain ke <b class="co">{{ target_uname }}</b> ne kin posts ko lika kia<br>
+	<span class="cgy">Is terah andaza lagaya ja sakta hai ke {{ target_uname }} sybil voter hai ke nahi</span><br>
 	<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bco bm mtl">wapis</button></form>
 
 {% else %}

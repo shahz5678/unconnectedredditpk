@@ -5,7 +5,7 @@
 <div class="margin clb">
 
 {% if authorized %}
-	<b>Check Revserse Sybils</b> se ap dekh saktey hain ke <b class="co">{{ target_uname }}</b> ne kin users ko zyada votes diye<br>
+	<b>Check Revserse Sybils</b> se ap dekh saktey hain ke <b class="co">{{ target_uname }}</b> ne kin users ko zyada likes diye<br>
 	<span class="cgy">Is terah andaza lagaya ja sakta hai ke {{ target_uname }} kin kin IDs ka sybil hai </span><br>
 	<form method="POST" action="{% url 'manage_user' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="btn bco bm mtl">wapis</button></form>
 

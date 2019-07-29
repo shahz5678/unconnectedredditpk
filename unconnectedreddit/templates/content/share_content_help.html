@@ -1,20 +1,20 @@
 {% extends "base.html" %}
 {% block content %}
 {% load cache %}
-{% cache 6 haring_help %}
-<head><title>Sharing help | Damadam.pk</title></head>
+{% cache 6000 sharing_help %}
+<head><title>Sharing help | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 
 <h1 class="clb cxl" style="text-align:center">Sharing help:</h1>
-	<div class="cs cgy sp lsp" style="text-align:center">reading time: 4 minutes</div>
+	<div class="cs cgy sp lsp" style="text-align:center">reading time: 3 minutes</div>
 	<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 		<div class="cxl lsp" style="border-bottom:1px dashed lightgray;padding-bottom:5px"><span class="cs cgy">1)</span> Damadam pe kiyun share karun?</div>
 		<div class="cl mt sp lsp">Kiyun ke Damadam pe purey Pakistan se users apka shared item view kar sakein ge.<br>Apkey shared items jitney maqbool hon ge, ap Damadam pe utney hi mashoor hon ge.</div>
 	</div>
 
 	<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
-		<div class="cxl lsp" style="border-bottom:1px dashed lightgray;padding-bottom:5px"><span class="cs cgy">2)</span> Shared items pe voting ka kya maqsad hai?</div>
-		<div class="cl mt sp lsp">Shared items pe voting hoti hai. Damadam votes ko total kar leta hai.<br>Is terah users ko best-voted items aik sath show kiye ja saktey hain.</div>
+		<div class="cxl lsp" style="border-bottom:1px dashed lightgray;padding-bottom:5px"><span class="cs cgy">2)</span> Shared items ko like karney ka kya faida hai?</div>
+		<div class="cl mt sp lsp">Shared items ko like karney se woh apke pas 'save' ho jatey hain. Is terah ap mazey mazey ke shared items apne pas jama kar saktey hain.<br>Iskey ilawa, Damadam likes ko total kar leta hai. Is terah users ko most-liked items aik sath show kiye ja saktey hain.</div>
 	</div>
 
 	<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
@@ -29,7 +29,6 @@
 		<li class="cl sp lsp">Poetry mein shair ka new misra start karney se pehlay <img style="vertical-align:text-bottom" width="18" height="18" src="{{ STATIC_URL }}img/enter_key.svg"> daba dein. "..." or ",,," likhney ki zarurat nahi.</li>
 		<li class="cl sp lsp">Foto sirf high quality ho and uspe kisi aur app or website ka naam nahi ho.</li>
 		<li class="cl sp lsp">Foto ka title sirf aisa rakhein jiska foto se taluq ho.</li>
-		<li class="cl sp lsp">Shared items mein vote ki bheek nahi mangein.</li>
 		<li class="cl sp lsp">Vulgarity, abuse and mazhabi fasaad se dur rehain.</li>
 		</ul>
 	</div>

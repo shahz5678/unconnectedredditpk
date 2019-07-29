@@ -14,17 +14,19 @@
 {% load show_error %}
 {% load css %}
 {% block content %}
-<head><title>{{ user.username }}'s inbox | Damadam.pk</title></head>
+<head><title>{{ user.username }}'s inbox | Damadam</title></head>
+
+{% include "inbox_navbar.html" with static_url=STATIC_URL section=section %}
 
 <style>body{background:#f0f3f4}</style>
-
-<div style="margin: 0 auto;max-width:600px;width:96%">
-{% if object_list %}
 
 <div class="mbs fx fxjscn fxaibl">
 	<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" class="mrs" style="display:inline-block">{% csrf_token %}<button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></form>
 	<h1 class="mls cxl clb lsp" style="margin:0;display:inline-block">Matka:</h1>
 </div>
+
+<div class="mtl" style="margin-right:auto;margin-left: auto;max-width:750px;width:97%">
+{% if object_list %}
 
 <a name="error"></a>
 {% if validation_error_string %}
@@ -32,7 +34,7 @@
 {% endif %}
 
 {% for notif in object_list %}
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow">
 
 	<a name="section{{ forloop.counter }}"></a>
 	{% with forms|get_item:notif.oi as form %}
@@ -645,18 +647,18 @@
 {% elif page.number > 1 %}
 <h1 class="mls cxl clb lsp" style="text-align:center">Matka:</h1>
 
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px 8px">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;text-align:center;padding:10px 8px">
 	<span class="clb cxl">Sorry! Matke ka ye page empty hai ...</span>
 	<hr size=1 COLOR="#E9EBEE">
 	<span class="lsp sp clb">Pichley page pe wapis jaein</span><br>
 
 </div>
 {% else %}
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px 8px">
-    <span class="clb cxl lsp">Sorry! Ye abhi khali hai ...</span>
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;text-align:center;padding:10px 8px">
+    <span class="clb cxl lsp">Sorry! Ye khali hai ...</span>
     <hr size=1 COLOR="#E9EBEE">
     <span class="lsp sp cl clb">Ap se related tamam jawab, photos, tabsrey, mehfil aur 1 on 1 gupshup yahan nazar atey hai</span><br>
-    <a href="{% url 'home' %}"><button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:28px">wapis</button></a>
+    <a href="{% url 'home' %}"><button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:28px">Home</button></a>
 </div>
 {% endif %}
 

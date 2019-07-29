@@ -60,9 +60,8 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
-video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, vote_tasks, populate_search_thumbs,\
-sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, log_action, \
-set_input_history 
+video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, log_action, populate_search_thumbs,\
+sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, set_input_history 
 #from .html_injector import create_gibberish_punishment_text
 # from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -88,15 +87,13 @@ from .website_feedback_form import AdvertiseWithUsForm
 from redirection_views import return_to_content
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
 retrieve_group_reqd_data# invalidate_cached_mehfil_pages
-from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, \
+from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, retrieve_recent_votes,\
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images
+retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time
 # from direct_response_forms import DirectResponseForm
-# from mixpanel import Mixpanel
-# from unconnectedreddit.settings import MIXPANEL_TOKEN
 from cities import CITY_TUP_LIST, REV_CITY_DICT
 
 # from optimizely_config_manager import OptimizelyConfigManager
@@ -105,8 +102,6 @@ from cities import CITY_TUP_LIST, REV_CITY_DICT
 # config_manager = OptimizelyConfigManager(PID)
 
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
-
-# mp = Mixpanel(MIXPANEL_TOKEN)
 
 
 def retrieve_user_env(user_agent, fbs):
@@ -1032,8 +1027,14 @@ def home_page(request, lang=None):
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
 	list_of_dictionaries = retrieve_obj_feed(obj_list, with_colors=True)
-	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 	#######################
+	# must be done in this line, since the 't' information is lost subsequently
+	try:
+		oldest_post_time = list_of_dictionaries[-1]['t']
+	except:
+		oldest_post_time = 0.0
+	#######################
+	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 	replyforms = {}
 	for obj in list_of_dictionaries:
 		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
@@ -1044,6 +1045,17 @@ def home_page(request, lang=None):
 	num = random.randint(1,4)
 	secret_key = str(uuid.uuid4())
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
+	#######################
+	# enrich objs with information that 'own_id' liked them or not
+	if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
+		recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+		# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+		recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+		for obj in list_of_dictionaries:
+			if obj['h'] in recent_user_voted_obj_hashes:
+				obj['v'] = True# user 'liked' this particular object, so mark it
+	#######################
+
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
 	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
@@ -2250,8 +2262,14 @@ def photo_page(request,list_type='best-list'):
 		max_pages = num_pages if list_total_size % PHOTOS_PER_PAGE == 0 else (num_pages+1)
 		page_num = int(page_num)
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
-		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 		#######################
+		# must be done in this line, since the 't' information is lost subsequently
+		try:
+			oldest_post_time = list_of_dictionaries[-1]['t']
+		except:
+			oldest_post_time = 0.0
+		#######################
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 		comment_form = PhotoCommentForm()
 		if own_id:
 			is_auth = True
@@ -2260,12 +2278,20 @@ def photo_page(request,list_type='best-list'):
 			set_text_input_key(user_id=own_id, obj_id='1', obj_type=type_, secret_key=secret_key)
 			newbie_lang, newbie_flag = request.session.get("newbie_lang",None), request.session.get("newbie_flag",None)
 			mobile_verified = request.mobile_verified
+			#######################
+			# enrich objs with information that 'own_id' liked them or not
+			if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
+				recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+				# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+				recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+				for obj in list_of_dictionaries:
+					if obj['h'] in recent_user_voted_obj_hashes:
+						obj['v'] = True# user 'liked' this particular object, so mark it
 		else:
 			is_auth = False
 			fanned = []
 			secret_key = ''
 			newbie_lang, newbie_flag = None, None
-			#notif_form = None
 			mobile_verified = None
 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
@@ -2274,11 +2300,11 @@ def photo_page(request,list_type='best-list'):
 		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
 		'page_origin':page_origin,'sk':secret_key,'comment_form':comment_form,"mobile_verified":mobile_verified,\
 		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,\
-		'num_in_last_1_day':num_in_last_1_day}
+		'num_in_last_1_day':num_in_last_1_day,'list_type':list_type}
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
-		'previous_page_number':previous_page_number,'next_page_number':next_page_number}
+		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
 		#####################################################
 		################ AB Testing Tutorial ################
 		#####################################################

@@ -4499,7 +4499,7 @@ def rank_mehfil_active_users():
 				if time_since_last_administrative_action_time <= cutoff_in_secs:
 					# equation below simulates an exponential decay, flat at first, and steep at the end
 					# if last seen time was very recent, a value close to 1 is calculated
-					# if last seen time was close to 1800 seconds ago, a value close to 0 is calculated
+					# if last seen time was close to 1800 seconds ago, a value close to 0 is calculated (30 mins)
 					# if last seen time was beyond 1800 seconds, a value of 0 is given
 					normalized_last_administrative_action_time = (translate_curve_by-(decay_rate**time_since_last_administrative_action_time))/(translate_curve_by-1)
 				if normalized_last_administrative_action_time < 0:
@@ -4510,7 +4510,8 @@ def rank_mehfil_active_users():
 			stickiness_metric = (DAU*1.0)/BWAU if BWAU else 0.0#(iii) - this is already normalized
 			# use (i), (ii) and (iii) together to determine a "score" for the group being considered
 			# we've ensured (i), (ii) and (iii) are all 'normalized' - lie between [0,1] - so that they're comparable
-			if stickiness_metric >= 0.15:
+			if stickiness_metric >= 0.13 and normalized_last_administrative_action_time > 0:
+				# Note: we require normalized_last_administrative_action_time  to be greater than 0 - if an admin is NOT AROUND, do not rank the group at all
 				group_score = (0.33*stickiness_metric)+(0.33*normalized_last_administrative_action_time)+(0.33*normalized_administrative_interest_frequency)
 				group_data.append(rankable_group_id)
 				group_data.append(group_score)

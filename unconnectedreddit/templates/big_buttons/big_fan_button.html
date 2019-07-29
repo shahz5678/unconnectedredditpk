@@ -1,10 +1,7 @@
 {% if possible %}
 <form method="POST" style="margin-bottom:4px;margin-right:4px" action="{% url 'fan' %}">
 {% csrf_token %}
-	<input type="hidden" name="oid" value="{{ oid }}">
-	<input type="hidden" name="org" value="{{ org }}">
-	<input type="hidden" name="hh" value="{{ home_hash }}">
-	<input type="hidden" name="tp" value="{{ tp }}">
+	<input type="hidden" name="oid" value="{{ oid }}"><input type="hidden" name="org" value="{{ org }}"><input type="hidden" name="hh" value="{{ home_hash }}"><input type="hidden" name="tp" value="{{ tp }}">
 {% if is_already_fan %}
 	<button name="sid_btn" style="border:1px solid lightgray;width:50px;height:42px;padding:0;text-align:center" class="vt" type="submit" value="{{ tid }}"><div><img src="{{ static_url }}img/unfan.svg" class="mt" width="15" height="15"></div><div style="font-size:8.2px" class="mt"><span class="cgy">UNFAN</span></div></button>
 {% else %}

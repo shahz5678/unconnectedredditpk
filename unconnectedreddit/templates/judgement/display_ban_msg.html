@@ -8,15 +8,15 @@
 
       <div style="color:white;text-align:center;padding:10px 5px" class="lsp">
         <b>BANNED:</b>
-        {% if ban_detail.sin == 'bad_voting' %}Ap ne ghalat voting kar ke Damadam ke rules break kiye{% else %}Ap ne ghalat item submit kar ke Damadam ke rules break kiye{% endif %}&nbsp;<span class="sp cs" style="color:lightyellow">(<a href="{% url 'website_rules' %}" style="border-bottom:1px dotted lightyellow;color:lightyellow">rules</a>)</span>
+        {% if ban_detail.sin == 'bad_voting' %}Ap ne ghalat likes de ke Damadam ke rules break kiye{% else %}Ap ne ghalat item submit kar ke Damadam ke rules break kiye{% endif %}&nbsp;<span class="sp cs" style="color:lightyellow">(<a href="{% url 'website_rules' %}" style="border-bottom:1px dotted lightyellow;color:lightyellow">rules</a>)</span>
       </div>
 
       <div class="lsp" style="padding:10px;text-align:left;background:white">
         <b class="mrs">Ban duration:</b>
         {% if time_remaining == '-1' %}
-          <span class="lsp">Apki posts and voting <b>forever</b> banned hain</span>
+          <span class="lsp">Apke posts and likes <b>forever</b> banned hain</span>
         {% else %}
-          <span class="lsp">Apki posts and voting ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
+          <span class="lsp">Apke posts and likes ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
         {% endif %}
         <hr size=1 COLOR="#ffe6e6">
         <div class="mbs">
@@ -36,15 +36,15 @@
 
       <div style="color:white;text-align:center;padding:10px 5px" class="lsp">
         <b>BANNED:</b>
-        {% if ban_detail.sin == 'bad_voting' %}{{ uname|truncatechars:'13' }} ne ghalat voting kar ke Damadam ke rules break kiye{% else %}{{ uname|truncatechars:'13' }} ne ghalat item submit kar ke Damadam ke rules break kiye{% endif %}&nbsp;<span class="sp cs" style="color:lightyellow">(<a href="{% url 'website_rules' %}" style="border-bottom:1px dotted lightyellow;color:lightyellow">rules</a>)</span>
+        {% if ban_detail.sin == 'bad_voting' %}{{ uname|truncatechars:'13' }} ne ghalat likes kar ke Damadam ke rules break kiye{% else %}{{ uname|truncatechars:'13' }} ne ghalat item submit kar ke Damadam ke rules break kiye{% endif %}&nbsp;<span class="sp cs" style="color:lightyellow">(<a href="{% url 'website_rules' %}" style="border-bottom:1px dotted lightyellow;color:lightyellow">rules</a>)</span>
       </div>
       
       <div class="lsp" style="padding:10px;text-align:left;background:white">
       	<b class="mrs">Ban duration:</b>
         {% if time_remaining == '-1' %}
-          {{ uname|truncatechars:'13' }} ki posts and voting <b>forever</b> banned hain</span>
+          {{ uname|truncatechars:'13' }} ke posts and likes <b>forever</b> banned hain</span>
         {% else %}
-          {{ uname|truncatechars:'13' }} ki posts and voting ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
+          {{ uname|truncatechars:'13' }} ke posts and likes ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
         {% endif %} 
         <hr size=1 COLOR="#ffe6e6">
         <div class="mbs">
@@ -63,13 +63,13 @@
     {% else %}
       <div style="color:white;text-align:center;padding:10px 5px 5px 5px">
       {% if time_remaining == '-1' %}
-        <span class="lsp"><b>BANNED!</b> {{ uname|truncatechars:'13' }} ki posts and voting <b>forever</b> banned hain</span>
+        <span class="lsp"><b>BANNED!</b> {{ uname|truncatechars:'13' }} ke posts and likes <b>forever</b> banned hain</span>
       {% else %}
-        <span class="lsp"><b>BANNED!</b> {{ uname|truncatechars:'13' }} ki posts and voting ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
+        <span class="lsp"><b>BANNED!</b> {{ uname|truncatechars:'13' }} ke posts and likes ka ban end ho ga <b>{{ time_remaining|future_time }}</b></span>
       {% endif %}
       </div>
       <div class="lsp" style="padding:10px;text-align:center;background:white;border-bottom-left-radius:9px;border-bottom-right-radius:9px">
-	     <b class="mrs">Ban reason:</b>&nbsp;{% if ban_detail.sin == 'bad_voting' %}{{ uname|truncatechars:'13' }} ne ghalat voting kar ke Damadam ke rules break kiye{% else %}{{ uname|truncatechars:'13' }} ne ghalat item submit kar ke Damadam ke rules break kiye{% endif %}&nbsp;<span class="sp cs cb">(<a href="{% url 'website_rules' %}" target="_blank" class="cb" style="border-bottom:1px dotted blue">rules</a>)</span>
+	     <b class="mrs">Ban reason:</b>&nbsp;{% if ban_detail.sin == 'bad_voting' %}{{ uname|truncatechars:'13' }} ne ghalat likes kar ke Damadam ke rules break kiye{% else %}{{ uname|truncatechars:'13' }} ne ghalat item submit kar ke Damadam ke rules break kiye{% endif %}&nbsp;<span class="sp cs cb">(<a href="{% url 'website_rules' %}" target="_blank" class="cb" style="border-bottom:1px dotted blue">rules</a>)</span>
       </div>
     {% endif %}
 

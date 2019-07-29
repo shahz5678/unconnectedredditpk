@@ -8,7 +8,7 @@
 
 {% if first_time_user_reported_content_judger %}
 	<div class="cxl mbs lsp bizcard" style="background-color:#ffffe6;padding:10px;text-align:center">
-	Ab decide karein ke is user ki fotos and voting kitney time ke liye ban ki jaye
+	Ab decide karein ke is user ke fotos and likes kitney time ke liye ban ki jaye
 	</div>
 {% endif %}
 
@@ -56,7 +56,7 @@
 {% elif dec == '2' %}
 
 	{% if num|add:"0" < 1 %}
-	<div class="cl sp"><b>{{ oun }}</b> ki is foto ko kisi ne vote nahi diya</div>
+	<div class="cl sp"><b>{{ oun }}</b> ki is foto ko kisi ne like nahi kiya</div>
 		
 		{% if origin == '1' %}
 		<a href="{% url 'redirect_to_photo' 'fresh-list' obid %}">
@@ -83,7 +83,7 @@
 		</form>
 
 	{% else %}
-	<div class="cl sp"><b>{{ oun }}</b> ki is foto ko <b>{{ num }}</b> user(s) ne vote diye:</div>
+	<div class="cl sp"><b>{{ oun }}</b> ki is foto ko <b>{{ num }}</b> user(s) ne like kiya:</div>
 		<form method="POST" action="{% url 'ban_content_submitter_or_voters' %}" class="mtl">
 		{% csrf_token %}
 
@@ -91,15 +91,15 @@
 			{% for user_id,username,status,vote_value in voter_payload %}
 				<li style="text-align:left" class="mbl">
 				{% if status == '1' %}
-				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'user_profile' username %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
+				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" disabled><a href="{% url 'user_profile' username %}" style="border-bottom:1px dotted darkgray" class="cgy mrs">{{ username }}</a><span class="mrs cgy sp cxs">(banned)</span>{% if vote_value == 1.0 %}<span class="cs sp cg">liked</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
 				{% else %}
-				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'user_profile' username %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">thumbs up</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
+				<input type="checkbox" name="uids" class="mrl" style="vertical-align:sub" value="{{ user_id }}" checked><a href="{% url 'user_profile' username %}" style="border-bottom:1px dotted blue" class="cb mrs">{{ username }}</a>{% if vote_value == 1.0 %}<span class="cs sp cg">liked</span>{% else %}<span class="cs sp cr">thumbs down</span>{% endif %}
 				{% endif %}
 				</li>
 			{% endfor %}
 			</ul>
 
-			<div class="cl lsp sp">In sab ki voting kitney time ke liye ban karein?</div>
+			<div class="cl lsp sp">In sab ki liking kitney time ke liye ban karein?</div>
 			<div class="cgy cs sp mts">Jisko saza nahi deni, uske box ka tick mark hata dein</div>
 			<input type="hidden" name="dec" value="{{ dec }}">
 			<input type="hidden" name="obid" value="{{ obid }}">

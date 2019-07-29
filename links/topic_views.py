@@ -19,7 +19,7 @@ from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_CO
 PRIMARY_COLOR_GRADIENT_MAPPING
 from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post, create_topic_feed, retrieve_topic_feed_data, \
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
-retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic
+retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes
 ###############
 from score import SEGMENT_STARTING_USER_ID
 
@@ -287,7 +287,7 @@ def topic_redirect(request, topic_url=None, obj_hash=None, *args, **kwargs):
 		return redirect("home")
 
 
-def retrieve_topic_contribution_page_data(topic_url, page_num):
+def retrieve_topic_contribution_page_data(topic_url, page_num, with_oldest=False):
 	"""
 	Retrieves all contributions to a topic which are to be displayed in a particular page
 	"""
@@ -297,8 +297,20 @@ def retrieve_topic_contribution_page_data(topic_url, page_num):
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
 	list_of_dictionaries = retrieve_topic_feed_data(obj_list, topic_url)
-	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)# move redis3's beautiful_date into views - that's where it belongs!
-	return list_of_dictionaries, page_num, max_pages
+	#######################
+	if with_oldest:
+		# must be done in this line, since the 't' information is lost subsequently
+		try:
+			oldest_post_time = list_of_dictionaries[-1]['t']
+		except:
+			oldest_post_time = 0.0
+		#######################
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)# move redis3's beautiful_date into views - that's where it belongs!
+		return list_of_dictionaries, page_num, max_pages, oldest_post_time
+	else:
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)# move redis3's beautiful_date into views - that's where it belongs!
+		return list_of_dictionaries, page_num, max_pages
+
 
 
 def topic_page(request,topic_url):
@@ -312,7 +324,8 @@ def topic_page(request,topic_url):
 				with_theme=True, with_is_subscribed=True, retriever_id=own_id)
 			if description:
 				page_num = request.GET.get('page', '1')
-				list_of_dictionaries, page_num, max_pages = retrieve_topic_contribution_page_data(topic_url, page_num)
+				list_of_dictionaries, page_num, max_pages, oldest_post_time = retrieve_topic_contribution_page_data(topic_url, page_num, \
+					with_oldest=True)
 				color_grads = COLOR_GRADIENTS[bg_theme]
 				#######################
 				replyforms = {}
@@ -322,6 +335,17 @@ def topic_page(request,topic_url):
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 				
+				#######################
+				# enrich objs with information that 'own_id' liked them or not
+				if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
+					recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+					# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+					recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+					for obj in list_of_dictionaries:
+						if obj['h'] in recent_user_voted_obj_hashes:
+							obj['v'] = True# user voted for this particular object, mark it
+				#######################
+
 				page = {'next_page_number':page_num+1,'number':page_num,'has_previous':True if page_num>1 else False,\
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 

@@ -11,7 +11,7 @@ from redis4 import retrieve_bulk_unames, retrieve_user_id
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
-from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT#, THRESHOLD_WORLD_AGE
+from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT, THRESHOLD_WORLD_AGE
 
 '''
 ##########Redis 3 Namespace##########
@@ -1894,13 +1894,13 @@ def remove_verified_mob(target_user_ids):
 ###################### setting user's world age ######################
 
 
-# def compute_world_age_discount_value(user_world_age, highest_world_age):
-# 	"""
-# 	"""
-# 	if user_world_age > THRESHOLD_WORLD_AGE:
-# 		return 1.0
-# 	else:
-# 		return log(user_world_age,2.0)/log(highest_world_age,2.0)
+def compute_world_age_discount_value(user_world_age, highest_world_age):
+	"""
+	"""
+	if user_world_age > THRESHOLD_WORLD_AGE:
+		return 1.0
+	else:
+		return log(user_world_age,2.0)/log(highest_world_age,2.0)
 
 
 def get_world_age(user_id):
@@ -1938,9 +1938,7 @@ def calculate_world_age_discount(user_id):
 	"""
 	voter_age_dict, highest_age = retrieve_user_world_age([user_id], with_highest_age=True)
 	if voter_age_dict and highest_age:
-		log_highest_age = log(highest_age,2.0)# taking log 2 of highest age so that large-age users' influence tapers off
-		log_user_age = log(voter_age_dict[user_id],2.0)
-		return log_user_age/log_highest_age
+		return compute_world_age_discount_value(voter_age_dict[user_id], highest_age)
 	else:
 		return 0
 

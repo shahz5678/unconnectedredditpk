@@ -4,6 +4,7 @@ MAX_HOME_SUBMISSION_SIZE = 750
 MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
 MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
+THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
 ###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
@@ -27,11 +28,11 @@ USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
 TRENDER_RANKS_TO_COUNT = 15 #of top trenders to be shown
-SEARCH_FEATURE_THRESHOLD = 100# REMOVE
-SUPER_UPVOTE = 20# REMOVE
-PERMANENT_RESIDENT_SCORE = 300#REMOVE
-SUPER_DOWNVOTE = -20# REMOVE
-PHOTO_CASE_COMPLETION_BONUS = 6#REMOVE
+# SEARCH_FEATURE_THRESHOLD = 100# REMOVE
+# SUPER_UPVOTE = 20# REMOVE
+# PERMANENT_RESIDENT_SCORE = 300#REMOVE
+# SUPER_DOWNVOTE = -20# REMOVE
+# PHOTO_CASE_COMPLETION_BONUS = 6#REMOVE
 GIBBERISH_PUNISHMENT_MULTIPLIER = 5#REMOVE
 CITIES = ["Rawalpindi","Islamabad"]#REMOVE
 SHARE_ORIGIN = {'1':'fresh_photos','3':'user_albums'}#REMOVE

@@ -11,7 +11,7 @@
 {% load get_big_photo_comment_button %}
 {% load get_big_external_share_button %}
 {% block content %}
-<head><title>{{ slug }}'s photos and memes | Damadam.pk</title></head>
+<head><title>{{ slug }}'s images | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
 
 <main itemscope itemtype="https://schema.org/CollectionPage" class="clb" style="margin: 0 auto;max-width:600px;width:98%">
@@ -21,13 +21,13 @@
   <div class="mbl" style="text-align:center">  
   {% if own_profile %}
     {% if is_trending %}
-      <h1 class="cxl lsp" style="display:inline">Your trending fotos:<br><span class="cs cgy sp lsp" style="font-weight:lighter">- last 7 days -</span></h1>
+      <h1 class="cxl lsp" style="display:inline">Your trending images:<br><span class="cs cgy sp lsp" style="font-weight:lighter">- last 7 days -</span></h1>
     {% else %}
-      <h1 class="cxl lsp" style="display:inline">Your shared fotos:</h1>
+      <h1 class="cxl lsp" style="display:inline">Your shared images:</h1>
     {% endif %}
   {% else %}
     {% load get_group_button %}
-    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if slug in legit %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{% if is_trending %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s trending fotos</span>:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s shared fotos</span>:{% endif %}</h1>
+    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if slug in legit %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{% if is_trending %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s trending images</span>:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s shared images</span>:{% endif %}</h1>
   {% endif %}
   </div>
 
@@ -66,7 +66,7 @@
             <img itemprop="image" src="{{ star_av_url|s3 }}" style="vertical-align:top;width:100%;max-width:450px" class="sp cxs" alt="pic loading ...">
           </div>
           {% else %}
-          <div style="text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0;padding:5px 0" class="mbs clb cm sp">in sey kahein aik profile foto tou laga lein ...</div>
+          <div style="text-align:center;background:whitesmoke;border-bottom:1px solid #F0F0F0;padding:5px 0" class="mbs clb cm sp">in sey kahein display pic tou laga lein ...</div>
           {% endif %}
           <section class="mt mbl" style="text-align:center"><h3 style="font-weight:normal;margin:0" class="cs cgy sp lsp">joined <time itemprop="dateCreated" datetime="{{ subject.date_joined }}">{{ subject.date_joined|naturaltime }}</time></h3></section>
 
@@ -106,7 +106,7 @@
           {% big_photo_comment_button photo_id=photo.id origin='4' comm_count=photo.comment_count static_url=STATIC_URL star_id=star_id %}
           {% big_send_button photo_owner_username=slug photo_id=photo.id photo_owner_id=star_id photo_caption=photo.caption origin='4' img_url=photo.image_file static_url=STATIC_URL %}
           {% big_external_share_button owner_username=slug on_opera=on_opera photo_id=photo.id origin='4' static_url=STATIC_URL owner_id=star_id sharer_id=user_id js_class='wa-sharing' sharing_type='wa' %}
-          {% big_points_button obj_id=photo.id owner_id=star_id is_pht=1 origin='4' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+          {% if star_id == user_id %}{% big_points_button obj_id=photo.id owner_id=star_id is_pht=1 origin='4' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}{% endif %}
           </div>
         </div>
 
@@ -115,11 +115,11 @@
   <div class="bizcard mbl" style="background-color:white;padding:10px;text-align:center">
   {% if own_profile %}
     {% if is_trending %}
-    <div class="cxl lsp">Pichley 7 days mein apki koi foto trending mein shamil nahi hui</div>
+    <div class="cxl lsp">Pichley 7 days mein apka koi image trending mein shamil nahi hua</div>
     <hr size=1 COLOR="#f4f4f4">
-    <div class="cgy mbl sp">Trending me fotos shamil honay ka criteria <a href="{% url 'top_photo_help' %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue">ye hai</a></div>
+    <div class="cgy mbl sp">Trending me images shamil karney ka criteria <a href="{% url 'top_photo_help' %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue">ye hai</a></div>
     {% else %}
-    <div class="cxl lsp">Ap ne Damadam pe koi foto share nahi ki</div>
+    <div class="cxl lsp">Ap ne Damadam pe koi image share nahi kia</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Share karney ke liye neechay 'share' dabain:</div>
@@ -128,17 +128,17 @@
     {% endif %}
   {% else %}
     {% if is_trending %}
-    <div class="cxl lsp">Pichley 7 days mein <b>{{ slug }}</b> ki koi foto trending mein shamil nahi hui</div>
+    <div class="cxl lsp">Pichley 7 days mein <b>{{ slug }}</b> ka koi image trending mein shamil nahi hua</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
-      <div class="cgy mbl sp">Trending fotos view karein:</div>
+      <div class="cgy mbl sp">Trending images view karein:</div>
       <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
     </div>
     {% else %}
-    <div class="cxl lsp"><b>{{ slug }}</b> ne Damadam pe koi foto nahi share ki</div>
+    <div class="cxl lsp"><b>{{ slug }}</b> ne Damadam pe koi image nahi share kia</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
-      <div class="cgy mbl sp">Dusrey users ki trending fotos view karein:</div>
+      <div class="cgy mbl sp">Dusrey users ke trending images view karein:</div>
       <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
     </div>
     {% endif %}

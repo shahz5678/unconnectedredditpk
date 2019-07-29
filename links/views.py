@@ -87,7 +87,7 @@ from .website_feedback_form import AdvertiseWithUsForm
 from redirection_views import return_to_content
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
 retrieve_group_reqd_data# invalidate_cached_mehfil_pages
-from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, bulk_has_voted,\
+from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, retrieve_recent_votes,\
 update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
@@ -1046,20 +1046,20 @@ def home_page(request, lang=None):
 	secret_key = str(uuid.uuid4())
 	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	#######################
+	# enrich objs with information that 'own_id' liked them or not
 	if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
-		# calculate which objs the user has voted on
-		objs_on_page = set(str(obj['i']) for obj in list_of_dictionaries)
-		user_voted_obj_ids = list(bulk_has_voted(objs_on_page, own_id, oldest_post_time))
-	else:
-		# no need to calculate which objs the user has voted on - they haven't voted on any recently anyway
-		user_voted_obj_ids = []
+		recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+		# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+		recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+		for obj in list_of_dictionaries:
+			if obj['h'] in recent_user_voted_obj_hashes:
+				obj['v'] = True# user 'liked' this particular object, so mark it
 	#######################
 
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
 	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
-	'newbie_lang':request.session.get("newbie_lang",None),'mobile_verified':request.mobile_verified,'on_opera':on_opera,\
-	'user_voted_obj_ids':user_voted_obj_ids}
+	'newbie_lang':request.session.get("newbie_lang",None),'mobile_verified':request.mobile_verified,'on_opera':on_opera}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	#####################################################
@@ -2279,20 +2279,19 @@ def photo_page(request,list_type='best-list'):
 			newbie_lang, newbie_flag = request.session.get("newbie_lang",None), request.session.get("newbie_flag",None)
 			mobile_verified = request.mobile_verified
 			#######################
+			# enrich objs with information that 'own_id' liked them or not
 			if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
-				# calculate which objs the user has voted on
-				objs_on_page = set(str(obj['i']) for obj in list_of_dictionaries)
-				user_voted_obj_ids = list(bulk_has_voted(objs_on_page, own_id, oldest_post_time))
-			else:
-				# no need to calculate which objs the user has voted on - they haven't voted on any recently anyway
-				user_voted_obj_ids = []
-			#######################
+				recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+				# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+				recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+				for obj in list_of_dictionaries:
+					if obj['h'] in recent_user_voted_obj_hashes:
+						obj['v'] = True# user 'liked' this particular object, so mark it
 		else:
 			is_auth = False
 			fanned = []
 			secret_key = ''
 			newbie_lang, newbie_flag = None, None
-			user_voted_obj_ids = []
 			mobile_verified = None
 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
@@ -2301,7 +2300,7 @@ def photo_page(request,list_type='best-list'):
 		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
 		'page_origin':page_origin,'sk':secret_key,'comment_form':comment_form,"mobile_verified":mobile_verified,\
 		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,\
-		'num_in_last_1_day':num_in_last_1_day,'user_voted_obj_ids':user_voted_obj_ids,'list_type':list_type}
+		'num_in_last_1_day':num_in_last_1_day,'list_type':list_type}
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\

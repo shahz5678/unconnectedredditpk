@@ -14,7 +14,7 @@
 {% load show_error %}
 {% load css %}
 {% block content %}
-<head><title>{{ user.username }}'s inbox | Damadam</title></head>
+<head><title>{{ nickname }}'s inbox | Damadam</title></head>
 
 {% include "inbox_navbar.html" with static_url=STATIC_URL section=section %}
 
@@ -34,7 +34,7 @@
 {% endif %}
 
 {% for notif in object_list %}
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 
 	<a name="section{{ forloop.counter }}"></a>
 	{% with forms|get_item:notif.oi as form %}

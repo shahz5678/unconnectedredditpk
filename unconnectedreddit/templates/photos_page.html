@@ -168,7 +168,7 @@
 
 					<section class="mbl" style="display:block">
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% if ident != photo.si %}{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL %}{% endif %}
+						{% if ident|stringformat:"s" != photo.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL %}{% endif %}
 						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
 						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
 						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}

@@ -72,7 +72,7 @@
 
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=link.i origin='3' ooid=link.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL %}{% endif %}
+		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
@@ -100,7 +100,7 @@
 		<section class="mbl" style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 
-		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='0' obid=link.i origin='3' ooid=link.si user_voted_set=user_voted_obj_ids static_url=STATIC_URL %}{% endif %}
+		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='0' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
 		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}

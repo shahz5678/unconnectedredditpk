@@ -39,12 +39,13 @@ update_group_topic_in_obj
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest
-from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
+from redis7 import log_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, \
-get_best_home_feed, create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page
+study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
+create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, calculate_vote_value,trim_global_voter_rep,\
+process_global_vote_rep
 from redis8 import set_section_wise_retention, log_segment_action
 # from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
@@ -526,14 +527,18 @@ def delete_notifications(user_id):
 
 @celery_app1.task(name='tasks.calc_gibberish_punishment')
 def calc_gibberish_punishment():
-	all_gibberish_writers = get_gibberish_text_writers()
-	if all_gibberish_writers:
-		all_gibberish_writers_above_threshold = {k:v for k,v in all_gibberish_writers if v>3}
-		if all_gibberish_writers_above_threshold:
-			gibberish_punishment = {}
-			for k in all_gibberish_writers_above_threshold.keys():
-				all_gibberish_writers_above_threshold[k] *= GIBBERISH_PUNISHMENT_MULTIPLIER
-			punish_gibberish_writers(all_gibberish_writers_above_threshold)
+	"""
+	Scheduled task, empty at the moment
+	"""
+	pass
+	# all_gibberish_writers = get_gibberish_text_writers()
+	# if all_gibberish_writers:
+	# 	all_gibberish_writers_above_threshold = {k:v for k,v in all_gibberish_writers if v>3}
+	# 	if all_gibberish_writers_above_threshold:
+	# 		gibberish_punishment = {}
+	# 		for k in all_gibberish_writers_above_threshold.keys():
+	# 			all_gibberish_writers_above_threshold[k] *= GIBBERISH_PUNISHMENT_MULTIPLIER
+	# 		punish_gibberish_writers(all_gibberish_writers_above_threshold)
 
 
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
@@ -923,11 +928,12 @@ def set_input_rate_and_history(section,section_id,text,user_id,time_now):
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
 	"""
-	Currently available
+	Calculates voting rep of voters, and expires rep older than 3 months
 
 	Mislabeled due to legacy reasons
 	"""
-	pass
+	process_global_vote_rep()
+	trim_global_voter_rep()
 
 
 @celery_app1.task(name='tasks.fans')
@@ -1118,38 +1124,28 @@ def vote_tasks(own_id,target_user_id,target_obj_id,own_name,revert_prev,is_pht,t
 	"""
 	if revert_prev:
 		# undo a previous 'like'
-		world_age_discount_multiplier, affinity_discount_multiplier = 1, 1# these values don't matter since discounts aren't used at all in reverting
-		new_net_votes = record_vote(obj_id=target_obj_id,username=own_name, own_id=own_id, revert_prev=True, target_user_id=target_user_id,\
-			world_age_discount=world_age_discount_multiplier, is_pht=is_pht,time_of_vote=time_of_vote,affinity_discount=affinity_discount_multiplier)
-		if new_net_votes >= 0:
-			if is_pht == '1':
-				update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
-				# if it's a 'like' by a super-defender, handpick the object
-				is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-				if is_super_defender:
-					remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
-		else:
-			# vote not added, do nothing
-			pass
+		new_net_votes = log_vote(obj_id=target_obj_id,username=own_name, own_id=own_id, revert_prev=True, is_pht=is_pht, \
+			target_user_id=target_user_id, time_of_vote=time_of_vote, vote_value=None)
+		if is_pht == '1' and new_net_votes >= 0:
+			# is a photo object
+			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+			# if it's a 'like' by a super-defender, handpick the object
+			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+			if is_super_defender:
+				remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
 	else:
 		# cast a simple 'like' vote
-		# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
-		world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
-		affinity_discount_multiplier = (1-retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type='1'))
-		new_net_votes = record_vote(obj_id=target_obj_id,username=own_name, own_id=own_id,revert_prev=False, is_pht=is_pht, \
-			target_user_id=target_user_id, world_age_discount=world_age_discount_multiplier,time_of_vote=time_of_vote,\
-			affinity_discount=affinity_discount_multiplier)
-		if new_net_votes >= 0:
-			if is_pht == '1':
-				# is a photo object
-				update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
-				# if it's a 'like' by a super-defender, handpick the object
-				is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-				if is_super_defender:
-					queue_obj_into_trending(prefix='img:',obj_owner_id=target_user_id,obj_id=target_obj_id,picked_by_id=own_id)
-		else:
-			# vote not added, do nothing
-			pass
+		world_age_discount = calculate_world_age_discount(user_id=own_id)
+		vote_value = calculate_vote_value(voter_id=own_id, target_user_id=target_user_id, world_age_discount=world_age_discount)
+		new_net_votes = log_vote(obj_id=target_obj_id, username=own_name, own_id=own_id, revert_prev=False, is_pht=is_pht,\
+			target_user_id=target_user_id, time_of_vote=time_of_vote, vote_value=vote_value)#removed world_age_discount and affinity_discount
+		if is_pht == '1' and new_net_votes >= 0:
+			# is a photo object
+			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+			# if it's a 'like' by a super-defender, handpick the object
+			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+			if is_super_defender:
+				queue_obj_into_trending(prefix='img:',obj_owner_id=target_user_id,obj_id=target_obj_id,picked_by_id=own_id)
 
 
 @celery_app1.task(name='tasks.registration_task')

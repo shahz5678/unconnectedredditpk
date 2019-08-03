@@ -22,7 +22,7 @@ from redis4 import retrieve_uname, retrieve_credentials
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
-retrieve_users_voting_relationships, retrieve_detailed_voting_data, log_section_wise_voting_liquidity, retrieve_voting_reputation_records
+retrieve_users_voting_relationships, retrieve_detailed_voting_data, log_section_wise_voting_liquidity
 
 def vote_result(request):
 	"""
@@ -187,9 +187,8 @@ def cast_vote(request,*args,**kwargs):
 						#legit vote - proceed
 						already_voted = voted_for_single_photo(obj_id, own_id) if is_pht == '1' else voted_for_link(obj_id,own_id)
 
-						revert_old = True if already_voted else False
 						#process the vote
-						if revert_old:
+						if already_voted:
 							# should always be able to revert old deeds, even if rate limited!
 							time_remaining, can_vote = 0, True
 						else:
@@ -199,7 +198,7 @@ def cast_vote(request,*args,**kwargs):
 						if can_vote:
 							own_name = retrieve_uname(own_id,decode=True)
 							vote_tasks.delay(own_id=own_id, target_user_id=target_user_id,target_obj_id=obj_id,own_name=own_name,\
-								revert_prev=revert_old, is_pht=is_pht,time_of_vote=time.time())
+								revert_prev=already_voted, is_pht=is_pht,time_of_vote=time.time())
 							#####################################################
 							# Logging voting liquidity in 'fresh' and 'trending'#
 							#####################################################
@@ -216,7 +215,7 @@ def cast_vote(request,*args,**kwargs):
 							#####################################################
 							#####################################################
 							#####################################################
-							message = 'old' if revert_old else 'new'#used to do some validation checks on the JS front-end, nothing more
+							message = 'old' if already_voted else 'new'#used to do some validation checks on the JS front-end, nothing more
 							if is_ajax:
 								# JS voting
 								return HttpResponse(json.dumps({'success':True,'message':message,'type':'text'}),\
@@ -406,7 +405,7 @@ def export_voting_reputation_records(request):
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		data_to_write_to_csv = retrieve_voting_reputation_records()
+		data_to_write_to_csv = None#retrieve_voting_reputation_records()
 		if data_to_write_to_csv:
 			import csv
 			filename = 'voting_reputation_data.csv'

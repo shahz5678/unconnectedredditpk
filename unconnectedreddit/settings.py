@@ -361,7 +361,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_photos': {
 		'task': 'tasks.rank_photos',
-		'schedule': timedelta(seconds=60*60), #execute every 60 mins, used to generate sybil stats
+		'schedule': timedelta(seconds=6*60*60), #execute every 6 hours, used to generate sybil stats
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',

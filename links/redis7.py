@@ -1576,6 +1576,8 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_ha
 def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 	"""
 	HAND_PICKED_TRENDING_PHOTOS contains photos earmarked for movement into trending - this executes the whole procedure
+
+	Note: Doesn't push a handpicked item into trending that has been tainted by sybil votes
 	"""
 	pushed, obj_id = False, None
 	if feed_type == 'best_photos':
@@ -1589,15 +1591,19 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 				oldest_enqueued_member = oldest_enqueued_member[0]
 				obj_hash = my_server.hgetall(oldest_enqueued_member)
 				if obj_hash:
-					# do the deed - push the object for members to see!
-					time_of_selection = time.time()
-					obj_hash['tos'] = time_of_selection
-					obj_hash = unpack_json_blob([obj_hash])[0]
-					obj_id = obj_hash['i']
-					add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
-						from_hand_picked=True)
-					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
-					pushed = True
+					if obj_hash.get('lck',None) == '1':
+						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
+						pushed = False
+					else:
+						# do the deed - push the object for members to see!
+						time_of_selection = time.time()
+						obj_hash['tos'] = time_of_selection
+						obj_hash = unpack_json_blob([obj_hash])[0]
+						obj_id = obj_hash['i']
+						add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
+							from_hand_picked=True)
+						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
+						pushed = True
 				else:
 					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
 					pushed = False
@@ -2267,6 +2273,9 @@ def log_vote(obj_id, username, own_id, revert_prev, is_pht, target_user_id, time
 			pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
 			pipeline1.hincrbyfloat(hash_name,'cvs',amount=vote_value)#atomic
 			pipeline1.zadd(vote_store,own_id, vote_value)#atomic
+			if vote_value < 0:
+				# it is a sybil-tainted vote - lock the content from trending forever
+				pipeline1.hset(hash_name,'lck','1')
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	

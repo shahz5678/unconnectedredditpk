@@ -835,14 +835,14 @@ def rank_all_photos():
 	time_now = time.time()
 	pushed, obj_id = push_hand_picked_obj_into_trending()
 	if pushed and obj_id:
-		# 
 		cohort_num = int(time_now/604800)#cohort size is 1 week
 		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
 		#####################################################
 		# Send this to Facebook fan page (every 6 hours)
 		if can_post_image_on_fb_fan_page():
-			photo = Photo.objects.only('image_file','owner__username').get(id=obj_id)
-			photo_poster(image_obj=photo.image_file, owner_username=photo.owner.username, photo_id=obj_id)
+			photo = Photo.objects.only('image_file','caption','owner__username').get(id=obj_id)
+			photo_poster(image_obj=photo.image_file, image_caption=photo.caption, owner_username=photo.owner.username, \
+				photo_id=obj_id)
 			set_best_photo_for_fb_fan_page(obj_id)
 		#####################################################
 	else:

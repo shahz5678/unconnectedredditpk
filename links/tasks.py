@@ -877,7 +877,7 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 	only_liked = []
 	for obj_hash, score, upvotes, netvotes in obj_list:
 		# ensure that the post is liked
-		if score > 0 and netvotes > 0:
+		if score > 0 and netvotes > 1:
 			only_liked.append((obj_hash, score))
 	if only_liked:
 		only_liked.sort(key=itemgetter(1),reverse=True)

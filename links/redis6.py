@@ -4697,6 +4697,15 @@ def rules_change_rate_limited(user_id,unique_id):
 
 ###################################### Handling user sets #######################################
 
+def get_num_groups(user_id):
+	"""
+	Retrieves number of public and private groups a user is a member of
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zcard(PUBLIC_GROUPS_USER_IS_A_MEMBER_OF+user_id), my_server.zcard(PRIVATE_GROUPS_USER_IS_A_MEMBER_OF+user_id)
+
+
 
 def retrieve_user_group_ownership(user_id, with_ownership_start_time=False, my_server=None):
 	"""

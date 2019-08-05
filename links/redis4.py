@@ -1899,6 +1899,84 @@ def purge_exit_list(group_id, user_id):
 # 		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws
 
 
+###################################### Project Superhuman #########################################
+
+FIRST_SURVEY_REFERRER = 'fsr:'# key holding first-time referrer page of any survey entrant
+OTHER_SURVEY_REFERRER = 'osr:'# key holding first-time referrer page of any survey entrant
+SUPERHUMAN_ANSWERS = 'sans:'#key containing jsonized survey answers given by a user
+SUPERHUMAN_ANSWERERS = 'sansr'# sorted set containing all logged answerers
+
+def log_survey_referrer(user_id, referrer_url):
+	"""
+	logs the referring screen the user entered the survey from
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(FIRST_SURVEY_REFERRER+user_id):
+		my_server.setex(OTHER_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
+	else:
+		my_server.setex(FIRST_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
+
+
+def show_survey(user_id):
+	"""
+	Determines whether a user is shown the survey or not
+	"""
+	return redis.Redis(connection_pool=POOL).exists(SUPERHUMAN_ANSWERS+str(user_id))
+
+
+def has_already_answered_superhuman_survey(user_id):
+	"""
+	Determines what state the survey is in, so that a screen can be shown to the user accordingly
+	"""
+	survey_json_data = redis.Redis(connection_pool=POOL).get(SUPERHUMAN_ANSWERS+str(user_id))
+	if survey_json_data:
+		survey_data = json.loads(survey_json_data)
+		skipped_survey = survey_data['skipped']
+		if skipped_survey == '1':
+			return True, True
+		elif skipped_survey == '0':
+			return True, False
+		else:
+			return False, False
+	else:
+		return False, False
+
+
+def log_superhuman_survey_answers(user_id, answers_dict, time_now):
+	"""
+	saves all the answers for later analysis
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if not my_server.exists(SUPERHUMAN_ANSWERS+user_id):
+		first_referrer = my_server.get(FIRST_SURVEY_REFERRER+user_id)
+		if first_referrer:
+			answers_dict['1st_ref'] = first_referrer
+			my_server.execute_command('UNLINK', FIRST_SURVEY_REFERRER+user_id)
+		other_referrer = my_server.get(OTHER_SURVEY_REFERRER+user_id)
+		if other_referrer:
+			answers_dict['other_ref'] = other_referrer
+			my_server.execute_command('UNLINK', OTHER_SURVEY_REFERRER+user_id)
+		my_server.setex(SUPERHUMAN_ANSWERS+user_id,json.dumps(answers_dict),TWO_WEEKS)
+		my_server.zadd(SUPERHUMAN_ANSWERERS,SUPERHUMAN_ANSWERS+user_id,time_now)
+		my_server.expire(SUPERHUMAN_ANSWERERS,TWO_WEEKS)
+		return True
+	else:
+		return False
+
+
+def retrieve_survey_records():
+	"""
+	Useful for exporting the data to a CSV for analysis
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	participating_survey_keys = my_server.zrange(SUPERHUMAN_ANSWERERS,0,-1)
+	if participating_survey_keys:
+		return my_server.mget(*participating_survey_keys)
+	else:
+		return []
+
 
 ######################################### Project Zuck ############################################
 from score import PROJ_ZUCK_STARTING_USER_ID 

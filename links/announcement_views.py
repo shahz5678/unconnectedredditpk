@@ -139,7 +139,7 @@ def survey(request):
 					ans3 = ''
 				###############################
 				ans4 = ans4.strip()
-				ans4 = strip_zero_width_characters(ans3)
+				ans4 = strip_zero_width_characters(ans4)
 				if ans4:
 					# only save 1000 chars
 					answers['ans4'] = ans4[:1000]

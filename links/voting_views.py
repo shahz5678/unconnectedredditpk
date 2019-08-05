@@ -301,7 +301,9 @@ def show_voting_summary(request,pk,orig,pht):
 		except Photo.DoesNotExist:
 			raise Http404("Photo object does not exist in our DB")
 		if ooid != request.user.id:
-			raise Http404("Not authorized to view this")
+			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+			if not is_super_defender:
+				raise Http404("Not authorized to view this")
 		trending_status, time_of_selection = is_obj_trending(prefix='img:', obj_id=pk, with_trending_time=True)
 		lid = None
 		tp = "img"
@@ -318,7 +320,9 @@ def show_voting_summary(request,pk,orig,pht):
 		except Link.DoesNotExist:
 			raise Http404("Text object does not exist in our DB")
 		if ooid != own_id:
-			raise Http404("Not authorized to view this")
+			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+			if not is_super_defender:
+				raise Http404("Not authorized to view this")
 		# trending_status, time_of_selection = is_obj_trending(prefix='img:', obj_id=pk, with_trending_time=True)# not needed yet
 		trending_status, time_of_selection = False, None
 		purl = None #not applicable, it's not a photo object

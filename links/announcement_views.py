@@ -30,17 +30,18 @@ def export_survey_results(request):
 			filename = 'survey_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ['user_id','username','joining time','submission time','skipped','on fbs', 'world age', 'num pub mehfils',\
-				'num prv mehfils', 'num 1on1s','device','1st ref','last ref','was verified','ans1','ans2','ans3','ans4','ans5','ans6',\
-				'ans7','ans8']
+				columns = ['user_id','username','joining time','submission time','skipped','was verified','on fbs', 'world age',\
+				'num pub mehfils','num prv mehfils', 'num 1on1s','device','1st ref','last ref','is err','ans1','ans2','ans3','ans4',\
+				'ans5','ans6','ans7','ans8']
 				wtr.writerow(columns)
 				for json_data in data_to_write_to_csv:
 					data = json.loads(json_data)
 					to_write = [data['user_id'],data['username'].encode('utf-8'),exact_date(data['join_date']),\
-					exact_date(data['submission_time']),data['skipped'],data['on_fbs'],data['world_age'],data['num_pub_grps'],\
-					data['num_prv_grps'],data['num_1on1s'],data['device'],data.get('1st_ref',''),data.get('other_ref',''),\
-					data.get('verif',None),data['ans1'],data['ans2'].encode('utf-8'),data['ans3'].encode('utf-8'),\
-					data['ans4'].encode('utf-8'),data['ans5'],data['ans6'],data['ans7'],data['ans8'].encode('utf-8')]
+					exact_date(data['submission_time']),data['skipped'],data.get('verif',None),data['on_fbs'],data['world_age'],\
+					data['num_pub_grps'],data['num_prv_grps'],data['num_1on1s'],data['device'],data.get('1st_ref',''),\
+					data.get('other_ref',''),'err' if data['ans3'].encode('utf-8') == data['ans4'].encode('utf-8') else '',\
+					data['ans1'],data['ans2'].encode('utf-8'),data['ans3'].encode('utf-8'),data['ans4'].encode('utf-8'),\
+					data['ans5'],data['ans6'],data['ans7'],data['ans8'].encode('utf-8')]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

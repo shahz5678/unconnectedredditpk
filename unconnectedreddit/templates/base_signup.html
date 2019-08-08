@@ -26,6 +26,8 @@
         
         {% google_analytics %}
 
+        {% if user.id > 1950400 %}{% include "full_story.html" %}{% endif %}
+
 </head>
 <body>
 {% include "ga_user_analytics.html" %}

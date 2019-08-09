@@ -1905,41 +1905,50 @@ FIRST_SURVEY_REFERRER = 'fsr:'# key holding first-time referrer page of any surv
 OTHER_SURVEY_REFERRER = 'osr:'# key holding first-time referrer page of any survey entrant
 SUPERHUMAN_ANSWERS = 'sans:'#key containing jsonized survey answers given by a user
 SUPERHUMAN_ANSWERERS = 'sansr'# sorted set containing all logged answerers
+SUPERHUMAN_ANSWERERS2 = 'sansr2'# sorted set containing all logged answerers of the second leg of the survey
 
-def log_survey_referrer(user_id, referrer_url):
-	"""
-	logs the referring screen the user entered the survey from
-	"""
-	user_id = str(user_id)
-	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.exists(FIRST_SURVEY_REFERRER+user_id):
-		my_server.setex(OTHER_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
-	else:
-		my_server.setex(FIRST_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
+# def log_survey_referrer(user_id, referrer_url):
+# 	"""
+# 	logs the referring screen the user entered the survey from
+# 	"""
+# 	user_id = str(user_id)
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if my_server.exists(FIRST_SURVEY_REFERRER+user_id):
+# 		my_server.setex(OTHER_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
+# 	else:
+# 		my_server.setex(FIRST_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
 
 
 def show_survey(user_id):
 	"""
 	Determines whether a user is shown the survey or not
 	"""
-	return redis.Redis(connection_pool=POOL).exists(SUPERHUMAN_ANSWERS+str(user_id))
+	return not redis.Redis(connection_pool=POOL).zscore(SUPERHUMAN_ANSWERERS,SUPERHUMAN_ANSWERS+str(user_id))
 
 
 def has_already_answered_superhuman_survey(user_id):
 	"""
 	Determines what state the survey is in, so that a screen can be shown to the user accordingly
 	"""
-	survey_json_data = redis.Redis(connection_pool=POOL).get(SUPERHUMAN_ANSWERS+str(user_id))
-	if survey_json_data:
-		survey_data = json.loads(survey_json_data)
-		skipped_survey = survey_data['skipped']
-		if skipped_survey == '1':
-			return True, True
-		elif skipped_survey == '0':
-			return True, False
+	answer_key = SUPERHUMAN_ANSWERS+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	filled_prev_survey = my_server.exists(answer_key)
+	if filled_prev_survey:
+		# allow this user, but only if they've not filled the new survey
+		json_prev_answer = my_server.get(answer_key)
+		prev_answer = json.loads(json_prev_answer)
+		if prev_answer.get("2nd_submission",None) == '1':
+			if prev_answer.get("2nd_sub_skipped",None) == '1':
+				# filled the previous one but skipped the new one
+				return True, True
+			else:
+				# filled the previous one and the new one both
+				return True, False
 		else:
+			# filled the prev survey, but hasn't filled the new one yet
 			return False, False
 	else:
+		# didn't fill the survey previously - shouldn't be allowed to fill it now
 		return False, False
 
 
@@ -1948,18 +1957,22 @@ def log_superhuman_survey_answers(user_id, answers_dict, time_now):
 	saves all the answers for later analysis
 	"""
 	user_id = str(user_id)
+	answer_key = SUPERHUMAN_ANSWERS+user_id
 	my_server = redis.Redis(connection_pool=POOL)
-	if not my_server.exists(SUPERHUMAN_ANSWERS+user_id):
-		first_referrer = my_server.get(FIRST_SURVEY_REFERRER+user_id)
-		if first_referrer:
-			answers_dict['1st_ref'] = first_referrer
-			my_server.execute_command('UNLINK', FIRST_SURVEY_REFERRER+user_id)
-		other_referrer = my_server.get(OTHER_SURVEY_REFERRER+user_id)
-		if other_referrer:
-			answers_dict['other_ref'] = other_referrer
-			my_server.execute_command('UNLINK', OTHER_SURVEY_REFERRER+user_id)
-		my_server.setex(SUPERHUMAN_ANSWERS+user_id,json.dumps(answers_dict),TWO_WEEKS)
-		my_server.zadd(SUPERHUMAN_ANSWERERS,SUPERHUMAN_ANSWERS+user_id,time_now)
+	if my_server.exists(answer_key):
+		json_prev_answer = my_server.get(answer_key)
+		prev_answer = json.loads(json_prev_answer)
+		prev_answer['2nd_submission'] = answers_dict['2nd_submission']
+		prev_answer['2nd_sub_skipped'] = answers_dict['2nd_sub_skipped']
+		prev_answer['ans9'] = answers_dict['ans9']
+		prev_answer['ans10'] = answers_dict['ans10']
+		prev_answer['ans11'] = answers_dict['ans11']
+		prev_answer['ans12'] = answers_dict['ans12']
+		prev_answer['num_topics'] = answers_dict['num_topics']
+		prev_answer['num_fans'] = answers_dict['num_fans']
+		my_server.setex(answer_key,json.dumps(prev_answer),TWO_WEEKS)
+		my_server.zrem(SUPERHUMAN_ANSWERERS,answer_key)#,time_now)
+		my_server.zadd(SUPERHUMAN_ANSWERERS2,answer_key,time_now)
 		my_server.expire(SUPERHUMAN_ANSWERERS,TWO_WEEKS)
 		return True
 	else:

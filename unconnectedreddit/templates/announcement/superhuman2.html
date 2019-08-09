@@ -1,0 +1,617 @@
+{% extends "base_min.html" %}
+{% block content %}
+<head><title>Survey | Damadam</title></head>
+
+<style type="text/css">body{background: #E9EBEE}.bg{background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);}.title{width: 100%; color: #FFF; letter-spacing: 2px; text-align: center; padding: 5px 0; font-weight: 300; display: block;}</style><header class="title bg cxl" >Damadam.pk</header>
+<ul class="navbar">
+    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+</ul>
+
+<h1 class="clb cxl lsp nos" style="margin-top:0;padding-top:15px;text-align:center">Feedback for Damadam:</h1>
+
+<main class="mbl clb nos" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:650px;width:97%;margin-right:auto;margin-left:auto">
+
+{% if submitted %}
+
+	<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Shukria! Apke jawab hamey Damadam ko behtar bananey mein madad dein ge</div>
+
+	<hr size=1 COLOR="#E6E6E6" style="margin:0">
+
+	<div class="lsp sp cgy cl" style="padding:10px 10px 5px 10px;text-align:center">Ab ap Damadam mein kahan jana chahtey hain?</div>
+	<div class="mbl" style="text-align:center">
+		<a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs" style="border:none;height:30px;">Home</button></a>
+		<a href="{% url 'photo' 'best-list' %}"><button class="btn bco bl cl mts mbs" style="border:none;height:30px;">Fotos</button></a><br>
+		<a href="{% url 'group_page' %}"><button class="btn bcp mrl bl cl mts mbs" style="border:none;height:30px;">Mehfil</button></a>
+		<a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcg bl cl mts" style="border:none;height:30px;">Matka</button></a>
+	</div>
+
+{% elif skipped %}
+
+	<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Apna waqt dene ka shukria!</div>
+
+	<hr size=1 COLOR="#E6E6E6" style="margin:0">
+
+	<div class="lsp sp cgy cl" style="padding:10px 10px 5px 10px;text-align:center">Ap Damadam mein kahan jana chahtey hain?</div>
+	<div class="mbl" style="text-align:center">
+		<a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs" style="border:none;height:30px;">Home</button></a>
+		<a href="{% url 'photo' 'best-list' %}"><button class="btn bco bl cl mts mbs" style="border:none;height:30px;">Fotos</button></a><br>
+		<a href="{% url 'group_page' %}"><button class="btn bcp mrl bl cl mts mbs" style="border:none;height:30px;">Mehfil</button></a>
+		<a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcg bl cl mts" style="border:none;height:30px;">Matka</button></a>
+	</div>
+
+{% elif already_answered %}
+
+	{% if was_skipped %}<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Ap feedback form ko skip kar chukey hain</div>{% else %}<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Apka feedback jama karaya ja chuka hai. Shukria!</div>{% endif %}
+
+	<hr size=1 COLOR="#E6E6E6" style="margin:0">
+
+	<div class="lsp sp cgy cl" style="padding:10px 10px 5px 10px;text-align:center">Ap Damadam mein kahan jana chahtey hain?</div>
+	<div class="mbl" style="text-align:center">
+		<a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs" style="border:none;height:30px;">Home</button></a>
+		<a href="{% url 'photo' 'best-list' %}"><button class="btn bco bl cl mts mbs" style="border:none;height:30px;">Fotos</button></a><br>
+		<a href="{% url 'group_page' %}"><button class="btn bcp mrl bl cl mts mbs" style="border:none;height:30px;">Mehfil</button></a>
+		<a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcg bl cl mts" style="border:none;height:30px;">Matka</button></a>
+	</div>
+
+{% elif sure_about_skipping %}
+
+	<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory;border-bottom:1px solid #e9ebee">Kya feedback form ko hamesha ke liye <b>skip</b> kar dia jaye?</div>
+
+	<form method="POST" class="mtl mbl" style="text-align:center" action="{% url 'survey' %}">
+	{% csrf_token %}
+	<button type="submit" name="sdec" class="btn bct mrl sp pg_ok_res" style="height:30px;width:110px" value="1"><b>Haan</b></button>
+	<button type="submit" name="sdec" class="btn bct sp pg_ok_res" style="height:30px;width:110px" value="0"><b>Nahi</b></button>
+	</form>
+
+
+
+{% else %}
+
+<div style="border-bottom:1px solid #e9ebee;padding:10px 7px;text-align:center;color:gray;background:ivory" class="cl sp lsp">
+
+{% if must_answer_all %}
+	<span class="cr cxl">Ap ne in sawaloon ke jawab nahi diye: {{ missing_ques }}</span>
+{% elif invalid_answers %}
+	<div class="cr cxl" style="text-align:left">
+		Mandarja-zael mein ghalti hai:<br>
+		{% if errors.ans1 %}
+			●&nbsp;{{ errors.ans1 }}<br>
+		{% endif %}
+		{% if errors.ans2 %}
+			●&nbsp;{{ errors.ans2 }}<br>
+		{% endif %}
+		{% if errors.ans3 %}
+			●&nbsp;{{ errors.ans3 }}<br>
+		{% endif %}
+		{% if errors.ans4 %}
+			●&nbsp;{{ errors.ans4 }}<br>
+		{% endif %}
+	</div>
+{% elif error_final_dec %}
+	<span class="cr cxl">Ye form sahi submit nahi ho saka. Dubara koshish karein</span>
+{% else %}
+	Welcome! Neechay apna feedback dein. Ye feedback khufiya rahe ga. Iske zariye hum Damadam ko behtar banain ge
+{% endif %}
+</div>
+
+<form method="POST" class="mbl" action="{% url 'survey' %}" style="padding:10px">
+{% csrf_token %}
+
+<div class="mts cxl lsp"><b>1)</b> Ap kaunsey city se hain?</div>
+<textarea class="mts cxl sp" style="border:1px solid #a8dff0;width:100%;height:40px;padding:8px;box-sizing:border-box;border-radius:8px;background:snow" maxlength="100" name="q1">{% if ans1 %}{{ ans1 }}{% endif %}</textarea>
+
+<div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp"><b>2)</b> Iska kitna chance hai ke ap apney kisi dost ya azeez ko Damadam istemal karney ka mashwara dein ge? 0% se 100% ke darmiyan aik option chunein:</div>
+	<div class="radbut cxl" style="margin: 0 auto;width: auto;text-align: left;display: table;">
+		{% if ans2 == '1' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle" checked><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '2' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle" checked><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '3' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle" checked><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '4' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle" checked><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '5' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle" checked><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '6' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle" checked><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '7' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle" checked><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '8' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle" checked><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '9' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle" checked><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '10' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle" checked><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% elif ans2 == '11' %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle" checked><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% else %}
+		<div class="mt sp">
+			<input type="radio" id="opt1" name="q2" value="1" style="vertical-align:middle"><label for="opt1">&nbsp;0%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt2" name="q2" value="2" style="vertical-align:middle"><label for="opt2">&nbsp;10%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt3" name="q2" value="3" style="vertical-align:middle"><label for="opt3">&nbsp;20%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt4" name="q2" value="4" style="vertical-align:middle"><label for="opt4">&nbsp;30%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt5" name="q2" value="5" style="vertical-align:middle"><label for="opt5">&nbsp;40%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt6" name="q2" value="6" style="vertical-align:middle"><label for="opt6">&nbsp;50%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt7" name="q2" value="7" style="vertical-align:middle"><label for="opt7">&nbsp;60%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt8" name="q2" value="8" style="vertical-align:middle"><label for="opt8">&nbsp;70%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt9" name="q2" value="9" style="vertical-align:middle"><label for="opt9">&nbsp;80%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt10" name="q2" value="10" style="vertical-align:middle"><label for="opt10">&nbsp;90%</label>
+		</div>
+		<div class="mtl sp">
+			<input type="radio" id="opt11" name="q2" value="11" style="vertical-align:middle"><label for="opt11">&nbsp;100%</label>
+		</div>
+		{% endif %}
+	</div>
+
+
+<div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp mbs"><b>3)</b> Damadam pe 'like' wala option new hai. Ye option apko kaisa laga?</div>
+<div class="radbut cxl" style="margin: 0 auto;width: auto;text-align: left;display: table;">
+	{% if ans3 == '1' %}
+	<div class="mt">
+		<input type="radio" id="opt12" name="q3" value="1" style="vertical-align:middle" checked><label for="opt12">&nbsp;Buhut acha</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt13" name="q3" value="2" style="vertical-align:middle"><label for="opt13">&nbsp;Darmyana</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt14" name="q3" value="3" style="vertical-align:middle"><label for="opt14">&nbsp;Buhut burra</label>
+	</div>
+	{% elif ans3 == '2' %}
+	<div class="mt">
+		<input type="radio" id="opt12" name="q3" value="1" style="vertical-align:middle"><label for="opt12">&nbsp;Buhut acha</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt13" name="q3" value="2" style="vertical-align:middle" checked><label for="opt13">&nbsp;Darmyana</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt14" name="q3" value="3" style="vertical-align:middle"><label for="opt14">&nbsp;Buhut burra</label>
+	</div>
+	{% elif ans3 == '3' %}
+	<div class="mt">
+		<input type="radio" id="opt12" name="q3" value="1" style="vertical-align:middle"><label for="opt12">&nbsp;Buhut acha</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt13" name="q3" value="2" style="vertical-align:middle"><label for="opt13">&nbsp;Darmyana</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt14" name="q3" value="3" style="vertical-align:middle" checked><label for="opt14">&nbsp;Buhut burra</label>
+	</div>
+	{% else %}
+	<div class="mt">
+		<input type="radio" id="opt12" name="q3" value="1" style="vertical-align:middle"><label for="opt12">&nbsp;Buhut acha</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt13" name="q3" value="2" style="vertical-align:middle"><label for="opt13">&nbsp;Darmyana</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt14" name="q3" value="3" style="vertical-align:middle"><label for="opt14">&nbsp;Buhut burra</label>
+	</div>
+	{% endif %}
+</div>
+
+
+<div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp"><b>4)</b> Agr Damadam pe 'fans' ka name change ho raha ho, tou admin ko new name kya rakhna chahiye?</div>
+<div class="radbut cxl" style="margin: 0 auto;width: auto;text-align: left;display: table;">
+	{% if ans4 == '1' %}
+	<div class="mt">
+		<input type="radio" id="opt15" name="q4" value="1" style="vertical-align:middle" checked><label for="opt15">&nbsp;Followers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt16" name="q4" value="2" style="vertical-align:middle"><label for="opt16">&nbsp;Subscribers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt17" name="q4" value="3" style="vertical-align:middle"><label for="opt17">&nbsp;Fans hi theek hai</label>
+	</div>
+	{% elif ans4 == '2' %}
+	<div class="mt">
+		<input type="radio" id="opt15" name="q4" value="1" style="vertical-align:middle"><label for="opt15">&nbsp;Followers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt16" name="q4" value="2" style="vertical-align:middle" checked><label for="opt16">&nbsp;Subscribers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt17" name="q4" value="3" style="vertical-align:middle"><label for="opt17">&nbsp;Fans hi theek hai</label>
+	</div>
+	{% elif ans4 == '3' %}
+	<div class="mt">
+		<input type="radio" id="opt15" name="q4" value="1" style="vertical-align:middle"><label for="opt15">&nbsp;Followers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt16" name="q4" value="2" style="vertical-align:middle"><label for="opt16">&nbsp;Subscribers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt17" name="q4" value="3" style="vertical-align:middle" checked><label for="opt17">&nbsp;Fans hi theek hai</label>
+	</div>
+	{% else %}
+	<div class="mt">
+		<input type="radio" id="opt15" name="q4" value="1" style="vertical-align:middle"><label for="opt15">&nbsp;Followers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt16" name="q4" value="2" style="vertical-align:middle"><label for="opt16">&nbsp;Subscribers</label>
+	</div>
+	<div class="mtl">
+		<input type="radio" id="opt17" name="q4" value="3" style="vertical-align:middle"><label for="opt17">&nbsp;Fans hi theek hai</label>
+	</div>
+	{% endif %}
+</div>
+
+<br>
+<button type="submit" class="mtl sp pg_ok_res bct btn cl" name="fdec" style="height:40px;width:100%" value="1"><b>SUBMIT</b></button>
+<button type="submit" class="mtl sp pg_ok_res bcgy btn cl" name="fdec" style="height:40px;width:100%" value="0"><b>SKIP</b></button>
+
+</form>
+{% endif %}
+</main>
+
+<br><br>
+{% endblock %}

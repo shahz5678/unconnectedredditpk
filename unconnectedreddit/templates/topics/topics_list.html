@@ -67,6 +67,12 @@
 
 	<div style="padding:10px">
 
+		<h2 style="font-size:30px;color:#ffc0c0;margin:0 0 10px 0">New Topics:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Independence Day 14th August 2019' url='independence-day-14th-august-2019' c1='#d4d900' c2='#01f5a1' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Eid Ul Adha 2019' url='eid-ul-adha-2019' c1='#5cf48c' c2='#a5ed31' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Never Forget Kashmir' url='never-forget-kashmir' c1='#f88379' c2='#a5ed31' %}
+
+
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Current Affairs:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='PTI Hakoomat vs Sabiq Hakoomat' url='pti-hakoomat-vs-sabiq-hakoomat' c1='#977aff' c2='#ffd700' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistani Siasat' url='pakistani-siasat' c1='#5cf48c' c2='#6d9eff' %}

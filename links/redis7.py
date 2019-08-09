@@ -942,6 +942,13 @@ def retrieve_subscribed_topics(user_id):
 	return final_data
 
 
+def get_num_topics(user_id):
+	"""
+	Returns number of topics a user has subscribed to
+	"""
+	return redis.Redis(connection_pool=POOL).zcard(SUB_TOPICS+str(user_id))
+
+
 def fan_out_to_subscribers(topic_url, obj_hash_id):
 	"""
 	TODO: Unused at the moment. This can go live as a second step of introducing 'topics'

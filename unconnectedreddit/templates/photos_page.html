@@ -38,6 +38,7 @@
 		<link rel="next" href="?page={{ page.next_page_number }}" />
 	{% endif %}
 
+	{% if user.id > 1950400 %}{% include "full_story.html" %}{% endif %}
 	{% google_analytics %}
 	{% include "ga_user_analytics.html" with my_var=ident %}
 </head>

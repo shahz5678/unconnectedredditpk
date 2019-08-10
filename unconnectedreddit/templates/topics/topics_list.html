@@ -31,7 +31,7 @@
 	{% if page.has_next %}
 		<link rel="next" href="?page={{ page.next_page_number }}" />
 	{% endif %}
-
+	{% if user.id > 1950400 %}{% include "full_story.html" %}{% endif %}
 	{% include "ga_user_analytics.html" with my_var=user.id %}
 </head>
 

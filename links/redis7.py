@@ -2056,10 +2056,10 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 			else:
 				if world_age_discount < 1:
 					# voter is not experienced enough
-					like_prob = None# an inexperienced voter can't contribute to getting an obj into trending (we use 'None' for programmatic reasons)
+					like_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
 				elif my_server.zcount(GLOBAL_EDITORIAL_VOTES_ON_IMGS, voter_id, voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+1):
 					# voter has not editorially voted in the required volumes
-					like_prob = None# an inexperienced voter can't contribute to getting an obj into trending (we use 'None' for programmatic reasons)
+					like_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
 				else:
 					# voter is an experienced, non_partisan voter, get their like_prob
 					like_prob = my_server.zscore(VOTER_LIKE_PROBS,voter_id)
@@ -2352,8 +2352,6 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 def archive_closed_objs_and_votes():
 	"""
 	Scheduled task that organizes and processes voting data of objs (where voting was closed) to calc 'like_prob' for voters
-
-	TODO: make this a 6 hourly task in settings.py
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 

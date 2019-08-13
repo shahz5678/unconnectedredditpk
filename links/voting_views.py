@@ -109,24 +109,6 @@ def cast_vote(request,*args,**kwargs):
 			obj_id, obj_owner_id, is_pht, origin = data[0], data[1], data[2], data[3]
 		except (AttributeError,KeyError,IndexError):
 			obj_id, obj_owner_id, is_pht, origin = None, None, None, None
-		# if value == '2':
-		# 	# show points page
-		# 	topic = request.POST.get("tp",None)# in case a 'topic' parameter was passed also
-		# 	request.session["origin_topic"] = topic
-		# 	if is_ajax:
-		# 		return HttpResponse(json.dumps({'success':True,'message':reverse("show_voting_summary", kwargs={"pk": obj_id,"orig":origin,'pht':is_pht}),\
-		# 			'type':'redirect'}),content_type='application/json',)
-		# 	else:
-		# 		return redirect("show_voting_summary",pk=obj_id,orig=origin,pht=is_pht)
-		# elif value not in ('1','0'):
-		# 	# disallow since this isn't a 'like', nor an 'unlike' (reversing the 'like')
-		# 	request.session["vote_result"] = '11'
-		# 	request.session.modified = True
-		# 	if is_ajax:
-		# 		return HttpResponse(json.dumps({'success':False,'message':reverse('vote_result'),'type':'redirect'}),content_type='application/json',)
-		# 	else:
-		# 		return redirect('vote_result')
-		# else:
 		# it's a vote, carry on
 		if (is_pht == '1' and origin in ('1','2','3','22')) or (is_pht == '0' and origin in ('3','22')):
 			# voted on a photo and from a photo origin OR voted on a textual link and from a textual origin
@@ -188,17 +170,32 @@ def cast_vote(request,*args,**kwargs):
 						already_voted = voted_for_single_photo(obj_id, own_id) if is_pht == '1' else voted_for_link(obj_id,own_id)
 
 						#process the vote
-						if already_voted:
-							# should always be able to revert old deeds, even if rate limited!
-							time_remaining, can_vote = 0, True
-						else:
+						if already_voted is False:
 							# this is a fresh vote
 							# check if the user banned from voting completely?
 							time_remaining, can_vote = can_vote_on_obj(own_id, is_pht)
+						else:
+							# should always be able to revert old deeds, even if rate limited!
+							time_remaining, can_vote = 0, True
+						
 						if can_vote:
-							own_name = retrieve_uname(own_id,decode=True)
-							vote_tasks.delay(own_id=own_id, target_user_id=target_user_id,target_obj_id=obj_id,own_name=own_name,\
-								revert_prev=already_voted, is_pht=is_pht,time_of_vote=time.time())
+							# votes cast in fresh lists are considered 'editorial' votes - handpickers build their reputation by voting here
+							# votes cast in best lists are considered 'audience' votes - voters vote on curated stuff and validate curators' choice
+							if origin == '1':
+								# vote_type = 'fresh'
+								editorial_vote = True
+							elif origin == '2':
+								# vote_type = 'trending'
+								editorial_vote = False# this is an 'audience vote'
+							elif origin == '3':
+								# vote_type = 'home'
+								editorial_vote = True
+							elif origin == '22':
+								# vote_type = 'topic'
+								editorial_vote = True
+							elif origin == '26':
+								# vote_type = 'custom_feed'
+								editorial_vote = False# this is an 'audience vote'
 							#####################################################
 							# Logging voting liquidity in 'fresh' and 'trending'#
 							#####################################################
@@ -215,6 +212,8 @@ def cast_vote(request,*args,**kwargs):
 							#####################################################
 							#####################################################
 							#####################################################
+							vote_tasks.delay(own_id=own_id, target_user_id=target_user_id,target_obj_id=obj_id,revert_prev=already_voted,\
+								is_pht=is_pht, time_of_vote=time.time(), is_editorial_vote=editorial_vote)
 							message = 'old' if already_voted else 'new'#used to do some validation checks on the JS front-end, nothing more
 							if is_ajax:
 								# JS voting

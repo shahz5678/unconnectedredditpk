@@ -39,13 +39,12 @@ update_group_topic_in_obj
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest
-from redis7 import log_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
+from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
-create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, calculate_vote_value,trim_global_voter_rep,\
-process_global_vote_rep
+create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page
 from redis8 import set_section_wise_retention, log_segment_action
 # from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
@@ -853,7 +852,7 @@ def rank_all_photos():
 		if trending_item_hash_name:
 			highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
 			highest_ranked_photo['tos'] = time_now
-			highest_ranked_photo['rank_scr'] = item_score
+			highest_ranked_photo['like_prob'] = item_score# what probability exists that this content will be liked by at least 1 audience member
 			obj_id = trending_item_hash_name.split(":")[1]
 			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
 			pushed = True
@@ -873,11 +872,11 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 
 	Current criteria requires the top most obj to have the highest cumulative_vote_score but with at least one downvote
 	"""
-	obj_list = retrieve_obj_scores(obj_hash_names, with_votes=True)
+	obj_list = retrieve_obj_scores(obj_hash_names)
 	only_liked = []
-	for obj_hash, score, upvotes, netvotes in obj_list:
-		# ensure that the post is liked
-		if score > 0 and netvotes > 1:
+	for obj_hash, likes, score in obj_list:
+		# ensure that the post is liked and has a positive 'score' (score is the prob it will receive 'likes' when it trends)
+		if likes > 0 and score > 0:
 			only_liked.append((obj_hash, score))
 	if only_liked:
 		only_liked.sort(key=itemgetter(1),reverse=True)
@@ -903,7 +902,7 @@ def rank_home_posts():
 	fresh_obj_hashes = get_home_feed()
 	trending_obj_hashes = get_best_home_feed(trending_home=True)
 	remaining_obj_hashes = [hash_ for hash_ in fresh_obj_hashes if hash_ not in trending_obj_hashes]
-	trending_item_hash_name = extract_trending_obj(remaining_obj_hashes)
+	trending_item_hash_name = extract_trending_obj(remaining_obj_hashes)# new 'like_prob' changes are breaking this for "texts"
 	if trending_item_hash_name:
 		add_single_trending_object_in_feed(trending_item_hash_name, time.time())
 
@@ -932,8 +931,7 @@ def rank_photos():
 
 	Mislabeled due to legacy reasons
 	"""
-	process_global_vote_rep()
-	trim_global_voter_rep()
+	pass
 
 
 @celery_app1.task(name='tasks.fans')
@@ -1116,7 +1114,7 @@ def cache_voting_history(user_id, page_num, json_data):
 
 
 @celery_app1.task(name='tasks.vote_tasks')
-def vote_tasks(own_id,target_user_id,target_obj_id,own_name,revert_prev,is_pht,time_of_vote):
+def vote_tasks(own_id, target_user_id, target_obj_id, revert_prev, is_pht, time_of_vote, is_editorial_vote):
 	"""
 	Processes vote on a post by a user
 
@@ -1124,8 +1122,8 @@ def vote_tasks(own_id,target_user_id,target_obj_id,own_name,revert_prev,is_pht,t
 	"""
 	if revert_prev:
 		# undo a previous 'like'
-		new_net_votes = log_vote(obj_id=target_obj_id,username=own_name, own_id=own_id, revert_prev=True, is_pht=is_pht, \
-			target_user_id=target_user_id, time_of_vote=time_of_vote, vote_value=None)
+		new_net_votes = log_like(obj_id=target_obj_id, own_id=own_id, revert_prev=True, is_pht=is_pht, target_user_id=target_user_id,\
+			time_of_vote=time_of_vote, is_editorial_vote=is_editorial_vote)
 		if is_pht == '1' and new_net_votes >= 0:
 			# is a photo object
 			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
@@ -1136,9 +1134,8 @@ def vote_tasks(own_id,target_user_id,target_obj_id,own_name,revert_prev,is_pht,t
 	else:
 		# cast a simple 'like' vote
 		world_age_discount = calculate_world_age_discount(user_id=own_id)
-		vote_value = calculate_vote_value(voter_id=own_id, target_user_id=target_user_id, world_age_discount=world_age_discount)
-		new_net_votes = log_vote(obj_id=target_obj_id, username=own_name, own_id=own_id, revert_prev=False, is_pht=is_pht,\
-			target_user_id=target_user_id, time_of_vote=time_of_vote, vote_value=vote_value)#removed world_age_discount and affinity_discount
+		new_net_votes = log_like(obj_id=target_obj_id, own_id=own_id, revert_prev=False, is_pht=is_pht, target_user_id=target_user_id,\
+			time_of_vote=time_of_vote, world_age_discount=world_age_discount, is_editorial_vote=is_editorial_vote)
 		if is_pht == '1' and new_net_votes >= 0:
 			# is a photo object
 			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo

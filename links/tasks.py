@@ -44,7 +44,7 @@ cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cle
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
-create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page
+create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
 from redis8 import set_section_wise_retention, log_segment_action
 # from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
@@ -527,17 +527,11 @@ def delete_notifications(user_id):
 @celery_app1.task(name='tasks.calc_gibberish_punishment')
 def calc_gibberish_punishment():
 	"""
-	Scheduled task, empty at the moment
+	Scheduled task to calculate 'like_probs' of voters/likers
+
+	Mislabeled for legacy reasons
 	"""
-	pass
-	# all_gibberish_writers = get_gibberish_text_writers()
-	# if all_gibberish_writers:
-	# 	all_gibberish_writers_above_threshold = {k:v for k,v in all_gibberish_writers if v>3}
-	# 	if all_gibberish_writers_above_threshold:
-	# 		gibberish_punishment = {}
-	# 		for k in all_gibberish_writers_above_threshold.keys():
-	# 			all_gibberish_writers_above_threshold[k] *= GIBBERISH_PUNISHMENT_MULTIPLIER
-	# 		punish_gibberish_writers(all_gibberish_writers_above_threshold)
+	archive_closed_objs_and_votes()
 
 
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')

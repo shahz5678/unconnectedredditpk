@@ -1984,7 +1984,7 @@ def retrieve_survey_records():
 	Useful for exporting the data to a CSV for analysis
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	participating_survey_keys = my_server.zrange(SUPERHUMAN_ANSWERERS,0,-1)
+	participating_survey_keys = my_server.zrange(SUPERHUMAN_ANSWERERS2,0,-1)
 	if participating_survey_keys:
 		return my_server.mget(*participating_survey_keys)
 	else:

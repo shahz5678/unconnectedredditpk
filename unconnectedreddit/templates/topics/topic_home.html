@@ -36,7 +36,6 @@
 	{% endif %}
 
 	<link rel="canonical" href="{% url 'topic_page' topic_url %}" />
-	{% if user.id > 1950400 %}{% include "full_story.html" %}{% endif %}
 	{% include "ga_user_analytics.html" with my_var=user.id %}
 
 </head>

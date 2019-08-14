@@ -17,6 +17,37 @@ from redis6 import get_num_groups
 from redis5 import get_num_grps
 
 
+def export_survey_results(request):
+	"""
+	Exports all survey results into a CSV file for analysis
+	"""
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		data_to_write_to_csv = retrieve_survey_records()# list of lists (where each list is a list of dictionaries)
+		if data_to_write_to_csv:
+			import csv
+			filename = 'survey_data.csv'
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ['user_id','username','joining time','submission time','skipped','2nd skipped','was verified','on fbs', \
+				'world age','num pub mehfils','num prv mehfils', 'num 1on1s','num fans','num topics','device','1st ref','last ref',\
+				'is err','ans1','ans2','ans3','ans4','ans5','ans6','ans7','ans8','ans9','ans10','ans11','ans12']
+				wtr.writerow(columns)
+				for json_data in data_to_write_to_csv:
+					data = json.loads(json_data)
+					to_write = [data['user_id'],data['username'].encode('utf-8'),exact_date(data['join_date']),\
+					exact_date(data['submission_time']),data['skipped'],data['2nd_sub_skipped'],data.get('verif',None),\
+					data['on_fbs'],data['world_age'],data['num_pub_grps'],data['num_prv_grps'],data['num_1on1s'],\
+					data['num_fans'],data['num_topics'],data['device'],data.get('1st_ref',''),data.get('other_ref',''),\
+					'err' if (data['ans3'].encode('utf-8') == data['ans4'].encode('utf-8') and data['skipped'] == '0') else '',\
+					data['ans1'],data['ans2'].encode('utf-8'),data['ans3'].encode('utf-8'),data['ans4'].encode('utf-8'),\
+					data['ans5'],data['ans6'],data['ans7'],data['ans8'].encode('utf-8'),data['ans9'].encode('utf-8'),\
+					data['ans10'],data['ans11'],data['ans12']]
+					wtr.writerows([to_write])
+	raise Http404("Completed ;)")
+
+
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
@@ -133,36 +164,6 @@ def survey(request):
 		else:
 			# render basic survey
 			return render(request,"announcement/superhuman2.html")
-
-
-
-def export_survey_results(request):
-	"""
-	Exports all survey results into a CSV file for analysis
-	"""
-	own_id = request.user.id
-	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-	if is_super_defender:
-		data_to_write_to_csv = retrieve_survey_records()# list of lists (where each list is a list of dictionaries)
-		if data_to_write_to_csv:
-			import csv
-			filename = 'survey_data.csv'
-			with open(filename,'wb') as f:
-				wtr = csv.writer(f)
-				columns = ['user_id','username','joining time','submission time','skipped','was verified','on fbs', 'world age',\
-				'num pub mehfils','num prv mehfils', 'num 1on1s','device','1st ref','last ref','is err','ans1','ans2','ans3','ans4',\
-				'ans5','ans6','ans7','ans8']
-				wtr.writerow(columns)
-				for json_data in data_to_write_to_csv:
-					data = json.loads(json_data)
-					to_write = [data['user_id'],data['username'].encode('utf-8'),exact_date(data['join_date']),\
-					exact_date(data['submission_time']),data['skipped'],data.get('verif',None),data['on_fbs'],data['world_age'],\
-					data['num_pub_grps'],data['num_prv_grps'],data['num_1on1s'],data['device'],data.get('1st_ref',''),\
-					data.get('other_ref',''),'err' if data['ans3'].encode('utf-8') == data['ans4'].encode('utf-8') else '',\
-					data['ans1'],data['ans2'].encode('utf-8'),data['ans3'].encode('utf-8'),data['ans4'].encode('utf-8'),\
-					data['ans5'],data['ans6'],data['ans7'],data['ans8'].encode('utf-8')]
-					wtr.writerows([to_write])
-	raise Http404("Completed ;)")
 
 
 # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

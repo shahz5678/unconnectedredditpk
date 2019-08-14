@@ -42,7 +42,7 @@ LinkCreateView, CaptionView, LinkDeleteView, HelpView, AdMobileNumView, Register
 HistoryHelpView, AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, FacesHelpView, \
 AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressView
 from links.voting_views import user_vote_history
-from links.announcement_views import survey, export_survey_results
+# from links.announcement_views import survey, export_survey_results
 from links.group_views import show_shared_photo_metrics
 
 admin.autodiscover()
@@ -271,8 +271,8 @@ urlpatterns = patterns('',
 	url(r'^kick_ban_user/$', auth(kick_ban_user),name='kick_ban_user'),
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
-	url(r'^survey/user-satisfaction/$', auth(survey), name='survey'),
-	url(r'^survey/export/$', auth(export_survey_results), name='export_survey_results'),
+	# url(r'^survey/user-satisfaction/$', auth(survey), name='survey'),
+	# url(r'^survey/export/$', auth(export_survey_results), name='export_survey_results'),
 	#url(r'^maintainance_notice/stay-tuned/$', auth(maintainance_notice), name='maintainance_notice'),
 	#################################################################################################
 	############################# Permanent redirects ###############################################

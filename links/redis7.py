@@ -356,9 +356,10 @@ def retrieve_obj_scores(obj_list):
 	result1, counter, final_result = pipeline1.execute(), 0, []
 	for obj_hash in obj_list:
 		is_locked_out_from_trending = result1[counter+2]
+		vote_store_exists = result1[counter+1]
 		
-		if is_locked_out_from_trending:
-			# skip content that has been voted on by sybils
+		if is_locked_out_from_trending or not vote_store_exists:
+			# skip content that has been voted on by sybils, or isn't open for voting any more
 			pass
 		else:
 
@@ -367,7 +368,7 @@ def retrieve_obj_scores(obj_list):
 			
 			################################
 			
-			score_tup = result1[counter+1][0]
+			score_tup = vote_store_exists[0]
 			score = score_tup[1]
 			
 			################################

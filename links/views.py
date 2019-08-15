@@ -184,31 +184,31 @@ def get_indices(page_number, obj_allotment):
 	return (index_ceiling)-objs_per_page,index_ceiling-1
 
 
-# def break_text_into_prefix_and_postfix(target_text):
-# 	"""
-# 	Does a reasonable effort at breaking the string along 'space' character
-# 	"""
-# 	STARTING_CHAR_IDX = 43
-# 	postfix_text = target_text[STARTING_CHAR_IDX:]
-# 	if postfix_text:
-# 		# target string is longer than 43 chars - i.e. it's a candidate for break-up
-# 		broken = False
-# 		for z in xrange(STARTING_CHAR_IDX-5,STARTING_CHAR_IDX+4,1):
-# 			if target_text[z].isspace():
-# 				# break at this point
-# 				broken = True
-# 				break
-# 			else:
-# 				# break at STARTING_CHAR_IDX
-# 				pass
-# 		if broken:
-# 			prefix = target_text[:z]
-# 			postfix = target_text[z:].strip()
-# 			return prefix, postfix
-# 		else:
-# 			return target_text[:STARTING_CHAR_IDX], postfix_text
-# 	else:
-# 		return target_text, ''
+def break_text_into_prefix_and_postfix(target_text):
+	"""
+	Does a reasonable effort at breaking the string along 'space' character
+	"""
+	STARTING_CHAR_IDX = 43
+	postfix_text = target_text[STARTING_CHAR_IDX:]
+	if postfix_text:
+		# target string is longer than 43 chars - i.e. it's a candidate for break-up
+		broken = False
+		for z in xrange(STARTING_CHAR_IDX-5,STARTING_CHAR_IDX+4,1):
+			if target_text[z].isspace():
+				# break at this point
+				broken = True
+				break
+			else:
+				# break at STARTING_CHAR_IDX
+				pass
+		if broken:
+			prefix = target_text[:z]
+			postfix = target_text[z:].strip()
+			return prefix, postfix
+		else:
+			return target_text[:STARTING_CHAR_IDX], postfix_text
+	else:
+		return target_text, ''
 
 
 def retrieve_trending_thumbs(user_id):

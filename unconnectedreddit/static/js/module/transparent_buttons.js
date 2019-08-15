@@ -20,10 +20,10 @@ function cast_vote(e) {
 	vb.disabled = true;//disable the button so that it can't be double clicked
 	var payload = vb.value.split(":");
 	// var val = payload[0]; // vote value
-	var lid = payload[1]; // link_id
-	var ooid = payload[2]; // link_writer_id
-	var is_pht = payload[3]; // is_pht == '1' if object is a photo
-	var origin = payload[4]; // voting origin
+	var lid = payload[0]; // link_id
+	var ooid = payload[1]; // link_writer_id
+	var is_pht = payload[2]; // is_pht == '1' if object is a photo
+	var origin = payload[3]; // voting origin
 	
 	// if (is_pht === '1') {
 	// 	var lid_key = 'img:'.concat(lid).toString()

@@ -1848,6 +1848,13 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 		return payload, num_of_grps
 
 
+def get_num_grps(user_id):
+	"""
+	Retreives number of personal groups (1on1s) a given user is a part of
+	"""
+	return redis.Redis(connection_pool=POOL).zcard("pgfgm:"+str(user_id))
+
+
 def get_user_friend_list(user_id):
 	"""
 	Returns list of friend names and avatar urls for any user

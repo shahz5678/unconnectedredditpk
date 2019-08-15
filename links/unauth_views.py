@@ -435,11 +435,11 @@ def login(request, lang=None, *args, **kwargs):
 @sensitive_post_parameters()
 @csrf_protect
 def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
-	if account_creation_disallowed(getip(request)):
+	if request.user.is_authenticated():
+		return redirect("home")
+	elif account_creation_disallowed(getip(request)):
 		template_name = 'unauth/penalty_account_create_ur.html' if lang == 'ur' else 'unauth/penalty_account_create.html'
 		return render(request,template_name,{})
-	elif request.user.is_authenticated():
-		return redirect("home")
 	elif request.method == 'POST':
 		form = CreateAccountForm(data=request.POST, lang=lang)
 		err = request.POST.get("err",None)
@@ -500,11 +500,11 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 # @sensitive_post_parameters()
 @csrf_protect
 def create_password_new(request,lang=None,slug=None,length=None,*args,**kwargs):
-	if account_creation_disallowed(getip(request)):
+	if request.user.is_authenticated():
+		return redirect("home")
+	elif account_creation_disallowed(getip(request)):
 		template_name = 'unauth/penalty_account_create_ur.html' if lang == 'ur' else 'unauth/penalty_account_create.html'
 		return render(request,template_name,{})
-	elif request.user.is_authenticated():
-		return redirect("home")
 	elif request.method == 'POST':
 		form = CreatePasswordForm(data=request.POST,lang=lang)
 		if form.is_valid():

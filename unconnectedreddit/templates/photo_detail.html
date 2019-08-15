@@ -112,7 +112,7 @@
 			<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
 				{% if is_js_env %}{% big_external_share_button owner_username=oun on_opera=on_opera photo_id=photo.id origin='5' static_url=STATIC_URL %}{% endif %}
 				{% big_photo_comment_button photo_id=photo.id origin='5' comm_count=photo.comment_count static_url=STATIC_URL %}
-				{% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+				{% if photo.owner_id == user.id %}{% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}{% endif %}
 			</div>
 		</section>
 

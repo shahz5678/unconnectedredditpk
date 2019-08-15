@@ -6,12 +6,17 @@ MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
 ###############################################################################################################
+DIRECT_SYBIL_REP_DISCOUNT = 1
+GENERAL_SYBIL_REP_DISCOUNT = 0.3
+###############################################################################################################
+VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 1728000# i.e. 20 days. This is the amount of time closed-voting objs are kept around for 'like_prob' analysis
+###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
 NUM_SUBMISSION_ALLWD_PER_DAY = 100#num of home and photo posts allowed in one day
-CONTENT_SHARING_SHORT_RATELIMIT = 110#amount of time to wait between sharing posts (time pooled between home and photos) 
+CONTENT_SHARING_SHORT_RATELIMIT = 45#amount of time to wait between sharing posts (time pooled between home and photos) 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors

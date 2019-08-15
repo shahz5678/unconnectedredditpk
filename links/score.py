@@ -6,9 +6,6 @@ MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
 ###############################################################################################################
-DIRECT_SYBIL_REP_DISCOUNT = 1
-GENERAL_SYBIL_REP_DISCOUNT = 0.3
-###############################################################################################################
 VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 1728000# i.e. 20 days. This is the amount of time closed-voting objs are kept around for 'like_prob' analysis
 ###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)

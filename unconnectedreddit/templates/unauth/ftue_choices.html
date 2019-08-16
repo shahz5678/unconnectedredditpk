@@ -23,85 +23,18 @@
 		<form method="POST" action="{% url 'first_time_choice' %}" class="mts">
 		   {% csrf_token %}
 		   	<ul style="display:inline-block;padding: 0;list-style:none">
-				{% if ordering == '1' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">Fans bana ke famous hona he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">Boys & girls se dosti karni he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">Mazeydar posts dekhni hein</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp cgy">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">In mein se kuch bhi nahi</span>
-					</li>
-				{% elif ordering == '2' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">Fans bana ke famous hona he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">Mazeydar posts dekhni hein</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">Boys & girls se dosti karni he</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp cgy">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">In mein se kuch bhi nahi</span>
-					</li>
-				{% elif ordering == '3' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">Boys & girls se dosti karni he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">Fans bana ke famous hona he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">Mazeydar posts dekhni hein</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp cgy">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">In mein se kuch bhi nahi</span>
-					</li>
-				{% elif ordering == '4' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">Boys & girls se dosti karni he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">Mazeydar posts dekhni hein</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">Fans bana ke famous hona he</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp cgy">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">In mein se kuch bhi nahi</span>
-					</li>
-				{% elif ordering == '5' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">Mazeydar posts dekhni hein</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">Fans bana ke famous hona he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">Boys & girls se dosti karni he</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp cgy">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">In mein se kuch bhi nahi</span>
-					</li>
-				{% elif ordering == '6' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">Mazeydar posts dekhni hein</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">Boys & girls se dosti karni he</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">Fans bana ke famous hona he</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">In mein se kuch bhi nahi</span>
-					</li>
-				{% endif %}
+				<li style="text-align:left" class="cl mt mbl sp">
+					<input type="radio" name="choice" value="2" id="2" style="vertical-align:text-bottom"><label for="2"><span class="sp">Boys & girls se dosti karni he</span>
+				</li><br>
+				<li style="text-align:left" class="cl mbl sp">
+					<input type="radio" name="choice" value="1" id="1" style="vertical-align:text-bottom"><label for="1"><span class="sp">Fans bana ke famous hona he</span>
+				</li><br>
+				<li style="text-align:left" class="cl mbl sp">
+					<input type="radio" name="choice" value="3" id="3" style="vertical-align:text-bottom"><label for="3"><span class="sp">Mazeydar posts dekhni hein</span>
+				</li><br>
+				<li style="text-align:left;color:#606060" class="cl mbs sp cgy">
+					<input type="radio" name="choice" value="4" id="4" style="vertical-align:text-bottom"><label for="4"><span class="sp">In mein se kuch bhi nahi</span>
+				</li>
 			</ul>
 			<br>
 			<button type="submit" style="border-radius: 5px;color:white;background-color:#59a5f5;border:solid 1px #ffd12b;width:95%;font-size:20px;height:45px" class="mls mrs mbl sp pg_ok_res">SUBMIT</button>

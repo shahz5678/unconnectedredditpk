@@ -61,7 +61,7 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
 video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, log_action, populate_search_thumbs,\
-sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, set_input_history 
+sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, set_input_history
 #from .html_injector import create_gibberish_punishment_text
 # from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -1062,23 +1062,13 @@ def home_page(request, lang=None):
 	'newbie_lang':request.session.get("newbie_lang",None),'mobile_verified':request.mobile_verified,'on_opera':on_opera}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
-	#####################################################
-	################ AB Testing Tutorial ################
-	#####################################################
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = True
-		if newbie_flag == '1':
-			context["newbie_tutorial_page"] = 'tutorial.html'
-		elif newbie_flag == '2':
-			context["newbie_tutorial_page"] = 'tutorial2.html'
-		elif newbie_flag == '3':
-			context["newbie_tutorial_page"] = 'tutorial3.html'
+		if newbie_flag in ('1','2','3'):
+			context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 		else:
 			context["newbie_tutorial_page"] = 'newbie_rules.html'
-	#####################################################
-	#####################################################
-	#####################################################
 	# extraneous
 	context["lang"] = 'None'
 	context["sort_by"] = 'recent'
@@ -1119,88 +1109,58 @@ def new_user_gateway(request,lang=None,*args,**kwargs):
 
 def first_time_choice(request,lang=None, *args, **kwargs):
 	user_id = request.user.id
-	#####################################################
-	################ AB Testing Tutorial ################
-	#####################################################
-	from redis3 import register_bucket, get_option_ordering
 	if request.method == 'POST':
 		request.session["newbie_lang"] = lang if lang else 'eng'
-		bucket_val = register_bucket(user_id, bucket_type="test_init")
-		if bucket_val == 0:
-			# original onboarding funnel
-			choice = request.POST.get("choice",None)
-			if choice == '1':
-				set_user_choice(choice='1',user_id=user_id)
-				# this user wants to chat
-				return redirect("home")
-			elif choice == '2':
-				set_user_choice(choice='2',user_id=user_id)
-				# this user wants to see fotos
-				return redirect("photo",list_type='best-list')
-			else:
-				set_user_choice(choice='3',user_id=user_id)
-				return redirect("home")
+		# new 4-pronged onboarding funnel
+		choice = request.POST.get("choice",None)
+		if choice in ('1','2','3','4'):
+			request.session["newbie_flag"] = choice
+			############################################
+			############################################
+			# set_variation_retention.delay(user_id,which_var='var-b'+choice)
+			############################################
+			############################################
+			return redirect("home")
 		else:
-			# new 4-pronged onboarding funnel
-			choice = request.POST.get("choice",None)
-			if choice in ('1','2','3','4'):
-				register_bucket(user_id, bucket_type="vari_init", vari_type=choice)
-				request.session["newbie_flag"] = choice
-				return redirect("home")
-			else:
-				request.session["redo_tut_selection"+str(user_id)] = '1'
-				return redirect("first_time_choice")
+			request.session["redo_tut_selection"+str(user_id)] = '1'
+			return redirect("first_time_choice",lang)
 	else:
-		"""
-		0 is control
-		1 means user is part of the 3-pronged test
-		"""
-		bucket_val = register_bucket(user_id, bucket_type="test_init")
-		if bucket_val == 0:
-			# original onboarding funnel
-			ordering = 1 if get_option_ordering(user_id) in ('1','3','5') else 2
-			if lang == 'ur':
-				return render(request,"unauth/first_time_choice_ur.html",{'ordering':ordering})
-			else:
-				return render(request,"unauth/first_time_choice.html",{'ordering':ordering})
+		# new 4-pronged onboarding funnel
+		no_choice_selected = True if request.session.pop("redo_tut_selection"+str(user_id),None) == '1' else False
+		if lang == 'ur':
+			return render(request,"unauth/ftue_choices_ur.html",{'no_choice_selected':no_choice_selected})
 		else:
-			# new 4-pronged onboarding funnel
-			no_choice_selected = True if request.session.pop("redo_tut_selection"+str(user_id),None) == '1' else False
-			ordering = get_option_ordering(user_id)
-			if lang == 'ur':
-				return render(request,"unauth/ftue_choices_ur.html",{'ordering':ordering,'no_choice_selected':no_choice_selected})
-			else:
-				return render(request,"unauth/ftue_choices.html",{'ordering':ordering,'no_choice_selected':no_choice_selected})
+			return render(request,"unauth/ftue_choices.html",{'no_choice_selected':no_choice_selected})
 			
 	#####################################################
 	#####################################################
 	#####################################################
 
-def export_tut_ab_results(request):
-	"""
-	Exports results of AB test run on tutorials
-	"""
-	from redis3 import retrieve_ab_test_records
-	defender_id = request.user.id 
-	is_defender, is_super_defender = in_defenders(defender_id, return_super_status=True)
- 	if is_super_defender:
- 		data_to_write_to_csv = retrieve_ab_test_records()
-		if data_to_write_to_csv:
-			import csv
-			filename = 'tutorial_ab_test_data.csv'
-			with open(filename,'wb') as f:
-				wtr = csv.writer(f)
-				columns = ["user ID","part of exp","btn order shown","num fame selected","num 1on1 selected","num cont selected",\
-				"num exit selected","num options tried","option selection order","was verif pressed","num times verif pressed",\
-				"opt selection right before each verif press","was verified successfully","num verifications"]
-				wtr.writerow(columns)
-				for datum in data_to_write_to_csv:
-					to_write = [datum['user_id'],datum['part_of_exp'],datum['ordering_shown'],datum['num_fame_selected'],\
-					datum['num_1on1_selected'],datum['num_cont_selected'],datum['num_exit_selected'],datum['num_options_tried'],\
-					datum['selection_string'],datum['was_verif_pressed'],datum['num_verify_pressed'],datum['selected_before_verif_pressed'],\
-					datum['was_successfully_verified'],datum['num_verifications']]
-					wtr.writerows([to_write])
-	raise Http404("Completed ;)")
+# def export_tut_ab_results(request):
+# 	"""
+# 	Exports results of AB test run on tutorials
+# 	"""
+# 	from redis3 import retrieve_ab_test_records
+# 	defender_id = request.user.id 
+# 	is_defender, is_super_defender = in_defenders(defender_id, return_super_status=True)
+#  	if is_super_defender:
+#  		data_to_write_to_csv = retrieve_ab_test_records()
+# 		if data_to_write_to_csv:
+# 			import csv
+# 			filename = 'tutorial_ab_test_data.csv'
+# 			with open(filename,'wb') as f:
+# 				wtr = csv.writer(f)
+# 				columns = ["user ID","part of exp","btn order shown","num fame selected","num 1on1 selected","num cont selected",\
+# 				"num exit selected","num options tried","option selection order","was verif pressed","num times verif pressed",\
+# 				"opt selection right before each verif press","was verified successfully","num verifications"]
+# 				wtr.writerow(columns)
+# 				for datum in data_to_write_to_csv:
+# 					to_write = [datum['user_id'],datum['part_of_exp'],datum['ordering_shown'],datum['num_fame_selected'],\
+# 					datum['num_1on1_selected'],datum['num_cont_selected'],datum['num_exit_selected'],datum['num_options_tried'],\
+# 					datum['selection_string'],datum['was_verif_pressed'],datum['num_verify_pressed'],datum['selected_before_verif_pressed'],\
+# 					datum['was_successfully_verified'],datum['num_verifications']]
+# 					wtr.writerows([to_write])
+# 	raise Http404("Completed ;)")
 
 ##############################################################################################################################
 ##############################################################################################################################
@@ -2305,22 +2265,12 @@ def photo_page(request,list_type='best-list'):
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
-		#####################################################
-		################ AB Testing Tutorial ################
-		#####################################################
 		if newbie_flag:
 			context["newbie_flag"] = True
-			if newbie_flag == '1':
-				context["newbie_tutorial_page"] = 'tutorial.html'
-			elif newbie_flag == '2':
-				context["newbie_tutorial_page"] = 'tutorial2.html'
-			elif newbie_flag == '3':
-				context["newbie_tutorial_page"] = 'tutorial3.html'
+			if newbie_flag in ('1','2','3'):
+				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 			else:
 				context["newbie_tutorial_page"] = 'newbie_rules.html'
-		#####################################################
-		#####################################################
-		#####################################################
 		# extraneous
 		context["lang"] = 'None'
 		context["sort_by"] = 'recent'

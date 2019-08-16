@@ -20,7 +20,7 @@
 
 	<div style="padding:10px 7px 5px 7px;background:#fff169;color:#270000">
 		{% if no_choice_selected %}<div class="cxl cr lsp">کوئ ایک آپشن چننا ضروری ہے</div>{% else %}<div class="cxl lsp">آپ دمادم پے کیا کرنا چاہتے ہیں؟</div>{% endif %}
-		<form method="POST" action="{% url 'first_time_choice' %}" class="mts">
+		<form method="POST" action="{% url 'first_time_choice' 'ur' %}" class="mts">
 		   {% csrf_token %}
 
 		   	<ul style="display:inline-block;padding: 0;list-style:none">

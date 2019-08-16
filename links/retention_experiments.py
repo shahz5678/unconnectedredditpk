@@ -10,13 +10,13 @@ var(n)cr - key containing cached retention data for the variation (useful for re
 """
 
 EXP = {\
-# var-b1 relates to retention of users who select 'famous' variation in the tut
+# var1 relates to retention of users who select 'famous' variation in the tut
 'var1':'rt1:','var1r':'e1r:','var1rl':'e1rl:','var1cr':'e1cr',\
-# var-b2 relates to retention of users who select 'dosti' variation in the tut
+# var2 relates to retention of users who select 'dosti' variation in the tut
 'var2':'rt2:','var2r':'e2r:','var2rl':'e2rl:','var2cr':'e2cr',\
-# var-b3 relates to retention of users who select 'content' variation in the tut
+# var3 relates to retention of users who select 'content' variation in the tut
 'var3':'rt3:','var3r':'e3r:','var3rl':'e3rl:','var3cr':'e3cr',\
-# var-b4 relates to retention of users who select 'other' variation in the tut
+# var4 relates to retention of users who select 'other' variation in the tut
 'var4':'rt4:','var4r':'e4r:','var4rl':'e4rl:','var4cr':'e4cr',\
 }
 

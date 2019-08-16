@@ -2432,196 +2432,196 @@ def log_text_submissions(item_type='text'):
 ##################################################################################################################
 
 
-def get_option_ordering(user_id):
-	"""
-	Helps randomize the ordering of options shown to new users when entering the AB test funnelS
-	"""
-	order_key = "optorder:"+str(user_id)#1
-	my_server = redis.Redis(connection_pool=POOL)
-	ordering = my_server.get(order_key)
-	if not ordering:
-		ordering = str(random.randint(1,6))
-		my_server.setex(order_key,ordering,ONE_DAY)
-	return ordering
+# def get_option_ordering(user_id):
+# 	"""
+# 	Helps randomize the ordering of options shown to new users when entering the AB test funnelS
+# 	"""
+# 	order_key = "optorder:"+str(user_id)#1
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	ordering = my_server.get(order_key)
+# 	if not ordering:
+# 		ordering = str(random.randint(1,6))
+# 		my_server.setex(order_key,ordering,ONE_DAY)
+# 	return ordering
 
 
-def register_bucket(user_id, bucket_type, vari_type=None):
-	"""
-	AB test for testing various 'tutorial' variations
+# def register_bucket(user_id, bucket_type, vari_type=None):
+# 	"""
+# 	AB test for testing various 'tutorial' variations
 
-	bucket_type is: 
-	- 'test_init' (0 means control, 1 means part of the experiment)
-	- 'vari_init' (1 means fans, 2 means 1on1, 3 means content, 4 means none of these)
-	"""
-	BUCKET_NAMES = {'1':'fame_buck','2':'1on1_buck','3':'cont_buck','4':'exit_buck'}
+# 	bucket_type is: 
+# 	- 'test_init' (0 means control, 1 means part of the experiment)
+# 	- 'vari_init' (1 means fans, 2 means 1on1, 3 means content, 4 means none of these)
+# 	"""
+# 	BUCKET_NAMES = {'1':'fame_buck','2':'1on1_buck','3':'cont_buck','4':'exit_buck'}
 
-	my_server = redis.Redis(connection_pool=POOL)
-	if bucket_type == 'test_init':
-		bucket_val = my_server.zscore(bucket_type,user_id)
-		if bucket_val is None:
-			bucket_val = random.randint(0,1)
-			my_server.zadd(bucket_type,user_id,bucket_val)
-		return int(bucket_val)
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if bucket_type == 'test_init':
+# 		bucket_val = my_server.zscore(bucket_type,user_id)
+# 		if bucket_val is None:
+# 			bucket_val = random.randint(0,1)
+# 			my_server.zadd(bucket_type,user_id,bucket_val)
+# 		return int(bucket_val)
 
-	elif bucket_type == 'vari_init':
-		bucket_name = BUCKET_NAMES.get(vari_type,None)
-		if bucket_name:
-			choices_key = 'varichoices:'+str(user_id)
-			my_server.zincrby(bucket_name, user_id, amount=1)
-			my_server.zincrby(bucket_type, bucket_name, amount=1)
-			my_server.lpush(choices_key,vari_type)
-			my_server.expire(choices_key,ONE_MONTH)
+# 	elif bucket_type == 'vari_init':
+# 		bucket_name = BUCKET_NAMES.get(vari_type,None)
+# 		if bucket_name:
+# 			choices_key = 'varichoices:'+str(user_id)
+# 			my_server.zincrby(bucket_name, user_id, amount=1)
+# 			my_server.zincrby(bucket_type, bucket_name, amount=1)
+# 			my_server.lpush(choices_key,vari_type)
+# 			my_server.expire(choices_key,ONE_MONTH)
 
-	elif bucket_type == "veri_click":
-		my_server.zincrby(bucket_type, user_id, amount=1)
-		latest_choice = my_server.lindex('varichoices:'+str(user_id),0)
-		choices_key = 'verichoices:'+str(user_id)
-		my_server.lpush(choices_key,latest_choice)
-		my_server.expire(choices_key,ONE_MONTH)
+# 	elif bucket_type == "veri_click":
+# 		my_server.zincrby(bucket_type, user_id, amount=1)
+# 		latest_choice = my_server.lindex('varichoices:'+str(user_id),0)
+# 		choices_key = 'verichoices:'+str(user_id)
+# 		my_server.lpush(choices_key,latest_choice)
+# 		my_server.expire(choices_key,ONE_MONTH)
 
-	elif bucket_type == "verif_done":
-		my_server.zincrby(bucket_type, user_id, amount=1)
+# 	elif bucket_type == "verif_done":
+# 		my_server.zincrby(bucket_type, user_id, amount=1)
 
 
-def retrieve_ab_test_records():
-	"""
-	Retreives records of the tutorial ab test, useful for exporting to a CSV
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	tested_user_ids = my_server.zrange('test_init',0,-1,withscores=True)
-	only_ids = [user_id for user_id, opt in tested_user_ids]
-	opt_key_names = []
-	for user_id in only_ids:
-		opt_key_names.append('optorder:'+user_id)
-	opt_order_data = my_server.mget(*opt_key_names)
+# def retrieve_ab_test_records():
+# 	"""
+# 	Retreives records of the tutorial ab test, useful for exporting to a CSV
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	tested_user_ids = my_server.zrange('test_init',0,-1,withscores=True)
+# 	only_ids = [user_id for user_id, opt in tested_user_ids]
+# 	opt_key_names = []
+# 	for user_id in only_ids:
+# 		opt_key_names.append('optorder:'+user_id)
+# 	opt_order_data = my_server.mget(*opt_key_names)
 	
-	#####################################################
+# 	#####################################################
 
-	ordering_shown, insider_ids, outsider_ids, counter = {}, [], [], 0
-	for user_id, is_ab_init in tested_user_ids:
-		if is_ab_init == 0:
-			# not part of the new funnel
-			outsider_ids.append(user_id)# gives the column 'option_order' for a given user
-			ordering_shown[user_id] = 1 if opt_order_data[counter] in ('1','3','5') else 2# gives the column 'option_order' for a given user
-		elif is_ab_init == 1:
-			# part of the new funnel
-			insider_ids.append(user_id)
-			ordering_shown[user_id] = opt_order_data[counter]# gives the column 'option_order' for a given user
-		else:
-			# exclude this user - probably an error
-			pass
-		counter += 1
+# 	ordering_shown, insider_ids, outsider_ids, counter = {}, [], [], 0
+# 	for user_id, is_ab_init in tested_user_ids:
+# 		if is_ab_init == 0:
+# 			# not part of the new funnel
+# 			outsider_ids.append(user_id)# gives the column 'option_order' for a given user
+# 			ordering_shown[user_id] = 1 if opt_order_data[counter] in ('1','3','5') else 2# gives the column 'option_order' for a given user
+# 		elif is_ab_init == 1:
+# 			# part of the new funnel
+# 			insider_ids.append(user_id)
+# 			ordering_shown[user_id] = opt_order_data[counter]# gives the column 'option_order' for a given user
+# 		else:
+# 			# exclude this user - probably an error
+# 			pass
+# 		counter += 1
 
-	#####################################################
+# 	#####################################################
 
-	user_id_and_times_1on1 = dict(my_server.zrange('1on1_buck', 0, -1, withscores=True))# gives the column 'num_1on1_selected'
-	user_id_and_times_fame = dict(my_server.zrange('fame_buck', 0, -1, withscores=True))# gives the column 'num_fame_selected'
-	user_id_and_times_cont = dict(my_server.zrange('cont_buck', 0, -1, withscores=True))# gives the column 'num_cont_selected'
-	user_id_and_times_exit = dict(my_server.zrange('exit_buck', 0, -1, withscores=True))# gives the column 'num_exit_selected'
+# 	user_id_and_times_1on1 = dict(my_server.zrange('1on1_buck', 0, -1, withscores=True))# gives the column 'num_1on1_selected'
+# 	user_id_and_times_fame = dict(my_server.zrange('fame_buck', 0, -1, withscores=True))# gives the column 'num_fame_selected'
+# 	user_id_and_times_cont = dict(my_server.zrange('cont_buck', 0, -1, withscores=True))# gives the column 'num_cont_selected'
+# 	user_id_and_times_exit = dict(my_server.zrange('exit_buck', 0, -1, withscores=True))# gives the column 'num_exit_selected'
 
-	#####################################################
+# 	#####################################################
 
-	num_tried = {}
-	for user_id in insider_ids:
-		counter = 0
-		if user_id in user_id_and_times_1on1:
-			counter += 1
-		if user_id in user_id_and_times_fame:
-			counter += 1
-		if user_id in user_id_and_times_cont:
-			counter += 1
-		if user_id in user_id_and_times_exit:
-			counter += 1
-		num_tried[user_id] = counter# gives the column 'num_options_tried'
+# 	num_tried = {}
+# 	for user_id in insider_ids:
+# 		counter = 0
+# 		if user_id in user_id_and_times_1on1:
+# 			counter += 1
+# 		if user_id in user_id_and_times_fame:
+# 			counter += 1
+# 		if user_id in user_id_and_times_cont:
+# 			counter += 1
+# 		if user_id in user_id_and_times_exit:
+# 			counter += 1
+# 		num_tried[user_id] = counter# gives the column 'num_options_tried'
 
-	#####################################################
-	num_verify_pressed = {}
+# 	#####################################################
+# 	num_verify_pressed = {}
 
-	pipeline1 = my_server.pipeline()
-	for user_id in insider_ids:
-		pipeline1.zscore('veri_click',user_id)
-	result1, counter = pipeline1.execute(), 0
+# 	pipeline1 = my_server.pipeline()
+# 	for user_id in insider_ids:
+# 		pipeline1.zscore('veri_click',user_id)
+# 	result1, counter = pipeline1.execute(), 0
 
-	for user_id in insider_ids:
-		num_pressed = result1[counter]
-		num_verify_pressed[user_id] = num_pressed if num_pressed else 0# gives the columns 'was_verify_pressed' and 'num_verify_pressed'
-		counter += 1
+# 	for user_id in insider_ids:
+# 		num_pressed = result1[counter]
+# 		num_verify_pressed[user_id] = num_pressed if num_pressed else 0# gives the columns 'was_verify_pressed' and 'num_verify_pressed'
+# 		counter += 1
 
-	pipeline2 = my_server.pipeline()
-	for user_id in outsider_ids:
-		pipeline2.zscore('veri_click',user_id)
-	result2, counter = pipeline2.execute(), 0
+# 	pipeline2 = my_server.pipeline()
+# 	for user_id in outsider_ids:
+# 		pipeline2.zscore('veri_click',user_id)
+# 	result2, counter = pipeline2.execute(), 0
 
-	for user_id in outsider_ids:
-		num_pressed = result2[counter]
-		num_verify_pressed[user_id] = num_pressed if num_pressed else 0# gives the columns 'was_verify_pressed' and 'num_verify_pressed'
-		counter += 1
+# 	for user_id in outsider_ids:
+# 		num_pressed = result2[counter]
+# 		num_verify_pressed[user_id] = num_pressed if num_pressed else 0# gives the columns 'was_verify_pressed' and 'num_verify_pressed'
+# 		counter += 1
 
-	#####################################################
+# 	#####################################################
 
-	selected_before_verif_clicked = {}
+# 	selected_before_verif_clicked = {}
 
-	pipeline3 = my_server.pipeline()
-	for user_id in insider_ids:
-		pipeline3.lrange('verichoices:'+user_id,0,-1)
-	result3, counter = pipeline3.execute(), 0
+# 	pipeline3 = my_server.pipeline()
+# 	for user_id in insider_ids:
+# 		pipeline3.lrange('verichoices:'+user_id,0,-1)
+# 	result3, counter = pipeline3.execute(), 0
 
-	for user_id in insider_ids:
-		choice_list = result3[counter]
-		selected_before_verif_clicked[user_id] = choice_list if choice_list else []# gives the column 'selected_before_verif_string'
-		counter += 1
+# 	for user_id in insider_ids:
+# 		choice_list = result3[counter]
+# 		selected_before_verif_clicked[user_id] = choice_list if choice_list else []# gives the column 'selected_before_verif_string'
+# 		counter += 1
 
-	#####################################################
+# 	#####################################################
 
-	num_verifications = {}
+# 	num_verifications = {}
 
-	pipeline4 = my_server.pipeline()
+# 	pipeline4 = my_server.pipeline()
 
-	for user_id in insider_ids:
-		pipeline4.zscore('verif_done',user_id)
+# 	for user_id in insider_ids:
+# 		pipeline4.zscore('verif_done',user_id)
 
-	for user_id in outsider_ids:
-		pipeline4.zscore('verif_done',user_id)
+# 	for user_id in outsider_ids:
+# 		pipeline4.zscore('verif_done',user_id)
 
-	result4, counter = pipeline4.execute(), 0
+# 	result4, counter = pipeline4.execute(), 0
 
-	for user_id in insider_ids:
-		num_verif = result4[counter]
-		num_verifications[user_id] = num_verif if num_verif else 0# gives the columns 'verified_successfully' and 'num_verifications'
-		counter += 1
+# 	for user_id in insider_ids:
+# 		num_verif = result4[counter]
+# 		num_verifications[user_id] = num_verif if num_verif else 0# gives the columns 'verified_successfully' and 'num_verifications'
+# 		counter += 1
 
-	for user_id in outsider_ids:
-		num_verif = result4[counter]
-		num_verifications[user_id] = num_verif if num_verif else 0# gives the columns 'verified_successfully' and 'num_verifications'
-		counter += 1
+# 	for user_id in outsider_ids:
+# 		num_verif = result4[counter]
+# 		num_verifications[user_id] = num_verif if num_verif else 0# gives the columns 'verified_successfully' and 'num_verifications'
+# 		counter += 1
 
-	#####################################################
+# 	#####################################################
 
-	final_data = []
+# 	final_data = []
 
-	pipeline5 = my_server.pipeline()
-	for user_id in insider_ids:
-		pipeline5.lrange('varichoices:'+user_id,0,-1)# gives the column 'selection_string'
-	result5, counter = pipeline5.execute(), 0
+# 	pipeline5 = my_server.pipeline()
+# 	for user_id in insider_ids:
+# 		pipeline5.lrange('varichoices:'+user_id,0,-1)# gives the column 'selection_string'
+# 	result5, counter = pipeline5.execute(), 0
 		
-	for user_id in insider_ids:
-		final_data.append({'user_id':user_id,'part_of_exp':'Yes','ordering_shown':ordering_shown[user_id],\
-			'num_1on1_selected':user_id_and_times_1on1.get(user_id,0),'num_fame_selected':user_id_and_times_fame.get(user_id,0),\
-			'num_cont_selected':user_id_and_times_cont.get(user_id,0),'num_exit_selected':user_id_and_times_exit.get(user_id,0),\
-			'num_verify_pressed':num_verify_pressed.get(user_id,0),'num_options_tried':num_tried.get(user_id,0),\
-			'selection_string':" ".join(str(x) for x in result5[counter]),'was_verif_pressed':'Yes' if num_verify_pressed.get(user_id,0)>0 else 'No',\
-			'selected_before_verif_pressed':" ".join(str(x) for x in selected_before_verif_clicked.get(user_id,[])),\
-			'num_verifications':num_verifications.get(user_id,0),'was_successfully_verified':'Yes' if num_verifications.get(user_id,0)>0 else 'False'})
-		counter += 1
+# 	for user_id in insider_ids:
+# 		final_data.append({'user_id':user_id,'part_of_exp':'Yes','ordering_shown':ordering_shown[user_id],\
+# 			'num_1on1_selected':user_id_and_times_1on1.get(user_id,0),'num_fame_selected':user_id_and_times_fame.get(user_id,0),\
+# 			'num_cont_selected':user_id_and_times_cont.get(user_id,0),'num_exit_selected':user_id_and_times_exit.get(user_id,0),\
+# 			'num_verify_pressed':num_verify_pressed.get(user_id,0),'num_options_tried':num_tried.get(user_id,0),\
+# 			'selection_string':" ".join(str(x) for x in result5[counter]),'was_verif_pressed':'Yes' if num_verify_pressed.get(user_id,0)>0 else 'No',\
+# 			'selected_before_verif_pressed':" ".join(str(x) for x in selected_before_verif_clicked.get(user_id,[])),\
+# 			'num_verifications':num_verifications.get(user_id,0),'was_successfully_verified':'Yes' if num_verifications.get(user_id,0)>0 else 'False'})
+# 		counter += 1
 
-	for user_id in outsider_ids:
-		final_data.append({'user_id':user_id,'part_of_exp':'No','ordering_shown':ordering_shown[user_id],\
-			'num_1on1_selected':'-','num_fame_selected':'-','num_cont_selected':'-','num_exit_selected':'-',\
-			'num_verify_pressed':num_verify_pressed.get(user_id,0),'num_options_tried':'-','selection_string':'-',\
-			'was_verif_pressed':'Yes' if num_verify_pressed.get(user_id,0)>0 else 'No','selected_before_verif_pressed':'-',\
-			'num_verifications':num_verifications.get(user_id,0),'was_successfully_verified':'Yes' if num_verifications.get(user_id,0)>0 else 'False'})
+# 	for user_id in outsider_ids:
+# 		final_data.append({'user_id':user_id,'part_of_exp':'No','ordering_shown':ordering_shown[user_id],\
+# 			'num_1on1_selected':'-','num_fame_selected':'-','num_cont_selected':'-','num_exit_selected':'-',\
+# 			'num_verify_pressed':num_verify_pressed.get(user_id,0),'num_options_tried':'-','selection_string':'-',\
+# 			'was_verif_pressed':'Yes' if num_verify_pressed.get(user_id,0)>0 else 'No','selected_before_verif_pressed':'-',\
+# 			'num_verifications':num_verifications.get(user_id,0),'was_successfully_verified':'Yes' if num_verifications.get(user_id,0)>0 else 'False'})
 
-	return final_data# it has 14 columns
+# 	return final_data# it has 14 columns
 
 """
 User lands on 1st time choice, they:

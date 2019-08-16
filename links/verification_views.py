@@ -157,16 +157,6 @@ def account_kit_verification_processing(request):
 					if user_id > SEGMENT_STARTING_USER_ID:
 						log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ='2', action_liq='l', time_of_action=time.time())
 					##############################################################
-					
-					#####################################################
-					################ AB Testing Tutorial ################
-					#####################################################
-					from redis3 import register_bucket
-					register_bucket(user_id=user_id, bucket_type='verif_done')
-					#####################################################
-					#####################################################
-					#####################################################
-					
 					request.session["account_kit_verification_succeeded"] = '1'
 					request.session.modified = True
 					return redirect("account_kit_verification_successful")
@@ -287,14 +277,6 @@ def verify_user_mobile_unpaid(request):
 		# not allowed to proceed
 		return redirect("missing_page")
 	else:
-		#####################################################
-		################ AB Testing Tutorial ################
-		#####################################################
-		from redis3 import register_bucket
-		register_bucket(user_id=request.user.id, bucket_type='veri_click')
-		#####################################################
-		#####################################################
-		#####################################################
 		return render(request,'verification/user_mobile_verification.html',{'form':MobileVerificationForm()})	
 
 

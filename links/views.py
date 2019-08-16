@@ -1117,7 +1117,8 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 			request.session["newbie_flag"] = choice
 			############################################
 			############################################
-			# set_variation_retention.delay(user_id,which_var='var-b'+choice)
+			from tasks import set_variation_retention
+			set_variation_retention.delay(user_id,which_var='var'+choice)
 			############################################
 			############################################
 			return redirect("home")

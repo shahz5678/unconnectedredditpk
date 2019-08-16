@@ -10,5 +10,5 @@ urlpatterns = patterns('',
 	#################################################################################################
 	url(r'^export/actions/$', auth(export_logged_actions), name='export_logged_actions'),
 	url(r'^retention/delete/$', auth(reset_retention_counters), name='reset_retention_counters'),
-	url(r'^retention/(?P<section>[\w.@+-]+)/$', auth(display_retention), name='display_retention'),
+	url(r'^retention/(?P<variation>[\w.@+-]+)/$', auth(display_retention), name='display_retention'),
 )

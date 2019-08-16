@@ -45,7 +45,7 @@ add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_subm
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
-from redis8 import set_section_wise_retention, log_segment_action
+from redis8 import set_variation_wise_retention, log_segment_action
 # from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
@@ -406,14 +406,14 @@ def log_action(user_id, action_categ, action_sub_categ, action_liq, time_of_acti
 	log_segment_action(user_id, hours_since_start_of_segment, action_categ, action_sub_categ, action_liq, time_of_action)
 
 
-# @celery_app1.task(name='tasks.set_section_retention')
-# def set_section_retention(which_exp, user_id):
-# 	"""
-# 	Logs users for retention calculation of various cohorts
+@celery_app1.task(name='tasks.set_section_retention')
+def set_variation_retention(user_id, which_var=None):
+	"""
+	Logs users for retention calculation of various cohorts
 
-# 	'which_exp' is the name of an experiment currently under progress
-# 	"""
-# 	set_section_wise_retention(which_exp, user_id)
+	'which_var' is the name of an experimental variation currently under progress
+	"""
+	set_variation_wise_retention(user_id,which_var=which_var)
 
 
 @celery_app1.task(name='tasks.set_user_age')

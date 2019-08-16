@@ -1,5 +1,5 @@
 import random
-from links.tasks import save_online_user, set_user_age
+from links.tasks import save_online_user, set_user_age, set_variation_retention
 
 class WhoseOnlineMiddleware(object):
 
@@ -15,3 +15,8 @@ class WhoseOnlineMiddleware(object):
 			# called between 94% - 100%
 			# set user world age
 			set_user_age.delay(user_id=request.user.id)
+		####################################################################################
+		elif 0.25 <= ran_num < 0.75 and request.user.is_authenticated():
+			# 50% chance this is going to be called
+			# log d1 retention of the user
+			set_variation_retention.delay(request.user.id)

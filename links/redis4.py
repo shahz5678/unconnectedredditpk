@@ -1274,6 +1274,16 @@ def many_short_messages(user_id,section,obj_id):
 	else:
 		return False
 
+######################################## Logging abusive text on home ########################################
+
+ABUSIVE_HOME_TEXT = 'aht'# global sorted set containing abusive text on home
+
+
+def log_abusive_home_post(user_id, text):
+	"""
+	"""
+	redis.Redis(connection_pool=POOL).zadd(ABUSIVE_HOME_TEXT,text+":"+str(time.time()),user_id)
+
 ################################################# Logging Sharing in Photos #################################################
 
 

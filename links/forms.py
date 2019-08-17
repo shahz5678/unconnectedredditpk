@@ -13,7 +13,7 @@ from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from tasks import invalidate_avatar_url
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key,\
-get_aurl, is_attribute_change_rate_limited
+get_aurl, is_attribute_change_rate_limited, log_abusive_home_post
 from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
 Publicreply, VideoComment
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, prep_image
@@ -585,6 +585,12 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 					if rate_limited > 0:
 						raise forms.ValidationError('Ap yahan pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 					else:
+						##########################
+						abusive_words=(' hot ','private','sex','xxx','1on1','1 on 1')
+						lower_case_desc = description.lower()
+						if any(word in lower_case_desc for word in abusive_words):
+							log_abusive_home_post(user_id=user_id, text=description)
+						##########################
 						if len_ < 4:
 							raise forms.ValidationError('Itni choti baat nahi likh sakte')
 						elif len_ < 6:

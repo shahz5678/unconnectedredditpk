@@ -15,7 +15,7 @@ GLOBAL_EXP_USERS = 'geu'#global sorted set containing all users who're part of a
 UVAR = 'u:'# holds an identifier for every user, used to identify the said user within the said variation (useful for retention analysis)
 
 d1 = {0:'d0',1:'d1',2:'d2',3:'d3',4:'d4',5:'d5',6:'d6',7:'d7',8:'d8',9:'d9',10:'d10',11:'d11',12:'d12'}
-COHORT_NAMES_ = defaultdict(lambda: 'd13+', d1)# populates COHORT_NAMES_ by d1, and then uses 'd13+' as default value ('d13+' means 'd13 or more' - where d13 is included)
+DAY_NAMES = defaultdict(lambda: 'd13+', d1)# populates DAY_NAMES by d1, and then uses 'd13+' as default value ('d13+' means 'd13 or more' - where d13 is included)
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC8, db=0)
 
@@ -43,38 +43,46 @@ def set_variation_wise_retention(user_id, which_var=None):
 	if variation:
 		which_var = variation
 	#######################################################
+	# only proceed if user is part of any variation, otherwise ignore the user entirely (they're not part of any experimental variation)
 	if which_var:
-		# only proceed if user is part of any variation, otherwise ignore the user entirely (they're not part of any experimental variation)
 
-		visitor_key = EXP[which_var]+user_id#holds the first time 'user_id' visited a specific cohort (within a variation)
-		user_registration_time = my_server.zscore(GLOBAL_EXP_USERS,user_id)
+		# the cohort active right now
+		cohort_id_now = retrieve_cohort(time_now)
 
-		if user_registration_time:
+		# the cohort this user originally belonged to
+		cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
+
+		# if user_registration_time:
+		if cohort_id:
 			
-			# the user within this variation is returning!
-			cohort_name = COHORT_NAMES_[int((time_now - user_registration_time)/COHORT_TIME_LENGTH)]# this determines the cohort based on the time passed since user registered in this experiment
-			if cohort_name != 'd13+' and not my_server.exists(EXP[which_var+'rl']+user_id):# part of the studied cohorts, and not rate-limited
-				
+			cohort_id = int(cohort_id)
+
+			# the user of variation 'which_var' is returning on 'which_day'
+			which_day = DAY_NAMES[cohort_id_now-cohort_id]
+
+			if which_day != 'd13+' and not my_server.exists(EXP[which_var+'rl']+user_id):
+
 				# increment 'dN' (e.g. d1, d5, d11, etc) of this particular time_cohort
-				my_server.hincrby(EXP[which_var+'r']+str(retrieve_cohort(user_registration_time)), cohort_name, amount=1)# retrieve_cohort(user_registration_time) gives the original time_cohort the user belongs to
-				
+				my_server.hincrby(EXP[which_var+'r']+str(cohort_id), which_day, amount=1)
+
 				# rate limit user_id from being 'seen again' in this experiment (for the next COHORT_TIME_LENGTH - ie. 24 hours)
-				my_server.setex(EXP[which_var+'rl']+user_id,'1',COHORT_TIME_LENGTH)
+				my_server.setex(EXP[which_var+'rl']+user_id, '1', COHORT_TIME_LENGTH)
 		else:
 
-			# user is 'new', so 'register' them as a 'known visitor' in the experiment
-			my_server.zadd(GLOBAL_EXP_USERS,user_id,time_now)
+			# user is 'new', so 'register' them into the current cohort
+			my_server.zadd(GLOBAL_EXP_USERS,user_id,cohort_id_now)
 
-			# next, increment 'd0' of the current time_cohort (and set its expiry time)
-			retention_key = EXP[which_var+'r']+str(retrieve_cohort(time_now))
-			my_server.hincrby(retention_key,'d0',amount=1)# counting as having hit 'd0'
-			my_server.expire(retention_key,TWO_WEEKS)# removing this time_cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. days)
+			# next, increment 'd0' of the current cohort (and set its expiry time)
+			cohort = EXP[which_var+'r']+str(cohort_id_now)
+			my_server.hincrby(cohort,'d0',amount=1)# counting as having hit 'd0'
+			my_server.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. days)
 
 			# next, rate limit user_id from being used again for the next 'COHORT_TIME_LENGTH' (or 24 hours)
 			my_server.setex(EXP[which_var+'rl']+user_id,'1',COHORT_TIME_LENGTH)# rate limit till: 'COHORT_TIME_LENGTH' (or 24 hrs) from the time of registration
 
 			# finally, save the variation the user is a part of for retrieval later
 			my_server.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after 2 weeks, since we only care about the prev 13 cohorts (i.e. days)
+
 
 
 def report_section_wise_retention(which_var):
@@ -91,7 +99,7 @@ def report_section_wise_retention(which_var):
 		time_now = time.time()
 		cohort_id_today = retrieve_cohort(time_now)
 
-		cohorts_to_display = range(cohort_id_today-11,cohort_id_today+1,1)	
+		cohorts_to_display = range(cohort_id_today-11,cohort_id_today+1,1)
 		stringified_cohorts = map(str,cohorts_to_display)
 		cohort_names = ['11 days ago','10 days ago','9 days ago','8 days ago','7 days ago','6 days ago','5 days ago','4 days ago',\
 		'3 days ago','2 days ago','Yesterday','Today']
@@ -99,11 +107,13 @@ def report_section_wise_retention(which_var):
 		cohort_dates = exact_date(cohorts_to_display,in_bulk=True)
 		cohort_dates_dict = dict(zip(stringified_cohorts,cohort_dates))
 		days_dict = {'d0':0,'d1':1,'d2':2,'d3':3,'d4':4,'d5':5,'d6':6,'d7':7,'d8':8,'d9':9,'d10':10,'d11':11}
+		
 		# extracting logged cohort-based data from redis DB
 		pipeline1 = my_server.pipeline()
 		for cohort_id in stringified_cohorts:
 			pipeline1.hgetall(EXP[which_var+'r']+cohort_id)
 		cohorts = pipeline1.execute()
+		
 		# re-sort retrieved cohorts according to days (i.e. 'd0' ought to be first, 'd1' second, and so forth)
 		sorted_cohorts = []
 		for cohort in cohorts:
@@ -140,12 +150,6 @@ def report_section_wise_retention(which_var):
 
 		my_server.setex(EXP[which_var+'cr'],json.dumps(cohort_data),ONE_HOUR)
 	return cohort_data
-
-	# task5: can retention logging be moved away from Whoseonline(), into the views?
-	# task1: try to give exact dates via searching for 'Karachi'
-	# task2: retention numbers ought to be shown as a % of num users in d0
-	# task3: cache the results in case users try viewing these results again and again
-	# task4: ensure it's easy to change daily retention to hourly, minutely, etc. Change "COHORT_TIME_LENGTH" to equal 60 seconds in set_variation_wise_retention(), retrieve_cohort() and retrieve_retention_type()
 
 
 def retention_clean_up(which_var):

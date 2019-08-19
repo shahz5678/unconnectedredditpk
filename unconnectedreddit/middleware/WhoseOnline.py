@@ -16,7 +16,7 @@ class WhoseOnlineMiddleware(object):
 			# set user world age
 			set_user_age.delay(user_id=request.user.id)
 		####################################################################################
-		elif 0.25 <= ran_num < 0.75 and request.user.is_authenticated():
-			# 50% chance this is going to be called
+		elif 0.35 <= ran_num < 0.75 and request.user.is_authenticated():
+			# 40% chance this is going to be called
 			# log d1 retention of the user
 			set_variation_retention.delay(request.user.id)

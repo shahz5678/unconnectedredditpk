@@ -408,22 +408,38 @@ def export_voting_reputation_records(request):
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		data_to_write_to_csv = None#retrieve_voting_reputation_records()
+		# data_to_write_to_csv = None#retrieve_voting_reputation_records()
+		# if data_to_write_to_csv:
+		# 	import csv
+		# 	filename = 'voting_reputation_data.csv'
+		# 	with open(filename,'wb') as f:
+		# 		wtr = csv.writer(f)
+		# 		columns = ["voter ID", "world age disc","vote value", "voting time", "sybil status", "num clients", "target obj ID", \
+		# 		"obj owner ID", "total upvotes (till this vote)", "was_handpicked", "time of selection"]
+		# 		# 'sybil status' can be:
+		# 		# '0': non-partisan ID
+		# 		# '1': general sybil ID
+		# 		# '2': direct sybil ID
+		# 		wtr.writerow(columns)
+		# 		for data in data_to_write_to_csv:
+		# 			to_write = [data['vid'], data['wad'], 'upvote', data['vt'], data['ss'], data.get('num_sybs','-'),\
+		# 			data['toid'], data['tuid'], data['tv'], data.get('hp','-'), data.get('tos','-')]
+		# 			wtr.writerows([to_write])
+		#################################################
+		from redis4 import retrieve_abusive_home_posts
+		data_to_write_to_csv = retrieve_abusive_home_posts()
 		if data_to_write_to_csv:
 			import csv
-			filename = 'voting_reputation_data.csv'
+			filename = 'home_abuse_logs.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["voter ID", "world age disc","vote value", "voting time", "sybil status", "num clients", "target obj ID", \
-				"obj owner ID", "total upvotes (till this vote)", "was_handpicked", "time of selection"]
-				# 'sybil status' can be:
-				# '0': non-partisan ID
-				# '1': general sybil ID
-				# '2': direct sybil ID
+				columns = ["posting time (human)","posting time (epoch)","writer_id","text"]
 				wtr.writerow(columns)
-				for data in data_to_write_to_csv:
-					to_write = [data['vid'], data['wad'], 'upvote', data['vt'], data['ss'], data.get('num_sybs','-'),\
-					data['toid'], data['tuid'], data['tv'], data.get('hp','-'), data.get('tos','-')]
+				for text_and_time, writer_id in data_to_write_to_csv:
+					data = text_and_time.rpartition(":")
+					posting_epoch_time = data[2]
+					posting_human_time = exact_date(float(posting_epoch_time))
+					to_write = [posting_human_time,posting_epoch_time,writer_id,data[0]]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

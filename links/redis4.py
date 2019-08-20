@@ -1284,6 +1284,12 @@ def log_abusive_home_post(user_id, text):
 	"""
 	redis.Redis(connection_pool=POOL).zadd(ABUSIVE_HOME_TEXT,text+":"+str(time.time()),user_id)
 
+
+def retrieve_abusive_home_posts():
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(ABUSIVE_HOME_TEXT,0,-1,withscores=True)
+
 ################################################# Logging Sharing in Photos #################################################
 
 

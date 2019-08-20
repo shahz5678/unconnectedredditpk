@@ -68,21 +68,23 @@ def set_variation_wise_retention(user_id, which_var=None):
 				# rate limit user_id from being 'seen again' in this experiment (for the next COHORT_TIME_LENGTH - ie. 24 hours)
 				my_server.setex(EXP[which_var+'rl']+user_id, '1', COHORT_TIME_LENGTH)
 		else:
+			pipeline1 = my_server.pipeline()
 
 			# user is 'new', so 'register' them into the current cohort
-			my_server.zadd(GLOBAL_EXP_USERS,user_id,cohort_id_now)
+			pipeline1.zadd(GLOBAL_EXP_USERS,user_id,cohort_id_now)
 
 			# next, increment 'd0' of the current cohort (and set its expiry time)
 			cohort = EXP[which_var+'r']+str(cohort_id_now)
-			my_server.hincrby(cohort,'d0',amount=1)# counting as having hit 'd0'
-			my_server.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. days)
+			pipeline1.hincrby(cohort,'d0',amount=1)# counting as having hit 'd0'
+			pipeline1.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. days)
 
 			# next, rate limit user_id from being used again for the next 'COHORT_TIME_LENGTH' (or 24 hours)
-			my_server.setex(EXP[which_var+'rl']+user_id,'1',COHORT_TIME_LENGTH)# rate limit till: 'COHORT_TIME_LENGTH' (or 24 hrs) from the time of registration
+			pipeline1.setex(EXP[which_var+'rl']+user_id,'1',COHORT_TIME_LENGTH)# rate limit till: 'COHORT_TIME_LENGTH' (or 24 hrs) from the time of registration
 
 			# finally, save the variation the user is a part of for retrieval later
-			my_server.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after 2 weeks, since we only care about the prev 13 cohorts (i.e. days)
+			pipeline1.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after 2 weeks, since we only care about the prev 13 cohorts (i.e. days)
 
+			pipeline1.execute()
 
 
 def report_section_wise_retention(which_var):

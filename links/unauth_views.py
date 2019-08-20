@@ -392,7 +392,7 @@ def log_google_in(request, *args, **kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
-@ratelimit(method='POST', rate='11/h')
+# @ratelimit(method='POST', rate='11/h')
 def login(request, lang=None, *args, **kwargs):
 	"""
 	Renders and processes the returning user login form
@@ -400,31 +400,31 @@ def login(request, lang=None, *args, **kwargs):
 	if request.user.is_authenticated():
 		return redirect("home")
 	else:
-		was_limited = getattr(request, 'limits', False)
-		if was_limited:
-			template_name = 'unauth/penalty_login_ur.html' if lang == 'ur' else 'unauth/penalty_login.html'
-			return render(request, template_name, {})
-		else:
-			if request.method == 'POST':
-				if not request.session.test_cookie_worked():
-					return render(request,"CSRF_failure.html",{'referrer':request.META.get('HTTP_REFERER',None)})
-				try:
-					request.session.delete_test_cookie() #cleaning up
-				except:
-					pass
-				form = SignInForm(data=request.POST, lang=lang)
-				if form.is_valid():
-					quick_login(request,form.cleaned_data)
-					return redirect("home")
-				else:
-					request.session.set_test_cookie()
-					template_name = "unauth/sign_in_ur.html" if lang == 'ur' else "unauth/sign_in.html"
-					return render(request,template_name,{'form':form})
+		# was_limited = getattr(request, 'limits', False)
+		# if was_limited:
+		# 	template_name = 'unauth/penalty_login_ur.html' if lang == 'ur' else 'unauth/penalty_login.html'
+		# 	return render(request, template_name, {})
+		# else:
+		if request.method == 'POST':
+			if not request.session.test_cookie_worked():
+				return render(request,"CSRF_failure.html",{'referrer':request.META.get('HTTP_REFERER',None)})
+			try:
+				request.session.delete_test_cookie() #cleaning up
+			except:
+				pass
+			form = SignInForm(data=request.POST, lang=lang)
+			if form.is_valid():
+				quick_login(request,form.cleaned_data)
+				return redirect("home")
 			else:
-				just_logged_out = request.session.pop("logged_out",None)
 				request.session.set_test_cookie()
 				template_name = "unauth/sign_in_ur.html" if lang == 'ur' else "unauth/sign_in.html"
-				return render(request,template_name,{'form':SignInForm(),'just_logged_out':True if just_logged_out == '1' else False})
+				return render(request,template_name,{'form':form})
+		else:
+			just_logged_out = request.session.pop("logged_out",None)
+			request.session.set_test_cookie()
+			template_name = "unauth/sign_in_ur.html" if lang == 'ur' else "unauth/sign_in.html"
+			return render(request,template_name,{'form':SignInForm(),'just_logged_out':True if just_logged_out == '1' else False})
 
 
 ############################################ Account Creation ##########################################

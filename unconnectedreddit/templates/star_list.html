@@ -14,7 +14,7 @@
 
         {% else %}
 
-            <div class="mt mbs" style="border-bottom:1px dashed lightgray;padding-bottom:15px"><a href="{% url 'profile' user.username 'fotos' %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>
+            <div class="mt mbs" style="border-bottom:1px dashed lightgray;padding-bottom:15px"><a href="{% url 'user_profile' user.username %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>
 
             {% load s3 %}
             <ul style="display:inline-block;padding: 0;list-style:none;margin-top:5px">
@@ -22,18 +22,11 @@
                 <li style="text-align:left;border-bottom:1px dashed lightgray;padding:15px 0" class="sp">
                     <div style="word-break: break-all;">
                     <span class="cxs sp cgy">{{ forloop.counter0|add:page_obj.start_index }}.</span>
-                    <a href="{% url 'profile' star.username 'fotos' %}#section0" class="clb" style="font-weight:bold">
+                    <a href="{% url 'user_profile' star.username %}#section0" class="clb" style="font-weight:bold">
                     <img src="{{ star.userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">
                     {{ star.username }}</a>{% if star.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*">{% endif %}
-                        {% if star.userprofile__score %}
-                            <span class="cg cxs sp">
-                            {% if star.userprofile__score < 0 %}
-                                (1)
-                            {% else %}
-                                ({{ star.userprofile__score }})
-                            {% endif %}</span>:
-                        {% endif %}
-                    <a href="{% url 'profile' star.username 'fotos' %}#section0" class="co mrs"><bdi><b>{{ star.photo_count }}</b> fotos</bdi></a>
+                    :
+                    <a href="{% url 'user_profile' star.username %}#section0" class="co mrs"><bdi><b>{{ star.photo_count }}</b> fotos</bdi></a>
                     <form method="POST" action="{% url 'fan' %}" style="display:inline">
                     {% csrf_token %}
                     <input type="hidden" name="oid" value="0">

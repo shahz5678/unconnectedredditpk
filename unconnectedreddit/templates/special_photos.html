@@ -4,7 +4,7 @@
 {% load mathfilters %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Special photos and memes | Damadam.pk</title></head>
+<head><title>Special photos and memes | Damadam</title></head>
 <div class="margin">
 	{% if notification %}
 	{% if type_of_object == '2' %}
@@ -29,7 +29,7 @@
 		</span>
 		<p style="margin-top:.3em;"></p>
 		{% endif %}	
-		<a href="{% url 'profile' freshest_unseen_comment.submitted_by 'fotos' %}"><bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
+		<a href="{% url 'user_profile' freshest_unseen_comment.submitted_by %}"><bdi>{{ freshest_unseen_comment.submitted_by }}</bdi>
 		{% if freshest_unseen_comment.submitted_by.username in girls %}
 	    	<span style="font-size:110%;color:deeppink;"><b>*</b></span>
 	    {% endif %}</a>
@@ -156,7 +156,7 @@
 
 	<a name="section{{ forloop.counter }}"></a>
 	
-	<a href="{% url 'profile' photo.owner.username 'fotos' %}#section0">
+	<a href="{% url 'user_profile' photo.owner.username %}#section0">
 	{% if photo.owner.userprofile.avatar and user == picstream.cover.owner %}
 		<img style="border: 1px solid #00B800;" src="{{ photo.owner.userprofile.avatar|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
 	{% elif photo.owner.userprofile.avatar %}

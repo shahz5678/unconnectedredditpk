@@ -10,25 +10,26 @@
    <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Pakistan's best funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes!">
+	<meta name="description" content="See and share the best images and memes related to Pakistan. Genres include funny memes, sad poetry pics, Whatsapp dp pics, Islamic pics, couple pics, girl dp pics, Urdu poetry pics, attitude pics and memes, etc.">
 	<meta property="og:site_name" content="Damadam.pk">
 	<meta property="og:title" content="Damadam.pk">
 	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://damadam.pk/">
 	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
 	<meta property="og:image:width" content="300">
 	<meta property="og:image:height" content="300">
-	<meta property="og:description" content="Funny pics, sad poetry pics, Islamic pics, couple pics, girl pics, Urdu poetry pics, attitude pics and memes from all over Pakistan!">
+	<meta property="og:description" content="See and share the best images and memes related to Pakistan. Genres include funny memes, sad poetry pics, Whatsapp dp pics, Islamic pics, couple pics, girl dp pics, Urdu poetry pics, attitude pics and memes, etc.">
 	<meta property="fb:app_id" content="1758220174446684" />
 	<meta name="author" content="mhb">
+	<meta name=”GOOGLEBOT” content=”NOARCHIVE”>
 	
 	{% if feed_type == 'fresh_photos' %}
-		<title>Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
-		<link rel="canonical" href="{% url 'photo' 'fresh-list' %}" />
+		<title>{{ num_in_last_1_day }} Latest Images and Memes from Pakistan in the Last 24 Hours | Damadam</title>
 	{% else %}
-		<title>The Best Funny, Couple, Sad Poetry, Islamic, Baby and Girl Pics from Pakistan | Damadam</title>
-		<link rel="canonical" href="{% url 'photo' 'best-list' %}" />
+		<title>{{ num_in_last_1_day }} Best Images and Memes Trending in Pakistan in the Last 24 Hours! | Damadam</title>
 	{% endif %}
+	
+	<link rel="canonical" href="https://damadam.pk/photo/{{ list_type }}/">
+	<meta property="og:url" content="https://damadam.pk/photo/{{ list_type }}/">
 
 	{% if page.has_previous %}
 		<link rel="prev" href="?page={{ page.previous_page_number }}" />
@@ -53,7 +54,7 @@
 			{% load count_group_invites %}
 			{% check_group_invite_count as group_invite_count %}
 			<!-- bunched HTML removes spaces between li elements -->
-			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
+			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 		{% else %}
 			<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
@@ -86,7 +87,7 @@
 		{% if newbie_flag %}
 		
 			<div class="mbl mts">
-			{% include "newbie_rules.html" with static_url=STATIC_URL lang=newbie_lang origin=page_origin %}
+			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin %}
 			</div>
 		
 		{% else %}
@@ -101,7 +102,25 @@
 
 		<section style="display:block" itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
 
-		<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest fotos</span>{% else %}<span itemprop="headline">Trending fotos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
+		{% if page.max_pages < 2 %}
+			<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest Images</span>{% else %}<span itemprop="headline">Trending Images</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
+		{% else %}
+			{% load next_page %}
+			{% load prev_page %}
+			<div class="mtl fx fxjscn fxaicn">
+				
+				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
+				<button style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|prev_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+				</form>
+
+				<div><h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest Images</span>{% else %}<span itemprop="headline">Trending Images</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1></div>
+
+				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
+				<button  style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|next_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+				</form>
+
+			</div>
+		{% endif %}
 
 		{% for photo in object_list %}
 		
@@ -147,23 +166,24 @@
 
 				<div class="mls">
 
-					<section style="display:block">
+					<section class="mbl" style="display:block">
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% big_vote_button vote_type='photo_vote' obid=photo.i origin=page_origin net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL visible=is_auth %}
+						{% if ident|stringformat:"s" != photo.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted=photo.v static_url=STATIC_URL %}{% endif %}
 						{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin=page_origin fan_list=fanned static_url=STATIC_URL %}
 						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
 						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
-						{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+						{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+						{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
 						{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
 					</div>
 					</section>
 
-					<section style="display:block">
-						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin %}
+					<section style="display:block" class="mrs mbl">
+						{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form page_origin sk %}
 					</section>
 
-					<section style="display:block" class="mts mrs mbl">
-						{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form page_origin sk %}
+					<section style="display:block">
+						{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin=page_origin %}
 					</section>
 
 				</div>
@@ -176,7 +196,7 @@
 				{% if feed_type == 'fresh_photos' %}
 					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'home' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Home</a> check karein!</div>
 				{% else %}
-					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Fotos</a> check karein!</div>
+					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Aap <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Images</a> check karein!</div>
 				{% endif %}
 			</div>
 
@@ -197,9 +217,8 @@
 		    {% endif %}
 		</div>
 
-		{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
-
 	</main>
+	{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 	<br>
 	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
 		<ul class="navbar">

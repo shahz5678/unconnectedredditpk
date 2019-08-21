@@ -2,14 +2,14 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Points summary | Damadam</title></head>
+<head><title>Likes summary | Damadam</title></head>
 <style>body{background: #f0f3f4}</style>
 
 {% if defender %}
 	{% load get_voting_defender_navbar %}
 	{% voting_defender_navbar is_pht=pht orig=orig obid=obj_id vote_score=nv static_url=STATIC_URL section='voting' %}
 {% endif %}
-<h1 class="cxl clb lsp" style="text-align:center">Points summary:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Total likes:</h1>
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 8px;max-width:450px;width:97%;text-align:center;margin-left:auto;margin-right:auto">
 
 <div class="mbs">
@@ -27,6 +27,8 @@
 			<a href="{% url 'photo_detail' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% elif orig == '22' %}
 			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '25' %}
+			<a href="{% url 'user_vote_history' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% else %}
 		{% endif %}
 	wapis</a>
@@ -37,6 +39,8 @@
 			<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% elif orig == '22' %}
 			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
+		{% elif orig == '25' %}
+			<a href="{% url 'user_vote_history' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
 		{% endif %}wapis</a>
 	{% endif %}
 </div>
@@ -68,7 +72,7 @@
 				{% if exists %}
 					
 					<blockquote class="lsp mbl mts" style="border:3px solid whitesmoke;border-radius:8px;background-color:#FFFAF0;padding:10px;text-align:center">
-						<span class="cxl clb">Is foto {% if nv == '1' %}ka {{ nv }} point hai{% else %}ke {{ nv }} points hain{% endif %}</spann>
+						<span class="cxl clb">Is foto {% if nv == '1' %}ka {{ nv }} like hai{% else %}ke {{ nv }} likes hain{% endif %}</spann>
 						<hr size=1 COLOR="#e5e7e9">
 						<span class="cs sp cgy">Ye foto "{{ time_of_trending|human_time }}" trending list mein shamil hui</span>
 						
@@ -77,27 +81,25 @@
 				{% else %}
 					
 					<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-						<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
-						<div class="cxs sp cgy mtl">- voting closed -</div>
+						<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} like{% else %}{{ obj.vote_score }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
+						<div class="cxs sp cgy mtl">- liking is closed -</div>
 					</div>
 
 				{% endif %}
 			{% else %}
 
 				{% if exists %}
-				<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+				<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px;border-radius:8px;min-width:130px">
 				
-					<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
+					<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} like{% else %}{{ nv }} likes{% endif %}</div>
 					<hr size=1 COLOR="#e5e7e9">
-					<div style="color:#20cbab" class="mts"><img src="{{ STATIC_URL }}img/up.svg" width="20" height="20" style="vertical-align:sub"> x {{ uv }}</div>
-					<div style="color:tomato" class="mts"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"> x {{ dv }}</div>
-					<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
+					<div style="color:#ff3377" class="mts"><img src="{{ STATIC_URL }}img/like.svg" width="20" height="20" style="vertical-align:sub"> x {{ nv }}</div>
 
 				</div>
 				{% else %}
 				<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-					<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
-					<div class="cxs sp cgy mtl">- voting closed -</div>
+					<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} like{% else %}{{ obj.vote_score }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
+					<div class="cxs sp cgy mtl">- liking is closed -</div>
 				</div>
 				{% endif %}
 
@@ -106,19 +108,17 @@
 		{% else %}
 			<!-- text -->
 			{% if exists %}
-			<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
+			<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;text-align:center;border:1px solid #e5e7e9;display:inline-block;padding:10px;border-radius:8px;min-width:130px">
 			
-				<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} point{% else %}{{ nv }} points{% endif %}</div>
+				<div style="font-weight:bold" class="cxl">{% if nv == '1' %}{{ nv }} like{% else %}{{ nv }} likes{% endif %}</div>
 				<hr size=1 COLOR="#e5e7e9">
-				<div style="color:#20cbab" class="mts"><img src="{{ STATIC_URL }}img/up.svg" width="20" height="20" style="vertical-align:sub"> x {{ uv }}</div>
-				<div style="color:tomato" class="mts"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"> x {{ dv }}</div>
-				<div class="cs sp mts cgy">{{ pv }} {% if pv == '1' %}vote{% else %}votes{% endif %} by <img src="{{ STATIC_URL }}img/pstar.svg" height="10" width="10" alt="*"> users</div>
+				<div style="color:#ff3377" class="mts"><img src="{{ STATIC_URL }}img/like.svg" width="20" height="20" style="vertical-align:sub"> x {{ nv }}</div>
 
 			</div>
 			{% else %}
 			<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-				<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} point{% else %}{{ obj.vote_score }} points{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} point{% else %}{{ obj.net_votes }} points{% endif %}{% endif %}</b></div>
-				<div class="cxs sp cgy mtl">- voting closed -</div>
+				<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} like{% else %}{{ obj.vote_score }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
+				<div class="cxs sp cgy mtl">- liking is closed -</div>
 			</div>
 			{% endif %}
 

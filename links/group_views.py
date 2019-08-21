@@ -4,18 +4,18 @@ import uuid, random, time
 from datetime import datetime
 from collections import defaultdict
 from django.middleware import csrf
-from django.http import HttpResponse, Http404
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
+from django.http import HttpResponse, Http404
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
-from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from redis2 import skip_private_chat_notif
-from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls, avg_num_of_chats_per_type,\
-avg_num_of_switchovers_per_type, avg_sessions_per_type, get_cached_photo_dim, cache_photo_dim, retrieve_uname, retrieve_user_id, retrieve_photo_data,\
-retrieve_fresh_photo_shares_or_cached_data, push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, \
-track_notif_allow_behavior
+from redis7 import check_content_and_voting_ban
+from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
+from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\
+get_cached_photo_dim, cache_photo_dim, retrieve_user_id, retrieve_photo_data, retrieve_fresh_photo_shares_or_cached_data, \
+push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, track_notif_allow_behavior
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -29,7 +29,6 @@ toggle_save_permission, exit_already_triggered, purge_all_saved_chat_of_user,uns
 get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rate_limit_in_personal_group_sharing, can_share_photo, reset_invite_count,\
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
-from redis7 import check_content_and_voting_ban
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, \
 cache_personal_group, update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
 cache_photo_shares, log_action
@@ -38,13 +37,13 @@ PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER,
 PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT, SEGMENT_STARTING_USER_ID
+from push_notification_api import send_single_push_notification
+from views import get_indices, retrieve_user_env
 from image_processing import process_group_image
 from redirection_views import return_to_content
-from push_notification_api import send_single_push_notification
 from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
 from forms import UnseenActivityForm
-from views import get_indices
 from models import Photo
 
 ONE_DAY = 60*60*24
@@ -69,22 +68,6 @@ def get_uname_and_avurl(target_id, their_anon_status):
 		return get_target_username(target_id), None
 	else:
 		return get_single_user_credentials(target_id,as_list=False)
-
-def retrieve_user_env(user_agent, fbs):
-	"""
-	Checks whether environment can support JS
-
-	Opera mini (extreme mode) and free basics do not support JS
-	"""
-	if fbs:
-		return False#, True
-	elif user_agent:
-		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
-			return False#, False
-		else:
-			return True#, False
-	else:
-		return True#, False
 
 
 def sms_lock_time_remaining(time_of_lock):
@@ -368,24 +351,30 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 ########################################### Personal Group Functionality ###########################################
 ####################################################################################################################
 
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
 def enter_personal_group_from_single_notif(request):
-    """
-    Called from a single notification
+	"""
+	Called from a single notification
 
-    If user is blocked, doesn't let them go through
-    """
-    own_id = request.user.id
-    banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-    if banned:
-        # show "user banned" message and redirect them to home
-        return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-            'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
-    elif request.method == "POST":
-        target_id = request.POST.get("tid")
-        request.session["personal_group_tid_key"] = target_id
-        return redirect("enter_personal_group")
-    else:
-        return redirect("home")
+	If user is blocked, doesn't let them go through
+	"""
+	if request.mobile_verified:
+		own_id = request.user.id
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		elif request.method == "POST":
+			target_id = request.POST.get("tid")
+			request.session["personal_group_tid_key"] = target_id
+			return redirect("enter_personal_group")
+		else:
+			return redirect("home")
+	else:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
@@ -1116,12 +1105,6 @@ def x_per_grp_notif(request, gid, fid, from_home):
 	group_id, exists = personal_group_already_exists(own_id, fid)
 	if exists and group_id == str(gid):
 		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	# if from_home == '3':
-	#     return redirect("home")
-	# elif from_home == '2':
-	#     return redirect("photo", list_type='best-list')
-	# else:
-	#     return redirect("photo", list_type='fresh-list')
 	return return_to_content(request,from_home,group_id,None,None)
 
 
@@ -1131,7 +1114,9 @@ def unseen_per_grp(request, gid, fid):
 	"""
 	Processes reply given in personal group straight from a notification or unseen activity
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		own_id = request.user.id
 		own_uname = get_target_username(str(own_id))
 		group_id, exists = personal_group_already_exists(own_id, fid)
@@ -1916,7 +1901,9 @@ def render_personal_group_invite(request):
 	"""
 	Renders private chat invite page
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		own_id, target_id = request.user.id, request.POST.get('tid',None)
 		parent_object_id, object_type, origin, topic = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None),\
 		request.POST.get('tp','')
@@ -2015,13 +2002,10 @@ def accept_personal_group_invite(request):
 				request.POST.get('lid',None)
 				if origin == 'publicreply':
 					if poid:
-						request.session["link_pk"] = poid
-						request.session.modified = True
-						return redirect("publicreply_view")
+						return redirect("publicreply_view",poid)
 					else:
 						return redirect("home")
 				else:
-					# return return_to_source(origin,poid,target_username)
 					return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
 		return redirect("home")
@@ -2033,7 +2017,9 @@ def send_personal_group_invite(request):
 	"""
 	Forward to privacy setting of invite, don't send invite yet
 	"""
-	if request.method == "POST":
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
+	elif request.method == "POST":
 		invite_decision = request.POST.get('invite_dec',None)
 		if invite_decision == '1':
 			context = {'set_privacy':True,'target_av_url':request.session.get("personal_group_invite_target_av_url",None),\
@@ -2044,9 +2030,7 @@ def send_personal_group_invite(request):
 			request.POST.get('lid',None)
 			if origin == 'publicreply':
 				if poid:
-					request.session["link_pk"] = poid
-					request.session.modified = True
-					return redirect("publicreply_view")
+					return redirect("publicreply_view",poid)
 				else:
 					return redirect("home")
 			else:
@@ -2126,13 +2110,6 @@ def change_personal_group_invite_privacy(request):
 							'lid':request.POST.get("lid",None)}
 							return render(request,"personal_group/invites/personal_group_status.html",context)
 						else:
-							# if decision == '0':
-							#     interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
-							#     if tutorial_unseen(user_id=own_id, which_tut='0', renew_lease=True):
-							#         context["personal_group_invite_privacy"] = True
-							#         context["oun"] = own_username
-							#         return render(request,"helpful_instructions.html",context)
-							# return redirect("show_personal_group_invite_list",list_type='sent')
 							reset_invite_count(target_id)# resetting invite count shown in navbar for target_id
 							if decision == '0':
 								interactive_invite_privacy_settings(own_id, own_username, target_id, target_username, visible=decision)
@@ -2337,22 +2314,25 @@ def personal_group_user_listing(request):
 	"""
 	List down personal groups of a given user
 	"""
-	own_id, page_num = request.user.id, request.GET.get('page', '1')
-	banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-	if banned:
-		# show "user banned" message and redirect them to home
-		tid = request.session.pop("personal_group_tid_key",'')
-		if tid:
-			request.session.pop("personal_group_gid_key:"+tid,'')
-		return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-			'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+	if not request.mobile_verified:
+		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	else:
-		start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-		payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
-		page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
-		return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
-			'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
-			'items_in_curr_page':len(payload)})
+		own_id, page_num = request.user.id, request.GET.get('page', '1')
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			tid = request.session.pop("personal_group_tid_key",'')
+			if tid:
+				request.session.pop("personal_group_gid_key:"+tid,'')
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+		else:
+			start_index, end_index = get_indices(page_num, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+			payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
+			page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
+			return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
+				'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
+				'items_in_curr_page':len(payload)})
 
 ####################################################################################################################
 #################################################### Help Page #####################################################
@@ -2452,7 +2432,7 @@ def show_shared_photo_metrics(request,nick):
 		return render(request,"personal_group/sharing/photo_sharing_metrics.html",{'final_photo_data':final_photo_data,'num_photos':len(final_photo_data),\
 			'own_profile': their_id == own_id,'username':nick,'photo_owner_id':their_id,'first_time':first_time})
 	else:
-		return redirect('profile',nick,'fotos')
+		return redirect('user_profile',nick)
 
 
 def cant_share_photo(request, ttl=None,*args, **kwargs):
@@ -2907,17 +2887,6 @@ def decide_notification_perms_in_personal_group(request):
 				return redirect("personal_group_user_listing")
 		elif decision == '1':
 			# could not give permission since browser isn't supported
-			# already_subscribed = request.POST.get("as",None)
-			# if already_subscribed:
-			#     # the user's browser can already send notifications, just enable the permission flag in the 1on1
-			#     target_id = request.POST.get("tid",'')
-			#     save_1on1_push_subscription(receiver_id=own_id, sender_id=target_id)
-			#     is_ajax = request.is_ajax()
-			#     if is_ajax:
-			#         return HttpResponse(json.dumps({'redirect':reverse('personal_group_subscription_success')}),content_type='application/json',\
-			#             status=200)
-			#     else:
-			#         return redirect("personal_group_subscription_success")
 			if request.META.get('HTTP_X_IORG_FBS',False):
 				# fbs - option does not exist
 				return render(request,"personal_group/notifications/personal_group_push_notification_perm.html",{'on_fbs':True,\
@@ -3001,7 +2970,7 @@ def render_notification_perms_in_personal_group(request):
 			if allow_key == 'allow_btn':
 				log_1on1_sent_notif(sent=False, status_code=293)# logging the fact that 'allow' button rendered correctly inside the page
 		#######################################################################################
-		#######################################################################################own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
+		#######################################################################################
 		own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_id)
 		if their_anon_status:
 			name, avatar = retrieve_uname(target_id,decode=True), None
@@ -3086,37 +3055,111 @@ def personal_group_notif_prompts(request):
 
 
 #####################################################################################################################
-################################################### Metrics Page ####################################################
+############################################### Exporting Chat Logs #################################################
 #####################################################################################################################
 
+# groups_of_interest = [294419,294425,294472,294475,294492,294508,294535,294552,294579,294580,294590,294607,294636,294671,294675,294711,294721,294745,294886,\
+# 294896,298340,298356,298396,298482,298522,298544,298547,298651,298653,298660,298736,298737,298810,298892,298915,298978,299002,299104,299120,299158,296214,\
+# 296218,296246,296247,296254,296294,296302,296331,296342,296347,296357,296377,296566,296652,296657,296728,296839,296930,296998,297030,300099,300103,300154,\
+# 300159,300163,300181,300270,300340,300378,300426,300507,300558,294418,294473,294484,294602,294651,294668,294715,294728,294738,294757,294823,294834] 
 
-def personal_group_metrics(request):
+# groups_of_interest = [297032,297372,297619,297810,298095,298951,299718,300078,300401,294638,295582,295692,296725,296732,298382,298802,299015,299301,295509,\
+# 295590,295973,296211,296382,296617,296642,296772,296863,297242,297245,297896,295254,298036,298054,298137,299949,300293,300449,295086,295568,296387,296665,\
+# 296774,297449,299138,299362,299626,299725,300225,295101,296153,299089,299599,300427,294699,294826,295444,296037,297058,298047,295428,297188,297426,297598,\
+# 295272,296468,296964,298896,294871,295007,295107,295515,295680,296673,297633,298663,294505,295612,295936,296065,296734,297533,294681,296529,296624,297050,\
+# 297371,298148,299734,299887,300441,299178,299786,300498,295273,296238,299068,294677,295915,296780,298960,294476,295045,295476,296296,297852,297997,294752,\
+# 295981,296055,296647,297386,298629,295301,296568,296638,297228,294604,294911,295183,295547,297623,298370,295857,296286,297992,299278,294913,295675,297507,\
+# 299292,299498,294502,296086]
+
+# groups_of_interest = [294543,295918,294577,294852,296045,297068,297353,299480,299795,296163,299160,295591,295947,297736,297538,295847,296667,297939,295679,\
+# 295891,298250,295671,295934,296957,296668,297278,298300,296013,296041,297269,297592,297779,298102,299313,297548,299831,296988,298178,294392,299157,294797,\
+# 297958,294802,295434,295743,294373,295470,296349,299825,298885,295412,297916,299309,297193,299300,299583,295245,295381,299917,296660]
+
+# groups_of_interest = [311923,311351,311427,311619,312190,311989,311177,310761,311722,311189,311264,311740,311257,311513,312181,311151,312051,312627,312406,\
+# 312594,312140,312476,311898,311322,312531,310690,311618,310682,311490,312584,312559,312492,311330,310984,311221,311329,312505,310706,311823,310760,311853, \
+# 311792,312566,310731,311680,311683,311838,311627,311891,311900,311419,311299,312411,310742,311259,312127,311305,310663,310650,312555,310652,310655,312578, \
+# 312554,312244,312201,312465,312621,312547,312450,312580,312390,312385,312608,312641,312495,312482,312572,312602,312517,312489,312458,312359,312429,312633, \
+# 312366,312599,312129,312302,312622,312487,312248,312278,312620,312493,312642,312279,312484,312439,312297,311865,312523,312108,312640,311607,312480,312501]
+
+
+groups_of_interest = [311619,311923,311351,312340,311093,312182,312540,312598,311589,312126,312412,310761,311697,311799,312139,311722,312148,312232,312562,\
+311189,312066,312234,312260,312542,312587,311264,312561,312580,311064,311951,312177,312323,311504,311707,311754,312054,311690,311784,311826,311501,312003, \
+311184,311950,311150,311155,311218,310755,311339,311608,311074,311588,312243,311208,311590,311942,312165,311381,312448,310868,311874,312311,312358,310838, \
+311273,311585,312359,311736,312000,312127,312212,311305,311713,311227,311353,311406,312362,311913,311678,311433,311268,312560,310725,312307,311766,311915, \
+311426,311877,311576,311270,311428,312449,312228,311516,312410,312528,310928,311053,311340,311193,312024,312138,311078,311417,310732,310722,311484,310767, \
+311240,311926,311486,311931,310746,311425,311666,310780,311818,310840,310894,312101,311601,312298,312375,310698,310860,312552,312224,311024,311677,311947, \
+310727,311521,312364,310862,311117,310745,311547,310949,311529,312453,310897,311365,310992,311461,311387,312175,310976,311498,311764,311337,311579,312441, \
+311546,311911,312327,311465,311774,311629,311580,312076,311464,311393,310910,310615,311116,311091,310904,310812,312252,311261]
+
+
+def export_chat_logs(request, log_type='sp'):
 	"""
-	Displays metrics related to personal groups
-
-	1) How many personal groups are created each day, and how many are exited
-	2) What are avg number of chats produced per type of chat?
-	3) What are avg number of switchovers produced per type of chat?
+	Exports chat logs for viewing in a CSV
 	"""
-	total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, aggregate_pg_chats, \
-	avg_chat_per_pg, pms_with_sws, pgs_with_sws = avg_num_of_chats_per_type()
-	
-	total_pms_sw, median_pm_sw_idx, median_pm_sw_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs_sw, median_pg_sw_idx, median_pg_sw_tuple, \
-	aggregate_pg_sws, avg_sw_per_pg = avg_num_of_switchovers_per_type()
+	import json as json_backup
+	from redis7 import in_defenders
+	from redis4 import retrieve_chat_records
+	from redis3 import exact_date, get_world_age
 
-	total_pgs_sess, total_pms_sess, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm, \
-	avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
-	total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm = avg_sessions_per_type()
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		# data_to_write_to_csv = retrieve_chat_records(log_type)# list of lists (where each list is a list of dictionaries)
+		data_to_write_to_csv = retrieve_chat_records(groups_of_interest, by_group_id=True)# list of lists (where each list is a list of dictionaries)
+		if data_to_write_to_csv:
+			import csv
+			filename = 'chat_data_{}.csv'.format(log_type)
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["timestamp (machine)","timestamp (human)","group ID", "sender ID","receiver ID","sender wa","receiver wa","msg type","img url","msg text"]
+				wtr.writerow(columns)
+				gid, world_ages = 0, {}
+				for chat_data, group_id in data_to_write_to_csv:
+					try:
+						chat_data = json.loads(chat_data)
+					except:
+						chat_data = json_backup.loads(chat_data)
+					chat_data_list = chat_data.split(":")
+					posting_time, msg_type, img_url, sender_id, receiver_id, msg = float(chat_data_list[0]), chat_data_list[1],\
+					chat_data_list[2], chat_data_list[3], chat_data_list[4], (chat_data_list[5].encode('utf-8')).replace('\n', ' ').replace('\r', ' ')
+					if group_id != gid:
+						# we're logging a new group
+						world_ages = {}
+						world_ages[sender_id] = get_world_age(user_id=sender_id)
+						world_ages[receiver_id] = get_world_age(user_id=receiver_id)
+						gid = group_id
+					to_write = [posting_time, exact_date(posting_time), group_id, sender_id,receiver_id,world_ages[sender_id],world_ages[receiver_id],\
+					msg_type,img_url,msg]
+					wtr.writerows([to_write])
+	raise Http404("Completed :-)")
 
-	return render(request,"personal_group/metrics/personal_group_metrics.html",{'total_pms':total_pms,'agg_pm_chats':aggregate_pm_chats,\
-		'avg_pm_chats':avg_chat_per_pm,'total_pgs':total_pgs,'agg_pg_chats':aggregate_pg_chats,'avg_pg_chats':avg_chat_per_pg,\
-		'med_pm_idx':median_pm_idx,'med_pg_idx':median_pg_idx,'med_pm_tup':median_pm_tuple,'med_pg_tup':median_pg_tuple,\
-		'total_pms_sw':total_pms_sw,'agg_pm_sws':aggregate_pm_sws,'avg_pm_sws':avg_sw_per_pm,'total_pgs_sw':total_pgs_sw,\
-		'agg_pg_sws':aggregate_pg_sws,'avg_pg_sws':avg_sw_per_pg,'med_pm_idx_sw':median_pm_sw_idx,'med_pg_idx_sw':median_pg_sw_idx,\
-		'med_pm_tup_sw':median_pm_sw_tuple,'med_pg_tup_sw':median_pg_sw_tuple,'avg_sess_per_user_per_pg':avg_sess_per_user_per_pg,\
-		'avg_sess_per_user_per_pm':avg_sess_per_user_per_pm,'med_sess_per_user_per_pg':med_sess_per_user_per_pg,\
-		'med_sess_per_user_per_pm':med_sess_per_user_per_pm,'pgs_sampled_sess':total_pgs_sess,'pms_sampled_sess':total_pms_sess,\
-		'avg_users_per_pm':avg_users_per_pm, 'med_users_per_pm':med_users_per_pm,'avg_users_per_pg':avg_users_per_pg,\
-		'med_users_per_pg':med_users_per_pg,'pms_with_sws':pms_with_sws,'pgs_with_sws':pgs_with_sws,'total_two_user_pms':total_two_user_pms,\
-		'avg_sess_per_user_per_two_user_pm':avg_sess_per_user_per_two_user_pm,'med_sess_per_user_per_two_user_pm':med_sess_per_user_per_two_user_pm,\
-		'avg_users_per_two_user_pm':avg_users_per_two_user_pm, 'med_users_per_two_user_pm':med_users_per_two_user_pm})
+
+def export_chat_counts(request):
+	"""
+	Exports all group_ids and their chat counts in CSV format
+	"""
+	from redis3 import exact_date
+	from redis7 import in_defenders
+	from redis4 import retrieve_chat_count, retrieve_1on1_creation_times, retrieve_1on1_type
+
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		group_ids_and_chat_counts = retrieve_chat_count()
+		group_ids_and_creation_times = dict(retrieve_1on1_creation_times())
+		group_ids_and_chat_types = retrieve_1on1_type()
+		if group_ids_and_chat_counts:
+			import csv
+			filename = 'chat_count.csv'
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["1on1 ID","1on1 Type","Created at","Cohort #","Num chats"]
+				wtr.writerow(columns)
+				for group_id, chat_count in group_ids_and_chat_counts:
+					creation_epoch_time = group_ids_and_creation_times[str(group_id)]
+					chat_type = group_ids_and_chat_types[str(group_id)]
+					to_write = [group_id,chat_type,exact_date(creation_epoch_time),int(creation_epoch_time/ONE_DAY),int(chat_count)]
+					wtr.writerows([to_write])
+	raise Http404("Completed :-)")
+
+

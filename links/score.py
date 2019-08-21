@@ -1,14 +1,19 @@
 # coding=utf-8
-MAX_HOME_SUBMISSION_SIZE = 500
-MAX_HOME_REPLY_SIZE = 250
-MAX_PHOTO_COMMENT_SIZE = 250
+MAX_BIO_SIZE = 1000
+MAX_HOME_SUBMISSION_SIZE = 750
+MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
+MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
+THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
+###############################################################################################################
+VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 1728000# i.e. 20 days. This is the amount of time closed-voting objs are kept around for 'like_prob' analysis
+###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
-NUM_SUBMISSION_ALLWD_PER_DAY = 50#num of home and photo posts allowed in one day
-CONTENT_SHARING_SHORT_RATELIMIT = 150#amount of time to wait between sharing posts (time pooled between home and photos) 
+NUM_SUBMISSION_ALLWD_PER_DAY = 100#num of home and photo posts allowed in one day
+CONTENT_SHARING_SHORT_RATELIMIT = 45#amount of time to wait between sharing posts (time pooled between home and photos) 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
@@ -25,11 +30,11 @@ USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
 TRENDER_RANKS_TO_COUNT = 15 #of top trenders to be shown
-SEARCH_FEATURE_THRESHOLD = 100# REMOVE
-SUPER_UPVOTE = 20# REMOVE
-PERMANENT_RESIDENT_SCORE = 300#REMOVE
-SUPER_DOWNVOTE = -20# REMOVE
-PHOTO_CASE_COMPLETION_BONUS = 6#REMOVE
+# SEARCH_FEATURE_THRESHOLD = 100# REMOVE
+# SUPER_UPVOTE = 20# REMOVE
+# PERMANENT_RESIDENT_SCORE = 300#REMOVE
+# SUPER_DOWNVOTE = -20# REMOVE
+# PHOTO_CASE_COMPLETION_BONUS = 6#REMOVE
 GIBBERISH_PUNISHMENT_MULTIPLIER = 5#REMOVE
 CITIES = ["Rawalpindi","Islamabad"]#REMOVE
 SHARE_ORIGIN = {'1':'fresh_photos','3':'user_albums'}#REMOVE
@@ -251,7 +256,7 @@ PERSONAL_GROUP_SAVE_MSGS = {'err2':'Ye msg mita diye janey ki waja se save nahi 
 ###############################################################################################################
 # helps in setting TTL on rate limits set on abusive users. Each key defines 'level' of offense, values are ttl
 BAN_REASON = {'flooding':'tez tez likhna (flooding or spamming)'}
-RATELIMIT_TTL = {'0':60*5,'1':60*10,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
+RATELIMIT_TTL = {'0':60*4,'1':60*10,'2':60*30,'3':60*60*2,'4':60*60*8,'5':60*60*24,'6':60*60*24*3,'7':60*60*24*7,'8':60*60*24*30}
 SUPER_FLOODING_THRESHOLD = 3 # 3 seconds on avg between multiple sentences
 FLOODING_THRESHOLD = 5 # 5 seconds on avg between multiple sentences
 LAZY_FLOODING_THRESHOLD = 7 # 7 seconds on avg between multiple sentences
@@ -274,9 +279,13 @@ MERCH = {
 '15': {'price':'11000','discounted_price':'11000', 'points_cost': '5000', 'discount':'Rs. 0', 'name':'Nokia 2'}, \
 }#REMOVE
 ###############################################################################################################
+# '2' DELIBERATELY SKIPPED DUE TO LEGACY REASONS
+ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
+'11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
+###############################################################################################################
 SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
-SEGMENT_STARTING_USER_ID = 1900528# starting user ID of user segment analysis
-PROJ_ZUCK_STARTING_USER_ID = 1899552
+SEGMENT_STARTING_USER_ID = 19005280# starting user ID of user segment analysis
+PROJ_ZUCK_STARTING_USER_ID = 1962148
 """
 KEY:
 

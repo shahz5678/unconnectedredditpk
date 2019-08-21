@@ -15,7 +15,7 @@
 	    <li style="text-align:left;border-bottom:1px dashed lightgray;padding:15px 0" class="mls lsp sp">
 	    	<div style="word-break: break-all;">
 		    <span class="cgy cs sp">{{ forloop.counter }}.</span>
-		    <a href="{% url 'profile' usr.user__username 'fotos' %}#section0" class="cl clb" style="font-weight:bold">
+		    <a href="{% url 'user_profile' usr.user__username %}#section0" class="cl clb" style="font-weight:bold">
 		    	{% if usr.user__username in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" style="color:deeppink" alt="*" width="11" height="11">&nbsp;{% endif %}<bdi>{{ usr.user__username }}</bdi>
 			{% if usr.score < 0 %}
 		    	<span style="color:mediumseagreen">(1)</span>

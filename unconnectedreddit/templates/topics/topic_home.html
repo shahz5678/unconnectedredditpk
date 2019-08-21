@@ -36,7 +36,6 @@
 	{% endif %}
 
 	<link rel="canonical" href="{% url 'topic_page' topic_url %}" />
-
 	{% include "ga_user_analytics.html" with my_var=user.id %}
 
 </head>
@@ -54,7 +53,7 @@
 	{% check_invite_count as invite_count %}
 	{% load count_group_invites %}
 	{% check_group_invite_count as group_invite_count %}
-	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
+	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 	
 	</ul>
 	<a name="section0"></a>
@@ -113,7 +112,7 @@
 			<section style="display:block">
 			<div class="fx fxjscn fxaibl">
 				<a href="{% url 'topic_page' topic_url %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
-				<h2 style="text-align:center;font-weight:600" class="lsp cxl clb">Latest submissions:</h2>
+				<h2 style="text-align:center;font-weight:600" class="lsp cxl clb">Latest posts:</h2>
 			</div>
 
 			<a name="error"></a>
@@ -135,22 +134,21 @@
 						{% text_object obid=submission.i ooid=submission.si text=submission.d|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv home_hash=submission.h static_url=STATIC_URL is_pinkstar=submission.p alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
 						</section>
 
-						<section style="display:block">
+						<section class="mbl" style="display:block">
 						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% big_vote_button vote_type='vote' obid=submission.i origin='22' net_votes=submission.nv base_color='rgb(24, 180, 136)' ooid=submission.si static_url=STATIC_URL topic=topic_url visible=ident %}
+						{% if ident|stringformat:"s" != submission.si|stringformat:"s" %}{% big_vote_button is_pht='0' obid=submission.i origin='22' ooid=submission.si user_voted=submission.v static_url=STATIC_URL topic=topic_url %}{% endif %}
 						{% big_fan_button own_user_id=ident target_user_id=submission.si object_id=submission.i origin='22' home_hash=submission.h fan_list=fanned static_url=STATIC_URL topic=topic_url %}
 						{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
 						{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL %}
 						</div>
 						</section>
 						
+						<section style="display:block" class="mls mrs mbl">
+						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
+						</section>
 
 						<section style="display:block" class="mts mls mbl">
 						{% home_replies_section raw_replies=submission.cb static_url=STATIC_URL self_user_id=ident home_hash=submission.h %}
-						</section>
-
-						<section style="display:block" class="mls mrs mbl">
-						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
 						</section>
 
 					</div>

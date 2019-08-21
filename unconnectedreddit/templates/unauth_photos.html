@@ -41,7 +41,7 @@
 
 	<a name="section{{ forloop.counter }}"></a>
 	
-	<a href="{% url 'profile' photo.o 'fotos' %}#section0">
+	<a href="{% url 'user_profile' photo.o %}#section0">
 	{% if photo.oa != 'None' and username == photo.o %}
 		<img style="border: 1px solid #00B800;" src="{{ photo.oa|s3:'thumb' }}" alt="no pic" width="22" height="22"></img>
 	{% elif photo.oa != 'None' %}

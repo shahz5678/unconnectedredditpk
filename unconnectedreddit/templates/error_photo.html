@@ -7,9 +7,9 @@
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 <div class="cxl lsp">Sorry! Ye share ho ga {{ time|future_time }}...</div>
 <hr size=1 COLOR="#E9EBEE">
-{% if tp == 'long' %}<div class="sp cl lsp">One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>{% else %}<div class="sp lsp cl">Beshaq kamm sharing karein, lekin high quality ka khayal rakhein</div>{% endif %}
+{% if tp == 'long' %}<div class="sp cl lsp">One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>{% else %}<div class="sp lsp cl">Sharing kartey waqt high quality ka khayal rakhein</div>{% endif %}
 {% if origin == '1' %}
-<div class="mtl mbs"><a href="{% url 'link_create_pk' %}"><button class="btn bm bct pg_ok_res" style="height:28px">wapis</button></a></div>
+<div class="mtl mbs"><a href="{% url 'link_create' %}"><button class="btn bm bct pg_ok_res" style="height:28px">wapis</button></a></div>
 {% elif origin == '22' %}
 <div class="mtl mbs"><a href="{% url 'topic_page' topic_url %}"><button class="btn bm bct pg_ok_res" style="height:28px">wapis</button></a></div>
 {% else %}

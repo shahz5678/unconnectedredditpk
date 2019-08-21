@@ -3,13 +3,11 @@ from django import template
 register = template.Library()
 
 @register.inclusion_tag(file_name='big_buttons/big_vote_button.html')
-def big_vote_button(vote_type, obid, origin, net_votes, base_color, ooid, static_url, visible=True, topic=None):
-	if visible:
-		net_votes = int(net_votes) if net_votes else 0
-		color = 'rgb(255, 99, 71)' if net_votes < 0 else base_color
-		context = {'static_url':static_url,'vote_type':vote_type,'obid':obid,'net_votes':net_votes,'from':origin,'pts_color':color,\
-		'border_color':base_color,'font_color':base_color,'is_pht':'1' if vote_type == 'photo_vote' else '0','ooid':ooid,'tp':topic,\
-		'visible':visible}
-		return context
-	else:
-		return {'visible':False}
+def big_vote_button(is_pht, obid, origin, ooid, user_voted, static_url, topic=None):
+	"""
+	Helps render a 'like' button, in either its default or 'already-liked' state
+
+	is_pht must be '1' or '0'
+	'user_voted' contains 'True' if user has liked an object, otherwise it's simply None
+	"""
+	return {'static_url':static_url,'obid':obid,'from':origin,'is_pht':is_pht,'ooid':ooid,'tp':topic, 'liked':user_voted}

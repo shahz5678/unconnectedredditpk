@@ -29,11 +29,11 @@ rlfpvg:<user_id> - rate limited from private group (e.g. because of spammy behav
 rlfpc:<user_id> - rate limited from photo comments (e.g. because of spammy behavior)
 rlfhr:<user_id> - rate limited from home replies (e.g. because of spammy behavior)
 
-hir:<user_id> - home input rate (list holding times of posting on home for a specific user)
-pgir:<user_id> - public group input rate (list holding times of posting in public group for a specific user)
-pvgir:<user_id> - private group input rate (list holding times of posting in public group for a specific user)
-pcir:<user_id> - photo comment input rate (list holding times of posting on photo comments for a specific user)
-hrir:<user_id> - home reply input rate (list holding times of posting in home replies)
+hrl:<user_id> - home input rate limit (list holding times of posting on home for a specific user)
+pbgrl:<user_id> - public group input rate limit (list holding times of posting in public group for a specific user)
+pvgrl:<user_id> - private group input rate limit (list holding times of posting in public group for a specific user)
+pcrl:<user_id> - photo comment input rate limit (list holding times of posting on photo comments for a specific user)
+hrrl:<user_id> - home reply input rate limit (list holding times of posting in home replies)
 
 hit:<user_id> - home input text (list holding previous text of home posting for a specific user)
 pgit:<user_id> - public group input text (list holding text of public group posting for a specific user in a specific group)
@@ -230,9 +230,7 @@ def set_text_input_key(user_id, obj_id, obj_type, secret_key):
 	"""
 	Used to prevent double form submission
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	sec_key = "tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id)
-	my_server.setex(sec_key,secret_key,TWENTY_MINS)
+	redis.Redis(connection_pool=POOL).setex("tisk:"+str(user_id)+":"+obj_type+":"+str(obj_id),secret_key,TWENTY_MINS)
 
 
 def get_and_delete_text_input_key(user_id, obj_id, obj_type):
@@ -247,6 +245,23 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return secret_key
 	else:
 		return '1'
+
+
+################ Caching number of images circulating in Photos section ################
+
+
+def retrieve_image_count(list_type):
+	"""
+	Retrieving number of images in circulation in best and fresh lists of the Photo section
+	"""
+	return redis.Redis(connection_pool=POOL).get("cic:"+list_type)
+
+
+def cache_image_count(num_images,list_type):
+	"""
+	Saving number of images in circulation in best and fresh lists of the Photo section
+	"""
+	redis.Redis(connection_pool=POOL).setex("cic:"+list_type,num_images,TWENTY_MINS)
 
 
 ######################## Rate limiting content sharing on feeds ########################
@@ -600,8 +615,8 @@ def retrieve_user_id(username):
 		return user_id
 	else:
 		try:
-			user_id = User.objects.filter(username=username).values_list('id',flat=True)[0]
-		except IndexError:
+			user_id = User.objects.only('id').get(username=username).id
+		except User.DoesNotExist:
 			return None
 		my_server.setex(key,user_id,ONE_DAY)
 		return str(user_id)
@@ -616,8 +631,7 @@ def retrieve_avurl(user_id):
 	avurl = my_server.hget(hash_name,'avurl')
 	if not avurl:
 		avurl = UserProfile.objects.filter(user_id=user_id).values_list('avatar',flat=True)[0]
-		if not avurl:
-			avurl = 'empty'
+		avurl = avurl if avurl else 'empty'
 		pipeline1 = my_server.pipeline()
 		pipeline1.hset(hash_name,'avurl',avurl)
 		pipeline1.expire(hash_name,ONE_DAY)
@@ -733,27 +747,6 @@ def set_online_users(user_id,user_ip,user_world_age):
 	my_server.setex("lip:"+user_id,user_ip,FIVE_MINS)
 
 
-# def get_recent_online():
-# 	"""
-# 	Invoked by tasks.py to show whoever is online
-# 	"""
-# 	ten_mins_ago = time.time() - TEN_MINS
-# 	online_users = redis.Redis(connection_pool=POOL).zrangebyscore("online_users",ten_mins_ago,'+inf')
-# 	online_ids_and_ages = []
-# 	for user_data in online_users:
-# 		data = user_data.split(":")
-# 		online_ids_and_ages.append((data[0],data[1]))
-# 	return online_ids_and_ages
-
-
-def save_most_recent_online_users(user_ids_and_ages):
-	"""
-	Saves a snapshot of online user ids
-	"""
-	if user_ids_and_ages:
-		my_server = redis.Redis(connection_pool=POOL)
-		my_server.setex('online_user_ids_and_ages',json.dumps(user_ids_and_ages),TWENTY_MINS)
-
 def get_recent_online():
 	"""
 	Invoked by tasks.py to show whoever is online
@@ -766,6 +759,16 @@ def get_recent_online():
 		# if already appended, don't append again
 		online_ids_and_ages[data[0]] = int(data[1])
 	return online_ids_and_ages.items()
+
+
+def save_most_recent_online_users(user_ids_and_ages):
+	"""
+	Saves a snapshot of online user ids
+	"""
+	if user_ids_and_ages:
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.setex('online_user_ids_and_ages',json.dumps(user_ids_and_ages),TWENTY_MINS)
+
 
 def get_most_recent_online_users(with_ages=False):
 	"""
@@ -804,28 +807,103 @@ def get_clones(user_id):
 	"""
 	Invoked in views.py to show possible clones of users
 	"""
-	latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
 	my_server = redis.Redis(connection_pool=POOL)
-	user_ip = my_server.get(latest_user_ip)
+	user_ip = my_server.get("lip:"+str(user_id))
 	if user_ip:
-		clones = []
-		five_mins_ago = time.time() - FIVE_MINS
+		five_mins_ago, clones = time.time() - FIVE_MINS, []
 		online_users = my_server.zrangebyscore("online_users",five_mins_ago,'+inf')
 		for user in online_users:
-			if user_ip == user.split(":",1)[1]:
-				clones.append(user.split(":",1)[0])
+			# user is in user_id+":"+str(user_world_age)+":"+user_ip format
+			data_list = user.split(":")
+			reported_user_ip = data_list[2]
+			if user_ip == reported_user_ip:
+				clones.append(data_list[0])
 		return clones
 	else:
 		return None
 
-# def set_site_ban(user_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	user_ban = "ub:"+str(user_id) # banning user's ip from logging into website
-# 	my_server.set(user_ban,1)
-# 	my_server.expire(user_ban,ONE_HOUR)
+
+#########################################################
+
+CITY_CHANGE = 'cch:'
+ZODIAC_CHANGE = 'zch:'
+
+
+def is_attribute_change_rate_limited(user_id, time_now, attribute_value, rate_limit_type='zodiac'):
+	"""
+	"""
+	if rate_limit_type == 'zodiac':
+		setting_null = attribute_value in [0,1,2]
+		key_name = ZODIAC_CHANGE+str(user_id)
+	elif rate_limit_type == 'city':
+		setting_null = attribute_value in [0,226]
+		key_name = CITY_CHANGE+str(user_id)
+	else:
+		setting_null = False
+		key_name = None
+	if key_name:
+		my_server = redis.Redis(connection_pool=POOL)
+		rate_limited_till, prev_attribute_value = my_server.hmget(key_name, 'rt','v')
+		if str(attribute_value) == prev_attribute_value or setting_null:
+			return False, None
+		elif rate_limited_till:
+			rate_limited_till = float(rate_limited_till)
+			if time_now >= rate_limited_till:
+				return False, None
+			else:
+				return True, (rate_limited_till-time_now) 
+		else:
+			return False, None
+	else:
+		return False, None
+
+
+def set_attribute_change_rate_limit(user_id, zodiac_value, city_value, time_now):
+	"""
+	Rate limits user from changing their 'city' and 'zodiac' sign too often
+
+	These should be relatively static attributes of a person
+	"""
+	user_id = str(user_id)
+	zodiac_key_name = ZODIAC_CHANGE+user_id
+	my_server = redis.Redis(connection_pool=POOL)
+	####################################################################
+	previous_zodiac_value = my_server.hget(zodiac_key_name, 'v')
+	if zodiac_value != previous_zodiac_value and int(zodiac_value) not in [0,1,2]:
+		num_zodiac_changes = my_server.hincrby(zodiac_key_name,'n',amount=1)
+		if num_zodiac_changes < 2:
+			# it's the first attempt, rate limit them from changing it for the next 1 min
+			rate_limit = ONE_MIN
+		elif num_zodiac_changes < 3:
+			# it's the second attempt, rate limit them for 30 mins
+			rate_limit = THIRTY_MINS
+		else:
+			# it's the third attempt, rate limit them for 3 months
+			rate_limit = THREE_MONTHS
+		my_server.hset(zodiac_key_name, 'v', zodiac_value)
+		my_server.hset(zodiac_key_name, 'rt', time_now+rate_limit)
+		my_server.expire(zodiac_key_name,THREE_MONTHS)
+	####################################################################
+	city_key_name = CITY_CHANGE+user_id
+	previous_city_value = my_server.hget(city_key_name, 'v')
+	if str(city_value) != previous_city_value and city_value not in [0,226]:
+		num_city_changes = my_server.hincrby(city_key_name,'n',amount=1)
+		if num_city_changes < 2:
+			# it's the first attempt, rate limit them from changing it for the next 1 min
+			rate_limit = ONE_MIN
+		elif num_city_changes < 3:
+			# it's the second attempt, rate limit them for 30 mins
+			rate_limit = THIRTY_MINS
+		else:
+			# it's the third attempt, rate limit them for 3 months
+			rate_limit = THREE_MONTHS
+		my_server.hset(city_key_name, 'v', city_value)
+		my_server.hset(city_key_name, 'rt', time_now+rate_limit)
+		my_server.expire(city_key_name,THREE_MONTHS)
 
 
 #########################################################
+
 
 #calculating installment amount for mobile devices
 def get_historical_calcs(base_price=None, time_period_in_months=None, monthly_installment=None, ending_value=None):
@@ -1092,134 +1170,48 @@ def rate_limit_user(user_id,section,level,ban_reason,my_server=None):
 		rate_limit_key = "rlfpc:"+str(user_id)
 	elif section == 'home_rep':
 		rate_limit_key = "rlfhr:"+str(user_id)
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	try:
 		my_server.setex(rate_limit_key,ban_reason,RATELIMIT_TTL[level])
 		return True
 	except KeyError:
-		my_server.setex(rate_limit_key,ban_reason,TWENTY_MINS)
+		my_server.setex(rate_limit_key,ban_reason,THREE_MINS)
 		return False
 
-# 1) revert log_input_rate in tasks.py (done)
-# 2) revert function definition of log_input_rate in redis4 (done)
-# 3) remove pipeline1.execute(key+":logger",text) from log_input_rate (done)
-# 4) remove log_rate_limited_conversation() from log_input_rate (done)
-# 5) remove function for log_rate_limited_conversation() in redis4 (done)
-# 6) remove function called report_rate_limited_conversation() in redis4 (done)
-# 7) remove logger url (and view import) from urls_maint.py (done)
-# 8) remove reporting view (called rate_limit_logging_report) from end of maint_views (done)
-# 9) remove the import for report_rate_limited_conversation() from maint_views (done)
-# 10) remove get_section_string() from redis4 (done)
 
-# def report_rate_limited_conversation():
-# 	"""
-# 	Extracts all rate limited conversations
-# 	"""
-# 	import csv,ast
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	super_ = my_server.lrange("rate_limited_convos:super",0,-1)
-# 	normal_ = my_server.lrange("rate_limited_convos:normal",0,-1)
-# 	lazy_ = my_server.lrange("rate_limited_convos:lazy",0,-1)
-# 	result = [(super_,'super_'),(normal_,'normal_'),(lazy_,'lazy_')]
-# 	for logs,log_type in result:
-# 		filename = 'ratelimited_convos_'+log_type+str(int(time.time()))+'.csv'
-# 		with open(filename,'wb') as f:
-# 			wtr = csv.writer(f)
-# 			columns = ["Type","Section","#","Conversation"]
-# 			wtr.writerow(columns) # writing the columns
-# 			num = 0
-# 			for payload in logs:
-# 				num += 1
-# 				payload = ast.literal_eval(payload)
-# 				which_section = payload[0]
-# 				for string in payload[1]:
-# 					type_=log_type
-# 					sec=which_section
-# 					conv_num=num
-# 					conversation=string
-# 					to_write = [type_,sec,conv_num,conversation]	
-# 					wtr.writerows([to_write])
-
-
-# def get_section_string(key):
-# 	try:
-# 		string = key[:2]
-# 	except TypeError:
-# 		string = 'undef'
-# 	if string == 'hi':
-# 		return 'home_post'
-# 	elif string == 'pg':
-# 		return 'public_group'
-# 	elif string == 'pv':
-# 		return 'private_group'
-# 	elif string == 'pc':
-# 		return 'photo_comment'
-# 	elif string == 'hr':
-# 		return 'home_reply'
-# 	else:
-# 		return 'undefined'	
-
-# def log_rate_limited_conversation(convo_key, severity):
-# 	"""
-# 	logger for rate limited conversation strings
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	which_section = get_section_string(convo_key)
-# 	if severity == 'super':
-# 		my_server.lpush("rate_limited_convos:super",[which_section,my_server.lrange(convo_key,0,-1)])
-# 	elif severity == 'normal':
-# 		my_server.lpush("rate_limited_convos:normal",[which_section,my_server.lrange(convo_key,0,-1)])
-# 	else:
-# 		my_server.lpush("rate_limited_convos:lazy",[which_section,my_server.lrange(convo_key,0,-1)])
-
-
-# def log_input_rate(section,user_id,time_now):
 def log_input_rate(section,user_id,time_now,text=None):
 	"""
-	Keeps check of writing rates to rate limit abusive users
+	Keeps check of writing rates to rate limit flooders
+
+	Currently, anything that touches a rate of 5 messages in 20 seconds gets rate limited for 
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if section == 'home':
-		key = "hir:"+str(user_id)
+		prefix = 'hrl:'
 	elif section == 'pub_grp':
-		key = "pgir:"+str(user_id)	
+		prefix = 'pbgrl:'
 	elif section == 'prv_grp':
-		key = "pvgir:"+str(user_id)
+		prefix = 'pvgrl:'
 	elif section == 'pht_comm':
-		key = "pcir:"+str(user_id)
+		prefix = 'pcrl:'
 	elif section == 'home_rep':
-		key = "hrir:"+str(user_id)	
-	pipeline1 = my_server.pipeline()
-	pipeline1.lpush(key,time_now)
-	pipeline1.expire(key,ONE_MIN)
-	#### remove ####
-	# pipeline1.lpush(key+":logger",text)
-	# pipeline1.expire(key+":logger",ONE_MIN)
-	#### remove ####
-	pipeline1.execute()
-	####################################
-	all_str_values = my_server.lrange(key,0,-1)
-	total_inputs = len(all_str_values)
-	if total_inputs > 7:
-		all_values = map(float, all_str_values)
-		sum_of_differences = 0
-		for s, t in zip(all_values, all_values[1:]):
-			sum_of_differences += t - s
-		avg_time_taken_between_sentences = abs(sum_of_differences)/(total_inputs-1)
-		if avg_time_taken_between_sentences < SUPER_FLOODING_THRESHOLD:
-			rate_limit_user(user_id=user_id,section=section,level='2',ban_reason=BAN_REASON['flooding'],my_server=my_server)
-			# log_rate_limited_conversation(key+":logger",'super')
-		elif avg_time_taken_between_sentences < FLOODING_THRESHOLD:
-			rate_limit_user(user_id=user_id,section=section,level='1',ban_reason=BAN_REASON['flooding'],my_server=my_server)
-			# log_rate_limited_conversation(key+":logger",'normal')
-		elif avg_time_taken_between_sentences < LAZY_FLOODING_THRESHOLD:
-			rate_limit_user(user_id=user_id,section=section,level='0',ban_reason=BAN_REASON['flooding'],my_server=my_server)
-			# log_rate_limited_conversation(key+":logger",'lazy')
+		prefix = 'hrrl:'
+	else:
+		prefix = None
+	if prefix:
+		user_id = str(user_id)
+		key = prefix+user_id
+		is_set = my_server.setnx(key,1)
+		if is_set:
+			# freshly set
+			my_server.expire(key,20)
 		else:
-			my_server.ltrim(key,0,6)
-			#### remove ####
-			# my_server.ltrim(key+":logger",0,6)
+			# key already exists
+			new_value = my_server.incr(key)
+			if new_value > 4:
+				rate_limit_user(user_id=user_id,section=section,level='0',ban_reason=BAN_REASON['flooding'],my_server=my_server)
+				my_server.execute_command('UNLINK', key)
+
 
 def log_input_text(section, section_id,text,user_id):
 	"""
@@ -1281,6 +1273,22 @@ def many_short_messages(user_id,section,obj_id):
 			False
 	else:
 		return False
+
+######################################## Logging abusive text on home ########################################
+
+ABUSIVE_HOME_TEXT = 'aht'# global sorted set containing abusive text on home
+
+
+def log_abusive_home_post(user_id, text):
+	"""
+	"""
+	redis.Redis(connection_pool=POOL).zadd(ABUSIVE_HOME_TEXT,text+":"+str(time.time()),user_id)
+
+
+def retrieve_abusive_home_posts():
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(ABUSIVE_HOME_TEXT,0,-1,withscores=True)
 
 ################################################# Logging Sharing in Photos #################################################
 
@@ -1498,13 +1506,13 @@ def retrieve_subscription_info(user_id):
 		return {}
 
 
+
 def sanitize_unused_subscriptions():
 	"""
 	Cleanses old subscriptions that are ununsed (helps prevent data-leaks)
 
 	Is to be periodically called by tasks.py (e.g. every 7 days)
 	"""
-
 	three_months_ago = time.time() - THREE_MONTHS
 	my_server = redis.Redis(connection_pool=POOL)
 	subscriptions_to_delete = my_server.zrangebyscore(GLOBAL_SUBSCRIBER_LIST,'-inf',three_months_ago)
@@ -1649,272 +1657,364 @@ def purge_exit_list(group_id, user_id):
 
 ########################################### Reporting Metrics for Personal Groups ###########################################
 
-def avg_sessions_per_type():
-	"""
-	Retrieves session information for personal groups
+# def avg_sessions_per_type():
+# 	"""
+# 	Retrieves session information for personal groups
 
-	1) What are avg number of sessions per type of chat
-	2) What are median number of sessions per type of chat
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	pgs_sampled = my_server.get('pgs_sampled_for_sess')
-	if pgs_sampled:
-		results = my_server.mget(['pms_sampled_for_sess','med_sess_per_user_per_pg','med_sess_per_user_per_pm','avg_sess_per_user_per_pg',\
-			'avg_sess_per_user_per_pm','avg_users_per_pm','med_users_per_pm','avg_users_per_pg','med_users_per_pg','avg_sess_per_user_per_two_user_pm',\
-			'med_sess_per_user_per_two_user_pm','total_two_user_pms','avg_users_per_two_user_pm','med_users_per_two_user_pm'])
-		return pgs_sampled, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9],\
-		results[10],results[11], results[12], results[13]
-	else:
-		pg_data = my_server.zrange('pg_sess',0,-1,withscores=True)
-		pg_sample_size = len(pg_data)
-		pg_med_idx = int(pg_sample_size/2)
+# 	1) What are avg number of sessions per type of chat
+# 	2) What are median number of sessions per type of chat
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	pgs_sampled = my_server.get('pgs_sampled_for_sess')
+# 	if pgs_sampled:
+# 		results = my_server.mget(['pms_sampled_for_sess','med_sess_per_user_per_pg','med_sess_per_user_per_pm','avg_sess_per_user_per_pg',\
+# 			'avg_sess_per_user_per_pm','avg_users_per_pm','med_users_per_pm','avg_users_per_pg','med_users_per_pg','avg_sess_per_user_per_two_user_pm',\
+# 			'med_sess_per_user_per_two_user_pm','total_two_user_pms','avg_users_per_two_user_pm','med_users_per_two_user_pm'])
+# 		return pgs_sampled, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9],\
+# 		results[10],results[11], results[12], results[13]
+# 	else:
+# 		pg_data = my_server.zrange('pg_sess',0,-1,withscores=True)
+# 		pg_sample_size = len(pg_data)
+# 		pg_med_idx = int(pg_sample_size/2)
 
-		pm_data = my_server.zrange('pm_sess',0,-1,withscores=True)
-		pm_sample_size = len(pm_data)
-		pm_med_idx = int(pm_sample_size/2)
+# 		pm_data = my_server.zrange('pm_sess',0,-1,withscores=True)
+# 		pm_sample_size = len(pm_data)
+# 		pm_med_idx = int(pm_sample_size/2)
 
-		# data contains <group_id>:<user_id> tuples
-		pg_sessions, all_pgs, all_pg_users = 0, set(), {}
-		for tup in pg_data:
-			pg_sessions += int(tup[1])
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pgs.add(group_id)
-			all_pg_users[group_id] = {}
-		pgs_sampled = len(all_pgs)
-		for tup in pg_data:
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pg_users[group_id].update({user_id:'user_id'})
-		total_pg_users, pg_users_set = 0, []
-		for key, value in all_pg_users.iteritems():
-			num_users_in_group = len(value)
-			pg_users_set.append(num_users_in_group)
-			total_pg_users += num_users_in_group
-		# finding median
-		array_pg = sorted(pg_users_set)
-		half, odd = divmod(len(array_pg), 2)
-		if odd:
-			med_users_per_pg = array_pg[half]
-		else:
-			med_users_per_pg = (array_pg[half - 1] + array_pg[half]) / 2.0
+# 		# data contains <group_id>:<user_id> tuples
+# 		pg_sessions, all_pgs, all_pg_users = 0, set(), {}
+# 		for tup in pg_data:
+# 			pg_sessions += int(tup[1])
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pgs.add(group_id)
+# 			all_pg_users[group_id] = {}
+# 		pgs_sampled = len(all_pgs)
+# 		for tup in pg_data:
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pg_users[group_id].update({user_id:'user_id'})
+# 		total_pg_users, pg_users_set = 0, []
+# 		for key, value in all_pg_users.iteritems():
+# 			num_users_in_group = len(value)
+# 			pg_users_set.append(num_users_in_group)
+# 			total_pg_users += num_users_in_group
+# 		# finding median
+# 		array_pg = sorted(pg_users_set)
+# 		half, odd = divmod(len(array_pg), 2)
+# 		if odd:
+# 			med_users_per_pg = array_pg[half]
+# 		else:
+# 			med_users_per_pg = (array_pg[half - 1] + array_pg[half]) / 2.0
 
-		# calculating pm data
-		pm_sessions, all_pms, all_pm_users = 0, set(), {}
-		for tup in pm_data:
-			pm_sessions += int(tup[1])
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pms.add(group_id)
-			all_pm_users[group_id] = {}
-		pms_sampled = len(all_pms)
-		for tup in pm_data:
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			all_pm_users[group_id].update({user_id:'user_id'})
-		total_pm_users, pm_users_set, two_user_pms = 0, [], {}
-		for key, value in all_pm_users.iteritems():
-			num_users_in_group = len(value)
-			pm_users_set.append(num_users_in_group)
-			if num_users_in_group < 3:
-				# retriving 2 user pms
-				two_user_pms[key] = num_users_in_group
-			total_pm_users += num_users_in_group
+# 		# calculating pm data
+# 		pm_sessions, all_pms, all_pm_users = 0, set(), {}
+# 		for tup in pm_data:
+# 			pm_sessions += int(tup[1])
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pms.add(group_id)
+# 			all_pm_users[group_id] = {}
+# 		pms_sampled = len(all_pms)
+# 		for tup in pm_data:
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			all_pm_users[group_id].update({user_id:'user_id'})
+# 		total_pm_users, pm_users_set, two_user_pms = 0, [], {}
+# 		for key, value in all_pm_users.iteritems():
+# 			num_users_in_group = len(value)
+# 			pm_users_set.append(num_users_in_group)
+# 			if num_users_in_group < 3:
+# 				# retriving 2 user pms
+# 				two_user_pms[key] = num_users_in_group
+# 			total_pm_users += num_users_in_group
 		
-		# retrieving sessions for 2 user pms in {gid:num_sess} form
-		two_user_pm_sess = {}
-		for tup in pm_data:
-			payload = tup[0].split(":")
-			group_id, user_id = payload[0], payload[1]
-			if group_id in two_user_pms:
-				# it's a two person pm
-				if group_id in two_user_pm_sess:
-					# already entered data for 1 user
-					num_sess = two_user_pm_sess[group_id]
-					two_user_pm_sess[group_id] = num_sess + int(tup[1])
-				else:
-					two_user_pm_sess[group_id] = int(tup[1])
+# 		# retrieving sessions for 2 user pms in {gid:num_sess} form
+# 		two_user_pm_sess = {}
+# 		for tup in pm_data:
+# 			payload = tup[0].split(":")
+# 			group_id, user_id = payload[0], payload[1]
+# 			if group_id in two_user_pms:
+# 				# it's a two person pm
+# 				if group_id in two_user_pm_sess:
+# 					# already entered data for 1 user
+# 					num_sess = two_user_pm_sess[group_id]
+# 					two_user_pm_sess[group_id] = num_sess + int(tup[1])
+# 				else:
+# 					two_user_pm_sess[group_id] = int(tup[1])
 
-		# we now have two_user_pms {gid:num_users} and two_user_pm_sess {gid:num_sess}
-		total_two_user_pm_sess, all_two_user_pm_sess = 0, []
-		for key,value in two_user_pm_sess.iteritems():
-			total_two_user_pm_sess += int(value)
-			all_two_user_pm_sess.append(value)
-		total_two_user_pm_users, all_two_user_pm_users = 0, []
-		for key,value in two_user_pms.iteritems():
-			total_two_user_pm_users += int(value)
-			all_two_user_pm_users.append(value)
-		avg_sess_per_user_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_sess)/total_two_user_pm_users)
-		sorted_sess = sorted(all_two_user_pm_sess)
-		halved, is_odd = divmod(len(sorted_sess), 2)
-		if is_odd:
-			med_sess_per_user_per_two_user_pm = sorted_sess[halved]
-		else:
-			med_sess_per_user_per_two_user_pm = int(sorted_sess[halved - 1] + sorted_sess[halved]) / 2.0
-		total_two_user_pms = len(two_user_pms)
-		avg_users_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_users)/total_two_user_pms)
-		sorted_users = sorted(all_two_user_pm_users)
-		bisect, isodd = divmod(len(sorted_users), 2)
-		if isodd:
-			med_users_per_two_user_pm = sorted_users[bisect]
-		else:
-			med_users_per_two_user_pm = int(sorted_users[bisect - 1] + sorted_users[bisect]) / 2.0
-		# we now have avg and median sessions per user per two user pm
+# 		# we now have two_user_pms {gid:num_users} and two_user_pm_sess {gid:num_sess}
+# 		total_two_user_pm_sess, all_two_user_pm_sess = 0, []
+# 		for key,value in two_user_pm_sess.iteritems():
+# 			total_two_user_pm_sess += int(value)
+# 			all_two_user_pm_sess.append(value)
+# 		total_two_user_pm_users, all_two_user_pm_users = 0, []
+# 		for key,value in two_user_pms.iteritems():
+# 			total_two_user_pm_users += int(value)
+# 			all_two_user_pm_users.append(value)
+# 		avg_sess_per_user_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_sess)/total_two_user_pm_users)
+# 		sorted_sess = sorted(all_two_user_pm_sess)
+# 		halved, is_odd = divmod(len(sorted_sess), 2)
+# 		if is_odd:
+# 			med_sess_per_user_per_two_user_pm = sorted_sess[halved]
+# 		else:
+# 			med_sess_per_user_per_two_user_pm = int(sorted_sess[halved - 1] + sorted_sess[halved]) / 2.0
+# 		total_two_user_pms = len(two_user_pms)
+# 		avg_users_per_two_user_pm = "{0:.2f}".format(float(total_two_user_pm_users)/total_two_user_pms)
+# 		sorted_users = sorted(all_two_user_pm_users)
+# 		bisect, isodd = divmod(len(sorted_users), 2)
+# 		if isodd:
+# 			med_users_per_two_user_pm = sorted_users[bisect]
+# 		else:
+# 			med_users_per_two_user_pm = int(sorted_users[bisect - 1] + sorted_users[bisect]) / 2.0
+# 		# we now have avg and median sessions per user per two user pm
 
-		# finding overall median
-		array_pm = sorted(pm_users_set)
-		half, odd = divmod(len(array_pm), 2)
-		if odd:
-			med_users_per_pm = array_pm[half]
-		else:
-			med_users_per_pm = (array_pm[half - 1] + array_pm[half]) / 2.0
-		avg_sess_per_user_per_pg = "{0:.2f}".format(float(pg_sessions)/pg_sample_size)
-		avg_sess_per_user_per_pm = "{0:.2f}".format(float(pm_sessions)/pm_sample_size)
-		avg_users_per_pg = "{0:.2f}".format(float(total_pg_users)/pgs_sampled)
-		avg_users_per_pm = "{0:.2f}".format(float(total_pm_users)/pms_sampled)
-		med_sess_per_user_per_pg = my_server.zrange('pg_sess',pg_med_idx,pg_med_idx+1,withscores=True)[0]
-		med_sess_per_user_per_pm = my_server.zrange('pm_sess',pm_med_idx,pm_med_idx+1,withscores=True)[0]
+# 		# finding overall median
+# 		array_pm = sorted(pm_users_set)
+# 		half, odd = divmod(len(array_pm), 2)
+# 		if odd:
+# 			med_users_per_pm = array_pm[half]
+# 		else:
+# 			med_users_per_pm = (array_pm[half - 1] + array_pm[half]) / 2.0
+# 		avg_sess_per_user_per_pg = "{0:.2f}".format(float(pg_sessions)/pg_sample_size)
+# 		avg_sess_per_user_per_pm = "{0:.2f}".format(float(pm_sessions)/pm_sample_size)
+# 		avg_users_per_pg = "{0:.2f}".format(float(total_pg_users)/pgs_sampled)
+# 		avg_users_per_pm = "{0:.2f}".format(float(total_pm_users)/pms_sampled)
+# 		med_sess_per_user_per_pg = my_server.zrange('pg_sess',pg_med_idx,pg_med_idx+1,withscores=True)[0]
+# 		med_sess_per_user_per_pm = my_server.zrange('pm_sess',pm_med_idx,pm_med_idx+1,withscores=True)[0]
 
-		# caching the results
-		pipeline1 = my_server.pipeline()
-		pipeline1.setex('pgs_sampled_for_sess',pgs_sampled,TEN_MINS)
-		pipeline1.setex('pms_sampled_for_sess',pms_sampled,TEN_MINS)
-		pipeline1.setex('avg_users_per_pm',avg_users_per_pm,TEN_MINS)
-		pipeline1.setex('avg_users_per_pg',avg_users_per_pg,TEN_MINS)
-		pipeline1.setex('med_users_per_pm',med_users_per_pm,TEN_MINS)
-		pipeline1.setex('med_users_per_pg',med_users_per_pg,TEN_MINS)
-		pipeline1.setex('total_two_user_pms',total_two_user_pms,TEN_MINS)
-		pipeline1.setex('avg_sess_per_user_per_pg',avg_sess_per_user_per_pg,TEN_MINS)
-		pipeline1.setex('avg_sess_per_user_per_pm',avg_sess_per_user_per_pm,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_pg',med_sess_per_user_per_pg,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
-		pipeline1.setex('avg_users_per_two_user_pm',avg_users_per_two_user_pm,TEN_MINS)
-		pipeline1.setex('med_users_per_two_user_pm',med_users_per_two_user_pm,TEN_MINS)
-		pipeline1.setex('avg_sess_per_user_per_two_user_pm',avg_sess_per_user_per_two_user_pm,TEN_MINS)
-		pipeline1.setex('med_sess_per_user_per_two_user_pm',med_sess_per_user_per_two_user_pm,TEN_MINS)
-		pipeline1.execute()
-		return pgs_sampled, pms_sampled, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm,\
-		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
-		total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm
+# 		# caching the results
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.setex('pgs_sampled_for_sess',pgs_sampled,TEN_MINS)
+# 		pipeline1.setex('pms_sampled_for_sess',pms_sampled,TEN_MINS)
+# 		pipeline1.setex('avg_users_per_pm',avg_users_per_pm,TEN_MINS)
+# 		pipeline1.setex('avg_users_per_pg',avg_users_per_pg,TEN_MINS)
+# 		pipeline1.setex('med_users_per_pm',med_users_per_pm,TEN_MINS)
+# 		pipeline1.setex('med_users_per_pg',med_users_per_pg,TEN_MINS)
+# 		pipeline1.setex('total_two_user_pms',total_two_user_pms,TEN_MINS)
+# 		pipeline1.setex('avg_sess_per_user_per_pg',avg_sess_per_user_per_pg,TEN_MINS)
+# 		pipeline1.setex('avg_sess_per_user_per_pm',avg_sess_per_user_per_pm,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_pg',med_sess_per_user_per_pg,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_pm',med_sess_per_user_per_pm,TEN_MINS)
+# 		pipeline1.setex('avg_users_per_two_user_pm',avg_users_per_two_user_pm,TEN_MINS)
+# 		pipeline1.setex('med_users_per_two_user_pm',med_users_per_two_user_pm,TEN_MINS)
+# 		pipeline1.setex('avg_sess_per_user_per_two_user_pm',avg_sess_per_user_per_two_user_pm,TEN_MINS)
+# 		pipeline1.setex('med_sess_per_user_per_two_user_pm',med_sess_per_user_per_two_user_pm,TEN_MINS)
+# 		pipeline1.execute()
+# 		return pgs_sampled, pms_sampled, med_sess_per_user_per_pg, med_sess_per_user_per_pm, avg_sess_per_user_per_pg, avg_sess_per_user_per_pm,\
+# 		avg_users_per_pm, med_users_per_pm, avg_users_per_pg, med_users_per_pg, avg_sess_per_user_per_two_user_pm, med_sess_per_user_per_two_user_pm,\
+# 		total_two_user_pms, avg_users_per_two_user_pm, med_users_per_two_user_pm
+# 	"""
+# 	Measure 2-user pms vs 2-user pgs
+# 	Get 2-user pms and 2-user pgs from pm_sess and pg_sess (i.e. where sessions for 2 participants were logged)
+
+# 	Get rid of less than 2 user cases to make it like for like
+# 	"""
+
+# def avg_num_of_switchovers_per_type():
+# 	"""
+# 	What are avg number of chats produced per type of chat?
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	total_pms = my_server.get('total_pms_sw')
+# 	if total_pms:
+# 		results = my_server.mget(['median_pm_idx_sw','median_pm_tuple_sw','aggregate_pm_sws','avg_sw_per_pm','total_pgs_sw','median_pg_idx_sw',\
+# 			'median_pg_tuple_sw','aggregate_pg_sws','avg_sw_per_pg'])
+# 		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+# 	else:
+# 		pm_data = my_server.zrange('pm_sw',0,-1,withscores=True)
+# 		total_pms = len(pm_data)
+# 		median_pm_idx = int(total_pms/2)
+# 		median_pm_tuple = my_server.zrange('pm_sw',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+
+# 		pg_data = my_server.zrange('pg_sw',0,-1,withscores=True)	
+# 		total_pgs = len(pg_data)
+# 		median_pg_idx = int(total_pgs/2)
+# 		median_pg_tuple = my_server.zrange('pg_sw',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+
+# 		# data is list of (group_id,chat_num) type tuples
+# 		aggregate_pm_sws, aggregate_pg_sws = 0, 0
+# 		for tup in pm_data:
+# 			aggregate_pm_sws += int(tup[1])
+# 		for tup in pg_data:
+# 			aggregate_pg_sws += int(tup[1])
+# 		avg_sw_per_pm = "{0:.2f}".format(aggregate_pm_sws/float(total_pms))
+# 		avg_sw_per_pg = "{0:.2f}".format(aggregate_pg_sws/float(total_pgs))
+
+# 		# caching the results
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.setex('total_pms_sw',total_pms,TEN_MINS)
+# 		pipeline1.setex('median_pm_idx_sw',median_pm_idx,TEN_MINS)
+# 		pipeline1.setex('median_pm_tuple_sw',median_pm_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pm_sws',aggregate_pm_sws,TEN_MINS)
+# 		pipeline1.setex('avg_sw_per_pm',avg_sw_per_pm,TEN_MINS)
+# 		pipeline1.setex('total_pgs_sw',total_pgs,TEN_MINS)
+# 		pipeline1.setex('median_pg_idx_sw',median_pg_idx,TEN_MINS)
+# 		pipeline1.setex('median_pg_tuple_sw',median_pg_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pg_sws',aggregate_pg_sws,TEN_MINS)
+# 		pipeline1.setex('avg_sw_per_pg',avg_sw_per_pg,TEN_MINS)
+# 		pipeline1.execute()
+# 		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+# 			aggregate_pg_sws, avg_sw_per_pg
+
+# 	"""
+# 	Divide green mehfils into 2 person and 2+ person groups. Only 2 person green groups can be compared to private chat
+# 	"""
+
+
+# def avg_num_of_chats_per_type():
+# 	"""
+# 	What are avg number of chats produced per type of chat?
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	total_pms = my_server.get('total_pms')
+# 	if total_pms:
+# 		results = my_server.mget(['median_pm_idx','median_pm_tuple','aggregate_pm_chats','avg_chat_per_pm','total_pgs','median_pg_idx','median_pg_tuple',\
+# 			'aggregate_pg_chats','avg_chat_per_pg','pms_with_sws','pgs_with_sws'])
+# 		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9], results[10]
+# 	else:
+# 		pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
+# 		total_pms = len(pm_data)
+# 		median_pm_idx = int(total_pms/2)
+# 		median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
+
+# 		pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
+# 		total_pgs = len(pg_data)
+# 		median_pg_idx = int(total_pgs/2)
+# 		median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
+
+# 		# data is list of (group_id,chat_num) type tuples
+# 		aggregate_pm_chats, aggregate_pg_chats = 0, 0
+# 		for tup in pm_data:
+# 			aggregate_pm_chats += int(tup[1])
+# 		for tup in pg_data:
+# 			aggregate_pg_chats += int(tup[1])
+# 		avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
+# 		avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs))
+
+# 		pms_with_sws = "{0:.2f}".format(my_server.zcard('pm_sw')/float(total_pms)*100)
+# 		pgs_with_sws = "{0:.2f}".format(my_server.zcard('pg_sw')/float(total_pgs)*100)
+
+# 		# caching the results
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.setex('total_pms',total_pms,TEN_MINS)
+# 		pipeline1.setex('median_pm_idx',median_pm_idx,TEN_MINS)
+# 		pipeline1.setex('median_pm_tuple',median_pm_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pm_chats',aggregate_pm_chats,TEN_MINS)
+# 		pipeline1.setex('avg_chat_per_pm',avg_chat_per_pm,TEN_MINS)
+# 		pipeline1.setex('total_pgs',total_pgs,TEN_MINS)
+# 		pipeline1.setex('median_pg_idx',median_pg_idx,TEN_MINS)
+# 		pipeline1.setex('median_pg_tuple',median_pg_tuple,TEN_MINS)
+# 		pipeline1.setex('aggregate_pg_chats',aggregate_pg_chats,TEN_MINS)
+# 		pipeline1.setex('avg_chat_per_pg',avg_chat_per_pg,TEN_MINS)
+# 		pipeline1.setex('pms_with_sws',pms_with_sws,TEN_MINS)
+# 		pipeline1.setex('pgs_with_sws',pgs_with_sws,TEN_MINS)
+# 		pipeline1.execute()
+# 		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
+# 		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws
+
+
+###################################### Project Superhuman #########################################
+
+FIRST_SURVEY_REFERRER = 'fsr:'# key holding first-time referrer page of any survey entrant
+OTHER_SURVEY_REFERRER = 'osr:'# key holding first-time referrer page of any survey entrant
+SUPERHUMAN_ANSWERS = 'sans:'#key containing jsonized survey answers given by a user
+SUPERHUMAN_ANSWERERS = 'sansr'# sorted set containing all logged answerers
+SUPERHUMAN_ANSWERERS2 = 'sansr2'# sorted set containing all logged answerers of the second leg of the survey
+
+# def log_survey_referrer(user_id, referrer_url):
+# 	"""
+# 	logs the referring screen the user entered the survey from
+# 	"""
+# 	user_id = str(user_id)
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if my_server.exists(FIRST_SURVEY_REFERRER+user_id):
+# 		my_server.setex(OTHER_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
+# 	else:
+# 		my_server.setex(FIRST_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
+
+
+def show_survey(user_id):
 	"""
-	Measure 2-user pms vs 2-user pgs
-	Get 2-user pms and 2-user pgs from pm_sess and pg_sess (i.e. where sessions for 2 participants were logged)
-
-	Get rid of less than 2 user cases to make it like for like
+	Determines whether a user is shown the survey or not
 	"""
+	return not redis.Redis(connection_pool=POOL).zscore(SUPERHUMAN_ANSWERERS,SUPERHUMAN_ANSWERS+str(user_id))
 
-def avg_num_of_switchovers_per_type():
+
+def has_already_answered_superhuman_survey(user_id):
 	"""
-	What are avg number of chats produced per type of chat?
+	Determines what state the survey is in, so that a screen can be shown to the user accordingly
+	"""
+	answer_key = SUPERHUMAN_ANSWERS+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	filled_prev_survey = my_server.exists(answer_key)
+	if filled_prev_survey:
+		# allow this user, but only if they've not filled the new survey
+		json_prev_answer = my_server.get(answer_key)
+		prev_answer = json.loads(json_prev_answer)
+		if prev_answer.get("2nd_submission",None) == '1':
+			if prev_answer.get("2nd_sub_skipped",None) == '1':
+				# filled the previous one but skipped the new one
+				return True, True
+			else:
+				# filled the previous one and the new one both
+				return True, False
+		else:
+			# filled the prev survey, but hasn't filled the new one yet
+			return False, False
+	else:
+		# didn't fill the survey previously - shouldn't be allowed to fill it now
+		return False, False
+
+
+def log_superhuman_survey_answers(user_id, answers_dict, time_now):
+	"""
+	saves all the answers for later analysis
+	"""
+	user_id = str(user_id)
+	answer_key = SUPERHUMAN_ANSWERS+user_id
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(answer_key):
+		json_prev_answer = my_server.get(answer_key)
+		prev_answer = json.loads(json_prev_answer)
+		prev_answer['2nd_submission'] = answers_dict['2nd_submission']
+		prev_answer['2nd_sub_skipped'] = answers_dict['2nd_sub_skipped']
+		prev_answer['ans9'] = answers_dict['ans9']
+		prev_answer['ans10'] = answers_dict['ans10']
+		prev_answer['ans11'] = answers_dict['ans11']
+		prev_answer['ans12'] = answers_dict['ans12']
+		prev_answer['num_topics'] = answers_dict['num_topics']
+		prev_answer['num_fans'] = answers_dict['num_fans']
+		my_server.setex(answer_key,json.dumps(prev_answer),TWO_WEEKS)
+		my_server.zrem(SUPERHUMAN_ANSWERERS,answer_key)#,time_now)
+		my_server.zadd(SUPERHUMAN_ANSWERERS2,answer_key,time_now)
+		my_server.expire(SUPERHUMAN_ANSWERERS,TWO_WEEKS)
+		return True
+	else:
+		return False
+
+
+def retrieve_survey_records():
+	"""
+	Useful for exporting the data to a CSV for analysis
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	total_pms = my_server.get('total_pms_sw')
-	if total_pms:
-		results = my_server.mget(['median_pm_idx_sw','median_pm_tuple_sw','aggregate_pm_sws','avg_sw_per_pm','total_pgs_sw','median_pg_idx_sw',\
-			'median_pg_tuple_sw','aggregate_pg_sws','avg_sw_per_pg'])
-		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8]
+	participating_survey_keys = my_server.zrange(SUPERHUMAN_ANSWERERS2,0,-1)
+	if participating_survey_keys:
+		return my_server.mget(*participating_survey_keys)
 	else:
-		pm_data = my_server.zrange('pm_sw',0,-1,withscores=True)
-		total_pms = len(pm_data)
-		median_pm_idx = int(total_pms/2)
-		median_pm_tuple = my_server.zrange('pm_sw',median_pm_idx,median_pm_idx+1,withscores=True)[0]
-
-		pg_data = my_server.zrange('pg_sw',0,-1,withscores=True)	
-		total_pgs = len(pg_data)
-		median_pg_idx = int(total_pgs/2)
-		median_pg_tuple = my_server.zrange('pg_sw',median_pg_idx,median_pg_idx+1,withscores=True)[0]
-
-		# data is list of (group_id,chat_num) type tuples
-		aggregate_pm_sws, aggregate_pg_sws = 0, 0
-		for tup in pm_data:
-			aggregate_pm_sws += int(tup[1])
-		for tup in pg_data:
-			aggregate_pg_sws += int(tup[1])
-		avg_sw_per_pm = "{0:.2f}".format(aggregate_pm_sws/float(total_pms))
-		avg_sw_per_pg = "{0:.2f}".format(aggregate_pg_sws/float(total_pgs))
-
-		# caching the results
-		pipeline1 = my_server.pipeline()
-		pipeline1.setex('total_pms_sw',total_pms,TEN_MINS)
-		pipeline1.setex('median_pm_idx_sw',median_pm_idx,TEN_MINS)
-		pipeline1.setex('median_pm_tuple_sw',median_pm_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pm_sws',aggregate_pm_sws,TEN_MINS)
-		pipeline1.setex('avg_sw_per_pm',avg_sw_per_pm,TEN_MINS)
-		pipeline1.setex('total_pgs_sw',total_pgs,TEN_MINS)
-		pipeline1.setex('median_pg_idx_sw',median_pg_idx,TEN_MINS)
-		pipeline1.setex('median_pg_tuple_sw',median_pg_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pg_sws',aggregate_pg_sws,TEN_MINS)
-		pipeline1.setex('avg_sw_per_pg',avg_sw_per_pg,TEN_MINS)
-		pipeline1.execute()
-		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_sws, avg_sw_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
-			aggregate_pg_sws, avg_sw_per_pg
-
-	"""
-	Divide green mehfils into 2 person and 2+ person groups. Only 2 person green groups can be compared to private chat
-	"""
-
-
-def avg_num_of_chats_per_type():
-	"""
-	What are avg number of chats produced per type of chat?
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	total_pms = my_server.get('total_pms')
-	if total_pms:
-		results = my_server.mget(['median_pm_idx','median_pm_tuple','aggregate_pm_chats','avg_chat_per_pm','total_pgs','median_pg_idx','median_pg_tuple',\
-			'aggregate_pg_chats','avg_chat_per_pg','pms_with_sws','pgs_with_sws'])
-		return total_pms, results[0], results[1], results[2], results[3], results[4], results[5], results[6], results[7], results[8], results[9], results[10]
-	else:
-		pm_data = my_server.zrange('pm_ch',0,-1,withscores=True)
-		total_pms = len(pm_data)
-		median_pm_idx = int(total_pms/2)
-		median_pm_tuple = my_server.zrange('pm_ch',median_pm_idx,median_pm_idx+1,withscores=True)[0]
-
-		pg_data = my_server.zrange('pg_ch',0,-1,withscores=True)
-		total_pgs = len(pg_data)
-		median_pg_idx = int(total_pgs/2)
-		median_pg_tuple = my_server.zrange('pg_ch',median_pg_idx,median_pg_idx+1,withscores=True)[0]
-
-		# data is list of (group_id,chat_num) type tuples
-		aggregate_pm_chats, aggregate_pg_chats = 0, 0
-		for tup in pm_data:
-			aggregate_pm_chats += int(tup[1])
-		for tup in pg_data:
-			aggregate_pg_chats += int(tup[1])
-		avg_chat_per_pm = "{0:.2f}".format(aggregate_pm_chats/float(total_pms))
-		avg_chat_per_pg = "{0:.2f}".format(aggregate_pg_chats/float(total_pgs))
-
-		pms_with_sws = "{0:.2f}".format(my_server.zcard('pm_sw')/float(total_pms)*100)
-		pgs_with_sws = "{0:.2f}".format(my_server.zcard('pg_sw')/float(total_pgs)*100)
-
-		# caching the results
-		pipeline1 = my_server.pipeline()
-		pipeline1.setex('total_pms',total_pms,TEN_MINS)
-		pipeline1.setex('median_pm_idx',median_pm_idx,TEN_MINS)
-		pipeline1.setex('median_pm_tuple',median_pm_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pm_chats',aggregate_pm_chats,TEN_MINS)
-		pipeline1.setex('avg_chat_per_pm',avg_chat_per_pm,TEN_MINS)
-		pipeline1.setex('total_pgs',total_pgs,TEN_MINS)
-		pipeline1.setex('median_pg_idx',median_pg_idx,TEN_MINS)
-		pipeline1.setex('median_pg_tuple',median_pg_tuple,TEN_MINS)
-		pipeline1.setex('aggregate_pg_chats',aggregate_pg_chats,TEN_MINS)
-		pipeline1.setex('avg_chat_per_pg',avg_chat_per_pg,TEN_MINS)
-		pipeline1.setex('pms_with_sws',pms_with_sws,TEN_MINS)
-		pipeline1.setex('pgs_with_sws',pgs_with_sws,TEN_MINS)
-		pipeline1.execute()
-		return total_pms, median_pm_idx, median_pm_tuple, aggregate_pm_chats, avg_chat_per_pm, total_pgs, median_pg_idx, median_pg_tuple, \
-		aggregate_pg_chats, avg_chat_per_pg, pms_with_sws, pgs_with_sws
-
+		return []
 
 
 ######################################### Project Zuck ############################################
 from score import PROJ_ZUCK_STARTING_USER_ID 
 
-new_old = 'nopair'
-new_new = 'nnpair'
-old_old = 'oopair'
-group_to_log = 'zuckers_to_log'
+new_old = 'no-pair'#nopair
+new_new = 'nn-pair'#nnpair
+old_old = 'oo-pair'#oopair
+group_to_log = 'grps_to_log'#'zuckers_to_log'
+group_creation = 'grp_creation'
 
 
 def add_group_to_log(group_id):
@@ -1930,13 +2030,13 @@ def check_if_group_to_log(group_id):
 	return redis.Redis(connection_pool=POOL).zscore(group_to_log,group_id)
 
 
-def log_1on1_chat(payload,oid,tid,group_id):
+def log_1on1_chat(payload,oid,tid,group_id,is_creation):
 	"""
 	Logs 1on1 messages in 3 different buckets
 
+	Also log total messages exchanged and 1on1 creation time
 	"""
 	if check_if_group_to_log(group_id):
-		my_server = redis.Redis(connection_pool=POOL)
 		
 		if int(oid) < PROJ_ZUCK_STARTING_USER_ID and int(tid) < PROJ_ZUCK_STARTING_USER_ID:
 			key_to_use = old_old
@@ -1944,10 +2044,99 @@ def log_1on1_chat(payload,oid,tid,group_id):
 			key_to_use = new_old
 		else:
 			key_to_use = new_new
+		my_server = redis.Redis(connection_pool=POOL)
 		my_server.zadd(key_to_use,json.dumps(payload),group_id)
-		my_server.zincrby(group_to_log,group_id,amount=1)		
+		my_server.zincrby(group_to_log,group_id,amount=1)	
+		if is_creation:
+			my_server.zadd(group_creation,group_id,time.time())	
 	else:
-		pass				
+		pass
 
 
+def retrieve_chat_records(log_type, by_group_id=False):
+	"""
+	Retrieves all chat logs from redis
 
+	Useful when exporting logs into a CSV
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if by_group_id:
+		# 'log_type' is a list contaning group_ids
+		final_data = []
+		for group_id in log_type:
+			nn_chat = my_server.zrangebyscore(new_new, group_id, group_id,withscores=True)
+			no_chat = [] if nn_chat else my_server.zrangebyscore(new_old, group_id, group_id,withscores=True)
+			oo_chat = [] if (nn_chat or no_chat) else my_server.zrangebyscore(old_old, group_id, group_id,withscores=True)
+			final_data = final_data+nn_chat+no_chat+oo_chat
+		return final_data
+	else:
+		# 'log_type' defines which bucket to dip into
+		if log_type == 'nn':
+			key_to_use = new_new
+		elif log_type == 'no':
+			key_to_use = new_old
+		elif log_type == 'oo':
+			key_to_use = old_old
+		else:
+			return []
+		if key_to_use:
+			return my_server.zrange(key_to_use,0,-1,withscores=True)
+		else:
+			return []
+
+
+def retrieve_chat_count():
+	"""
+	Retrieves chat counts of all logged chat groups
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(group_to_log,0,-1,withscores=True)
+
+
+def retrieve_1on1_creation_times():
+	"""
+	Retrieves 1on1 chat creation times
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(group_creation,0,-1,withscores=True)
+
+
+def retrieve_1on1_type():
+	"""
+	Retrieves 1on1 type (i.e. 'oo', 'no', 'nn')
+	"""
+	group_types = {}
+	my_server = redis.Redis(connection_pool=POOL)
+	all_group_ids = my_server.zrange(group_creation,0,-1)
+	pipeline1 = my_server.pipeline()
+	for group_id in all_group_ids:
+		pipeline1.zcount(old_old,group_id,group_id)
+	result1, counter = pipeline1.execute(), 0
+	remainder_groups = []
+	for group_id in all_group_ids:
+		if result1[counter]:
+			group_types[group_id] = 'oo'
+		else:
+			remainder_groups.append(group_id)
+		counter += 1
+	########################################################
+	pipeline2 = my_server.pipeline()
+	for group_id in remainder_groups:
+		pipeline2.zcount(new_old,group_id,group_id)
+	result2, counter = pipeline2.execute(), 0
+	more_remainder_groups = []
+	for group_id in remainder_groups:
+		if result2[counter]:
+			group_types[group_id] = 'no'
+		else:
+			more_remainder_groups.append(group_id)
+		counter += 1
+	########################################################
+	pipeline3 = my_server.pipeline()
+	for group_id in more_remainder_groups:
+		pipeline3.zcount(new_new,group_id,group_id)
+	result3, counter = pipeline3.execute(), 0
+	for group_id in more_remainder_groups:
+		if result3[counter]:
+			group_types[group_id] = 'nn'
+		counter += 1
+	########################################################
+	return group_types

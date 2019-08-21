@@ -14,7 +14,7 @@ process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ,\
 GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE,SEGMENT_STARTING_TIME#, UPVOTE, DOWNVOTE,
 # from page_controls import PHOTOS_PER_PAGE
-from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, \
+from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, Logout, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
 #from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import add_search_photo, bulk_add_search_photos, log_gibberish_text_writer, get_gibberish_text_writers, retrieve_thumbs, \
@@ -39,12 +39,14 @@ update_group_topic_in_obj
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest
-from redis7 import record_vote, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
+from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, get_world_age_weighted_vote_score, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,\
+add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences, retrieve_voting_affinity,retrieve_obj_scores, add_single_trending_object_in_feed, get_best_home_feed, retire_abandoned_topics
-from redis8 import set_section_wise_retention, log_segment_action
+study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
+create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
+from redis8 import set_variation_wise_retention, log_segment_action
+# from redis9 import delete_all_direct_responses_between_two_users
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -216,9 +218,11 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 		elif txt_type == 'exited':
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
 		################### Logging 1on1 message ###################
-		payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
-		log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id)
-		
+		if txt_type == 'shared_img':
+			payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
+		else:
+			payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
+		log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
 		##############################################################
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
@@ -291,6 +295,9 @@ def post_banning_tasks(own_id, target_id):
 	# this ensures they can't private chat with eachother
 	exit_user_from_targets_priv_chat(own_id,target_id)
 	################################################################################
+	# remove any direct responses exchanged between the two
+	# delete_all_direct_responses_between_two_users(first_user_id=target_id, second_user_id=own_id)# order of passing user IDs does not matter
+	################################################################################
 	# we did a LOT of work, ensure banner didn't ban in vain!
 	ratelimit_banner_from_unbanning_target(own_id,target_id)
 	################################################################################
@@ -339,6 +346,7 @@ def sanitize_unused_ecomm_photos():
 	Mislabelled for legacy reasons
 	"""
 	study_voting_preferences()
+	create_sybil_relationship_log()
 
 
 @celery_app1.task(name='tasks.set_user_binding_with_twilio_notify_service')
@@ -397,14 +405,16 @@ def log_action(user_id, action_categ, action_sub_categ, action_liq, time_of_acti
 	hours_since_start_of_segment = int((time_of_action - SEGMENT_STARTING_TIME)/3600.0)
 	log_segment_action(user_id, hours_since_start_of_segment, action_categ, action_sub_categ, action_liq, time_of_action)
 
-# @celery_app1.task(name='tasks.set_section_retention')
-# def set_section_retention(which_section, user_id):
-# 	"""
-# 	Logs users for retention calculation of various sections of the app
 
-# 	Sections include 'private_mehfil', 'public_mehfil', 'private_chat' currently
-# 	"""
-# 	set_section_wise_retention(which_section, user_id)
+@celery_app1.task(name='tasks.set_section_retention')
+def set_variation_retention(user_id, which_var=None):
+	"""
+	Logs users for retention calculation of various cohorts
+
+	'which_var' is the name of an experimental variation currently under progress
+	"""
+	set_variation_wise_retention(user_id,which_var=which_var)
+
 
 @celery_app1.task(name='tasks.set_user_age')
 def set_user_age(user_id):
@@ -516,14 +526,12 @@ def delete_notifications(user_id):
 
 @celery_app1.task(name='tasks.calc_gibberish_punishment')
 def calc_gibberish_punishment():
-	all_gibberish_writers = get_gibberish_text_writers()
-	if all_gibberish_writers:
-		all_gibberish_writers_above_threshold = {k:v for k,v in all_gibberish_writers if v>3}
-		if all_gibberish_writers_above_threshold:
-			gibberish_punishment = {}
-			for k in all_gibberish_writers_above_threshold.keys():
-				all_gibberish_writers_above_threshold[k] *= GIBBERISH_PUNISHMENT_MULTIPLIER
-			punish_gibberish_writers(all_gibberish_writers_above_threshold)
+	"""
+	Scheduled task to calculate 'like_probs' of voters/likers
+
+	Mislabeled for legacy reasons
+	"""
+	archive_closed_objs_and_votes()
 
 
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
@@ -807,11 +815,6 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 			log_group_chatter(group_id, sender_id)# redis 6
 			if image_url:
 				increment_pic_count(group_id, sender_id)#redis 6
-
-
-# @celery_app1.task(name='tasks.log_private_mehfil_session')
-# def log_private_mehfil_session(group_id,user_id):# called every time a private mehfil is refreshed
-# 	increment_session(str(group_id), user_id, group_type='pm')
 	
 
 @celery_app1.task(name='tasks.rank_all_photos')
@@ -822,10 +825,19 @@ def rank_all_photos():
 	Can also push hand-picked objects into trending lists
 	Mislabeled task due to legacy reasons
 	"""
-	pushed = push_hand_picked_obj_into_trending()
-	if pushed:
-		# TODO: send this to Facebook fan page
-		pass
+	time_now = time.time()
+	pushed, obj_id = push_hand_picked_obj_into_trending()
+	if pushed and obj_id:
+		cohort_num = int(time_now/604800)#cohort size is 1 week
+		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
+		#####################################################
+		# Send this to Facebook fan page (every 6 hours)
+		if can_post_image_on_fb_fan_page():
+			photo = Photo.objects.only('image_file','caption','owner__username').get(id=obj_id)
+			photo_poster(image_obj=photo.image_file, image_caption=photo.caption, owner_username=photo.owner.username, \
+				photo_id=obj_id)
+			set_best_photo_for_fb_fan_page(obj_id)
+		#####################################################
 	else:
 		fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
 		best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
@@ -833,32 +845,11 @@ def rank_all_photos():
 		trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
 		if trending_item_hash_name:
 			highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-			highest_ranked_photo['tos'] = time.time()
-			highest_ranked_photo['rank_scr'] = item_score
+			highest_ranked_photo['tos'] = time_now
+			highest_ranked_photo['like_prob'] = item_score# what probability exists that this content will be liked by at least 1 audience member
+			obj_id = trending_item_hash_name.split(":")[1]
 			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
-		# rank_photos()
-
-	
-	# photos = retrieve_obj_feed(get_photo_feed(feed_type='fresh_photos'))
-	# photo_ids_and_times = {}
-	# for photo in photos:
-	# 	try:
-	# 		object_id = photo['i']
-	# 		net_votes = photo['nv']
-	# 		submission_time = photo['t']
-	# 	except (TypeError,KeyError):
-	# 		net_votes, submission_time, object_id = None, None, None
-	# 	if int(net_votes) > 0 and submission_time and object_id:#remove objs with '0' votes via this
-	# 		photo_ids_and_times[object_id] = submission_time
-	# if photo_ids_and_times:
-	# 	# create a net voting of this pool via taking world age into consideration
-	# 	photo_ids = photo_ids_and_times.keys()
-	# 	photo_vote_scr_dict = get_world_age_weighted_vote_score(photo_ids,obj_type='img')
-	# 	photo_id_and_scr = []
-	# 	for photo_id in photo_ids:
-	# 		photo_id_and_scr.append("img:"+photo_id)
-	# 		photo_id_and_scr.append(set_rank(float(photo_vote_scr_dict[photo_id]),float(photo_ids_and_times[photo_id])))#set_rank needs net_votes and submission_time, this is reddit's old ranking algo
-	# 	add_photos_to_best_photo_feed(photo_id_and_scr,consider_world_age=True)
+			pushed = True
 
 
 @celery_app1.task(name='tasks.rank_all_photos1')
@@ -875,15 +866,15 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 
 	Current criteria requires the top most obj to have the highest cumulative_vote_score but with at least one downvote
 	"""
-	obj_list = retrieve_obj_scores(obj_hash_names, with_downvotes=True)
-	only_downvoted = []
-	for obj_hash, score, downvotes in obj_list:
-		# ensure that the post is downvoted, but has a positive cumulative score
-		if downvotes > 0 and score > 0:
-			only_downvoted.append((obj_hash, score))
-	if only_downvoted:
-		only_downvoted.sort(key=itemgetter(1),reverse=True)
-		trending_item_hash_name = only_downvoted[0][0]
+	obj_list = retrieve_obj_scores(obj_hash_names)
+	only_liked = []
+	for obj_hash, likes, score in obj_list:
+		# ensure that the post is liked and has a positive 'score' (score is the prob it will receive 'likes' when it trends)
+		if likes > 0 and score > 0:
+			only_liked.append((obj_hash, score))
+	if only_liked:
+		only_liked.sort(key=itemgetter(1),reverse=True)
+		trending_item_hash_name = only_liked[0][0]
 		if with_score:
 			return trending_item_hash_name, with_score
 		else:
@@ -905,7 +896,7 @@ def rank_home_posts():
 	fresh_obj_hashes = get_home_feed()
 	trending_obj_hashes = get_best_home_feed(trending_home=True)
 	remaining_obj_hashes = [hash_ for hash_ in fresh_obj_hashes if hash_ not in trending_obj_hashes]
-	trending_item_hash_name = extract_trending_obj(remaining_obj_hashes)
+	trending_item_hash_name = extract_trending_obj(remaining_obj_hashes)# new 'like_prob' changes are breaking this for "texts"
 	if trending_item_hash_name:
 		add_single_trending_object_in_feed(trending_item_hash_name, time.time())
 
@@ -930,18 +921,11 @@ def set_input_rate_and_history(section,section_id,text,user_id,time_now):
 @celery_app1.task(name='tasks.rank_photos')
 def rank_photos():
 	"""
-	Runs every 12 mins from settings.py
+	Calculates voting rep of voters, and expires rep older than 3 months
+
+	Mislabeled due to legacy reasons
 	"""
 	pass
-	# fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
-	# best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
-	# remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
-	# trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
-	# if trending_item_hash_name:
-	# 	highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-	# 	highest_ranked_photo['tos'] = time.time()
-	# 	highest_ranked_photo['rank_scr'] = item_score
-	# 	add_single_trending_object(prefix="img:",obj_id=trending_item.split(":")[1], obj_hash=highest_ranked_photo)
 
 
 @celery_app1.task(name='tasks.fans')
@@ -1048,18 +1032,9 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	photo.save()
-	# set_prev_replies(user_id,text)
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
-	# if user_id != photo_owner_id and not it_exists:
-	# 	user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
-	# 	if is_citizen:
-	# 		photo.owner.userprofile.media_score = photo.owner.userprofile.media_score + 2 #giving media score to the photo poster
-	# 		photo.owner.userprofile.score = photo.owner.userprofile.score + 2 # giving score to the photo poster
-	# 		#photo.visible_score = photo.visible_score + 2000000
-	# 		photo.owner.userprofile.save()
-	# photo.save()
-	# user.userprofile.save()
+
 
 @celery_app1.task(name='tasks.photo_tasks')
 def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
@@ -1116,12 +1091,7 @@ def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_e
 	photo.save()
 	if is_fan(photo_owner_id,user_id):
 		add_to_photo_owner_activity(photo_owner_id, user_id)
-	# if user_id != photo_owner_id and not it_exists:
-	# 	UserProfile.objects.filter(user_id=user_id).update(score=F('score')+2) #giving score to the commenter
-	# 	if is_citizen:
-	# 		UserProfile.objects.filter(user_id=photo_owner_id).update(score=F('score')+2,media_score=F('media_score')+2) # giving scores to photo owner
-	# 		photo.visible_score = photo.visible_score + 2
-	# photo.save()
+
 
 @celery_app1.task(name='tasks.video_vote_tasks')
 def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
@@ -1129,131 +1099,44 @@ def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_incre
 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
 
 
+@celery_app1.task(name='tasks.cache_voting_history')
+def cache_voting_history(user_id, page_num, json_data):
+	"""
+	Caches voting history
+	"""
+	cache_detailed_voting_data(json_data=json_data, page_num=page_num, user_id=user_id)
+
+
 @celery_app1.task(name='tasks.vote_tasks')
-def vote_tasks(own_id,target_user_id,target_obj_id,vote_value,is_pinkstar,own_name,revert_prev,is_pht,time_of_vote):
+def vote_tasks(own_id, target_user_id, target_obj_id, revert_prev, is_pht, time_of_vote, is_editorial_vote):
 	"""
 	Processes vote on a post by a user
 
-	Handles both textual or photo voting
+	Handles both textual or photo voting, both like and like-reversion
 	"""
-	target_userprofile_score = UserProfile.objects.only('score').get(user_id=target_user_id).score
-	old_net_votes = Photo.objects.only('vote_score').get(id=target_obj_id).vote_score if is_pht == '1' \
-	else Link.objects.only('net_votes').get(id=target_obj_id).net_votes
-	#simply hellban the user in case their score is too low, and that's all
-	if target_userprofile_score < -25:
-		if not HellBanList.objects.filter(condemned_id=target_user_id).exists(): #only insert user in hell-ban list if she isn't there already
-			HellBanList.objects.create(condemned_id=target_user_id) #adding user to hell-ban list
-			UserProfile.objects.filter(user_id=target_user_id).update(score=random.randint(10,71))
-	# elif target_userprofile_score > 0:
+	if revert_prev:
+		# undo a previous 'like'
+		new_net_votes = log_like(obj_id=target_obj_id, own_id=own_id, revert_prev=True, is_pht=is_pht, target_user_id=target_user_id,\
+			time_of_vote=time_of_vote, is_editorial_vote=is_editorial_vote)
+		if is_pht == '1' and new_net_votes >= 0:
+			# is a photo object
+			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+			# if it's a 'like' by a super-defender, handpick the object
+			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+			if is_super_defender:
+				remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
 	else:
-		if vote_value == '1':
-			# is an upvote
-			if revert_prev:
-				world_age_discount_multiplier, affinity_discount_multiplier = 1, 1# these values don't matter since discounts aren't used at all in reverting
-			else:
-				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
-				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
-				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
-				##############################################################################
-				######################## Vote Discount logger ################################
-				##############################################################################
-				if vote_affinity_discount == 1:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='discounted',item_type='photo')
-					else:
-						log_vote_disc(vote_type='discounted',item_type='text')
-				else:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='regular',item_type='photo')
-					else:
-						log_vote_disc(vote_type='regular',item_type='text')
-				##############################################################################
-				##############################################################################
-				##############################################################################
-				affinity_discount_multiplier = (1-vote_affinity_discount)
-
-			net_votes = old_net_votes + 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht,time_of_vote,\
-				target_user_id, world_age_discount_multiplier, affinity_discount_multiplier)
-			if added:
-				# vote added
-				if is_pht == '1':
-					# is a photo object
-					# UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+UPVOTE)
-					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
-					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
-					if revert_prev:
-						# it's a reversion of a downvote - do nothing
-						pass
-					else:
-						# it's a genuine upvote - not just a reversion of the previous step
-						is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-						if is_super_defender:
-							queue_obj_into_trending(prefix='img:',obj_owner_id=target_user_id,obj_id=target_obj_id,picked_by_id=own_id)
-				else:
-					# is a link object
-					# UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+UPVOTE)
-					Link.objects.filter(id=target_obj_id).update(net_votes=net_votes)
-			else:
-				# vote not added, do nothing
-				pass
-		elif vote_value == '0':
-			# is a downvote
-			if revert_prev:
-				world_age_discount_multiplier, affinity_discount_multiplier = 1, 1
-			else:
-				# world_age_discount_multiplier applied on cast vote is world_age_discount_multiplier
-				world_age_discount_multiplier = calculate_world_age_discount(user_id=own_id)
-				# affinity_discount_multiplier applied on cast vote is (1-affinity_discount_multiplier)
-				vote_affinity_discount = retrieve_voting_affinity(voter_id=own_id, target_user_id=target_user_id, vote_type=vote_value)
-				##############################################################################
-				######################## Vote Discount logger ################################
-				##############################################################################
-				if vote_affinity_discount == 1:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='discounted',item_type='photo', downvote=True)
-					else:
-						log_vote_disc(vote_type='discounted',item_type='text', downvote=True)
-				else:
-					if int(is_pht) == 1:
-						log_vote_disc(vote_type='regular',item_type='photo', downvote=True)
-					else:
-						log_vote_disc(vote_type='regular',item_type='text', downvote=True)
-				##############################################################################
-				##############################################################################
-				##############################################################################
-				affinity_discount_multiplier = (1-vote_affinity_discount)
-			
-			net_votes = old_net_votes - 1
-			added = record_vote(target_obj_id,net_votes,vote_value,is_pinkstar,own_name, own_id, revert_prev, is_pht, time_of_vote,\
-				target_user_id, world_age_discount_multiplier, affinity_discount_multiplier)
-			if added:
-				# vote added
-				if is_pht == '1':
-					# is a photo object
-					# UserProfile.objects.filter(user_id=target_user_id).update(media_score=F('media_score')+DOWNVOTE)
-					Photo.objects.filter(id=target_obj_id).update(vote_score=net_votes)
-					update_object(object_id=target_obj_id,object_type='0',vote_score=net_votes, just_vote=True)# updates vote count attached to notification object of photo
-					is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-					if revert_prev:
-						# it's the reversion of an upvote - we have no confidence in this pic
-						if is_super_defender:
-							remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
-					else:
-						# it's a genuine downvote - not just a reversion of the previous step
-						if is_super_defender:
-							remove_obj_from_trending(prefix='img:',obj_id=target_obj_id)
-				else:
-					# is a link object
-					# UserProfile.objects.filter(user_id=target_user_id).update(score=F('score')+DOWNVOTE)
-					Link.objects.filter(id=target_obj_id).update(net_votes=net_votes)
-			else:
-				# vote not added, do nothing
-				pass
-		else:
-			# neither an upvote nor a downvote, do nothing
-			pass
+		# cast a simple 'like' vote
+		world_age_discount = calculate_world_age_discount(user_id=own_id)
+		new_net_votes = log_like(obj_id=target_obj_id, own_id=own_id, revert_prev=False, is_pht=is_pht, target_user_id=target_user_id,\
+			time_of_vote=time_of_vote, world_age_discount=world_age_discount, is_editorial_vote=is_editorial_vote)
+		if is_pht == '1' and new_net_votes >= 0:
+			# is a photo object
+			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+			# if it's a 'like' by a super-defender, handpick the object
+			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+			if is_super_defender:
+				queue_obj_into_trending(prefix='img:',obj_owner_id=target_user_id,obj_id=target_obj_id,picked_by_id=own_id)
 
 
 @celery_app1.task(name='tasks.registration_task')
@@ -1283,20 +1166,12 @@ def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_
 		video.visible_score = video.visible_score + 2
 		video.owner.userprofile.save()
 	video.save()
-	user.userprofile.save()	
-
-# @celery_app1.task(name='tasks.home_photo_tasks')
-# def home_photo_tasks(text, replier_id, time, photo_owner_id, link_id=None, photo_id=None):
-# 	if not link_id:
-# 		link_id = get_photo_link_mapping(photo_id)
-# 	if link_id:
-# 		add_home_rating_ingredients(parent_id=link_id, text=text, replier_id=replier_id, time=time, link_writer_id=photo_owner_id, photo_post=True)
+	user.userprofile.save()
 
 
 @celery_app1.task(name='tasks.publicreply_tasks')
 def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_someone_elses_post, link_writer_id):
 	Link.objects.filter(id=link_id).update(reply_count=F('reply_count')+1, latest_reply=reply_id)  #updating comment count and latest_reply for DB link
-	# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLICREPLY)
 
 
 @celery_app1.task(name='tasks.publicreply_notification_tasks')

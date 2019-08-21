@@ -31,7 +31,6 @@
 	{% if page.has_next %}
 		<link rel="next" href="?page={{ page.next_page_number }}" />
 	{% endif %}
-
 	{% include "ga_user_analytics.html" with my_var=user.id %}
 </head>
 
@@ -47,7 +46,7 @@
 		{% load count_group_invites %}
 		{% check_group_invite_count as group_invite_count %}
 		<!-- bunched HTML removes spaces between li elements -->
-		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 	{% else %}
 		<li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 	{% endif %}
@@ -61,43 +60,61 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Topics on Damadam:</h1>
 
-	<article  class="sp" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#fefefa;max-width:600px;margin-left:auto;margin-right:auto;width:97%;display:block;text-align:center">
+	<article class="sp" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#fefefa;max-width:600px;margin-left:auto;margin-right:auto;width:97%;display:block;text-align:center">
 
 	<div class="lsp" style="color:#909090;background:ivory;border-bottom:2px solid #ececec;padding:10px">Topic select karein jiski posts view karni hain:</div>
 
-	<div style="padding:10px;">
+	<div style="padding:10px">
 
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Gupshup:</h2>
+		<h2 style="font-size:30px;color:#ffc0c0;margin:0 0 10px 0">New Topics:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Independence Day 14th August 2019' url='independence-day-14th-august-2019' c1='#d4d900' c2='#01f5a1' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Eid Ul Adha 2019' url='eid-ul-adha-2019' c1='#5cf48c' c2='#a5ed31' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Never Forget Kashmir' url='never-forget-kashmir' c1='#f88379' c2='#a5ed31' %}
+
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Current Affairs:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='PTI Hakoomat vs Sabiq Hakoomat' url='pti-hakoomat-vs-sabiq-hakoomat' c1='#977aff' c2='#ffd700' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistani Siasat' url='pakistani-siasat' c1='#5cf48c' c2='#6d9eff' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan News' url='pakistan-news' c1='#01edd2' c2='#a971fc' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Just for Fun:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Braking Lattan of Englush' url='braking-lattan-of-englush' c1='#6292ff' c2='#ff5a5a' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Boys vs Girls' url='boys-vs-girls' c1='#5cf48c' c2='#ff5a5a' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakhair Raghley' url='pakhair-raghley' c1='#d4d900' c2='#01f5a1' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Bujho To Jaane' url='bujho-to-jaane' c1='#c66aff' c2='#34caf0' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Discussion:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Love Marriage vs Arranged Marriage' url='love-marriage-vs-arranged-marriage' c1='#2ed7e1' c2='#ff7d9c' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Informative:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='General Knowledge Quiz' url='general-knowledge-quiz' c1='#977aff' c2='#ff5a5a' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='English for Beginners' url='english-for-beginners' c1='#00f0a9' c2='#ff9a84' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Computers for Beginners' url='computers-for-beginners' c1='#2ed7e1' c2='#f574ff' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Stories:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Urdu Short Stories' url='urdu-short-stories' c1='#ffbe69' c2='#f574ff' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamic Stories' url='islamic-stories' c1='#5cf48c' c2='#fed940' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Emotions:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='All The Lonely People' url='all-the-lonely-people' c1='#6292ff' c2='#00eccb' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 5px 0">Poetry:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Urdu Romantic Poetry' url='urdu-romantic-poetry' c1='#fa88a3' c2='#7ba6fc' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Jaun Elia Poetry' url='jaun-elia-poetry' c1='#6292ff' c2='#f574ff' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Urdu Poetry' url='urdu-poetry' c1='#fa88a3' c2='#ffca5f' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Sad Poetry' url='sad-poetry' c1='#f4d140' c2='#3bc1f0' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamic Poetry' url='islamic-poetry' c1='#5cf48c' c2='#31e6ed' %}
+
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Status:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Attitude Status' url='attitude-status' c1='#2ed7e1' c2='#7f5fff' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Whatsapp Status' url='whatsapp-status' c1='#28d7ff' c2='#46ec5c' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamic Quotes and Status' url='islamic-quotes-and-status' c1='#f4d140' c2='#42e966' %}
 
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Cities:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Karachi Walay' url='karachi-walay' c1='#977aff' c2='#01edd2' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Lahore Lahore Ae' url='lahore-lahore-ae' c1='#c66aff' c2='#50f777' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamabad Capital City' url='islamabad-capital-city' c1='#ffbe69' c2='#b76eff' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Faisalabad ki Duniya' url='faisalabad-ki-duniya' c1='#ffbe69' c2='#6e76ff' %}
-
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Islam:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamic Quotes and Status' url='islamic-quotes-and-status' c1='#f4d140' c2='#42e966' %}
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Islamic Poetry' url='islamic-poetry' c1='#5cf48c' c2='#31e6ed' %}
-
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">News:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan News' url='pakistan-news' c1='#01edd2' c2='#a971fc' %}
-
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 5px 0">Poetry:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Jaun Elia Poetry' url='jaun-elia-poetry' c1='#6292ff' c2='#f574ff' %}
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Urdu Poetry' url='urdu-poetry' c1='#fa88a3' c2='#ffca5f' %}
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Sad Poetry' url='sad-poetry' c1='#f4d140' c2='#3bc1f0' %}
-
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Jokes:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Funny Urdu Jokes' url='funny-urdu-jokes' c1='#f574ff' c2='#c8ff28' %}
-
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Games:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='PUBG' url='pubg' c1='#2ed7e1' c2='#d4d900' %}
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ludo Star' url='ludo-star' c1='#e378ba' c2='#00f0a9' %}
-
 
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Internet Related:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Internet and Mobile Problems' url='internet-and-mobile-problems' c1='#e378ba' c2='#c66aff' %}
@@ -106,17 +123,12 @@
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Telenor Internet Packages' url='telenor-internet-packages' c1='#6292ff' c2='#3bc1f0' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ufone Internet Packages' url='ufone-internet-packages' c1='#ffbe69' c2='#ff7d9c' %}
 
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Status:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Whatsapp Status' url='whatsapp-status' c1='#28d7ff' c2='#46ec5c' %}
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Jokes:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Funny Urdu Jokes' url='funny-urdu-jokes' c1='#f574ff' c2='#c8ff28' %}
 
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Cricket:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan vs Australia WC 2019 Match 17' url='pakistan-vs-australia-wc-2019-match-17' c1='#5cf48c' c2='#6d9eff' %}
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan vs England WC 2019 Match 6' url='pakistan-vs-england-wc-2019-match-6' c1='#f4d140' c2='#01edd2' %}
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Pakistan vs Sri Lanka WC 2019 Match 11' url='pakistan-vs-sri-lanka-wc-2019-match-11' c1='#c66aff' c2='#ff60e1' %}
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='India vs Australia WC 2019 Match 14' url='india-vs-australia-wc-2019-match-14' c1='#00f0a9' c2='#ff9a84' %}
-
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Eid 2019:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Eid 2019' url='eid-2019' c1='#2ed7e1' c2='#f574ff' %}
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Games:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='PUBG' url='pubg' c1='#2ed7e1' c2='#d4d900' %}
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ludo Star' url='ludo-star' c1='#e378ba' c2='#00f0a9' %}
 
 	</div>
 	</article>

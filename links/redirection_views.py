@@ -78,9 +78,9 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 			return redirect("home")
 	elif origin == '9':
 		# originated from a publicreply
-		request.session["link_pk"] = obj_id
-		request.modified = True
-		return redirect("publicreply_view")
+		# request.session["link_pk"] = obj_id
+		# request.modified = True
+		return redirect("publicreply_view",obj_id)
 	elif origin == '10':
 		# originated from user profile (About page)
 		return redirect("user_profile", target_uname)
@@ -120,6 +120,13 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		# originated from online kon
 		url = reverse_lazy("online_kon")+"#top"
 		return redirect(url)
+	# elif origin == '24':
+	# 	# originated from direct response page
+	# 	url = reverse_lazy("retrieve_direct_responses")
+	# 	return redirect(url)
+	elif origin == '25':
+		# originated from 'upvoting' history page
+		return redirect('user_vote_history')
 	else:
 		# take the voter to best photos by default
 		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))

@@ -1,11 +1,30 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>About | Damadam.pk</title></head>
-<div class="margin">
-<h1 class="cxl">About Us:</h1>
-Damadam is a fun website for chatting, Urdu poetry, photos, entertainment and commerce. We're growing steadily and hope to become a destination of choice for all Pakistani users.<br><br>
-<h2 class="cxl">Official Fan Page:</h2>
-<a href="http://www.facebook.com/DamadamOfficial/">http://www.facebook.com/DamadamOfficial/</a>
+{% load cache %}
+{% cache 6000 about %}
+<head><title>About Damadam | Damadam</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="clb cxl lsp" style="text-align:center">About Damadam:</h1>
+<main class="mbl clb" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:97%;margin-right:auto;margin-left:auto">
+<div style="padding:10px">
+<span itemscope itemtype="https://schema.org/Organization">
+	<div class="cl sp lsp"><b>What is Damadam:</b><br><span itemprop="description">Damadam is a Pakistani social networking and content sharing website. It's a great place to make new friends, find entertainment, and discover what the Pakistani public is thinking</span></div>
+	<div class="mtl cl sp lsp"><b>Official Facebook Page:</b><br><a href="https://www.facebook.com/DamadamOfficial/" target="_blank" rel="nofollow" class="cb" style="border-bottom:1px dotted blue" itemprop="sameAs">https://www.facebook.com/DamadamOfficial/</a></div>
+	<div class="mtl cl sp lsp"><b>Official Web App:</b><br><a href="https://damadam.pk" class="cb" style="border-bottom:1px dotted blue" itemprop="sameAs">https://damadam.pk</a></div>
+	<div class="mtl cl sp lsp"><b>Official Android App:</b><br>We don't have one yet</div>
+	<div class="mtl cl sp lsp"><b>Official iOS App:</b><br>We don't have one yet</div>
+	<div class="mtl cl sp lsp"><b>Office location:</b><br><span itemprop="address">Arfa Tower, Ferozepur Road, Nishter Town, Lahore, Pakistan</span></div>
+	<div class="mtl cl sp lsp"><b>What does the word 'Damadam' mean?</b><br>It's a classic South Asian anthem of spiritual passion and acceptance. It is a symbol of the shared cultural heritage of the people of Pakistan, India and Bangladesh.<br>Here's one <a href="https://www.youtube.com/watch?v=U2MI3ufNMIE" target="_blank" rel="nofollow" class="cb" style="border-bottom:1px dotted blue">rendition</a> we like. And <a href="https://www.youtube.com/results?search_query=damadam+mast+qalandar" target="_blank" rel="nofollow" class="cb" style="border-bottom:1px dotted blue">here</a> are a bunch of others</div>
+	<div class="mtl cl sp lsp"><b>Why is Damadam not JavaScript enabled?</b><br>Sacrifices have been made because we support low-end browsers that don't run JS, and can barely render html5. As a result, Damadam loads even on basic 2G feature phones</div>
+	<div class="mtl cl sp lsp"><b>What language is Damadam in?</b><br>Damadam uses English, but also <a href="https://en.wikipedia.org/wiki/Roman_Urdu" target="_blank" rel="nofollow" class="cb" style="border-bottom:1px dotted blue">Roman Urdu</a>, which is a twin brother of <a href="https://en.wikipedia.org/wiki/Devanagari_transliteration" target="_blank" rel="nofollow" class="cb" style="border-bottom:1px dotted blue">Roman Hindi</a>. We're sorry in case you don't understand it. It makes our website relatable to over a billion people in South Asia</div>
+	<div class="mtl cl sp lsp"><b>Creator dude:</b>&nbsp;<a href="{% url 'user_profile' 'mhb11' %}#secton0" class="cb" style="border-bottom:1px dotted blue">mhb11</a></div>
+	<div class="mtl cl sp lsp"><b>Admin dude:</b>&nbsp;<a href="{% url 'user_profile' 'Damadam-Admin' %}#secton0" class="cb" style="border-bottom:1px dotted blue">Damadam-Admin</a></div>
+	<div class="mtl cl sp lsp"><b>Feedback dude:</b>&nbsp;<a href="{% url 'user_profile' 'Damadam-Feedback' %}#secton0" class="cb" style="border-bottom:1px dotted blue">Damadam-Feedback</a></div>
+	<div class="mtl cl sp lsp"><b>Tell a joke:</b><br>Are you kidding me?</div>
+	<div class="mtl cl sp lsp"><b>Get a life:</b><br>Damadam IS life</div>
+</span>
 </div>
-<br>
+</main>
+<br><br>
+{% endcache %}
 {% endblock %}

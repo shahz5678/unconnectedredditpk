@@ -24,30 +24,33 @@ from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan, comment_pk, reply_to_photo, \
 link_create_pk, welcome_pk, unfan, show_online_users,perm_redirect_to_home, star_list, cross_salat_notif, best_home_page, \
-home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, photo_location, unseen_reply,\
+home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
 unseen_comment, unseen_activity, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
 unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, reauth, reset_password, \
 fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 first_time_unseen_refresh, missing_page, home_reply,photo_page, photo_redirect,upload_public_photo, website_rules, photo_comment,\
 public_reply_view, post_public_reply,redirect_to_profile_photos,public_photo_upload_denied, hide_jawab, hide_comment, logout_rules,\
-display_link_detail
+unseen_reply, sitemap, photo_sitemap, photo_sitemap_of_sitemaps
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
-from links.views import TopView, UserProfilePhotosView, PhotoQataarHelpView, BaqiPhotosHelpView, PhotoTimeView, PhotostreamView,\
-PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView, DeviceHelpView,\
+from links.views import TopView, UserProfilePhotosView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView,\
+PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView,\
 PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, \
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
-AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, LoginWalkthroughView, RegisterLoginView, UserSettingsEditView, \
-UserProfileDetailView, UserProfileEditView, LinkCreateView, CaptionView, LinkUpdateView, LinkDeleteView, HelpView, AdMobileNumView, \
-RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView, AdDescriptionView, PhotoShareView, PhotoDetailView, \
-AdGenderChoiceView, VideoCommentView, FacesHelpView, AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressView, AdCallPrefView
+AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, UserSettingsEditView, UserProfileDetailView, UserProfileEditView,\
+LinkCreateView, CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, VerifyHelpView, UserActivityView, \
+HistoryHelpView, AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, FacesHelpView, \
+AdTitleYesNoView, AdImageYesNoView,AdImageView, AdAddressView
 from links.voting_views import user_vote_history
-from links.announcement_views import coming_soon
+# from links.announcement_views import survey, export_survey_results
 from links.group_views import show_shared_photo_metrics
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	url(r'^sitemap\.xml$', sitemap, name='sitemap'),
+	url(r'^photo_sitemap_(?P<cohort>\d+)\.xml$', photo_sitemap, name='photo_sitemap'),
+	url(r'^photo_sitemap_of_sitemaps\.xml$', photo_sitemap_of_sitemaps, name='photo_sitemap_of_sitemaps'),
 	url(r'^robots\.txt/$', TemplateView.as_view(template_name="robots.txt", content_type='text/plain')),
 	url(r'^ad_suspend/(?P<ad_id>\d+)/$', suspend, name='suspend'),
 	url(r'^test_ad/', TestAdsView.as_view(),name='test_ad'),
@@ -71,7 +74,7 @@ urlpatterns = patterns('',
 	url(r'', include('user_sessions.urls', 'user_sessions')),
 	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
-	url(r'^user/voting/(?P<vote>[\w.@+-]+)/$', auth(user_vote_history), name='user_vote_history'),
+	url(r'^user/likes/history/$', auth(user_vote_history), name='user_vote_history'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),
 	# url(r'^user/(?P<slug>.+)/$', missing_page, name='profile'), #captures any kind of slug - for errors
 	url(r'^usrp/(?P<slug>[\w.@+-]+)/(?P<key>\d+)/$', profile_pk, name='profile_pk'),
@@ -81,10 +84,6 @@ urlpatterns = patterns('',
 	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name='edit_settings'),
 	url(r'^edit_profile/$', auth(UserProfileEditView.as_view()), name='edit_profile'),
 	url(r'^unseen_fans/$', auth(unseen_fans), name='unseen_fans'),
-	# url(r'^api/ad/live/$', process_req, name='process_req'),
-	# url(r'^api/ad/suspend/$', suspend_req, name='suspend_req'),
-	# url(r'^api/ad/delete/$', delete_req, name='delete_req'),
-	# url(r'^api/ad/resume/$', resume_req, name='resume_req'),
 	url(r'^make_ad/$', make_ad, name='make_ad'),
 	url(r'^ad_finalize/$', ad_finalize, name='ad_finalize'),
 	url(r'^missing/$', missing_page, name='missing_page'),
@@ -169,7 +168,7 @@ urlpatterns = patterns('',
 	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', photo_page, name='photo'),
 	###################################################################################
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),
-	url(r'^phredi/$', auth(photo_location), name='photo_loc'),
+	# url(r'^phredi/$', auth(photo_location), name='photo_loc'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/$', photostream_pk, name='photostream_pk'),
 	# url(r'^photostream_pk/(?P<pk>\d+)/(?P<ident>\d+)/$', photostream_pk, name='photostream_pk'), #ident is an optional variable
 	url(r'^photostream/$', PhotostreamView.as_view(), name='photostream'),
@@ -200,8 +199,8 @@ urlpatterns = patterns('',
 	# url(r'^repnick/(?P<pk>\d+)/$', auth(repnick), name='repnick'),
 	# url(r'^report_nickname/$', auth(ReportNicknameView.as_view()), name='report_nickname'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
-	url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
-	url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
+	# url(r'^baqi_photos/(?P<pk>\d+)/$', BaqiPhotosHelpView.as_view(), name='baqi_photos_help'),
+	# url(r'^photo_qataar/(?P<pk>\d+)/$', PhotoQataarHelpView.as_view(), name='photo_qataar_help'),
 	url(r'^damadam_par_khushamdeed/$', auth(welcome_reply), name='welcome_reply'),
 	url(r'^khushamdeed/(?P<option>\d+)/$', auth(WelcomeMessageView.as_view()), name='welcome_message'),
 
@@ -211,15 +210,15 @@ urlpatterns = patterns('',
 	url(r'^history/$', auth(HistoryHelpView.as_view()), name='history_help'),
 	url(r'^help/$', HelpView.as_view(), name='help'),
 	# url(r'^register_help/$', RegisterHelpView.as_view(), name='register_help'),
-	url(r'^register_login/$', RegisterLoginView.as_view(), name='register_login'),
-	url(r'^login_walkthrough/$', LoginWalkthroughView.as_view(), name='login_walkthrough'),
+	url(r'^register_login/$', perm_redirect_to_home, name='register_login'),
+	url(r'^login_walkthrough/$', perm_redirect_to_home, name='login_walkthrough'),
 	url(r'^reset_pass/$', auth(reset_password), name='reset_password'),
-	url(r'^verify_help/$', VerifyHelpView.as_view(), name='verify_help'),
+	url(r'^verify_help/$', perm_redirect_to_home, name='verify_help'),
 
 	url(r'^emoticons_help/$', EmoticonsHelpView.as_view(), name='emoticons_help'),
 	url(r'^faces/$', FacesHelpView.as_view(), name='faces'),
 	url(r'^facespage/$', faces_pages, name='faces_pages'), 
-	url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
+	# url(r'^link/update/(?P<pk>\d+)/$', auth(LinkUpdateView.as_view()), name='link_update'),
 	url(r'^pic_expiry/(?P<slug>[\w.@+-]+)/$', PicExpiryView.as_view(), name='pic_expiry'),
 	url(r'^delete_pic/(?P<slug>[\w.@+-]+)/$', DeletePicView.as_view(), name='delete_pic'),
 	url(r'^pic_upload/$', PicsChatUploadView.as_view(), name='pic_upload'),
@@ -240,7 +239,7 @@ urlpatterns = patterns('',
 	#url(r'^vidvote/(?P<pk>\d+)/(?P<val>\d+)/(?P<usr>\d+)/$', auth(video_vote), name='video_vote'),
 	#url(r'^vidizz/(?P<pk>\d+)/$', VideoScoreView.as_view(), name='video_izzat'),
 	##################################################Publicreply################################################
-	url(r'^jawab/$', auth(public_reply_view), name='publicreply_view'),
+	url(r'^jawab/(?P<parent_id>\d+)/$', auth(public_reply_view), name='publicreply_view'),
 	url(r'^jawab/sent/$', auth(post_public_reply), name='publicreply_post'),
 	url(r'^unlink/(?P<pk>\d+)/$', auth(unseen_reply), name='unseen_reply'),
 	#############################################################################################################
@@ -272,7 +271,8 @@ urlpatterns = patterns('',
 	url(r'^kick_ban_user/$', auth(kick_ban_user),name='kick_ban_user'),
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
-	url(r'^coming-soon/stay-tuned/$', auth(coming_soon), name='coming_soon'),
+	# url(r'^survey/user-satisfaction/$', auth(survey), name='survey'),
+	# url(r'^survey/export/$', auth(export_survey_results), name='export_survey_results'),
 	#url(r'^maintainance_notice/stay-tuned/$', auth(maintainance_notice), name='maintainance_notice'),
 	#################################################################################################
 	############################# Permanent redirects ###############################################

@@ -28,9 +28,17 @@
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="oclone" class="btn bco cs bxs mll">?</button></form><br>
 <!-- Check Sybils -->
-<form method="POST" action="{% url 'user_sybil_history' target_id %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:teal;height:38px;border:1px solid teal">Check Sybils</button></form>&nbsp;
+<form method="GET" action="{% url 'user_sybil_history' target_id 'sybils' %}" style="display:inline"><button type="submit" class="vt btn bxl mtl" style="color:teal;height:38px;border:1px solid teal">Check Sybils</button></form>&nbsp;
 
-<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="sybil" class="btn bct cs bxs mll">?</button></form><br><br>
+<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="sybil" class="btn bct cs bxs mll">?</button></form><br>
+<!-- Check Rev Sybils -->
+<form method="GET" action="{% url 'user_sybil_history' target_id 'reverse-sybils' %}" style="display:inline"><button type="submit" class="vt btn bxl mtl" style="color:teal;height:38px;border:1px solid teal">Check Rev Sybs</button></form>&nbsp;
+
+<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="revsyb" class="btn bct cs bxs mll">?</button></form><br>
+<!-- View likes history -->
+<form method="GET" action="{% url 'vote_history_admin_view' target_id %}" style="display:inline"><button type="submit" class="vt btn bxl mtl" style="color:teal;height:38px;border:1px solid teal">Check Likes</button></form>&nbsp;
+
+<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="vhist" class="btn bct cs bxs mll">?</button></form><br><br>
 <!-- Nevermind -->
 <a href="{% url 'profile' target_uname 'fotos' %}#section0"><button class="btn bcgy mtl pg_ok_res sp" style="width:100%;height:40px;font-weight:bold;border-top-right-radius:0;border-top-left-radius:0">BACK</button></a>
 </article>

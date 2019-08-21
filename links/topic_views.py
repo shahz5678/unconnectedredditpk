@@ -1,25 +1,26 @@
 import time, uuid
 from operator import itemgetter
-from django.http import Http404
 from django.shortcuts import redirect, render
 from django.core.urlresolvers import reverse_lazy
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
+from django.http import Http404, HttpResponsePermanentRedirect
 from topic_forms import SubmitInTopicForm, CreateTopicform
 from page_controls import ITEMS_PER_PAGE
 from verified import FEMALES
 from models import Link
 from redis2 import bulk_is_fan
-from tasks import set_input_history, log_action
 from forms import PublicreplyMiniForm
+from redis3 import log_text_submissions
+from tasks import set_input_history, log_action
 from views import get_indices, get_addendum, beautiful_date, format_post_times
 from redis4 import retrieve_credentials, set_text_input_key, content_sharing_rate_limited, rate_limit_content_sharing
 from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_COLOR_DISTANCE, SECONDARY_COLOR_DISTANCE, \
 PRIMARY_COLOR_GRADIENT_MAPPING
 from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post, create_topic_feed, retrieve_topic_feed_data, \
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
-retire_abandoned_topics
-from redis3 import log_text_submissions
+retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes
+###############
 from score import SEGMENT_STARTING_USER_ID
 
 ##########################################################################################################
@@ -286,7 +287,7 @@ def topic_redirect(request, topic_url=None, obj_hash=None, *args, **kwargs):
 		return redirect("home")
 
 
-def retrieve_topic_contribution_page_data(topic_url, page_num):
+def retrieve_topic_contribution_page_data(topic_url, page_num, with_oldest=False):
 	"""
 	Retrieves all contributions to a topic which are to be displayed in a particular page
 	"""
@@ -296,8 +297,20 @@ def retrieve_topic_contribution_page_data(topic_url, page_num):
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
 	list_of_dictionaries = retrieve_topic_feed_data(obj_list, topic_url)
-	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)# move redis3's beautiful_date into views - that's where it belongs!
-	return list_of_dictionaries, page_num, max_pages
+	#######################
+	if with_oldest:
+		# must be done in this line, since the 't' information is lost subsequently
+		try:
+			oldest_post_time = list_of_dictionaries[-1]['t']
+		except:
+			oldest_post_time = 0.0
+		#######################
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)# move redis3's beautiful_date into views - that's where it belongs!
+		return list_of_dictionaries, page_num, max_pages, oldest_post_time
+	else:
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)# move redis3's beautiful_date into views - that's where it belongs!
+		return list_of_dictionaries, page_num, max_pages
+
 
 
 def topic_page(request,topic_url):
@@ -311,7 +324,8 @@ def topic_page(request,topic_url):
 				with_theme=True, with_is_subscribed=True, retriever_id=own_id)
 			if description:
 				page_num = request.GET.get('page', '1')
-				list_of_dictionaries, page_num, max_pages = retrieve_topic_contribution_page_data(topic_url, page_num)
+				list_of_dictionaries, page_num, max_pages, oldest_post_time = retrieve_topic_contribution_page_data(topic_url, page_num, \
+					with_oldest=True)
 				color_grads = COLOR_GRADIENTS[bg_theme]
 				#######################
 				replyforms = {}
@@ -321,6 +335,17 @@ def topic_page(request,topic_url):
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 				
+				#######################
+				# enrich objs with information that 'own_id' liked them or not
+				if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
+					recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+					# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+					recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+					for obj in list_of_dictionaries:
+						if obj['h'] in recent_user_voted_obj_hashes:
+							obj['v'] = True# user voted for this particular object, mark it
+				#######################
+
 				page = {'next_page_number':page_num+1,'number':page_num,'has_previous':True if page_num>1 else False,\
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 
@@ -342,7 +367,7 @@ def topic_page(request,topic_url):
 			else:
 				# topic does not exist - perhaps it was older than 7 days and has expired?
 				request.session["topic_gone"+str(own_id)] = '1'
-				return redirect("topic_gone", topic_url)
+				return HttpResponsePermanentRedirect("/topic/gone/{}/".format(topic_url))
 		else:
 			# user is not authenticated
 			topic_name, description, bg_theme = retrieve_topic_credentials(topic_url=topic_url, existence_only=False, with_desc=True,\
@@ -381,7 +406,7 @@ def topic_gone(request, topic_url):
 	if user_id:
 		is_topic_gone = request.session.pop("topic_gone"+str(user_id),'')
 		if is_topic_gone:
-			return render(request,"topics/topic_gone.html",{})
+			return render(request,"topics/topic_gone.html",status=404)
 		else:
 			# user is hitting the page without being prompted - this is a generic 404
 			raise Http404("This page cannot be populated")
@@ -457,7 +482,7 @@ def submit_topic_post(request,topic_url):
 									topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
 									submitter_username=submitter_name)
 								log_text_submissions('topic')
-								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 50 submissions per day)
+								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at !00 submissions per day)
 								set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
 								################### Segment action logging ###################
 								if own_id > SEGMENT_STARTING_USER_ID:
@@ -478,7 +503,7 @@ def submit_topic_post(request,topic_url):
 
 
 ##########################################################################################################
-########################################## Subscribe to a Topic ##########################################
+########################################### Topic Subscription ###########################################
 ##########################################################################################################
 
 
@@ -528,4 +553,23 @@ def subscribe_to_topic(request, topic_url):
 
 
 
+def unsubscribe_topics(request):
+	"""
+	Render a list of user's topics, and provide "unsubscribe" functionalitys
+	"""
+	own_id = request.user.id
+	if request.method == "POST":
+		topic_urls = request.POST.getlist("turl",[])
+		decision = request.POST.get("dec",0)
+		if decision == '1' and topic_urls:
+			# there are topics to unsubscribe from
+			untouched_topics = bulk_unsubscribe_topic(subscriber_id=own_id, topic_urls=topic_urls)
+			if untouched_topics:
+				request.session["successfully_unsubscribed"+str(own_id)] = '2'
+			else:
+				request.session["successfully_unsubscribed"+str(own_id)] = '1'
+		return redirect("user_profile",request.user.username)
+	else:
+		# render unsubscription options
+		return render(request,"topics/unsubscribe_topics.html",{'subscribed_topics':retrieve_subscribed_topics(str(own_id))})
 

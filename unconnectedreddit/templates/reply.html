@@ -14,12 +14,12 @@
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
-<h1 class="cxl clb" style="text-align:center">{% if is_parent_pinkstar %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16" style="color:deeppink">&nbsp;{% endif %}{{ parent_submitter_username|truncatechars:'13' }}'s post:</h1>
+<h1 class="cxl clb" style="text-align:center">{{ parent_submitter_username|truncatechars:'13' }}'s post:</h1>
 
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 
 <section style="display:block" itemscope itemtype="https://schema.org/SocialMediaPosting">
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar=is_parent_pinkstar alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar='' alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
 </section>
 
 </article>
@@ -38,7 +38,7 @@
         <button class="btn bm bct mbl mts mrl sp pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
     </form>
     &nbsp;
-    <form action="{% url 'publicreply_view' %}" method="POST" enctype="multipart/form-data" style="display:inline">{% csrf_token %}<input type="hidden" name="from_rfrsh" value="1"><input type="hidden" name="sid" value="{{ user_id }}"><button class="rf rf-bg" name="lid" value="{{ parent.id }}" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></form>
+    <form action="{% url 'publicreply_view' parent.id %}" method="GET" style="display:inline"><button class="rf rf-bg" name="from_rfrsh" value="1" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></form>
 
 
     <div class="mts">
@@ -69,7 +69,7 @@
     {% endif %}
 
         {% if reply.abuse %}
-            <span class="cs sp cgy"><b class="cgy"><a href="{% url 'profile' reply.submitted_by__username 'fotos' %}" class="clb"><bdi>{{ reply.submitted_by__username }}</bdi></a></b>&nbsp;ka jawab hide kar dia gya</span>
+            <span class="cs sp cgy"><b class="cgy"><a href="{% url 'user_profile' reply.submitted_by__username %}" class="clb"><bdi>{{ reply.submitted_by__username }}</bdi></a></b>&nbsp;ka jawab hide kar dia gya</span>
         {% else %}
             {% if unseen %}
                 {% if not reply_time %}
@@ -78,7 +78,7 @@
                     <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
                 {% endif %}
             {% endif %}
-           <a href="{% url 'profile' reply.submitted_by__username 'fotos' %}" class="clb"><bdi>{% if reply.submitted_by__username in ensured %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="11" width="11">&nbsp;{% endif %}<b>{{ reply.submitted_by__username }}</b></bdi></a>
+           <a href="{% url 'user_profile' reply.submitted_by__username %}" class="clb"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>
                :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>{% if user_id == parent_submitter_id %}<form action="{% url 'hide_jawab' publicreply_id=reply.id link_id=parent.id %}" style="display:inline" method="POST" class="mrl">{% csrf_token %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>{% endif %}<span class="mrs">{% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}</span>{% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
         {% endif %}
         </div>

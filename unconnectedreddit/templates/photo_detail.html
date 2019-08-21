@@ -20,17 +20,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting guys and girls to chat with. Join the fun now!">
     <meta name="author" content="mhb">
-    <title>Photo uploaded by {{ photo.owner }} on {{ photo.upload_time }} | Damadam</title>
-    <meta property="og:site_name" content="Damadam.pk">
-	<meta property="og:title" content="Photo by {{ photo.owner }}">
+    <title>"{{ photo.caption }}" image uploaded on {{ photo.upload_time }} | Damadam</title>
+    <meta property="og:site_name" content="Damadam">
+	<meta property="og:title" content="Image title: '{{ photo.caption|truncatechars:53 }}'">
 	<meta property="og:type" content="website">
-	<meta property="og:description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting guys and girls to chat with. Join the fun now!">
+	<meta property="og:description" content="Uploaded by {{ photo.owner }} on Damadam, the desi social sharing site, with the latest images and memes from across Pakistan. Join now!">
 	<meta property="og:url" content="https://damadam.pk/photo_detail/{{ photo.id }}/">
 	<meta property="og:image" content="https:{{ photo.image_file|s3 }}">
 	<meta property="og:image:width" content="{{ photo_width }}">
 	<meta property="og:image:height" content="{{ photo_height }}">
 	<meta property="fb:app_id" content="1758220174446684" />
     {% google_analytics %}
+
+    <link rel="canonical" href="{% url 'photo_detail' photo.id %}" />
 
 </head>
 <body style="background:#f0f3f4">
@@ -46,16 +48,24 @@
     {% check_invite_count as invite_count %}
     {% load count_group_invites %}
     {% check_group_invite_count as group_invite_count %}
-    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'profile' user.username 'fotos' %}#section0"><bdi>Profile</bdi></a></li>
+    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 {% else %}
-    <li itemprop="name"><a href="{% url 'unauth_home_new' %}" itemprop="url">Home</a></li><li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}">Fotos</a></li><li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Existing Account</a></li>
+    <li itemprop="name"><a href="{% url 'unauth_home_new' %}" itemprop="url">Home</a></li><li itemprop="name"><a itemprop="url" href="{% url 'photo' 'best-list' %}">Fotos</a></li><li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Existing Account</a></li>
 {% endif %}
 </ul>
 
 {% load emoticons_tags %}
 {% load humanize %}
 <br>
-<main style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;width:98%;max-width:600px;margin-right:auto;margin-left:auto;padding-top:5px">
+
+	{% if not from_cull_queue and show_copy_prompt %}
+		<div class="mbl" style="margin-left:auto;margin-right:auto;max-width:600px;background:white;border-radius:12px;border:3px solid #ececec;">
+			<div style="text-align:center;border-bottom:2px solid whitesmoke;background:#fefefa;padding:0 5px 10px 5px" class="cl clb lsp mts">Is foto ko Whatsapp ya Facebook pe share karne ke liye ye link copy karein:</div>
+			<div class="lsp cxl cp" style="padding:10px;text-align:center">{{ regular_url }}</div>
+		</div>
+	{% endif %}
+
+<main style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;width:98%;max-width:600px;margin-right:auto;margin-left:auto">
 <a name="section0"></a>
 
 {% if not absent %}
@@ -68,11 +78,11 @@
 		<img class="pht" src="{{ photo.image_file|s3 }}" style="border-radius:12px">
 		
 		<br>
-		<a href="{% url 'profile' photo.owner.username 'fotos' %}">{% if av_url %}<img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22" style="border-radius:50%">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic" width="22" height="22" style="border-radius:50%">{% endif %}&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this {{ photo.upload_time|naturaltime }}</span><br>
+		<a href="{% url 'user_profile' photo.owner.username %}"><img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22" style="border-radius:50%">&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this {{ photo.upload_time|naturaltime }}</span><br>
 		{% if latest_photocomments %}
 		<br><span class="csw co"><b>Latest Tabsrey:</b></span><br><br>
 		{% for photocomment in latest_photocomments %}
-		<a href="{% url 'profile' photocomment.submitted_by 'fotos' %}"><span class="cb cl">{{ photocomment.submitted_by }}</span></a><span class="clb cl">:&nbsp;{{ photocomment.text }}&nbsp;&nbsp;<span class="cs cgy">{{ photocomment.submitted_on|naturaltime }}</span></span>
+		<a href="{% url 'user_profile' photocomment.submitted_by %}"><span class="cb cl">{{ photocomment.submitted_by }}</span></a><span class="clb cl">:&nbsp;{{ photocomment.text }}&nbsp;&nbsp;<span class="cs cgy">{{ photocomment.submitted_on|naturaltime }}</span></span>
 		<hr size=1 COLOR="ORANGE">
 		{% endfor %}
 		{% else %}
@@ -92,20 +102,33 @@
 		<a href="{% url 'cull_content_loc' photo.id 'img' %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
 	{% else %}
 
-	<article itemscope itemtype="https://schema.org/SocialMediaPosting">
-		{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin=5 vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=photo.owner.username static_url=STATIC_URL show_uname_credentials=False show_report=False %}
-		
-		<div itemprop="author" itemscope itemtype="https://schema.org/Person" style="text-align:center">
-		<div class="cs cgy sp mbl">posted by&nbsp;<a href="{% url 'profile' photo.owner.username 'fotos' %}" itemprop="url" class="cgy">{% if av_url %}<img itemprop="image" src="{{ av_url|s3:"thumb" }}" style="border-radius:50%" class="mts" alt="no pic" width="22" height="22">{% else %}<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" style="border-radius:50%" alt="no pic" width="22" height="22">{% endif %}&nbsp;<span style="border-bottom:1px dotted gray" itemprop="alternateName">{{ photo.owner.username }}</span></a></div>
-		</div>
+	<article style="display:block">
+
+		<section itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" style="display:block">
+			{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin='5' vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=oun av_url=av_url|s3:'thumb' static_url=STATIC_URL is_pinkstar=is_pinkstar exclude_detail_url='1' %}
+		</section>
 
 		<section class="mbs">
-		  <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
-			  {% big_external_share_button owner_username=photo.owner.username is_mobile=is_mob photo_id=photo.id origin='5' static_url=STATIC_URL %}
-			  {% big_photo_comment_button photo_id=photo.id origin='5' comm_count=photo.comment_count static_url=STATIC_URL %}
-			  {% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
-		  </div>
+			<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+				{% if is_js_env %}{% big_external_share_button owner_username=oun on_opera=on_opera photo_id=photo.id origin='5' static_url=STATIC_URL %}{% endif %}
+				{% big_photo_comment_button photo_id=photo.id origin='5' comm_count=photo.comment_count static_url=STATIC_URL %}
+				{% if photo.owner_id == user.id %}{% big_points_button obj_id=photo.id owner_id=photo.owner_id is_pht=1 origin='5' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}{% endif %}
+			</div>
 		</section>
+
+		<section style="text-align:center;border-top:2px solid #f5f5f5;padding:10px 0;background:#fefefa">
+			<div class="cs sp cgy">Similar images by {{ oun }}:</div>
+			<div class="fx fxjscn fxaicn" style="flex-wrap:wrap">
+			{% for pht in other_photos %}
+				<span itemscope itemtype="https://schema.org/ViewAction">
+				<a class="mrs mls" href="{% url 'profile_pk' oun pht.id %}" itemprop="target">
+				<img src="{{ pht.image_file|s3:'thumb' }}" class="mts cxs sp" style="overflow:hidden;border:1px solid #eaf2f8;border-radius:4px" alt="{{ pht.caption }}">
+				</a>
+				</span>
+			{% endfor %}
+			</div>
+		</section>
+
 	</article>
 
 	{% endif %}

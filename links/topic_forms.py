@@ -138,7 +138,7 @@ class SubmitInTopicForm(forms.Form):
 		############################################################################
 		self.fields['description'].widget.attrs['style'] = 'margin:0;border-radius:0;width:100%;height:150px;border:none;background-color:#ecfffb;overflow: auto;padding:10px;box-sizing: border-box'
 		self.fields['description'].widget.attrs['class'] = 'cxl sp lsp'
-		self.fields['description'].widget.attrs['placeholder'] = 'Is topic mein submit karein ...'
+		self.fields['description'].widget.attrs['placeholder'] = 'Post likhein ...'
 		self.fields['description'].widget.attrs['aria-label'] = 'Add new submission ...'
 
 
@@ -165,9 +165,9 @@ class SubmitInTopicForm(forms.Form):
 					raise forms.ValidationError('Milti julti cheezain nahi likhein')
 				else:
 					if len_desc < 15:
-						raise forms.ValidationError('Itni choti baat nahi submit kar sakte')
+						raise forms.ValidationError('Itni choti post nahi submit kar sakte')
 					elif len_desc > MAX_HOME_SUBMISSION_SIZE:
-						raise forms.ValidationError('Content {0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_desc))
+						raise forms.ValidationError('Post mein {0} chars se ziyada na likhein. Ap ne {1} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,len_desc))
 					data['alignment'] = '2' if is_urdu(description) >= RIGHT_ALIGNMENT_THRESHOLD_RATIO else '1'
 					data['description'] = description
 					return data

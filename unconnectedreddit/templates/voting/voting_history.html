@@ -1,102 +1,68 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Voting history | Damadam.pk</title></head>
+<head><title>{{ slug }}'s likes | Damadam</title></head>
 <style>body{background: #f0f3f4}</style>
 
-{% include 'user_profile_navbar.html' with static_url=STATIC_URL section='voting' uname=slug is_own_profile=own_profile %}
+{% include "inbox_navbar.html" with static_url=STATIC_URL section='likes' username=slug %}
 
-<h1 class="cxl clb" style="text-align:center">Your voting history:</h1>
+{% load s3 %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_text_object %}
+{% load get_photo_object %}
+{% load get_big_fan_button %}
+{% load get_big_send_button %}
+{% load get_big_group_button %}
+{% load get_big_home_reply_button %}
+{% load get_transparent_buttons_js %}
+{% load get_big_photo_comment_button %}
+{% load get_big_external_share_button %}
+<h1 class="cxl clb lsp" style="text-align:center">Liked and Saved:</h1>
 
+	{% for datum in data %}
 
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-bottom:10px;max-width:600px;width:97%;margin-right:auto;margin-left:auto;text-align:center">
+		{% if datum.tp == 'tx' %}
 
-{% if history_type == 'upvote' %}
-	
-	<div class="fx fxjscn fxaicn">
-		<div class="sp" style="border-radius:0;width:50%;border:none;background:#d2f9ee;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid #1edea8"><img src="{{ STATIC_URL }}img/up.svg" height="20" width="20" style="vertical-align:middle"></div>
-		<a href="{% url 'user_vote_history' 'downvote' %}" class="sp" style="width:50%"><button class="wt" style="border-radius:0;border:none;color:coral;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"></button></a>
-	</div>
-
-{% else %}
-
-	<div class="fx fxjscn fxaicn">
-		<a href="{% url 'user_vote_history' 'upvote' %}" class="sp" style="width:50%;"><button class="wt" style="border-radius:0;border:none;color:#1edea8;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc"><img src="{{ STATIC_URL }}img/up.svg" height="20" width="20" style="vertical-align:middle"></button></a>
-		<div class="sp cm" style="background:#ffece6;border-radius:0;width:50%;border:none;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid coral"><img src="{{ STATIC_URL }}img/down.svg" width="20" height="20" style="vertical-align:middle"></div>
-	</div>
-
-{% endif %}
-
-	{% for target_user_id, vote_value, target_obj_type, target_obj_id, vote_time in data %}
+		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
+			{% text_object obid=datum.obid ooid=datum.ooid text=datum.d|emoticons|linebreaksbr raw_text=datum.d origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv home_hash='' static_url=STATIC_URL is_pinkstar='' alignment=datum.c topic=datum.tn topic_url=datum.url show_topic='1' c1=datum.c1 c2=datum.c2 %}
 		
-		{% if forloop.counter != 1 %}<hr size=1 color="#dcdcdc" style="margin:0">{% endif %}
-		
-		{% if vote_value == '1' %}
+			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='link' origin='25' target_username=datum.ou home_hash='' %}
+				{% big_fan_button own_user_id=own_id target_user_id=datum.ooid object_id=datum.obid origin='25' home_hash='' fan_list=fanned static_url=STATIC_URL %}
+				{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL always_show=True %}
+			</div>
 
-			{% if target_obj_type == 'tx' %}
-			
-				<form method="POST" action="{% url 'publicreply_view' %}">
-					{% csrf_token %}
-					<button class="wt" name="lid" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ target_obj_id }}">
-						<div style="text-align:center;padding:18px 0;" class="lsp sp">
-							<span class="clb cs">{{ vote_time }}:</span>	
-							<span class="cm ct" style="border-bottom:1px dotted teal">text thumbs up</span>
-						</div>
-					</button>
-				</form>
-
-			{% else %}
-
-				<a href="{% url 'photo_detail' target_obj_id %}">
-					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
-						<div style="text-align:center;padding:18px 0;" class="lsp sp">
-							<span class="clb cs">{{ vote_time }}:</span>	
-							<span class="cm" style="color:#e68e00;border-bottom:1px dotted orange">foto thumbs up</span>
-						</div>
-					</button>
-				</a>
-
-			{% endif %}
+		</article>
 
 		{% else %}
 
-			{% if target_obj_type == 'tx' %}
-			
-				<form method="POST" action="{% url 'publicreply_view' %}">
-					{% csrf_token %}
-					<button name="lid" class="wt" style="width:100%;margin:0 auto;border:none;padding:0" value="{{ target_obj_id }}">
-						<div style="text-align:center;padding:18px 0;" class="lsp sp">
-							<span class="clb cs">{{ vote_time }}:</span>
-							<span class="ct" style="border-bottom:1px dotted teal">text thumbs down</span>
-						</div>
-					</button>
-				</form>
+		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
+			{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs='' home_hash='' static_url=STATIC_URL is_pinkstar='' show_trending=datum.tr %}
 
-			{% else %}
+			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
+				{% big_fan_button own_user_id=own_id target_user_id=datum.ooid object_id=datum.obid origin='25' home_hash='' fan_list=fanned static_url=STATIC_URL %}
+				{% big_photo_comment_button photo_id=datum.obid origin='25' comm_count=datum.cc static_url=STATIC_URL star_id=datum.ooid %}
+				{% big_send_button photo_owner_username=datum.ou photo_id=datum.obid photo_owner_id=datum.ooid photo_caption=datum.cp origin='25' home_hash='' img_url=datum.i static_url=STATIC_URL %}
+				{% big_external_share_button owner_username=datum.ou on_opera=on_opera photo_id=datum.obid origin='25' static_url=STATIC_URL %}	
+			</div>
 
-				<a href="{% url 'photo_detail' target_obj_id %}">
-					<button class="wt" style="width:100%;margin:0 auto;border:none;padding:0">
-						<div style="text-align:center;padding:18px 0;" class="lsp sp">
-							<span class="clb cs">{{ vote_time }}:</span>
-							<span class="cm" style="border-bottom:1px dotted orange;color:#e68e00">foto thumbs down</span>
-						</div>
-					</button>
-				</a>
-
-			{% endif %}
+		</article>
 
 		{% endif %}
+
+		{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+		
 	{% empty %}
 
-		<div class="cxl lsp clb mts" style="text-align:center">Sorry! Ye khali hai ...</div>
-		<hr size=1 COLOR="#f4f4f4">
-		{% if history_type == 'upvote' %}
-		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe thumbs up nahi dia</div>
-		{% else %}
-		<div class="cgy cl sp lsp mtl" style="text-align:center">Ap ne kisi text ya foto post pe thumbs down nahi dia</div>
-		{% endif %}
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:97%;margin-right:auto;margin-left:auto;text-align:center;background:snow">
+
+		<div class="cxl lsp clb mts mbs" style="text-align:center">Sorry! Ye khali hai ...</div>
+		<hr size=1 COLOR="#f4f4f4" style="margin:0">
+		<div class="clb cl sp lsp" style="text-align:center;background:white;padding:10px">Yahan woh posts save ho jati hain jinko aap ne 'like' kia ho<br><a href="{% url 'home' %}"><button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:28px">Home</button></a></div>
+	</div>
 	{% endfor %}
 
-</div>
 
 <div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
 	{% if page.has_previous %}
@@ -110,6 +76,5 @@
     </div>
     {% endif %}
 </div>
-
 
 {% endblock %}

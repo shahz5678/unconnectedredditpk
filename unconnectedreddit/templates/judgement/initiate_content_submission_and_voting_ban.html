@@ -29,13 +29,13 @@
 	{% if obj_type == 'tx' %}
 		<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">
 		<div style="text-align:left" class="bw">{% emoticons %}"{{ cap }}"{% endemoticons %}</div>
-		<div class="cs mts" style="font-weight:bold">submitted by <a href="{% url 'profile' oun 'fotos' %}" class="ct">{{ oun|truncatechars:'13' }}<span class='cxs cgy'> ({{offender_score}})</a></span></div>
+		<div class="cs mts" style="font-weight:bold">submitted by <a href="{% url 'user_profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}<span class='cxs cgy'> ({{offender_score}})</a></span></div>
 		</div>
 	{% else %}
 		<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">
 		<div class="cl sp lsp">'{% emoticons %}{{ cap|truncatechars:'20' }}{% endemoticons %}'</div>
 		<img src="{{ purl }}" style="border-radius:5px" class="mt"><br>
-		<div class="cs mts" style="font-weight:bold">uploaded by <a href="{% url 'profile' oun 'fotos' %}" class="ct">{{ oun|truncatechars:'13' }}<span class='cxs cgy'> ({{offender_score}})</a></span></div>
+		<div class="cs mts" style="font-weight:bold">uploaded by <a href="{% url 'user_profile' oun %}" class="ct">{{ oun|truncatechars:'13' }}<span class='cxs cgy'> ({{offender_score}})</a></span></div>
 		</div>
 	{% endif %}
 
@@ -44,7 +44,7 @@
 	<ul class="clb" style="display:inline-block;padding: 0;font-weight:bold">
 		<li style="text-align:left" class="mbs"><div class="mt sp">Ban home and foto submission</div></li>
 		<li style="text-align:left" class="mbs"><div class="mt sp">Censor home history and fotos</div></li>
-		<li style="text-align:left" class="mbs"><div class="mt sp">Ban home and foto voting</div></li>
+		<li style="text-align:left" class="mbs"><div class="mt sp">Ban home and foto liking</div></li>
 	</ul>
 
 	<div class="cl sp">Kya ye tamam qadam utha dein?</div>

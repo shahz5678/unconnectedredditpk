@@ -20,12 +20,8 @@ Agli namaz <b>{{ time }}</b> pe hai. Isey bhi parhna takey apki <b class="cg">la
 	{% for object in object_list %}
 	<span class="clb">
 	<span class="numbers">{{ forloop.counter }}.</span>
-	<a href="{% url 'profile' object.salatee.username 'fotos' %}#section0">
-		{% if object.salatee.userprofile.avatar %}
-			<img src="{{ object.salatee.userprofile.avatar|s3:'thumb' }}" alt="no pic"></img>
-		{% else %}
-			<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-		{% endif %}
+	<a href="{% url 'user_profile' object.salatee.username %}#section0">
+	<img src="{{ object.salatee.userprofile.avatar|s3:'thumb' }}" alt="no pic">
 	{{ object.salatee }}</a>
 	{% if object.salatee.username in girls %}<b class="pinkstar">*</b>{% endif %}
 	ne <b class="cg">

@@ -1,20 +1,14 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>Verified female users | Damadam.pk</title></head>
+<head><title>Verified female users | Damadam</title></head>
     <div class="margin">
     <b>Verified females:</b><br>
     <span style="font-size:85%;">Nickname ke agey <b style="color:deeppink;">*</b> ho, toh iska matlab hai woh <a href="{% url 'verify_help' %}#section0"><u><b>verified female</b></u></a> hai</span><br><br>
     {% for user in object_list %}
-    <a href="{% url 'profile' user.username 'fotos' %}#section0">
-    	{% if user.userprofile.avatar %}
-    		<img src="{{ user.userprofile.avatar|s3:"thumb" }}" alt="no pic"></img>
-    	{% else %}
-    		<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" alt="no pic"></img>
-    	{% endif %}
-        
+    <a href="{% url 'user_profile' user.username %}#section0">
+    	<img src="{{ user.userprofile.avatar|s3:"thumb" }}" alt="no pic">
         {{ user }}</a><b style="color:deeppink;font-size:125%;">*</b>
-
     <br>
     
     {% endfor %}

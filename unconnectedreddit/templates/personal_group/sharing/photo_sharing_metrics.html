@@ -22,10 +22,10 @@
 		Pichley 1 week mein koi photo share nahi hui
 		<hr size=1 COLOR="#f2f2f2">
 		<div class="cgy cs sp">{% if own_profile %}Apkey khud kiye huay shares is list mein shamil nahi{% else %}Ye list kuch waqfay baad update hogi{% endif %}</div>
-		<a href="{% url 'profile' username 'fotos' %}"><button class="btn bcb bm mts mbl" style="height:26px">wapis</button></a>
+		<a href="{% url 'user_profile' username %}"><button class="btn bcb bm mts mbl" style="height:26px">wapis</button></a>
 	</div>
 	{% else %}
-	<a href="{% url 'profile' username 'fotos' %}">
+	<a href="{% url 'user_profile' username %}">
 		<span class="cm sp" style="border-bottom:1px dotted gray;color:gray">wapis</span>
 	</a><br>
 	

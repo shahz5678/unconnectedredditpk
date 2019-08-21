@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+
+<head><title>Retention metrics | Damadam</title></head>
+<style>body{background: #E9EBEE}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Retention summary for variation '{{variation}}':</h1>
+
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:950px;width:92%;margin:0 auto;overflow: hidden;text-align:left">
+
+
+{% for cohort_id, cohort_time_string, cohort_name, retention in retention_data %}
+<div style="padding:10px 0;border-bottom:1px dashed lightgray">
+	<div class="fx fxjsfs fxaicn">		
+		<div class="mrs">
+			<div class="cxl lsp" style="width:120px">{{ cohort_name }}</div>
+			<div class="mt cgy cxs sp lsp" style="max-width:80px"><b>Start time:</b> {{ cohort_time_string }}</div>
+		</div>
+		<div style="text-align:center;">
+			<div class="fx fxjsfs fxaicn">	
+			{% for data in retention %}
+				{% if data.1 %}<!-- i.e. at least 1 user was logged -->
+					<div class="cs">
+					{% if forloop.last %}
+						<div class="sp" style="color:darkgray;font-weight:bold">{{ data.0 }}</div>
+						<div class="sp mts mbs" style="font-weight:bold;color:darkgray;">{{ data.2 }}%</div>
+						<div class="sp" style="color:darkgray;">{{ data.1 }} users</div>
+					{% else %}
+						<div class="sp" style="font-weight:bold">{{ data.0 }}</div>
+						<div class="sp mts mbs" style="font-weight:bold">{{ data.2 }}%</div>
+						<div class="sp">{{ data.1 }} users</div>
+					{% endif %}
+					</div>
+				{% endif %}
+			{% endfor %}
+			</div>
+		</div>
+	</div>
+</div>
+{% endfor %}
+<div class="cs sp lsp mtl cgy" style="text-align:center"><b>Note:</b> This page updates after one hour</div>
+
+
+</div>
+<br><br>
+
+{% endblock %}

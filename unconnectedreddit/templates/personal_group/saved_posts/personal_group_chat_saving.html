@@ -32,7 +32,7 @@
     <div class="card {{ bgclass }}" style="margin-top:1.3em;{{ text_align }}">
 
         <div class="mbs {{ corner_class }}">
-          <a href="{% url 'profile' usr 'fotos' %}">
+          <a href="{% url 'user_profile' usr %}">
           {% if their_nick %}
             <img src="{{ aurl|s3:'thumb' }}" alt="{{ usr|slice:":1" }}" width="22" height="22" class="av_btn {{ bclass }}">
             <span style="color:#306654;">{{ usr }}</span>
@@ -63,7 +63,7 @@
               
               <div class="mrl mll mtl mbl card {{ their_bgclass }}" style="{{ their_text_align }}">  
                 <div class="mbs cs {{ their_corner_class }}">
-                    <a href="{% url 'profile' t_usr 'fotos' %}">
+                    <a href="{% url 'user_profile' t_usr %}">
                     
                     {% if own_tgt_nick %}
                       <span style="color:#01579B;">{{ t_usr|truncatechars:15 }}</span>

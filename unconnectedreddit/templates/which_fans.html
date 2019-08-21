@@ -1,17 +1,13 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>Photo reached {{ fan_num }} followers | Damadam.pk</title></head>
+<head><title>Photo reached {{ fan_num }} followers | Damadam</title></head>
 <div class="margin clb">
 Ye photo <img src="{{ photo_url|s3:'thumb' }}" style="border:1px solid #ff9933;width:auto;"> {{ fan_num }} fans ke <b>matke</b> mein pohonch saki:
 <br><br>
 {% for fan in fan_list %}
-	{% if fan.userprofile.avatar %}	
 	<img src="{{ fan.userprofile.avatar|s3:'thumb' }}" width="22" height="22" alt="no pic">
-	{% else %}
-	<img src="{{ STATIC_URL }}img/default-avatar-min.jpg" width="22" height="22" alt="no pic">
-	{% endif %}
-	<a href="{% url 'profile' fan.username 'fotos' %}">{{ fan.username }}</a><span class="cg cs">&nbsp;({{ fan.userprofile.score }})</span><br>
+	<a href="{% url 'user_profile' fan.username %}">{{ fan.username }}</a><br>
 {% endfor %}
 <br>
 <a href="{% url 'unseen_activity' nickname %}"><button class="btn bco bm mtl mbs">wapis</button></a>

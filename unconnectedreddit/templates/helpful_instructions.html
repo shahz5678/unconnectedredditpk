@@ -13,7 +13,7 @@
 			<div class="cxl mbs">1 on 1 ka khufiya invite bhej dia gya!</div>
 			<hr size=1 COLOR="#ffeb3b">
 			<div class="lsp cl mbs">
-				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ko apke invite mein <a href="{% url 'profile' oun 'fotos' %}"><b class="cb">{{ oun }}</b></a> ke bajai sirf <a href="{% url 'profile' oun 'fotos' %}"><b class="cb">{{ oun|truncap }}</b></a> nazr aye ga
+				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ko apke invite mein <a href="{% url 'user_profile' oun %}"><b class="cb">{{ oun }}</b></a> ke bajai sirf <a href="{% url 'user_profile' oun %}"><b class="cb">{{ oun|truncap }}</b></a> nazr aye ga
 			</div>
 
 		{% elif personal_group_invite_sent %}

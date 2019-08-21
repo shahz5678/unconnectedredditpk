@@ -2,7 +2,7 @@ import csv
 from django.http import Http404
 from django.shortcuts import render
 from django.contrib.auth.models import User
-from redis8 import report_section_wise_retention, retrieve_all_logged_actions#, retention_clean_up
+from redis8 import report_section_wise_retention, retrieve_all_logged_actions, retention_clean_up
 from redis4 import retrieve_retention_ids, retrieve_retention_data
 from retention_experiments import EXPERIMENTS_CURRENTLY_BEING_RUN
 from redis3 import exact_date
@@ -38,23 +38,24 @@ def export_logged_users_and_times(request,*args,**kwargs):
 
 #################################################
 
-def display_retention(request,section):
+def display_retention(request,variation):
 	"""
 	Displays retention of any ongoing experiment
 	"""
-	raise Http404("This doesn't exist")
-	# is_defender, is_super_defender = in_defenders(request.user.id, return_super_status=True)
-	# if is_super_defender and section in EXPERIMENTS_CURRENTLY_BEING_RUN:
-	# 	return render(request,"retention/section_retention.html",{'section':section,'retention_data':report_section_wise_retention(section)})
-	# else:
-	# 	# such a section does not exist
-	# 	raise Http404("This doesn't exist")
+	# raise Http404("This doesn't exist")
+	is_defender, is_super_defender = in_defenders(request.user.id, return_super_status=True)
+	if is_super_defender and variation in EXPERIMENTS_CURRENTLY_BEING_RUN:
+		return render(request,"retention/section_retention.html",{'variation':variation,'retention_data':report_section_wise_retention(variation)})
+	else:
+		# such a variation does not exist
+		raise Http404("This doesn't exist")
 	
+# only usable in localhost
 def reset_retention_counters(request):
 	"""
+	Deletes all data related to an experiment
 	"""
-	raise Http404("This doesn't exist")
-	# retention_clean_up()
+	retention_clean_up('var-b2')
 
 
 def export_logged_actions(request):

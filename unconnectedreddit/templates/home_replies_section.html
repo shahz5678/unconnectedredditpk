@@ -4,10 +4,10 @@
 	{% load get_group_button %}
 	{% load get_datetime %}
 	<div class="clb mts mbs ow" style="overflow:hidden;padding:0 5px">
-	{% for reply in replies reversed %}
-		<hr size=1 COLOR="#f4f4f4">
+	{% for reply in replies %}
+		{% if forloop.counter != 1 %}<hr size=1 COLOR="#f4f4f4">{% endif %}
 		<div itemprop="comment" itemscope itemtype="http://schema.org/Comment">
-			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'profile' reply.replier_username 'fotos' %}" class="clb">{% if reply.is_pinkstar == '1' %}<img src="{{ static_url }}img/pstar.svg" alt="*" width="11" height="11">&nbsp;{% endif %}<b itemprop="alternateName">{{ reply.replier_username }}</b></a></span>:&nbsp;<span class="lsp mrs sp" itemprop="text"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><time class="cgy cxs sp" itemprop="datePublished" datetime="{{ reply.epoch_time|datetime }}">{{ reply.epoch_time|human_time }}</time> &nbsp;{% block_button reply.replier_id reply.replier_username self_user_id reply.link_id '3' static_url 'tx' %}&nbsp;{% if reply.replier_id|slugify != self_user_id|slugify %}{% group_button own_id=self_user_id target_id=reply.replier_id parent_object_id=reply.link_id object_type='link' origin='3' target_username=reply.replier_username home_hash=home_hash %}{% endif %}
+			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.replier_username %}" class="clb"><b itemprop="alternateName">{{ reply.replier_username }}</b></a></span>:&nbsp;<span class="lsp mrs sp" itemprop="text"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><time class="cgy cxs sp" itemprop="datePublished" datetime="{{ reply.epoch_time|datetime }}">{{ reply.epoch_time|human_time }}</time> &nbsp;{% block_button reply.replier_id reply.replier_username self_user_id reply.link_id '3' static_url 'tx' %}&nbsp;{% if reply.replier_id|slugify != self_user_id|slugify %}{% group_button own_id=self_user_id target_id=reply.replier_id parent_object_id=reply.link_id object_type='link' origin='3' target_username=reply.replier_username home_hash=home_hash %}{% endif %}
 		</div>
 	{% endfor %}
 	</div>

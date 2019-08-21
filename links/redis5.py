@@ -1848,6 +1848,13 @@ def retrieve_user_group_list_contents(user_id, start_idx, end_idx):
 		return payload, num_of_grps
 
 
+def get_num_grps(user_id):
+	"""
+	Retreives number of personal groups (1on1s) a given user is a part of
+	"""
+	return redis.Redis(connection_pool=POOL).zcard("pgfgm:"+str(user_id))
+
+
 def get_user_friend_list(user_id):
 	"""
 	Returns list of friend names and avatar urls for any user
@@ -2466,7 +2473,8 @@ def create_personal_group(own_id, target_id, own_anon='0', target_anon='0',own_r
 		pipeline1.mset({"pgp:"+group_id:own_id+":"+target_id,"pgrp:"+own_id+":"+target_id:group_id,"pgrp:"+target_id+":"+own_id:group_id})
 		pipeline1.zadd("all_pgs",group_id,time.time())
 		##################################### Zuck ##############################################
-		add_group_to_log(group_id)
+		if '1427684' in (own_id,target_id):
+			add_group_to_log(group_id)
 		#########################################################################################
 		###### No need to touch these sets, they're done in mark_personal_group_attendance ######
 		# pipeline1.zadd("pgfgm:"+own_id,group_id+":"+target_id,time_now)

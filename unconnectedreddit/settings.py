@@ -332,7 +332,7 @@ if ON_MAC == '1':
 elif ON_AZURE == '1':
 	BROKER_URL = 'redis+socket:///var/run/redis.sock'
 else:
-	BROKER_URL = 'redis+socket:///var/run/redis/redis.sock'
+	BROKER_URL = 'redis+socket:///var/run/redis.sock'
 
 BROKER_TRANSPORT = 'redis'
 
@@ -347,7 +347,7 @@ if ON_MAC == '1':
 elif ON_AZURE == '1':
 	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
 else:
-	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis/redis.sock'
+	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
 
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
@@ -361,7 +361,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
 	'tasks.rank_photos': {
 		'task': 'tasks.rank_photos',
-		'schedule': timedelta(seconds=120*60), #execute every 12 mins, ranks photos from the feed
+		'schedule': timedelta(seconds=6*60*60), #execute every 6 hours, used to generate sybil stats
 	},
 	'tasks.trim_whose_online': {
 		'task': 'tasks.trim_whose_online',
@@ -385,11 +385,11 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.calc_gibberish_punishment': {
 		'task': 'tasks.calc_gibberish_punishment',
-		'schedule': timedelta(seconds=45*60), # execute every 45 mins, calculates punishment meted out to gibberish writers
+		'schedule': timedelta(seconds=60*60*7), # execute every 7 hours, runs archive_closed_objs_and_votes() in redis7
 	},
 	'tasks.sanitize_unused_ecomm_photos': {
 		'task': 'tasks.sanitize_unused_ecomm_photos',
-		'schedule': timedelta(seconds=6*60*60), # execute every 6 hours, re-calculate Bayesian probabilities inherent in user voting
+		'schedule': timedelta(seconds=6*60*60), # execute every 6 hours, re-calculate Bayesian probabilities inherent in sybil voting
 	},
 	'tasks.expire_classifieds': {
 		'task': 'tasks.expire_classifieds',

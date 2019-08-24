@@ -1276,13 +1276,16 @@ def many_short_messages(user_id,section,obj_id):
 
 ######################################## Logging abusive text on home ########################################
 
+ABUSE_ON_HOME = 'aoh'# global sorted set keeping count of 
 ABUSIVE_HOME_TEXT = 'aht'# global sorted set containing abusive text on home
 
 
 def log_abusive_home_post(user_id, text):
 	"""
 	"""
-	redis.Redis(connection_pool=POOL).zadd(ABUSIVE_HOME_TEXT,text+":"+str(time.time()),user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zincrby(ABUSE_ON_HOME,user_id,amount=1)
+	my_server.zadd(ABUSIVE_HOME_TEXT,text+":"+str(time.time()),user_id)
 
 
 def retrieve_abusive_home_posts():

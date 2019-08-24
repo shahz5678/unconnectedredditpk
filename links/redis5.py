@@ -253,7 +253,7 @@ def retrieve_content_from_personal_group(group_id, own_id, target_id, time_now, 
 		personal_group_list = my_server.lrange("pgl:"+group_id, 0, -1)
 		pipeline2 = my_server.pipeline()
 		for key in personal_group_list:
-			pipeline2.hgetall("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
+			pipeline2.hgetall("pgh:"+group_id+":"+key.partition(":")[0]) #key.partition(":")[0] is 'blob_id' (e.g. 6973)
 		result = pipeline2.execute()
 		own_cred, their_cred = get_user_credentials(own_id, target_id, my_server)
 		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, result, own_cred, their_cred
@@ -469,7 +469,7 @@ def update_pg_obj_notif_after_bulk_deletion(group_id):
 		my_server = redis.Redis(connection_pool=POOL)
 		hash_list, pgh_list = my_server.lrange("pgl:"+group_id, 0, -1), []
 		for key in hash_list:
-			pgh_list.append("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
+			pgh_list.append("pgh:"+group_id+":"+key.partition(":")[0]) #key.partition(":")[0] is 'blob_id'
 		if latest_notif_obj_pgh in pgh_list:
 			blob_deletion_status = my_server.hget(latest_notif_obj_pgh,'status' if latest_type in ('img_res','text_res') else 'status'+latest_idx)
 			if blob_deletion_status != latest_deletion_status:
@@ -652,8 +652,9 @@ def personal_group_permanent_deletion(group_id, personal_group_list, objs_to_del
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
 	pipeline1 = server.pipeline()
+	# blob_id is an integer, obj_name is a compisite ID such as 6973:1802862:10 (where the first number is blob_id)
 	for blob_id, obj_name in objs_to_delete_fully:
-		how_many_to_del = int(obj_name.split(":")[2]) # how_many_to_del is '-1' if 'res' blob, '0' if 'action' blob, and non-zero +int otherwise
+		how_many_to_del = int(obj_name.rpartition(":")[2]) # how_many_to_del is '-1' if 'res' blob, '0' if 'action' blob, and non-zero +int otherwise
 		if how_many_to_del < 0: 
 			# deleting related 'pgrl' objects
 			pipeline1.delete("pgrl:"+group_id+":"+blob_id+":-1")
@@ -665,8 +666,7 @@ def personal_group_permanent_deletion(group_id, personal_group_list, objs_to_del
 		else:
 			pass
 		# deleting hash object
-		hash_name = "pgh:"+group_id+":"+blob_id
-		pipeline1.delete(hash_name)
+		pipeline1.delete("pgh:"+group_id+":"+blob_id)
 		# removing obj_name from personal_group_list
 		pipeline1.lrem(personal_group_list,obj_name,num=-1)
 		# recalculating number of objects in personal_group
@@ -709,7 +709,7 @@ def reset_all_group_chat(group_id, my_server=None):
 		pipeline1.delete(related_hash_list)
 	# deleting all chat blobs next
 	for composite_obj in all_objs:
-		blob_id = composite_obj.split(":")[0]
+		blob_id = composite_obj.partition(":")[0]
 		pipeline1.delete("pgh:"+group_id+":"+blob_id)
 	# deleting list of all chat blobs
 	pipeline1.delete(personal_group_list)

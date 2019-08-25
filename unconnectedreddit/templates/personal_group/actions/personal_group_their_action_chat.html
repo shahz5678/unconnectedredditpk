@@ -1,12 +1,7 @@
 {% if action == '4' %}
 
-  <div class="mtl mbl cxl bizcard graph-gr" style="padding:3px">
-
-    <div class="tl_cnr">
-      <a href="{% url 'user_profile' username %}">{% if their_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#306654;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-    </div>
-
-    <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard graph-gr" style="padding:3px;margin-top:0.4em">
+    <div class="act" style="padding-top:10px">
       <div class="anim">
         <div class="olay">
           <div class="tear" style="position:absolute;top: 29px;left: 35px;opacity:0;animation: cry 0.5s 4;animation-timing-function: ease-in"></div>
@@ -22,13 +17,8 @@
 
 {% elif action == '5' %}
 
-  <div class="mtl mbl cxl bizcard checkerboard-gr" style="padding:3px">
-    
-    <div class="tl_cnr">
-      <a href="{% url 'user_profile' username %}">{% if their_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#306654;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-    </div>
-
-    <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">  
+  <div class="cxl bizcard checkerboard-gr" style="padding:3px;margin-top:0.4em">
+    <div class="act" style="padding-top:10px">  
       <div class="anim">
         <img src="{{ static_url }}img/wassap_small.svg" alt=":)" width="50" height="50" style="animation: entrance 0.5s 1;animation-timing-function: ease-out;">
       </div>
@@ -40,13 +30,8 @@
 
 {% elif action == '1' %}
 
-  <div class="mtl mbl cxl bizcard polka-gr" style="padding:3px">
-
-    <div class="tl_cnr">
-      <a href="{% url 'user_profile' username %}">{% if their_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#306654;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-    </div>
-
-    <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard polka-gr" style="padding:3px;margin-top:0.4em">
+    <div class="act" style="padding-top:10px">
       <div class="anim">
         <img src="{{ static_url }}img/heart_small.svg" alt="<3" width="50" height="50" style="animation: heartbeat 0.8s 3;animation-timing-function: ease-out;">
       </div>
@@ -58,13 +43,8 @@
 
 {% elif action == '3' %}
 
-  <div class="mtl mbl cxl bizcard rad-gr" style="padding:3px">
-    
-    <div class="tl_cnr">
-      <a href="{% url 'user_profile' username %}">{% if their_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#306654;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-    </div>
-
-    <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">  
+  <div class="cxl bizcard rad-gr" style="padding:3px;margin-top:0.4em">
+    <div class="act" style="padding-top:10px">  
       <div class="anim">
         <img src="{{ static_url }}img/clock_small.svg" alt="clock" width="50" height="50" style="animation: tada 0.8s 2;">
       </div>
@@ -76,13 +56,8 @@
 
 {% elif action == '2' %}
 
-  <div class="mtl mbl cxl bizcard circles-gr" style="padding:3px;">
-   
-    <div class="tl_cnr">
-      <a href="{% url 'user_profile' username %}">{% if their_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#306654;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-    </div>
-
-   <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard circles-gr" style="padding:3px;margin-top:0.4em">
+   <div class="act" style="padding-top:10px">
      <div class="anim">
           <div class="olay">
           <div style="font-size:17px;z-index:2;position:absolute;top: 23px;left: 35px;opacity: 0;animation: drift 0.8s 1;color:white;text-shadow: 1px 1px 1px white, 2px 2px 3px #01579B;animation-timing-function: ease-in;">HA</div>

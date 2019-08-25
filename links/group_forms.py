@@ -12,8 +12,8 @@ class PersonalGroupPostForm(forms.Form):
 	"""
 	Handles personal group chat input
 	"""
-	image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
-		'invalid_image': 'Ye foto kharab hai. Koi aur chunein','required':'Foto lagana zaruri hai'})
+	image = forms.ImageField(required=False, error_messages={'invalid':'Ye photo kharab hai. Koi aur chunein',\
+		'invalid_image': 'Ye photo kharab hai. Koi aur chunein','required':'Photo lagana zaruri hai'})
 	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
 		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
 	
@@ -21,7 +21,7 @@ class PersonalGroupPostForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.on_fbs = kwargs.pop('on_fbs',None)
 		super(PersonalGroupPostForm, self).__init__(*args,**kwargs)
-		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:6px;border: 1px #bdebfe solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['reply'].widget.attrs['id'] = 'text_field'
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
 		self.fields['image'].widget.attrs['class'] = 'cam_img'
@@ -30,17 +30,17 @@ class PersonalGroupPostForm(forms.Form):
 		data = self.cleaned_data
 		reply = data["reply"].strip()
 		if "image" not in data:
-			raise forms.ValidationError('Ye foto kharab hai. Koi aur chunein')#checked
+			raise forms.ValidationError('Ye photo kharab hai. Koi aur chunein')#checked
 		elif not reply and not data["image"]:
-			raise forms.ValidationError('Chat likhein ya foto lagain')#checked
+			raise forms.ValidationError('Msg likhein ya photo lagain')#checked
 		elif self.on_fbs and data["image"] and data["image"].size > 200000:
-			raise forms.ValidationError('Ap ne %s KB ki foto chunni. Freebasics pe 200 KB se barri foto mana hai' % \
+			raise forms.ValidationError('Ap ne %s KB ki photo chunni. Freebasics pe 200 KB se barri photo mana hai' % \
 				format(float(data["image"].size)/1000,'.1f'))#checked
 		elif not self.on_fbs and data["image"] and data["image"].size > 10000000:
-			raise forms.ValidationError('Ap ne %s MB ki foto chunni. 10MB se barri foto nahi lagti' % \
+			raise forms.ValidationError('Ap ne %s MB ki photo chunni. 10MB se barri photo nahi lagti' % \
 				format(float(data["image"].size)/1000000,'.1f'))#checked
 		elif data["image"] and data["image"].size == 0:
-			raise forms.ValidationError('Ye foto kharab hai. Koi aur chunein')
+			raise forms.ValidationError('Ye photo kharab hai. Koi aur chunein')
 		elif len(reply) > 1500:
 			raise forms.ValidationError('1500 haroof se barri baat nah likhein')
 		# data["reply"] = clear_zalgo_text(reply) if reply else reply
@@ -106,8 +106,8 @@ class PersonalGroupReplyPostForm(forms.Form):
 
 	It populates input fields rendered by pressing the reply button under each post in a JS-enabled environment
 	"""
-	rep_image = forms.ImageField(required=False, error_messages={'invalid':'Ye foto kharab hai. Koi aur chunein',\
-		'invalid_image': 'Ye foto kharab hai. Koi aur chunein'})
+	rep_image = forms.ImageField(required=False, error_messages={'invalid':'Ye photo kharab hai. Koi aur chunein',\
+		'invalid_image': 'Ye photo kharab hai. Koi aur chunein'})
 	rep_reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'class': 'cxl','autocomplete': 'off','autocorrect':'off',\
 		'autocapitalize':'off','spellcheck':'false','placeholder':'Reply likhein...'}))
 	
@@ -126,17 +126,17 @@ class PersonalGroupReplyPostForm(forms.Form):
 		data = self.cleaned_data
 		reply = data["rep_reply"].strip()
 		if "rep_image" not in data:
-			raise forms.ValidationError('Ye foto kharab hai. Koi aur chunein')#checked
+			raise forms.ValidationError('Ye photo kharab hai. Koi aur chunein')#checked
 		elif not reply and not data["rep_image"]:
-			raise forms.ValidationError('Chat likhein ya foto lagain')#checked
+			raise forms.ValidationError('Chat likhein ya photo lagain')#checked
 		elif self.on_fbs and data["rep_image"] and data["rep_image"].size > 200000:
-			raise forms.ValidationError('Ap ne %s KB ki foto chunni. Freebasics pe 200 KB se barri foto mana hai' % \
+			raise forms.ValidationError('Ap ne %s KB ki photo chunni. Freebasics pe 200 KB se barri photo mana hai' % \
 				format(float(data["rep_image"].size)/1000,'.1f'))#checked
 		elif not self.on_fbs and data["rep_image"] and data["rep_image"].size > 10000000:
-			raise forms.ValidationError('Ap ne %s MB ki foto chunni. 10MB se barri foto nahi lagti' % \
+			raise forms.ValidationError('Ap ne %s MB ki photo chunni. 10MB se barri photo nahi lagti' % \
 				format(float(data["rep_image"].size)/1000000,'.1f'))#checked
 		elif data["rep_image"] and data["rep_image"].size == 0:
-			raise forms.ValidationError('Ye foto kharab hai. Koi aur chunein')
+			raise forms.ValidationError('Ye photo kharab hai. Koi aur chunein')
 		elif len(reply) > 1500:
 			raise forms.ValidationError('1500 haroof se barri baat nah likhein')
 		# data["rep_reply"] = clear_zalgo_text(reply) if reply else reply

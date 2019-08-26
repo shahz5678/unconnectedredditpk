@@ -21,7 +21,7 @@
 <style>body{background:#f0f3f4}</style>
 
 <div class="mbs fx fxjscn fxaibl">
-	<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" class="mrs" style="display:inline-block">{% csrf_token %}<button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></form>
+	<form action="{% url 'first_time_unseen_refresh' %}" method="POST" enctype="multipart/form-data" style="display:inline-block">{% csrf_token %}<button class="rf" style="vertical-align:text-bottom;height:24px;width:44px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></form>
 	<h1 class="mls cxl clb lsp" style="margin:0;display:inline-block">Matka:</h1>
 </div>
 

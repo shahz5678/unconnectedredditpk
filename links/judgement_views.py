@@ -2059,37 +2059,39 @@ def report_content(request,*args,**kwargs):
 					elif not request.mobile_verified:
 						return render(request,"verification/unable_to_submit_without_verifying.html",{'file_report':True})
 					else:
-						if type_of_content == 'tx':
-							content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
-							report_options = TEXT_REPORT_PROMPT
-						elif type_of_content == 'img':
-							content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
-							report_options = PHOTO_REPORT_PROMPT
-						else:
-							# if profile being reported - currently there is no way to stop double reporting
-							content_points = 0 #TODO: ensure double reporting of profiles cant happen
-							report_options = PROFILE_REPORT_PROMPT
-						if content_points < -98:
-							# disallow reporting (content already has really low score - probably already banned before)
-							request.session["redirect_reason"+own_id] = 'item_already_downgraded'
+						banned, time_remaining = check_content_and_voting_ban(own_id)
+						if banned:
+							#disallow reporting from users who're banned themselves
+							request.session["redirect_reason"+own_id] = 'reporter_is_banned'
 							request.session["redirect_orig"+own_id] = orig
 							request.session["redirect_oun"+own_id] = oun
 							request.session["redirect_lid"+own_id] = lid
 							request.session["redirect_obid"+own_id] = obj_id
 							return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
-						# elif price_of_report > score:
-						#   #disallow reporting (user doesn't have requisite score)
-						#   request.session["redirect_reason"+own_id] = 'not_enough_score'
-						#   request.session["redirect_orig"+own_id] = orig
-						#   request.session["redirect_oun"+own_id] = oun
-						#   request.session["redirect_lid"+own_id] = lid
-						#   request.session["redirect_obid"+own_id] = obj_id
-						#   return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 						else:
-							# show all report options to user
-							context={'obj_id':obj_id, 'reporting_self':reporting_self,'orig':orig,'purl':purl,'owner_uname':oun,'lid':lid,\
-							'rep_opt':ordered_list_of_tup(report_options),'cap':request.POST.get("cap",None),'tp':type_of_content,'oid':ooid}#'price':price_of_report,
-							return render(request,"judgement/content_report.html",context)
+							if type_of_content == 'tx':
+								content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
+								report_options = TEXT_REPORT_PROMPT
+							elif type_of_content == 'img':
+								content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
+								report_options = PHOTO_REPORT_PROMPT
+							else:
+								# if profile being reported - currently there is no way to stop double reporting
+								content_points = 0 #TODO: ensure double reporting of profiles cant happen
+								report_options = PROFILE_REPORT_PROMPT
+							if content_points < -98:
+								# disallow reporting (content already has really low score - probably already banned before)
+								request.session["redirect_reason"+own_id] = 'item_already_downgraded'
+								request.session["redirect_orig"+own_id] = orig
+								request.session["redirect_oun"+own_id] = oun
+								request.session["redirect_lid"+own_id] = lid
+								request.session["redirect_obid"+own_id] = obj_id
+								return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
+							else:
+								# show all report options to user
+								context={'obj_id':obj_id, 'reporting_self':reporting_self,'orig':orig,'purl':purl,'owner_uname':oun,'lid':lid,\
+								'rep_opt':ordered_list_of_tup(report_options),'cap':request.POST.get("cap",None),'tp':type_of_content,'oid':ooid}#'price':price_of_report,
+								return render(request,"judgement/content_report.html",context)
 	else:
 		return redirect("missing_page")
 
@@ -2104,7 +2106,7 @@ def notify_and_redirect(request):
 	owner_uname = request.session.pop("redirect_oun"+own_id,None)
 	link_id = request.session.pop("redirect_lid"+own_id,None)
 	obj_id = request.session.pop("redirect_obid"+own_id,None)
-	if reason in ('not_your_ban','locked_by_super','reporting_own_content','temp_data_missing','cannot_ban_self','not_enough_score',\
+	if reason in ('not_your_ban','locked_by_super','reporting_own_content','temp_data_missing','cannot_ban_self','reporter_is_banned',\
 		'item_already_downgraded','not_original','report_tinkered'):
 		return render(request,"judgement/notify_and_redirect.html",{reason:True,'orig':origin,'oun':owner_uname,'lid':link_id,'obid':obj_id})
 	elif reason == 'ban_edited':

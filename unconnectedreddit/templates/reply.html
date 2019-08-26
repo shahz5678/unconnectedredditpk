@@ -38,7 +38,7 @@
         <button class="btn bm bct mbl mts mrl sp pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
     </form>
     &nbsp;
-    <form action="{% url 'publicreply_view' parent.id %}" method="GET" style="display:inline"><button class="rf rf-bg" name="from_rfrsh" value="1" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></form>
+    <form action="{% url 'publicreply_view' parent.id %}" method="GET" style="display:inline"><button class="rf" name="from_rfrsh" value="1" style="vertical-align:text-bottom;width:44px;height:24px;background:0 0" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px;margin-bottom:-10px" width="24" height="24"></button></form>
 
 
     <div class="mts">

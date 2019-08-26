@@ -1037,7 +1037,7 @@ def post_chat_action_in_personal_group(request):
 				their_uname, their_avurl = get_uname_and_avurl(target_id,their_anon_status)
 				return render(request,"personal_group/general_settings/personal_group_all_settings.html",{'their_anon':their_anon_status,\
 					'avatar':their_avurl,'name':their_uname,'own_anon':own_anon_status,'tid':target_id})
-			elif option in ('1','2','3','4','5'):
+			elif option in ('0','1','2','3','4','5'):
 				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=option, type_='action', \
 					writer_id=own_id, group_id=group_id)
 				private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text=PRIV_CHAT_EMOTEXT[option],\

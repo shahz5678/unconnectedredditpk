@@ -39,7 +39,7 @@
     </form>&nbsp;
     <form action="{% url 'first_time_refresh' unique %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        <button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:middle;width:23px;height:23px" type="submit"></button>
+        <button class="rf" style="background:0 0;vertical-align:middle;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button>
     </form>
 
     {% include "mehfil/private_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}

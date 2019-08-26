@@ -76,39 +76,6 @@ img.yt_img:hover{
   opacity: 1;
 }
 
-.dr {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  background-color: rgba(0,0,0,0.5);
-  display: none;
-}
-
-@supports (background: radial-gradient(#FCD8DE 30%, transparent 16%)) or (background: -webkit-radial-gradient(#FCD8DE 30%, transparent 16%))
-  or (background: -moz-radial-gradient(#FCD8DE 30%, transparent 16%)) or (background: -o-radial-gradient(#FCD8DE 30%, transparent 16%)){
-
-.dr{
-  position: fixed;
-  top:0;
-  bottom:0;
-  left:0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  z-index: 10;
-  background-color: rgba(0,0,0,0.5);
-  display: none;
-}
-
-}
-
-.dr:target {
-  display: block;
-}
-
 .circle{
   border-radius: 50%;
 }
@@ -139,9 +106,6 @@ img.yt_img:hover{
 </form>
 
 <div class="nos margin clb" style="max-width:750px;width:98%;">
-
-
-
 
     {% if is_suspended %}
       

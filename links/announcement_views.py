@@ -61,19 +61,16 @@ def export_survey_results(request):
 			filename = 'survey_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ['user_id','username','joining time','submission time','skipped','2nd skipped','was verified','on fbs', \
-				'world age','num pub mehfils','num prv mehfils', 'num 1on1s','num fans','num topics','device','1st ref','last ref',\
-				'is err','ans1','ans2','ans3','ans4','ans5','ans6','ans7']
+				columns = ['username','skipped','joining time','submission time','on fbs', \
+				'world age','num pub mehfils','num prv mehfils', 'num 1on1s','num fans','num topics',\
+				'last_txt_post_time','last_pht_post_time','ans1','ans2','ans3','ans4','ans5','ans6','ans7']
 				wtr.writerow(columns)
 				for json_data in data_to_write_to_csv:
 					data = json.loads(json_data)
-					to_write = [data['user_id'],data['username'].encode('utf-8'),exact_date(data['join_date']),\
-					exact_date(data['submission_time']),data['skipped'],data['2nd_sub_skipped'],data.get('verif',None),\
-					data['on_fbs'],data['world_age'],data['num_pub_grps'],data['num_prv_grps'],data['num_1on1s'],\
-					data['num_fans'],data['num_topics'],data['device'],data.get('1st_ref',''),data.get('other_ref',''),\
-					'err' if (data['ans3'].encode('utf-8') == data['ans4'].encode('utf-8') and data['skipped'] == '0') else '',\
-					data['ans1'],data['ans2'].encode('utf-8'),data['ans3'].encode('utf-8'),data['ans4'].encode('utf-8'),\
-					data['ans5'],data['ans6'],data['ans7']]
+					to_write = [data['username'].encode('utf-8'),data['skipped'],exact_date(data['join_date']),\
+					exact_date(data['submission_time']),data['on_fbs'],data['world_age'],data['num_pub_grps'],data['num_prv_grps'],\
+					data['num_1on1s'],data['num_fans'],data['num_topics'],data['last_public_txt_post_time'],data['last_public_pht_post_time'],\
+					data['ans1'],data['ans2'].encode('utf-8'),data['ans3'].encode('utf-8'),data['ans4'],data['ans5'],data['ans6'],data['ans7']]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

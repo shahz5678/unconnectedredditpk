@@ -3660,7 +3660,7 @@ def join_private_group(request):
 			return redirect("error")
 		elif not request.mobile_verified:
 			################### Segment action logging ###################
-			if own_id > SEGMENT_STARTING_USER_ID:
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
 				log_action.delay(user_id=own_id, action_categ='Z', action_sub_categ='11', action_liq='h', time_of_action=time.time())
 			##############################################################
 			# do not let user join a mehfil if they're not verified

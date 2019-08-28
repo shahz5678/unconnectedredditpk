@@ -83,7 +83,7 @@
         <b class="bluestroke" style="color:#01579B;">Bro, tameez please!</b>
       </div>
     </div>
-    <div style=";text-align:center;background:white;font-size:70%;color:tomato;padding:4px;border-bottom-left-radius:7px;border-bottom-right-radius:7px;border:1px solid #bce4fe;margin:0 2px 2px 2px" class="sp lsp">1 on 1 chorni hai? <form action="{% url 'post_chat_action_in_personal_group' %}" method="POST" style="display:inline">{% csrf_token %}<input type="hidden" name="tid" value="{{ tid }}"><button type="submit" style="background:0 0;padding:0;border:none" name="opt" value="6"><img src="{{ STATIC_URL }}img/gear.svg" width="15" height="15" style="vertical-align:middle"></button></form> daba ke settings me jaein, aur phir <b>exit</b> button dabain</div>
+    <div style=";text-align:center;background:white;font-size:70%;color:tomato;padding:4px;border-bottom-left-radius:7px;border-bottom-right-radius:7px;border:1px solid #bce4fe;margin:0 2px 2px 2px" class="sp lsp">1 on 1 chorni hai? <form action="{% url 'post_chat_action_in_personal_group' %}" method="POST" style="display:inline">{% csrf_token %}<input type="hidden" name="tid" value="{{ tid }}"><button type="submit" style="background:0 0;padding:0;border:none" name="opt" value="6"><img src="{{ STATIC_URL }}img/gear.svg" width="16" height="16" style="vertical-align:middle"></button></form> daba ke settings me jaein, aur phir <b>exit</b> button dabain</div>
   </div>
 
 {% endif %}

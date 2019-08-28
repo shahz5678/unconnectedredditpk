@@ -125,7 +125,7 @@ img.yt_img:hover{
 
           {% if blob.which_blob == 'action' %}
 
-            {% include "personal_group/actions/personal_group_own_action_chat.html" with action=blob.action username=blob.username static_url=STATIC_URL own_nick=own_nick trunick=blob.username|truncap %}
+            {% include "personal_group/actions/personal_group_own_action_chat.html" with action=blob.action username=blob.username static_url=STATIC_URL own_nick=own_nick trunick=blob.username|truncap tid=tid %}
              
           {% elif blob.which_blob == 'notif' %}
 

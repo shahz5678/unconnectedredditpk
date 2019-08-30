@@ -1,12 +1,7 @@
 {% if action == '4' %}
     
-  <div class="mtl mbl cxl bizcard graph" style="padding:3px">
-
-      <div class="tr_cnr" style="text-align:right;">
-        <a href="{% url 'user_profile' username %}">{% if own_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#01579B;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-      </div> 
-
-      <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard graph" style="padding:3px;margin-top:0.4em">
+      <div class="act" style="padding-top:10px">
         <div class="anim">
           <div class="olay">
             <div class="tear" style="position:absolute;top: 29px;left: 35px;opacity:0;animation: cry 0.5s 4;animation-timing-function: ease-in"></div>
@@ -22,13 +17,8 @@
 
  {% elif action == '5' %}
 
-  <div class="mtl mbl cxl bizcard checkerboard" style="padding:3px">
-
-    <div class="tr_cnr" style="text-align:right;">
-      <a href="{% url 'user_profile' username %}">{% if own_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#01579B;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-    </div>
-
-    <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard checkerboard" style="padding:3px;margin-top:0.4em">
+    <div class="act" style="padding-top:10px">
       <div class="anim">
         <img src="{{ static_url }}img/wassap_small.svg" alt=":)" width="50" height="50" style="animation: entrance 0.5s 1;animation-timing-function: ease-out;">
       </div>
@@ -40,13 +30,8 @@
 
   {% elif action == '1' %}
 
-  <div class="mtl mbl cxl bizcard polka" style="padding:3px">       
-
-    <div class="tr_cnr" style="text-align:right;">
-      <a href="{% url 'user_profile' username %}">{% if own_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#01579B;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-    </div>
-
-    <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard polka" style="padding:3px;margin-top:0.4em">
+    <div class="act" style="padding-top:10px">
       <div class="anim">
         <img src="{{ static_url }}img/heart_small.svg" alt="<3" width="50" height="50" style="animation: heartbeat 0.8s 3;animation-timing-function: ease-out;">
         </div>
@@ -58,13 +43,8 @@
 
   {% elif action == '3' %}
 
-  <div class="mtl mbl cxl bizcard rad" style="padding:3px">
-
-      <div class="tr_cnr" style="text-align:right;">
-        <a href="{% url 'user_profile' username %}">{% if own_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#01579B;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-      </div>
-
-      <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard rad" style="padding:3px;margin-top:0.4em">
+      <div class="act" style="padding-top:10px">
         <div class="anim">
           <img src="{{ static_url }}img/clock_small.svg" alt="clock" width="50" height="50" style="animation: tada 0.8s 2;">
         </div>
@@ -76,13 +56,8 @@
 
   {% elif action == '2' %}
 
-  <div class="mtl mbl cxl bizcard circles" style="padding:3px">
-
-      <div class="tr_cnr" style="text-align:right;"> 
-        <a href="{% url 'user_profile' username %}">{% if own_nick %}<img src="{{ av_url }}" width="22" height="22" alt="{{ username|slice:"1" }}" class="av_btn {{ bclass }}" style="font-size:77%;">{% else %}<div class="av_btn {{ bclass }}" style="width:22px;height:22px;color:#01579B;line-height:23px;font-size:77%;">{{ trunick }}</div>{% endif %}</a>
-      </div>
-
-      <div class="act" style="padding-top:0px;margin-top:-10px;margin-bottom:-3px;">
+  <div class="cxl bizcard circles" style="padding:3px;margin-top:0.4em">
+      <div class="act" style="padding-top:10px">
         <div class="anim">
           <div class="olay">
           <div style="font-size:17px;z-index:2;position:absolute;top: 23px;left: 35px;opacity: 0;animation: drift 0.8s 1;color:white;text-shadow: 1px 1px 1px white, 2px 2px 3px #01579B;animation-timing-function: ease-in;">HA</div>
@@ -95,6 +70,20 @@
           <span class="bluestroke" style="color:#01579B;"><b>{% if own_nick %}{{ username }}{% else %}{{ trunick }}{% endif %}</b>&nbsp;ko hansi ka dora par gaya!</span>
         </div>
       </div>
+  </div>
+
+  {% elif action == '0' %}
+
+  <div class="cxl bizcard stripy" style="padding:3px;margin-top:0.4em">
+    <div class="act" style="padding-top:10px">
+      <div class="anim">
+        <img src="{{ static_url }}img/ahem.svg" alt="-_-" width="50" height="50" style="animation: shake-horizontal 0.8s cubic-bezier(0.455, 0.030, 0.515, 0.955) both;">
+      </div>
+      <div class="txt">
+        <b class="bluestroke" style="color:#01579B;">Bro, tameez please!</b>
+      </div>
+    </div>
+    <div style=";text-align:center;background:white;font-size:70%;color:tomato;padding:4px;border-bottom-left-radius:7px;border-bottom-right-radius:7px;border:1px solid #bce4fe;margin:0 2px 2px 2px" class="sp lsp">1 on 1 chorni hai? <form action="{% url 'post_chat_action_in_personal_group' %}" method="POST" style="display:inline">{% csrf_token %}<input type="hidden" name="tid" value="{{ tid }}"><button type="submit" style="background:0 0;padding:0;border:none" name="opt" value="6"><img src="{{ STATIC_URL }}img/gear.svg" width="16" height="16" style="vertical-align:middle"></button></form> daba ke settings me jaein, aur phir <b>exit</b> button dabain</div>
   </div>
 
 {% endif %}

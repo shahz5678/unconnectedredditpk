@@ -2,8 +2,8 @@
     <div class="fr" id="pg_mime_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
 
     <div class="bizcard" style="border-radius:8px" id="personal_group_top">
-        {% if no_permit %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko foto send karney ki ijazat nahi di hui</span></div>{% elif no_save_chat %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko uski chat save karney ki ijazat nahi di hui</span></div>{% elif no_notif %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko notification send karney ki ijazat nahi di hui</span></div>{% elif form_errors %}<div class="fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp">{{ form_errors }}</span></div>{% elif last_seen_time_diff %}
-        <div class="mtl fr" style="background-color: #F0F3F4;">
+        {% if no_permit %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko foto send karney ki ijazat nahi di hui</span></div>{% elif no_save_chat %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko uski chat save karney ki ijazat nahi di hui</span></div>{% elif no_notif %}<div class="cs sp fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko notification send karney ki ijazat nahi di hui</span></div>{% elif form_errors %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp">{{ form_errors }}</span></div>{% elif last_seen_time_diff %}
+        <div class="fr" style="background-color: #F0F3F4;">
             <div style="padding:5px;" class="sp cs cgy">
                 {% if is_js_env %}
                     {% if last_seen_time_diff < 60 %}
@@ -31,45 +31,42 @@
     {% if is_js_env %}
 
         <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" class="mts" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="hidden" id="sk" name="sk" value="{{ sk }}">
-            <input type="hidden" id="tid" name="tid" value="{{ tid }}">
-            <div class="mbs" style="width:75%;display:inline-block;">
-                <div class="mt">{{ personal_group_form.reply }}</div>
-            </div>
-            <div class="mbs" style="width:22%;display:inline-block;float:right">
-                <div class="mt op" style="overflow:hidden;height:60px;position:relative;max-width:132px;text-align:left">
-                    <img id="main_cam" style="position:absolute;z-index:3;" alt="Select photo" src="{{ static_url }}img/cam1.svg" width="60" height="60">
-                    <div class="cxs bw cb sp" style="display:none;padding:3px;padding-top:10px;width:60px;height:60px;text-align:center;box-sizing: border-box;border:1px dashed #6092F8;border-radius:8px" id="filename"></div>    
-                    {{ personal_group_form.image }}
+            {% csrf_token %}<input type="hidden" id="sk" name="sk" value="{{ sk }}"><input type="hidden" id="tid" name="tid" value="{{ tid }}">
+            <div class="fx fxjsfs fxaicn">
+                <div class="mbs" style="width:75%;">
+                    <div class="mt">{{ personal_group_form.reply }}</div>
+                </div>
+                <div class="mls mbs" style="width:22%;">
+                    <div class="mt op" style="overflow:hidden;height:60px;position:relative;max-width:132px;text-align:left">
+                        <img id="main_cam" style="position:absolute;z-index:3;" alt="Select photo" src="{{ static_url }}img/cam1.svg" width="60" height="60">
+                        <div class="cxs bw cb sp" style="display:none;padding:3px;padding-top:10px;width:60px;height:60px;text-align:center;box-sizing: border-box;border:1px dashed #6092F8;border-radius:8px" id="filename"></div>    
+                        {{ personal_group_form.image }}
+                    </div>
                 </div>
             </div>
             <input type="submit" style="display: none;" id="subform">
         </form>
             <div style="clear:both"></div>
 
-        <div class="fx fxjsfs fxaicn">      
-            <label class="btn bm pg_ok mrl" style="height:30px;line-height: 30px;cursor: pointer;display: table-cell;" for="subform" tabindex="0">OK</label>
-            <form method="POST" action="{% url 'enter_personal_group' %}" style="display: table-cell">
+        <div class="fx fxjsfs fxaicn mbs">      
+            <label class="btn sp cs pg_ok mrl" style="height:36px;width:120px;line-height: 36px;cursor: pointer" for="subform" tabindex="0">SEND</label>
+            <form method="POST" action="{% url 'enter_personal_group' %}">
             {% csrf_token %}
-                <button class="mll rf rf-bg" style="background-image: url('{{ static_url }}img/refresh.svg');visibility: {{ visib }}" type="submit" name="tid" value="{{ tid }}">&nbsp;</button>
+                <button class="mll rf" style="background:0 0;visibility: {{ visib }};height:28px;width:44px" type="submit" name="tid" value="{{ tid }}"><img src="{{ static_url }}img/refresh.svg" style="height:28px;width:28px" width="28" height="28"></button>
             </form>
         </div>
 
     {% else %}
-
-        <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" class="mtl" enctype="multipart/form-data" style="display:inline">
-        {% csrf_token %}
-            <input type="hidden" id="sk" name="sk" value="{{ sk }}">
-            <input type="hidden" id="tid" name="tid" value="{{ tid }}">
-            <textarea id="text_field" class="cxl" autocomplete="off" autofocus="autofocus" cols="30" name="reply" rows="10" style="width:95%;height:50px;border-radius:8px;border: 1px #E7ECEE solid; background-color:#FAFAFA;padding:5px;"></textarea>
-            <input class="mts" style="max-width:600px;width:98%;border: 1px #E7ECEE solid;" name="image" type="file" id="browse_image_btn">
-            <button class="btn mtl bcb bl pg_ok mrl" style="height:30px">OK</button>
+        <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" enctype="multipart/form-data" style="display:inline">
+        {% csrf_token %}<input type="hidden" id="sk" name="sk" value="{{ sk }}"><input type="hidden" id="tid" name="tid" value="{{ tid }}">
+            <input class="mts mbs" style="max-width:750px;width:99%;border: 1px #bdebfe solid;border-radius:6px;background:azure" name="image" type="file" id="browse_image_btn">
+            <textarea id="text_field" class="cxl" autocomplete="off" autofocus="autofocus" cols="30" name="reply" rows="10" style="width:99%;height:60px;border-radius:8px;border: 1px #bdebfe solid; background-color:#FAFAFA;padding:5px;box-sizing:border-box"></textarea>
+            <br><button class="mt mbs btn sp cs bcb bl pg_ok mrl" style="height:36px;width:120px">SEND</button>
         </form>
 
-        <form method="POST" action="{% url 'enter_personal_group' %}" style="display:inline">
+        <form method="POST" class="mt" action="{% url 'enter_personal_group' %}" style="display:inline;">
         {% csrf_token %}
-            <button class="mll rf rf-bg" style="background-image: url('{{ static_url }}img/refresh.svg');visibility: {{ visib }}" type="submit" name="tid" value="{{ tid }}">&nbsp;</button>
-        </form>            
+            <button class="mt mll rf" style="visibility: {{ visib }};height:28px;width:44px;background:0 0; " type="submit" name="tid" value="{{ tid }}"><img src="{{ static_url }}img/refresh.svg" style="margin-bottom:-10px" width="28" height="28"></button>
+        </form>
             
     {% endif %}

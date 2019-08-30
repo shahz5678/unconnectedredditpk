@@ -14,14 +14,12 @@
 {% load get_personal_group_bottom_navbar %}
 {% load get_personal_group_url_meta_data %}
 {% load get_personal_group_hidden_pht_big %}
-{% load get_personal_group_own_action_chat %}
 {% load get_personal_group_hidden_pht_small %}
 {% load get_personal_group_own_chat_buttons %}
-{% load get_personal_group_their_action_chat %}
 {% load get_personal_group_their_chat_buttons %}
 {% load get_personal_group_deleted_post_message %}
 {% block content %}
-<head><title>{{ t_nick }}'s 1 on 1 messages | Damadam.pk</title></head>
+<head><title>{{ t_nick }}'s 1 on 1 messages | Damadam</title></head>
 
 <style type="text/css">
 
@@ -78,37 +76,8 @@ img.yt_img:hover{
   opacity: 1;
 }
 
-.dr {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 10;
-  background-color: rgba(0,0,0,0.5);
-  display: none;
-}
-
-@supports (background: radial-gradient(#FCD8DE 30%, transparent 16%)) or (background: -webkit-radial-gradient(#FCD8DE 30%, transparent 16%))
-  or (background: -moz-radial-gradient(#FCD8DE 30%, transparent 16%)) or (background: -o-radial-gradient(#FCD8DE 30%, transparent 16%)){
-
-.dr{
-  position: fixed;
-  top:0;
-  bottom:0;
-  left:0;
-  right: 0;
-  height: 100%;
-  width: 100%;
-  z-index: 10;
-  background-color: rgba(0,0,0,0.5);
-  display: none;
-}
-
-}
-
-.dr:target {
-  display: block;
+.circle{
+  border-radius: 50%;
 }
 
 
@@ -136,10 +105,7 @@ img.yt_img:hover{
     <button id="rep_subform" class="btn bm bcb mbs mrl pg_ok_res" style="border:none;height:25px;line-height:25px;" type="submit">OK</button>
 </form>
 
-<div class="nos margin clb" style="max-width:600px;width:92%;">
-
-
-
+<div class="nos margin clb" style="max-width:750px;width:98%;">
 
     {% if is_suspended %}
       
@@ -159,7 +125,7 @@ img.yt_img:hover{
 
           {% if blob.which_blob == 'action' %}
 
-            {% personal_group_own_action_chat action=blob.action username=blob.username av_url=blob.av_url|s3:'thumb' static_url=STATIC_URL border_class='sbb' own_nick=own_nick trunick=blob.username|truncap %}
+            {% include "personal_group/actions/personal_group_own_action_chat.html" with action=blob.action username=blob.username static_url=STATIC_URL own_nick=own_nick trunick=blob.username|truncap tid=tid %}
              
           {% elif blob.which_blob == 'notif' %}
 
@@ -167,15 +133,15 @@ img.yt_img:hover{
 
           {% else %}
             
-            <div class="bizcard csb" style="padding:3px;margin-top:1.3em;text-align:right;">
+            <div class="bizcard csb" style="padding:3px;margin-top:0.6em;text-align:right;">
                   
-                  <div class="mbs tr_cnr">
+                  <div class="mbs">
                       <a href="{% url 'user_profile' blob.username %}" style="text-decoration: none;">
                       {% if own_nick %}
-                        <span style="color:#01579B;">{{ blob.username }}
-                        <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb">
+                        <span class="sp" style="color:#01579B;">{{ blob.username }}
+                        <img src="{{ blob.av_url|s3:'thumb' }}" style="vertical-align:sub;border:1px solid #81d8fd" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="circle cb sbb">
                       {% else %}
-                        <div class="av_btn sbb" style="width:22px;height:22px;color:#01579B;line-height:23px;">{{ blob.username|truncap }}</div>
+                        <div class="av_btn sbb" style="width:18px;height:18px;color:#01579B;line-height:18px;font-size:92%">{{ blob.username|truncap }}</div>
                       {% endif %}
                       </a>
                   </div>
@@ -227,13 +193,13 @@ img.yt_img:hover{
 
                             <div class="mtl mrl mll mbl bizcard ca" style="padding:3px;text-align:left">
         
-                              <div class="mbs cs tl_cnr">
+                              <div class="mbs cs">
                                   <a href="{% url 'user_profile' blob.t_username %}" style="text-decoration: none;">
                                   {% if their_nick %}
-                                    <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb ab" style="font-size:118%;">
-                                    <span style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>
+                                    <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="circle cb ab" style="font-size:118%;vertical-align:sub;border:1px solid #00ffaa">
+                                    <span class="sp" style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>
                                   {% else %}
-                                    <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654;font-size:118%;">{{ blob.t_username|truncap }}</div></a>
+                                    <div class="av_btn ab" style="width:18px;height:18px;line-height:18px;color:#306654">{{ blob.t_username|truncap }}</div></a>
                                   {% endif %}
                                   </a>
                               </div>
@@ -366,29 +332,27 @@ img.yt_img:hover{
           {% endif %}
 
 
-
         {% else %}
 
-            
 
           {% if blob.which_blob == 'action' %}
 
-            {% personal_group_their_action_chat action=blob.action username=blob.username av_url=blob.av_url|s3:'thumb' static_url=STATIC_URL border_class='ab' their_nick=their_nick trunick=blob.username|truncap %}
+            {% include "personal_group/actions/personal_group_their_action_chat.html" with action=blob.action username=blob.username static_url=STATIC_URL their_nick=their_nick trunick=blob.username|truncap %}
 
           {% elif blob.which_blob == 'notif' %}
             
              {% personal_group_notif_chat own_id=own_id writer_id=blob.id notif=blob.notif username=blob.username av_url=blob.av_url|s3:'thumb' t_username=blob.t_username t_av_url=blob.t_av_url|s3:'thumb' static_url=STATIC_URL their_nick=their_nick trunick=blob.username|truncap time=blob.time|human_time blob_id=blob.blob_id status=blob.status tid=tid %}
 
           {% else %}
-            <div class="bizcard ca" style="padding:3px;margin-top:1.3em">
+            <div class="bizcard ca" style="padding:3px;margin-top:0.6em">
                 
-                <div class="mbs tl_cnr">
+                <div class="mbs">
                     <a href="{% url 'user_profile' blob.username %}" style="text-decoration: none;">
                       {% if their_nick %}
-                      <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="av_btn cb ab">
-                      <span style="color:#306654">{{ blob.username }}</span>
+                      <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" style="vertical-align:sub;border:1px solid #00ffaa" width="22" height="22" class="circle cb ab">
+                      <span class="sp" style="color:#306654">{{ blob.username }}</span>
                       {% else %}
-                      <div class="av_btn ab" style="width:22px;height:22px;line-height:23px;color:#306654">{{ blob.username|truncap }}</div>
+                      <div class="av_btn ab" style="width:18px;height:18px;line-height:18px;color:#306654;font-size:92%">{{ blob.username|truncap }}</div>
                       {% endif %}
                       </a>
                 </div>
@@ -439,13 +403,13 @@ img.yt_img:hover{
 
                              <div class="mtl mrl mll mbl bizcard csb" style="padding:3px;text-align:right">
                               
-                              <div class="mbs cs tr_cnr">
+                              <div class="mbs cs">
                                   <a href="{% url 'user_profile' blob.t_username %}" style="text-decoration: none;">
                                   {% if own_nick %}
-                                  <span style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>
-                                  <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="av_btn cb sbb" style="font-size: 118%;">
+                                  <span class="sp" style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>
+                                  <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="circle cb sbb" style="font-size: 118%;vertical-align:sub;border:1px solid #81d8fd">
                                   {% else %}
-                                  <div class="av_btn sbb" style="width:22px;height:22px;line-height:23px;color:#01579B;font-size: 118%;">{{ blob.t_username|truncap }}</div>
+                                  <div class="av_btn sbb" style="width:18px;height:18px;line-height:18px;color:#01579B;">{{ blob.t_username|truncap }}</div>
                                   {% endif %}
                                   </a>
                               </div>
@@ -582,17 +546,17 @@ img.yt_img:hover{
       {% empty %}
 
       {% if not is_suspended %}
-      <div class="lsp mtl bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
-      <div class="cxl mts">Uper safed box mein apna message likhein aur <b>OK</b> dabain</div>
-      <hr size=1 COLOR="#F1F1DA"> 
-      <div class="sp cgy cs">Agr 1 on 1 ki setting change karni hai tou neechay buttons istimal karien</div>
+      <div class="lsp mts bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
+        <div class="cxl mts">Uper pehla message likh ke <b>SEND</b> dabain!</div>
+        <hr size=1 COLOR="#F1F1DA"> 
+        <div class="sp cgy cs">1 on 1 ki settings dekhne ke liye <form method="POST" action="{% url 'post_chat_action_in_personal_group' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="opt" value="6"><button style="background:0 0;border:0;padding:0" type="submit" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/gear.svg" style="width:18px;height:18px" width="18" height="18" style="vertical-align:sub"></button></form> option press karein</div>
       </div>
       {% endif %}
 
     {% endfor %}
 
     {% if autodel == '1' %}
-      <div class="lsp mtl" style="text-align:center;">
+      <div class="lsp mts" style="text-align:center;">
         <span class="sp cxs" style="color:#148BDA">... baqi messages delete kar diye gaye</span>
       </div>
     {% endif %}

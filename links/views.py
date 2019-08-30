@@ -92,7 +92,7 @@ update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limit
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-retrieve_topic_credentials, get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time
+get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time
 # from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
 
@@ -919,23 +919,13 @@ def home_reply(request,pk=None,*args,**kwargs):
 					return redirect("ban_underway")
 				else:
 					is_verified = request.mobile_verified
-					################### Segment action logging ###################
-					if not is_verified and user_id > SEGMENT_STARTING_USER_ID:
-						sub_categ = '3' if origin == '3' else '4'# inline home tabsra or inline topic tabsra
-						log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ=sub_categ, action_liq='h', \
-							time_of_action=time.time())
-					##############################################################
+					time_now = time.time()
 					form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk,mob_verified=is_verified)
 					if form.is_valid():
 						text=form.cleaned_data.get("description")
-						time_now=time.time()
 						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time_now)
 						target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)# target is target_username
 						request.session['home_hash_id'] = notif
-						################### Segment action logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							log_action.delay(user_id=user_id, action_categ='C', action_sub_categ='2', action_liq='h', time_of_action=time_now)
-						##############################################################
 
 						if target == ":":
 							return redirect("ban_underway")
@@ -993,13 +983,11 @@ def best_home_page(request):
 	context["process_notification"] = False
 	context["ident"] = own_id
 	return render(request, 'link_list.html', context)
-	# else:
-	# 	return redirect("unauth_home_new")
 
 
 def home_redirect(request, pk=None):
 	"""
-	Used to redirect to specific spot on home (e.g. after writing something)
+	Used to redirect to specific spot on home (e.g. after writing or 'liking' something)
 	"""
 	if pk:
 		index = retrieve_home_feed_index(pk)
@@ -1054,12 +1042,13 @@ def home_page(request, lang=None):
 		for obj in list_of_dictionaries:
 			if obj['h'] in recent_user_voted_obj_hashes:
 				obj['v'] = True# user 'liked' this particular object, so mark it
-	#######################
+
+	is_mob_verified = request.mobile_verified
 
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
 	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
 	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
-	'newbie_lang':request.session.get("newbie_lang",None),'mobile_verified':request.mobile_verified,'on_opera':on_opera}
+	'newbie_lang':request.session.get("newbie_lang",None),'mobile_verified':is_mob_verified,'on_opera':on_opera}
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	newbie_flag = request.session.get("newbie_flag",None)
@@ -1136,6 +1125,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 	#####################################################
 	#####################################################
 	#####################################################
+
 
 # def export_tut_ab_results(request):
 # 	"""
@@ -2120,16 +2110,6 @@ def photo_comment(request,pk=None,*args,**kwargs):
 						else:
 							return return_to_content(request,origin,pk,None,None)
 				else:
-					################### Segment action logging ###################
-					if not is_mob_verified and user_id > SEGMENT_STARTING_USER_ID:
-						if origin == '1':
-							sub_categ = '7'#inline photocomment in fresh list
-						elif origin == '2':
-							sub_categ = '8'#inline photo comment in best list
-						else:
-							sub_categ = '6'#inline photo comment on home
-						log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ=sub_categ, action_liq='h', time_of_action=time.time())
-					##############################################################
 					error_string = form.errors.as_text().split("*")[2]
 					if origin == '3':
 						request.session['home_direct_reply_error_string'] = error_string
@@ -2201,7 +2181,7 @@ def photo_page(request,list_type='best-list'):
 		start_index, end_index = get_indices(page_num, PHOTOS_PER_PAGE)
 		cached_image_count = retrieve_image_count(list_type=list_type)
 		if list_type == 'best-list':
-			type_, page_origin = 'best_photos', '2'
+			type_, page_origin, char = 'best_photos', '2', 'B'# 'char' is used in retention activity logging - can be removed
 			navbar_type, single_notif_origin = 'best', '21'
 			if cached_image_count:
 				num_in_last_1_day = cached_image_count
@@ -2210,7 +2190,7 @@ def photo_page(request,list_type='best-list'):
 				num_in_last_1_day = Logout.objects.filter(logout_time__gte=one_day_ago).count()
 				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		else:
-			type_, page_origin = 'fresh_photos', '1'
+			type_, page_origin, char = 'fresh_photos', '1', 'F'# 'char' is used in retention activity logging - can be removed
 			navbar_type, single_notif_origin = 'fresh', '20'
 			if cached_image_count:
 				num_in_last_1_day = cached_image_count
@@ -3690,123 +3670,79 @@ def link_create_pk(request, *args, **kwargs):
 	return redirect("link_create")
 
 
-class LinkCreateView(CreateView):
-	model = Link
-	form_class = LinkForm
-
-	def get_form_kwargs( self ):
-		kwargs = super(LinkCreateView,self).get_form_kwargs()
-		kwargs['user_id'] = self.request.user.id
-		return kwargs
-
-	def get_context_data(self, **kwargs):
-		context = super(LinkCreateView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			own_id = self.request.user.id
-			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-			if banned:
-				context["time_remaining"] = time_remaining
-				context["ban_details"] = ban_details
-				context["forbidden"] = True
-				context["own_profile"] = True
-				context["defender"] = None
-				context["is_profile_banned"] = True
-			else:
-				secret_key = uuid.uuid4()
-				context["sk"] = secret_key
-				context["subscribed_topics"] = retrieve_subscribed_topics(str(own_id))
-				context["sharing_limit"] = NUM_SUBMISSION_ALLWD_PER_DAY
-				context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='11', renew_lease=True) else False
-				set_text_input_key(own_id, '1', 'likho', secret_key)
-				context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-				context["feature_phone"] = True if self.request.is_feature_phone else False
-		return context
-	##############################################################
-
-
-	def form_valid(self, form):
-		"""
-		This processes the form before it gets saved to the database
-		"""
-		# token = self.request.session.pop("link_create_token",None)
-		user = self.request.user
-		user_id = user.id
-		banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+@csrf_protect
+def submit_text_post(request):
+	"""
+	Submit public textual post
+	"""
+	own_id = request.user.id
+	if request.method == "POST":
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
 		if banned:
-			return render(self.request, 'links/link_form.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,\
+			return render(request, 'links/link_form.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,\
 				'own_profile':True,'defender':None,'is_profile_banned':True})
 		else:
-			mobile_verified = self.request.mobile_verified
-			ttl, type_of_rate_limit = content_sharing_rate_limited(user_id)
+			mobile_verified = request.mobile_verified
+			ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
+			time_now = time.time()
 			if not mobile_verified:
-				################### Segment action logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					log_action.delay(user_id=user_id, action_categ='Z', action_sub_categ='12', action_liq='h', time_of_action=time.time())
-				##############################################################
-				return render(self.request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
-			elif self.request.user_banned:
+				return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
+			elif request.user_banned:
 				return redirect("error")
 			elif ttl:
-				return render(self.request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
+				return render(request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit})# this is wrongly named, but tells the user to wait
 			else:
-				# if valid_uuid(str(token)) and mobile_verified:
-				f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-				topic_url = self.request.POST.get("turl",None)
-				if topic_url:
-					topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_name=True, with_theme=True, \
-						with_is_subscribed=True, retriever_id=user_id)
-					if is_subscribed:
-						f.url = bg_theme+":"+topic_name+":"+topic_url
-				time_now = time.time()
-				# set_input_rate_and_history.delay(section='home',section_id='1',text=f.description,user_id=user_id,time_now=time_now)
-				set_input_history.delay(section='home',section_id='1',text=f.description,user_id=user_id)
-				f.rank_score = 10.1#round(0 * 0 + secs / 45000, 8)
-				if user.userprofile.score < -25:
-					if not HellBanList.objects.filter(condemned_id=user_id).exists(): #only insert user in hell-ban list if she isn't there already
-						HellBanList.objects.create(condemned_id=user_id) #adding user to hell-ban list
-						user.userprofile.score = random.randint(10,71)
-						f.submitter = user
+				form = LinkForm(request.POST,user_id=own_id)
+				if form.is_valid():
+					description = form.cleaned_data['description']
+					alignment = form.cleaned_data['alignment']
+					topic_payload = form.cleaned_data['tpay']
+					if topic_payload:
+						obj = Link.objects.create(description=description, submitter_id=own_id, cagtegory=alignment, url=topic_payload)
 					else:
-						f.submitter = user # ALWAYS set this ID to unregistered_bhoot
-				else:
-					f.submitter = user
-				try:
-					av_url = user.userprofile.avatar.url
-				except ValueError:
-					av_url = None
-				alignment = form.cleaned_data['alignment']
-				f.cagtegory = alignment
-				f.save()
-				submitter_uname = retrieve_uname(user_id,decode=True)
-				obj_id = f.id
-				if topic_url and is_subscribed:
+						obj = Link.objects.create(description=description, submitter_id=own_id, cagtegory=alignment)
+					obj_id = obj.id
 					obj_hash = "tx:"+str(obj_id)
-					log_text_submissions('topic')#Logs the number of submisions in topic vs number of submissions of regular text posts
-					add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(user_id), \
-						submitter_av_url=av_url, is_pinkstar=(True if submitter_uname in FEMALES else False), \
-						submission_time=time_now, text=f.description, from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False), \
-						topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
-						submitter_username=submitter_uname)
-				else:
-					log_text_submissions('text')#Logs the number of submisions in topic vs number of submissions of regular text posts
-					add_text_post(obj_id=obj_id, categ=alignment, submitter_id=user_id, submitter_av_url=av_url, \
-						submitter_username=submitter_uname, submission_time=time_now, add_to_feed=True, \
-						is_pinkstar=(True if submitter_uname in FEMALES else False), text=f.description,\
-						from_fbs=self.request.META.get('HTTP_X_IORG_FBS',False))
-				################### Segment action logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					log_action.delay(user_id=user_id, action_categ='A', action_sub_categ='2', action_liq='h', time_of_action=time_now)
-				##############################################################
-				rate_limit_content_sharing(user_id)#rate limiting for 1 min (and hard limit set at 100 submissions per day)
-				return super(CreateView, self).form_valid(form) #saves the link automatically
-				# else:
-				# 	return redirect("home")
+					submitter_name, av_url = retrieve_credentials(own_id,decode_uname=True)
 
-	def get_success_url(self):
-		"""
-		Which URL to go back once the model is saved?
-		"""
-		return reverse_lazy("home")+'#shared'
+					if topic_payload:
+						log_text_submissions('topic')#Logs the number of submisions in topic vs number of submissions of regular text posts
+						add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
+							submitter_av_url=av_url, is_pinkstar='', submission_time=time_now, text=description, \
+							from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=form.cleaned_data['turl'], \
+							topic_name= form.cleaned_data['tname'] ,bg_theme=form.cleaned_data['bgt'], add_to_public_feed=True,\
+							submitter_username=submitter_name)
+					else:
+						log_text_submissions('text')
+						add_text_post(obj_id=obj_id, categ=alignment, submitter_id=own_id, submitter_av_url=av_url, \
+							submitter_username=submitter_name, submission_time=time_now, add_to_feed=True, \
+							is_pinkstar='', text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False))
+					rate_limit_content_sharing(own_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
+					set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
+					########################### Fan out ##########################
+					# post_to_followers.delay(user_id,obj_hash,time_now)
+					##############################################################
+					url = reverse_lazy("home")+"#shared"
+					return redirect(url)
+				else:
+					secret_key = str(uuid.uuid4())
+					set_text_input_key(own_id, '1', 'likho', secret_key)
+					return render(request,"links/link_form.html",{'form':form,'sk':secret_key,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY,\
+						'random':random.sample(xrange(1,188),15),'subscribed_topics':retrieve_subscribed_topics(str(own_id))})#,'num_fans':get_follower_count(own_id)})
+	else:
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			context = {'time_remaining':time_remaining,'ban_details':ban_details,'forbidden':True, 'own_profile':True, 'defender':None,\
+			'is_profile_banned':True}
+		else:
+			secret_key = str(uuid.uuid4())
+			set_text_input_key(own_id, '1', 'likho', secret_key)
+			context = {'sk':secret_key,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY,'random':random.sample(xrange(1,188),15),\
+			'show_instructions':True if tutorial_unseen(user_id=own_id, which_tut='11', renew_lease=True) else False,'form':LinkForm(),\
+			'subscribed_topics':retrieve_subscribed_topics(str(own_id))}#,'num_fans':get_follower_count(own_id)}
+		return render(request,"links/link_form.html",context)
+
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

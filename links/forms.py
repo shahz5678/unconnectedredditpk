@@ -1,25 +1,25 @@
 # coding=utf-8
-import re, time, random
-import unicodedata
+import re, time, random, unicodedata
 from django.contrib.auth.models import User
-from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
-from django.core import validators
+from django.contrib.auth.hashers import check_password
 from django.core.files.images import get_image_dimensions
 from django.utils.translation import ugettext, ugettext_lazy as _
-from django import forms
+from django.core import validators
 from django.forms import Textarea
+from django import forms
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 from tasks import invalidate_avatar_url
-from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key,\
-get_aurl, is_attribute_change_rate_limited, log_abusive_home_post
-from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
-Publicreply, VideoComment
+from redis7 import retrieve_topic_credentials
 from image_processing import compute_avg_hash, reorient_image, make_thumbnail, prep_image
 from redis6 import is_group_member_and_rules_signatory, human_readable_time, group_member_exists
 from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO,\
 MAX_BIO_SIZE
+from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
+Publicreply, VideoComment
+from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl, \
+is_attribute_change_rate_limited, log_abusive_home_post
 
 
 ########################################### Utilities #######################################
@@ -546,6 +546,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_SUBMISSION_SIZE}),\
 	error_messages={'required': 'Pehlay kuch likhein, phir OK dabain'})
 	sk = forms.CharField(required=False)
+	turl = forms.CharField(required=False)# this is topic_url
 
 	class Meta:
 		model = Link
@@ -555,12 +556,12 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
 		super(LinkForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#f5f7fa;padding:7px;'
+		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #93d7ec solid; background-color:white;padding:7px;'
 
 	def clean(self):
 		data = self.cleaned_data
-		description, user_id, section_id, section, secret_key_from_form = data.get("description"), self.user_id, '1', 'home', \
-		data.get("sk")
+		description, user_id, section_id, section, secret_key_from_form, topic_url = data.get("description"), self.user_id, '1', 'home', \
+		data.get("sk"), data.get('turl',None)
 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1','likho')
 		description = description.strip() if description else None
 		description = strip_zero_width_characters(description)
@@ -586,10 +587,10 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 						raise forms.ValidationError('Ap yahan pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 					else:
 						##########################
-						abusive_words=(' hot ','private','sex','xxx','1on1','1 on 1')
-						lower_case_desc = description.lower()
-						if any(word in lower_case_desc for word in abusive_words):
-							log_abusive_home_post(user_id=user_id, text=description)
+						# abusive_words=(' hot ','private','sex','xxx','1on1','1 on 1')
+						# lower_case_desc = description.lower()
+						# if any(word in lower_case_desc for word in abusive_words):
+						# 	log_abusive_home_post(user_id=user_id, text=description)
 						##########################
 						if len_ < 4:
 							raise forms.ValidationError('Itni choti baat nahi likh sakte')
@@ -602,7 +603,16 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 							raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(len_,MAX_HOME_SUBMISSION_SIZE))
 						# '2' means right-aligned text, '1' means left-aligned text
 						data['alignment'] = '2' if is_urdu(description) >= RIGHT_ALIGNMENT_THRESHOLD_RATIO else '1'
-						data["description"] = description
+						data['description'] = description
+						#################################
+						data['tpay'], data['turl'], data['tname'], data['bgt'] = None, None, None, None
+						if topic_url:
+							topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_name=True, \
+								with_theme=True, with_is_subscribed=True, retriever_id=user_id)
+							if is_subscribed:
+								data['tpay'], data['turl'], data['tname'], data['bgt'] = bg_theme+":"+topic_name+":"+topic_url, topic_url, \
+								topic_name, bg_theme
+						##################################
 						return data
 
 
@@ -1091,7 +1101,7 @@ class PhotoTimeForm(forms.Form):
 
 
 class UploadPhotoReplyForm(forms.ModelForm):
-	image_file = forms.ImageField(error_messages={'required': 'Foto ka intekhab dubara karein'})
+	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab dubara karein'})
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
 	class Meta:
 		model = Photo
@@ -1104,16 +1114,16 @@ class UploadPhotoReplyForm(forms.ModelForm):
 
 
 class UploadPhotoForm(forms.Form):
-	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Foto ka intekhab sahi nahi hua','invalid':'Selected foto upload nahi ho sakti'})
+	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua','invalid':'Selected photo upload nahi ho sakti'})
 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'spellcheck':'false','maxlength':MAX_PHOTO_CAPTION_SIZE}),\
-		error_messages={'required': 'Foto ke barey mien likhna zaroori hai'})
+		error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
 
 	def __init__(self, *args, **kwargs):
 		super(UploadPhotoForm, self).__init__(*args, **kwargs)
-		self.fields['caption'].widget.attrs['style'] = 'width:95%;height:70px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#fffaf5;padding:7px;'
+		self.fields['caption'].widget.attrs['style'] = 'width:95%;height:70px;border-radius:10px;border: 1px #93d7ec solid; background-color:white;padding:7px;'
 		self.fields['caption'].widget.attrs['id'] = 'pub_img_caption_field'
 		self.fields['caption'].widget.attrs['class'] = 'cxl'
-		self.fields['image_file'].widget.attrs['style'] = 'width:95%;background:#ffe6cc;height:45px;border-radius:7px'
+		self.fields['image_file'].widget.attrs['style'] = 'width:95%;background:#beeef4;height:45px;border-radius:7px'
 		self.fields['image_file'].widget.attrs['id'] = 'browse_pub_img_btn'
 
 	def clean_caption(self):
@@ -1121,25 +1131,25 @@ class UploadPhotoForm(forms.Form):
 		caption = caption.strip() if caption else None
 		caption = strip_zero_width_characters(caption)
 		if not caption:
-			raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
+			raise forms.ValidationError('Photo ke barey mien likhna zaroori hai')
 		else:
 			caption_len = len(caption)
 			if caption_len < 1:
-				raise forms.ValidationError('Foto ke barey mien likhna zaroori hai')
+				raise forms.ValidationError('Photo ke barey mien likhna zaroori hai')
 			if caption_len < 8:
-				raise forms.ValidationError('Zyada tafseel likhein ke foto mein kya hai')
+				raise forms.ValidationError('Zyada tafseel likhein ke photo mein kya hai')
 			elif caption_len > MAX_PHOTO_CAPTION_SIZE:
 				raise forms.ValidationError('{} chars se zyada nahi likhein, ap ne {} chars likhey'.format(MAX_PHOTO_CAPTION_SIZE,caption_len))
 			elif caption.isdigit():
-				raise forms.ValidationError('Sirf numbers nahi likhein, tafseel se likhein foto mein kya hai')
+				raise forms.ValidationError('Sirf numbers nahi likhein, tafseel se likhein photo mein kya hai')
 			elif '#' in caption:
-				raise forms.ValidationError('Foto ki tafseel mein "#" nahi likhein')
+				raise forms.ValidationError('Photo ki tafseel mein "#" nahi likhein')
 			uni_str = uniform_string(caption)
 			if uni_str:
 			  if uni_str.isspace():
 			      raise forms.ValidationError('Spaces itni zyada nahi daalein')
 			  else:
-			      raise forms.ValidationError('"%s" itni zyada dafa aik hi character repeat nahi karein, foto ko sahi se describe karein' % uni_str)
+			      raise forms.ValidationError('"%s" itni zyada dafa aik hi character repeat nahi karein, photo ko sahi se describe karein' % uni_str)
 			else:
 				return caption
 

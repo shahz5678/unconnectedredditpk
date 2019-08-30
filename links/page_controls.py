@@ -48,8 +48,8 @@ USER_GROUP_LIST_CACHING_TIME = 10# cached for 10 seconds
 USER_FRIEND_LIST_CACHING_TIME = 300# cached for 5 minutes
 URL_POSTINGS_ALLOWED = 5# number of urls that can be pasted in a 5 minute window (rate limiting for performance reasons)
 PERSONAL_GROUP_URL_IMG_WIDTH = 70# in pixels
-PRIV_CHAT_EMOTEXT = {'1':'ki dharkan tez ho geyi','2':'ko hansi ka dora par gaya','3':'ne kaha usko jaldi reply karo...',\
-'4':'buhut udas hai...','5':'ne poocha kya scene hai?'}# used when generating notifications only (not centrally connected)
+PRIV_CHAT_EMOTEXT = {'0':'ne kaha tameez karein please!','1':'ki dharkan tez ho geyi','2':'ko hansi ka dora par gaya',\
+'3':'ne kaha usko jaldi reply karo...','4':'buhut udas hai...','5':'ne poocha kya scene hai?'}# used when generating notifications only (not centrally connected)
 PRIV_CHAT_NOTIF = {'1':'ne photo send karney ki ijazat mangi','2':'ne ijazat mangi ke jab ap online na hon tou apko Damadam pe SMS ke zariye bulaya ja sakey',\
 '3':'ne ijazat mangi ke apko notification send kar ke online bula le'}
 PHOTO_SHARING_FRIEND_LIMIT = 5#number of friends a person can share a photo with simultaneously

@@ -78,7 +78,7 @@
         <button class="btn bco sp bm mts mbl mrl pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
         </form>
         &nbsp;
-        <a href="{% url 'comment' photo_id origin %}" rel="nofollow"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:baseline;width:23px;height:23px" type="submit">&nbsp;</button></a>
+        <a href="{% url 'comment' photo_id origin %}" rel="nofollow"><button class="rf" style="background:0 0;vertical-align:baseline;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px;margin-bottom:-8px" width="24" height="24"></button></a>
 
         {% endif %}
 

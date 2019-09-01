@@ -1187,6 +1187,7 @@ class LinkDeleteView(DeleteView):
 	model = Link
 	success_url = reverse_lazy("home")
 
+
 def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, **kwargs):
 	if is_notif:
 		# clicking single notif, for fans
@@ -1194,7 +1195,8 @@ def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, 
 			updated_at=time.time(), bump_ua=False, unseen_activity=True, single_notif=False)
 	if photo_pk:
 		request.session["photograph_id"] = photo_pk
-		return redirect("profile", slug, 'fotos')
+		return redirect("profile_photos_redirect",slug,'fotos')
+		# return redirect("profile", slug, 'fotos')
 	else:
 		try:
 			return redirect("profile", slug, 'fotos')
@@ -1202,172 +1204,314 @@ def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, 
 			return redirect("profile", request.user.username, 'fotos')
 
 
-class UserProfilePhotosView(ListView):
+def user_profile_photos_redirect(request, slug, list_type):
+	"""
+	Used to redirect to specific spot on user_profile_photos (e.g. after returning from viewing own 'likes')
+	"""
+	own_id = request.user.id
+	target_id = request.session.pop("photograph_id",None)
+	if target_id:
+		owner_id = retrieve_user_id(slug)
+		PICS_PER_PAGE = 10
+		obj_id_list = Photo.objects.only('id').filter(owner_id=owner_id,category='1').order_by('-id').values_list('id',flat=True)
+		if obj_id_list:
+			target_id, index = int(target_id), 0
+			for obj_id in obj_id_list:
+				if target_id == obj_id:
+					break
+				else:
+					index += 1
+			addendum = get_addendum(index,PICS_PER_PAGE, only_addendum=True)
+			url = reverse_lazy("profile",kwargs={'slug':slug,"type": list_type})+addendum
+		else:
+			url = reverse_lazy("profile",kwargs={'slug':slug,"type": list_type})+'?page=1#section0'
+	else:
+		url = reverse_lazy("profile",kwargs={'slug':slug,"type": list_type})+'?page=1#section0'
+	############################################
+	############################################
+	if own_id:
+		request.session['rd'] = '1'#used by retention activity loggers in home_page() - remove whenever
+	############################################
+	############################################
+	return redirect(url)
+
+
+def user_profile_photos(request,slug,type):
 	"""
 	Renders a user's photo page
 	"""
-	model = Photo
-	template_name = "user_detail1.html"
-	paginate_by = 10
-
-	def get_queryset(self):
-		username = self.kwargs.get('slug',None)
-		list_type = self.kwargs.get('type',None)
-		if username and list_type in ('fotos','trending-fotos'):
-			target_id = retrieve_user_id(username)
-			if target_id:
-				if list_type == 'fotos':
-					# retrieve latest images uploaded by the user
-					return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count','device').filter(owner_id=target_id,\
-						category='1').order_by('-upload_time')
-				else:
-					# retrieve past week's trending images
-					photo_ids = retrieve_trending_photo_ids(target_id)
-					if photo_ids:
-						return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count').filter(id__in=photo_ids).\
-						order_by('-upload_time')
-					else:
-						return []
-			else:
-				log_404.delay(type_of_404='1b',time_of_404=time.time())
-				raise Http404("This user does not exist")
-		else:
-			log_404.delay(type_of_404='1a',time_of_404=time.time())
-			raise Http404("No username provided or malformed type")
-
-
-	def get_context_data(self, **kwargs):
-		context = super(UserProfilePhotosView, self).get_context_data(**kwargs)
-		username = self.kwargs["slug"]
-		try:
-			subject = User.objects.only('id','date_joined').get(username=username)
-		except User.DoesNotExist:
-			log_404.delay(type_of_404='1c',time_of_404=time.time())
-			raise Http404("User ID does not compute")
-		list_type = self.kwargs["type"]
-		if list_type == 'trending-fotos':
-			context["is_trending"] = True
-		context["slug"] = username
-		star_id = subject.id
-		context["num_trending"] = retrieve_num_trending_photos(star_id)
-		if self.request.user:
-			user_id = self.request.user.id
-			context["user_id"] = user_id
-			context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
-			context["authenticated"] = True
-			is_defender, is_super_defender = in_defenders(user_id, return_super_status=True)
-			if is_super_defender:
-				context["manageable"] = True
-			own_profile = star_id == user_id
-			context["own_profile"] = own_profile
-			if not own_profile:
-				# someone else's profile AND user is logged in
-				context["subject_id"] = star_id
-				if is_fan(star_id, user_id):
-					context["not_fan"] = False
-					context["fanned"] = [str(star_id)]
-				else:
-					context["not_fan"] = True
-					context["fanned"] = []#[] must be passed, otherwise code fails
-		else:
-			user_id = None
-			is_defender = False
-			own_profile = False
-			context["authenticated"] = False
-			context["not_fan"] = True
-			context["own_profile"] = False
-		context["mobile_verified"] = self.request.mobile_verified if own_profile else is_mobile_verified(star_id)
-		###########
-		banned, time_remaining, ban_details = check_content_and_voting_ban(star_id, with_details=True)
-		context["ban_detail"] = ban_details
-		context["is_profile_banned"] = banned
-		context["noindex"] = True if (banned or not context["mobile_verified"]) else False
-		context["defender"] = is_defender
-		context["time_remaining"] = time_remaining
-		###########
-		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-		is_js_env = retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		context["on_opera"] = True if (not on_fbs and not is_js_env) else False
-		###########
-		context["subject"] = subject
-		context["star_id"] = star_id
-		context["star_av_url"] = retrieve_avurl(star_id)
-		context["legit"] = FEMALES
-		total_fans, recent_fans = get_photo_fan_count(star_id)
-		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
-			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
-			populate_search_thumbs.delay(star_id,ids_with_urls)
-		return context
-
-
-
-	def get(self, request, *args, **kwargs):
-		self.object_list = self.get_queryset()
-		allow_empty = self.get_allow_empty()
-		if not allow_empty:
-			# When pagination is enabled and object_list is a queryset,
-			# it's better to do a cheap query than to load the unpaginated
-			# queryset in memory.
-			if (self.get_paginate_by(self.object_list) is not None
-				and hasattr(self.object_list, 'exists')):
-				is_empty = not self.object_list.exists()
-			else:
-				is_empty = len(self.object_list) == 0
-			if is_empty:
-				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
-						% {'class_name': self.__class__.__name__})
-		context = self.get_context_data(object_list=self.object_list)
-		target_id = self.request.session.pop("photograph_id",None)
+	context = {}
+	page_num = request.GET.get('page', '1')
+	username, list_type = slug, type
+	if username and list_type in ('fotos','trending-fotos'):
+		target_id = retrieve_user_id(username)
 		if target_id:
-			try:
-				index = list(photo.id for photo in self.object_list).index(int(target_id))
-			except:
-				index = None
-			if 0 <= index <= 9:
-				addendum = '#section'+str(index+1)
-			elif 10 <= index <= 19:
-				addendum = '?page=2#section'+str(index+1-10)
-			elif 20 <= index <= 29:
-				addendum = '?page=3#section'+str(index+1-20)
-			elif 30 <= index <= 39:
-				addendum = '?page=4#section'+str(index+1-30)
-			elif 40 <= index <= 49:
-				addendum = '?page=5#section'+str(index+1-40)
-			elif 50 <= index <= 59:
-				addendum = '?page=6#section'+str(index+1-50)
-			elif 60 <= index <= 69:
-				addendum = '?page=7#section'+str(index+1-60)
-			elif 70 <= index <= 79:
-				addendum = '?page=8#section'+str(index+1-70)
-			elif 80 <= index <= 89:
-				addendum = '?page=9#section'+str(index+1-80)
-			elif 90 <= index <= 99:
-				addendum = '?page=10#section'+str(index+1-90)
-			elif 100 <= index <= 109:
-				addendum = '?page=11#section'+str(index+1-100)
-			elif 110 <= index <= 119:
-				addendum = '?page=12#section'+str(index+1-110)
-			elif 120 <= index <= 129:
-				addendum = '?page=13#section'+str(index+1-120)
-			elif 130 <= index <= 139:
-				addendum = '?page=14#section'+str(index+1-130)
-			elif 140 <= index <= 149:
-				addendum = '?page=15#section'+str(index+1-140)
-			elif 150 <= index <= 159:
-				addendum = '?page=16#section'+str(index+1-150)
-			elif 160 <= index <= 169:
-				addendum = '?page=17#section'+str(index+1-160)
-			elif 170 <= index <= 179:
-				addendum = '?page=18#section'+str(index+1-170)
-			elif 180 <= index <= 189:
-				addendum = '?page=19#section'+str(index+1-180)
-			elif 190 <= index <= 199:
-				addendum = '?page=20#section'+str(index+1-190)
+			PICS_PER_PAGE = 10
+			start_index, end_index = get_indices(page_num, PICS_PER_PAGE)# showing 10 items per page
+			if list_type == 'fotos':
+				# retrieve latest images uploaded by the user
+				obj_list = Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count','device').filter(owner_id=target_id,\
+					category='1').order_by('-id')[start_index:end_index+1]
+				list_total_size = Photo.objects.filter(owner_id=target_id,category='1').count()
 			else:
-				addendum = '#section0'        
-			return HttpResponseRedirect(addendum)
+				# retrieve past week's trending images
+				photo_ids = retrieve_trending_photo_ids(target_id)
+				if photo_ids:
+					obj_list = Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count').filter(id__in=photo_ids).\
+					order_by('-id')[start_index:end_index+1]
+					list_total_size = len(photo_ids)
+					num_pages = list_total_size/PICS_PER_PAGE
+				else:
+					obj_list = []
+					list_total_size = 0
+				
+			num_pages = list_total_size/PICS_PER_PAGE
+			max_pages = num_pages if list_total_size % PICS_PER_PAGE == 0 else (num_pages+1)
+			page_num = int(page_num)
+			context['object_list'] = obj_list
 		else:
-			return self.render_to_response(context)
+			log_404.delay(type_of_404='1b',time_of_404=time.time())
+			raise Http404("This user does not exist")
+	else:
+		log_404.delay(type_of_404='1a',time_of_404=time.time())
+		raise Http404("No username provided or malformed type")
+	###############################################################
+	try:
+		subject = User.objects.only('date_joined').get(id=target_id)
+	except User.DoesNotExist:
+		log_404.delay(type_of_404='1c',time_of_404=time.time())
+		raise Http404("User ID does not compute")
+	if list_type == 'trending-fotos':
+		context["is_trending"] = True
+	context["slug"] = username
+	star_id = target_id
+	context["num_trending"] = retrieve_num_trending_photos(star_id)
+	if request.user:
+		user_id = request.user.id
+		context["user_id"] = user_id
+		context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
+		context["authenticated"] = True
+		is_defender, is_super_defender = in_defenders(user_id, return_super_status=True)
+		if is_super_defender:
+			context["manageable"] = True
+		own_profile = star_id == user_id
+		context["own_profile"] = own_profile
+		if not own_profile:
+			# someone else's profile AND user is logged in
+			context["subject_id"] = star_id
+			if is_fan(star_id, user_id):
+				context["not_fan"] = False
+				context["fanned"] = [str(star_id)]
+			else:
+				context["not_fan"] = True
+				context["fanned"] = []#[] must be passed, otherwise code fails
+	else:
+		user_id = None
+		is_defender = False
+		own_profile = False
+		context["authenticated"] = False
+		context["not_fan"] = True
+		context["own_profile"] = False
+	context["mobile_verified"] = request.mobile_verified if own_profile else is_mobile_verified(star_id)
+	###########
+	banned, time_remaining, ban_details = check_content_and_voting_ban(star_id, with_details=True)
+	context["ban_detail"] = ban_details
+	context["is_profile_banned"] = banned
+	context["noindex"] = True if (banned or not context["mobile_verified"]) else False
+	context["defender"] = is_defender
+	context["time_remaining"] = time_remaining
+	###########
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+	context["on_opera"] = True if (not on_fbs and not is_js_env) else False
+	###########
+	context["subject"] = subject
+	context["star_id"] = star_id
+	context["star_av_url"] = retrieve_avurl(star_id)
+	total_fans, recent_fans = get_photo_fan_count(star_id)
+	if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
+		ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
+		populate_search_thumbs.delay(star_id,ids_with_urls)
+	context["page_obj"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+	'previous_page_number':page_num-1,'next_page_number':page_num+1}
+	################### Retention activity logging ###################
+	if user_id:
+		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+			time_now = time.time()
+			act = 'A3' if request.mobile_verified else 'A3.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place
+			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	##################################################################
+	return render(request,"user_detail1.html",context)
+
+
+# class UserProfilePhotosView(ListView):
+# 	"""
+# 	Renders a user's photo page
+# 	"""
+# 	model = Photo
+# 	template_name = "user_detail1.html"
+# 	paginate_by = 10
+
+# 	def get_queryset(self):
+# 		username = self.kwargs.get('slug',None)
+# 		list_type = self.kwargs.get('type',None)
+# 		if username and list_type in ('fotos','trending-fotos'):
+# 			target_id = retrieve_user_id(username)
+# 			if target_id:
+# 				if list_type == 'fotos':
+# 					# retrieve latest images uploaded by the user
+# 					return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count','device').filter(owner_id=target_id,\
+# 						category='1').order_by('-upload_time')
+# 				else:
+# 					# retrieve past week's trending images
+# 					photo_ids = retrieve_trending_photo_ids(target_id)
+# 					if photo_ids:
+# 						return Photo.objects.only('id','caption','image_file','vote_score','upload_time','comment_count').filter(id__in=photo_ids).\
+# 						order_by('-upload_time')
+# 					else:
+# 						return []
+# 			else:
+# 				log_404.delay(type_of_404='1b',time_of_404=time.time())
+# 				raise Http404("This user does not exist")
+# 		else:
+# 			log_404.delay(type_of_404='1a',time_of_404=time.time())
+# 			raise Http404("No username provided or malformed type")
+
+
+# 	def get_context_data(self, **kwargs):
+# 		context = super(UserProfilePhotosView, self).get_context_data(**kwargs)
+# 		username = self.kwargs["slug"]
+# 		try:
+# 			subject = User.objects.only('id','date_joined').get(username=username)
+# 		except User.DoesNotExist:
+# 			log_404.delay(type_of_404='1c',time_of_404=time.time())
+# 			raise Http404("User ID does not compute")
+# 		list_type = self.kwargs["type"]
+# 		if list_type == 'trending-fotos':
+# 			context["is_trending"] = True
+# 		context["slug"] = username
+# 		star_id = subject.id
+# 		context["num_trending"] = retrieve_num_trending_photos(star_id)
+# 		if self.request.user:
+# 			user_id = self.request.user.id
+# 			context["user_id"] = user_id
+# 			context["origin"] = '4'#helps redirect back to this page if a user enters the "report" funnel
+# 			context["authenticated"] = True
+# 			is_defender, is_super_defender = in_defenders(user_id, return_super_status=True)
+# 			if is_super_defender:
+# 				context["manageable"] = True
+# 			own_profile = star_id == user_id
+# 			context["own_profile"] = own_profile
+# 			if not own_profile:
+# 				# someone else's profile AND user is logged in
+# 				context["subject_id"] = star_id
+# 				if is_fan(star_id, user_id):
+# 					context["not_fan"] = False
+# 					context["fanned"] = [str(star_id)]
+# 				else:
+# 					context["not_fan"] = True
+# 					context["fanned"] = []#[] must be passed, otherwise code fails
+# 		else:
+# 			user_id = None
+# 			is_defender = False
+# 			own_profile = False
+# 			context["authenticated"] = False
+# 			context["not_fan"] = True
+# 			context["own_profile"] = False
+# 		context["mobile_verified"] = self.request.mobile_verified if own_profile else is_mobile_verified(star_id)
+# 		###########
+# 		banned, time_remaining, ban_details = check_content_and_voting_ban(star_id, with_details=True)
+# 		context["ban_detail"] = ban_details
+# 		context["is_profile_banned"] = banned
+# 		context["noindex"] = True if (banned or not context["mobile_verified"]) else False
+# 		context["defender"] = is_defender
+# 		context["time_remaining"] = time_remaining
+# 		###########
+# 		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
+# 		is_js_env = retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+# 		context["on_opera"] = True if (not on_fbs and not is_js_env) else False
+# 		###########
+# 		context["subject"] = subject
+# 		context["star_id"] = star_id
+# 		context["star_av_url"] = retrieve_avurl(star_id)
+# 		context["legit"] = FEMALES
+# 		total_fans, recent_fans = get_photo_fan_count(star_id)
+# 		if random.random() < 0.33 and context["object_list"] and search_thumbs_missing(star_id):
+# 			ids_with_urls = [(photo.id,photo.image_file.url) for photo in context["object_list"][:5]]
+# 			populate_search_thumbs.delay(star_id,ids_with_urls)
+# 		return context
+
+
+
+# 	def get(self, request, *args, **kwargs):
+# 		self.object_list = self.get_queryset()
+# 		allow_empty = self.get_allow_empty()
+# 		if not allow_empty:
+# 			# When pagination is enabled and object_list is a queryset,
+# 			# it's better to do a cheap query than to load the unpaginated
+# 			# queryset in memory.
+# 			if (self.get_paginate_by(self.object_list) is not None
+# 				and hasattr(self.object_list, 'exists')):
+# 				is_empty = not self.object_list.exists()
+# 			else:
+# 				is_empty = len(self.object_list) == 0
+# 			if is_empty:
+# 				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
+# 						% {'class_name': self.__class__.__name__})
+# 		context = self.get_context_data(object_list=self.object_list)
+# 		target_id = self.request.session.pop("photograph_id",None)
+# 		if target_id:
+# 			try:
+# 				index = list(photo.id for photo in self.object_list).index(int(target_id))
+# 			except:
+# 				index = None
+# 			if 0 <= index <= 9:
+# 				addendum = '#section'+str(index+1)
+# 			elif 10 <= index <= 19:
+# 				addendum = '?page=2#section'+str(index+1-10)
+# 			elif 20 <= index <= 29:
+# 				addendum = '?page=3#section'+str(index+1-20)
+# 			elif 30 <= index <= 39:
+# 				addendum = '?page=4#section'+str(index+1-30)
+# 			elif 40 <= index <= 49:
+# 				addendum = '?page=5#section'+str(index+1-40)
+# 			elif 50 <= index <= 59:
+# 				addendum = '?page=6#section'+str(index+1-50)
+# 			elif 60 <= index <= 69:
+# 				addendum = '?page=7#section'+str(index+1-60)
+# 			elif 70 <= index <= 79:
+# 				addendum = '?page=8#section'+str(index+1-70)
+# 			elif 80 <= index <= 89:
+# 				addendum = '?page=9#section'+str(index+1-80)
+# 			elif 90 <= index <= 99:
+# 				addendum = '?page=10#section'+str(index+1-90)
+# 			elif 100 <= index <= 109:
+# 				addendum = '?page=11#section'+str(index+1-100)
+# 			elif 110 <= index <= 119:
+# 				addendum = '?page=12#section'+str(index+1-110)
+# 			elif 120 <= index <= 129:
+# 				addendum = '?page=13#section'+str(index+1-120)
+# 			elif 130 <= index <= 139:
+# 				addendum = '?page=14#section'+str(index+1-130)
+# 			elif 140 <= index <= 149:
+# 				addendum = '?page=15#section'+str(index+1-140)
+# 			elif 150 <= index <= 159:
+# 				addendum = '?page=16#section'+str(index+1-150)
+# 			elif 160 <= index <= 169:
+# 				addendum = '?page=17#section'+str(index+1-160)
+# 			elif 170 <= index <= 179:
+# 				addendum = '?page=18#section'+str(index+1-170)
+# 			elif 180 <= index <= 189:
+# 				addendum = '?page=19#section'+str(index+1-180)
+# 			elif 190 <= index <= 199:
+# 				addendum = '?page=20#section'+str(index+1-190)
+# 			else:
+# 				addendum = '#section0'        
+# 			return HttpResponseRedirect(addendum)
+# 		else:
+# 			return self.render_to_response(context)
 
 
 

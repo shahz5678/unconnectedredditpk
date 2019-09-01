@@ -30,8 +30,7 @@ unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,susp
 fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 first_time_unseen_refresh, missing_page, home_reply,photo_page, photo_redirect,upload_public_photo, website_rules, photo_comment,\
 public_reply_view, post_public_reply,redirect_to_profile_photos,public_photo_upload_denied, hide_jawab, hide_comment, logout_rules,\
-unseen_reply, sitemap, photo_sitemap, photo_sitemap_of_sitemaps, export_retention_activity_log, user_profile_photos, submit_text_post,\
-user_profile_photos_redirect
+unseen_reply, sitemap, photo_sitemap, photo_sitemap_of_sitemaps, user_profile_photos, submit_text_post, user_profile_photos_redirect
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import FacesHelpView, TopView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView,\

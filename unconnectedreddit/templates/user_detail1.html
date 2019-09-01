@@ -27,7 +27,7 @@
     {% endif %}
   {% else %}
     {% load get_group_button %}
-    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if slug in legit %}<img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="16" width="16">&nbsp;{% endif %}{% if is_trending %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s trending images</span>:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s shared images</span>:{% endif %}</h1>
+    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if is_trending %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s trending images</span>:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s shared images</span>:{% endif %}</h1>
   {% endif %}
   </div>
 
@@ -106,7 +106,7 @@
           {% big_photo_comment_button photo_id=photo.id origin='4' comm_count=photo.comment_count static_url=STATIC_URL star_id=star_id %}
           {% big_send_button photo_owner_username=slug photo_id=photo.id photo_owner_id=star_id photo_caption=photo.caption origin='4' img_url=photo.image_file static_url=STATIC_URL %}
           {% big_external_share_button owner_username=slug on_opera=on_opera photo_id=photo.id origin='4' static_url=STATIC_URL owner_id=star_id sharer_id=user_id js_class='wa-sharing' sharing_type='wa' %}
-          {% if star_id == user_id %}{% big_points_button obj_id=photo.id owner_id=star_id is_pht=1 origin='4' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}{% endif %}
+          {% if star_id == user_id|stringformat:"i" %}{% big_points_button obj_id=photo.id owner_id=star_id is_pht=1 origin='4' net_votes=photo.vote_score base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}{% endif %}
           </div>
         </div>
 

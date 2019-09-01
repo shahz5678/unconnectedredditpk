@@ -1225,12 +1225,6 @@ def user_profile_photos_redirect(request, slug, list_type):
 			url = reverse_lazy("profile",kwargs={'slug':slug,"type": list_type})+'?page=1#section0'
 	else:
 		url = reverse_lazy("profile",kwargs={'slug':slug,"type": list_type})+'?page=1#section0'
-	############################################
-	############################################
-	if own_id:
-		request.session['rd'] = '1'#used by retention activity loggers in home_page() - remove whenever
-	############################################
-	############################################
 	return redirect(url)
 
 
@@ -1332,15 +1326,6 @@ def user_profile_photos(request,slug,type):
 		populate_search_thumbs.delay(star_id,ids_with_urls)
 	context["page_obj"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
-	################### Retention activity logging ###################
-	if user_id:
-		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			act = 'A3' if request.mobile_verified else 'A3.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-	##################################################################
 	return render(request,"user_detail1.html",context)
 
 

@@ -1215,12 +1215,10 @@ def user_profile_photos_redirect(request, slug, list_type):
 		PICS_PER_PAGE = 10
 		obj_id_list = Photo.objects.only('id').filter(owner_id=owner_id,category='1').order_by('-id').values_list('id',flat=True)
 		if obj_id_list:
-			target_id, index = int(target_id), 0
-			for obj_id in obj_id_list:
-				if target_id == obj_id:
-					break
-				else:
-					index += 1
+			try:
+				index = list(obj_id_list).index(int(target_id))
+			except:
+				index = 0
 			addendum = get_addendum(index,PICS_PER_PAGE, only_addendum=True)
 			url = reverse_lazy("profile",kwargs={'slug':slug,"type": list_type})+addendum
 		else:

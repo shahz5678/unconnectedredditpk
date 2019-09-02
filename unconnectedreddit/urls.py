@@ -30,17 +30,17 @@ unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,susp
 fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 first_time_unseen_refresh, missing_page, home_reply,photo_page, photo_redirect,upload_public_photo, website_rules, photo_comment,\
 public_reply_view, post_public_reply,redirect_to_profile_photos,public_photo_upload_denied, hide_jawab, hide_comment, logout_rules,\
-unseen_reply, sitemap, photo_sitemap, photo_sitemap_of_sitemaps, submit_text_post
+unseen_reply, sitemap, photo_sitemap, photo_sitemap_of_sitemaps, user_profile_photos, submit_text_post, user_profile_photos_redirect
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
-from links.views import TopView, UserProfilePhotosView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView,\
+from links.views import FacesHelpView, TopView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView,\
 PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView,\
 PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, \
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
 AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, UserSettingsEditView, UserProfileDetailView, UserProfileEditView,\
 CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView,\
-AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, FacesHelpView, AdTitleYesNoView, \
-AdImageYesNoView,AdImageView, AdAddressView
+AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, AdTitleYesNoView, AdImageYesNoView,\
+AdImageView, AdAddressView#, UserProfilePhotosView
 from links.voting_views import user_vote_history
 from links.announcement_views import export_survey_results#, survey
 from links.group_views import show_shared_photo_metrics
@@ -75,7 +75,8 @@ urlpatterns = patterns('',
 	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
 	url(r'^user/likes/history/$', auth(user_vote_history), name='user_vote_history'),
-	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', UserProfilePhotosView.as_view(), name='profile'),
+	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', user_profile_photos, name='profile'),
+	url(r'^user/redirect/(?P<slug>[\w.@+-]+)/(?P<list_type>[\w.@+-]+)/$', user_profile_photos_redirect, name='profile_photos_redirect'),
 	url(r'^usrp/(?P<slug>[\w.@+-]+)/(?P<key>\d+)/$', profile_pk, name='profile_pk'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/$', user_profile_photo, name='user_profile_photo'),
 	url(r'^user_prof/(?P<slug>[\w.@+-]+)/(?P<photo_pk>\d+)/(?P<is_notif>\d+)/$', user_profile_photo, name='user_profile_photo'),

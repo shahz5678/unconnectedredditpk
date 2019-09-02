@@ -3089,7 +3089,7 @@ def personal_group_notif_prompts(request):
 
 groups_of_interest = []
 
-def export_chat_logs(request, log_type='sp'):
+def export_chat_logs(request, log_type='oo'):
 	"""
 	Exports chat logs for viewing in a CSV
 	"""
@@ -3101,8 +3101,8 @@ def export_chat_logs(request, log_type='sp'):
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		# data_to_write_to_csv = retrieve_chat_records(log_type)# list of lists (where each list is a list of dictionaries)
-		data_to_write_to_csv = retrieve_chat_records(groups_of_interest, by_group_id=True)# list of lists (where each list is a list of dictionaries)
+		data_to_write_to_csv = retrieve_chat_records(log_type)# list of lists (where each list is a list of dictionaries)
+		# data_to_write_to_csv = retrieve_chat_records(groups_of_interest, by_group_id=True)# list of lists (where each list is a list of dictionaries)
 		if data_to_write_to_csv:
 			import csv
 			filename = 'chat_data_{}.csv'.format(log_type)
@@ -3158,5 +3158,3 @@ def export_chat_counts(request):
 					to_write = [group_id,chat_type,exact_date(creation_epoch_time),int(creation_epoch_time/ONE_DAY),int(chat_count)]
 					wtr.writerows([to_write])
 	raise Http404("Completed :-)")
-
-

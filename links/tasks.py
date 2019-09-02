@@ -218,11 +218,11 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 		elif txt_type == 'exited':
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
 		################### Logging 1on1 message ###################
-		if txt_type == 'shared_img':
-			payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
-		else:
-			payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
-		log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
+		# if txt_type == 'shared_img':
+		# 	payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
+		# else:
+		# 	payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
+		# log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
 		##############################################################
 
 @celery_app1.task(name='tasks.update_notif_object_anon')

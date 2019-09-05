@@ -1,5 +1,6 @@
 import redis, time
 import ujson as json
+from operator import itemgetter
 from collections import defaultdict
 from retention_experiments import EXP
 from redis3 import exact_date
@@ -10,7 +11,7 @@ TWO_WEEKS = 1209600# in seconds
 
 COHORT_TIME_LENGTH = 86400#i.e. set to '1 day' (in secs)
 
-USER_ACTION_STORE = 'uas'#global sorted set that logs all post requests by users (useful for segment analysis)
+USER_ACTIVITY_STORE = 'uactivity'# global sorted set containing comprehensive logs of new user actions across the product
 GLOBAL_EXP_USERS = 'geu'#global sorted set containing all users who're part of an experiment
 UVAR = 'u:'# holds an identifier for every user, used to identify the said user within the said variation (useful for retention analysis)
 
@@ -184,15 +185,135 @@ def retention_clean_up(which_var):
 ##################################################################################################################################
 
 
-def log_segment_action(user_id, segment_age, action_categ, action_sub_categ, action_liq, time_of_action):
+def log_activity(user_id, activity_dict, time_now):
 	"""
-	Logs actions taken by users at various world ages
+	Logging all user activity for finding the drivers of user retention
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
 
-	Useful for mapping user journeys from 0 to inifinity
-	User journeys can shed light on what are most frequent actions taken by retained users
+	# the cohort this user originally belonged to
+	cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
+
+	if cohort_id:
+
+		# the cohort active right now
+		cohort_id_now = retrieve_cohort(time_now)
+
+		# the user of variation 'which_var' is returning on 'which_day'
+		which_day = DAY_NAMES[cohort_id_now-cohort_id]
+
+		if which_day in ('d0','d1','d2','d3','d4','d5','d6','d7'):
+			# log the action if it's d0, d1,... d7 only
+			activity_dict['day'], activity_dict['cid'] = which_day, cohort_id
+			my_server.zadd(USER_ACTIVITY_STORE, json.dumps(activity_dict), user_id)
+		else:
+			# no need to log the action - we're not studying anything beyond d7 at this moment
+			pass
+
+
+def retrieve_retention_activity_raw_records():
 	"""
-	payload = str(user_id)+":"+str(segment_age)+":"+action_categ+":"+action_sub_categ+":"+action_liq+":"+str(time_of_action)
-	redis.Redis(connection_pool=POOL).zadd(USER_ACTION_STORE, payload, time_of_action)
+	Returns sorted data logged for measuring retention activity
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	all_activity = my_server.zrange(USER_ACTIVITY_STORE,0,-1,withscores=True)
+	final_result = []
+	for json_activity, user_id in all_activity:
+		activity = json.loads(json_activity)
+		final_result.append((activity,int(activity['cid']),int(user_id),str(activity['day']),float(activity['t'])))
+	return sorted(final_result,key=itemgetter(1,2,3,4))
+
+
+def compile_activity_occurence_rows():
+	"""
+	Re-arranges data in a way to make it usable for producing 'occurence' matrices
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	all_activity = my_server.zrange(USER_ACTIVITY_STORE,0,-1,withscores=True)
+	
+	readable_activity_data = []
+	user_actions = defaultdict(set)
+	for json_activity, user_id in all_activity:
+		user_id = int(user_id)
+		activity = json.loads(json_activity)
+		readable_activity_data.append((activity,user_id))
+		key = str(int(activity['cid']))+":"+activity['day']+":"+str(user_id)
+		user_actions[str(key)].add(str(activity['act']))# activity type performed by user_id
+
+	############ Isolate user experiment variations ############
+	user_exp_variations = defaultdict(list)
+	for activity, user_id in readable_activity_data:
+		activity_string = str(activity['act'])
+		time_of_activity = float(activity['t'])
+		if activity_string in ('V1','V2','V3','V4'):
+			user_exp_variations[user_id].append((activity_string,time_of_activity))
+
+	user_variation_strings = {}
+	for user_id, variations_and_times in user_exp_variations.iteritems():
+		sorted_variations_and_times = sorted(variations_and_times,key=itemgetter(1))
+		variation_string = ''
+		for tup in sorted_variations_and_times:
+			variation_string += tup[0]
+		user_variation_strings[user_id] = variation_string
+
+	############################################################
+
+	data_list = []
+	for action_key in user_actions.keys():
+		data = action_key.split(":")
+		user_id = data[2]
+		data_list.append((int(data[0]),int(data[1][1]),int(user_id)))
+	
+	return sorted(data_list, key=itemgetter(0,1,2)), user_actions, user_variation_strings
+
+
+def compile_activity_frequency_rows():
+	"""
+	Re-arranges data in a way to make it usable for producing 'frequency' matrices
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	all_activity = my_server.zrange(USER_ACTIVITY_STORE,0,-1,withscores=True)
+
+	readable_activity_data = []
+	user_actions = defaultdict(lambda: defaultdict(int))
+	for json_activity, user_id in all_activity:
+		user_id = int(user_id)
+		activity = json.loads(json_activity)
+		readable_activity_data.append((activity,user_id))
+		key = str(int(activity['cid']))+":"+activity['day']+":"+str((int(user_id)))
+		user_actions[str(key)][str(activity['act'])] += 1
+
+	############ Isolate user experiment variations ############
+	user_exp_variations = defaultdict(list)
+	for activity, user_id in readable_activity_data:
+		activity_string = str(activity['act'])
+		time_of_activity = float(activity['t'])
+		if activity_string in ('V1','V2','V3','V4'):
+			user_exp_variations[user_id].append((activity_string,time_of_activity))
+
+	user_variation_strings = {}
+	for user_id, variations_and_times in user_exp_variations.iteritems():
+		sorted_variations_and_times = sorted(variations_and_times,key=itemgetter(1))
+		variation_string = ''
+		for tup in sorted_variations_and_times:
+			variation_string += tup[0]
+		user_variation_strings[user_id] = variation_string
+
+	############################################################
+
+	data_list = []
+	for action_key in user_actions.keys():
+		data = action_key.split(":")
+		data_list.append((int(data[0]),int(data[1][1]),int(data[2])))
+	
+	return sorted(data_list, key=itemgetter(0,1,2)), user_actions, user_variation_strings
+	
+	
+
+####################################
+
+
+USER_ACTION_STORE = 'uas'#global sorted set that logs all post requests by users (useful for segment analysis)
 
 
 def retrieve_all_logged_actions(start_idx=0, end_idx=-1):

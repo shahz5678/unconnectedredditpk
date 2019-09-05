@@ -1,14 +1,16 @@
 from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
-from links.retention_views import export_logged_users_and_times, display_retention, reset_retention_counters, export_logged_actions
+from links.retention_views import display_retention, export_retention_activity_raw_log, export_retention_activity_occurrence_log,\
+export_retention_activity_frequency_log, export_logged_actions#, reset_retention_counters
 
 admin.autodiscover()
 
 urlpatterns = patterns('',
-	url(r'^export_logged_users/$', auth(export_logged_users_and_times), name='export_logged_users'),
+	url(r'^retention/(?P<variation>[\w.@+-]+)/$', auth(display_retention), name='display_retention'),
+	url(r'^retention/export/raw/$', auth(export_retention_activity_raw_log), name='export_retention_activity_raw_log'),
+	url(r'^retention/export/freq/$', auth(export_retention_activity_frequency_log), name='export_retention_activity_frequency_log'),
+	url(r'^retention/export/occur/$', auth(export_retention_activity_occurrence_log), name='export_retention_activity_occurrence_log'),
 	#################################################################################################
 	url(r'^export/actions/$', auth(export_logged_actions), name='export_logged_actions'),
-	url(r'^retention/delete/$', auth(reset_retention_counters), name='reset_retention_counters'),
-	url(r'^retention/(?P<variation>[\w.@+-]+)/$', auth(display_retention), name='display_retention'),
 )

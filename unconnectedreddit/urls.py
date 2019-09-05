@@ -210,7 +210,6 @@ urlpatterns = patterns('',
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
 	url(r'^survey/export/$', auth(export_survey_results), name='export_survey_results'),
-	# url(r'^retention-activity/export/$', auth(export_retention_activity_log), name='export_retention_activity_log'),
 	#################################################################################################
 	############################# Permanent redirects ###############################################
 	url(r'^freshphotos/$', auth(fresh_photos_list), name='fresh_photos_list'),

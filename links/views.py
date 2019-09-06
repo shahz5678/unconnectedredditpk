@@ -3708,7 +3708,7 @@ def public_reply_view(request,parent_id,*args,**kwargs):
 	if replies:
 		replies_data = json.loads(replies)
 	else:
-		replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
+		replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username').\
 		values('submitted_on','description','id','submitted_by','abuse','submitted_by__username').filter(answer_to_id=parent_id).\
 		order_by('-id')[:25]
 		for reply in replies_data:

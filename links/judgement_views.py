@@ -18,12 +18,12 @@ from views import get_price, get_addendum, get_page_obj, convert_to_epoch
 from redirection_views import return_to_content
 from judgement_forms import PhotoReportForm, DefenderBlockingReasonForm, AddDefenderIDForm, RemDefenderIDForm
 from tasks import process_reporter_payables, sanitize_expired_bans, post_banning_tasks, remove_target_users_posts_from_all_feeds,\
-delete_temporarily_saved_content_data
+delete_temporarily_saved_content_data, log_user_activity
 from redis3 import set_inter_user_ban, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
 save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, tutorial_unseen, retrieve_user_world_age
 from score import PHOTO_REPORT_PROMPT,TEXT_REPORT_PROMPT, HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES,\
 MEHFIL_REPORT_PROMPT, PROFILE_REPORT_PROMPT, GET_TEXT_REPORT_HELP_LABEL, GET_PHOTO_REPORT_HELP_LABEL, GET_PROFILE_REPORT_HELP_LABEL,\
-GET_MEHFIL_REPORT_HELP_LABEL
+GET_MEHFIL_REPORT_HELP_LABEL, SEGMENT_STARTING_USER_ID
 from redis7 import get_complaint_details, has_super_privilege, get_content_complaints, delete_complaint, \
 get_num_complaints, in_defenders, get_votes, rate_limit_complainer, in_defs_forever, get_complainer_ids, retrieve_top_complainer_reputation, \
 log_banning, get_defenders_ledger, get_global_admins_ledger, is_content_voting_closed, remove_defender, get_payables, retrieve_all_defenders, \
@@ -168,6 +168,13 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					time_now = time.time()
 					banned, ttl = set_inter_user_ban(own_id=user_id, target_id=target_user_id, target_username=target_username, \
 						ttl=CONVERT_DUR_CODE_TO_DURATION[second_decision], time_now=time_now, can_unban=can_unban)
+					################### Retention activity logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'J' if request.mobile_verified else 'J.u'
+						activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
 					if banned is None and ttl:
 						request.session["user_ban_cooloff_username"] = target_username
 						request.session["user_ban_cooloff_ttl"] = ttl
@@ -223,6 +230,13 @@ def enter_inter_user_ban(request,*args,**kwargs):
 			elif target_user_id != user_id:
 				target_username = retrieve_uname(target_user_id,decode=True)
 				if target_username:
+					################### Retention activity logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z11' if request.mobile_verified else 'Z11.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_user_id}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
 					save_ban_target_credentials(own_id=user_id, target_id=target_user_id, target_username=target_username)
 					banner_id, existing_ttl = is_already_banned(own_id=user_id, target_id=target_user_id, return_banner=True)# already banned by the user
 					orig = request.POST.get("orig",None)
@@ -1930,7 +1944,12 @@ def report_content(request,*args,**kwargs):
 								return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 							else:
 								#charge the price and send the report
-								# UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
+								################### Retention activity logging ###################
+								if own_id > SEGMENT_STARTING_USER_ID:
+									time_now = time.time()
+									activity_dict = {'m':'GET','act':'K','t':time_now,'ot':tp}# defines what activity just took place
+									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+								##################################################################
 								return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':dup_obid,'oun':oun,'tp':tp,\
 									'payload':dup_description if tp == 'tx' else dup_image,'lid':lid})
 						else:
@@ -1992,7 +2011,12 @@ def report_content(request,*args,**kwargs):
 									return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 								else:
 									#go ahead and charge the price
-									# UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
+									################### Retention activity logging ###################
+									if own_id > SEGMENT_STARTING_USER_ID:
+										time_now = time.time()
+										activity_dict = {'m':'POST','act':'K','t':time_now,'ot':tp}# defines what activity just took place
+										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									##################################################################
 									return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':obid,'oun':oun,'tp':tp,\
 										'payload':description if tp == 'tx' else purl,'lid':lid})
 							except (TypeError,AttributeError):
@@ -2039,6 +2063,13 @@ def report_content(request,*args,**kwargs):
 						return return_to_content(request,orig,obid,lid,oun)
 				else:
 				# show options with radio buttons to reporting user (this is screen 1, it's the default people land on)
+					################### Retention activity logging ###################
+					if own_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z12' if request.mobile_verified else 'Z12.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
 					own_id = str(own_id)
 					# score = request.user.userprofile.score
 					# price_of_report = get_price(score)

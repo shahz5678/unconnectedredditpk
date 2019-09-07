@@ -45,8 +45,8 @@ add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_subm
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
-from redis8 import set_variation_wise_retention, log_segment_action
 # from redis9 import delete_all_direct_responses_between_two_users
+from redis8 import set_variation_wise_retention, log_activity
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -218,11 +218,11 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 		elif txt_type == 'exited':
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
 		################### Logging 1on1 message ###################
-		if txt_type == 'shared_img':
-			payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
-		else:
-			payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
-		log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
+		# if txt_type == 'shared_img':
+		# 	payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
+		# else:
+		# 	payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
+		# log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
 		##############################################################
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
@@ -397,13 +397,12 @@ def calc_ecomm_metrics():
 # 							# log_spam_text_writer(user_id, text)
 
 
-@celery_app1.task(name='tasks.log_action')
-def log_action(user_id, action_categ, action_sub_categ, action_liq, time_of_action):
+@celery_app1.task(name='tasks.log_user_action')
+def log_user_activity(user_id, activity_dict, time_now):
 	"""
-	Logs user action for segment analysis
+	Logs user actions for retention analysis
 	"""
-	hours_since_start_of_segment = int((time_of_action - SEGMENT_STARTING_TIME)/3600.0)
-	log_segment_action(user_id, hours_since_start_of_segment, action_categ, action_sub_categ, action_liq, time_of_action)
+	log_activity(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 
 
 @celery_app1.task(name='tasks.set_section_retention')

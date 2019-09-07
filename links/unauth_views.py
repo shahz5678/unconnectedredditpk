@@ -10,7 +10,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
 from django.middleware import csrf
 from redis7 import account_creation_disallowed
-from tasks import registration_task, send_user_pin, log_action
+from tasks import registration_task, send_user_pin
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
@@ -468,10 +468,6 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 				#############
 				#############
 				#############
-				################### Segment action logging ###################
-				if user.id > SEGMENT_STARTING_USER_ID:
-					log_action.delay(user_id=user.id, action_categ='Z', action_sub_categ='1', action_liq='l', time_of_action=time.time())
-				##############################################################
 				return redirect("new_user_gateway",lang=lang)
 			else:
 				# user couldn't be created because while user was deliberating, someone else booked the nickname! OR user tinkered with the username/password values

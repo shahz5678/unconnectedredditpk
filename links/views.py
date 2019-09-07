@@ -1416,9 +1416,15 @@ def user_profile_photos(request,slug,type):
 		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
 			time_now = time.time()
 			if list_type == 'trending-fotos':
-				act = 'A4' if request.mobile_verified else 'A4.u'
+				if own_profile:
+					act = 'A4' if request.mobile_verified else 'A4.u'
+				else:
+					act = 'A8' if request.mobile_verified else 'A8.u'
 			else:
-				act = 'A3' if request.mobile_verified else 'A3.u'
+				if own_profile:
+					act = 'A3' if request.mobile_verified else 'A3.u'
+				else:
+					act = 'A7' if request.mobile_verified else 'A7.u'
 			activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place
 			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
@@ -1478,7 +1484,10 @@ class UserProfileDetailView(FormView):
 				from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
 				if not from_redirect and int(user_id) > SEGMENT_STARTING_USER_ID:
 					time_now = time.time()
-					act = 'A2' if self.request.mobile_verified else 'A2.u'
+					if is_own_profile:
+						act = 'A2' if self.request.mobile_verified else 'A2.u'
+					else:
+						act = 'A6' if self.request.mobile_verified else 'A6.u'
 					activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place
 					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
@@ -3864,7 +3873,10 @@ class UserActivityView(ListView):
 				################### Retention activity logging ###################
 				if own_id > SEGMENT_STARTING_USER_ID:
 					time_now = time.time()
-					act = 'A1' if self.request.mobile_verified else 'A1.u'
+					if is_own_profile:
+						act = 'A1' if self.request.mobile_verified else 'A1.u'
+					else:
+						act = 'A5' if self.request.mobile_verified else 'A5.u'
 					activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_id}# defines what activity just took place
 					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################

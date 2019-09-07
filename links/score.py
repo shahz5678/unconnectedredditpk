@@ -524,10 +524,10 @@ J.u - blocking another user successfully (pvp), while unverified
 
 K - reported content
 
-F - searched a username, and some results were obtained
-F.u - searched a username, and some results were obtained (while unverified)
-F.i - searched a username (but no results obtained)
-F.u.i - searched a username (but no results obtained - while unverified)
+G - searched a username, and some results were obtained
+G.u - searched a username, and some results were obtained (while unverified)
+G.i - searched a username (but no results obtained)
+G.u.i - searched a username (but no results obtained - while unverified)
 
 E - public image shared in a 1on1, successfully
 E.i - invalid attempt at sharing a public image in a 1on1 (because no 1on1s selected, or none of the selected 1on1s have given img sharing perm)

@@ -25,7 +25,7 @@ def search_username(request):
 		if form.is_valid():
 			################### Retention activity logging ###################
 			if own_id > SEGMENT_STARTING_USER_ID:
-				act = 'F' if request.mobile_verified else 'F.u'
+				act = 'G' if request.mobile_verified else 'G.u'
 				activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
 				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
@@ -36,7 +36,7 @@ def search_username(request):
 		else:
 			################### Retention activity logging ###################
 			if own_id > SEGMENT_STARTING_USER_ID:
-				act = 'F.i' if request.mobile_verified else 'F.u.i'
+				act = 'G.i' if request.mobile_verified else 'G.u.i'
 				activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
 				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
@@ -44,7 +44,7 @@ def search_username(request):
 	else:
 		################### Retention activity logging ###################
 		if own_id > SEGMENT_STARTING_USER_ID:
-			act = 'F4' if request.mobile_verified else 'F4.u'
+			act = 'Z4' if request.mobile_verified else 'Z4.u'
 			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
 			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################

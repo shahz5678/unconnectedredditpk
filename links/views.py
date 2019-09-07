@@ -1476,7 +1476,7 @@ class UserProfileDetailView(FormView):
 			################### Retention activity logging ###################
 			if user_id:
 				from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
-				if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+				if not from_redirect and int(user_id) > SEGMENT_STARTING_USER_ID:
 					time_now = time.time()
 					act = 'A2' if self.request.mobile_verified else 'A2.u'
 					activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place

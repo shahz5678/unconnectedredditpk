@@ -173,7 +173,10 @@ def export_retention_activity_occurrence_log(request):
 					1 if actions[201] in set_of_user_actions else 0,1 if actions[202] in set_of_user_actions else 0,\
 					1 if actions[203] in set_of_user_actions else 0,1 if actions[204] in set_of_user_actions else 0,\
 					1 if actions[205] in set_of_user_actions else 0,1 if actions[206] in set_of_user_actions else 0,\
-					1 if actions[207] in set_of_user_actions else 0,1 if actions[208] in set_of_user_actions else 0]
+					1 if actions[207] in set_of_user_actions else 0,1 if actions[208] in set_of_user_actions else 0,\
+					1 if actions[209] in set_of_user_actions else 0,1 if actions[210] in set_of_user_actions else 0,\
+					1 if actions[211] in set_of_user_actions else 0,1 if actions[212] in set_of_user_actions else 0,\
+					1 if actions[213] in set_of_user_actions else 0]
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")
@@ -303,7 +306,9 @@ def export_retention_activity_frequency_log(request):
 					dict_of_user_actions.get(actions[202],0),dict_of_user_actions.get(actions[203],0),\
 					dict_of_user_actions.get(actions[204],0),dict_of_user_actions.get(actions[205],0),\
 					dict_of_user_actions.get(actions[206],0),dict_of_user_actions.get(actions[207],0),\
-					dict_of_user_actions.get(actions[208],0)]					
+					dict_of_user_actions.get(actions[208],0),dict_of_user_actions.get(actions[209],0),\
+					dict_of_user_actions.get(actions[210],0),dict_of_user_actions.get(actions[211],0),\
+					dict_of_user_actions.get(actions[212],0),dict_of_user_actions.get(actions[213],0)]					
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")

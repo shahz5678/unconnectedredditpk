@@ -283,8 +283,7 @@ MERCH = {
 ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
-SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
-SEGMENT_STARTING_USER_ID = 1979518# starting user ID of user segment analysis
+SEGMENT_STARTING_USER_ID = 1981778# starting user ID of user segment analysis
 PROJ_ZUCK_STARTING_USER_ID = 1975000
 
 """
@@ -294,14 +293,22 @@ note: we only log authenticated users. Non-auth users are not logged at the mome
 '.u' is added if the user is attempting the action while 'unverified'
 '.i' is added if the user is attempting an 'invalid' action (while verified)
 
-A1 - loaded home text history 
+A1 - loaded own home text history 
 A2 - loaded own about page
-A3 - loaded photos history page
-A4 - loaded photos trending history page
-A1.u - loaded home text history (while unverified)
-A2.u - loaded about page (while unverified)
-A3.u - loaded photos history page (while unverified)
-A4.u - loaded photos trending history page (while unverified)
+A3 - loaded own photos history page
+A4 - loaded own photos trending history page
+A5 - loaded other's home text history 
+A6 - loaded other's about page
+A7 - loaded other's photo history page
+A8 - loaded other's photo trending history page
+A1.u - loaded own home text history (while unverified)
+A2.u - loaded own about page (while unverified)
+A3.u - loaded own photos history page (while unverified)
+A4.u - loaded own photos trending history page (while unverified)
+A5.u - loaded other's home text history (while unverified)
+A6.u - loaded other's about page (while unverified)
+A7.u - loaded other's photo history page (while unverified)
+A8.u - loaded other's photo trending history page (while unverified)
 
 D - visited edit profile page
 D.u - visited edit profile page (while unverified)
@@ -379,8 +386,6 @@ N - became a fan
 N1 - unfan
 N.u - fanning attempt (while unverified)
 
-S1 - single notification response for a public text post (i.e. jawab via single notif)
-S2 - single notification response for a public photo post (i.e. a tabsra via single notif)
 S3 - single notification response for private mehfil (i.e. replying to private mehfil via single notif)
 S4 - single notification response for public mehfil (i.e. replying to public mehfil via single notif) 
 S5 - single notification response for 1on1 (i.e. replying to 1on1 via single notif)
@@ -417,6 +422,7 @@ M6.i - matka invalid photo comment
 M7.i - matka invalid home jawab
 
 V - voted on an object
+V.i - voted on an object (invalid)
 V.u - voted on an object (while unverified)
 
 V1 - selected 'var1' in the tutorial
@@ -449,7 +455,6 @@ U2 - visited unjoined public mehfil
 U3 - created public mehfil
 U4 - visited popular mehfil list
 U.u - attempted to join public mehfil (while unverified)
-U1.u - visited joined public mehfil (while unverified)
 U2.u - visited unjoined public mehfil (while unverified)
 U3.u - attempted to create a public mehfil (while unverified)
 U3.i - attempted to create a public mehfil (invalid)
@@ -461,7 +466,6 @@ W2 - posted in private mehfil
 W3 - posted in public mehfil
 W4 - posted in a topic (from within a topic)
 
-W1.u - attempted to post in 1on1 (while unverified)
 W2.u - attempted to post in private mehfil (while unverified)
 W3.u - attempted to post in public mehfil (while unverified)
 W4.u - attempted to post in a topic from within a topic (while unverified)

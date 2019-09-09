@@ -81,13 +81,13 @@ def log_activity(user_id, activity_dict, time_now, which_var=None):
 			# next, increment 'd0' of the current cohort (and set its expiry time)
 			cohort = EXP[which_var+'r']+str(cohort_id)
 			pipeline1.hincrby(cohort,which_day,amount=1)# counting as having hit 'd0'
-			pipeline1.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. days)
+			pipeline1.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. 13 days)
 
 			# stop the user_id from being logged again
 			pipeline1.sadd(USER_DAYS+which_day,user_id)
 
 			# finally, save the variation the user is a part of for retrieval later
-			pipeline1.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after 2 weeks, since we only care about the prev 13 cohorts (i.e. days)
+			pipeline1.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after TWO_WEEKS, since we only care about the prev 13 cohorts (i.e. 13 days)
 
 			pipeline1.execute()
 		#######################################
@@ -219,6 +219,12 @@ def retention_clean_up(which_var):
 # 		else:
 # 			# no need to log the action - we're not studying anything beyond d7 at this moment
 # 			pass
+
+def retrieve_var(user_id):
+	"""
+	Returns the variation a user is part of
+	"""
+	return redis.Redis(connection_pool=POOL).get(UVAR+str(user_id))
 
 
 def retrieve_retention_activity_raw_records():

@@ -1133,7 +1133,8 @@ def home_page(request, lang=None):
 	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
 	if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
 		time_now = time.time()
-		act = 'H' if is_mob_verified else 'H.u'
+		act = 'H' if page_num == 1 else 'H2'
+		act = act if is_mob_verified else act+'.u'
 		activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
 		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
@@ -1197,17 +1198,11 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 		choice = request.POST.get("choice",None)
 		if choice in ('1','2','3','4'):
 			request.session["newbie_flag"] = choice
-			############################################
-			############################################
-			from tasks import set_variation_retention
-			tut_string = 'var'+choice
-			set_variation_retention.delay(user_id,which_var=tut_string)
-			############################################
-			############################################
 			if user_id > SEGMENT_STARTING_USER_ID:
 				time_now = time.time()
+				request.session['rd'] = '1'
 				activity_dict = {'m':'POST','act':'V'+choice,'t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var'+choice)
 			############################################
 			############################################
 			return redirect("home")
@@ -1425,7 +1420,7 @@ def user_profile_photos(request,slug,type):
 					act = 'A3' if request.mobile_verified else 'A3.u'
 				else:
 					act = 'A7' if request.mobile_verified else 'A7.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place
+			activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id,'pg':page_num}# defines what activity just took place
 			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"user_detail1.html",context)
@@ -2369,6 +2364,7 @@ def photo_page(request,list_type='best-list'):
 			from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
 			if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
 				time_now = time.time()
+				char = char if page_num == 1 else char+'2'
 				act = char if mobile_verified else char+".u"
 				activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
 				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)

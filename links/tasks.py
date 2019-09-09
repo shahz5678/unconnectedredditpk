@@ -46,7 +46,7 @@ queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_t
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
 # from redis9 import delete_all_direct_responses_between_two_users
-from redis8 import set_variation_wise_retention, log_activity
+from redis8 import log_activity#, set_variation_wise_retention
 from redis3 import log_vote_disc
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
@@ -398,21 +398,21 @@ def calc_ecomm_metrics():
 
 
 @celery_app1.task(name='tasks.log_user_action')
-def log_user_activity(user_id, activity_dict, time_now):
+def log_user_activity(user_id, activity_dict, time_now, which_var=None):
 	"""
 	Logs user actions for retention analysis
 	"""
-	log_activity(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	log_activity(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var=which_var)
 
 
-@celery_app1.task(name='tasks.set_section_retention')
-def set_variation_retention(user_id, which_var=None):
-	"""
-	Logs users for retention calculation of various cohorts
+# @celery_app1.task(name='tasks.set_section_retention')
+# def set_variation_retention(user_id, which_var=None):
+# 	"""
+# 	Logs users for retention calculation of various cohorts
 
-	'which_var' is the name of an experimental variation currently under progress
-	"""
-	set_variation_wise_retention(user_id,which_var=which_var)
+# 	'which_var' is the name of an experimental variation currently under progress
+# 	"""
+# 	set_variation_wise_retention(user_id,which_var=which_var)
 
 
 @celery_app1.task(name='tasks.set_user_age')

@@ -369,7 +369,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_all_photos': {
 		'task': 'tasks.rank_all_photos',
-		'schedule': timedelta(seconds=5*60), #execute every 5 mins, spew best photo to trending
+		'schedule': timedelta(seconds=210), #execute every 3.5 mins, spew best photo to trending
 	},
 	'tasks.rank_all_photos1': {
 		'task': 'tasks.rank_all_photos1',

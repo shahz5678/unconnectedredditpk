@@ -13,6 +13,7 @@ from tasks import send_user_pin, save_consumer_credentials, increase_user_points
 from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME, SEGMENT_STARTING_USER_ID
 from views import convert_to_epoch
 from redis4 import retrieve_uname
+from redis8 import retrieve_var
 from models import UserProfile
 
 ############################## Number verification administration  #################################
@@ -208,7 +209,7 @@ def account_kit_verification_result(request):
 	if verification_successful:
 		request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
 		request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-		return render(request,"verification/reward_earned.html",{})
+		return render(request,"verification/reward_earned.html",{'user_var':retrieve_var(user_id=request.user.id)})
 	else:
 		verification_failed = request.session.pop("account_kit_verification_failed",'')
 		if verification_failed:

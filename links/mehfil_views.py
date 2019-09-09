@@ -95,13 +95,20 @@ def display_group_info_page(request):
 			group_owner_id, group_id, group_privacy = retrieve_group_owner_id(group_uuid=group_uuid,with_group_id=True,with_group_privacy=True)
 			own_id = request.user.id
 			if group_member_exists(group_id, own_id):
+				time_now = time.time()
 				is_public = False if group_privacy == '1' else True
+				###################### Retention activity logging ######################
+				if own_id > SEGMENT_STARTING_USER_ID:
+					act = 'U9' if is_public else 'R6'
+					activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				########################################################################
 				data = get_group_info(group_id, is_public = is_public)
 				data['uj'] = retrieve_group_joining_time(group_id, own_id)# this is different for each user, so retrieved separately
 				if is_public:
 					data['7nm'] = int(data['7nm']) if '7nm' in data else 0
 					if str(own_id) == group_owner_id:
-						log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
+						log_group_owner_interaction.delay(group_id=group_id, time_now=time_now)
 				return render(request,"mehfil/group_info.html",{'data':data,'guid':group_uuid, 'is_public':is_public})
 			else:
 				# not a member or group does not exist
@@ -589,6 +596,12 @@ def private_mehfil_oversight_dashboard(request):
 			return redirect("group_page")
 		if owner_id == own_id:
 			# group admin
+			###################### Retention activity logging ######################
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'R5','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
 			if help_decision in ('1','2','3','4','5','8'):
@@ -650,6 +663,12 @@ def private_mehfil_oversight_dashboard(request):
 				return render(request,"mehfil/private_group_administration.html",{'topic':data['tp'],'owner':True,'unique':group_uuid,'group_id':group_id})
 		elif group_member_exists(group_id, own_id):
 			# a regular member
+			###################### Retention activity logging ######################
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'R4','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
 			if help_decision in ('1','2','6','7','8'):
@@ -813,6 +832,12 @@ def public_mehfil_oversight_dashboard(request):
 			return redirect("group_page")
 		if owner_id == own_id:
 			# group admin
+			###################### Retention activity logging ######################
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'U7','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
 			log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
@@ -897,6 +922,12 @@ def public_mehfil_oversight_dashboard(request):
 				return render(request,"mehfil/public_group_administration.html",{'topic':data['tp'],'owner':True,'unique':group_uuid})
 		elif is_group_officer(group_id,own_id):
 			# group officer, can use their powers here
+			###################### Retention activity logging ######################
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'U6','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
 			if help_decision in ('2','3','5','7','8','9','10','12','13','14'):
@@ -1004,6 +1035,12 @@ def public_mehfil_oversight_dashboard(request):
 					'show_tut':tutorial_unseen(user_id=own_id, which_tut='30', renew_lease=True)})
 		elif group_member_exists(group_id, own_id):
 			# just an onlooker
+			###################### Retention activity logging ######################
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'U5','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
 			if help_decision in ('8','9','10','12','13','14','15','16'):
@@ -2237,14 +2274,21 @@ def private_group_hide_submission(request):
 				writer_id = retrieve_single_group_submission(group_id, submission_id, writer_id_only=True)# returns writer_id if hash exists
 				is_writer = str(own_id) == writer_id
 				is_member = group_member_exists(group_id, own_id)
+				time_now = time.time()
 				if is_group_owner and is_writer:
 					# can both hide and unhide the submission with impunity
 					if decision == 'h':
 						# hide
+						###################### Retention activity logging ######################
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						########################################################################
 						action_successful = hide_private_group_submission(group_id,submission_id,action_by='owner')
 						if action_successful:
 							####### construct and add to administrative activity #######
-							construct_administrative_activity.delay(own_id, writer_id, time.time(), group_id, 'hide', submission_id)
+							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'hide', submission_id)
 							############################################################
 						invalidate_cached_mehfil_replies(group_id)
 						invalidate_presence(group_id)
@@ -2252,10 +2296,16 @@ def private_group_hide_submission(request):
 						return redirect("private_group_reply")
 					else:
 						# unhide
+						###################### Retention activity logging ######################
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						########################################################################
 						action_successful = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
 						if action_successful:
 							####### construct and add to administrative activity #######
-							construct_administrative_activity.delay(own_id, writer_id, time.time(), group_id, 'unhide', submission_id)
+							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'unhide', submission_id)
 							############################################################
 						invalidate_cached_mehfil_replies(group_id)
 						invalidate_presence(group_id)
@@ -2265,10 +2315,16 @@ def private_group_hide_submission(request):
 					# can hide submission, can only unhide if hidden by self
 					if decision == 'h':
 						# hide
+						###################### Retention activity logging ######################
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						########################################################################
 						action_successful = hide_private_group_submission(group_id,submission_id,action_by='owner')
 						if action_successful:
 							####### construct and add to administrative activity #######
-							construct_administrative_activity.delay(own_id, writer_id, time.time(), group_id, 'hide', submission_id)
+							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'hide', submission_id)
 							############################################################
 						invalidate_cached_mehfil_replies(group_id)
 						invalidate_presence(group_id)
@@ -2278,8 +2334,14 @@ def private_group_hide_submission(request):
 						# can only unhide if it was hidden by group_owner, otherwise has no right to do it
 						action_successful = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
 						if action_successful:
+							###################### Retention activity logging ######################
+							if own_id > SEGMENT_STARTING_USER_ID:
+								request.session['rd'] = '1'
+								activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							########################################################################
 							####### construct and add to administrative activity #######
-							construct_administrative_activity.delay(own_id, writer_id, time.time(), group_id, 'unhide', submission_id)
+							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'unhide', submission_id)
 							############################################################
 							invalidate_cached_mehfil_replies(group_id)
 							invalidate_presence(group_id)
@@ -2292,10 +2354,16 @@ def private_group_hide_submission(request):
 					# ensure is_writer and currently a group member (i.e. wasn't kicked out for instance)
 					if decision == 'h':
 						# hide
+						###################### Retention activity logging ######################
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						########################################################################
 						action_successful = hide_private_group_submission(group_id,submission_id,action_by='writer')
 						if action_successful:
 							####### construct and add to administrative activity #######
-							construct_administrative_activity.delay(own_id, writer_id, time.time(), group_id, 'hide', submission_id)
+							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'hide', submission_id)
 							############################################################
 						invalidate_cached_mehfil_replies(group_id)
 						invalidate_presence(group_id)
@@ -2305,8 +2373,14 @@ def private_group_hide_submission(request):
 						# unhide, if possible
 						action_successful = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='writer')
 						if action_successful:
+							###################### Retention activity logging ######################
+							if own_id > SEGMENT_STARTING_USER_ID:
+								request.session['rd'] = '1'
+								activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							########################################################################
 							####### construct and add to administrative activity #######
-							construct_administrative_activity.delay(own_id, writer_id, time.time(), group_id, 'unhide', submission_id)
+							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'unhide', submission_id)
 							############################################################
 							invalidate_cached_mehfil_replies(group_id)
 							invalidate_presence(group_id)
@@ -2351,15 +2425,19 @@ def group_hide_submission(request, *args, **kwargs):
 			submission_exists = group_submission_exists(gid,pk)
 			if submission_exists and (is_group_officer(gid,own_id) or owner_id == str(own_id)):
 				# hide the submission:
+				time_now = time.time()
+				###################### Retention activity logging ######################
+				if own_id > SEGMENT_STARTING_USER_ID:
+					request.session['rd'] = '1'
+					activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				########################################################################
 				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk)#hides group submission and returns writer ID by default
 				if action_successful:
-					# if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-					#     # cut points only if the writer was NOT a group owner or a group officer
-					#     UserProfile.objects.filter(user_id=writer_id).update(score=F('score')-POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
-					construct_administrative_activity.delay(own_id, writer_id, time.time(), gid, 'hide', pk)
+					construct_administrative_activity.delay(own_id, writer_id, time_now, gid, 'hide', pk)
 					############################################################
 				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
 				return redirect(url)
@@ -2383,18 +2461,22 @@ def group_hide_submission(request, *args, **kwargs):
 			submission_exists = group_submission_exists(gid,pk)
 			if submission_exists and (is_group_officer(gid,own_id) or owner_id == str(own_id)):
 				# unhide the submission:
+				time_now = time.time()
+				###################### Retention activity logging ######################
+				if own_id > SEGMENT_STARTING_USER_ID:
+					request.session['rd'] = '1'
+					activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				########################################################################
 				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk,unhide=True)
 				if ttl:
 					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide':True,'unique':data['u'],'is_public':True,\
 						'ttl':ttl})
 				elif action_successful:
-					# if not is_group_officer(gid,writer_id) and owner_id != writer_id:
-					#     # return points only if the writer was NOT a group owner or a group officer
-					#     UserProfile.objects.filter(user_id=writer_id).update(score=F('score')+POINTS_DEDUCTED_WHEN_GROUP_SUBMISSION_HIDDEN)
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
-					construct_administrative_activity.delay(own_id, writer_id, time.time(), gid, 'unhide', pk)
+					construct_administrative_activity.delay(own_id, writer_id, time_now, gid, 'unhide', pk)
 					############################################################
 				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
 				return redirect(url)
@@ -2444,6 +2526,13 @@ def display_group_users_list(request, grp_priv, list_type):
 	group_owner_id, group_id = retrieve_group_owner_id(group_uuid=group_uuid,with_group_id=True)
 	if group_member_exists(group_id, own_id):
 		# user can view this groups listing
+		###################### Retention activity logging ######################
+		if own_id > SEGMENT_STARTING_USER_ID:
+			time_now = time.time()
+			act = 'U10' if group_privacy == '0' else 'R7'
+			activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		########################################################################
 		if list_type == 'visitors':
 			# this is for displaying recent visitors
 			attendance_data = retrieve_cached_attendance_data(group_id)
@@ -4828,6 +4917,12 @@ def public_group_guidance(request):
 		group_uuid = request.POST.get("guid",None)
 		own_id = request.user.id
 		group_owner_id, group_id = retrieve_group_owner_id(group_uuid=group_uuid, with_group_id=True)
+		###################### Retention activity logging ######################
+		if own_id > SEGMENT_STARTING_USER_ID:
+			time_now = time.time()
+			activity_dict = {'m':'POST','act':'U8','t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		########################################################################
 		if str(own_id) == group_owner_id:
 			# show owner instructions
 			return render(request,"mehfil/public_group_guidance.html",{'guid':group_uuid,'guide_type':'owner'})

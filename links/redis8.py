@@ -14,6 +14,7 @@ COHORT_TIME_LENGTH = 86400#i.e. set to '1 day' (in secs)
 USER_ACTIVITY_STORE = 'uactivity'# global sorted set containing comprehensive logs of new user actions across the product
 GLOBAL_EXP_USERS = 'geu'#global sorted set containing all users who're part of an experiment
 UVAR = 'u:'# holds an identifier for every user, used to identify the said user within the said variation (useful for retention analysis)
+USER_DAYS = 'ud:'# global sets holding user_ids visiting d0,d1, ... , dN 
 
 d1 = {0:'d0',1:'d1',2:'d2',3:'d3',4:'d4',5:'d5',6:'d6',7:'d7',8:'d8',9:'d9',10:'d10',11:'d11',12:'d12'}
 DAY_NAMES = defaultdict(lambda: 'd13+', d1)# populates DAY_NAMES by d1, and then uses 'd13+' as default value ('d13+' means 'd13 or more' - where d13 is included)
@@ -31,14 +32,14 @@ def retrieve_cohort(time_now):
 	return int(time_now/COHORT_TIME_LENGTH)
 
 
-def set_variation_wise_retention(user_id, which_var=None):
+def log_activity(user_id, activity_dict, time_now, which_var=None):
 	"""
 	Setting cohort-wise daily retention levels for visitors coming into a given experimental variation (defined by 'which_var' parameter)
 
 	This enables us to extract 'd1'-retention type metrics for the said experiment
 	Experiments could be first-time visitors coming into 'trending fotos', 'home', '1_on_1', etc
 	"""
-	time_now, user_id = time.time(), str(user_id)
+	user_id = str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	variation = my_server.get(UVAR+user_id)
 	if variation:
@@ -53,7 +54,6 @@ def set_variation_wise_retention(user_id, which_var=None):
 		# the cohort this user originally belonged to
 		cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
 
-		# if user_registration_time:
 		if cohort_id:
 			
 			cohort_id = int(cohort_id)
@@ -61,31 +61,40 @@ def set_variation_wise_retention(user_id, which_var=None):
 			# the user of variation 'which_var' is returning on 'which_day'
 			which_day = DAY_NAMES[cohort_id_now-cohort_id]
 
-			if which_day != 'd13+' and not my_server.exists(EXP[which_var+'rl']+user_id):
+			if which_day != 'd13+' and not my_server.sismember(USER_DAYS+which_day,user_id):
 
 				# increment 'dN' (e.g. d1, d5, d11, etc) of this particular time_cohort
 				my_server.hincrby(EXP[which_var+'r']+str(cohort_id), which_day, amount=1)
 
-				# rate limit user_id from being 'seen again' in this experiment (for the next COHORT_TIME_LENGTH - ie. 24 hours)
-				my_server.setex(EXP[which_var+'rl']+user_id, '1', COHORT_TIME_LENGTH)
+				# stop the user_id from being 'logged again' in this experiment
+				my_server.sadd(USER_DAYS+which_day,user_id)
+
 		else:
+			which_day = 'd0'
+			cohort_id = cohort_id_now
+
 			pipeline1 = my_server.pipeline()
 
 			# user is 'new', so 'register' them into the current cohort
-			pipeline1.zadd(GLOBAL_EXP_USERS,user_id,cohort_id_now)
+			pipeline1.zadd(GLOBAL_EXP_USERS,user_id,cohort_id)
 
 			# next, increment 'd0' of the current cohort (and set its expiry time)
-			cohort = EXP[which_var+'r']+str(cohort_id_now)
-			pipeline1.hincrby(cohort,'d0',amount=1)# counting as having hit 'd0'
+			cohort = EXP[which_var+'r']+str(cohort_id)
+			pipeline1.hincrby(cohort,which_day,amount=1)# counting as having hit 'd0'
 			pipeline1.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. days)
 
-			# next, rate limit user_id from being used again for the next 'COHORT_TIME_LENGTH' (or 24 hours)
-			pipeline1.setex(EXP[which_var+'rl']+user_id,'1',COHORT_TIME_LENGTH)# rate limit till: 'COHORT_TIME_LENGTH' (or 24 hrs) from the time of registration
+			# stop the user_id from being logged again
+			pipeline1.sadd(USER_DAYS+which_day,user_id)
 
 			# finally, save the variation the user is a part of for retrieval later
 			pipeline1.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after 2 weeks, since we only care about the prev 13 cohorts (i.e. days)
 
 			pipeline1.execute()
+		#######################################
+		if which_day in ('d0','d1','d2','d3','d4','d5','d6','d7'):
+			# log the action if it's d0, d1,... d7 only
+			activity_dict['day'], activity_dict['cid'] = which_day, cohort_id
+			my_server.zadd(USER_ACTIVITY_STORE, json.dumps(activity_dict), user_id)
 
 
 def report_section_wise_retention(which_var):
@@ -185,30 +194,31 @@ def retention_clean_up(which_var):
 ##################################################################################################################################
 
 
-def log_activity(user_id, activity_dict, time_now):
-	"""
-	Logging all user activity for finding the drivers of user retention
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
+# def log_activity(user_id, activity_dict, time_now):
+# 	"""
+# 	Logging all user activity for finding the drivers of user retention
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
 
-	# the cohort this user originally belonged to
-	cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
+# 	# the cohort this user originally belonged to
+# 	cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
 
-	if cohort_id:
+# 	if cohort_id:
 
-		# the cohort active right now
-		cohort_id_now = retrieve_cohort(time_now)
+# 		# the cohort active right now
+# 		cohort_id_now = retrieve_cohort(time_now)
 
-		# the user of variation 'which_var' is returning on 'which_day'
-		which_day = DAY_NAMES[cohort_id_now-cohort_id]
+# 		# the user of variation 'which_var' is returning on 'which_day'
+# 		which_day = DAY_NAMES[cohort_id_now-cohort_id]
 
-		if which_day in ('d0','d1','d2','d3','d4','d5','d6','d7'):
-			# log the action if it's d0, d1,... d7 only
-			activity_dict['day'], activity_dict['cid'] = which_day, cohort_id
-			my_server.zadd(USER_ACTIVITY_STORE, json.dumps(activity_dict), user_id)
-		else:
-			# no need to log the action - we're not studying anything beyond d7 at this moment
-			pass
+# 		if which_day in ('d0','d1','d2','d3','d4','d5','d6','d7'):
+# 			# log the action if it's d0, d1,... d7 only
+			
+# 			activity_dict['day'], activity_dict['cid'] = which_day, cohort_id
+# 			my_server.zadd(USER_ACTIVITY_STORE, json.dumps(activity_dict), user_id)
+# 		else:
+# 			# no need to log the action - we're not studying anything beyond d7 at this moment
+# 			pass
 
 
 def retrieve_retention_activity_raw_records():

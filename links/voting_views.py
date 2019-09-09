@@ -401,7 +401,7 @@ def show_handpicked_count(request):
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
 		count = retrieve_handpicked_photos_count()
-		hours_remaining = 0 if count == 0 else ((count*5.0)/60)
+		hours_remaining = 0 if count == 0 else ((count*3.5)/60)
 		hours = int(hours_remaining//1) if hours_remaining else 0
 		minutes = int((hours_remaining%1)*60) if hours_remaining else 0
 		return render(request,"voting/handpicked_count.html",{'count':count,'hours':hours,'minutes':minutes})

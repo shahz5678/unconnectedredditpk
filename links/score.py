@@ -319,11 +319,15 @@ D1.u - new avatar uploaded (while unverified)
 D2 - bio has been updated
 D2.u - bio has been updated (while unverified)
 
-H - landing on 'home' page
+H - landing on 'home' page 1
+H2 - landing on 'home' page 2 (or beyond)
 H.u - landing on 'home' page (while unverified)
+H2.u - landing on 'home' page 2 or beyond (while unverified)
 
-B - landing on 'best photos'
+B - landing on 'best photos' page 1
+B2 - landing on 'best photos' page 2 (or beyond)
 B.u - landing on 'best photos' (while unverified)
+B2.u - landing on 'best photos' page 2 or beyond (while unverified)
 
 C - comment (tabsra) from comment page
 C.u - comment (tabsra) attempt from comment page (while unverified)
@@ -339,8 +343,10 @@ L.i - publicreply (jawab) attempted from jawab page (invalid)
 L1 - landing on publicreply (jawab) page
 L1.u - landing on publicreply (jawab) page (while unverified)
 
-F - landing on 'fresh photos'
-F.u - landing on 'fresh photos' while unverified
+F - landing on 'fresh photos' page 1
+F2 - landing on 'fresh photos' page 2 or beyond
+F.u - landing on 'fresh photos' (while unverified)
+F2.u - landing on 'fresh photos' page 2 or beyond (while unverified)
 
 T - landing on 'topic'
 T.u - landing on 'topic' (while unverified)
@@ -438,6 +444,10 @@ R - joined private mehfil
 R1 - visited joined private mehfil
 R2 - visited unjoined private mehfil
 R3 - created private mehfil
+R4 - visited joined private mehfil's settings as a regular member
+R5 - visited joined private mehfil's settings as an owner
+R6 - visited joined private mehfil's 'info' page
+R7 - visited joined private mehfil's 'visitor' page
 R.u - attempted to join private mehfil (while unverified)
 R1.u - visited joined private mehfil (while unverified)
 R2.u - visited unjoined private mehfil (while unverified)
@@ -454,6 +464,12 @@ U1 - visited joined public mehfil
 U2 - visited unjoined public mehfil
 U3 - created public mehfil
 U4 - visited popular mehfil list
+U5 - visited joined public mehfil's settings as a normal member
+U6 - visited joined public mehfil's settings as an officer
+U7 - visited joined public mehfil's settings as an owner
+U8 - visited joined public mehfil's 'guidance' page
+U9 - visited joined public mehfil's 'info' page
+U10 - visited joined public mehfil's 'visitor' page
 U.u - attempted to join public mehfil (while unverified)
 U2.u - visited unjoined public mehfil (while unverified)
 U3.u - attempted to create a public mehfil (while unverified)
@@ -465,6 +481,9 @@ W1 - posted in 1on1
 W2 - posted in private mehfil
 W3 - posted in public mehfil
 W4 - posted in a topic (from within a topic)
+
+W2.h - hide/unhide a posting in a private mehfil
+W3.h - hide/unhide a posting in a private mehfil
 
 W2.u - attempted to post in private mehfil (while unverified)
 W3.u - attempted to post in public mehfil (while unverified)

@@ -176,7 +176,16 @@ def export_retention_activity_occurrence_log(request):
 					1 if actions[207] in set_of_user_actions else 0,1 if actions[208] in set_of_user_actions else 0,\
 					1 if actions[209] in set_of_user_actions else 0,1 if actions[210] in set_of_user_actions else 0,\
 					1 if actions[211] in set_of_user_actions else 0,1 if actions[212] in set_of_user_actions else 0,\
-					1 if actions[213] in set_of_user_actions else 0]
+					1 if actions[213] in set_of_user_actions else 0,1 if actions[214] in set_of_user_actions else 0,\
+					1 if actions[215] in set_of_user_actions else 0,1 if actions[216] in set_of_user_actions else 0,\
+					1 if actions[217] in set_of_user_actions else 0,1 if actions[218] in set_of_user_actions else 0,\
+					1 if actions[219] in set_of_user_actions else 0,1 if actions[220] in set_of_user_actions else 0,\
+					1 if actions[221] in set_of_user_actions else 0,1 if actions[222] in set_of_user_actions else 0,\
+					1 if actions[223] in set_of_user_actions else 0,1 if actions[224] in set_of_user_actions else 0,\
+					1 if actions[225] in set_of_user_actions else 0,1 if actions[226] in set_of_user_actions else 0,\
+					1 if actions[227] in set_of_user_actions else 0,1 if actions[228] in set_of_user_actions else 0,\
+					1 if actions[229] in set_of_user_actions else 0,1 if actions[230] in set_of_user_actions else 0,
+					1 if actions[231] in set_of_user_actions else 0]
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")
@@ -308,7 +317,16 @@ def export_retention_activity_frequency_log(request):
 					dict_of_user_actions.get(actions[206],0),dict_of_user_actions.get(actions[207],0),\
 					dict_of_user_actions.get(actions[208],0),dict_of_user_actions.get(actions[209],0),\
 					dict_of_user_actions.get(actions[210],0),dict_of_user_actions.get(actions[211],0),\
-					dict_of_user_actions.get(actions[212],0),dict_of_user_actions.get(actions[213],0)]					
+					dict_of_user_actions.get(actions[212],0),dict_of_user_actions.get(actions[213],0),\
+					dict_of_user_actions.get(actions[214],0),dict_of_user_actions.get(actions[215],0),\
+					dict_of_user_actions.get(actions[216],0),dict_of_user_actions.get(actions[217],0),\
+					dict_of_user_actions.get(actions[218],0),dict_of_user_actions.get(actions[219],0),\
+					dict_of_user_actions.get(actions[220],0),dict_of_user_actions.get(actions[221],0),\
+					dict_of_user_actions.get(actions[222],0),dict_of_user_actions.get(actions[223],0),\
+					dict_of_user_actions.get(actions[224],0),dict_of_user_actions.get(actions[225],0),\
+					dict_of_user_actions.get(actions[226],0),dict_of_user_actions.get(actions[227],0),\
+					dict_of_user_actions.get(actions[228],0),dict_of_user_actions.get(actions[229],0),\
+					dict_of_user_actions.get(actions[230],0),dict_of_user_actions.get(actions[231],0)]					
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")

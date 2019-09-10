@@ -16,8 +16,7 @@ from django.core.files.uploadedfile import InMemoryUploadedFile
 from scraper import read_image
 from cricket_score import cricket_scr
 from colors import COLOR_GRADIENTS
-from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE,\
-PERSONAL_GROUP_IMG_WIDTH
+from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE, PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
 NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC
 from django.core.cache import get_cache, cache
@@ -1148,8 +1147,13 @@ def home_page(request, lang=None):
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = True
-		if newbie_flag in ('1','2','3'):
-			context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
+		if newbie_flag in ('1','2','3','5','6'):
+			if newbie_flag == '5':
+				context["newbie_tutorial_page"] = 'tutorial5b.html'
+			elif newbie_flag == '6':
+				context["newbie_tutorial_page"] = 'tutorial6b.html'
+			else:
+				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 		else:
 			context["newbie_tutorial_page"] = 'newbie_rules.html'
 	# extraneous
@@ -1180,6 +1184,10 @@ def turn_off_newbie(request,origin):
 		return redirect("photo",list_type='best-list')
 	elif origin == '1':
 		return redirect("photo",list_type='fresh-list')
+	elif origin == '26':
+		return redirect('get_ranked_groups')
+	elif origin == '27':
+		return redirect('topic_listing')
 	else:
 		return redirect("home")
 
@@ -1197,6 +1205,12 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 		# new 4-pronged onboarding funnel
 		choice = request.POST.get("choice",None)
 		if choice in ('1','2','3','4'):
+			if choice == '2':
+				from redis8 import retrieve_variation_subset
+				choice = retrieve_variation_subset(user_id, choice)
+			elif choice == '3':
+				from redis8 import retrieve_variation_subset
+				choice = retrieve_variation_subset(user_id, choice)
 			request.session["newbie_flag"] = choice
 			if user_id > SEGMENT_STARTING_USER_ID:
 				time_now = time.time()
@@ -1205,7 +1219,12 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var'+choice)
 			############################################
 			############################################
-			return redirect("home")
+			if choice == '5':
+				return redirect("get_ranked_groups")
+			elif choice == '6':
+				return redirect("topic_listing")
+			else:
+				return redirect("home")
 		else:
 			request.session["redo_tut_selection"+str(user_id)] = '1'
 			return redirect("first_time_choice",lang)
@@ -1957,6 +1976,7 @@ class CommentView(CreateView):
 		if self.request.user.is_authenticated():
 			time_now = time.time()
 			user_id = self.request.user.id
+			# context["dir_rep_form"] = DirectResponseForm()
 			context["is_auth"] = True
 			context["mob_verified"] = True
 			context["user_id"] = user_id
@@ -2197,7 +2217,7 @@ def photo_comment(request,pk=None,*args,**kwargs):
 						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
 						add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
 							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
-						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists, \
+						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists,\
 							commenter_name, url, is_mob_verified)
 						################### Retention activity logging ###################
 						if user_id > SEGMENT_STARTING_USER_ID:
@@ -2390,8 +2410,13 @@ def photo_page(request,list_type='best-list'):
 		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
 		if newbie_flag:
 			context["newbie_flag"] = True
-			if newbie_flag in ('1','2','3'):
-				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
+			if newbie_flag in ('1','2','3','5','6'):
+				if newbie_flag == '5':
+					context["newbie_tutorial_page"] = 'tutorial5b.html'
+				elif newbie_flag == '6':
+					context["newbie_tutorial_page"] = 'tutorial6b.html'
+				else:
+					context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 			else:
 				context["newbie_tutorial_page"] = 'newbie_rules.html'
 		# extraneous

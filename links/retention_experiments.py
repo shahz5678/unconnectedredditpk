@@ -17,6 +17,10 @@ EXP = {\
 'var3':'rt3:','var3r':'e3r:','var3cr':'e3cr',\
 # var4 relates to retention of users who select 'other' variation in the tut
 'var4':'rt4:','var4r':'e4r:','var4cr':'e4cr',\
+# var5 relates to retention of users who select 'dosti' variation in the tut (and are taken to mehfils)
+'var5':'rt5:','var5r':'e5r:','var5cr':'e5cr',\
+# var6 relates to retention of users who select 'content' variation in the tut (and are taken to topics)
+'var6':'rt6:','var6r':'e6r:','var6cr':'e6cr',\
 }
 
-EXPERIMENTS_CURRENTLY_BEING_RUN = ['var1','var2','var3','var4']#['var1']
+EXPERIMENTS_CURRENTLY_BEING_RUN = ['var1','var2','var3','var4','var5','var6']

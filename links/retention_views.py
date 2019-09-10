@@ -62,6 +62,7 @@ def export_retention_activity_occurrence_log(request):
 			filename = 'occurrence_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
+				actions.sort()
 				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions
 				wtr.writerow(columns)
 				for header in data_header:
@@ -203,6 +204,7 @@ def export_retention_activity_frequency_log(request):
 			filename = 'frequency_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
+				actions.sort()
 				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions
 				wtr.writerow(columns)
 				for header in data_header:

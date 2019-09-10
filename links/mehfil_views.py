@@ -4988,7 +4988,15 @@ def get_ranked_groups(request):
 					trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
 			trending_groups.sort(key=itemgetter(4), reverse=True)
 			cache_ranked_groups(json.dumps(trending_groups))
-		return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
+		context = {'object_list':trending_groups}
+		########################################################################
+		newbie_flag = request.session.get("newbie_flag",None)
+		if newbie_flag == '5':
+			context["newbie_flag"] = True
+			context["newbie_tutorial_page"] = 'tutorial5.html'
+			context['newbie_lang'] = request.session.get("newbie_lang",None)
+			context['origin'] = '26'
+		return render(request,"mehfil/group_ranking.html",context)
 
 
 ########################## Mehfil creation #########################

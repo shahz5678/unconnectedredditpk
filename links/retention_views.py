@@ -63,14 +63,15 @@ def export_retention_activity_occurrence_log(request):
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
 				actions.sort()
-				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions
+				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions+['Total Actions']
 				wtr.writerow(columns)
 				for header in data_header:
 					user_id = header[2]
 					header_key = str(header[0])+":"+'d'+str(header[1])+":"+str(user_id)
 					set_of_user_actions = data_details[header_key]
 					which_day = 'd'+str(header[1])
-					to_write = [header[0],which_day,user_id,variation_strings.get(user_id,''),1 if actions[0] in set_of_user_actions else 0,\
+					credentials = [header[0],which_day,user_id,variation_strings.get(user_id,'')]
+					acts = [1 if actions[0] in set_of_user_actions else 0,\
 					1 if actions[1] in set_of_user_actions else 0,1 if actions[2] in set_of_user_actions else 0,\
 					1 if actions[3] in set_of_user_actions else 0,1 if actions[4] in set_of_user_actions else 0,\
 					1 if actions[5] in set_of_user_actions else 0,1 if actions[6] in set_of_user_actions else 0,\
@@ -185,8 +186,11 @@ def export_retention_activity_occurrence_log(request):
 					1 if actions[223] in set_of_user_actions else 0,1 if actions[224] in set_of_user_actions else 0,\
 					1 if actions[225] in set_of_user_actions else 0,1 if actions[226] in set_of_user_actions else 0,\
 					1 if actions[227] in set_of_user_actions else 0,1 if actions[228] in set_of_user_actions else 0,\
-					1 if actions[229] in set_of_user_actions else 0,1 if actions[230] in set_of_user_actions else 0,
-					1 if actions[231] in set_of_user_actions else 0]
+					1 if actions[229] in set_of_user_actions else 0,1 if actions[230] in set_of_user_actions else 0,\
+					1 if actions[231] in set_of_user_actions else 0,1 if actions[232] in set_of_user_actions else 0,\
+					1 if actions[233] in set_of_user_actions else 0]
+					total = [sum(acts)]
+					to_write = credentials+acts+total
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")
@@ -205,15 +209,15 @@ def export_retention_activity_frequency_log(request):
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
 				actions.sort()
-				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions
+				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions+['Total Actions']
 				wtr.writerow(columns)
 				for header in data_header:
 					user_id = header[2]
 					header_key = str(header[0])+":"+'d'+str(header[1])+":"+str(user_id)
 					dict_of_user_actions = data_details[header_key]
 					which_day = 'd'+str(header[1])
-					to_write = [header[0],which_day,user_id,variation_strings.get(user_id,''),\
-					dict_of_user_actions.get(actions[0],0),dict_of_user_actions.get(actions[1],0),\
+					credentials = [header[0],which_day,user_id,variation_strings.get(user_id,'')]
+					acts = [dict_of_user_actions.get(actions[0],0),dict_of_user_actions.get(actions[1],0),\
 					dict_of_user_actions.get(actions[2],0),dict_of_user_actions.get(actions[3],0),\
 					dict_of_user_actions.get(actions[4],0),dict_of_user_actions.get(actions[5],0),\
 					dict_of_user_actions.get(actions[6],0),dict_of_user_actions.get(actions[7],0),\
@@ -328,7 +332,10 @@ def export_retention_activity_frequency_log(request):
 					dict_of_user_actions.get(actions[224],0),dict_of_user_actions.get(actions[225],0),\
 					dict_of_user_actions.get(actions[226],0),dict_of_user_actions.get(actions[227],0),\
 					dict_of_user_actions.get(actions[228],0),dict_of_user_actions.get(actions[229],0),\
-					dict_of_user_actions.get(actions[230],0),dict_of_user_actions.get(actions[231],0)]					
+					dict_of_user_actions.get(actions[230],0),dict_of_user_actions.get(actions[231],0),\
+					dict_of_user_actions.get(actions[232],0),dict_of_user_actions.get(actions[233],0)]
+					total = [sum(acts)]
+					to_write = credentials+acts+total			
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")

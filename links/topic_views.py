@@ -433,7 +433,8 @@ def topic_listing(request):
 	"""
 	################### Retention activity logging ###################
 	own_id = request.user.id
-	if own_id > SEGMENT_STARTING_USER_ID:
+	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	if not from_redirect and  own_id > SEGMENT_STARTING_USER_ID:
 		time_now = time.time()
 		act = 'Z5' if request.mobile_verified else 'Z5.u'
 		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place

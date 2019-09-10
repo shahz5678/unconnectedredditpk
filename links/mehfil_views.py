@@ -4967,7 +4967,8 @@ def get_ranked_groups(request):
 	else:
 		###################### Retention activity logging ######################
 		user_id = request.user.id
-		if user_id > SEGMENT_STARTING_USER_ID:
+		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
 			time_now = time.time()
 			act = 'U4' if request.mobile_verified else 'U4.u'
 			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place

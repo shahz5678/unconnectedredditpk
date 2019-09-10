@@ -1,4 +1,4 @@
-import redis, time
+import redis, time, random
 import ujson as json
 from operator import itemgetter
 from collections import defaultdict
@@ -193,32 +193,31 @@ def retention_clean_up(which_var):
 ######################################################## Segment Analysis ########################################################
 ##################################################################################################################################
 
+VAR_SUBSET_2 = 'vs2:'
+VAR_SUBSET_3 = 'vs3:'
 
-# def log_activity(user_id, activity_dict, time_now):
-# 	"""
-# 	Logging all user activity for finding the drivers of user retention
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
+def retrieve_variation_subset(user_id, choice):
+	"""
+	Used to add new 'mehfil' and 'topic' variations
+	"""
+	subset_key = VAR_SUBSET_2+str(user_id) if choice == '2' else VAR_SUBSET_3+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	subset_choice = my_server.get(subset_key)
+	if not subset_choice:
+		coin = random.randint(1, 2)
+		if coin == 1:
+			if choice == '2':
+				subset_choice = '2'
+			elif choice == '3':
+				subset_choice = '3'
+		else:
+			if choice == '2':
+				subset_choice = '5'
+			elif choice == '3':
+				subset_choice = '6'
+		my_server.setex(subset_key,subset_choice,TWO_WEEKS)
+	return subset_choice
 
-# 	# the cohort this user originally belonged to
-# 	cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
-
-# 	if cohort_id:
-
-# 		# the cohort active right now
-# 		cohort_id_now = retrieve_cohort(time_now)
-
-# 		# the user of variation 'which_var' is returning on 'which_day'
-# 		which_day = DAY_NAMES[cohort_id_now-cohort_id]
-
-# 		if which_day in ('d0','d1','d2','d3','d4','d5','d6','d7'):
-# 			# log the action if it's d0, d1,... d7 only
-			
-# 			activity_dict['day'], activity_dict['cid'] = which_day, cohort_id
-# 			my_server.zadd(USER_ACTIVITY_STORE, json.dumps(activity_dict), user_id)
-# 		else:
-# 			# no need to log the action - we're not studying anything beyond d7 at this moment
-# 			pass
 
 def retrieve_var(user_id):
 	"""
@@ -261,7 +260,7 @@ def compile_activity_occurence_rows():
 	for activity, user_id in readable_activity_data:
 		activity_string = str(activity['act'])
 		time_of_activity = float(activity['t'])
-		if activity_string in ('V1','V2','V3','V4'):
+		if activity_string in ('V1','V2','V3','V4','V5','V6'):
 			user_exp_variations[user_id].append((activity_string,time_of_activity))
 
 	user_variation_strings = {}
@@ -304,7 +303,7 @@ def compile_activity_frequency_rows():
 	for activity, user_id in readable_activity_data:
 		activity_string = str(activity['act'])
 		time_of_activity = float(activity['t'])
-		if activity_string in ('V1','V2','V3','V4'):
+		if activity_string in ('V1','V2','V3','V4','V5','V6'):
 			user_exp_variations[user_id].append((activity_string,time_of_activity))
 
 	user_variation_strings = {}

@@ -1,0 +1,85 @@
+{% if lang == 'ur' %}
+
+	<h1 class="cxl lsp sp" style="text-align:center;overflow:hidden;margin:0"><bdo dir="rtl">لڑکے اور لڑکیوں سے دوستی کریں!</bdo></h1>
+
+	<div class="bizcard sp mtl mbl" style="background-color:#FFD12B;color:#000000;text-align:center;">
+
+		<div style="text-align:right;padding-right:5px">
+			<a href="{% url 'turn_off_newbie' origin %}">
+				<button style="background:0 0;padding:0;border:none"><img src="{{ STATIC_URL }}img/x_br.svg" width="10" height="10" alt="x" class="clb"></button>
+			</a>
+		</div>
+
+		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0"><bdo dir="rtl">وہ کیسے؟</bdo></div>
+	
+		<div style="padding:10px 8px;background-color:#fff169">
+
+			<div class="mbl mtl fx fxaicn" style="justify-content: flex-end">
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">سب سے اوپر <bdo dir="ltr">'Mehfil'</bdo> کے لفظ کو دبائیں</bdo></div>
+				<div style="font-size:60px;font-weight:bold;color:#ffb3d1;padding:0px 8px 0 16px">1</div>
+			</div>
+
+			<div class="mbl fx fxaicn" style="justify-content: flex-end">
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">جب نئی اسکرین کھلے تو اس پہ اوپر <bdo dir="ltr">'popular'</bdo> کو دبائیں</bdo></div>
+				<div style="font-size:60px;font-weight:bold;color:#99ccff;padding:0px 8px 0 16px">2</div>
+			</div>
+
+			<div class="mbl fx fxaicn" style="justify-content: flex-end">
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">تب آپکو مقبول محفلیں نظر آئیں گی ۔ انکو <bdo dir="ltr">'join'</bdo> کر کے لڑکے لڑکیوں سے چیٹ کریں</bdo></div>
+				<div style="font-size:60px;font-weight:bold;color:#48f5ad;padding:0px 8px 0 16px">3</div>
+			</div>
+		</div>
+
+		<div class="cxl lsp" style="padding:15px 8px 10px 8px"><bdo dir="rtl">لیکن سب سے پہلے اپنے اکاؤنٹ کو '<bdo dir="ltr">verify</bdo>' کروا لیں:</bdo></div>
+		
+		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
+			<button class="btn bcb pg_ok_res mt" style="height:40px;width:95%;border:none"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
+		</a>
+		<br><br>
+
+	</div>
+
+{% else %}
+
+	<h1 class="cxl lsp sp" style="text-align:center;overflow:hidden;margin:0">Boys and girls se dosti karein!</h1>
+
+	<div class="bizcard sp mtl mbl" style="background-color:#FFD12B;color:#000000;text-align:center;">
+
+		<div style="text-align:right;padding-right:5px">
+			<a href="{% url 'turn_off_newbie' origin %}">
+				<button style="background:0 0;padding:0;border:none"><img src="{{ STATIC_URL }}img/x_br.svg" width="10" height="10" alt="x" class="clb"></button>
+			</a>
+		</div>
+
+		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0">Woh kaisey?</div>
+	
+		<div style="padding:10px 8px;background-color:#fff169">
+
+			<div class="mts mbl fx fxjsfs fxaicn">
+				<div style="font-size:60px;font-weight:bold;color:#ffb3d1;padding:0px 16px 0 8px">1</div>
+				<div class="cl lsp" style="text-align:left">Top pe 'Mehfil' ke option ko dabain</div>
+			</div>
+
+			<div class="fx mbl fxjsfs fxaicn">
+				<div style="font-size:60px;font-weight:bold;color:#99ccff;padding:0px 16px 0 8px">2</div>
+				<div class="cl lsp" style="text-align:left">Jb new page khuley, uske top pe 'popular' ko dabain</div>
+			</div>
+
+			<div class="fx mbs fxjsfs fxaicn">
+				<div style="font-size:60px;font-weight:bold;color:#48f5ad;padding:0px 16px 0 8px">3</div>
+				<div class="cl lsp" style="text-align:left">Phir popular mehfils show hon gi. Mehfil join karke boys & girls se chat krain</div>
+			</div>
+		</div>
+
+		<div class="cxl lsp" style="padding:15px 8px 10px 8px">
+		Chat karney ke liye pehlay account verify kerwain:
+		</div>
+		
+		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
+			<button class="btn bcb pg_ok_res mt" style="height:40px;width:95%;border:none"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
+		</a>
+		<br><br>
+
+	</div>
+
+{% endif %}

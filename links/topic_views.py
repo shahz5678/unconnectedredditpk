@@ -439,7 +439,14 @@ def topic_listing(request):
 		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
 		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
-	return render(request,"topics/topics_list.html",{})
+	context = {}
+	newbie_flag = request.session.get("newbie_flag",None)
+	if newbie_flag == '6':
+		context["newbie_flag"] = True
+		context["newbie_tutorial_page"] = 'tutorial6.html'
+		context["newbie_lang"] = request.session.get("newbie_lang",None)
+		context['origin'] = '27'
+	return render(request,"topics/topics_list.html",context)
 
 
 ##########################################################################################################

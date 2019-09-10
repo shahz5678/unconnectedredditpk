@@ -56,6 +56,12 @@
 
 <main style="display:block" itemscope itemtype="https://schema.org/CollectionPage">
 
+	<main style="display:block;max-width:600px;margin:0 auto;width:97%;position:relative;">
+	    {% if newbie_flag %}
+	        {% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='27' %}
+	    {% endif %}
+	</main>
+
 	{% include "topics/topics_navbar.html" with section='topics_list' %}
 
 	<h1 class="cxl clb lsp" style="text-align:center">Topics on Damadam:</h1>

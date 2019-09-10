@@ -435,6 +435,8 @@ V1 - selected 'var1' in the tutorial
 V2 - selected 'var2' in the tutorial
 V3 - selected 'var3' in the tutorial
 V4 - selected 'var4' in the tutorial
+V5 - selected 'var5' in the tutorial
+V6 - selected 'var5' in the tutorial
 
 G1 - loaded list of joined mehfils
 G2 - loaded mehfil invite list

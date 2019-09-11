@@ -75,7 +75,7 @@ PRIVATE_GROUP_MAX_MEMBERSHIP = 50
 PUBLIC_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
 PUBLIC_GROUP_MAX_RULES_SIZE = 500 #more than 500 chars not allowed
 PUBLIC_GROUP_REPLY_LENGTH = 500
-NUM_PUBLIC_GROUPS_OWNED_SHOWN_ON_PROFILE = 5#how many public groups to show on user profile
+NUM_PUBLIC_GROUPS_OWNED_SHOWN_ON_PROFILE = 6#how many public groups to show on user profile
 PRIVATE_GROUP_REPLY_LENGTH = 500
 
 ###### Mehfil list ######

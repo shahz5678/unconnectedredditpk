@@ -18,7 +18,7 @@ from cricket_score import cricket_scr
 from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE, PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC#, MAX_HOME_REPLY_SIZE
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -91,7 +91,7 @@ update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limit
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time
+get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs
 # from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
 
@@ -1159,6 +1159,7 @@ def home_page(request, lang=None):
 	# extraneous
 	context["lang"] = 'None'
 	context["sort_by"] = 'recent'
+	# context["max_home_reply_size"] = MAX_HOME_REPLY_SIZE
 	#####################
 	context["single_notif_error"] = request.session.pop("single_notif_error",None)
 	context["comment_form"] = PhotoCommentForm()
@@ -2161,7 +2162,9 @@ def photo_comment(request,pk=None,*args,**kwargs):
 
 	'pk' arg is photo_id
 	"""
-	if request.method == 'POST':
+	if request.user_banned:
+		return redirect("error")	
+	elif request.method == 'POST':
 		home_hash = request.POST.get("home_hash",None)# e.g. typical value is in the form of 'img:1234' where 1234 is photo_id
 		user_id = request.user.id
 		origin = request.POST.get("origin",None)
@@ -2355,14 +2358,13 @@ def photo_page(request,list_type='best-list'):
 		page_num = int(page_num)
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
 		#######################
-		# must be done in this line, since the 't' information is lost subsequently
+		# must be done in this line, since the 't' information in objs in list_of_dictionaries is lost subsequently
 		try:
 			oldest_post_time = list_of_dictionaries[-1]['t']
 		except:
 			oldest_post_time = 0.0
 		#######################
 		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
-		comment_form = PhotoCommentForm()
 		if own_id:
 			is_auth = True
 			fanned = bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
@@ -2372,13 +2374,20 @@ def photo_page(request,list_type='best-list'):
 			mobile_verified = request.mobile_verified
 			#######################
 			# enrich objs with information that 'own_id' liked them or not
-			if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
-				recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
-				# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
-				recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+			if list_type == 'best-list':
+				recent_user_voted_obj_hashes = check_votes_on_objs(obj_list, own_id)
 				for obj in list_of_dictionaries:
 					if obj['h'] in recent_user_voted_obj_hashes:
 						obj['v'] = True# user 'liked' this particular object, so mark it
+			else:
+				# exploit the fact that the list_of_dictionaries is sorted by time
+				if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
+					recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+					# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+					recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+					for obj in list_of_dictionaries:
+						if obj['h'] in recent_user_voted_obj_hashes:
+							obj['v'] = True# user 'liked' this particular object, so mark it
 			
 			###################### Retention activity logging ######################
 			from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
@@ -2401,7 +2410,7 @@ def photo_page(request,list_type='best-list'):
 		on_opera = True if (not on_fbs and not is_js_env) else False
 		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
 		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
-		'page_origin':page_origin,'sk':secret_key,'comment_form':comment_form,"mobile_verified":mobile_verified,\
+		'page_origin':page_origin,'sk':secret_key,'comment_form':PhotoCommentForm(),"mobile_verified":mobile_verified,\
 		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,\
 		'num_in_last_1_day':num_in_last_1_day,'list_type':list_type}
 		next_page_number = page_num+1 if page_num<max_pages else 1

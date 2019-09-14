@@ -124,11 +124,6 @@ TOP_TRENDERS = 'tt'	# A cached json object of trenders
 
 CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
-# REMOVE FROM REDIS7
-# GLOBAL_VOTE_REP = 'gvr'#a sorted set containing the rep due to each vote cast in the system
-# GLOBAL_VOTER_REP = 'gvrep'#a sorted set containing the voting rep of every voter
-# GLOBAL_VOTER_REP_TRUNCATOR = 'gvrt'# a sorted set that helps in truncating 'gvrep' for users who drop out of the system
-
 VOTER_LIKE_PROBS = 'vlp'# sorted set containing various voter_ids and the prob their editorially picked content will see audience likes (called 'like_prob')
 NUM_EDITORIAL_VOTES = 'nev'# sorted set containing number of editorial votes given by various voters (can be cross-referenced with 'vlp' above)
 GLOBAL_EDITORIAL_VOTES_ON_IMGS = 'gevon'# global sorted set containing all editorial 'likes' cast on images
@@ -139,6 +134,15 @@ AUDIENCE_LIKED_IMGS = 'ali'# set of img obj_hashes that have at least a single a
 
 LOCKED_OBJ = 'lo:'# set that contains sybil 'likes' given to an obj - these lock the obj from entering trending
 TRENDING_OBJ = 'to:'# a key that signifies that a certain obj has entered trending
+
+
+LAST_IMG_UPLOAD_TIME = 'liut:'#key that saves the last time a user uploaded an img - useful for truncating reps of churned users
+GLOBAL_UPLOADED_IMG_HASHES = 'guih'# global sorted set containing all images uploaded by users, useful for content reputation calculation
+GLOBAL_AUD_LIKED_IMGS = 'gali'# global sorted set containing image hashes+":"+uploader_id of imgs which received audience likes
+
+GLOBAL_LIKED_IMG_COUNT = 'glic'# global sorted set containg num images uploaded by an uploader
+GLOBAL_UPLOADED_IMG_COUNT = 'guic'# global sorted set containing num images that received audience likes (uploaded by a certain user)
+GLOBAL_IMG_UPLOADER_CONTENT_REP = 'giucr'# global sorted set containing the content rep of img uploaders
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -632,6 +636,9 @@ def save_recent_photo(user_id, photo_id):
 	my_server.lpush(key_name, photo_id)
 	my_server.ltrim(key_name, 0, 4) # save the most recent 5 photos'
 	my_server.expire(key_name,FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
+	############################################
+	my_server.setex(LAST_IMG_UPLOAD_TIME+str(user_id),time.time(),ONE_MONTH)
+	my_server.zadd(GLOBAL_UPLOADED_IMG_HASHES,"img:"+str(photo_id),user_id)
 
 
 def get_recent_trending_photos(user_id):
@@ -712,7 +719,6 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	return hash_name
 
 
-
 def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
 	comment_id=None,latest_comm_writer_uname=None,comment_count=None, time=None):
 	"""
@@ -726,6 +732,11 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
 		payload = {'comment_id':comment_id,'writer_uname':latest_comm_writer_uname,'text':latest_comm_text,'epoch_time':time,\
 		'commenter_id':latest_comm_writer_id,'photo_id':photo_id}
+		# if comment_target:
+		# 	payload['ct'] = comment_target
+		# 	payload['ttxpre'] = target_text_prefix
+		# if target_text_postfix:
+		# 	payload['ttxpos'] = target_text_postfix
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
@@ -1526,10 +1537,11 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list
 					pushed = False
 			else:
+				# if the handpicked item's data was corrupt
 				pushed = False
 		else:
-			# this does not exist, so nothing was pushed
-			pushed = False
+			# when nothing remains in the handpicked queue
+			pushed = None
 	else:
 		pushed = False
 	return pushed, obj_id
@@ -2068,19 +2080,31 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 						like_prob = 0
 					elif like_prob > 0:
 						num_editorial_votes = my_server.zscore(NUM_EDITORIAL_VOTES,voter_id)
-						if num_editorial_votes and num_editorial_votes < 5:
+						if num_editorial_votes and num_editorial_votes < 10:
 							# nerf said 'like_prob' since it's based on too small a sample size
 							if num_editorial_votes == 1:
 								# nerfed the most
 								like_prob = 0.1 * like_prob
 							elif num_editorial_votes == 2:
-								like_prob = 0.25 * like_prob
+								like_prob = 0.15 * like_prob
 							elif num_editorial_votes == 3:
-								like_prob = 0.45 * like_prob
+								like_prob = 0.25 * like_prob
 							elif num_editorial_votes == 4:
+								like_prob = 0.35 * like_prob
+							elif num_editorial_votes == 5:
+								like_prob = 0.45 * like_prob
+							elif num_editorial_votes == 6:
+								like_prob = 0.55 * like_prob
+							elif num_editorial_votes == 7:
+								like_prob = 0.65 * like_prob
+							elif num_editorial_votes == 8:
+								like_prob = 0.75 * like_prob
+							elif num_editorial_votes == 9:
 								# nerfed the least
-								like_prob = 0.7 * like_prob
-
+								like_prob = 0.85 * like_prob
+							else:
+								# should never happen
+								like_prob = 0.95 * like_prob
 		return like_prob, is_sybil
 	######################################################################################################
 	else:
@@ -2285,6 +2309,8 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			if is_pht == '1':
 				# only if img vote (for now)
 				my_server.zrem(GLOBAL_IMG_VOTES, hash_name+"-"+own_id+"-0")
+				#################################################################
+				my_server.zrem(GLOBAL_AUD_LIKED_IMGS,hash_name+":"+str(target_user_id)+"-"+own_id)
 
 			return new_net_votes
 		else:
@@ -2337,12 +2363,13 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 				voting_time=time_of_vote, is_reversion=False, my_server=my_server)
 
 			###############################################
+			# Step 6) log like in a global set for 'like_prob' calculation later, and mark op for content rep increment (in GLOBAL_AUD_LIKED_IMGS)
 
-			# Step 6) log like in a global set for 'like_prob' calculation later
-			# if is_vote_counted:
 			if is_vote_counted and is_pht == '1':
 				# only if img vote (for now)
 				my_server.zadd(GLOBAL_IMG_VOTES, hash_name+"-"+own_id+"-0", time_of_vote)# '0' at the end signifies audience vote
+				#####################################
+				my_server.zadd(GLOBAL_AUD_LIKED_IMGS,hash_name+":"+str(target_user_id)+"-"+own_id, time_of_vote)
 
 			return new_net_votes
 	else:
@@ -2353,12 +2380,13 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 def archive_closed_objs_and_votes():
 	"""
 	Scheduled task that organizes and processes voting data of objs (where voting was closed) to calc 'like_prob' for voters
+
+	Executed every 7 hours
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 
 	# Step 1) Isolate all votes recently cast
 	all_votes_cast_and_times = my_server.zrange(GLOBAL_IMG_VOTES,0,-1, withscores=True)
-	
 	# Step 2) Extract hash_names from all_votes
 	all_hash_names = {}
 	for vote, vote_time in all_votes_cast_and_times:
@@ -2421,15 +2449,106 @@ def archive_closed_objs_and_votes():
 				votes_to_add.append(vote_time)
 				objs_to_add.append(obj_hash)
 				objs_to_add.append(time_now)
-
 	if rows_to_remove:
 		my_server.zrem(GLOBAL_IMG_VOTES,*rows_to_remove)# removing votes from GLOBAL_IMG_VOTES
 	if objs_to_add:
 		my_server.zadd(GLOBAL_CLOSED_IMG_VOTES,*votes_to_add)# adding votes to GLOBAL_CLOSED_IMG_VOTES
 		my_server.zadd(GLOBAL_CLOSED_IMG_OBJS,*objs_to_add)# adding objs to GLOBAL_CLOSED_IMG_OBJS
 		#############################################################
-		process_global_closed_objs_and_votes(my_server=my_server)
+		process_global_closed_objs_and_votes(my_server=my_server)# calcs voters' rep
 		expire_outdated_closed_objs_and_votes(my_server=my_server)
+		#############################################################
+		process_closed_imgs_uploaders_rep(closed_objs, my_server=my_server)# calcs uploaders' rep
+		expire_outdated_img_uploaders_rep(my_server=my_server)
+
+
+def process_closed_imgs_uploaders_rep(closed_objs, my_server=None):
+	"""
+	Calculating img uploader rep
+
+	The calc is quite simply this: conten_rep_of_user = num_aud_liked_imgs/num_uploaded_imgs
+	Reputations are reset to 0 if someone hasn't uploaded an img for over a month
+	"""
+	if closed_objs:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		img_hashes_and_uploader_ids = my_server.zrange(GLOBAL_UPLOADED_IMG_HASHES,0,-1,withscores=True)
+		
+		all_uploaders = set()
+		img_uploader_pairs = []
+		upload_count = defaultdict(int)
+		for img_hash_name, uploader_id in img_hashes_and_uploader_ids:
+			if img_hash_name in set(closed_objs):
+				uploader_id = int(uploader_id)
+				all_uploaders.add(uploader_id)
+				img_uploader_pairs.append(img_hash_name+":"+str(uploader_id))
+				upload_count[uploader_id] += 1
+
+		if img_uploader_pairs:
+
+			imgs_uploaders_and_voters = my_server.zrange(GLOBAL_AUD_LIKED_IMGS,0,-1)
+			aud_liked_imgs_marked_for_deletion = []
+			liked_pairs = set()
+			for img_uploader_voter_tup in imgs_uploaders_and_voters:
+				img_hash_name = img_uploader_voter_tup.rpartition(":")[0]
+				if img_hash_name in set(closed_objs):
+					img_uploader_pair = img_uploader_voter_tup.rpartition("-")[0]
+					liked_pairs.add(img_uploader_pair)
+					aud_liked_imgs_marked_for_deletion.append(img_uploader_voter_tup)
+
+			uploader_likes = defaultdict(int)
+			for img_uploader_pair in list(liked_pairs):
+				uploader_id = img_uploader_pair.rpartition(":")[-1]
+				uploader_likes[int(uploader_id)] += 1
+
+			for uploader_id in all_uploaders:
+				my_server.zincrby(GLOBAL_LIKED_IMG_COUNT,uploader_id,amount=uploader_likes[uploader_id])
+				my_server.zincrby(GLOBAL_UPLOADED_IMG_COUNT,uploader_id,amount=upload_count[uploader_id])
+			
+			aggregate_uploader_ids_and_likes = my_server.zrange(GLOBAL_LIKED_IMG_COUNT,0,-1,withscores=True)
+			aggregate_uploader_ids_and_img_counts = my_server.zrange(GLOBAL_UPLOADED_IMG_COUNT,0,-1,withscores=True)
+			aggregate_uploader_ids_and_likes = dict(aggregate_uploader_ids_and_likes)
+			
+			img_uploader_content_rep = []
+			for uploader_id, img_count in aggregate_uploader_ids_and_img_counts:
+				num_likes = aggregate_uploader_ids_and_likes[uploader_id]
+				content_rep = (num_likes*1.0)/img_count
+
+				img_uploader_content_rep.append(uploader_id)
+				img_uploader_content_rep.append(content_rep)
+
+			if img_uploader_content_rep:
+				my_server.delete(GLOBAL_IMG_UPLOADER_CONTENT_REP)
+				my_server.zadd(GLOBAL_IMG_UPLOADER_CONTENT_REP,*img_uploader_content_rep)
+
+			if aud_liked_imgs_marked_for_deletion:
+				my_server.zrem(GLOBAL_AUD_LIKED_IMGS,*aud_liked_imgs_marked_for_deletion)
+
+		my_server.zrem(GLOBAL_UPLOADED_IMG_HASHES,*closed_objs)
+
+
+def expire_outdated_img_uploaders_rep(my_server=None):
+	"""
+	If a user has not uploaded an img for over a month, reset their img content rep to 0
+	"""
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	img_uploader_ids = my_server.zrange(GLOBAL_UPLOADED_IMG_COUNT,0,-1)
+	pipeline1 = my_server.pipeline()
+	for uploader_id in img_uploader_ids:
+		pipeline1.exists(LAST_IMG_UPLOAD_TIME+uploader_id)
+	result1, counter = pipeline1.execute(), 0
+	reset_reputation = []
+	for uploader_id in img_uploader_ids:
+		if not result1[counter]:
+			# has not uploaded an image in the last 1 month - reset content reputation to 0
+			reset_reputation.append(uploader_id)
+	
+	if reset_reputation:
+		pipeline2 = my_server.pipeline()
+		pipeline2.zrem(GLOBAL_UPLOADED_IMG_COUNT,*reset_reputation)
+		pipeline2.zrem(GLOBAL_LIKED_IMG_COUNT,*reset_reputation)
+		pipeline2.zrem(GLOBAL_IMG_UPLOADER_CONTENT_REP,*reset_reputation)
+		pipeline2.execute()
+
 
 
 def expire_outdated_closed_objs_and_votes(my_server=None):
@@ -2528,6 +2647,7 @@ def calculate_like_prob(my_server=None):
 		my_server.zadd(VOTER_LIKE_PROBS,*voter_like_probs)
 		my_server.delete(NUM_EDITORIAL_VOTES)
 		my_server.zadd(NUM_EDITORIAL_VOTES,*voter_num_editorial_votes)
+
 
 
 #################################################### Vote banning functionality (defenders) ############################################

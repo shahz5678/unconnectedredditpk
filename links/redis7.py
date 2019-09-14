@@ -1679,6 +1679,24 @@ def retrieve_recent_votes(voter_id, oldest_post_time):
 	return redis.Redis(connection_pool=POOL).zrangebyscore(VOTER_UVOTES_AND_TIMES+str(voter_id),oldest_post_time,'+inf')
 
 
+def check_votes_on_objs(obj_list, voter_id):
+	"""
+	Retrieves whether voter_id voted on any img obj in obj_list via doing a bulk 'zscore'
+
+	Useful to show state of 'like' button in lists that are not sorted by time (e.g. best-photos)
+	"""
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	for vote_store_key in [VOTE_ON_IMG+img_obj.partition(":")[-1] for img_obj in obj_list]:
+		pipeline1.zscore(vote_store_key,voter_id)
+	result1, counter = pipeline1.execute(), 0
+	objs_voted_on = set()
+	for img_obj in obj_list:
+		if result1[counter] >= 0:
+			objs_voted_on.add(img_obj)
+		counter += 1
+	return objs_voted_on
+
+
 ####################################################################################################
 ################################# Bayesian voting calculations #####################################
 ####################################################################################################
@@ -2105,6 +2123,7 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 							else:
 								# should never happen
 								like_prob = 0.95 * like_prob
+
 		return like_prob, is_sybil
 	######################################################################################################
 	else:

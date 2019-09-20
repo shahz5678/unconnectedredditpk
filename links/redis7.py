@@ -348,6 +348,8 @@ def retrieve_obj_feed(obj_list, with_colors=False):
 def retrieve_obj_scores(obj_list):
 	"""
 	Retrieves obj vote scores - useful for calculating trending objs
+
+	Only those objs are considered for trending that have at least 2 votes from users with reputation > 0
 	"""
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for obj_hash in obj_list:
@@ -355,11 +357,11 @@ def retrieve_obj_scores(obj_list):
 		obj_type, obj_id = data[0], data[-1]
 		vote_store = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
 		pipeline1.hget(obj_hash,'uv')
-		pipeline1.zrange(vote_store+obj_id,-1,-1,withscores=True)
+		pipeline1.zrange(vote_store+obj_id,-2,-1,withscores=True)
 		pipeline1.exists(LOCKED_OBJ+obj_hash)
 	result1, counter, final_result = pipeline1.execute(), 0, []
 	for obj_hash in obj_list:
-		is_locked_out_from_trending = result1[counter+2]
+		is_locked_out_from_trending = result1[counter+2]# e.g. because of sybil voting
 		vote_store_exists = result1[counter+1]
 		
 		if is_locked_out_from_trending or not vote_store_exists:
@@ -371,9 +373,22 @@ def retrieve_obj_scores(obj_list):
 			likes = int(likes) if likes else 0
 			
 			################################
-			
-			score_tup = vote_store_exists[0]
-			score = score_tup[1]
+			num_votes = len(vote_store_exists)
+			if num_votes == 2:
+				vote_1, vote_2 = vote_store_exists[0], vote_store_exists[1]
+				score_vote_1, score_vote_2 = vote_1[1], vote_2[1]
+				if score_vote_1 > 0 and score_vote_2 > 0:
+					# 2 reputable users voted on this - count this obj
+					score = max(score_vote_2,score_vote_1)
+				else:
+					# don't count this obj
+					score = 0
+			elif num_votes < 2:
+				# not enough votes cast
+				score = 0
+			else:
+				# this should never happen
+				score = 0
 			
 			################################
 			final_result.append((obj_hash, likes, score if score > 0 else 0))
@@ -740,7 +755,7 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-
+		
 	
 def truncate_payload(comment_blob):
 	"""

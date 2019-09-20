@@ -1,4 +1,5 @@
 import redis, time, random
+import json as json_backup
 import ujson as json
 from operator import itemgetter
 from collections import defaultdict
@@ -234,7 +235,10 @@ def retrieve_retention_activity_raw_records():
 	all_activity = my_server.zrange(USER_ACTIVITY_STORE,0,-1,withscores=True)
 	final_result = []
 	for json_activity, user_id in all_activity:
-		activity = json.loads(json_activity)
+		try:
+			activity = json.loads(json_activity)
+		except:
+			activity = json_backup.loads(json_activity)
 		final_result.append((activity,int(activity['cid']),int(user_id),str(activity['day']),float(activity['t'])))
 	return sorted(final_result,key=itemgetter(1,2,3,4))
 
@@ -250,7 +254,10 @@ def compile_activity_occurence_rows():
 	user_actions = defaultdict(set)
 	for json_activity, user_id in all_activity:
 		user_id = int(user_id)
-		activity = json.loads(json_activity)
+		try:
+			activity = json.loads(json_activity)
+		except:
+			activity = json_backup.loads(json_activity)
 		readable_activity_data.append((activity,user_id))
 		key = str(int(activity['cid']))+":"+activity['day']+":"+str(user_id)
 		user_actions[str(key)].add(str(activity['act']))# activity type performed by user_id
@@ -293,7 +300,10 @@ def compile_activity_frequency_rows():
 	user_actions = defaultdict(lambda: defaultdict(int))
 	for json_activity, user_id in all_activity:
 		user_id = int(user_id)
-		activity = json.loads(json_activity)
+		try:
+			activity = json.loads(json_activity)
+		except:
+			activity = json_backup.loads(json_activity)
 		readable_activity_data.append((activity,user_id))
 		key = str(int(activity['cid']))+":"+activity['day']+":"+str((int(user_id)))
 		user_actions[str(key)][str(activity['act'])] += 1

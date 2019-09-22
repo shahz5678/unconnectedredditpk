@@ -871,7 +871,8 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 		# ensure that the post is liked and has a positive 'score' (score is the prob it will receive 'likes' when it trends)
 		if likes > 0 and score > 0:
 			only_liked.append((obj_hash, score))
-	if only_liked:
+	if len(only_liked) > 1:
+		# run this only when at least 2 posts are competing against one another - otherwise don't push anything into trending
 		only_liked.sort(key=itemgetter(1),reverse=True)
 		trending_item_hash_name = only_liked[0][0]
 		if with_score:

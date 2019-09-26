@@ -87,7 +87,7 @@
 		{% if newbie_flag %}
 		
 			<div class="mbl mts">
-			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin %}
+			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='top' %}
 			</div>
 		
 		{% else %}
@@ -204,6 +204,12 @@
 
 		</section>
 
+		{% if newbie_flag == '7' %}
+				<div class="mbs mt">
+				{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='bottom' %}
+				</div>
+		{% endif %}
+
 		<div class="fx fxjscn">
 			{% if page.has_previous %}
 		    <div style="padding:0 10px">
@@ -219,6 +225,7 @@
 
 	</main>
 	{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+
 	<br>
 	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
 		<ul class="navbar">

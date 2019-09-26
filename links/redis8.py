@@ -194,30 +194,84 @@ def retention_clean_up(which_var):
 ######################################################## Segment Analysis ########################################################
 ##################################################################################################################################
 
+TUT_SEEN = 'ts:'
+
 VAR_SUBSET_2 = 'vs2:'
 VAR_SUBSET_3 = 'vs3:'
+VAR_SUBSET_4 = 'vs4:'
+
+def set_tutorial_seen(viewer_id):
+	"""
+	Logs that a user has seen a specific portion of a tutorial
+	"""
+	is_set = redis.Redis(connection_pool=POOL).setnx(TUT_SEEN+str(viewer_id),'1')
+	if is_set:
+		redis.Redis(connection_pool=POOL).expire(TUT_SEEN+str(viewer_id),TWO_WEEKS)
+	return is_set
+
+
+def is_tutorial_seen(viewer_id):
+	"""
+	Retrieves whether a user has seen a portion of a tutorial
+	"""
+	return redis.Redis(connection_pool=POOL).exists(TUT_SEEN+str(viewer_id))
+
 
 def retrieve_variation_subset(user_id, choice):
 	"""
-	Used to add new 'mehfil' and 'topic' variations
+	Used to add new 'mehfil', 'topic' and 'photo' variations
 	"""
-	subset_key = VAR_SUBSET_2+str(user_id) if choice == '2' else VAR_SUBSET_3+str(user_id)
+	if choice == '2':
+		# divide var2 into 2
+		subset_key = VAR_SUBSET_2+str(user_id)
+	elif choice == '3':
+		# divide var3 into 3
+		subset_key = VAR_SUBSET_3+str(user_id)
+	elif choice == '4':
+		# divide var4 into 2
+		subset_key = VAR_SUBSET_4+str(user_id)
+	
 	my_server = redis.Redis(connection_pool=POOL)
-	subset_choice = my_server.get(subset_key)
-	if not subset_choice:
-		coin = random.randint(1, 2)
-		if coin == 1:
-			if choice == '2':
-				subset_choice = '2'
-			elif choice == '3':
-				subset_choice = '3'
-		else:
-			if choice == '2':
-				subset_choice = '5'
-			elif choice == '3':
-				subset_choice = '6'
-		my_server.setex(subset_key,subset_choice,TWO_WEEKS)
-	return subset_choice
+	chosen_subset = my_server.get(subset_key)
+	if not chosen_subset:
+		# fresh user - allot subset for the rest of their journey
+		# '2' means 1on1
+		# '3' means generic content
+		# '4' means old control
+		# '5' means mehfils
+		# '6' means topics
+		# '7' means img content
+		if choice == '2':	
+			coin = random.randint(1, 2)
+			if coin == 1:
+				# allot '2'
+				chosen_subset = '2'
+			else:
+				# change choice to '5'
+				chosen_subset = '5'
+
+		elif choice == '3':
+			coin = random.choice([1,2,3])
+			if coin == 1:
+				# allot 3
+				chosen_subset = '3'
+			elif coin == 2:
+				# change choice to '6'
+				chosen_subset = '6'
+			else:
+				# change choice to '7'
+				chosen_subset = '7'
+
+		elif choice == '4':
+			coin = random.randint(1, 2)
+			if coin == 1:
+				# allot '4'
+				chosen_subset = '4'
+			else:
+				# change choice to '7'
+				chosen_subset = '7'
+		my_server.setex(subset_key,chosen_subset,TWO_WEEKS)
+	return chosen_subset
 
 
 def retrieve_var(user_id):

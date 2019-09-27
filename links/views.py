@@ -92,6 +92,7 @@ rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs
+from redis8 import retrieve_variation_subset, set_tutorial_seen
 # from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
 
@@ -1146,12 +1147,14 @@ def home_page(request, lang=None):
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
-		context["newbie_flag"] = True
-		if newbie_flag in ('1','2','3','5','6'):
+		context["newbie_flag"] = newbie_flag
+		if newbie_flag in ('1','2','3','5','6','7'):
 			if newbie_flag == '5':
 				context["newbie_tutorial_page"] = 'tutorial5b.html'
 			elif newbie_flag == '6':
 				context["newbie_tutorial_page"] = 'tutorial6b.html'
+			elif newbie_flag == '7':
+				context["newbie_tutorial_page"] = 'tutorial7c.html'
 			else:
 				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 		else:
@@ -1206,11 +1209,8 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 		# new 4-pronged onboarding funnel
 		choice = request.POST.get("choice",None)
 		if choice in ('1','2','3','4'):
-			if choice == '2':
-				from redis8 import retrieve_variation_subset
-				choice = retrieve_variation_subset(user_id, choice)
-			elif choice == '3':
-				from redis8 import retrieve_variation_subset
+			if choice in ('2','3','4'):
+				# these particular variations have subsets too
 				choice = retrieve_variation_subset(user_id, choice)
 			request.session["newbie_flag"] = choice
 			if user_id > SEGMENT_STARTING_USER_ID:
@@ -1224,6 +1224,8 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 				return redirect("get_ranked_groups")
 			elif choice == '6':
 				return redirect("topic_listing")
+			elif choice == '7':
+				return redirect(reverse_lazy("photo", args=['best-list']))
 			else:
 				return redirect("home")
 		else:
@@ -2091,7 +2093,7 @@ class CommentView(CreateView):
 						comment_time = convert_to_epoch(photocomment.submitted_on)
 						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
 						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user_id,\
-							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
+							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name,time=comment_time)
 						photo_tasks.delay(user_id, pk, comment_time, photocomment.id, which_photo.comment_count, text, already_commented, \
 							commenter_name, url, self.request.mobile_verified)
 						################### Retention activity logging ###################
@@ -2418,12 +2420,21 @@ def photo_page(request,list_type='best-list'):
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
 		if newbie_flag:
-			context["newbie_flag"] = True
-			if newbie_flag in ('1','2','3','5','6'):
+			if newbie_flag in ('1','2','3','5','6','7'):
 				if newbie_flag == '5':
 					context["newbie_tutorial_page"] = 'tutorial5b.html'
 				elif newbie_flag == '6':
 					context["newbie_tutorial_page"] = 'tutorial6b.html'
+				elif newbie_flag == '7':
+					if page_num == 1:
+						context["newbie_tutorial_page"] = 'tutorial7a.html'
+					elif page_num >= 2:
+						context["newbie_tutorial_page"] = 'tutorial7b.html'
+						is_set = set_tutorial_seen(viewer_id=own_id)
+						request.session.pop("newbie_flag",None)
+					else:
+						# what if they paginate even more?
+						pass
 				else:
 					context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 			else:

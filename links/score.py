@@ -284,7 +284,7 @@ MERCH = {
 ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
-SEGMENT_STARTING_USER_ID = 2004140# starting user ID of user segment analysis
+SEGMENT_STARTING_USER_ID = 2004144# starting user ID of user segment analysis
 PROJ_ZUCK_STARTING_USER_ID = 1975000
 
 """
@@ -437,7 +437,8 @@ V2 - selected 'var2' in the tutorial
 V3 - selected 'var3' in the tutorial
 V4 - selected 'var4' in the tutorial
 V5 - selected 'var5' in the tutorial
-V6 - selected 'var5' in the tutorial
+V6 - selected 'var6' in the tutorial
+V7 - selected 'var7' in the tutorial
 
 G1 - loaded list of joined mehfils
 G2 - loaded mehfil invite list

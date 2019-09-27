@@ -188,7 +188,7 @@ def export_retention_activity_occurrence_log(request):
 					1 if actions[227] in set_of_user_actions else 0,1 if actions[228] in set_of_user_actions else 0,\
 					1 if actions[229] in set_of_user_actions else 0,1 if actions[230] in set_of_user_actions else 0,\
 					1 if actions[231] in set_of_user_actions else 0,1 if actions[232] in set_of_user_actions else 0,\
-					1 if actions[233] in set_of_user_actions else 0]
+					1 if actions[233] in set_of_user_actions else 0,1 if actions[234] in set_of_user_actions else 0]
 					total = [sum(acts)]
 					to_write = credentials+acts+total
 					wtr.writerows([to_write])
@@ -333,7 +333,8 @@ def export_retention_activity_frequency_log(request):
 					dict_of_user_actions.get(actions[226],0),dict_of_user_actions.get(actions[227],0),\
 					dict_of_user_actions.get(actions[228],0),dict_of_user_actions.get(actions[229],0),\
 					dict_of_user_actions.get(actions[230],0),dict_of_user_actions.get(actions[231],0),\
-					dict_of_user_actions.get(actions[232],0),dict_of_user_actions.get(actions[233],0)]
+					dict_of_user_actions.get(actions[232],0),dict_of_user_actions.get(actions[233],0),\
+					dict_of_user_actions.get(actions[234],0)]
 					total = [sum(acts)]
 					to_write = credentials+acts+total			
 					wtr.writerows([to_write])

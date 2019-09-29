@@ -79,7 +79,14 @@
                 {% endif %}
             {% endif %}
            <a href="{% url 'user_profile' reply.submitted_by__username %}" class="clb"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>
-               :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>{% if user_id == parent_submitter_id %}<form action="{% url 'hide_jawab' publicreply_id=reply.id link_id=parent.id %}" style="display:inline" method="POST" class="mrl">{% csrf_token %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>{% endif %}<span class="mrs">{% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}</span>{% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
+               :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+               <div style="display:inline-block">
+                   <div class="fx fxjsfs fxaicn">
+                       {% if user_id == parent_submitter_id %}<form action="{% url 'hide_jawab' publicreply_id=reply.id link_id=parent.id %}" style="display:inline" method="POST" class="mrl">{% csrf_token %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>&nbsp;{% endif %}
+                       {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}&nbsp;&nbsp;&nbsp;&nbsp;
+                       {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
+                   </div>
+               </div>
         {% endif %}
         </div>
     

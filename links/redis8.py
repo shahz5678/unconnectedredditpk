@@ -321,7 +321,7 @@ def compile_activity_occurence_rows():
 	for activity, user_id in readable_activity_data:
 		activity_string = str(activity['act'])
 		time_of_activity = float(activity['t'])
-		if activity_string in ('V1','V2','V3','V4','V5','V6'):
+		if activity_string in ('V1','V2','V3','V4','V5','V6','V7'):
 			user_exp_variations[user_id].append((activity_string,time_of_activity))
 
 	user_variation_strings = {}
@@ -367,7 +367,7 @@ def compile_activity_frequency_rows():
 	for activity, user_id in readable_activity_data:
 		activity_string = str(activity['act'])
 		time_of_activity = float(activity['t'])
-		if activity_string in ('V1','V2','V3','V4','V5','V6'):
+		if activity_string in ('V1','V2','V3','V4','V5','V6','V7'):
 			user_exp_variations[user_id].append((activity_string,time_of_activity))
 
 	user_variation_strings = {}

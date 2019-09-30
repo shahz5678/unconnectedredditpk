@@ -26,8 +26,7 @@
       <h1 class="cxl lsp" style="display:inline">Your shared images:</h1>
     {% endif %}
   {% else %}
-    {% load get_group_button %}
-    {% group_button user_id star_id slug 'profile' '4' slug %}&nbsp;<h1 class="cxl lsp" style="display:inline">{% if is_trending %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s trending images</span>:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s shared images</span>:{% endif %}</h1>
+    <h1 class="cxl lsp" style="display:inline">{% if is_trending %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s trending images</span>:<br><span class="cs cgy sp lsp" style="font-weight:lighter">(last 7 days)</span>{% else %}<span itemprop="headline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="alternateName">{{ slug }}</span></span>'s shared images</span>:{% endif %}</h1>
   {% endif %}
   </div>
 

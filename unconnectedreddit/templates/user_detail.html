@@ -15,8 +15,7 @@
 {% if is_own_profile %}
 <h1 class="cxl clb lsp" style="display:inline">Your profile:</h1>
 {% else %}
-{% load get_group_button %}
- {% group_button user.id star_id username 'profile' '10' username %}<h1 class="cxl clb lsp" style="display:inline">{{ username }}'s profile:</h1>
+<h1 class="cxl clb lsp" style="display:inline">{{ username }}'s profile:</h1>
 {% endif %}
  </div>
 

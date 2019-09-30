@@ -125,8 +125,8 @@
         :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
         <div style="display:inline-block">
             <div class="fx fxjsfs fxaicn">
-                {% if authenticated and user == photo.owner %}<form action="{% url 'hide_comment' comment_id=comment.id photo_id=photo.pk origin=origin %}" method="POST" style="display:inline" class="mrl">{% csrf_token %}{% if origin == '3' %}<input type="hidden" name="slug" value="{{ photo.owner_id }}">{% elif origin == '4' %}<input type="hidden" name="slug" value="{{ slug_id }}">{% elif origin == '6' %}{% if link_ident %}<input type="hidden" name="slug" value="{{ link_ident }}">{% endif %}{% endif %}<button type="submit" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:middle"></button></form>&nbsp;{% endif %}
-                {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}&nbsp;&nbsp;&nbsp;&nbsp;
+                {% if authenticated and user == photo.owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo.owner_id %}{% endif %}
+                {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
                 {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
             </div>
         </div>

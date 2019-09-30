@@ -1,5 +1,5 @@
 {% if possible %}
 <form method="POST" action="{% url 'unfan' %}" class="mrl">
-  {% csrf_token %}<input type="hidden" name="tunm" value="{{ target_username }}"><button class="cxs sp" style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:62px;color:coral" value="{{ target_user_id }}" name="tuid" type="submit">REMOVE</button>
+  {% csrf_token %}<input type="hidden" name="tunm" value="{{ target_username }}"><button class="cxs vt sp" style="border:1px solid #d8dde2;padding:2px 0;width:62px;color:coral" value="{{ target_user_id }}" name="tuid" type="submit">REMOVE</button>
 </form>
 {% endif %}

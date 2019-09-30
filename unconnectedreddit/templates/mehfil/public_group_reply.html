@@ -97,16 +97,16 @@
 
             <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
         
-            <button name="wid" style="display:{{ display }};background:0 0;border:none;padding:0" class="at pg_ok_res mrs" value="{{ reply.wid }}"><img src="{{ STATIC_URL }}img/at.svg" width="15" height="15" class="mrs" style="vertical-align:sub"></button>
+            <div style="display:inline-block">
+            <div class="fx fxjsfe fxaicn">
+                {% include "mehfil/hide_reply.html" with reply_gid=reply.gid reply_id=reply.id %}
 
-            <form method="POST" action="{% url 'group_hide_submission' %}" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="dec" value="h">
-            <input type="hidden" name="gid" value="{{ reply.gid }}">
-            <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:sub"></button>
-            </form>
-            
-            {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+                {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+
+                <button name="wid" style="display:{{ display }};border:1px solid #d8dde2;background:transparent;padding:2px 0;width:52px;color:#4fb2e3;margin-bottom:-2px" class="cxs sp at pg_ok_res" value="{{ reply.wid }}">REPLY</button>
+            </div>
+            </div>
+
             </div>
            
         {% endif %}

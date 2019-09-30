@@ -1,10 +1,7 @@
 {% if possible %}
-<form method="POST" action="{% url 'enter_inter_user_ban' %}" style="display:inline">
+<form method="POST" class="mrl" action="{% url 'enter_inter_user_ban' %}">
   {% csrf_token %}
-  <input type="hidden" name="lid" value="{{ link_id }}">
-  <input type="hidden" name="tunm" value="{{ target_username }}">
-  <input type="hidden" name="orig" value="{{ origin }}">
-  <input type="hidden" name="obid" value="{{ obj_id }}">
-  <button style="background:0 0;border:none;padding:0" value="{{ target_user_id }}" name="tuid" type="submit"><img src="{{ static_url }}img/block.svg" width="17" height="17" style="vertical-align:middle"></button>
+  <input type="hidden" name="lid" value="{{ link_id }}"><input type="hidden" name="tunm" value="{{ target_username }}"><input type="hidden" name="orig" value="{{ origin }}"><input type="hidden" name="obid" value="{{ obj_id }}">
+  <button style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:52px;color:coral;border-radius:4px;font-size:10px" class="sp" value="{{ target_user_id }}" name="tuid" type="submit">BLOCK</button>
 </form>
 {% endif %}

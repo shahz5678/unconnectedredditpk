@@ -72,6 +72,9 @@
 
 	<div style="padding:10px">
 
+		<h2 style="font-size:30px;color:#ffc0c0;margin:0 0 10px 0">New Topic:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ehd e Wafa' url='ehd-e-wafa' c1='#04ead3' c2='#6193fe' %}
+
 		<h2 style="font-size:30px;color:#ffc0c0;margin:0 0 10px 0">Popular Topics:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Funny Urdu Jokes' url='funny-urdu-jokes' c1='#f574ff' c2='#c8ff28' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Urdu Poetry' url='urdu-poetry' c1='#fa88a3' c2='#ffca5f' %}

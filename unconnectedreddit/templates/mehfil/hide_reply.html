@@ -1,4 +1,4 @@
 <form method="POST" action="{% url 'group_hide_submission' %}" class="mrl">
-{% csrf_token %}<input type="hidden" name="dec" value="h"><input type="hidden" name="gid" value="{{ reply_gid }}">
-<button type="submit" name="pk" class="cxs sp pg_ok_res" value="{{ reply_id }}" style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:52px;color:coral">HIDE</button>
+{% csrf_token %}<input type="hidden" name="dec" value="{{ dec }}"><input type="hidden" name="gid" value="{{ reply_gid }}">
+{% if dec == 'u' %}<button type="submit" name="pk" class="cxs sp pg_ok_res" value="{{ reply_id }}" style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:62px;color:#4fb2e3">UNHIDE</button>{% else %}<button type="submit" name="pk" class="cxs sp pg_ok_res" value="{{ reply_id }}" style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:52px;color:coral">HIDE</button>{% endif %}
 </form>

@@ -1,5 +1,5 @@
 {% if not own_id %}
 <form method="POST" action="{% url 'render_personal_group_invite' %}" class="mrl">
-{% csrf_token %}<input type="hidden" name="ot" value="{{ ot }}"><input type="hidden" name="tid" value="{{ tid }}"><input type="hidden" name="org" value="{{ org }}"><input type="hidden" name="tun" value="{{ tun }}"><input type="hidden" name="poid" value="{{ poid }}"><input type="hidden" name="hh" value="{{ home_hash }}"><button style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:52px;color:#4fb2e3" class="cxs sp">1-ON-1</button>
+{% csrf_token %}<input type="hidden" name="ot" value="{{ ot }}"><input type="hidden" name="tid" value="{{ tid }}"><input type="hidden" name="org" value="{{ org }}"><input type="hidden" name="tun" value="{{ tun }}"><input type="hidden" name="poid" value="{{ poid }}"><input type="hidden" name="hh" value="{{ home_hash }}"><button style="border:1px solid #d8dde2;padding:2px 0;width:52px;color:#4fb2e3" class="vt cxs sp">1-ON-1</button>
 </form>
 {% endif %}

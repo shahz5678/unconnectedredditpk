@@ -121,6 +121,7 @@ CACHED_REV_SYB_RELATIONSHIP = 'crsr:'# key that caches the reverse-sybil/data as
 LATEST_REVERSION_TIMES = "lrt"# global sorted set holding latest times that a vote reversion occured between a voter_id:poster_id pairs
 
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
+TOP_TRENDER_IDS = 'tti'# a sorted set containing top trender IDs. Can be used to show a 'star' symbol next to their names
 
 CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
@@ -1455,7 +1456,7 @@ def retrieve_top_trenders():
 			starting_score = all_trenders[0][1]#num trending pics of top user
 			final_list=[]
 			rank_to_display = 0
-			top_trending_ids = set()
+			top_trending_ids = []
 
 			for row in all_trenders:
 				if starting_score == row[1]:
@@ -1465,7 +1466,8 @@ def retrieve_top_trenders():
 						final_list.append((trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'],rank_to_display  ) )
 					else:
 						final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
-					top_trending_ids.add(trender_id)
+					top_trending_ids.append(trender_id)
+					top_trending_ids.append(int(row[1]))
 				else:
 					starting_score = row[1]
 					rank +=1
@@ -1478,11 +1480,12 @@ def retrieve_top_trenders():
 							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'], rank_to_display  ) )
 						else:
 							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
-						top_trending_ids.add(trender_id)
+						top_trending_ids.append(trender_id)
+						top_trending_ids.append(int(row[1]))
 			if final_list:
 				my_server.setex(TOP_TRENDERS, json.dumps(final_list),THIRTY_MINS)
 				my_server.delete(TOP_TRENDER_IDS)
-				my_server.sadd(TOP_TRENDER_IDS,*top_trending_ids)# contains all trender IDs who're in the top (and eligible to get stars) - but how is it cached?
+				my_server.zadd(TOP_TRENDER_IDS,*top_trending_ids)# contains all trender IDs who're in the top (and eligible to get stars) - but how is it cached?
 			return 	final_list
 		else: 
 			return []

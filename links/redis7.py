@@ -611,7 +611,8 @@ def create_sybil_relationship_log():
 		counter += 1
 	my_server.delete(SYBIL_RELATIONSHIP_LOG)
 	########## Useful for retrieve_users_voting_relationships() ##########
-	my_server.zadd(SYBIL_RELATIONSHIP_LOG,*final_voter_data)
+	if final_voter_data:# without 'if' statement, the statement below will fail when final_voter_data = []
+		my_server.zadd(SYBIL_RELATIONSHIP_LOG,*final_voter_data)
 
 
 def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, with_total_votes=False):
@@ -755,7 +756,7 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-		
+
 	
 def truncate_payload(comment_blob):
 	"""
@@ -1451,9 +1452,10 @@ def retrieve_top_trenders():
 
 		user_cred_dict = retrieve_bulk_credentials(all_trender_ids,decode_unames=False)
 		if all_trenders:
-			starting_score = all_trenders[0][1]
+			starting_score = all_trenders[0][1]#num trending pics of top user
 			final_list=[]
 			rank_to_display = 0
+			top_trending_ids = set()
 
 			for row in all_trenders:
 				if starting_score == row[1]:
@@ -1463,6 +1465,7 @@ def retrieve_top_trenders():
 						final_list.append((trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'],rank_to_display  ) )
 					else:
 						final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
+					top_trending_ids.add(trender_id)
 				else:
 					starting_score = row[1]
 					rank +=1
@@ -1475,8 +1478,11 @@ def retrieve_top_trenders():
 							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'], rank_to_display  ) )
 						else:
 							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
+						top_trending_ids.add(trender_id)
 			if final_list:
 				my_server.setex(TOP_TRENDERS, json.dumps(final_list),THIRTY_MINS)
+				my_server.delete(TOP_TRENDER_IDS)
+				my_server.sadd(TOP_TRENDER_IDS,*top_trending_ids)# contains all trender IDs who're in the top (and eligible to get stars) - but how is it cached?
 			return 	final_list
 		else: 
 			return []
@@ -4235,6 +4241,7 @@ def get_website_feedback():
 	for user_id in feedback_users:
 		pipeline1.hgetall("wf:"+str(user_id))
 	return pipeline1.execute()
+
 
 ##################################### Regulating fb fan page posting #####################################
 

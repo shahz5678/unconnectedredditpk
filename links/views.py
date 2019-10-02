@@ -42,12 +42,12 @@ ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, Up
 PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, \
 PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
 WelcomeMessageForm, WelcomeForm, PublicreplyMiniForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
-SearchNicknameForm, UserProfileDetailForm, TopForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, BestPhotosListForm, \
+SearchNicknameForm, UserProfileDetailForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, BestPhotosListForm, TestAdsForm, \
 UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, PhotosListForm, UnseenActivityForm, \
 CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
 PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, CricketCommentForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, \
-AdTitleForm, AdTitleForm, AdImageForm, TestAdsForm, TestReportForm, HomeLinkListForm, ResetPasswordForm
+AdTitleForm, AdTitleForm, AdImageForm, TestReportForm, HomeLinkListForm, ResetPasswordForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
@@ -91,7 +91,8 @@ update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limit
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs
+get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
+is_image_star, get_all_image_star_ids
 from redis8 import retrieve_variation_subset, set_tutorial_seen
 # from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
@@ -550,11 +551,11 @@ def star_list(request, *args, **kwargs):
 		context["page_obj"] = page_obj
 		users_with_photo_thumbs = retrieve_thumbs(users_with_photo_counts)
 		context["users"] = users_with_photo_thumbs
+		context["stars"] = get_all_image_star_ids()
 	else:
 		context["page_obj"] = None
 		context["users"] = []
 		context["fan"] = User.objects.get(id=pk)
-		context["girls"] = FEMALES
 	################### Retention activity logging ###################
 	if pk > SEGMENT_STARTING_USER_ID:
 		time_now = time.time()
@@ -909,8 +910,8 @@ class PhotoDetailView(DetailView):
 			else:
 				context["on_opera"] = True
 		context["defender"] = False
+		context["is_star"] = is_image_star(user_id=photo.owner_id)
 		context["oun"] = retrieve_uname(photo.owner_id,decode=True)
-		context["is_pinkstar"] = True if context["oun"] in FEMALES else False
 		context["from_cull_queue"] = False
 		context["latest_photocomments"] = None
 		context["other_photos"] = Photo.objects.filter(owner=photo.owner).exclude(id=pk).order_by('-id').values('image_file','caption','id')[:10] #list of dictionaries
@@ -1089,8 +1090,6 @@ def home_redirect(request, pk=None):
 def home_page(request, lang=None):
 	"""
 	Displays the home page
-
-	~20% faster calculation than its predecessor function home_link_list()
 	"""
 	own_id, page_num = request.user.id, request.GET.get('page', '1')
 	start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
@@ -1274,7 +1273,7 @@ def show_online_users(request):
 		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
 		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
-	return render(request,"online_list.html",{'online_data':final_data,'females':FEMALES, 'num_online':num_online,\
+	return render(request,"online_list.html",{'online_data':final_data,'stars':get_all_image_star_ids(), 'num_online':num_online,\
 		'own_id':own_id,'bottom':len(final_data),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)})
 
 
@@ -1377,6 +1376,7 @@ def user_profile_photos(request,slug,type):
 	if list_type == 'trending-fotos':
 		context["is_trending"] = True
 	context["slug"] = username
+	context["is_star"] = is_image_star(user_id=target_id)
 	star_id = target_id
 	context["num_trending"] = retrieve_num_trending_photos(star_id)
 	if request.user:
@@ -1469,6 +1469,8 @@ class UserProfileDetailView(FormView):
 			user_id = self.request.user.id
 			context["own_id"] = user_id
 			context["star_id"] = star_id
+			num_trending_pics = is_image_star(user_id=star_id)
+			context["is_star"] = int(num_trending_pics) if num_trending_pics else num_trending_pics
 			context["city_name"] = REV_CITY_DICT.get(user_profile.streak,0)
 			context["zodiac"] = ZODIAC.get(user_profile.attractiveness,'None')
 			user_id = str(user_id) if user_id else None
@@ -1676,19 +1678,19 @@ def photo_top_trenders(request):
 	return render(request,"top_photo.html",{'object_list':retrieve_top_trenders(),'list_size':TRENDER_RANKS_TO_COUNT})
 
 
-class TopView(ListView):
-	# model = User
-	form_class = TopForm
-	template_name = "top.html"
+# class TopView(ListView):
+# 	# model = User
+# 	form_class = TopForm
+# 	template_name = "top.html"
 
-	def get_queryset(self):
-		return UserProfile.objects.only('user__username','score').values('user__username','score').order_by('-score')[:100]
+# 	def get_queryset(self):
+# 		return UserProfile.objects.only('user__username','score').values('user__username','score').order_by('-score')[:100]
 
-	def get_context_data(self, **kwargs):
-		context = super(TopView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			context["verified"] = FEMALES        
-		return context
+# 	def get_context_data(self, **kwargs):
+# 		context = super(TopView, self).get_context_data(**kwargs)
+# 		if self.request.user.is_authenticated():
+# 			context["verified"] = FEMALES        
+# 		return context
 
 
 class PhotoJawabView(FormView):
@@ -1958,7 +1960,7 @@ class CommentView(CreateView):
 		target_username = photo.owner.username
 		context["target_username"] = target_username
 		context["thumbs"] = retrieve_trending_thumbs(photo.owner_id)
-		context["verified"] = FEMALES
+		# context["verified"] = FEMALES
 		context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
@@ -2486,7 +2488,7 @@ def public_photo_upload_denied(request):
 		if pk:
 			try:
 				photo = Photo.objects.get(id=int(pk))
-				return render(request, 'duplicate_photo.html', {'photo': photo, 'females': FEMALES})
+				return render(request, 'duplicate_photo.html', {'photo': photo, 'is_star': is_image_star(user_id=photo.owner_id)})
 			except Photo.DoesNotExist:
 				return render(request, 'big_photo.html', {'photo':'photo'})
 		else:
@@ -2697,7 +2699,7 @@ def upload_public_photo(request,*args,**kwargs):
 					banned = '1' if request.user_banned else '0'
 					name, owner_url = retrieve_credentials(user_id,decode_uname=True)
 					photo_obj = add_image_post(obj_id=photo_id, categ='6', submitter_id=user_id, submitter_av_url=owner_url, submitter_username=name, \
-						submitter_score=0, is_pinkstar=(True if name in FEMALES else False),img_url=photo.image_file.url, img_caption=caption,\
+						submitter_score=0, is_star=is_image_star(user_id=user_id),img_url=photo.image_file.url, img_caption=caption,\
 						submission_time=epochtime, from_fbs=on_fbs)
 					recent_photo_ids = get_recent_photos(user_id)
 					number_of_photos, total_score = 0, 0
@@ -3895,6 +3897,7 @@ class UserActivityView(ListView):
 					obj['topic_name'], obj['url'] = '', ''
 					obj['c1'], obj['c2'] = '', ''
 		if target_id:
+			context["is_star"] = is_image_star(user_id=target_id)
 			context["verified"] = True if username in FEMALES else False
 			context["is_profile_banned"] = False
 			if self.request.user.is_authenticated():
@@ -4127,8 +4130,8 @@ def submit_text_post(request):
 						##################################################################
 						log_text_submissions('topic')#Logs the number of submisions in topic vs number of submissions of regular text posts
 						add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
-							submitter_av_url=av_url, is_pinkstar='', submission_time=time_now, text=description, \
-							from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=form.cleaned_data['turl'], \
+							submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now, \
+							text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=form.cleaned_data['turl'], \
 							topic_name= form.cleaned_data['tname'] ,bg_theme=form.cleaned_data['bgt'], add_to_public_feed=True,\
 							submitter_username=submitter_name)
 					else:
@@ -4141,7 +4144,7 @@ def submit_text_post(request):
 						log_text_submissions('text')
 						add_text_post(obj_id=obj_id, categ=alignment, submitter_id=own_id, submitter_av_url=av_url, \
 							submitter_username=submitter_name, submission_time=time_now, add_to_feed=True, \
-							is_pinkstar='', text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False))
+							is_star=is_image_star(user_id=own_id), text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False))
 					rate_limit_content_sharing(own_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
 					set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
 					url = reverse_lazy("home")+"#shared"
@@ -4257,7 +4260,8 @@ def welcome_reply(request,*args,**kwargs):
 				except ValueError:
 					url = None
 				reply_time = convert_to_epoch(reply.submitted_on)
-				amnt = update_comment_in_home_link(description,username,reply.id,reply_time,user_id,parent.id)
+				amnt = update_comment_in_home_link(reply=description,writer=username,reply_id=reply.id,time=reply_time,writer_id=user_id,\
+					link_pk=parent.id)
 				publicreply_notification_tasks.delay(link_id=parent.id,link_submitter_url=av_url, sender_id=user_id,\
 					link_submitter_id=pk,link_submitter_username=target.username, link_desc=parent.description, \
 					reply_time=reply_time,reply_poster_url=url,reply_poster_username=username,reply_desc=reply.description,\

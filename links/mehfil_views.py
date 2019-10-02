@@ -25,7 +25,9 @@ from image_processing import process_group_image
 
 from models import HellBanList, UserProfile
 
-from redis7 import check_content_and_voting_ban
+# from direct_response_forms import DirectResponseForm
+
+from redis7 import check_content_and_voting_ban, get_all_image_star_ids
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
@@ -642,7 +644,7 @@ def private_mehfil_oversight_dashboard(request):
 						for member_id, joining_time in all_member_ids_and_joining_times:
 							final_member_data.append((member_id, credentials[int(member_id)],joining_time))
 						cache_group_membership_data(json.dumps(final_member_data),group_id)
-					return render(request,'mehfil/kick_out_group_members.html',{'topic':data['tp'],'members':final_member_data,'legit':FEMALES,\
+					return render(request,'mehfil/kick_out_group_members.html',{'topic':data['tp'],'members':final_member_data,'stars':get_all_image_star_ids(),\
 						'guid':group_uuid,'immune_ids':[own_id],'own_id':own_id})
 				elif decision == '4':
 					# owner wants to transfer ownership
@@ -781,7 +783,7 @@ def public_group_officer_management(request):
 				if decision == '1':
 					# add more officers
 					return render(request,"mehfil/manage_public_group_officers.html",{'topic':data['tp'],'add_officers':True,\
-						'females':FEMALES,'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id)})
+						'stars':get_all_image_star_ids(),'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id)})
 				elif decision == '2':
 					# remove officers
 					officer_ids_times_and_powers = retrieve_all_officers(group_id, with_power_levels=True)# tup of the sort (officer_id, time, can_hide, can_kick)
@@ -794,7 +796,7 @@ def public_group_officer_management(request):
 					for officer in officers:
 						tup = interim_data[str(officer.id)]
 						officer_data.append((tup[0],officer,tup[1],tup[2],tup[3],tup[4]))#(officer_id, officer_obj, appointment_time, can_hide, can_kick, can_topic)
-					return render(request,"mehfil/manage_public_group_officers.html",{'females':FEMALES,'topic':data['tp'],\
+					return render(request,"mehfil/manage_public_group_officers.html",{'stars':get_all_image_star_ids(),'topic':data['tp'],\
 						'rem_officers':True,'officer_data':officer_data,'guid':group_uuid})
 				else:
 					# view officer history
@@ -868,7 +870,7 @@ def public_mehfil_oversight_dashboard(request):
 					# manage officers (i.e. default to 'add officers'. From there, user can go to remove officers or view history)
 					return render(request,"mehfil/manage_public_group_officers.html",{'topic':data['tp'],'guid':group_uuid,\
 						'applications':retrieve_all_current_applications(group_id=group_id),'add_officers':True,\
-						'show_tut':tutorial_unseen(user_id=own_id, which_tut='29', renew_lease=True),'females':FEMALES})
+						'show_tut':tutorial_unseen(user_id=own_id, which_tut='29', renew_lease=True),'stars':get_all_image_star_ids()})
 				elif decision == '2':
 					# kick out users
 					attendance_data = retrieve_cached_attendance_data(group_id,term='short')
@@ -887,7 +889,7 @@ def public_mehfil_oversight_dashboard(request):
 								final_visitor_data.append((str(visitor_id),credentials[int(visitor_id)],visit_time))
 							cache_group_attendance_data(json.dumps(final_visitor_data),group_id,term='short')#micro-cached for 15 seconds
 					return render(request,'mehfil/take_action_against_group_visitors.html',{'topic':data['tp'],'visitors':final_visitor_data,\
-						'legit':FEMALES,'guid':group_uuid,'kick':True,'owner':True,'immune_ids':retrieve_immune_ids(group_id,own_id,is_officer=False),\
+						'stars':get_all_image_star_ids(),'guid':group_uuid,'kick':True,'owner':True,'immune_ids':retrieve_immune_ids(group_id,own_id,is_officer=False),\
 						'own_id':own_id})
 				elif decision == '3':
 					# invite
@@ -973,7 +975,7 @@ def public_mehfil_oversight_dashboard(request):
 									final_visitor_data.append((str(visitor_id),credentials[int(visitor_id)],visit_time))
 								cache_group_attendance_data(json.dumps(final_visitor_data),group_id,term='short')#micro-cached for 15 seconds
 						return render(request,'mehfil/take_action_against_group_visitors.html',{'topic':data['tp'],'visitors':final_visitor_data,\
-							'legit':FEMALES,'guid':group_uuid,'kick':True,'officer':True,'immune_ids':retrieve_immune_ids(group_id,own_id,is_officer=True),\
+							'stars':get_all_image_star_ids(),'guid':group_uuid,'kick':True,'officer':True,'immune_ids':retrieve_immune_ids(group_id,own_id,is_officer=True),\
 							'own_id':own_id})
 					else:
 						return redirect("public_group",slug=group_uuid)
@@ -1224,7 +1226,7 @@ def process_officer_application_result(request):
 			group_owner_id, group_id = retrieve_group_owner_id(group_uuid=group_uuid,with_group_id=True)
 			return render(request,"mehfil/manage_public_group_officers.html",{'topic':retrieve_group_topic(group_id),\
 				'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id),'add_officers':True,\
-				'females':FEMALES})
+				'stars':get_all_image_star_ids()})
 		elif pwr_decision == '1':
 			# powers are selected (to be given to the selected officer)
 			own_id = str(request.user.id)
@@ -1256,7 +1258,7 @@ def process_officer_application_result(request):
 							# the application is not found! - simply return to officer screen
 							return render(request,"mehfil/manage_public_group_officers.html",{'topic':retrieve_group_topic(group_id),\
 								'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id),'add_officers':True,\
-								'females':FEMALES})
+								'stars':get_all_image_star_ids()})
 					else:
 						# not legal to make this person an officer any more
 						rescind_officer_applications(candidate_id, group_id)#
@@ -1306,7 +1308,7 @@ def process_officer_application_result(request):
 									# officer's application does not exist - simply return to officer screen
 									return render(request,"mehfil/manage_public_group_officers.html",{'topic':retrieve_group_topic(group_id),\
 										'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id),'add_officers':True,\
-										'females':FEMALES})
+										'stars':get_all_image_star_ids()})
 
 					else:
 						# it's not legal to make this user an officer
@@ -1314,14 +1316,14 @@ def process_officer_application_result(request):
 						# simply return to officer screen - this implies no decision
 						return render(request,"mehfil/manage_public_group_officers.html",{'topic':retrieve_group_topic(group_id),\
 							'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id),'add_officers':True,\
-							'females':FEMALES})
+							'stars':get_all_image_star_ids()})
 				else:
 					# reject application (owner's decision = '0')
 					rescind_officer_applications(candidate_id, group_id, rejection=True)#
 					# simply return to officer screen - this implies no decision
 					return render(request,"mehfil/manage_public_group_officers.html",{'topic':retrieve_group_topic(group_id),\
 						'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id),'add_officers':True,\
-						'females':FEMALES})
+						'stars':get_all_image_star_ids()})
 			else:
 				# not authorized to be doing this
 				raise Http404("You are not authorized to decide an officer's application")
@@ -1503,13 +1505,13 @@ def view_officer_app_history(request):
 				return render(request,"mehfil/user_officer_app_history.html",{'unique':group_uuid,'q1':GROUP_OFFICER_QUESTIONS['1'],\
 					'q2':GROUP_OFFICER_QUESTIONS['2'],'user_officer_app_history':historical_records,'mehfil_owner_mode':True,'idx':idx,\
 					'target_uname':target_uname,'target_id':applier_id,'target_group_id':group_id,'target_avurl':target_avurl,\
-					'apps_submitted':apps_submitted,'apps_accepted':apps_accepted,'females':FEMALES,'currently_officer':num_officers,\
+					'apps_submitted':apps_submitted,'apps_accepted':apps_accepted,'stars':get_all_image_star_ids(),'currently_officer':num_officers,\
 					'records_truncated':records_truncated})
 			else:
 				# the application is not found! - simply return to officer screen
 				return render(request,"mehfil/manage_public_group_officers.html",{'topic':retrieve_group_topic(group_id),\
 					'guid':group_uuid,'applications':retrieve_all_current_applications(group_id=group_id),'add_officers':True,\
-					'females':FEMALES})
+					'stars':get_all_image_star_ids()})
 		else:
 			# not authorized to view this
 			raise Http404("You cannot view this application")
@@ -1539,7 +1541,7 @@ def display_officer_application(request):
 					request.session["public_uuid"] = group_uuid
 					request.session.modified = True
 					return render(request,"mehfil/view_officer_application.html",{'application':data,'guid':group_uuid,\
-						'q1':GROUP_OFFICER_QUESTIONS['1'],'q2':GROUP_OFFICER_QUESTIONS['2'],'females':FEMALES})
+						'q1':GROUP_OFFICER_QUESTIONS['1'],'q2':GROUP_OFFICER_QUESTIONS['2'],'stars':get_all_image_star_ids()})
 				else:
 					# data could not be loaded (maybe it has expired), so rescind their application(s)
 					rescind_officer_applications(candidate_id, group_id)
@@ -1606,7 +1608,7 @@ def display_officer_app_detailed_info(request):
 							target_uname, target_avurl = retrieve_credentials(target_id,decode_uname=True)
 							return render(request,"mehfil/officer_app_detailed_info.html",{'info':which_info,'guid':group_uuid,\
 								'data':data, 'mehfil_owner_mode':True,'target_uname':target_uname,'target_avurl':target_avurl,\
-								'females':FEMALES})
+								'stars':get_all_image_star_ids(),'target_id':target_id})
 						else:
 							# target_id doesn't have an outstanding application in owner's group
 							return redirect("public_group")
@@ -2571,8 +2573,8 @@ def display_group_users_list(request, grp_priv, list_type):
 			visitor_data = final_visitor_data[start_index:(end_index+1)]
 			return render(request,"mehfil/{0}.html".format(template_name),{'object_list':visitor_data,'group_owner_id':group_owner_id,\
 				'show_init_msg':tutorial_unseen(user_id=own_id, which_tut=which_tutorial, renew_lease=True),'unique':group_uuid, \
-				'legit':FEMALES,'is_paginated': True if len(final_visitor_data) > GROUP_VISITORS_PER_PAGE else False, 'page_obj':page,\
-				'is_owner':is_owner,'visitors':True})
+				'stars':get_all_image_star_ids(),'is_paginated': True if len(final_visitor_data) > GROUP_VISITORS_PER_PAGE else False,\
+				'page_obj':page, 'is_owner':is_owner,'visitors':True})
 		elif list_type == 'members':
 			# this is for displaying all members
 			membership_data = retrieve_cached_membership_data(group_id)
@@ -2595,7 +2597,7 @@ def display_group_users_list(request, grp_priv, list_type):
 			start_index, end_index = get_indices(page_num, GROUP_MEMBERS_PER_PAGE)
 			member_data = final_member_data[start_index:(end_index+1)]
 			return render(request,"mehfil/{0}.html".format(template_name),{'object_list':member_data,'group_owner_id':group_owner_id,\
-				'unique':group_uuid, 'legit':FEMALES,'is_paginated': True if num_members > GROUP_MEMBERS_PER_PAGE else False, \
+				'unique':group_uuid, 'stars':get_all_image_star_ids(),'is_paginated': True if num_members > GROUP_MEMBERS_PER_PAGE else False, \
 				'page_obj':page,'members':True})
 		else:
 			# unrecognized parameter - abort
@@ -3211,7 +3213,7 @@ class PrivateGroupView(FormView):
 					secret_key = uuid.uuid4()
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'prv_grp', secret_key)
-					context["ensured"] = FEMALES
+					context["stars"] = get_all_image_star_ids()
 					context["form_error"] = self.request.session.pop("private_group_error",None)
 					context["form"] = PrivateGroupReplyForm()
 					latest_replies = retrieve_cached_mehfil_replies(group_id)
@@ -3466,7 +3468,7 @@ class PublicGroupView(FormView):
 				on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 				context["on_fbs"] = on_fbs
 				context["own_id"] = user_id
-				context["ensured"] = FEMALES
+				context["stars"] = get_all_image_star_ids()
 				context["csrf"] = csrf.get_token(self.request)
 				context["score"] = self.request.user.userprofile.score
 				context["group_topic"] = group_data['tp']
@@ -3734,7 +3736,7 @@ def group_page(request):
 		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
 		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
-	return render(request,"mehfil/group_list.html",{'object_list':final_data,'verified':FEMALES,'num_grps':len(final_data),\
+	return render(request,"mehfil/group_list.html",{'object_list':final_data,'stars':get_all_image_star_ids(),'num_grps':len(final_data),\
 		'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<num_pages else False,\
 		'has_previous':True if page_num>1 else False},'page_num':page_num})
 
@@ -3760,7 +3762,7 @@ def group_invites(request):
 		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
 		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
-	return render(request,"mehfil/group_invites.html",{'object_list':final_data,'verified':FEMALES,'page_num':page_num,\
+	return render(request,"mehfil/group_invites.html",{'object_list':final_data,'stars':get_all_image_star_ids(),'page_num':page_num,\
 		'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<num_pages else False,\
 		'has_previous':True if page_num>1 else False}})
 
@@ -4312,7 +4314,7 @@ def process_public_group_invite(request, *args, **kwargs):
 							# cannot possibly invite them all, render a screen that shows options to remove some of the targets
 							return render(request,'mehfil/select_fewer_invitees.html',{'num_selected':num_selected,'slots_available':slots_available,\
 								'invited_usernames':retrieve_bulk_unames(invitee_ids,decode=True).iteritems(),'group_uuid':uuid,'is_public':True,\
-								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'legit':FEMALES})
+								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'stars':get_all_image_star_ids()})
 						else:
 							# can invite them all - proceed
 							invitable_ids = filter_uninvitables(invitee_ids, uuid, inviter_id=own_id, is_public=True)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
@@ -4383,7 +4385,7 @@ def process_private_group_invite(request, *args, **kwargs):
 							# cannot possibly invite them all, render a screen that shows options to remove some of the targets
 							return render(request,'mehfil/select_fewer_invitees.html',{'num_selected':num_selected,'slots_available':slots_available,\
 								'invited_usernames':retrieve_bulk_unames(invitee_ids,decode=True).iteritems(),'group_uuid':uuid,'is_public':False,\
-								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'legit':FEMALES})
+								'topic':retrieve_group_topic(group_id),'num_to_drop':num_selected-slots_available,'stars':get_all_image_star_ids()})
 						else:
 							# can invite them all - proceed
 							invitable_ids = filter_uninvitables(invitee_ids, uuid, inviter_id=user_id, is_public=False)# ensure these people aren't already members, haven't already been invited, or aren't locked from being invited (because were previously invited)
@@ -4522,7 +4524,7 @@ class InviteUsersToPrivateGroupView(ListView):
 								context["invites_remaining"] = invites_remaining
 						context["private_max_members"] = PRIVATE_GROUP_MAX_MEMBERSHIP
 						context["group_topic"] = group_topic
-						context["legit"] = FEMALES
+						context["stars"] = get_all_image_star_ids()
 						context["group"] = True
 					else:
 						context["cant_invite"] = True
@@ -4576,7 +4578,7 @@ def unaccepted_private_mehfil_invites(request):
 				invited_id = int(invite_id)
 				can_cancel = (time_now - int(invite_time)) > CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
-			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES,\
+			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'stars':get_all_image_star_ids(),\
 				'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE),'just_invited_users':just_invited_users})
 		else:
 			# not authorized to view this
@@ -4618,7 +4620,7 @@ def cancel_closed_group_invite(request):
 				invited_id = int(invite_id)
 				can_cancel = (time_now - int(invite_time)) > CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
-			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'females':FEMALES,\
+			return render(request,'mehfil/closed_group_invited_list.html',{'guid':unique,'final_data':final_data,'stars':get_all_image_star_ids(),\
 				'cancellation_time':human_readable_time(CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
@@ -4714,7 +4716,7 @@ class InviteUsersToGroupView(ListView):
 								context["invites_remaining"] = invites_remaining
 						
 						context["group_topic"] = group_topic
-						context["legit"] = FEMALES
+						context["stars"] = get_all_image_star_ids()
 						context["group"] = True
 					else:
 						context["cant_invite"] = True
@@ -4769,8 +4771,9 @@ def unaccepted_public_mehfil_invites(request):
 				invited_id = int(invite_id)
 				can_cancel = (time_now - int(invite_time)) > CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
-			return render(request,'mehfil/open_group_invited_list.html',{'owner':is_owner,'guid':unique,'final_data':final_data,'females':FEMALES,\
-				'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE),'just_invited_users':just_invited_users})
+			return render(request,'mehfil/open_group_invited_list.html',{'owner':is_owner,'guid':unique,'final_data':final_data,\
+				'stars':get_all_image_star_ids(),'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE),\
+				'just_invited_users':just_invited_users})
 		else:
 			# not authorized to view this
 			return redirect("group_page")
@@ -4813,7 +4816,7 @@ def cancel_open_group_invite(request):
 				can_cancel = (time_now - int(invite_time)) > CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE
 				final_data.append((invited_id,invited_data[invited_id]['uname'],invited_data[invited_id]['avurl'],invite_time, can_cancel))
 			return render(request,'mehfil/open_group_invited_list.html',{'owner':True,'guid':unique,'final_data':final_data,\
-				'females':FEMALES,'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)})
+				'stars':get_all_image_star_ids(),'cancellation_time':human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)})
 		else:
 			# not authorized
 			return redirect("public_group")

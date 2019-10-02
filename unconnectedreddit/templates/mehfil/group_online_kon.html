@@ -4,7 +4,7 @@
 {% block content %}
 
 {% if visitors %}
-<head><title>Mehfil visitors | Damadam.pk</title></head>
+<head><title>Mehfil visitors | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Visiting members:</span></h1>
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -26,7 +26,7 @@
         {% else %}
             <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
         {% endif %}
-		&nbsp;<a href="{% url 'user_profile' visitor.uname %}" class="cb"><img src="{{ visitor.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if visitor.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ visitor.uname }}</a>{% if group_owner_id == visitor_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:sub" height="23" width="23" alt="(owner)" class="mll sp cp">{% endif %}<span class="cxs sp cgy mll">seen {{ visit_time|human_time }}</span>
+		&nbsp;<a href="{% url 'user_profile' visitor.uname %}" class="clb"><img src="{{ visitor.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if visitor_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<b>{{ visitor.uname }}</b></a>{% if group_owner_id == visitor_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:sub" height="23" width="23" alt="(owner)" class="mll sp cp">{% endif %}<span class="cxs sp cgy mll">seen {{ visit_time|human_time }}</span>
 		</div>
 		</li>
 	{% endfor %}
@@ -41,7 +41,7 @@
 
 </div>
 {% elif members %}
-<head><title>Mehfil members | Damadam.pk</title></head>
+<head><title>Mehfil members | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil members:</span></h1>
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -53,7 +53,7 @@
 		<li style="text-align:left;border-bottom:1px dashed lightgray">
 		<div class="mtl mbl">
 		<span class="cgy cs sp">{{ row_num }}. </span>
-		<a href="{% url 'user_profile' member.uname %}" class="cb"><img src="{{ member.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if member.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ member.uname }}</a>{% if group_owner_id == member_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:sub" height="23" width="23" alt="(owner)" class="mll sp cp">{% endif %}<span class="cxs sp cgy mll">joined {{ joining_time|human_time }}</span>
+		<a href="{% url 'user_profile' member.uname %}" class="clb"><img src="{{ member.avurl|s3:'thumb' }}" style="border-radius:50%" alt="pic">{% if member_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<b>{{ member.uname }}</b></a>{% if group_owner_id == member_id %}<img src="{{ STATIC_URL }}img/crown.svg" style="vertical-align:sub" height="23" width="23" alt="(owner)" class="mll sp cp">{% endif %}<span class="cxs sp cgy mll">joined {{ joining_time|human_time }}</span>
 		</div>
 		</li>
 	{% endfor %}

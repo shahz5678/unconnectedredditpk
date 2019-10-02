@@ -1964,7 +1964,7 @@ def retrieve_user_group_data(user_id):
 		my_server = redis.Redis(connection_pool=POOL)
 		pipeline1 = my_server.pipeline()
 		for group_id in all_group_ids:
-			pipeline1.hmget(GROUP+group_id,'tp','u','oun','lrsn','lrtx','lrti','lrc')# list of tuples
+			pipeline1.hmget(GROUP+group_id,'tp','u','oun','lrsn','lrtx','lrti','lrc','lrwi')# list of tuples
 			pipeline1.zscore(GROUP_VISITORS+group_id,user_id)
 		result1, counter, time_now = pipeline1.execute(), 0, time.time()
 		for group_id in all_group_ids:
@@ -1978,6 +1978,7 @@ def retrieve_user_group_data(user_id):
 			group_data[group_id]['lrtx'] = data[4]
 			group_data[group_id]['lrti'] = latest_reply_time
 			group_data[group_id]['lrc'] = data[6]
+			group_data[group_id]['lrwi'] = data[7]
 			group_data[group_id]['lst'] = result1[counter+1]# own last seen time
 			if how_old < 0:
 				group_data[group_id]['st'] = 'gone'

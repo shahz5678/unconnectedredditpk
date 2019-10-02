@@ -11,8 +11,8 @@ from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from redis2 import skip_private_chat_notif
-from redis7 import check_content_and_voting_ban
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
+from redis7 import check_content_and_voting_ban, is_pair_image_stars, get_all_image_star_ids
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\
 get_cached_photo_dim, cache_photo_dim, retrieve_user_id, retrieve_photo_data, retrieve_fresh_photo_shares_or_cached_data, \
 push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, track_notif_allow_behavior
@@ -148,7 +148,7 @@ def personal_group_sanitization(obj_count, obj_ceiling, group_id):
 # 		return redirect("home")
 
 
-def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl):
+def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl, own_star, their_star):
 	"""
 	Preps raw personal group data for display
 
@@ -159,11 +159,9 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 		is_own_blob = True if dictionary['id'] == str(own_id) else False 
 		which_blob = dictionary.get("which_blob",None) # identifies 'nor' (normal), 'res' (response), 'action', 'notif' (notification) blobs
 		if is_own_blob:
-			dictionary["username"] = own_uname
-			dictionary["av_url"] = own_avurl
+			dictionary["username"], dictionary["av_url"], dictionary["own_star"], dictionary['their_star'] = own_uname, own_avurl, own_star, their_star
 		else:
-			dictionary["username"] = their_uname
-			dictionary["av_url"] = their_avurl
+			dictionary["username"], dictionary["av_url"], dictionary["own_star"], dictionary['their_star'] = their_uname, their_avurl, their_star, own_star
 		if which_blob == 'res':
 			dictionary["res_time"] = float(dictionary["res_time"])
 			if is_own_blob:
@@ -416,8 +414,9 @@ def enter_personal_group(request):
 			prev_seen_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, content_list_of_dictionaries, \
 			own_cred, their_cred = retrieve_content_from_personal_group(group_id, own_id, target_id, own_refresh_time)
 			own_uname, own_avurl, their_uname, their_avurl = own_cred[0], own_cred[1], their_cred[0], their_cred[1]
+			is_self_star, are_they_star = is_pair_image_stars(own_id, target_id)
 			content_list_of_dictionaries = construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, \
-				their_avurl)
+				their_avurl, is_self_star, are_they_star)
 			cache_personal_group.delay(json.dumps(content_list_of_dictionaries, ensure_ascii=False),group_id)#ensure_ascii used to get rid of error 'Unpaired high surrogate when decoding 'string'
 			t_nick = their_uname
 		t_nick = t_nick[:1].upper() if their_anon_status == '1' else t_nick
@@ -1980,7 +1979,7 @@ def show_personal_group_invite_list(request, list_type):
 		###################################################################
 		return render(request,"personal_group/invites/personal_group_invite_list.html",{'invites':invites,'own_id':str(user_id),'invite_accepted':invite_accepted,\
 			't_username':t_username,'tid':tid,'t_av_url':t_av_url,'is_anon':is_anon,'current_page':page_num,'pages':page_list,'num_pages':len(page_list),\
-			'list_type':list_type})
+			'list_type':list_type,'stars':get_all_image_star_ids()})
 	else:
 		raise Http404("Such a listing does not exist")
 
@@ -2487,7 +2486,7 @@ def personal_group_user_listing(request):
 			###################################################################
 			return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
 				'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
-				'items_in_curr_page':len(payload)})
+				'items_in_curr_page':len(payload),'stars':get_all_image_star_ids()})
 
 ####################################################################################################################
 #################################################### Help Page #####################################################

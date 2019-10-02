@@ -7,7 +7,7 @@
 
 			  	<a href="{% url 'user_profile' oun %}" style="text-decoration: none;"><span itemprop="image" class="mrs"><img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro"></span></a>
 
-			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'user_profile' oun %}" itemprop="url" style="text-decoration: none;">{% if ex_url %}<h2 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h2>{% else %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3>{% endif %}</a></span></div>
+			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'user_profile' oun %}" itemprop="url" style="text-decoration: none;">{% if ex_url %}<h2 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h2>{% else %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3>{% endif %}</a></span>{% if is_star %}&nbsp;<img src="{{ static_url }}img/gstar.svg" width="14" height="14">{% endif %}</div>
 			
 			</div>
 				 	

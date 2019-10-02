@@ -3,7 +3,7 @@
 	<div class="mbl fx fxjscn fxaicn">
 		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #fbbf00;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#ff9933;font-weight:bold;"><img src="{{ static_url }}img/fire.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">TRENDING</div></button>
 		<a href="{% url 'photo' 'fresh-list' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/stack-cgy.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">LATEST</div></button></a>
-		<a href="{% url 'top_photo' %}#section0" ><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/ribbon_disabled.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">STARS</div></button></a>
+		<a href="{% url 'top_photo' %}#section0" ><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/gstar_cgy.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">STARS</div></button></a>
 	</div>
 
 {% elif section == 'fresh' %}
@@ -11,7 +11,7 @@
 	<div class="mbl fx fxjscn fxaicn">
 		<a href="{% url 'photo' 'best-list' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/fire-cgy.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">TRENDING</div></button></a>
 		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #fbbf00;border-radius:0;color:#f93;font-weight:bold;background:white"><img class="mt" src="{{ static_url }}img/stack.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">LATEST</div></button>
-		<a href="{% url 'top_photo' %}#section0" ><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/ribbon_disabled.svg" class="mt" width="15" height="15" style="vertical-align:middle"><div class="mts">STARS</div></button></a>
+		<a href="{% url 'top_photo' %}#section0" ><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/gstar_cgy.svg" class="mt" width="15" height="15" style="vertical-align:middle"><div class="mts">STARS</div></button></a>
 	</div>
 
 {% elif section == 'top_list' %}
@@ -19,7 +19,7 @@
 	<div class="mbl fx fxjscn fxaicn">
 		<a href="{% url 'photo' 'best-list' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/fire-cgy.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">TRENDING</div></button></a>
 		<a href="{% url 'photo' 'fresh-list' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img class="mt" src="{{ static_url }}img/stack-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">LATEST</div></button></a>
-		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #fbbf00;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#f93;font-weight:bold;background:white"><img src="{{ static_url }}img/ribbon-co.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">STARS</div></button>
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #fbbf00;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#f93;font-weight:bold;background:white"><img src="{{ static_url }}img/gstar.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">STARS</div></button>
 	</div>
 
 {% else %}

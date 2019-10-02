@@ -237,6 +237,8 @@ def update_comment_in_home_link(reply,writer,reply_id,time,writer_id,link_pk):
 		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
 		payload = {'reply_id':reply_id,'replier_username':writer,'link_id':link_pk,'text':reply,'replier_id':writer_id,\
 		'epoch_time':time}
+		if is_image_star(writer_id, my_server=my_server):
+			payload['s'] = '1'
 		# if comment_target:
 		# 	payload['ct'] = comment_target
 		# 	payload['ttxpre'] = target_text_prefix
@@ -749,6 +751,8 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
 		payload = {'comment_id':comment_id,'writer_uname':latest_comm_writer_uname,'text':latest_comm_text,'epoch_time':time,\
 		'commenter_id':latest_comm_writer_id,'photo_id':photo_id}
+		if is_image_star(latest_comm_writer_id, my_server=my_server):
+			payload['s'] = '1'
 		# if comment_target:
 		# 	payload['ct'] = comment_target
 		# 	payload['ttxpre'] = target_text_prefix
@@ -757,6 +761,9 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
+		# return amnt
+	# else:
+	# 	return 0
 
 	
 def truncate_payload(comment_blob):
@@ -1364,11 +1371,23 @@ def trim_trenders_data(target_user_id=None, my_server=None):
 ####################################################################################################
 
 
-def is_image_star(user_id):
+def is_image_star(user_id,my_server=None):
 	"""
 	Used to determine whether a star is to be shown next to some nicks
 	"""
-	return redis.Redis(connection_pool=POOL).zscore(TOP_TRENDER_IDS,user_id)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	return my_server.zscore(TOP_TRENDER_IDS,user_id)
+
+
+def is_pair_image_stars(user_1_id, user_2_id):
+	"""
+	Checks if the provided pair of users are top stars
+
+	Special function useful in 1on1s
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.zscore(TOP_TRENDER_IDS, user_1_id), my_server.zscore(TOP_TRENDER_IDS, user_2_id)
+
 
 
 def get_all_image_star_ids():

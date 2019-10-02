@@ -19,9 +19,11 @@ from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_CO
 PRIMARY_COLOR_GRADIENT_MAPPING
 from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post, create_topic_feed, retrieve_topic_feed_data, \
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
-retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes
+retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes,\
+is_image_star
 ###############
 from score import SEGMENT_STARTING_USER_ID
+
 
 ##########################################################################################################
 #################################### Calculate Topic Background Color ####################################
@@ -506,10 +508,9 @@ def submit_topic_post(request,topic_url):
 								obj_id = obj.id
 								obj_hash = "tx:"+str(obj_id)
 								add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
-									submitter_av_url=av_url, is_pinkstar=(True if submitter_name in FEMALES else False), \
-									submission_time=time_now, text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), \
-									topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
-									submitter_username=submitter_name)
+									submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now,\
+									text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=topic_url, \
+									topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True, submitter_username=submitter_name)
 								log_text_submissions('topic')
 								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
 								set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
@@ -612,4 +613,3 @@ def unsubscribe_topics(request):
 	else:
 		# render unsubscription options
 		return render(request,"topics/unsubscribe_topics.html",{'subscribed_topics':retrieve_subscribed_topics(str(own_id))})
-

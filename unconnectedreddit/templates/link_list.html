@@ -28,7 +28,9 @@
 {% endif %}
 
 {% if newbie_flag %}
+	
 	{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='3' %}
+	
 {% else %}
 
 	{% load get_notification_bar %}
@@ -44,6 +46,7 @@
 	<a href="{% url 'home' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
 </div>
+
 
 {% for link in link_list %}
 
@@ -68,7 +71,7 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_star=link.s %}
 
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -95,7 +98,7 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
 		<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
-		{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_pinkstar=link.p alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
+		{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
 		</section>
 		<section class="mbl" style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">

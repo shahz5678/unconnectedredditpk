@@ -84,12 +84,12 @@ def banned_users_list(request):
 		banned_users_with_ttl = []
 		for user in banned_users:
 			banned_users_with_ttl.append((user,banned_ids_to_show_with_ttl[user.id]))
-		return render(request,"judgement/banned_users_list.html",{'banned_users_with_ttl':banned_users_with_ttl,'females':FEMALES,\
+		return render(request,"judgement/banned_users_list.html",{'banned_users_with_ttl':banned_users_with_ttl,\
 			'status':request.session.pop("user_ban_change_status",None),'cooloff_ttl':request.session.pop("user_ban_cooloff_ttl",None),\
 			'target_username':request.session.pop("user_ban_cooloff_username",None)})
 	else:
 		return render(request,"judgement/banned_users_list.html",{'status':request.session.pop("user_ban_change_status",None),\
-			'females':None,'cooloff_ttl':request.session.pop("user_ban_cooloff_ttl",None),'banned_users_with_ttl':[],\
+			'cooloff_ttl':request.session.pop("user_ban_cooloff_ttl",None),'banned_users_with_ttl':[],\
 			'target_username':request.session.pop("user_ban_cooloff_username",None)})
 
 
@@ -551,6 +551,7 @@ def content_culling_instructions(request):
 def cull_content_loc(request,obj_id,obj_type):
 	"""
 	Helps in landing back at exact spot when defender checks out object details in cull list (e.g. to see what the pixellated image actually is)
+	
 	"""
 	complaints = get_content_complaints()
 	try:

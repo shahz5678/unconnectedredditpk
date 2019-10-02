@@ -105,7 +105,7 @@
 	<article style="display:block">
 
 		<section itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" style="display:block">
-			{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin='5' vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=oun av_url=av_url|s3:'thumb' static_url=STATIC_URL is_pinkstar=is_pinkstar exclude_detail_url='1' %}
+			{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin='5' vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=oun av_url=av_url|s3:'thumb' static_url=STATIC_URL is_star=is_star exclude_detail_url='1' %}
 		</section>
 
 		<section class="mbs">

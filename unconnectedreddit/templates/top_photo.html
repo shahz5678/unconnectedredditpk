@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>Trending foto uploaders | Damadam </title></head>
+<head><title>Trending posters | Damadam </title></head>
  
 <style>body{background:#f0f3f4}</style>
 
@@ -12,24 +12,23 @@
 <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-right: auto;margin-left: auto;max-width:600px;width:97%;">
 
     <div style="text-align:center" class="fx fxjscn fxaicn">
-        <div class="sp" style="border-radius:0;width:50%;border:none;background:#6ce9d2;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid #1edea8">TOP {{ list_size }}</div>
-        <a href="{% url 'top_photo_help' %}" class="sp" style="width:50%"><button class="wt" style="border-radius:0;border:none;color:#71adf0;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">HELP</button></a>
+        <div class="sp" style="border-radius:0;width:50%;border:none;background:#6ce9d2;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid #1edea8">TOP STARS</div>
+        <a href="{% url 'top_photo_help' %}" class="sp" style="width:50%"><button class="wt" style="border-radius:0;border:none;color:#71adf0;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">BE A STAR</button></a>
     </div>
 
 
     <div class="mt" style="text-align:center;padding:0 7px">
-        <div class="mtl cxs sp lsp"><span class="cgy">Note: list 30 mins baad update hoti hai</span><br>
-        </div>
+        <div class="mtl cxs ct sp lsp">Pichle 7 days mein sab se zyada trending posts waley users</div>
         <ul style="display:inline-block;padding: 0;list-style:none;margin-top:0px">
        
        {% for user_id, num_trending_pics, rank, username, aurl, rank_to_display in object_list %}
         {% if rank_to_display %}
-        <li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f4f4f4"></li>
+        {% if forloop.counter != 1 %}<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f4f4f4"></li>{% endif %}
 
-        <h2 style="text-align:left;font-size:20px;color:gray;margin:10px 0"><img src="{{ STATIC_URL }}img/fire.svg" width="11" height="11" alt="*" >Rank {{ rank_to_display }}</h2>
+        <h2 class="sp" style="text-align:left;font-size:20px;color:#9aa3b8;margin:10px 0"><img src="{{ STATIC_URL }}img/gstar.svg" width="16" height="16" class="mrs" alt="*" >{{ rank_to_display }}{% if rank_to_display == 1 %}st{% elif rank_to_display == 2 %}nd{% elif rank_to_display == 3 %}rd{% else %}th{% endif %} Position</h2>
         {% endif %}
         <div class="lsp" style="text-align:left;padding-bottom:10px;border-bottom:2px">       
-            <img src="{{ aurl|s3:'thumb' }}" alt="avatar" style="border-radius:50%;" width="22" height="22">&nbsp;<a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cb"><bdi style="font-size:20px">{{ username }}</bdi></a> ne <b>{{ num_trending_pics }}</b> trending fotos lagain <span class="cgy cxs sp">(in last 7 days)</span>
+            <img src="{{ aurl|s3:'thumb' }}" alt="pic" style="border-radius:50%;" width="22" height="22">&nbsp;<a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cb"><bdi style="font-size:20px">{{ username }}</bdi></a>:&nbsp;<span class="sp"><b>{{ num_trending_pics }}</b> trending posts <a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cxs cb">(see all)</a></span>
         </div>
        {% endfor %}
         </ul>

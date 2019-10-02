@@ -121,7 +121,7 @@ CACHED_REV_SYB_RELATIONSHIP = 'crsr:'# key that caches the reverse-sybil/data as
 LATEST_REVERSION_TIMES = "lrt"# global sorted set holding latest times that a vote reversion occured between a voter_id:poster_id pairs
 
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
-TOP_TRENDER_IDS = 'tti'# a sorted set containing top trender IDs. Can be used to show a 'star' symbol next to their names
+TOP_TRENDER_IDS = 'tti'# a sorted set containing top trender IDs. Can be used to show a 'verified' symbol next to their names
 
 CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
@@ -195,7 +195,7 @@ def delete_avg_hash(hash_list, categ=None):
 ##################################################################################################################
 
 
-def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_pinkstar, text, submission_time, \
+def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, text, submission_time, \
 	from_fbs, add_to_feed=False):
 	"""
 	Creating text object (used in home feed, etc)
@@ -207,8 +207,8 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 	'd':text,'h':hash_name}
 	if from_fbs:
 		immutable_data["fbs"]='1'
-	if is_pinkstar:
-		immutable_data['p']='1'
+	if is_star:
+		immutable_data['s']='1'
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
@@ -702,7 +702,7 @@ def add_obj_to_photo_feed(submitter_id, time_now, hash_name, my_server=None):
 		feeds_to_add=[PHOTO_SORTED_FEED], my_server=my_server)
 
 
-def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_pinkstar,\
+def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_star,\
 	img_url, img_caption, submission_time, from_fbs, add_to_home_feed=False, add_to_photo_feed=True):
 	"""
 	Creating image object (used in home and photo feed, etc)
@@ -715,8 +715,8 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name}
 	if from_fbs:
 		immutable_data['fbs']='1'
-	if is_pinkstar:
-		immutable_data['p']='1'
+	if is_star:
+		immutable_data['s']='1'
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
@@ -1043,7 +1043,7 @@ def bulk_unsubscribe_topic(subscriber_id, topic_urls, my_server=None):
 		return []
 
 
-def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, submitter_username, is_pinkstar,text, submission_time, \
+def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, submitter_username, is_star,text, submission_time, \
 	from_fbs, topic_url, topic_name, bg_theme, add_to_public_feed=False):
 	"""
 	Creating and submitting text object (used in topic feed and public feed)
@@ -1054,8 +1054,8 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 	'd':text,'h':obj_hash,'url':topic_url, 'th':bg_theme, 'tn':topic_name}
 	if from_fbs:
 		immutable_data['fbs']='1'
-	if is_pinkstar:
-		immutable_data['p']='1'
+	if is_star:
+		immutable_data['s']='1'
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
 	time_now = time.time()
 	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
@@ -1362,6 +1362,20 @@ def trim_trenders_data(target_user_id=None, my_server=None):
 ####################################################################################################
 ################################ Trending list related functonality ################################
 ####################################################################################################
+
+
+def is_image_star(user_id):
+	"""
+	Used to determine whether a star is to be shown next to some nicks
+	"""
+	return redis.Redis(connection_pool=POOL).zscore(TOP_TRENDER_IDS,user_id)
+
+
+def get_all_image_star_ids():
+	"""
+	Useful for embedding stars in big lists (e.g. online)
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(TOP_TRENDER_IDS,0,-1)
 
 
 def retrieve_num_trending_photos(user_id):

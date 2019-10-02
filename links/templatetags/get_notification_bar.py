@@ -4,6 +4,7 @@ from links.redis2 import is_fan
 from links.views import GetLatest
 from links.forms import UnseenActivityForm
 from links.models import UserProfile, Photo
+from links.redis7 import get_all_image_star_ids
 from links.score import VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION
 
 register = template.Library()
@@ -15,7 +16,7 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 	if notification:
 		context ={'ident':user_id,'lang':lang,'sort_by':sort_by,'static_url':static_url, 'random':random, 'newest_user':newest_user,\
 		'is_home':is_home, 'origin':origin,'form':UnseenActivityForm(),'VDC':VOTING_DRIVEN_CENSORSHIP,'VDP':VOTING_DRIVEN_PIXELATION,\
-		'form_error':single_notif_error}
+		'form_error':single_notif_error,'stars':get_all_image_star_ids()}
 		object_type, freshest_reply, is_link, is_photo, is_groupreply, is_salat, is_personal_grp = GetLatest(user)
 		if not is_link and not is_photo and not is_groupreply and not is_salat and not is_personal_grp:
 			context["notification"] = 0
@@ -49,17 +50,6 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 				context["parent_pk"] = freshest_reply['oi'] #group id
 			else:
 				context["notification"] = 0
-		# elif is_salat:
-		# 	salat_invite = freshest_reply
-		# 	context["type_of_object"] = '4'
-		# 	context["notification"] = 1
-		# 	try:
-		# 		context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
-		# 	except:
-		# 		context["first_time_user"] = 0
-		# 	context["banned"] = False
-		# 	context["parent"] = salat_invite
-		# 	context["namaz"] = salat_timings['namaz'] 
 		elif is_link:
 			context["type_of_object"] = '2'
 			if freshest_reply:

@@ -59,10 +59,10 @@
 		{% if pht == '1' %}
 			<div class="cs sp">"{% emoticons %}{{ obj.caption|truncatechars:'45' }}{% endemoticons %}"</div>
 			<img class="mts cxs sp" src="{{ purl|s3:'thumb' }}" alt="{{ obj.caption }}" height="38" style="border-radius:5px;overflow:hidden;background-color:#E9EBEE">
-			<div class="cs mts sp cgy">foto by {% if is_pinkstar %}<img src="{{ STATIC_URL }}img/pstar.svg" height="13" width="13" alt="*">&nbsp;{% endif %}<b class="clb">{{ obj.owner }}</b></div>
+			<div class="cs mts sp cgy">photo by {% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" height="14" width="14" alt="*" style="color:gold">&nbsp;{% endif %}<b class="clb">{{ obj.owner }}</b></div>
 		{% else %}
 			<div class="cl">"{% emoticons %}{{ obj.description|truncatechars:'45' }}{% endemoticons %}"</div>
-			<div class="cs mts sp cgy">submitted by {% if is_pinkstar %}<img src="{{ STATIC_URL }}img/pstar.svg" height="13" width="13" alt="*">&nbsp;{% endif %}<b class="clb">{{ obj.submitter }}</b></div>
+			<div class="cs mts sp cgy">submitted by {% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" height="14" width="14" alt="*" style="color:gold">&nbsp;{% endif %}<b class="clb">{{ obj.submitter }}</b></div>
 		{% endif %}
 		</div>
 
@@ -72,9 +72,9 @@
 				{% if exists %}
 					
 					<blockquote class="lsp mbl mts" style="border:3px solid whitesmoke;border-radius:8px;background-color:#FFFAF0;padding:10px;text-align:center">
-						<span class="cxl clb">Is foto {% if nv == '1' %}ka {{ nv }} like hai{% else %}ke {{ nv }} likes hain{% endif %}</spann>
+						<span class="cxl clb">Is photo {% if nv == '1' %}ka {{ nv }} like hai{% else %}ke {{ nv }} likes hain{% endif %}</spann>
 						<hr size=1 COLOR="#e5e7e9">
-						<span class="cs sp cgy">Ye foto "{{ time_of_trending|human_time }}" trending list mein shamil hui</span>
+						<span class="cs sp cgy">Ye photo "{{ time_of_trending|human_time }}" trending list mein shamil hui</span>
 						
 					</blockquote>
 

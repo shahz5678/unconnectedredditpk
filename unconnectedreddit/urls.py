@@ -33,14 +33,14 @@ public_reply_view, post_public_reply,redirect_to_profile_photos,public_photo_upl
 unseen_reply, sitemap, photo_sitemap, photo_sitemap_of_sitemaps, user_profile_photos, submit_text_post, user_profile_photos_redirect
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
-from links.views import FacesHelpView, TopView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView,\
+from links.views import FacesHelpView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView, AdAddressView,\
 PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView,\
 PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, \
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
 AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, UserSettingsEditView, UserProfileDetailView, UserProfileEditView,\
 CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView,\
 AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, AdTitleYesNoView, AdImageYesNoView,\
-AdImageView, AdAddressView#, UserProfilePhotosView
+AdImageView#, UserProfilePhotosView
 from links.voting_views import user_vote_history
 from links.announcement_views import export_survey_results#, survey
 from links.group_views import show_shared_photo_metrics
@@ -99,7 +99,7 @@ urlpatterns = patterns('',
 	url(r'^ad_image/$', AdImageView.as_view(), name='ad_image'),
 	url(r'^ad_title_yesno/$', AdTitleYesNoView.as_view(), name='ad_title_yesno'),
 	url(r'^online_kon/$', auth(show_online_users), name='online_kon'),
-	url(r'^top/$', auth(TopView.as_view()), name='top'),
+	# url(r'^top/$', auth(TopView.as_view()), name='top'),
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),

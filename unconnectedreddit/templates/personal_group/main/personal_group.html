@@ -138,6 +138,7 @@ img.yt_img:hover{
                   <div class="mbs">
                       <a href="{% url 'user_profile' blob.username %}" style="text-decoration: none;">
                       {% if own_nick %}
+                        {% if blob.own_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">&nbsp;{% endif %}
                         <span class="sp" style="color:#01579B;">{{ blob.username }}
                         <img src="{{ blob.av_url|s3:'thumb' }}" style="vertical-align:sub;border:1px solid #81d8fd" alt="{{ blob.username|slice:":1" }}" width="22" height="22" class="circle cb sbb">
                       {% else %}
@@ -198,6 +199,7 @@ img.yt_img:hover{
                                   {% if their_nick %}
                                     <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="circle cb ab" style="font-size:118%;vertical-align:sub;border:1px solid #00ffaa">
                                     <span class="sp" style="color:#306654;">{{ blob.t_username|truncatechars:15 }}</span>
+                                    {% if blob.their_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="10" height="10" alt="*" style="color:gold">{% endif %}
                                   {% else %}
                                     <div class="av_btn ab" style="width:18px;height:18px;line-height:18px;color:#306654">{{ blob.t_username|truncap }}</div></a>
                                   {% endif %}
@@ -351,10 +353,11 @@ img.yt_img:hover{
                       {% if their_nick %}
                       <img src="{{ blob.av_url|s3:'thumb' }}" alt="{{ blob.username|slice:":1" }}" style="vertical-align:sub;border:1px solid #00ffaa" width="22" height="22" class="circle cb ab">
                       <span class="sp" style="color:#306654">{{ blob.username }}</span>
+                      {% if blob.own_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}
                       {% else %}
                       <div class="av_btn ab" style="width:18px;height:18px;line-height:18px;color:#306654;font-size:92%">{{ blob.username|truncap }}</div>
                       {% endif %}
-                      </a>
+                    </a>
                 </div>
                 
                 {% if blob.which_blob == 'res' %}
@@ -406,6 +409,7 @@ img.yt_img:hover{
                               <div class="mbs cs">
                                   <a href="{% url 'user_profile' blob.t_username %}" style="text-decoration: none;">
                                   {% if own_nick %}
+                                  {% if blob.their_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="10" height="10" alt="*" style="color:gold">&nbsp;{% endif %}
                                   <span class="sp" style="color:#01579B;">{{ blob.t_username|truncatechars:15 }}</span>
                                   <img src="{{ blob.t_av_url|s3:'thumb' }}" alt="{{ blob.t_username|slice:":1" }}" width="22" height="22" class="circle cb sbb" style="font-size: 118%;vertical-align:sub;border:1px solid #81d8fd">
                                   {% else %}

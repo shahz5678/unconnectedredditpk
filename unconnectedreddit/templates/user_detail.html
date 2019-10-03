@@ -185,6 +185,12 @@
       <hr size=1 COLOR="#f4f4f4">
 	  {% endif %}
 
+	  {% if is_defender and trending_pts %}
+	  <b class="cm sp lsp" style="color:darkgray">Trending points:</b>
+      {{ trending_pts }}
+      <hr size=1 COLOR="#f4f4f4">
+	  {% endif %}
+
       <b class="cm sp lsp" style="color:darkgray">Total fans:</b>
       <a href="{% url 'fan_list' star_id %}#section0" class="cs">
       <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ fans }}</button>
@@ -218,6 +224,12 @@
   		  {% if is_star %}
 		  <b class="cm sp lsp" style="color:darkgray">Top star:</b>
 	      <img src="{{ STATIC_URL }}img/gstar.svg" height="18" width="18">&nbsp;<span style="color:lightgray">-</span>&nbsp;<span class="cgy cs sp lsp">{{ is_star }} trending images</span>
+	      <hr size=1 COLOR="#f4f4f4">
+		  {% endif %}
+
+		  {% if is_defender and trending_pts %}
+		  <b class="cm sp lsp" style="color:darkgray">Trending points:</b>
+	      {{ trending_pts }}
 	      <hr size=1 COLOR="#f4f4f4">
 		  {% endif %}
 

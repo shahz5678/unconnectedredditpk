@@ -14,12 +14,12 @@
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
-<h1 class="cxl clb" style="text-align:center">{{ parent_submitter_username|truncatechars:'13' }}'s post:</h1>
+<h1 class="cxl clb" style="text-align:center">{% if is_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ parent_submitter_username|truncatechars:'13' }}'s post:</h1>
 
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 
 <section style="display:block" itemscope itemtype="https://schema.org/SocialMediaPosting">
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_pinkstar='' alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_star=is_star alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
 </section>
 
 </article>
@@ -79,7 +79,7 @@
                 {% endif %}
             {% endif %}
            <a href="{% url 'user_profile' reply.submitted_by__username %}" class="clb"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>
-               :&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+               {% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
                <div style="display:inline-block">
                    <div class="fx fxjsfs fxaicn">
                        {% if user_id == parent_submitter_id %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}

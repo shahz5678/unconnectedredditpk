@@ -92,7 +92,7 @@ rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
-is_image_star, get_all_image_star_ids
+is_image_star, get_all_image_star_ids, retreive_trending_rep
 from redis8 import retrieve_variation_subset, set_tutorial_seen
 # from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
@@ -1471,6 +1471,7 @@ class UserProfileDetailView(FormView):
 			context["star_id"] = star_id
 			num_trending_pics = is_image_star(user_id=star_id)
 			context["is_star"] = int(num_trending_pics) if num_trending_pics else num_trending_pics
+			context["trending_pts"] = retreive_trending_rep(user_id=star_id)
 			context["city_name"] = REV_CITY_DICT.get(user_profile.streak,0)
 			context["zodiac"] = ZODIAC.get(user_profile.attractiveness,'None')
 			user_id = str(user_id) if user_id else None
@@ -1960,7 +1961,8 @@ class CommentView(CreateView):
 		target_username = photo.owner.username
 		context["target_username"] = target_username
 		context["thumbs"] = retrieve_trending_thumbs(photo.owner_id)
-		# context["verified"] = FEMALES
+		context["stars"] = get_all_image_star_ids()
+		context["is_star"] = is_image_star(user_id=photo.owner_id)
 		context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
 		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
 		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
@@ -3646,7 +3648,8 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 				context = {'object_list': oblist, 'verify':FEMALES, 'forms':forms,'nickname':username,'sk':secret_key,'user_id':user_id,\
 				'last_visit_time':last_visit_time,'VDC':(VOTING_DRIVEN_CENSORSHIP+1),'VDP':(VOTING_DRIVEN_PIXELATION+1),'fanned':fanned,\
 				'validation_error_string':error, 'page':{'has_previous':True if page_num>1 else False,'previous_page_number':page_num-1,\
-				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num},'section':'matka'}
+				'next_page_number':page_num+1,'has_next':True if page_num<max_pages else False,'number':page_num},'section':'matka',\
+				'stars':get_all_image_star_ids()}
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 				context["on_opera"] = True if (not on_fbs and not is_js_env) else False
@@ -3742,6 +3745,8 @@ def public_reply_view(request,parent_id,*args,**kwargs):
 	parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
 	# context["dir_rep_form"] = DirectResponseForm()
 	context["parent_submitter_id"] = parent_submitter_id
+	context["is_star"] = is_image_star(user_id=parent_submitter_id)
+	context["stars"] = get_all_image_star_ids()
 	context["parent_av_url"] = parent_avurl
 	context["vote_score"] = link['net_votes']
 	context["parent"] = link #the parent link
@@ -4222,8 +4227,8 @@ def welcome_reply(request,*args,**kwargs):
 					target_username = target.username
 					parent = Link.objects.create(description=text, submitter=target, reply_count=1)
 					add_text_post(obj_id=parent.id, categ='1', submitter_id=target.id, submitter_av_url=av_url, submitter_username=target_username, \
-						is_pinkstar=(True if target_username in FEMALES else False),submission_time=time.time(),text=text, \
-						from_fbs=request.META.get('HTTP_X_IORG_FBS',False), add_to_feed=False)
+						is_star=is_image_star(user_id=target.id),submission_time=time.time(),text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False),\
+						add_to_feed=False)
 				if option == '1' and message == 'Barfi khao aur mazay urao!':
 					description = target.username+" welcum damadam pe! Kiya hal hai? Barfi khao aur mazay urao (barfi)"
 					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)

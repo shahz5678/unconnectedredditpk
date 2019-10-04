@@ -122,6 +122,8 @@ LATEST_REVERSION_TIMES = "lrt"# global sorted set holding latest times that a vo
 
 TOP_TRENDERS = 'tt'	# A cached json object of trenders
 TOP_TRENDER_IDS = 'tti'# a sorted set containing top trender IDs. Can be used to show a 'verified' symbol next to their names
+TOP_TRENDERS_REP = 'ttr'# a sorted set containing how many times a top trender has entered trending and stayed there
+TOP_TRENDERS_REP_TRUNCATOR = 'ttrt'# sorted set used to truncate TOP_TRENDERS_REP for those who become inactive (i.e. don't show up for 3 months)
 
 CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
@@ -761,7 +763,7 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
 		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-		# return amnt
+	# 	return amnt
 	# else:
 	# 	return 0
 
@@ -1389,12 +1391,19 @@ def is_pair_image_stars(user_1_id, user_2_id):
 	return my_server.zscore(TOP_TRENDER_IDS, user_1_id), my_server.zscore(TOP_TRENDER_IDS, user_2_id)
 
 
-
 def get_all_image_star_ids():
 	"""
 	Useful for embedding stars in big lists (e.g. online)
 	"""
 	return redis.Redis(connection_pool=POOL).zrange(TOP_TRENDER_IDS,0,-1)
+
+
+def retreive_trending_rep(user_id):
+	"""
+	Useful for showing 'trending points' on user profiles and such
+	"""
+	return redis.Redis(connection_pool=POOL).zscore(TOP_TRENDERS_REP,user_id)
+
 
 
 def retrieve_num_trending_photos(user_id):
@@ -1430,10 +1439,11 @@ def retrieve_handpicked_photos_count():
 
 def calculate_top_trenders():
 	"""
-	Calculating top X trending users within the prev Y hours (rolling)
+	Calculating top X trending users within the prev Y hours (rolling-basis)
 
 	Called by a scheduled task
-	To calculate 'score', just counting the number of pics an uploader got into trending (no ratio of num_trending/num_total yet)
+	To calculate 'score', just counting the number of pics an uploader got into trending 
+	TODO: consider moving this to a ratio of num_trending/num_total (e.g. how many posts of this user got into trending in the last X uploads)
 	"""
 	
 	one_week_ago = time.time() - CONTEST_LENGTH
@@ -1450,6 +1460,126 @@ def calculate_top_trenders():
 	my_server.delete(TOP_TRENDING_SUBMITTERS)
 	if trending_list:
 		my_server.zadd(TOP_TRENDING_SUBMITTERS,*trending_list)
+
+
+def process_top_trenders_rep(top_trending_ids_and_scores):
+	"""
+	Creates 'rep' for top trenders that can be used to give them "points" for incentivization
+
+	GOAL: Incentivize posters to remain as long as they humanly can, in the trending pile
+	
+	Core algo:
+	1) +1 every time a re-calc reveals the user: has jumped (or maintained) their rank AND increased their trending pics' count from previous level
+	2) Otherwise, all users get a 0
+	3) Churned users get a -1
+	4) New entrants get a 1
+
+	Advantages:
+	- Measured against the crowd: If your rank fell (even if your number of trending pics increased) you get 0, because it seems the crowd around you moved up faster
+	- Measured aganst yourself: If your rank improved, but number of trending pics didn't, you get 0 (because you haven't done anything to deserve a 1, someone else probably dropped out)
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+
+	# Step 1) Retrieve previous trending IDs (ones that are about to be over-written)
+	prev_trending_ids_and_scores = my_server.zrevrange(TOP_TRENDER_IDS,0,-1,withscores=True)# best to worst sorting, format: [('11',5), ('2',3), ...]
+	
+	if prev_trending_ids_and_scores:
+		prev_trending_ids = [int(trending_id) for trending_id, score in prev_trending_ids_and_scores]
+		prev_trending_ids_and_scores_dict = dict(prev_trending_ids_and_scores)
+		new_trending_ids_and_scores_dict = dict(top_trending_ids_and_scores)
+
+		# Step 2) Sort top_trending_ids_and_scores (descending order, sorted by score)
+		sorted_top_trenders = sorted(top_trending_ids_and_scores,key=lambda x: x[1], reverse=True)
+
+		# Step 3) Retrieve all current trending ids (ones that will over-write the previous ones)
+		top_trending_ids = [trending_id for trending_id, score in sorted_top_trenders]# best to worst sorting
+		###################################
+
+		# Step 4) Isolate all IDs that have newly entered trending (i.e. were not part of the previous set)
+		new_trenders = set([trending_id for trending_id in top_trending_ids if trending_id not in prev_trending_ids])
+
+		# Step 5) Isolate all IDs that have churned from trending (i.e. were part of the previous set, but not the new one)
+		churned_trenders = set([trending_id for trending_id in prev_trending_ids if trending_id not in top_trending_ids])
+
+		# Step 6) Isolate all IDs common between prev and current trending users
+		common_trending_ids = set.intersection(set(prev_trending_ids),set(top_trending_ids))
+
+		# Step 7) Create a list containing new sorted trendng IDs and their respective ranks
+		common_trending_ids_and_ranks = []
+		rank = 1
+		for trending_id, score in sorted_top_trenders:
+			if trending_id in common_trending_ids:
+				common_trending_ids_and_ranks.append((trending_id,rank))
+			rank += 1
+
+		# Step 8) Create a list containing old sorted trending IDs and their respective ranks
+		prev_trending_ids_and_ranks = []
+		rank = 1
+		for trending_id in prev_trending_ids:
+			prev_trending_ids_and_ranks.append((trending_id,rank))
+			rank += 1
+
+		###################################
+
+		# Step 9) Calculate what rep increment each trender deserves
+		scores_to_give = {}
+
+		for churned_trending_id in list(churned_trenders):
+			scores_to_give[churned_trending_id] = -1
+
+		for new_entrant_trending_id in list(new_trenders):
+			scores_to_give[new_entrant_trending_id] = 1
+
+		for trending_id, rank in common_trending_ids_and_ranks:
+			for prev_trending_id, prev_rank in prev_trending_ids_and_ranks:
+				if trending_id == prev_trending_id:
+					if rank <= prev_rank:
+						# rank has improved, or maintained
+						num_trending_previously = prev_trending_ids_and_scores_dict[str(trending_id)]
+						num_trending_now = new_trending_ids_and_scores_dict[trending_id]
+						if num_trending_now > num_trending_previously:
+							# moreover, num trending pics are greater than before
+							scores_to_give[trending_id] = 1 
+						else:
+							scores_to_give[trending_id] = 0 
+					else:
+						scores_to_give[trending_id] = 0
+
+		##################################
+
+		# Step 10) Allot the points
+		pipeline1 = my_server.pipeline()
+		for trending_id, score in scores_to_give.iteritems():
+			if score != 0:
+				pipeline1.zincrby(TOP_TRENDERS_REP,trending_id,amount=score)
+		pipeline1.execute()
+
+		###################################
+
+		# Step 11) Update the top trenders list
+		my_server.delete(TOP_TRENDER_IDS)
+		my_server.zadd(TOP_TRENDER_IDS,*list(sum(top_trending_ids_and_scores, ())))# flattening top_trending_ids_and_scores and passing to zadd
+
+		###################################
+
+		# Step 12) Update the truncator set
+		time_now = time.time()
+		trending_ids_and_times = []
+		for trending_id in top_trending_ids:
+			trending_ids_and_times.append(trending_id)
+			trending_ids_and_times.append(time_now)
+		my_server.zadd(TOP_TRENDERS_REP_TRUNCATOR,*trending_ids_and_times)
+		###################################
+		
+		# Step 13) Truncate trending_ids' reps that have not showed up for the past 3 months
+		if random() < 0.05:
+			# sometimes trim the trending sorted set for size
+			three_months_ago = time_now - THREE_MONTHS
+			trending_ids_to_expire = my_server.zrangebyscore(TOP_TRENDERS_REP_TRUNCATOR,'-inf',three_months_ago)
+			if trending_ids_to_expire:
+				my_server.zrem(TOP_TRENDERS_REP,*trending_ids_to_expire)
+				my_server.zrem(TOP_TRENDERS_REP_TRUNCATOR,*trending_ids_to_expire)
+
 
 
 def trim_trending_list(feed_type='best_photos'):
@@ -1483,13 +1613,13 @@ def retrieve_top_trenders():
 		rank = 0
 		all_trenders = my_server.zrevrange(TOP_TRENDING_SUBMITTERS,0,-1,withscores=True)
 		all_trender_ids = [user_id for user_id, num_pics in all_trenders]
-
 		user_cred_dict = retrieve_bulk_credentials(all_trender_ids,decode_unames=False)
+		
 		if all_trenders:
 			starting_score = all_trenders[0][1]#num trending pics of top user
 			final_list=[]
 			rank_to_display = 0
-			top_trending_ids = []
+			top_trending_ids_and_scores = []
 
 			for row in all_trenders:
 				if starting_score == row[1]:
@@ -1499,8 +1629,7 @@ def retrieve_top_trenders():
 						final_list.append((trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'],rank_to_display  ) )
 					else:
 						final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
-					top_trending_ids.append(trender_id)
-					top_trending_ids.append(int(row[1]))
+					top_trending_ids_and_scores.append((trender_id,int(row[1])))
 				else:
 					starting_score = row[1]
 					rank +=1
@@ -1513,12 +1642,11 @@ def retrieve_top_trenders():
 							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'], rank_to_display  ) )
 						else:
 							final_list.append(( trender_id  ,int(row[1]), rank+1, user_cred_dict[trender_id]['uname'], user_cred_dict[trender_id]['avurl'] ) )
-						top_trending_ids.append(trender_id)
-						top_trending_ids.append(int(row[1]))
+						top_trending_ids_and_scores.append((trender_id,int(row[1])))
+
 			if final_list:
 				my_server.setex(TOP_TRENDERS, json.dumps(final_list),THIRTY_MINS)
-				my_server.delete(TOP_TRENDER_IDS)
-				my_server.zadd(TOP_TRENDER_IDS,*top_trending_ids)# contains all trender IDs who're in the top (and eligible to get stars) - but how is it cached?
+				process_top_trenders_rep(top_trending_ids_and_scores)
 			return 	final_list
 		else: 
 			return []

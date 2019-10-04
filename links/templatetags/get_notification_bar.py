@@ -80,9 +80,9 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 					context["first_time_user"] = True
 				else:
 					context["first_time_user"] = False
+				context["op_star"], context["their_star"] = is_pair_image_stars(freshest_reply['ooi'],freshest_reply['lrwi'])#
 			except:
 				context["notification"] = 0
-			context["op_star"], context["their_star"] = is_pair_image_stars(freshest_reply['ooi'],freshest_reply['lrwi'])
 		elif is_photo:
 			if object_type == '1':
 				# photo = Photo.objects.get(id=freshest_reply)
@@ -106,7 +106,7 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 				context["parent_pk"] = freshest_reply['oi']#.which_photo_id
 				context["first_time_user"] = False
 				context["banned"] = False	
-				context["their_star"] = is_image_star(freshest_reply['lrwi'])				
+				context["their_star"] = is_image_star(freshest_reply['lrwi'])#			
 			else:
 				context["notification"] = 0
 	else:

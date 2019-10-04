@@ -61,7 +61,7 @@ function cast_vote(e) {
 	if (sv === true) {
 		// trying to like own content!
 		var err_msg = 'Apni post ko like nahi kar saktey';
-		display_and_fade_out(err_msg,determine_pause_length(err_msg));//pass message and pause time
+		display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
 		sv = false;
 		vb.disabled = false;
 
@@ -92,14 +92,14 @@ function cast_vote(e) {
 							// lk_cids[lid_key] = '1';
 							var forced_to_toggle = toggle_like_btn(like_btn, svg_img, label_div, 'unlike');
 							if (!forced_to_toggle) {
-								display_and_fade_out('Liked & Saved!',determine_pause_length('Liked & Saved!'));//pass message and pause time
+								display_and_fade_out('Liked & Saved!',determine_pause_length('Liked & Saved!'),'notif');//pass message and pause time
 							}
 			      		} else if (resp.message === 'old') {
 			      			// reverting prev like
 			      			// delete lk_cids[lid_key];
 			      			var forced_to_toggle = toggle_like_btn(like_btn, svg_img, label_div, 'like');
 			      			if (!forced_to_toggle) {
-			      				display_and_fade_out('Removed Like & Save!',determine_pause_length('Removed Like & Save!'));//pass message and pause time
+			      				display_and_fade_out('Removed Like & Save!',determine_pause_length('Removed Like & Save!'),'notif');//pass message and pause time
 			      			}
 			      		} else {
 			      			// do nothing since the vote is unrecognized as like or unlike
@@ -136,7 +136,7 @@ function cast_vote(e) {
 			      		// e.g. if message.success was False
 			      		if (resp.type === 'text') {
 			      			// display disappearing popup with resp.message
-							display_and_fade_out(resp.message,determine_pause_length(resp.message));//pass message and pause time
+							display_and_fade_out(resp.message,determine_pause_length(resp.message),'err');//pass message and pause time
 							// reverse the vote visually
 							toggle_like_btn(like_btn, svg_img, label_div);
 							// if (val === '1') {
@@ -159,7 +159,7 @@ function cast_vote(e) {
 			    } else {
 			      	// e.g. if status == 404 or 403 or 500 (this is an error at the application level, not network level - where there are no error codes)
 			      	var err_msg = 'Kuch ghalat ho gaya, dubara try karein';
-					display_and_fade_out(err_msg,determine_pause_length(err_msg));//pass message and pause time
+					display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
 			      	// reverse the vote visually
 			      	toggle_like_btn(like_btn, svg_img, label_div);
 			  //     	if (val === '1') {
@@ -175,7 +175,7 @@ function cast_vote(e) {
 	  			// onerror fires when there is a failure on the network level, no response is received (e.g. a denied cross-domain request, or internet off)
 	  			vb.disabled = false;
 			   	var err_msg = 'Kuch kharab ho gaya, dubara try karein';
-				display_and_fade_out(err_msg,determine_pause_length(err_msg));//pass message and pause time
+				display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
 				// reverse the vote visually
 				toggle_like_btn(like_btn, svg_img, label_div);
 		  //     	if (val === '1') {
@@ -195,7 +195,7 @@ function cast_vote(e) {
 	  			// fail_url = '/home/';
 			   	//  window.location.replace(fail_url);
 			   	var err_msg = 'Internet slow hai, baad mein try karein';
-				display_and_fade_out(err_msg,determine_pause_length(err_msg));//pass message and pause time
+				display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
 				// reverse the vote visually
 				toggle_like_btn(like_btn, svg_img, label_div);
 		  //     	if (val === '1') {
@@ -609,12 +609,17 @@ function copy_url(e) {// this is iOS friendly
  	document.execCommand("copy");// Copy its contents
  	document.body.removeChild(dummy_element);
  	// now display the copied link
- 	display_and_fade_out('Link copied',determine_pause_length('Link copied'));//pass message and pause time
+ 	display_and_fade_out('Link copied',determine_pause_length('Link copied'),'notif');//pass message and pause time
 }
 
-function display_and_fade_out(copy,pause) {
-	var prompt = document.getElementById("quick_prompt");
- 	var text = document.getElementById("quick_text");
+function display_and_fade_out(copy,pause,notif_type) {
+	if (notif_type === 'err') {
+		var prompt = document.getElementById("quick_err_prompt");
+	 	var text = document.getElementById("quick_err_text");
+	} else {
+		var prompt = document.getElementById("quick_prompt");
+	 	var text = document.getElementById("quick_text");
+	}
  	if (text) text.innerHTML = copy;
  	if (prompt) {
  		var style = prompt.style;

@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% load emoticons_tags %}
 {% block content %}
 <head><title>Logout reconfirm | Damadam.pk</title></head>
 <style>body{background: #E9EBEE}</style>
 <h1 class="cxl clb lsp" style="text-align:center">Are you sure?</h1>
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
-<div class="cxl lsp">Kya ap waqai logout karna chahtey hein? {% emoticons %}.k1.k2.k3.k4{% endemoticons %}</div>
+<div class="cxl lsp">Kya ap waqai logout karna chahtey hein?<br><span class="cgy">(bara pachtao ge, bara pachtao ge)</span></div>
 <form method="POST" action="{% url 'logout_then_login' %}" style="display:inline;">
 {% csrf_token %}
 <button class="btn bcgy bl mtl pg_ok_res mrs" style="height:28px">Haan</button>

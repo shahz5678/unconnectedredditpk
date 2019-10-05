@@ -206,51 +206,55 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 					if meta_complete == '1':
 						# just image retrieved
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'1',\
-							dictionary['url'+idx],'','',dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+							dictionary['url'+idx],'','',dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '2':
 						# just title retrieved
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'2',\
-							dictionary['url'+idx],'',dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
+							dictionary['url'+idx],'',dictionary['url_title'+idx],'','',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '3':
 						# just desc retrieved
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'3',\
-							dictionary['url'+idx], dictionary['url_desc'+idx],'','','',dictionary['yt'+idx]))
+							dictionary['url'+idx], dictionary['url_desc'+idx],'','','',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '4':
 						# img and img_dim
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'4',\
-							dictionary['url'+idx],'','',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+							dictionary['url'+idx],'','',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
 					elif meta_complete == '5':
 						# desc and img
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'5',\
-							dictionary['url'+idx], dictionary['url_desc'+idx],'',dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+							dictionary['url'+idx], dictionary['url_desc'+idx],'',dictionary['url_img'+idx],'',dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
 					elif meta_complete == '6':
 						# title and img
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'6',\
-							dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+							dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
 					elif meta_complete == '7':
 						# desc and title
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'7',\
-							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
+							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],'','',dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
 					elif meta_complete == '8':
 						# title, img and img_dim
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'8',\
 							dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
-							dictionary['yt'+idx]))
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '9':
 						# desc, img and img_dim
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'9',\
 							dictionary['url'+idx],dictionary['url_desc'+idx],'',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
-							dictionary['yt'+idx]))
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '10':
 						# desc, title and img
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'10',\
 							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],'',\
-							dictionary['yt'+idx]))
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '11':
 						# desc, title, img and img_dim
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'11',\
 							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],\
-							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					else:
 						# no meaningful metadata
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx])))
@@ -263,37 +267,37 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'1',dictionary['url'+idx],'','',dictionary['url_img'+idx],'',\
-							dictionary['yt'+idx]))
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '2':
 						# just title retrieved
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'2',dictionary['url'+idx],'',dictionary['url_title'+idx],'','',\
-							dictionary['yt'+idx]))
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '3':
 						# just desc retrieved
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'3',dictionary['url'+idx],dictionary['url_desc'+idx],'','','',\
-							dictionary['yt'+idx]))
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '4':
 						# img and img_dim
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'4',dictionary['url'+idx],'','',dictionary['url_img'+idx],\
-							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '5':
 						# desc and img
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'5',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
-							dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+							dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '6':
 						# title and img
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'6',dictionary['url'+idx],'',dictionary['url_title'+idx],\
-							dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+							dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '7':
 						# desc and title
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
@@ -305,25 +309,26 @@ def construct_personal_group_data(content_list_of_dictionaries, own_id, own_unam
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'8',dictionary['url'+idx],'',dictionary['url_title'+idx],\
-							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '9':
 						# desc, img and img_dim
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'9',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
-							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '10':
 						# desc, title and img
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'10',dictionary['url'+idx],dictionary['url_desc'+idx],\
-							dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx]))
+							dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
 					elif meta_complete == '11':
 						# desc, title, img and img_dim
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'11',dictionary['url'+idx],dictionary['url_desc'+idx],\
-							dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
+							dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
 					else:
 						# no meaningful metadata
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \

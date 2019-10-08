@@ -45,9 +45,9 @@ add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_subm
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
-# from redis9 import delete_all_direct_responses_between_two_users
-from redis8 import log_activity#, set_variation_wise_retention
+# from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list
 from redis3 import log_vote_disc
+from redis8 import log_activity
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -819,9 +819,9 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	"""
-	Used to find the single "best" foto from the current lot, criteria being an image with positive cumulative vote score, and at least 1 downvote
+	Used to find the single "best" photo from the current lot, criteria being an image with positive cumulative vote score, and at least 1 downvote
 
-	Can also push hand-picked objects into trending lists
+	Can also push hand-picked objects into trending lists (disabled for now)
 	Mislabeled task due to legacy reasons
 	"""
 	time_now = time.time()
@@ -838,17 +838,19 @@ def rank_all_photos():
 			set_best_photo_for_fb_fan_page(obj_id)
 		#####################################################
 	else:
-		fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
-		best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
-		remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
-		trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
-		if trending_item_hash_name:
-			highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-			highest_ranked_photo['tos'] = time_now
-			highest_ranked_photo['like_prob'] = item_score# what probability exists that this content will be liked by at least 1 audience member
-			obj_id = trending_item_hash_name.split(":")[1]
-			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
-			pushed = True
+		pass
+		# TODO : activate when 'handpicked_prob' has been built
+		# fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
+		# best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
+		# remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
+		# trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
+		# if trending_item_hash_name:
+		# 	highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
+		# 	highest_ranked_photo['tos'] = time_now
+		# 	highest_ranked_photo['like_prob'] = item_score# what probability exists that this content will be liked by at least 1 audience member
+		# 	obj_id = trending_item_hash_name.split(":")[1]
+		# 	add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
+		# 	pushed = True
 
 
 @celery_app1.task(name='tasks.rank_all_photos1')
@@ -868,7 +870,7 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 	obj_list = retrieve_obj_scores(obj_hash_names)
 	only_liked = []
 	for obj_hash, likes, score in obj_list:
-		# ensure that the post is liked and has a positive 'score' (score is the prob it will receive 'likes' when it trends)
+		# ensure that the post is liked and has a positive 'score' (score is the prob it will get 'handpicked')
 		if likes > 0 and score > 0:
 			only_liked.append((obj_hash, score))
 	if len(only_liked) > 1:
@@ -930,20 +932,27 @@ def rank_photos():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	user_ids = get_top_100()
-	user_ids_and_fan_counts = get_fan_counts_in_bulk(user_ids)
-	user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').defer('password','last_login','is_superuser',\
-		'first_name','email','is_staff','is_active','date_joined','id','last_name','totalfanandphotos__total_fans','totalfanandphotos__last_updated',\
-		'userprofile__bio','userprofile__shadi_shuda','userprofile__previous_retort','userprofile__attractiveness','userprofile__mobilenumber',\
-		'userprofile__score','userprofile__avatar','userprofile__streak','userprofile__age','userprofile__gender').in_bulk(user_ids)
-	top_list = []
-	for user_id in user_ids:
-		top_list.append({'username':user_ids_and_user_objects[int(user_id)].username,'id':user_id,\
-			"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
-			"media_score":user_ids_and_user_objects[int(user_id)].userprofile.media_score,\
-			"av_url":retrieve_avurl(user_id),"fan_count":user_ids_and_fan_counts[user_id]})
-	top_list = retrieve_thumbs(top_list)# add 'rows' key in the dictionary
-	set_top_stars(top_list)
+	"""
+	Cleans up expired (i.e. old) direct responses
+
+	Mislabeled due to legacy reasons
+	"""
+	pass
+	# cleanse_direct_response_list()
+	# user_ids = get_top_100()
+	# user_ids_and_fan_counts = get_fan_counts_in_bulk(user_ids)
+	# user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').defer('password','last_login','is_superuser',\
+	# 	'first_name','email','is_staff','is_active','date_joined','id','last_name','totalfanandphotos__total_fans','totalfanandphotos__last_updated',\
+	# 	'userprofile__bio','userprofile__shadi_shuda','userprofile__previous_retort','userprofile__attractiveness','userprofile__mobilenumber',\
+	# 	'userprofile__score','userprofile__avatar','userprofile__streak','userprofile__age','userprofile__gender').in_bulk(user_ids)
+	# top_list = []
+	# for user_id in user_ids:
+	# 	top_list.append({'username':user_ids_and_user_objects[int(user_id)].username,'id':user_id,\
+	# 		"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
+	# 		"media_score":user_ids_and_user_objects[int(user_id)].userprofile.media_score,\
+	# 		"av_url":retrieve_avurl(user_id),"fan_count":user_ids_and_fan_counts[user_id]})
+	# top_list = retrieve_thumbs(top_list)# add 'rows' key in the dictionary
+	# set_top_stars(top_list)
 
 
 @celery_app1.task(name='tasks.salat_info')

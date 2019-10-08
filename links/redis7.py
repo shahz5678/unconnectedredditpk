@@ -2440,6 +2440,7 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			pipeline1.zadd(vote_store,own_id, 0 if handpicked_prob is None else handpicked_prob)#atomic
 			if is_sybil:
 				pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
+				pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	

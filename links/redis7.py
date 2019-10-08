@@ -127,25 +127,31 @@ TOP_TRENDERS_REP_TRUNCATOR = 'ttrt'# sorted set used to truncate TOP_TRENDERS_RE
 
 CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
 
-VOTER_LIKE_PROBS = 'vlp'# sorted set containing various voter_ids and the prob their editorially picked content will see audience likes (called 'like_prob')
-NUM_EDITORIAL_VOTES = 'nev'# sorted set containing number of editorial votes given by various voters (can be cross-referenced with 'vlp' above)
-GLOBAL_EDITORIAL_VOTES_ON_IMGS = 'gevon'# global sorted set containing all editorial 'likes' cast on images
-GLOBAL_CLOSED_IMG_VOTES = 'gciv'# global sorted set that contains voting data on images where voting has closed
-GLOBAL_CLOSED_IMG_OBJS = 'gcio'# global sorted set that contains obj hash names of images where voting has closed
-GLOBAL_IMG_VOTES = 'giv'# global sorted set that temporarily stores all votes given to a certain obj
-AUDIENCE_LIKED_IMGS = 'ali'# set of img obj_hashes that have at least a single audience 'like'
+VOTER_HANDPICKED_PROBS = 'vhp'# sorted set containing voter_ids and the prob their editorially picked content will be handpicked
+VOTER_AUD_LIKE_PROBS = 'valp'# sorted set containing various voter_ids and the prob their editorially picked content will see audience likes (called 'like_prob')
+NUM_EDITORIAL_LIKES = 'nel'# sorted set containing number of editorial likes given by various voters (can be cross-referenced with 'valp' above)
+GLOBAL_EDITORIAL_LIKES_ON_IMGS = 'gelon'# global sorted set containing all editorial 'likes' cast on images
+GLOBAL_CLOSED_IMG_LIKES = 'gcil'# global sorted set that contains voting data on images where voting has closed
+GLOBAL_CLOSED_IMG_OBJ_HASH_NAMES = 'gciohn'# global sorted set that contains obj hash names of images, where voting has closed
+GLOBAL_IMG_LIKES = 'gil'# global sorted set that temporarily stores all votes given to img objs
+AUDIENCE_LIKED_IMG_HASH_NAMES = 'alihn'# set of img obj_hashes that have at least a single audience 'like'
+HANDPICKED_IMG_HASH_NAMES = 'hihn'# set of img obj_hashes that have been handpicked
 
-LOCKED_OBJ = 'lo:'# set that contains sybil 'likes' given to an obj - these lock the obj from entering trending
-TRENDING_OBJ = 'to:'# a key that signifies that a certain obj has entered trending
+LOCKED_IMG = 'li:'# set that contains sybil 'likes' given to an img obj - these lock the img from entering trending
+HANDPICKED_TRENDING_IMG = 'hti:'# a key that signifies that a certain obj has entered trending by way of being handpicked
+NONHANDPICKED_TRENDING_IMG = 'nti:'# a key that signifies that a certain obj has entered trending by way of being voted on by regular voters
+# TRENDING_OBJ = 'to:'# a key that signifies that a certain obj has entered trending
 
+MOST_RECENT_IMG_UPLOAD_TIME = 'mriut:'#key that saves the most recent time a user uploaded an img - useful for truncating reps of churned users
+# GLOBAL_UPLOADED_IMG_HASH_NAMES = 'guihn'# global sorted set containing all image hash names uploaded by users, useful for content reputation calculation
+# GLOBAL_AUD_LIKED_IMG_DATA = 'galid'# global sorted set containing image hashes+":"+uploader_id of imgs which received audience likes
+GLOBAL_HANDPICKED_IMG_DATA = 'ghid'#global sorted set containing image_hashes+":"+uploader_ID of imgs which were handpicked for trending
+GLOBAL_AUD_LIKED_IMG_OBJS = 'galio'# sorted set containing number of images that received audience likes for each uploader
 
-LAST_IMG_UPLOAD_TIME = 'liut:'#key that saves the last time a user uploaded an img - useful for truncating reps of churned users
-GLOBAL_UPLOADED_IMG_HASHES = 'guih'# global sorted set containing all images uploaded by users, useful for content reputation calculation
-GLOBAL_AUD_LIKED_IMGS = 'gali'# global sorted set containing image hashes+":"+uploader_id of imgs which received audience likes
-
-GLOBAL_LIKED_IMG_COUNT = 'glic'# global sorted set containg num images uploaded by an uploader
-GLOBAL_UPLOADED_IMG_COUNT = 'guic'# global sorted set containing num images that received audience likes (uploaded by a certain user)
-GLOBAL_IMG_UPLOADER_CONTENT_REP = 'giucr'# global sorted set containing the content rep of img uploaders
+# GLOBAL_LIKED_IMG_VOLUME = 'gliv'# global sorted set containg num 'liked' images uploaded by an uploader
+GLOBAL_UPLOADED_IMG_VOLUME = 'guiv'# global sorted set containing num images that were uploaded by a certain user
+GLOBAL_IMG_UPLOADER_AUD_LIKE_BASED_REP = 'giualbr'# global sorted set containing the content 'rep' of img uploaders, based on audience 'likes'
+GLOBAL_IMG_UPLOADER_HANDPICKING_BASED_REP = 'giuhbr'# global sorted set containing the content 'rep' of img uploaders, based on handpicked imgs
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -363,7 +369,7 @@ def retrieve_obj_scores(obj_list):
 		vote_store = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
 		pipeline1.hget(obj_hash,'uv')
 		pipeline1.zrange(vote_store+obj_id,-2,-1,withscores=True)
-		pipeline1.exists(LOCKED_OBJ+obj_hash)
+		pipeline1.exists(LOCKED_IMG+obj_hash)
 	result1, counter, final_result = pipeline1.execute(), 0, []
 	for obj_hash in obj_list:
 		is_locked_out_from_trending = result1[counter+2]# e.g. because of sybil voting
@@ -658,8 +664,9 @@ def save_recent_photo(user_id, photo_id):
 	my_server.ltrim(key_name, 0, 4) # save the most recent 5 photos'
 	my_server.expire(key_name,FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
 	############################################
-	my_server.setex(LAST_IMG_UPLOAD_TIME+str(user_id),time.time(),ONE_MONTH)
-	my_server.zadd(GLOBAL_UPLOADED_IMG_HASHES,"img:"+str(photo_id),user_id)
+	my_server.setex(MOST_RECENT_IMG_UPLOAD_TIME+str(user_id),time.time(),ONE_MONTH)
+	# my_server.zadd(GLOBAL_UPLOADED_IMG_HASH_NAMES,"img:"+str(photo_id),user_id)
+	my_server.zincrby(GLOBAL_UPLOADED_IMG_VOLUME,user_id,amount=1)
 
 
 def get_recent_trending_photos(user_id):
@@ -1476,7 +1483,7 @@ def process_top_trenders_rep(top_trending_ids_and_scores):
 
 	Advantages:
 	- Measured against the crowd: If your rank fell (even if your number of trending pics increased) you get 0, because it seems the crowd around you moved up faster
-	- Measured aganst yourself: If your rank improved, but number of trending pics didn't, you get 0 (because you haven't done anything to deserve a 1, someone else probably dropped out)
+	- Measured aganst yourself: If your rank improved, but number of trending pics didn't, you get 0 (because you haven't done anything to deserve a +1, someone else probably dropped out)
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 
@@ -1681,7 +1688,8 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_ha
 		feeds_to_subtract = [PHOTO_SORTED_FEED,HAND_PICKED_TRENDING_PHOTOS] if from_hand_picked else [PHOTO_SORTED_FEED]
 		log_user_submission(submitter_id=submitter_id, submitted_obj=composite_id, feeds_to_add=feeds_to_add, \
 			feeds_to_subtract=feeds_to_subtract, my_server=my_server)
-		mark_trending_obj(composite_id)
+		if not my_server.exists(HANDPICKED_TRENDING_IMG+composite_id):
+			my_server.setex(NONHANDPICKED_TRENDING_IMG+composite_id,'1',ONE_MONTH)
 	else:
 		pass
 
@@ -1704,8 +1712,8 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 				oldest_enqueued_member = oldest_enqueued_member[0]
 				obj_hash = my_server.hgetall(oldest_enqueued_member)
 				if obj_hash:
-					if my_server.exists(LOCKED_OBJ+oldest_enqueued_member):
-						# this obj is locked from entering trending because of sybil votes
+					if my_server.exists(LOCKED_IMG+oldest_enqueued_member):
+						# this img obj is locked from entering trending because of sybil votes
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
 						pushed = False
 					else:
@@ -1714,6 +1722,10 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 						obj_hash['tos'] = time_of_selection
 						obj_hash = unpack_json_blob([obj_hash])[0]
 						obj_id = obj_hash['i']
+						########################
+						my_server.setex(HANDPICKED_TRENDING_IMG+oldest_enqueued_member,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
+						my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,oldest_enqueued_member+":"+str(obj_hash['si']),obj_hash['si'])
+						########################
 						add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
 							from_hand_picked=True)
 						my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,oldest_enqueued_member)# remove from hand_picked list as well
@@ -1799,7 +1811,11 @@ def remove_obj_from_trending(prefix,obj_id):
 			feeds_to_subtract = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS]#,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
 			log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, feeds_to_subtract=feeds_to_subtract, \
 				my_server=my_server)
-			mark_trending_obj(composite_id, trending=False)
+			#####################################
+			my_server.execute_command('UNLINK', HANDPICKED_TRENDING_IMG+composite_id)# in case key was set
+			my_server.execute_command('UNLINK', NONHANDPICKED_TRENDING_IMG+composite_id)# in case key was set
+			my_server.zrem(GLOBAL_HANDPICKED_IMG_DATA,composite_id+":"+str(obj_owner_id))
+			#####################################
 		else:
 			# not in trending yet (for whatever reason)
 			log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, feeds_to_subtract=[HAND_PICKED_TRENDING_PHOTOS], \
@@ -2250,7 +2266,7 @@ def add_user_vote(voter_id, target_user_id, target_obj_id, obj_type, voting_time
 
 def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editorial_vote, my_server):
 	"""
-	Determines if a vote is by a sybil, an inexperienced voter, or a non-partisan voter. It allots it a value accordingly.
+	Determines if a vote is by a sybil, an inexperienced voter, or a non-partisan voter, alloting a value to the vote accordingly
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	is_sybil = False
@@ -2258,58 +2274,58 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 		# is an editorial voter
 		bayes_prob = my_server.hget(VOTER_AFFINITY_HASH+voter_id+":"+target_user_id,'p1')# the current probability of upvoting that exists between this pair
 
-		if bayes_prob and float(bayes_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:
+		if bayes_prob and float(bayes_prob) >= BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING:#0.3
 			# voter is a direct sybil of target
-			like_prob = None# a sybil locks the content, and can never get it into trending, hence this prob is 0 (we use 'None' for programmatic reasons)
+			handpicked_prob = None# a sybil locks the content, and can never get it into trending, hence this prob is 0 (we use 'None' for programmatic reasons)
 			is_sybil = True
 		else:
 			num_general_sybils = my_server.zcount(SYBIL_RELATIONSHIP_LOG,voter_id, voter_id)
 
 			if num_general_sybils > 0:
 				# voter is generally a sybil-tainted user
-				like_prob = None# a sybil locks the content, and can never get it into trending, hence this prob is 0 (we use 'None' for programmatic reasons)
-				is_sybil = True
+				handpicked_prob = None# a sybil locks the content, and can never get it into trending, hence this prob is 0 (we use 'None' for programmatic reasons)
+				is_sybil = True#a generic sybil in this case
 			else:
-				if world_age_discount < 1:
+				if world_age_discount < 5:
 					# voter is not experienced enough
-					like_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
-				elif my_server.zcount(GLOBAL_EDITORIAL_VOTES_ON_IMGS, voter_id, voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+1):
-					# voter has not editorially voted in the required volumes
-					like_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
+					handpicked_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
+				elif my_server.zcount(GLOBAL_EDITORIAL_LIKES_ON_IMGS, voter_id, voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+1):
+					# voter has not editorially voted in the required volume
+					handpicked_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
 				else:
-					# voter is an experienced, non_partisan voter, get their like_prob
-					like_prob = my_server.zscore(VOTER_LIKE_PROBS,voter_id)
-					if like_prob is None:
-						like_prob = 0
-					elif like_prob > 0:
-						num_editorial_votes = my_server.zscore(NUM_EDITORIAL_VOTES,voter_id)
+					# voter is an experienced, non_partisan voter, get their 'handpicked_prob' (or 'like_prob' alternatively)
+					handpicked_prob = my_server.zscore(VOTER_HANDPICKED_PROBS,voter_id)
+					if handpicked_prob is None:
+						handpicked_prob = 0
+					elif handpicked_prob > 0:
+						num_editorial_votes = my_server.zscore(NUM_EDITORIAL_LIKES,voter_id)
 						if num_editorial_votes and num_editorial_votes < 10:
-							# nerf said 'like_prob' since it's based on too small a sample size
+							# nerf said 'handpicked_prob' since it's based on too small a sample size
 							if num_editorial_votes == 1:
 								# nerfed the most
-								like_prob = 0.1 * like_prob
+								handpicked_prob = 0.1 * handpicked_prob
 							elif num_editorial_votes == 2:
-								like_prob = 0.15 * like_prob
+								handpicked_prob = 0.15 * handpicked_prob
 							elif num_editorial_votes == 3:
-								like_prob = 0.25 * like_prob
+								handpicked_prob = 0.25 * handpicked_prob
 							elif num_editorial_votes == 4:
-								like_prob = 0.35 * like_prob
+								handpicked_prob = 0.35 * handpicked_prob
 							elif num_editorial_votes == 5:
-								like_prob = 0.45 * like_prob
+								handpicked_prob = 0.45 * handpicked_prob
 							elif num_editorial_votes == 6:
-								like_prob = 0.55 * like_prob
+								handpicked_prob = 0.55 * handpicked_prob
 							elif num_editorial_votes == 7:
-								like_prob = 0.65 * like_prob
+								handpicked_prob = 0.65 * handpicked_prob
 							elif num_editorial_votes == 8:
-								like_prob = 0.75 * like_prob
+								handpicked_prob = 0.75 * handpicked_prob
 							elif num_editorial_votes == 9:
 								# nerfed the least
-								like_prob = 0.85 * like_prob
+								handpicked_prob = 0.85 * handpicked_prob
 							else:
 								# should never happen
-								like_prob = 0.95 * like_prob
+								handpicked_prob = 0.95 * handpicked_prob
 
-		return like_prob, is_sybil
+		return handpicked_prob, is_sybil
 	######################################################################################################
 	else:
 		# is an audience voter
@@ -2325,7 +2341,7 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 				is_vote_counted = False
 				is_sybil = True
 			else:
-				if world_age_discount < 1:
+				if world_age_discount < 5:
 					# voter is not experienced enough
 					is_vote_counted = False
 				elif my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+5):
@@ -2337,26 +2353,17 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 		return is_vote_counted, is_sybil
 
 
-def mark_trending_obj(hash_name, trending=True):
-	"""
-	Run this to mark an obj as trending
-	"""
-	if trending:
-		redis.Redis(connection_pool=POOL).setex(TRENDING_OBJ+hash_name,'1',ONE_MONTH)
-	else:
-		redis.Redis(connection_pool=POOL).execute_command('UNLINK', TRENDING_OBJ+hash_name)
-
-
 def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, is_editorial_vote, world_age_discount=None):
 	"""
-	Logs the like given a voter on an obj
+	Logs the 'like' given a voter on an obj
 
-	The like is logged in a variety of ways:
+	The 'like' is logged in a variety of ways:
 	(i) as a 'visual' +1 to show the object owner
 	(ii) as a marker that disallows users to 'like' the same obj again (in 'vote_store')
-	(iii) as a +1 in net_votes saved in postgresql
-	(iv) as a metric used in Bayesian calc to catch Sybils
-	(v) as a metric used to calculate 'like_prob' (i.e. prob that content that enters trending will receive 'likes' from the audience)
+	(iii) as a +1 in 'net_votes' saved in postgresql
+	(iv) as a metric used in Bayesian calc to catch Sybil voters
+	(v) as a metric used to calculate 'handpicked_prob' (i.e. prob that voted-on content will be handpicked by super defenders)
+	(vi) as a metric used to calculate 'like_prob' (i.e. prob that content that enters trending will receive 'likes' from the audience)
 	"""
 	obj_id, own_id = str(obj_id), str(own_id)
 	if is_pht == '1':
@@ -2370,7 +2377,8 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 		vote_store = VOTE_ON_TXT+obj_id
 		obj_type = 'tx'
 	my_server = redis.Redis(connection_pool=POOL)
-	#if redis obj exists, voting is still open (otherwise consider it closed)
+
+	#if redis obj exists, voting is still open/ongoing (otherwise consider it closed)
 	voting_is_open = my_server.exists(hash_name)
 	if voting_is_open and is_editorial_vote:
 		
@@ -2388,7 +2396,7 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			pipeline1.hincrby(hash_name,'nv',amount=-1)#atomic
 			pipeline1.hincrby(hash_name,'uv',amount=-1)#atomic
 			pipeline1.zrem(vote_store,own_id)#atomic
-			pipeline1.srem(LOCKED_OBJ+hash_name,own_id)
+			pipeline1.srem(LOCKED_IMG+hash_name,own_id)
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	
@@ -2407,10 +2415,10 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 			###############################################	
 
-			# Step 4) Revert logging for 'like_prob'
+			# Step 4) Revert logging for 'handpicked_prob' and 'like_prob'
 			if is_pht == '1':
 				# only if img vote (for now)
-				my_server.zrem(GLOBAL_IMG_VOTES, hash_name+"-"+own_id+"-1")
+				my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1")
 
 			return new_net_votes
 
@@ -2419,19 +2427,19 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 			###############################################
 
-			# Step 1) Determine 'like_prob', i.e. the prob this item could receive audience 'likes' given it was 'liked' by own_id!
-			like_prob, is_sybil = determine_vote_score(is_editorial_vote=True, voter_id=own_id, target_user_id=target_user_id, \
+			# Step 1) Determine 'handpicked_prob', i.e. the prob this item could be picked by a super defender, given it was 'liked' by own_id!
+			handpicked_prob, is_sybil = determine_vote_score(is_editorial_vote=True, voter_id=own_id, target_user_id=target_user_id, \
 				my_server=my_server, world_age_discount=world_age_discount)
 
 			###############################################
 
-			# Step 2) Record the 'like_prob' in vote_store, and the act of liking in 'nv' and 'uv'
+			# Step 2) Record the 'handpicked_prob' in vote_store, and the act of liking in 'nv' and 'uv'
 			pipeline1 = my_server.pipeline()
 			pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
 			pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
-			pipeline1.zadd(vote_store,own_id, 0 if like_prob is None else like_prob)#atomic
+			pipeline1.zadd(vote_store,own_id, 0 if handpicked_prob is None else handpicked_prob)#atomic
 			if is_sybil:
-				pipeline1.sadd(LOCKED_OBJ+hash_name,own_id)
+				pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	
@@ -2467,11 +2475,11 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 			###############################################
 
-			# Step 6) log like in a global set for 'like_prob' calculation later
-			# if like_prob is not None:
-			if like_prob is not None and is_pht == '1':
+			# Step 6) log like in a global set, for 'like_prob' and 'handpicked_prob' calculation later
+			# if handpicked_prob is not None (i.e. the voter is not a specific or a general sybil)
+			if handpicked_prob is not None and is_pht == '1':
 				# only if img vote (for now)
-				my_server.zadd(GLOBAL_IMG_VOTES, hash_name+"-"+own_id+"-1", time_of_vote)# '1' at the end signifies editorial vote
+				my_server.zadd(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1", time_of_vote)# '1' at the end signifies editorial vote
 
 			return new_net_votes
 
@@ -2509,12 +2517,14 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 			###############################################		
 			
-			# Step 4) Revert logging for 'like_prob'
+			# Step 4) Revert logging for 'handpicked_prob','like_prob'
 			if is_pht == '1':
 				# only if img vote (for now)
-				my_server.zrem(GLOBAL_IMG_VOTES, hash_name+"-"+own_id+"-0")
+				removed = my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-0")
 				#################################################################
-				my_server.zrem(GLOBAL_AUD_LIKED_IMGS,hash_name+":"+str(target_user_id)+"-"+own_id)
+				# my_server.zrem(GLOBAL_AUD_LIKED_IMG_DATA,hash_name+":"+str(target_user_id)+"-"+own_id)
+				if removed:
+					my_server.zincrby(GLOBAL_AUD_LIKED_IMG_OBJS,hash_name+":"+str(target_user_id), amount=-1)
 
 			return new_net_votes
 		else:
@@ -2567,13 +2577,13 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 				voting_time=time_of_vote, is_reversion=False, my_server=my_server)
 
 			###############################################
-			# Step 6) log like in a global set for 'like_prob' calculation later, and mark op for content rep increment (in GLOBAL_AUD_LIKED_IMGS)
 
+			# Step 6) log like in a global set for 'like_prob', 'handpicked_prob' calculation later
 			if is_vote_counted and is_pht == '1':
 				# only if img vote (for now)
-				my_server.zadd(GLOBAL_IMG_VOTES, hash_name+"-"+own_id+"-0", time_of_vote)# '0' at the end signifies audience vote
+				my_server.zadd(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-0", time_of_vote)# '0' at the end signifies audience vote
 				#####################################
-				my_server.zadd(GLOBAL_AUD_LIKED_IMGS,hash_name+":"+str(target_user_id)+"-"+own_id, time_of_vote)
+				my_server.zincrby(GLOBAL_AUD_LIKED_IMG_OBJS,hash_name+":"+str(target_user_id), amount=1)#, time_of_vote)
 
 			return new_net_votes
 	else:
@@ -2590,11 +2600,12 @@ def archive_closed_objs_and_votes():
 	my_server = redis.Redis(connection_pool=POOL)
 
 	# Step 1) Isolate all votes recently cast
-	all_votes_cast_and_times = my_server.zrange(GLOBAL_IMG_VOTES,0,-1, withscores=True)
-	# Step 2) Extract hash_names from all_votes
+	all_votes_cast_and_times = my_server.zrange(GLOBAL_IMG_LIKES,0,-1, withscores=True)
+
+	# Step 2) Extract hash_names from all_votes, and populate a dictionary with all these hash_names
 	all_hash_names = {}
 	for vote, vote_time in all_votes_cast_and_times:
-		all_hash_names[vote.partition("-")[0]] = ''
+		all_hash_names[vote.partition("-")[0]] = ''# populating the dictionary with all hash_names that got voted on
 
 	# Step 3) Distinguish between objs where voting was closed ('0') and those where voting is still open ('1')
 	pipeline1 = my_server.pipeline()
@@ -2610,149 +2621,152 @@ def archive_closed_objs_and_votes():
 			all_hash_names[hash_name] = '0'#voting closed
 		counter += 1
 
-	# Step 4) enrich data with 'trended' and 'locked' flags (where voting is closed)
+	# Step 4) enrich data with 'handpicked','trended' and 'locked' flags (where voting is closed)
 	if closed_objs:
 		keys_to_delete = []
 		pipeline2 = my_server.pipeline()
 		for hash_name in closed_objs:
-			pipeline2.exists(TRENDING_OBJ+hash_name)
-			pipeline2.exists(LOCKED_OBJ+hash_name)
+			pipeline2.exists(HANDPICKED_TRENDING_IMG+hash_name)
+			pipeline2.exists(NONHANDPICKED_TRENDING_IMG+hash_name)
+			pipeline2.exists(LOCKED_IMG+hash_name)
 		result2, counter = pipeline2.execute(), 0
+
 		for hash_name in closed_objs:
-			trended, locked = result2[counter], result2[counter+1]
-			if trended:
-				# it trended, concatenate '1' to it as a marker
+			trended_via_handpicking_and_not_locked, trended_via_regular_votes, locked = result2[counter], result2[counter+1], result2[counter+2]
+			if trended_via_handpicking_and_not_locked:
+				# it entered trending via handpicking, concatenate '2' to it as a marker
+				all_hash_names[hash_name] += '2'
+				keys_to_delete.append(HANDPICKED_TRENDING_IMG+hash_name)
+			elif trended_via_regular_votes:
+				# it entered trending via regular votes (not handpicking), concatenate '1' to it as a marker
 				all_hash_names[hash_name] += '1'
-				keys_to_delete.append(TRENDING_OBJ+hash_name)
+				keys_to_delete.append(NONHANDPICKED_TRENDING_IMG+hash_name)
 			elif locked:
 				# it was locked, concatenate '0' to it as a marker
 				all_hash_names[hash_name] += '0'
-				keys_to_delete.append(LOCKED_OBJ+hash_name)
-			counter += 2
+				keys_to_delete.append(LOCKED_IMG+hash_name)
+			counter += 3
 		if keys_to_delete:
 			my_server.execute_command('UNLINK', *keys_to_delete)
 
-	# Step 5) move closed obj/vote data to GLOBAL_CLOSED_IMG_VOTES and GLOBAL_CLOSED_IMG_OBJS, removing this data from GLOBAL_IMG_VOTES
+	# Step 5) move closed obj/vote data to GLOBAL_CLOSED_IMG_LIKES and GLOBAL_CLOSED_IMG_OBJ_HASH_NAMES, removing this data from GLOBAL_IMG_LIKES
 	votes_to_add, objs_to_add, rows_to_remove = [], [], []
 	time_now = time.time()
 	for vote, vote_time in all_votes_cast_and_times:
-		obj_hash = vote.partition("-")[0]
+		obj_hash = vote.partition("-")[0]# i.e. the hash_name, like img:12312
 		obj_state = all_hash_names[obj_hash]
 		"""
+		obj_state:
 		'1' implies voting is ongoing - ignore this obj
 		'0' implies closed and obj never trended
-		'01' implies it's closed and has trended
+		'01' implies it's closed and has trended via regular votes (not handpicking)
+		'02' implies it's closed and has trended via handpicking
 		'00' implies it's closed and was locked from trending
 		"""
-		if obj_state in ('0','01','00'):
+		if obj_state in ('0','01','02','00'):
 			rows_to_remove.append(vote)
 			if obj_state != '00':
-				# ignore '00' state - it implies objs that are locked from trending (so could never have achieved audience likes - skewing our calcs)
+				# ignore '00' state - it implies objs that are locked from trending (so could never have achieved handpicked success/audience likes - skewing our calcs)
 				vote_with_final_state = vote+"-"+obj_state
 				votes_to_add.append(vote_with_final_state)
 				votes_to_add.append(vote_time)
 				objs_to_add.append(obj_hash)
 				objs_to_add.append(time_now)
+	
 	if rows_to_remove:
-		my_server.zrem(GLOBAL_IMG_VOTES,*rows_to_remove)# removing votes from GLOBAL_IMG_VOTES
+		my_server.zrem(GLOBAL_IMG_LIKES,*rows_to_remove)# removing closed votes from GLOBAL_IMG_LIKES - they've been processed
 	if objs_to_add:
-		my_server.zadd(GLOBAL_CLOSED_IMG_VOTES,*votes_to_add)# adding votes to GLOBAL_CLOSED_IMG_VOTES
-		my_server.zadd(GLOBAL_CLOSED_IMG_OBJS,*objs_to_add)# adding objs to GLOBAL_CLOSED_IMG_OBJS
-		#############################################################
+		my_server.zadd(GLOBAL_CLOSED_IMG_LIKES,*votes_to_add)# adding votes to GLOBAL_CLOSED_IMG_LIKES
+		my_server.zadd(GLOBAL_CLOSED_IMG_OBJ_HASH_NAMES,*objs_to_add)# adding objs to GLOBAL_CLOSED_IMG_OBJ_HASH_NAMES - useful for cleanup 28 days later
+		############################################################
 		process_global_closed_objs_and_votes(my_server=my_server)# calcs voters' rep
 		expire_outdated_closed_objs_and_votes(my_server=my_server)
-		#############################################################
-		process_closed_imgs_uploaders_rep(closed_objs, my_server=my_server)# calcs uploaders' rep
-		expire_outdated_img_uploaders_rep(my_server=my_server)
+		############################################################
+		uploader_data = process_closed_imgs_uploaders_rep(my_server=my_server)# calcs uploaders' reps: (i) via audience likes, (ii) via handpicking
+		expire_outdated_img_uploaders_rep(uploader_data, my_server=my_server)
 
 
-def process_closed_imgs_uploaders_rep(closed_objs, my_server=None):
+def process_closed_imgs_uploaders_rep(my_server=None):
 	"""
 	Calculating img uploader rep
 
-	The calc is quite simply this: conten_rep_of_user = num_aud_liked_imgs/num_uploaded_imgs
-	Reputations are reset to 0 if someone hasn't uploaded an img for over a month
-	"""
-	if closed_objs:
-		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-		img_hashes_and_uploader_ids = my_server.zrange(GLOBAL_UPLOADED_IMG_HASHES,0,-1,withscores=True)
-		
-		all_uploaders = set()
-		img_uploader_pairs = []
-		upload_count = defaultdict(int)
-		for img_hash_name, uploader_id in img_hashes_and_uploader_ids:
-			if img_hash_name in set(closed_objs):
-				uploader_id = int(uploader_id)
-				all_uploaders.add(uploader_id)
-				img_uploader_pairs.append(img_hash_name+":"+str(uploader_id))
-				upload_count[uploader_id] += 1
-
-		if img_uploader_pairs:
-
-			imgs_uploaders_and_voters = my_server.zrange(GLOBAL_AUD_LIKED_IMGS,0,-1)
-			aud_liked_imgs_marked_for_deletion = []
-			liked_pairs = set()
-			for img_uploader_voter_tup in imgs_uploaders_and_voters:
-				img_hash_name = img_uploader_voter_tup.rpartition(":")[0]
-				if img_hash_name in set(closed_objs):
-					img_uploader_pair = img_uploader_voter_tup.rpartition("-")[0]
-					liked_pairs.add(img_uploader_pair)
-					aud_liked_imgs_marked_for_deletion.append(img_uploader_voter_tup)
-
-			uploader_likes = defaultdict(int)
-			for img_uploader_pair in list(liked_pairs):
-				uploader_id = img_uploader_pair.rpartition(":")[-1]
-				uploader_likes[int(uploader_id)] += 1
-
-			for uploader_id in all_uploaders:
-				my_server.zincrby(GLOBAL_LIKED_IMG_COUNT,uploader_id,amount=uploader_likes[uploader_id])
-				my_server.zincrby(GLOBAL_UPLOADED_IMG_COUNT,uploader_id,amount=upload_count[uploader_id])
-			
-			aggregate_uploader_ids_and_likes = my_server.zrange(GLOBAL_LIKED_IMG_COUNT,0,-1,withscores=True)
-			aggregate_uploader_ids_and_img_counts = my_server.zrange(GLOBAL_UPLOADED_IMG_COUNT,0,-1,withscores=True)
-			aggregate_uploader_ids_and_likes = dict(aggregate_uploader_ids_and_likes)
-			
-			img_uploader_content_rep = []
-			for uploader_id, img_count in aggregate_uploader_ids_and_img_counts:
-				num_likes = aggregate_uploader_ids_and_likes[uploader_id]
-				content_rep = (num_likes*1.0)/img_count
-
-				img_uploader_content_rep.append(uploader_id)
-				img_uploader_content_rep.append(content_rep)
-
-			if img_uploader_content_rep:
-				my_server.delete(GLOBAL_IMG_UPLOADER_CONTENT_REP)
-				my_server.zadd(GLOBAL_IMG_UPLOADER_CONTENT_REP,*img_uploader_content_rep)
-
-			if aud_liked_imgs_marked_for_deletion:
-				my_server.zrem(GLOBAL_AUD_LIKED_IMGS,*aud_liked_imgs_marked_for_deletion)
-
-		my_server.zrem(GLOBAL_UPLOADED_IMG_HASHES,*closed_objs)
-
-
-def expire_outdated_img_uploaders_rep(my_server=None):
-	"""
-	If a user has not uploaded an img for over a month, reset their img content rep to 0
+	The calc is quite simply this: content_rep_of_user = num_aud_liked_imgs/num_uploaded_imgs
+	Reputations are reset to 0 if someone hasn't uploaded an img in over a month
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	img_uploader_ids = my_server.zrange(GLOBAL_UPLOADED_IMG_COUNT,0,-1)
-	pipeline1 = my_server.pipeline()
-	for uploader_id in img_uploader_ids:
-		pipeline1.exists(LAST_IMG_UPLOAD_TIME+uploader_id)
-	result1, counter = pipeline1.execute(), 0
-	reset_reputation = []
-	for uploader_id in img_uploader_ids:
-		if not result1[counter]:
-			# has not uploaded an image in the last 1 month - reset content reputation to 0
-			reset_reputation.append(uploader_id)
+	uploader_ids_and_img_counts = my_server.zrange(GLOBAL_UPLOADED_IMG_VOLUME,0,-1,withscores=True)
 	
-	if reset_reputation:
-		pipeline2 = my_server.pipeline()
-		pipeline2.zrem(GLOBAL_UPLOADED_IMG_COUNT,*reset_reputation)
-		pipeline2.zrem(GLOBAL_LIKED_IMG_COUNT,*reset_reputation)
-		pipeline2.zrem(GLOBAL_IMG_UPLOADER_CONTENT_REP,*reset_reputation)
-		pipeline2.execute()
+	obj_uploader_pairs_and_likes = my_server.zrange(GLOBAL_AUD_LIKED_IMG_OBJS,0,-1,withscores=True)
+	
+	uploader_ids_and_likes = defaultdict(int)
+	scanned_pairs = defaultdict(list)# useful for deletion later
+	for obj_uploader_pair, num_likes in obj_uploader_pairs_and_likes:
+		data = obj_uploader_pair.rpartition(":")
+		obj_hash_name, uploader_id = data[0], data[-1]
+		scanned_pairs[uploader_id].append(obj_uploader_pair)
+		if num_likes > 0:
+			uploader_ids_and_likes[uploader_id] += 1
 
+	img_uploader_aud_likes_based_content_rep, img_uploader_handpicked_based_content_rep = [], []
+	for uploader_id, img_count in uploader_ids_and_img_counts:
+
+		num_likes = uploader_ids_and_likes[uploader_id]
+		aud_likes_based_content_rep = (num_likes*1.0)/img_count
+
+		num_handpicked = my_server.zcount(GLOBAL_HANDPICKED_IMG_DATA,uploader_id,uploader_id)#TODO: include in a pipeline
+		handpicked_based_content_rep = (num_handpicked*1.0)/img_count
+
+		img_uploader_aud_likes_based_content_rep.append(uploader_id)
+		img_uploader_aud_likes_based_content_rep.append(aud_likes_based_content_rep)
+
+		img_uploader_handpicked_based_content_rep.append(uploader_id)
+		img_uploader_handpicked_based_content_rep.append(handpicked_based_content_rep)
+
+	if img_uploader_aud_likes_based_content_rep:
+		my_server.delete(GLOBAL_IMG_UPLOADER_AUD_LIKE_BASED_REP)
+		my_server.zadd(GLOBAL_IMG_UPLOADER_AUD_LIKE_BASED_REP,*img_uploader_aud_likes_based_content_rep)
+
+	if img_uploader_handpicked_based_content_rep:
+		my_server.delete(GLOBAL_IMG_UPLOADER_HANDPICKING_BASED_REP)
+		my_server.zadd(GLOBAL_IMG_UPLOADER_HANDPICKING_BASED_REP,*img_uploader_handpicked_based_content_rep)
+
+	return scanned_pairs
+
+
+def expire_outdated_img_uploaders_rep(uploader_data, my_server=None):
+	"""
+	If a user has not uploaded an img for over a month, reset their img content reps to 0
+	"""
+	if uploader_data:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		img_uploader_ids = my_server.zrange(GLOBAL_UPLOADED_IMG_VOLUME,0,-1)
+
+		pipeline1 = my_server.pipeline()
+		for uploader_id in img_uploader_ids:
+			pipeline1.exists(MOST_RECENT_IMG_UPLOAD_TIME+uploader_id)
+		result1, counter = pipeline1.execute(), 0
+
+		reset_reputation = []
+		for uploader_id in img_uploader_ids:
+			if not result1[counter]:
+				# has not uploaded an image in the last 1 month - reset content reputation to 0
+				reset_reputation.append(uploader_id)
+			counter += 1
+
+		if reset_reputation:
+			pipeline2 = my_server.pipeline()
+			pipeline2.zrem(GLOBAL_UPLOADED_IMG_VOLUME,*reset_reputation)# removing churned uploaders
+			pipeline2.zrem(GLOBAL_IMG_UPLOADER_AUD_LIKE_BASED_REP,*reset_reputation)
+			pipeline2.zrem(GLOBAL_IMG_UPLOADER_HANDPICKING_BASED_REP,*reset_reputation)
+			pipeline2.execute()
+
+		to_delete, set_of_expendibles = [], set(reset_reputation)
+		for uploader_id, obj_uploader_pair_list in uploader_data.iteritems():
+			if uploader_id in set_of_expendibles:
+				to_delete += obj_uploader_pair_list
+
+		if to_delete:
+			my_server.zrem(GLOBAL_AUD_LIKED_IMG_OBJS,*to_delete)
 
 
 def expire_outdated_closed_objs_and_votes(my_server=None):
@@ -2762,27 +2776,28 @@ def expire_outdated_closed_objs_and_votes(my_server=None):
 	Must be scheduled to run right after archive_closed_objs_and_votes()
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	twenty_days_ago = time.time() - VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME
-	excess_objs = my_server.zrangebyscore(GLOBAL_CLOSED_IMG_OBJS,'-inf',twenty_days_ago)
+	twenty_eight_days_ago = time.time() - VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME
+	excess_objs = my_server.zrangebyscore(GLOBAL_CLOSED_IMG_OBJ_HASH_NAMES,'-inf',twenty_eight_days_ago)
 	if excess_objs:
 		# trim the excess
 		
-		# Step 1) remove from AUDIENCE_LIKED_IMGS
-		my_server.srem(AUDIENCE_LIKED_IMGS,*excess_objs)
+		# Step 1) remove from AUDIENCE_LIKED_IMG_HASH_NAMES and HANDPICKED_IMG_HASH_NAMES
+		my_server.srem(AUDIENCE_LIKED_IMG_HASH_NAMES,*excess_objs)
+		my_server.srem(HANDPICKED_IMG_HASH_NAMES,*excess_objs)
 
-		# Step 2) cleanse defunct rows of GLOBAL_EDITORIAL_VOTES_ON_IMGS
+		# Step 2) cleanse defunct rows of GLOBAL_EDITORIAL_LIKES_ON_IMGS
 		set_of_excess_objs = set(excess_objs)
 		editorial_votes_to_delete = []
-		all_editorial_votes = my_server.zrange(GLOBAL_EDITORIAL_VOTES_ON_IMGS,0,-1)
+		all_editorial_votes = my_server.zrange(GLOBAL_EDITORIAL_LIKES_ON_IMGS,0,-1)
 		for vote in all_editorial_votes:
-			obj_hash = vote.partition("-")[0]
-			if obj_hash in set_of_excess_objs:
+			obj_hash_name = vote.partition("-")[0]
+			if obj_hash_name in set_of_excess_objs:
 				editorial_votes_to_delete.append(vote)
 		if editorial_votes_to_delete:
-			my_server.zrem(GLOBAL_EDITORIAL_VOTES_ON_IMGS,*editorial_votes_to_delete)
+			my_server.zrem(GLOBAL_EDITORIAL_LIKES_ON_IMGS,*editorial_votes_to_delete)# removed excess votes from GLOBAL_EDITORIAL_LIKES_ON_IMGS
 
-		# Step 3) remove the excess from GLOBAL_CLOSED_IMG_OBJS
-		my_server.zremrangebyscore(GLOBAL_CLOSED_IMG_OBJS,'-inf',twenty_days_ago)
+		# Step 3) remove the excess from GLOBAL_CLOSED_IMG_OBJ_HASH_NAMES
+		my_server.zremrangebyscore(GLOBAL_CLOSED_IMG_OBJ_HASH_NAMES,'-inf',twenty_eight_days_ago)
 
 
 def process_global_closed_objs_and_votes(my_server=None):
@@ -2792,66 +2807,98 @@ def process_global_closed_objs_and_votes(my_server=None):
 	# The question we need to answer is: What % of items received audience likes out of all the items editorially liked by a voter?
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	all_closed_vote_objs = my_server.zrange(GLOBAL_CLOSED_IMG_VOTES,0,-1)
-	all_editorial_votes, audience_liked_imgs, trending_imgs = [], set(), set()
+	all_closed_vote_objs = my_server.zrange(GLOBAL_CLOSED_IMG_LIKES,0,-1)
+
+	all_editorial_votes, handpicked_imgs, audience_liked_imgs, trending_imgs = [], set(), set(), set()
 	for vote in all_closed_vote_objs:
-		# example vote is 'img:123123-543534-1-00'
+		# example vote is 'img:123123-543534-1-02 etc'
 		data = vote.split("-")
-		target_obj_hash, voter_id, is_editorial_vote, vote_status = data[0], data[1], data[2], data[3]
+		target_obj_hash_name, voter_id, is_editorial_vote, vote_status = data[0], data[1], data[2], data[3]
+		##################################################################
+		if vote_status == '02':
+			# this vote was cast on an obj that made it into trending via getting handpicked
+			handpicked_imgs.add(target_obj_hash_name)
 		##################################################################
 		if is_editorial_vote == '1':
-			all_editorial_votes.append(target_obj_hash+"-"+voter_id)#i.e. appending 'obj_hash-voter_id'
+			all_editorial_votes.append(target_obj_hash_name+"-"+voter_id)
 			all_editorial_votes.append(voter_id)
 		else:
-			audience_liked_imgs.add(target_obj_hash)
+			audience_liked_imgs.add(target_obj_hash_name)
 
 	###########################
 	if all_editorial_votes:
-		my_server.zadd(GLOBAL_EDITORIAL_VOTES_ON_IMGS,*all_editorial_votes)
+		my_server.zadd(GLOBAL_EDITORIAL_LIKES_ON_IMGS,*all_editorial_votes)
 	###########################
 	if audience_liked_imgs:
-		my_server.sadd(AUDIENCE_LIKED_IMGS,*audience_liked_imgs)
+		my_server.sadd(AUDIENCE_LIKED_IMG_HASH_NAMES,*audience_liked_imgs)
 	###########################
-	my_server.execute_command('UNLINK', GLOBAL_CLOSED_IMG_VOTES)# no need to keep this around, it's been processed!
+	if handpicked_imgs:
+		my_server.sadd(HANDPICKED_IMG_HASH_NAMES,*handpicked_imgs)
 	###########################
-	calculate_like_prob(my_server)
+	my_server.execute_command('UNLINK', GLOBAL_CLOSED_IMG_LIKES)# no need to keep this around, it's been processed!
+	###########################
+	calculate_voter_probs(my_server)
 
 
-def calculate_like_prob(my_server=None):
+def calculate_voter_probs(my_server=None):
 	"""
-	Calculates the 'like_prob' for each editorial voter in the system (i.e. a voter who has recently 'liked' content in an editorial capacity)
-
+	Calculates the 'like_prob' and the 'handpicked_prob' for each editorial voter in the system 
+	I.e.: 
 	'like_prob': What % of items received audience likes out of all the items editorially liked by a voter?
+	'handpicked_prob': What % of items got handpicked by defenders out of all the items editorially liked by a voter?
 
-	The formula is as follows:
+	'like_prob' formula is as follows:
 	Numerator = Num editorially picked objs (picked by voter_id) that received audience likes
 	Denominator = All editorial likes recently cast by voter_id
 	like_prob = Numerator/Denominator
+
+	'handpicked_prob' formula is as follows:
+	Numerator = Num editorially picked objs (picked by voter_id) that ended up getting handpicked (locked items are exlcuded)
+	Denominator = All editorial likes recently cast by voter_id
+	handpicked_prob = Numerator/Denominator
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-	votes_and_voters = my_server.zrange(GLOBAL_EDITORIAL_VOTES_ON_IMGS,0,-1,withscores=True)
-	voter_ids = set([int(voter_id) for vote_obj, voter_id in votes_and_voters])
-	all_audience_liked_obj_hashes = my_server.smembers(AUDIENCE_LIKED_IMGS)
-	voter_like_probs, voter_num_editorial_votes = [], []
+	votes_and_voters = my_server.zrange(GLOBAL_EDITORIAL_LIKES_ON_IMGS,0,-1,withscores=True)# [(obj_hash_name+"-"+voter_id),...]
+	voter_ids = set([int(voter_id) for vote_obj, voter_id in votes_and_voters])# isolating set of editorial voter_ids
+	all_audience_liked_obj_hashes = my_server.smembers(AUDIENCE_LIKED_IMG_HASH_NAMES)
+	all_handpicked_obj_hashes = my_server.smembers(HANDPICKED_IMG_HASH_NAMES)
+
+	voter_like_probs, voter_handpicked_probs, voter_num_editorial_likes = [], [], []
+	# iterate through all voter IDs, calculating 'like_prob' and 'handpicked_prob' for each
 	for voter_id in list(voter_ids):
-		all_editorial_votes_by_voter_id = my_server.zrangebyscore(GLOBAL_EDITORIAL_VOTES_ON_IMGS, voter_id, voter_id)
-		objs_voted_on_by_audience = 0
+		all_editorial_votes_by_voter_id = my_server.zrangebyscore(GLOBAL_EDITORIAL_LIKES_ON_IMGS, voter_id, voter_id)
+		objs_voted_on_by_audience, objs_handpicked_by_defenders = 0, 0
 		for vote_obj in all_editorial_votes_by_voter_id:
-			obj_hash = vote_obj.partition("-")[0]
-			if obj_hash in all_audience_liked_obj_hashes:
-				objs_voted_on_by_audience += 1
-		num_editorial_votes = len(all_editorial_votes_by_voter_id)
+			obj_hash_name = vote_obj.partition("-")[0]
+			if obj_hash_name in all_audience_liked_obj_hashes:
+				objs_voted_on_by_audience += 1#i.e. the numerator for 'like_prob'
+			if obj_hash_name in all_handpicked_obj_hashes:
+				objs_handpicked_by_defenders += 1#i.e the numerator for 'handpicked_prob'
+
+		num_editorial_votes = len(all_editorial_votes_by_voter_id)# i.e the denominator for 'like_prob' and 'handpicked_prob'
 		like_prob = (objs_voted_on_by_audience*1.0)/num_editorial_votes
+		handpicked_prob = (objs_handpicked_by_defenders*1.0)/num_editorial_votes
+		##################
 		voter_like_probs.append(voter_id)
 		voter_like_probs.append(like_prob)
-		voter_num_editorial_votes.append(voter_id)
-		voter_num_editorial_votes.append(num_editorial_votes)
+		##################
+		voter_handpicked_probs.append(voter_id)
+		voter_handpicked_probs.append(handpicked_prob)
+		##################
+		voter_num_editorial_likes.append(voter_id)
+		voter_num_editorial_likes.append(num_editorial_votes)
+	
 	if voter_like_probs:
-		my_server.delete(VOTER_LIKE_PROBS)
-		my_server.zadd(VOTER_LIKE_PROBS,*voter_like_probs)
-		my_server.delete(NUM_EDITORIAL_VOTES)
-		my_server.zadd(NUM_EDITORIAL_VOTES,*voter_num_editorial_votes)
+		my_server.delete(VOTER_AUD_LIKE_PROBS)
+		my_server.zadd(VOTER_AUD_LIKE_PROBS,*voter_like_probs)
 
+	if voter_num_editorial_likes:
+		my_server.delete(NUM_EDITORIAL_LIKES)
+		my_server.zadd(NUM_EDITORIAL_LIKES,*voter_num_editorial_likes)
+
+	if voter_handpicked_probs:
+		my_server.delete(VOTER_HANDPICKED_PROBS)
+		my_server.zadd(VOTER_HANDPICKED_PROBS,*voter_handpicked_probs)
 
 
 #################################################### Vote banning functionality (defenders) ############################################

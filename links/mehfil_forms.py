@@ -355,7 +355,7 @@ class PrivateGroupReplyForm(forms.Form):
 					return data
 			else:
 				if writer_id and writer_id != -1:
-					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "@" ka nishan dabain jisko yeh message bhejna hai')
+					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "reply" dabain jisko yeh message bhejna hai')
 				else:
 					raise forms.ValidationError('tip: likhna zaruri hai')
 
@@ -428,7 +428,7 @@ class PublicGroupReplyForm(forms.Form):
 					return data
 			else:
 				if writer_id and writer_id != -1:
-					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "@" ka nishan dabain jisko yeh message bhejna hai')
+					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "reply" dabain jisko yeh message bhejna hai')
 				else:
 					raise forms.ValidationError('tip: likhna zaruri hai')
 

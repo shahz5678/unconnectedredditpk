@@ -1544,7 +1544,7 @@ def process_top_trenders_rep(top_trending_ids_and_scores):
 						# rank has improved, or maintained
 						num_trending_previously = prev_trending_ids_and_scores_dict[str(trending_id)]
 						num_trending_now = new_trending_ids_and_scores_dict[trending_id]
-						if num_trending_now > num_trending_previously:
+						if num_trending_now > num_trending_previously and random() < 0.75:
 							# moreover, num trending pics are greater than before
 							scores_to_give[trending_id] = 1 
 						else:

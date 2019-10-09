@@ -14,7 +14,7 @@
 					<span class="cgy sp"><bdi>{{ parent.oon }}</bdi></span>{% if op_star %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" height="12" width="12" style="color:gold">&nbsp;{% endif %}:<span class="cgy lsp sp">{% emoticons %} {{ parent.od|truncatechars:40 }}{% endemoticons %}</span><a href="{% url 'publicreply_view' parent_pk %}"><button name="lid" class="mls btn nw bs cs bct sp pg_ok_res" type="submit" style="padding:2px 0" value="{{ parent_pk }}">post</button></a>
 				</div>
 			
-				<div class="mls mbs ct cs sp">New jawab:</div>
+				<div class="mls mbs ct cs sp">New reply:</div>
 			{% endif %}	
 			
 			<div class="mls mbl" style="overflow:hidden">
@@ -28,7 +28,7 @@
 					<div class="box-with-button-right">
 					<input type="hidden" name="sk" value="{{ sk }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="lang" value="{{ lang }}"><input type="hidden" name="sort_by" value="{{ sort_by }}"><input type="hidden" name="lwpk" value="{{ parent.ooi }}">
 					{{ form.home_comment }}
-					<button class="btn bct bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+					<button class="btn bct bms sp pg_ok_res" type="submit">reply</button>
 					</div>
 				</form>
 				<a href="{% url 'x_notif' parent_pk ident origin lang sort_by %}">
@@ -70,7 +70,7 @@
 		</form>
 
 		{% if parent.d == 'del' %}
-			<div class="cs sp mbl mls mrs" style="color:#306654">New pegham:</div>
+			<div class="cs sp mbl mls mrs" style="color:#306654">New message:</div>
 			<div class="mbs mls mrs">
 				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
 					<a href="{% url 'user_profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
@@ -134,7 +134,7 @@
 					{% endif %}
 				</div>
 			{% else %}
-				<div class="cs sp mbl mls mrs" style="color:#306654">New pegham:</div>
+				<div class="cs sp mbl mls mrs" style="color:#306654">New message:</div>
 				<div class="mbs mrs mls" style="overflow:hidden">
 				{% if parent.lrwi == parent.anon1 or parent.lrwi == parent.anon2 %}
 					<a href="{% url 'user_profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><bdi>{{ parent.lrsn|truncap }}</bdi></a>:
@@ -165,7 +165,7 @@
 				<input type="hidden" name="lang" value="{{ lang }}">
 				<input type="hidden" name="sort_by" value="{{ sort_by }}">
 				{{ form.personal_group_reply }}
-				<button class="btn bms sp pg_ok_res" style="background-color:#306654" type="submit">jawab&nbsp;do</button>
+				<button class="btn bms sp pg_ok_res" style="background-color:#306654" type="submit">reply</button>
 			</div>
 		</form>
 		<a href="{% url 'x_per_grp_notif' parent_pk parent.lrwi origin %}"><button class="btn mtl bs bs cs sp mbl mls pg_ok_res" style="padding:2px 5px;background:tomato">skip</button>
@@ -184,7 +184,7 @@
 			<img src="{{ parent.rp|s3 }}" class="cs sp clb" style="vertical-align:top;width:100%;max-width:450px" alt="pic loading ...">
 		</div>
 		{% else %}
-			<div class="mls mrs mbl cg cs sp">New pegham:</div>
+			<div class="mls mrs mbl cg cs sp">New message:</div>
 		{% endif %}
 		<div class="mls mrs mbl" style="overflow:hidden">
 			<a href="{% url 'user_profile' parent.lrsn %}" class="clb sp" style="font-weight:bold"><img src="{{ parent.lrau|s3:'thumb' }}" style="border-radius:50%" alt="pic" width="22" height="22">&nbsp;{{ parent.lrsn }}</a><span class="clb lsp">{% if their_star %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" height="12" width="12" style="color:gold">&nbsp;{% endif %}: {% emoticons %}{{ parent.lrtx|truncatechars:40 }}{% endemoticons %}</span><span class="cxs sp cgy"><bdi>, {{ parent.lrti|human_time }}</bdi></span>
@@ -194,13 +194,9 @@
 		<form method="POST" class="mts mrs mls" action="{% url 'unseen_group' parent_pk %}">
 			{% csrf_token %}
 			<div class="box-with-button-right">
-				<input type="hidden" name="sk" value="{{ sk }}">
-				<input type="hidden" name="origin" value="{{ origin }}">
-				<input type="hidden" name="loc" value="123">
-				<input type="hidden" name="lang" value="{{ lang }}">
-				<input type="hidden" name="sort_by" value="{{ sort_by }}">
+				<input type="hidden" name="sk" value="{{ sk }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="loc" value="123"><input type="hidden" name="lang" value="{{ lang }}"><input type="hidden" name="sort_by" value="{{ sort_by }}">
 				{{ form.private_group_reply }}
-				<button class="btn bcg bms sp pg_ok_res" type="submit" >jawab&nbsp;do</button>
+				<button class="btn bcg bms sp pg_ok_res" type="submit">reply</button>
 			</div>
 		</form>
 		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn bs bs cs sp mtl mbl mls pg_ok_res" style="padding:2px 5px;background:tomato">skip</button>
@@ -219,7 +215,7 @@
 				<img src="{{ parent.rp|s3 }}" class="clb cs sp" style="width:100%;max-width:450px;vertical-align:top" alt="loading pic ...">
 			</div>
 		{% else %}
-			<div class="mls mrs mbl cp cs sp">New pegham:</div>
+			<div class="mls mrs mbl cp cs sp">New message:</div>
 		{% endif %}
 		
 		<div class="mls mrs mbl" style="overflow:hidden">
@@ -237,7 +233,7 @@
 				<input type="hidden" name="lang" value="{{ lang }}">
 				<input type="hidden" name="sort_by" value="{{ sort_by }}">
 				{{ form.public_group_reply }}
-				<button class="btn bcp bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+				<button class="btn bcp bms sp pg_ok_res" type="submit">reply</button>
 			</div>
 		</form>
 		<a href="{% url 'x_group_notif' parent_pk ident origin lang sort_by %}"><button class="btn bs bs cs sp mtl mbl mls pg_ok_res" style="padding:2px 5px;background:tomato">skip</button>
@@ -260,7 +256,7 @@
 			<div class="cgy lsp sp bw">"{% emoticons %}{{ parent.od|truncatechars:50 }}{% endemoticons %}"</div></a>
 		</div>
 
-		<div class="mls mbs co cs sp">New tabsra:</div>
+		<div class="mls mbs co cs sp">New reply:</div>
 
 		<div class="mls mbl" style="overflow:hidden">
 			<a href="{% url 'user_profile' parent.lrsn %}" class="clb sp" style="font-weight:bold">
@@ -273,7 +269,7 @@
 			<div class="box-with-button-right">
 			<input type="hidden" name="sk" value="{{ sk }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="lang" value="{{ lang }}"><input type="hidden" name="sort_by" value="{{ sort_by }}"><input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
-			<button class="btn bco bms sp pg_ok_res" type="submit">tabsra&nbsp;kro</button>
+			<button class="btn bco bms sp pg_ok_res" type="submit">reply</button>
 			</div>
 		</form>
 		<a href="{% url 'cross_comment_notif' parent_pk ident origin 0 lang sort_by %}">
@@ -318,7 +314,7 @@
 			<div class="box-with-button-right">
 			<input type="hidden" name="sk" value="{{ sk }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="lang" value="{{ lang }}"><input type="hidden" name="sort_by" value="{{ sort_by }}"><input type="hidden" name="popk" value="{{ parent.ooi }}">
 			{{ form.photo_comment }}
-			<button class="btn bco bms sp pg_ok_res" type="submit">tabsra&nbsp;kro</button>
+			<button class="btn bco bms sp pg_ok_res" type="submit">reply</button>
 		</div>
 		</form>
 		<a href="{% url 'cross_comment_notif' parent_pk ident origin 1 lang sort_by %}">

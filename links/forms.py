@@ -1173,16 +1173,16 @@ class PicsChatUploadForm(forms.ModelForm):
 		# self.fields['image'].widget.attrs['accept'] = 'image/*'
 
 
-# class HomeLinkListForm(forms.Form):
-# 	reply = forms.CharField(max_length=250)
+class HomeLinkListForm(forms.Form):
+	reply = forms.CharField(max_length=250)
 
-# 	class Meta:
-# 		fields = ("reply",)
+	class Meta:
+		fields = ("reply",)
 
-# 	def __init__(self, *args, **kwargs):
-# 		super(HomeLinkListForm, self).__init__(*args, **kwargs)
-# 		self.fields['reply'].widget.attrs['style'] = \
-# 		'background-color:#F8F8F8;width:1400px;max-width:90%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
+	def __init__(self, *args, **kwargs):
+		super(HomeLinkListForm, self).__init__(*args, **kwargs)
+		self.fields['reply'].widget.attrs['style'] = \
+		'background-color:#F8F8F8;width:1400px;max-width:90%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
 
 class BestPhotosListForm(forms.Form):
 	class Meta:

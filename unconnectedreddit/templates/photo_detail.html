@@ -60,7 +60,7 @@
 
 	{% if not from_cull_queue and show_copy_prompt %}
 		<div class="mbl" style="margin-left:auto;margin-right:auto;max-width:600px;background:white;border-radius:12px;border:3px solid #ececec;">
-			<div style="text-align:center;border-bottom:2px solid whitesmoke;background:#fefefa;padding:0 5px 10px 5px" class="cl clb lsp mts">Is foto ko Whatsapp ya Facebook pe share karne ke liye ye link copy karein:</div>
+			<div style="text-align:center;border-bottom:2px solid whitesmoke;background:#fefefa;padding:0 5px 10px 5px" class="cl clb lsp mts">Is photo ko Whatsapp ya Facebook pe share karne ke liye ye link copy karein:</div>
 			<div class="lsp cxl cp" style="padding:10px;text-align:center">{{ regular_url }}</div>
 		</div>
 	{% endif %}
@@ -80,23 +80,23 @@
 		<br>
 		<a href="{% url 'user_profile' photo.owner.username %}"><img src="{{ av_url|s3:"thumb" }}" class="mts" alt="no pic" width="22" height="22" style="border-radius:50%">&nbsp;<span class="cs cgy sp">{{ photo.owner }}</span></a><span class="cs cgy sp">&nbsp;uploaded this {{ photo.upload_time|naturaltime }}</span><br>
 		{% if latest_photocomments %}
-		<br><span class="csw co"><b>Latest Tabsrey:</b></span><br><br>
+		<br><span class="csw co"><b>Latest replies:</b></span><br><br>
 		{% for photocomment in latest_photocomments %}
 		<a href="{% url 'user_profile' photocomment.submitted_by %}"><span class="cb cl">{{ photocomment.submitted_by }}</span></a><span class="clb cl">:&nbsp;{{ photocomment.text }}&nbsp;&nbsp;<span class="cs cgy">{{ photocomment.submitted_on|naturaltime }}</span></span>
 		<hr size=1 COLOR="ORANGE">
 		{% endfor %}
 		{% else %}
-		<br><span class="csw co sp">Is foto pe tabsrey nahi hain...</span><br>
+		<br><span class="csw co sp">Is photo pe replies nahi hain...</span><br>
 		<hr size=1 COLOR="ORANGE">
 		{% endif %}
 		{% if other_photos %}
-		<br><span class="csw co"><b>{{ photo.owner }} ki aur fotos:</b></span><br><br>
+		<br><span class="csw co"><b>{{ photo.owner }} ki mazeed photos:</b></span><br><br>
 		{% for pht in other_photos %}
 		<a href="{% url 'photo_detail' pht.id 6 %}"><img src="{{ pht.image_file|s3:"thumb" }}" style="max-width:100px;width:100%;" class="mrs mbs"></a>
 		{% endfor %}
 		<hr size=1 COLOR="ORANGE">
 		{% else %}
-		<span class="csw co">{{ photo.owner }} ne aur fotos nahi charhain...</span><br>
+		<span class="csw co">{{ photo.owner }} ne aur photos nahi charhain...</span><br>
 		<hr size=1 COLOR="ORANGE">
 		{% endif %}
 		<a href="{% url 'cull_content_loc' photo.id 'img' %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
@@ -133,7 +133,7 @@
 
 	{% endif %}
 {% else %}
-<div class="cxl lsp clb" style="text-align:center">Foto available nahi</div>
+<div class="cxl lsp clb" style="text-align:center">Photo available nahi</div>
 {% endif %}
 </main><br><br>
 

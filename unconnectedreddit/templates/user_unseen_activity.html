@@ -166,7 +166,7 @@
 		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		{{ form.personal_group_reply|htmlattributes:'border: 1px solid #bdbdbd;color:#306654' }}
-		<button class="btn bcgy bms mts sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+		<button class="btn bcgy bms mts sp pg_ok_res" type="submit">reply</button>
 		</div>
 	</form>
 	{% endif %}
@@ -203,7 +203,7 @@
 	</form>
 	<div style="color:#306654">
 	{% if notif.d = 'del' %}
-		<div class="cs sp mbl">new pegham aya {{ notif.lrti|human_time }}:</div>
+		<div class="cs sp mbl">latest message ({{ notif.lrti|human_time }}):</div>
 		<div class="mbs">
 			{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
 				<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
@@ -220,7 +220,7 @@
 		{% elif notif.type == 'creation' %}
 			<div class="cs sp mbs">1 on 1 start karney ke liye neechay likhein:</div>
 		{% elif notif.type == 'notif' %}
-			<div class="cs sp mbl">new permission manga {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">asked permission ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.anon == '1' %}
 					<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/key.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
@@ -229,7 +229,7 @@
 				{% endif %}
 			</div>
 		{% elif notif.type == 'action' %}
-			<div class="cs sp mbl">new emoji aya {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">new emoji ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
 					<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>&nbsp;<span class="cl clb lsp">{{ notif.lrtx }}</span>&nbsp;<img src="{{ STATIC_URL }}img/sticker.svg" class="mrs" style="width:22px;height:22px;vertical-align:middle">
@@ -266,7 +266,7 @@
 				{% endif %}
 			</div>
 		{% else %}
-			<div class="cs sp mbl">new pegham aya {{ notif.lrti|human_time }}:</div>
+			<div class="cs sp mbl">latest message ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs" style="overflow:hidden">
 				{% if notif.lrwi == notif.anon1 or notif.lrwi == notif.anon2 %}
 					<a href="{% url 'user_profile' notif.lrsn %}" class="cb">{{ notif.lrsn|truncap }}</a>:
@@ -288,7 +288,7 @@
 		<input type="hidden" name="sk" value="{{ sk }}">
 		<div class="box-with-button-right">
 		{{ form.personal_group_reply }}
-		<button class="btn bms mts sp pg_ok_res" style="background-color:#306654" type="submit">jawab&nbsp;do</button>
+		<button class="btn bms mts sp pg_ok_res" style="background-color:#306654" type="submit">reply</button>
 		</div>
 	</form>
 	{% endif %}
@@ -305,7 +305,7 @@
 			{{ notif.oon }}</a>{% if notif.ooi in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12">&nbsp;{% endif %}<span class="cgy bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<a href="{% url 'publicreply_view' notif.oi %}"><button style="height:20px" class="btn nw bcgy bs cs">post</button></a>
 		</div>
 		<div class="mtl">
-			<div class="cgy cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+			<div class="cgy cs sp">reply ({{ notif.lrti|human_time }}):</div>
 			<div class="mbs mts" style="overflow:hidden">
 				<a href="{% url 'user_profile' notif.lrsn %}" class="cgy">
 				{% if notif.lrau != 'None' %}
@@ -322,7 +322,7 @@
 				<div class="box-with-button-right">
 				<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 				{{ form.home_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
-				<button class="btn bcgy bms sp pg_ok_res" name="btn{{ forloop.counter }}" type="submit">jawab&nbsp;do</button>
+				<button class="btn bcgy bms sp pg_ok_res" name="btn{{ forloop.counter }}" type="submit">reply</button>
 				</div>
 			</form>
 		</div>
@@ -336,7 +336,7 @@
 			<span class="ct">{{ notif.oon }}</span></a>{% if notif.ooi in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12">&nbsp;{% endif %}<span class="ct bw lsp">:&nbsp;{% emoticons %}{{ notif.od|truncatechars:40 }}{% endemoticons %}</span> &nbsp;&nbsp;<a href="{% url 'publicreply_view' notif.oi %}"><button class="btn nw bct bs cs" style="height:20px">post</button></a>
 		</div>
 		<div class="mtl">
-			<div class="ct cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+			<div class="ct cs sp">latest reply ({{ notif.lrti|human_time }}):</div>
 			<div class="lsp mts mbs" style="overflow:hidden">
 				<span class="clb lsp"><a href="{% url 'user_profile' notif.lrsn %}">
 				{% if notif.lrau != 'None' %}
@@ -353,7 +353,7 @@
 				<div class="box-with-button-right">
 				<input type="hidden" name="lwpk" value="{{ notif.ooi }}">
 				{{ form.home_comment }}
-				<br><button class="btn bct bms mts sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+				<br><button class="btn bct bms mts sp pg_ok_res" type="submit">reply</button>
 				</div>
 			</form>
 		</div>
@@ -372,7 +372,7 @@
 			{% endif %}
 		</div>
 		<div class="mtl">
-			<div class="mrs mls cgy cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+			<div class="mrs mls cgy cs sp">reply ({{ notif.lrti|human_time }}):</div>
 			{% if notif.rp != 'None' %}
 			<div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 				<img src="{{ notif.rp|s3 }}" style="vertical-align:top;width:100%;max-width:450px" alt="{{ notif.lrtx }}">
@@ -398,7 +398,7 @@
 				<input type="hidden" name="sk" value="{{ sk }}">
 				<div class="box-with-button-right">
 				{{ form.private_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
-				<button class="btn bcgy bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+				<button class="btn bcgy bms sp pg_ok_res" type="submit">reply</button>
 				</div>
 			</form>
 
@@ -410,7 +410,7 @@
 					<input type="hidden" name="sk" value="{{ sk }}">
 					<div class="box-with-button-right">
 					{{ form.public_group_reply|htmlattributes:'border: 1px solid #bdbdbd' }}
-					<button class="btn bcgy bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+					<button class="btn bcgy bms sp pg_ok_res" type="submit">reply</button>
 					</div>
 				</form>
 				
@@ -426,7 +426,7 @@
 			</div>
 			
 			<div class="mtl">
-				<div class="mrs mls cg cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+				<div class="mrs mls cg cs sp">latest reply ({{ notif.lrti|human_time }}):</div>
 				{% if notif.rp != 'None' %}	
 				<div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 					<img src="{{ notif.rp|s3 }}" style="vertical-align:top;width:100%;max-width:450px" alt="{{ notif.lrtx }}">
@@ -449,7 +449,7 @@
 					<input type="hidden" name="sk" value="{{ sk }}">
 					<div class="box-with-button-right">
 					{{ form.private_group_reply }}
-					<button class="btn bcg bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+					<button class="btn bcg bms sp pg_ok_res" type="submit">reply</button>
 					</div>
 				</form>
 			</div>
@@ -461,7 +461,7 @@
 			</div>
 
 			<div class="mtl">
-				<div class="mrs mls cp cs sp">latest jawab ({{ notif.lrti|human_time }}):</div>
+				<div class="mrs mls cp cs sp">latest reply ({{ notif.lrti|human_time }}):</div>
 				{% if notif.rp != 'None' %}
 				<div class="mbl" style="overflow:hidden;text-align:center;background:whitesmoke;border-top:1px solid #F0F0F0;border-bottom:1px solid #F0F0F0">
 					<img src="{{ notif.rp|s3 }}" style="vertical-align:top;width:100%;max-width:450px" alt="{{ notif.lrtx }}">
@@ -484,7 +484,7 @@
 					<input type="hidden" name="sk" value="{{ sk }}">
 					<div class="box-with-button-right">
 					{{ form.public_group_reply }}
-					<button class="btn bcp bms sp pg_ok_res" type="submit">jawab&nbsp;do</button>
+					<button class="btn bcp bms sp pg_ok_res" type="submit">reply</button>
 					</div>
 				</form>
 			</div>
@@ -553,7 +553,7 @@
 		<div class="mls mrs mts">
 			{% if notif.nc != 'True' %}
 				{% if notif.lrti != 'None' %}
-				<div class="cgy cs sp">latest tabsra ({{ notif.lrti|human_time }}):</div>
+				<div class="cgy cs sp">reply ({{ notif.lrti|human_time }}):</div>
 				<div class="mts" style="overflow:hidden">
 					<a href="{% url 'user_profile' notif.lrsn %}">
 					<img src="{{ notif.lrau|s3:"thumb" }}" style="border-radius:50%" width="22" height="22" alt="pic">
@@ -569,7 +569,7 @@
 				<div class="box-with-button-right">
 					<input type="hidden" name="popk" value="{{ notif.ooi }}">
 					{{ form.photo_comment|htmlattributes:'border: 1px solid #bdbdbd' }}
-					<br><button class="btn bcgy bms sp pg_ok_res" type="submit">tabsra&nbsp;kro</button>
+					<br><button class="btn bcgy bms sp pg_ok_res" type="submit">reply</button>
 				</div>
 			</form>
 			</div>
@@ -583,7 +583,7 @@
 	</div>
 	<div class="mts mrs mls">
 	{% if notif.nc != 'True' %}
-		<div class="co cs sp">new tabsra aya <b>{{ notif.lrti|human_time }}</b>:</div>
+		<div class="co cs sp">new reply <b>{{ notif.lrti|human_time }}</b>:</div>
 		<div class="mbs mts" style="overflow:hidden">
 			<a href="{% url 'user_profile' notif.lrsn %}">
 			{% if notif.lrau != 'None' %}
@@ -601,7 +601,7 @@
 			<div class="box-with-button-right">
 			<input type="hidden" name="popk" value="{{ notif.ooi }}">
 			{{ form.photo_comment }}
-			<button class="btn bco bms sp pg_ok_res" type="submit">tabsra&nbsp;kro</button>
+			<button class="btn bco bms sp pg_ok_res" type="submit">reply</button>
 			</div>
 		</form>
 	</div>
@@ -634,7 +634,7 @@
 	{% endif %}
 	<hr size=1 COLOR="#ffe6cc">
 	<div style="text-align:center;color:darkgray" class="lsp cs sp">
-	Jitne users apki photos ko pasand karein ge, apki photos utney hi zyada users ke matkoon mein jaye gi
+	Jitne users apki photos like karein ge, apki photos utney hi zyada users ke matkoon mein jaye gi
 	</div>
 	</div>
 
@@ -657,7 +657,7 @@
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;text-align:center;padding:10px 8px">
     <span class="clb cxl lsp">Sorry! Ye khali hai ...</span>
     <hr size=1 COLOR="#E9EBEE">
-    <span class="lsp sp cl clb">Ap se related tamam jawab, photos, tabsrey, mehfil aur 1 on 1 gupshup yahan nazar atey hai</span><br>
+    <span class="lsp sp cl clb">Ap se related tamam replies, photos, 1 on 1 aur mehfil gupshup yahan nazar aty hai</span><br>
     <a href="{% url 'home' %}"><button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:28px">Home</button></a>
 </div>
 {% endif %}

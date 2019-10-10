@@ -41,7 +41,7 @@ log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_
 retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
+add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, select_hand_picked_obj_for_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
@@ -825,7 +825,7 @@ def rank_all_photos():
 	Mislabeled task due to legacy reasons
 	"""
 	time_now = time.time()
-	pushed, obj_id = push_hand_picked_obj_into_trending()
+	pushed, obj_id = select_hand_picked_obj_for_trending()
 	if pushed and obj_id:
 		cohort_num = int(time_now/604800)#cohort size is 1 week
 		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)

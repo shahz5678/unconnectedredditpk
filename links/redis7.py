@@ -1725,7 +1725,7 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 			for voter_id in obj_votes:
 				vote_score = my_server.zscore(VOTER_AUD_LIKE_PROBS,voter_id)
 				if vote_score > highest_vote_score:
-					highest_vote_score = vote_score if obj!='img:1823' else 0
+					highest_vote_score = vote_score
 		objs_and_vote_vals.append((obj, highest_vote_score))
 		counter += 1
 

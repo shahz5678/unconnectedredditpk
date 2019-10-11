@@ -2410,7 +2410,7 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 				if world_age_discount < 1.0:
 					# voter is not experienced enough
 					is_vote_counted = False
-				elif my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+5):
+				elif my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id) < MEANINGFUL_VOTING_SAMPLE_SIZE:
 					# voter has not voted in the required volumes
 					is_vote_counted = False
 				else:

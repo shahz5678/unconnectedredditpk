@@ -54,7 +54,7 @@
 			{% load count_group_invites %}
 			{% check_group_invite_count as group_invite_count %}
 			<!-- bunched HTML removes spaces between li elements -->
-			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 		{% else %}
 			<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
@@ -230,15 +230,15 @@
 	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
 		<ul class="navbar">
 		{% if user.is_authenticated %}
-		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 		{% else %}
 		<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0">Create New Account</a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
 		</ul>
 	</nav>
 
-	<footer style="text-align:center;display:block" class="mtl sp cxs cgy">
-	|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
+	<footer style="text-align:center;padding-bottom:10px" class="mtl sp lsp cxs cgy">
+		|<a href="{% url 'about' %}" class="clb" style="font-weight:bold"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}" class="clb" style="font-weight:bold"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'bahirniklo' %}#section0" class="clb" style="font-weight:bold"> &nbsp;Logout&nbsp; </a>|
 	</footer>
 
 	{% include "min_service_worker.html" %}

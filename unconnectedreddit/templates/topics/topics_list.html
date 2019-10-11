@@ -46,7 +46,7 @@
 		{% load count_group_invites %}
 		{% check_group_invite_count as group_invite_count %}
 		<!-- bunched HTML removes spaces between li elements -->
-		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 	{% else %}
 		<li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 	{% endif %}
@@ -72,15 +72,15 @@
 
 	<div style="padding:10px">
 
-		<h2 style="font-size:30px;color:#ffc0c0;margin:0 0 10px 0">New Topic:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ehd e Wafa' url='ehd-e-wafa' c1='#04ead3' c2='#6193fe' %}
-
 		<h2 style="font-size:30px;color:#ffc0c0;margin:0 0 10px 0">Popular Topics:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Funny Urdu Jokes' url='funny-urdu-jokes' c1='#f574ff' c2='#c8ff28' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Urdu Poetry' url='urdu-poetry' c1='#fa88a3' c2='#ffca5f' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Attitude Status' url='attitude-status' c1='#2ed7e1' c2='#7f5fff' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Boys vs Girls' url='boys-vs-girls' c1='#5cf48c' c2='#ff5a5a' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Sad Poetry' url='sad-poetry' c1='#f4d140' c2='#3bc1f0' %}
+		
+		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Drama Serial:</h2>
+		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ehd e Wafa' url='ehd-e-wafa' c1='#04ead3' c2='#6193fe' %}
 		
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Just for Fun:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Bujho To Jaane' url='bujho-to-jaane' c1='#c66aff' c2='#34caf0' %}
@@ -142,12 +142,12 @@
 
 <nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
 	<ul class="navbar">
-		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 	</ul>
 </nav>
 
-<footer style="text-align:center;display:block" class="mtl sp cxs cgy">
-	|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|
+<footer style="text-align:center;padding-bottom:10px" class="mtl sp lsp cxs cgy">
+	|<a href="{% url 'about' %}" class="clb" style="font-weight:bold"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}" class="clb" style="font-weight:bold"> &nbsp;Privacy Policy&nbsp; </a>|
 </footer>
 
 {% include "min_service_worker.html" %}

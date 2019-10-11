@@ -1920,8 +1920,8 @@ def purge_exit_list(group_id, user_id):
 
 ###################################### Project Superhuman #########################################
 
-HXU_ANSWERS = 'hxu:'#'sans:'#key containing jsonized survey answers given by a user
-HXU_ANSWERERS = 'hansr'# sorted set containing all logged answerers
+HXU_ANSWERS = 'hxua:'#key containing jsonized survey answers given by a user
+HXU_ANSWERERS = 'hxuar'# sorted set containing all logged answerers
 
 
 def show_survey(user_id):
@@ -1943,13 +1943,13 @@ def has_already_answered_superhuman_survey(user_id):
 		json_answer = my_server.get(answer_key)
 		answer = json.loads(json_answer)
 		if answer.get("skipped",None) == '1':
-			# filled the survey already, and in fact 'skipped' it
+			# 'skipped' the survey
 			return True, True
 		else:
-			# filled the previous one, answering all the required questions
+			# filled the survey
 			return True, False
 	else:
-		# didn't fill the survey previously - should be allowed to fill it now
+		# didn't fill the survey
 		return False, False
 
 

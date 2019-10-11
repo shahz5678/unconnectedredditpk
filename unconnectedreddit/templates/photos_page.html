@@ -107,7 +107,7 @@
 		{% else %}
 			{% load next_page %}
 			{% load prev_page %}
-			<div class="mtl fx fxjscn fxaicn">
+			<div class="fx fxjscn fxaicn">
 				
 				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
 				<button style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|prev_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>

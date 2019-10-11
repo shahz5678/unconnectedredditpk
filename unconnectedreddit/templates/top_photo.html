@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>Trending posters | Damadam </title></head>
+<head><title>Trending posters | Damadam</title></head>
  
 <style>body{background:#f0f3f4}</style>
 
-{% include "photos_navbar.html" with section='top_list' static_url=STATIC_URL %}
-
-<h1 style="text-align:center" class="cxl lsp clb">Top {{ list_size }} Stars:</h1>
+<h1 style="text-align:center" class="cxl lsp clb">Top Damadam Stars:</h1>
 
 <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-right: auto;margin-left: auto;max-width:600px;width:97%;">
 
@@ -18,7 +16,7 @@
 
 
     <div class="mt" style="text-align:center;padding:0 7px">
-        <div class="mtl cs cr sp lsp">Most trending posts in last 7 days</div>
+        <div class="mtl cs cr sp lsp">Users with most trending posts (last 7 days)</div>
         <ul style="display:inline-block;padding: 0;list-style:none;margin-top:0px">
        
        {% for user_id, num_trending_pics, rank, username, aurl, rank_to_display in object_list %}
@@ -28,7 +26,7 @@
         <h2 class="sp" style="text-align:left;font-size:20px;color:#9aa3b8;margin:10px 0"><img src="{{ STATIC_URL }}img/gstar.svg" width="16" height="16" class="mrs" alt="*" >{{ rank_to_display }}{% if rank_to_display == 1 %}st{% elif rank_to_display == 2 %}nd{% elif rank_to_display == 3 %}rd{% else %}th{% endif %} Position</h2>
         {% endif %}
         <div class="lsp" style="text-align:left;padding-bottom:10px;border-bottom:2px">       
-            <img src="{{ aurl|s3:'thumb' }}" alt="pic" style="border-radius:50%;" width="22" height="22">&nbsp;<a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cb"><bdi style="font-size:20px">{{ username }}</bdi></a>:&nbsp;<span class="sp"><b>{{ num_trending_pics }}</b> trending posts <a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cxs cb">(see all)</a></span>
+            <img src="{{ aurl|s3:'thumb' }}" alt="pic" style="border-radius:50%;" width="22" height="22">&nbsp;<a href="{% url 'user_profile' username %}#section0" class="cb"><bdi style="font-size:20px">{{ username }}</bdi></a>:&nbsp;<span class="sp"><b>{{ num_trending_pics }}</b> trending posts <a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cxs cb">(see posts)</a></span>
         </div>
        {% endfor %}
         </ul>

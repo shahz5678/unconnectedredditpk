@@ -5,7 +5,7 @@
 {% load emoticons_tags %}
 {% load get_personal_group_small_photo %}
 {% block content %}
-<head><title>Reply to {% if their_nick %}{{ tun }}{% else %}{{ tun|truncap }}{% endif %} | Damadam.pk</title></head>
+<head><title>Reply to {% if their_nick %}{{ tun }}{% else %}{{ tun|truncap }}{% endif %} | Damadam</title></head>
 <div class="nos margin clb" style="max-width:600px;width:92%;margin-top:2em">
 
   {% if personal_group_form.non_field_errors %}
@@ -46,7 +46,7 @@
     </div>
 
     <div id="personal_group_top">
-      {% if tt == 'text' %}<span class="cgy lsp sp">Is baat ka jawab de kar OK dabaein</span>{% elif tt == 'img' %}<span class="cgy lsp sp">Is foto pe jawab de kar OK dabaein</span>{% endif %}
+      {% if tt == 'text' %}<span class="cgy lsp sp">Is baat ka reply kar ke OK dabaein</span>{% elif tt == 'img' %}<span class="cgy lsp sp">Is photo pe reply kar ke OK dabaein</span>{% endif %}
     </div>
 
   {% endif %}

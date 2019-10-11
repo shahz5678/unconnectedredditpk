@@ -41,9 +41,6 @@
 	<a href="{% url 'user_profile' banned_user.username %}#section0">
         <img src='{{ banned_user.userprofile.avatar|s3:"thumb" }}' width="22" height="22" alt="pic" style="border-radius:50%">
         <b class="cb cl"><bdi>{{ banned_user.username }}</bdi></b>
-        {% if banned_user.username in females %}
-            <img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="13" width="13">
-        {% endif %}
         </a></span>&nbsp;<span class="cgy cs mrs">{{ ttl|future_time }}&nbsp;block end ho ga</span>&nbsp; 
         <form action="{% url 'change_ban_time' %}" method="POST" style="display:inline">
         {% csrf_token %}

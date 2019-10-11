@@ -16,93 +16,26 @@
 
 <div class="clb mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:center;background:#2de0ae;">
 
-	<div class="cxl lsp" style="color:white;border-bottom:1px solid #64e8c2;padding:10px 0;font-weight:bold;">پاکستانی سوشل وب سائٹ</div>
+	<div class="cxl lsp" style="color:white;border-bottom:1px solid #64e8c2;padding:10px 0;font-weight:bold;">پاکستانی سوشل ویب سائٹ</div>
 
 	<div style="padding:10px 7px 5px 7px;background:#fff169;color:#270000">
 		{% if no_choice_selected %}<div class="cxl cr lsp">کوئ ایک آپشن چننا ضروری ہے</div>{% else %}<div class="cxl lsp">آپ دمادم پے کیا کرنا چاہتے ہیں؟</div>{% endif %}
-		<form method="POST" action="{% url 'first_time_choice' %}" class="mts">
+		<form method="POST" action="{% url 'first_time_choice' 'ur' %}" class="mts">
 		   {% csrf_token %}
 
 		   	<ul style="display:inline-block;padding: 0;list-style:none">
-		   		{% if ordering == '1' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">فینز بنا کے مشہور ہونا ہے</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">لڑکے اور لڑکیوں سے دوستی</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">مزیدار پوسٹس دیکھنی ہیں</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">ان میں سے کچھ بھی نہیں</span>
-					</li>
-				{% elif ordering == '2' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">فینز بنا کے مشہور ہونا ہے</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">مزیدار پوسٹس دیکھنی ہیں</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">لڑکے اور لڑکیوں سے دوستی</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">ان میں سے کچھ بھی نہیں</span>
-					</li>
-				{% elif ordering == '3' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">لڑکے اور لڑکیوں سے دوستی</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">فینز بنا کے مشہور ہونا ہے</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">مزیدار پوسٹس دیکھنی ہیں</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">ان میں سے کچھ بھی نہیں</span>
-					</li>
-				{% elif ordering == '4' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">لڑکے اور لڑکیوں سے دوستی</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">مزیدار پوسٹس دیکھنی ہیں</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">فینز بنا کے مشہور ہونا ہے</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">ان میں سے کچھ بھی نہیں</span>
-					</li>
-				{% elif ordering == '5' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">مزیدار پوسٹس دیکھنی ہیں</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">فینز بنا کے مشہور ہونا ہے</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">لڑکے اور لڑکیوں سے دوستی</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">ان میں سے کچھ بھی نہیں</span>
-					</li>
-				{% elif ordering == '6' %}
-					<li style="text-align:left" class="cl mt mbl sp">
-						<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">مزیدار پوسٹس دیکھنی ہیں</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">لڑکے اور لڑکیوں سے دوستی</span>
-					</li><br>
-					<li style="text-align:left" class="cl mbl sp">
-						<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">فینز بنا کے مشہور ہونا ہے</span>
-					</li><br>
-					<li style="text-align:left;color:#606060" class="cl mbs sp">
-						<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">ان میں سے کچھ بھی نہیں</span>
-					</li>
-				{% endif %}
+		   		<li style="text-align:left" class="cl mt mbl sp">
+					<input type="radio" name="choice" value="3" id="3" style="vertical-align:sub"><label for="3"><span class="sp">مزیدار پوسٹس دیکھنی ہیں</span>
+				</li><br>
+		   		<li style="text-align:left" class="cl mbl sp">
+					<input type="radio" name="choice" value="2" id="2" style="vertical-align:sub"><label for="2"><span class="sp">لڑکے اور لڑکیوں سے دوستی</span>
+				</li><br>
+				<li style="text-align:left" class="cl mbl sp">
+					<input type="radio" name="choice" value="1" id="1" style="vertical-align:sub"><label for="1"><span class="sp">فینز بنا کے مشہور ہونا ہے</span>
+				</li><br>
+				<li style="text-align:left;color:#606060" class="cl mbs sp">
+					<input type="radio" name="choice" value="4" id="4" style="vertical-align:sub"><label for="4"><span class="sp">ان میں سے کچھ بھی نہیں</span>
+				</li>
 			</ul>
 			<br>
 			<button type="submit" style="border-radius: 5px;color:white;background-color:#59a5f5;border:solid 1px #ffd12b;width:95%;font-size:20px;height:45px" class="mls mrs mbl sp pg_ok_res">SUBMIT</button>

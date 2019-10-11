@@ -39,7 +39,7 @@
     </form>&nbsp;
     <form action="{% url 'first_time_refresh' unique %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
-        <button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:middle;width:23px;height:23px" type="submit"></button>
+        <button class="rf" style="background:0 0;vertical-align:middle;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button>
     </form>
 
     {% include "mehfil/private_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
@@ -52,11 +52,8 @@
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'user_profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko mehfil se kick out kar dia gya</span></div>
         {% elif reply.category == '3' %}
             <div class="lsp sp cs mrl" style="display:inline"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ki baat hide kar di geyi</span></div>
-            <form method="POST" action="{% url 'private_group_hide_submission' %}" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="dec" value="u">
-            <input type="hidden" name="gid" value="{{ group_id }}">
-            <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/restore.svg" width="18" height="18" style="vertical-align:sub"></button>
+            <form method="POST" action="{% url 'private_group_hide_submission' %}" style="display:inline-block">
+            {% csrf_token %}<input type="hidden" name="dec" value="u"><input type="hidden" name="gid" value="{{ group_id }}"><button type="submit" name="pk" class="pg_ok_res sp cxs" value="{{ reply.id }}" style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:62px;color:#4fb2e3">UNHIDE</button>
             </form>
         {% elif reply.category == '4' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new topic rakha: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
@@ -95,20 +92,23 @@
                     {% endif %}
                 {% endif %}
         
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
 
             <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
-            <button name="wid" style="display:{{ display }};background:0 0;border:none;padding:0" class="at pg_ok_res mrs" value="{{ reply.wid }}"><img src="{{ STATIC_URL }}img/at.svg" width="15" height="15" class="mrs" style="vertical-align:sub"></button>
+            <div style="display:inline-block">
+                <div class="fx fxjsfe fxaicn">
 
-            <form method="POST" action="{% url 'private_group_hide_submission' %}" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="dec" value="h">
-            <input type="hidden" name="gid" value="{{ group_id }}">
-            <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:sub"></button>
-            </form>
+                    <form method="POST" action="{% url 'private_group_hide_submission' %}" class="mrl">
+                    {% csrf_token %}<input type="hidden" name="dec" value="h"><input type="hidden" name="gid" value="{{ group_id }}"><button type="submit" name="pk" class="sp cxs pg_ok_res" value="{{ reply.id }}" style="border:1px solid #d8dde2;background:transparent;padding:2px 0;width:52px;color:coral">HIDE</button>
+                    </form>
 
-            {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='15' target_username=reply.writer_uname %}
+                    {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='15' target_username=reply.writer_uname %}
+
+                    <button name="wid" style="display:{{ display }};border:1px solid #d8dde2;background:transparent;padding:2px 0;width:52px;color:#4fb2e3;margin-bottom:-4px" class="at pg_ok_res sp cxs" value="{{ reply.wid }}">REPLY</button>
+                </div>
+            </div>
+
             </div>
         {% endif %}
             

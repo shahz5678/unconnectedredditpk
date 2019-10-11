@@ -97,7 +97,7 @@
 				<li style="text-align:left">
 				<div class="mts mbl">
 				{% if visitor_id in immune_ids %}<input style="vertical-align:sub" type="checkbox" id="{{ forloop.counter }}" name="cids" value="{{ visitor_id }}" disabled>{% else %}<input style="vertical-align:sub" type="checkbox" id="{{ forloop.counter }}" name="cids" value="{{ visitor_id }}">{% endif %}
-				<label for="{{ forloop.counter }}"><img src="{{ visitor.avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%" alt="pic">{% if visitor.uname in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;{{ visitor.uname }}</label>
+				<label for="{{ forloop.counter }}"><img src="{{ visitor.avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%" alt="pic">{% if visitor_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;{{ visitor.uname }}</label>
 				</div>
 				</li>
 			{% endfor %}

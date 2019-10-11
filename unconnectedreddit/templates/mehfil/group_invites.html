@@ -2,7 +2,7 @@
 {% load emoticons_tags %}
 {% load human_time %}
 {% block content %}
-<head><title>User mehfil invites | Damadam.pk</title></head>
+<head><title>User mehfil invites | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
 
 {% include "mehfil/mehfil_list_navbar.html" with section='invites' static_url=STATIC_URL %}
@@ -13,7 +13,7 @@
 <div class="clb" style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:97%;overflow:hidden;background:ivory;max-width:600px;text-align:center">
 
 	<div style="padding:10px 5px 5px 5px;background:white" class="cxl lsp">Apko kisi mehfil mein invite nahi kia gya</div>
-	<div class="sp lsp cgy" style="background:white;padding-bottom:5px;border-bottom:1px solid #E9EBEE">'Mehfil' group ko kehtay hain jahan messaging and foto sharing hoti hai</div>
+	<div class="sp lsp cgy" style="background:white;padding-bottom:5px;border-bottom:1px solid #E9EBEE">'Mehfil' group ko kehtay hain jahan messaging and photo sharing hoti hai</div>
 	<div class="cs sp lsp mbs">Damadam ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain</div>
 </div>
 {% else %}
@@ -27,15 +27,13 @@
 		    {% csrf_token %}
 			<input type="hidden" name="private_uuid" value="{{ invite.uuid }}">
 			<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:7px 10px;width:100%;border-bottom:1px solid #4cc282;overflow:hidden;background:0 0" class="lsp pg_ok_res">
-				<img src="{{ STATIC_URL }}img/invite.svg" class="mrs" width="18" height="18"><div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:text-top">INVITE</div>{% if invite.iun in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" style="color:deeppink" alt="*">{% endif %}&nbsp;<span class="clw"><b>{{ invite.iun }}</b> ne apko</span> <span class="clw cl bw" style="font-weight:bold">{% emoticons %}{{ invite.tp }}{% endemoticons %}</span> <span class="clw">mein invite kia</span><span class="clw cxs sp">, {{ invite.it|human_time }}</span>
+				<img src="{{ STATIC_URL }}img/invite.svg" class="mrs" width="18" height="18"><div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:text-top">INVITE</div>{% if invite.iid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" style="color:gold" alt="*">{% endif %}&nbsp;<span class="clw"><b>{{ invite.iun }}</b> ne apko</span> <span class="clw cl bw" style="font-weight:bold">{% emoticons %}{{ invite.tp }}{% endemoticons %}</span> <span class="clw">mein invite kia</span><span class="clw cxs sp">, {{ invite.it|human_time }}</span>
 			</button>
 			</form>
 			
 			<form method="POST" action="{% url 'reject_private_group_invite' %}" style="text-align:center;padding-top:5px">
 		    {% csrf_token %}
-		    <input type="hidden" name="guuid" value="{{ invite.uuid }}">
-		    <input type="hidden" name="insg" value="0">
-		    <input type="hidden" name="gid" value="{{ invite.gid }}">
+		    <input type="hidden" name="guuid" value="{{ invite.uuid }}"><input type="hidden" name="insg" value="0"><input type="hidden" name="gid" value="{{ invite.gid }}">
 		    <span class="cxs sp clw">Press&nbsp;<button type="submit" name="prv" class="cp cp-bg" value="1" style="background:0 0;margin:0;padding:0;border:none"><img src="{{ STATIC_URL }}img/exit.svg" height="18" width="18" style="vertical-align:sub"></button>&nbsp;to reject</span>
 		    </form>
 
@@ -48,7 +46,7 @@
 
 		    <a href="{% url 'public_group' slug=invite.uuid %}">
 		    <button type="submit" style="font-size:100%;text-align:left;border:none;padding:7px 10px;width:100%;border-bottom:1px solid #a890b3;overflow:hidden;background:0 0" class="lsp pg_ok_res">
-			<img src="{{ STATIC_URL }}img/invite.svg" class="mrs" width="18" height="18"><div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white">INVITE</div>{% if invite.iun in verified %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="clw"><b>{{ invite.iun }}</b> ne apko</span> <span class="clw cl bw"><b>{% emoticons %}{{ invite.tp }}{% endemoticons %}</b></span> <span class="clw">mein invite kia</span><span class="clw cxs sp">, {{ invite.it|human_time }}</span>
+			<img src="{{ STATIC_URL }}img/invite.svg" class="mrs" width="18" height="18"><div class="sp cxs mrs" style="vertical-align: text-top;display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white">INVITE</div>{% if invite.iid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" alt="*" style="color:gold">{% endif %}&nbsp;<span class="clw"><b>{{ invite.iun }}</b> ne apko</span> <span class="clw cl bw"><b>{% emoticons %}{{ invite.tp }}{% endemoticons %}</b></span> <span class="clw">mein invite kia</span><span class="clw cxs sp">, {{ invite.it|human_time }}</span>
 			</button>
 			</a>
 

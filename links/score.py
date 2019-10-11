@@ -1,12 +1,13 @@
 # coding=utf-8
 MAX_BIO_SIZE = 1000
+# NOTIF_OBJECT_LIFE = 604800# 7 days set as ttl for how long a direct response object lives
 MAX_HOME_SUBMISSION_SIZE = 750
 MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
 MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
 ###############################################################################################################
-VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 1728000# i.e. 20 days. This is the amount of time closed-voting objs are kept around for 'like_prob' analysis
+VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 2419200# i.e. 28 days. This is the amount of time closed-voting objs are kept around for 'like_prob' or 'handpicked_prob' analysis
 ###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
@@ -75,7 +76,7 @@ PRIVATE_GROUP_MAX_MEMBERSHIP = 50
 PUBLIC_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
 PUBLIC_GROUP_MAX_RULES_SIZE = 500 #more than 500 chars not allowed
 PUBLIC_GROUP_REPLY_LENGTH = 500
-NUM_PUBLIC_GROUPS_OWNED_SHOWN_ON_PROFILE = 5#how many public groups to show on user profile
+NUM_PUBLIC_GROUPS_OWNED_SHOWN_ON_PROFILE = 6#how many public groups to show on user profile
 PRIVATE_GROUP_REPLY_LENGTH = 500
 
 ###### Mehfil list ######
@@ -283,66 +284,295 @@ MERCH = {
 ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
-SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
-SEGMENT_STARTING_USER_ID = 19005280# starting user ID of user segment analysis
-PROJ_ZUCK_STARTING_USER_ID = 19235950
+SEGMENT_STARTING_USER_ID = 2004144# starting user ID of user segment analysis
+PROJ_ZUCK_STARTING_USER_ID = 1975000
+
 """
-KEY:
+TYPES OF USER ACTIVITIES:
+note: we only log authenticated users. Non-auth users are not logged at the moment
 
-A, B, C, ... - actions occurring within various website sections
-1, 2, 3, ... - subsections of above
-l, h - low liquidity or high liquidity
+'.u' is added if the user is attempting the action while 'unverified'
+'.i' is added if the user is attempting an 'invalid' action (while verified)
 
-A1l: img sharing
-A2h: txt sharing
+A1 - loaded own home text history 
+A2 - loaded own about page
+A3 - loaded own photos history page
+A4 - loaded own photos trending history page
+A5 - loaded other's home text history 
+A6 - loaded other's about page
+A7 - loaded other's photo history page
+A8 - loaded other's photo trending history page
+A1.u - loaded own home text history (while unverified)
+A2.u - loaded own about page (while unverified)
+A3.u - loaded own photos history page (while unverified)
+A4.u - loaded own photos trending history page (while unverified)
+A5.u - loaded other's home text history (while unverified)
+A6.u - loaded other's about page (while unverified)
+A7.u - loaded other's photo history page (while unverified)
+A8.u - loaded other's photo trending history page (while unverified)
 
-B1h: img comment
-B2h: img inline comment
-B3h: img matka comment
-B4h: img single notif comment
+D - visited edit profile page
+D.u - visited edit profile page (while unverified)
+D.i - profile changes were invalid (whether it was an image change, bio change, etc)
+D.u.i - profile changes were invalid (whether it was an image change, bio change, etc), and the user was unverified (doesn't matter - they're allowed to change their profiles)
+D1 - new avatar uploaded
+D1.u - new avatar uploaded (while unverified)
+D2 - bio has been updated
+D2.u - bio has been updated (while unverified)
 
-C1h: txt comment
-C2h: txt inline comment
-C3h: txt matka comment
-C4h: txt single notif comment
+H - landing on 'home' page 1
+H2 - landing on 'home' page 2 (or beyond)
+H.u - landing on 'home' page (while unverified)
+H2.u - landing on 'home' page 2 or beyond (while unverified)
 
-D2l: chat created
-D3h: chat message sent
-D4h: chat message sent from matka
-D5h: chat message sent from single notif
+B - landing on 'best photos' page 1
+B2 - landing on 'best photos' page 2 (or beyond)
+B.u - landing on 'best photos' (while unverified)
+B2.u - landing on 'best photos' page 2 or beyond (while unverified)
 
-E1l: private mehfil created
-E2l: private mehfil joined (created by someone else)
-E3h: private mehfil message sent
-E4h: private mehfil message sent from matka
-E5h: private mehfil message sent from single notif
+C - comment (tabsra) from comment page
+C.u - comment (tabsra) attempt from comment page (while unverified)
+C.i - comment (tabsra) attempt from comment page (invalid)
 
-F1l: public mehfil created
-F2l: public mehfil joined (created by someone else)
-F3h: public mehfil message sent
-F4h: public mehfil message sent from matka
-F5h: public mehfil message sent from single notif
+C1 - landing on comment (tabsra) page
+C1.u - landing on comment (tabsra) page while unverified
 
-G1l: uploaded avatar
-G2l: edited about me
+L - publicreply (jawab) from jawab page
+L.u - publicreply (jawab) attempted from jawab page (while unverified)
+L.i - publicreply (jawab) attempted from jawab page (invalid)
 
-H1h: topic banner clicked on home/home-history/jawab
-H2l: topic subscribed
-H3h: topic post submitted
+L1 - landing on publicreply (jawab) page
+L1.u - landing on publicreply (jawab) page (while unverified)
 
-Z1l: signing up
-Z2l: mobile verification
-Z3h: Inline comment on text on home
-Z4h: Inline comment on text on topic page
-Z5h: Writing in text jawab page
-Z6h: Inline comment on foto on home
-Z7h: Inline comment on fresh fotos
-Z8h: Inline comment on best fotos
-Z9h: Writing in foto tabsra page
-Z10h: Unverified user joining public mehfil
-Z11h: Unverified user joining private mehfil
-Z12h: Sharing text
-Z13h: Sharing foto
-Z14h: Subscribe to a topic
+F - landing on 'fresh photos' page 1
+F2 - landing on 'fresh photos' page 2 or beyond
+F.u - landing on 'fresh photos' (while unverified)
+F2.u - landing on 'fresh photos' page 2 or beyond (while unverified)
+
+T - landing on 'topic'
+T.u - landing on 'topic' (while unverified)
+
+I3 - inline 'home' text jawab
+I4 - inline 'topic' text jawab
+I6 - inline 'home' photo tabsra
+I7 - inline 'fresh-photos' tabsra
+I8 - inline 'best-photos' tabsra
+I3.u - inline 'home' text jawab attempt (while unverified)
+I4.u - inline 'topic' text jawab (while unverified)
+I6.u - inline 'home' photo tabsra attempt (while unverified)
+I7.u - inline 'fresh-photos' tabsra attempt (while unverified)
+I8.u - inline 'best-photos' tabsra attempt (while unverified)
+I3.i - inline 'home' text jawab attempt (invalid)
+I4.i - inline 'topic' text jawab (invalid)
+I6.i - inline 'home' photo tabsra attempt (invalid)
+I7.i - inline 'fresh-photos' tabsra attempt (invalid)
+I8.i - inline 'best-photos' tabsra attempt (invalid)
+
+X - text public post submitted successfully
+X.t - text public post w/ topic submitted successfully
+X.u - text public post attempt (while unverified)
+X.i - text public post attempt (invalid)
+
+X1 - landed on the page from where user can submit a text public post
+X1.u - landed on the page from where user can submit a text public post (while unverified)
+
+X2 - landed on page where one can select 'text' or 'photos' for sharing
+X2.u - landed on page where one can select 'text' or 'photos' for sharing (while unverified)
+
+X3 - landed on sharing help page
+X3.u - landed on sharing help page (while unverified)
+
+P - photo public post submitted successfully
+P.u - photo public post uploading attempt (while unverified)
+P.i - photo public post uploading attempt (invalid)
+
+P1 - landed on the page from where user can submit a photo public post
+P1.u - landed on the page from where user can submit a photo public post (while unverified)
+
+N - became a fan
+N1 - unfan
+N.u - fanning attempt (while unverified)
+
+S3 - single notification response for private mehfil (i.e. replying to private mehfil via single notif)
+S4 - single notification response for public mehfil (i.e. replying to public mehfil via single notif) 
+S5 - single notification response for 1on1 (i.e. replying to 1on1 via single notif)
+S5.e - single notification error response for 1on1 (i.e. replying to 1on1 via single notif)
+S6 - single notification response for photo comment (i.e. writing a photo comment under an img via single notif) 
+S6.u - single notification photo comment (while unverified)
+S7 - single notification text jawab (i.e. writing a text jawab via single notif) 
+S7.u - single notification text jawab (while unverified)
+
+S3.i - single notification invalid response for private mehfil (i.e. replying to private mehfil via single notif)
+S4.i - single notification invalid response for public mehfil (i.e. replying to public mehfil via single notif) 
+S5.i - single notification invalid response for 1on1 (i.e. replying to 1on1 via single notif) 
+S6.i - single notification invalid response for photo comment (i.e. writing a photo comment under an img via single notif)
+S7.i - single notification invalid response for text jawab (i.e. writing a text jawab via single notif)
+
+M - matka loaded
+M.u - matka loaded (while unverified)
+
+M3 - matka reply to private mehfil
+M4 - matka reply to public mehfil
+M5 - matka reply to 1on1
+M5.e - matka error reply to 1on1
+M6 - matka photo comment
+M6.u - matka photo comment (while unverified)
+M7 - matka home jawab
+M7.u - matka home jawab (while unverified - e.g. trying to reply to 'welcome' message)
+M8 - likes history loaded
+M8.u - likes history loaded (while unverified)
+
+M3.i - matka invalid reply to private mehfil
+M4.i - matka invalid reply to public mehfil
+M5.i - matka invalid reply to 1on1
+M6.i - matka invalid photo comment
+M7.i - matka invalid home jawab
+
+V - voted on an object
+V.i - voted on an object (invalid)
+V.u - voted on an object (while unverified)
+
+V1 - selected 'var1' in the tutorial
+V2 - selected 'var2' in the tutorial
+V3 - selected 'var3' in the tutorial
+V4 - selected 'var4' in the tutorial
+V5 - selected 'var5' in the tutorial
+V6 - selected 'var6' in the tutorial
+V7 - selected 'var7' in the tutorial
+
+G1 - loaded list of joined mehfils
+G2 - loaded mehfil invite list
+G3 - loaded mehfil creation page
+
+R - joined private mehfil
+R1 - visited joined private mehfil
+R2 - visited unjoined private mehfil
+R3 - created private mehfil
+R4 - visited joined private mehfil's settings as a regular member
+R5 - visited joined private mehfil's settings as an owner
+R6 - visited joined private mehfil's 'info' page
+R7 - visited joined private mehfil's 'visitor' page
+R.u - attempted to join private mehfil (while unverified)
+R1.u - visited joined private mehfil (while unverified)
+R2.u - visited unjoined private mehfil (while unverified)
+R3.u - attempted to create a private mehfil (while unverified)
+R3.i - attempted to create a private mehfil (invalid)
+
+G1.u - loaded list of joined mehfils (while unverified)
+G2.u - loaded mehfil invite list (while unverified)
+G3.u - loaded mehfil creation page (while unverified)
+
+U - joined public mehfil
+U0 - entered unjoined public mehfil rules screen
+U1 - visited joined public mehfil
+U2 - visited unjoined public mehfil
+U3 - created public mehfil
+U4 - visited popular mehfil list
+U5 - visited joined public mehfil's settings as a normal member
+U6 - visited joined public mehfil's settings as an officer
+U7 - visited joined public mehfil's settings as an owner
+U8 - visited joined public mehfil's 'guidance' page
+U9 - visited joined public mehfil's 'info' page
+U10 - visited joined public mehfil's 'visitor' page
+U.u - attempted to join public mehfil (while unverified)
+U2.u - visited unjoined public mehfil (while unverified)
+U3.u - attempted to create a public mehfil (while unverified)
+U3.i - attempted to create a public mehfil (invalid)
+U4.u - visited popular mehfil list (while unverified)
+
+W0 - exited a 1on1
+W1 - posted in 1on1
+W2 - posted in private mehfil
+W3 - posted in public mehfil
+W4 - posted in a topic (from within a topic)
+
+W2.h - hide/unhide a posting in a private mehfil
+W3.h - hide/unhide a posting in a private mehfil
+
+W2.u - attempted to post in private mehfil (while unverified)
+W3.u - attempted to post in public mehfil (while unverified)
+W4.u - attempted to post in a topic from within a topic (while unverified)
+
+W1.i - attempted to post in 1on1 (invalid)
+W2.i - attempted to post in private mehfil (invalid)
+W3.i - attempted to post in pubic mehfil (invalid)
+W4.i - attempted to post in a topic from within a topic (invalid)
+W4.s - subscribed successfully to a topic
+
+O - loaded online page
+O.u - loaded online page (while unverified)
+
+Y.v - visited a joined 1on1
+Y.s - visited a joined 1on1's settings
+
+Y - sent 1on1 invite successfully
+Y.d - declined 1on1 invite successfully
+Y.a - accepted 1on1 invite successfully
+Y1- initiated 1on1 invite (i.e. first screen)
+Y3 - loaded 1on1 invites received screen
+Y4 - loaded 1on1 invites sent screen
+Y5 - loaded 1on1 list screen
+Y1.u - attempted to send 1on1 invite (while unverified)
+Y2.u - attempted to change 1on1 invite privacy setting (while unverified)
+Y3.u - attempted to load 1on1 invites received screen (while unverified)
+Y4.u - attempted to load 1on1 invites sent screen (while unverified)
+Y5.u - attempted to load 1on1 list screen (while unverified). This never displays, instead user is redirected to a 'verify-now' prompt
+
+Z1 - visited 'help' page
+Z1.u - visited 'help' page (while unverified)
+Z2 - visited 'rules' page
+Z2.u - visited 'rules' page (while unverified)
+Z3 - visited website 'about' page
+Z3.u - visited website 'about' page (while unverified)
+Z4 - visited 'search' page
+Z4.u - visited 'search' page (while unverified)
+Z5 - visited 'topic list' page
+Z5.u - visited 'topic list' page (while unverified)
+Z6 - visited 'fan list'
+Z6.u - visited 'fan list' (while unverified)
+Z7 - visited 'star list'
+Z7.u - visited 'star list' (while unverified)
+Z8 - visited photo detail page
+Z8.u - visited photo detail page (while unverified)
+Z9 - visited 'top photo stars' page
+Z9.u - visited 'top photo stars' page (while unverified)
+Z10 - visited help page on how to get an image into trending
+Z10.u - visited help page on how to get an image into trending (while unverified)
+Z11 - landed on 1st page of pvp blocking
+Z11.u - landed on 1st page of pvp blocking (while unverified)
+Z12 - landed on 1st page of 'content reporting'
+Z12.u - landed on 1st page of 'content reporting' (while unverified)
+
+Z - verified successfully
+Z.u - visited verification page where one inputs their mobile number (i.e. verification_button.html)
+
+J - blocking another user successfully (pvp)
+J.u - blocking another user successfully (pvp), while unverified
+
+K - reported content
+
+G - searched a username, and some results were obtained
+G.u - searched a username, and some results were obtained (while unverified)
+G.i - searched a username (but no results obtained)
+G.u.i - searched a username (but no results obtained - while unverified)
+
+E - public image shared in a 1on1, successfully
+E.i - invalid attempt at sharing a public image in a 1on1 (because no 1on1s selected, or none of the selected 1on1s have given img sharing perm)
+
+E1 - landed on "share image in 1on1" 1st page
+E1.u - landed on "share image in 1on1" 1st page (while unverified)
+
+Q - sent welcome 'mithai' to user
+Q.u - sent welcome 'mithai' to user (while unverified)
+
+Q1 - skipped 'jawab' single notification
+Q2 - skipped 'tabsra' single notification
+Q3 - skipped 'mehfil' single notification
+Q4 - skipped '1on1' single notification
+
+Q1.u - skipped 'jawab' single notification (while unverified)
+Q2.u - skipped 'tabsra' single notification (while unverified)
+Q3.u - skipped 'mehfil' single notification (while unverified)
+Q4.u - skipped '1on1' single notification (while unverified)
 
 """

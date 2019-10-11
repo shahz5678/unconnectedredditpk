@@ -54,7 +54,8 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		# originated from user profile
 		request.session["photograph_id"] = obj_id
 		request.modified = True
-		return redirect("profile", target_uname, 'fotos')
+		return redirect("profile_photos_redirect",target_uname,'fotos')
+		# return redirect("profile", target_uname, 'fotos')
 	elif origin == '5':
 		# originated from photo detail
 		return redirect("photo_detail", obj_id)

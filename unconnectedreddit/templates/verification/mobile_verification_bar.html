@@ -1,12 +1,9 @@
 {% if is_auth and not is_user_verified %}
 <div class="bizcard mbl" style="background-color:white;padding:10px 8px;">
-	
 	<div class="mbs" style="text-align:center">
-		<span class="cxl lsp mrs" style="color:#1f8cad"><b>Welcome!</b> Account verify kar ke Damadam family ka part banein</span>
-		<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a>
+		<span class="cxl lsp mrs" style="color:#1f8cad">Apna account verify karwa lein</span>
+		<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">kyun?</button></a>
 	</div>
-
 	{% include "verification/verification_button.html" with static_url=static_url %}
-
 </div>
 {% endif %}

@@ -54,7 +54,7 @@
 			{% load count_group_invites %}
 			{% check_group_invite_count as group_invite_count %}
 			<!-- bunched HTML removes spaces between li elements -->
-			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+			<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 		{% else %}
 			<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
@@ -87,7 +87,7 @@
 		{% if newbie_flag %}
 		
 			<div class="mbl mts">
-			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin %}
+			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='top' %}
 			</div>
 		
 		{% else %}
@@ -107,7 +107,7 @@
 		{% else %}
 			{% load next_page %}
 			{% load prev_page %}
-			<div class="mtl fx fxjscn fxaicn">
+			<div class="fx fxjscn fxaicn">
 				
 				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
 				<button style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|prev_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
@@ -161,7 +161,7 @@
 				<a name="section{{ forloop.counter }}"></a>
 
 				<section style="display:block">
-				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_pinkstar=photo.p %}
+				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_star=photo.s %}
 				</section>
 
 				<div class="mls">
@@ -204,6 +204,12 @@
 
 		</section>
 
+		{% if newbie_flag == '7' %}
+				<div class="mbs mt">
+				{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='bottom' %}
+				</div>
+		{% endif %}
+
 		<div class="fx fxjscn">
 			{% if page.has_previous %}
 		    <div style="padding:0 10px">
@@ -219,19 +225,20 @@
 
 	</main>
 	{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+
 	<br>
 	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
 		<ul class="navbar">
 		{% if user.is_authenticated %}
-		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'bahirniklo' %}">Logout</a></li>
+		<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 		{% else %}
 		<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0">Create New Account</a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
 		</ul>
 	</nav>
 
-	<footer style="text-align:center;display:block" class="mtl sp cxs cgy">
-	|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'help' %}#section0"> &nbsp;Help&nbsp; </a>|
+	<footer style="text-align:center;padding-bottom:10px" class="mtl sp lsp cxs cgy">
+		|<a href="{% url 'about' %}" class="clb" style="font-weight:bold"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}" class="clb" style="font-weight:bold"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'bahirniklo' %}#section0" class="clb" style="font-weight:bold"> &nbsp;Logout&nbsp; </a>|
 	</footer>
 
 	{% include "min_service_worker.html" %}

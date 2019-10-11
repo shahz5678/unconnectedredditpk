@@ -46,26 +46,11 @@
 		<li>Rules ke sath number nahi dalein (e.g. 1, 2, 3). Agr ap har rule new line mein likhein ge tou hamara system khud bakhud rules ke sath numbers laga de ga</li>
 		<li>Rules {{ rules_char_limit }} characters tak honay chahiyen</li>
 	</ul>
-	<div class="mts">{{ form.rules }}</div>
+	<div class="mtl">{{ form.rules }}</div>
 	</div>
-
-	{% if is_female and not owner_rejoining %}
-	<div style="padding:8px;background-color:ivory" class="bizcard mtl sp lsp">
-		<div class="cl" style="font-weight:bold">Kya apki public mehfil sirf pink stars <img src="{{ STATIC_URL }}img/pstar.svg" height="13" width="13" alt="*" style="color:deeppink"> join kar sakein?</div>
-		{% if form.category.errors %}<div class="cr cl mt" style="font-weight:bold">{{ form.category.errors.0 }}</div>{% endif %}
-
-		<div class="mbs mts" style="text-align:center">
-		<ul style="display:inline-block;padding: 0;margin:0;list-style:none">
-		{% for radio in form.category %}
-			<li style="text-align:left" class="mt"><div style="display:inline;vertical-align:sub">{{ radio.tag }}</div><div class="mls" style="display:inline">{{ radio.choice_label }}</div></li>
-		{% endfor %}
-		</ul>
-		</div>
-	</div>
-	{% endif %}
 	
 	<div class="mtl" style="text-align:center">
-	<button class="btn bl bcp pg_ok_res sp" type="submit" style="height:26px;font-weight:bold">Next</button>
+		<button class="btn bl bcp pg_ok_res sp" type="submit" style="height:28px;font-weight:bold">Next</button>
 	</div>
 </form>
 {% if owner_rejoining %}

@@ -32,7 +32,7 @@
 		<div class="card" style="background-color:#FFFAF0;padding-top:10px;">
 			{% load s3 %}
 			{% load truncap %}
-			<span class="cxl">Ap ne {% if is_anon %}<b>{{ t_username|truncap  }}</b>{% else %}<img src="{{ t_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ t_username|truncatechars:15 }}</b>{% endif %} ka invite qabool kar lia</span>
+			<span class="cxl">Ap ne {% if is_anon %}<b>{{ t_username|truncap  }}</b>{% else %}<img src="{{ t_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ t_username|truncatechars:15 }}</b>{% if tid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="16" height="16" alt="*" style="color:gold">{% endif %}{% endif %} ka invite qabool kar lia</span>
 			<hr size=1 COLOR="#E6E6E6">
 			<div class="mt cl cgy">
 				1 on 1 start karney ke liye OK dabain:<br>
@@ -103,8 +103,8 @@
 					<div class="sp cxs" style="color:#009973;text-align:right">- {{ creation_time|human_time }}</div>
 			
 				{% else %}
-			
-					<div><a href="{% url 'user_profile' uname_1 %}" class="cb"><b class="bw">{{ uname_1 }}</b></a> ne apko invite kia</div>
+
+					<div>{% if id_1 in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" alt="*" style="color:gold">&nbsp;{% endif %}<a href="{% url 'user_profile' uname_1 %}" class="cb"><b class="bw">{{ uname_1 }}</b></a> ne apko invite kia</div>
 					<div class="sp cxs" style="color:#009973;text-align:right">- {{ creation_time|human_time }}</div>
 			
 				{% endif %}

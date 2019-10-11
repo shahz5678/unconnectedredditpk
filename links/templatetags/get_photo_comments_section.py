@@ -10,8 +10,8 @@ def photo_comments_section(raw_comments, static_url, self_user_id, origin=None, 
 		for raw_comment in reversed(json.loads(raw_comments)):
 			comments.append(raw_comment)
 			counter += 1
-			if counter > 5:
-				# this ensure only 6 comments can show up on the photo page (at max)
+			if counter > 3:
+				# this ensures only 4 comments can show up on the photo page (at max)
 				break
 		if comments:
 			return {'comments':comments, 'static_url':static_url,'self_user_id':self_user_id,'origin':origin,'possible':True, 'home_hash':home_hash}

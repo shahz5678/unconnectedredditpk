@@ -44,7 +44,7 @@
 			            {% else %}
 			                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
 			            {% endif %}
-						{% if group.lrsn in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
+						{% if group.lrwi in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
 						</div>
 					</div>
 				{% endif %}
@@ -76,7 +76,7 @@
 			            {% else %}
 			                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
 			            {% endif %}
-						{% if group.lrsn in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
+						{% if group.lrwi in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
 						</div>
 					</div>
 				{% endif %}

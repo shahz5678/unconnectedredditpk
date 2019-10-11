@@ -1,28 +1,60 @@
-{% extends "base.html" %}
+{% extends "base_noindex.html" %}
 {% block content %}
 <head><title>Account verification successful | Damadam</title></head>
 
 <style>body{background: #f0f3f4}</style>
 
-<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Welcome to the family!</span></h1>
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Success!</span></h1>
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:500px;width:97%;text-align:center;margin-left:auto;margin-right:auto">
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);max-width:500px;width:97%;text-align:center;margin-left:auto;margin-right:auto">
 
-	<img src="{{ STATIC_URL }}img/verified.svg" width="100" height="100" class="mbs mts">
-	<div class="cxl sp" style="border-bottom:1px dashed darkgray;padding:0 10px 10px 10px">
-	Apka account verify ho gya
+	<div style="border-bottom:3px solid whitesmoke;">
+		<div class="lsp cxl mt sp" style="padding:10px;color:white;font-weight:bold;letter-spacing:2px;text-shadow:1px 1px gray">
+			Account verify ho gya
+		</div>
+		<img src="{{ STATIC_URL }}img/lol_small.svg" width="100" height="100" class="mbl mts" style="">
 	</div>
 
-	<div class="sp lsp clb">
+	<div class="sp lsp clb" style="background:white">
 		<div style="padding:0 12px">
 			<ul style="display:inline-block;padding: 0;list-style-type: circle;padding-left:15px">
-				<li style="text-align:left" class="mbl">Ab ap Damadam pe share karien posts apney pasand ke topics mein</li>
-				<li style="text-align:left" class="mbl">1 on 1 messaging mein kisi bhi user ke sath chatting karein</li>
-				<li style="text-align:left" class="mbl">Items pe 'like' ke zariye voting karein</li>
-				<li style="text-align:left" class="mbl">Mehfils join karein aur gupshup lagain</li>
-				<li style="text-align:left" class="mbl">Foto and text posts pe jawab dein and tabsrey karein</li>
-				<li style="text-align:left" class="mbl">Password bhool gaye tou password retrieve kar lein</li>
-				<li style="text-align:left">Aur bhi buhut kuch!</li>
+
+				{% if user_var == 'var1' %}
+					<li style="text-align:left" class="mbl">Top pe 'Share' button daba ke text ya photo post lagain</li>
+					<li style="text-align:left" class="mbl">Apki post yak dum 200 users dekhein ge</li>
+					<li style="text-align:left" class="mbl">Post mayari hui tou users apko follow bhi karein ge, aur post like bhi karein ge</li>
+					<li style="text-align:left" class="mbl">Iskey ilawa agr ap ne boys and girls se gupshup lagani hai tou 'mehfils' join karein, ya aur users ke sath '1 on 1' start karein</li>
+					<li style="text-align:left">Dusrey users ki lagai hui photo and text posts pe reply karein</li>
+				{% elif user_var == 'var2' %}
+					<li style="text-align:left" class="mbl">Dosti ke liye 'Home', 'Photos' ya 'Online' mein users ko <button style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none;"><div id="line"></div><div id="line"></div><div id="line" style="width:8px"></div></button> daba ke '1 on 1' ka invite bhejain</li>
+					<li style="text-align:left" class="mbl">Agr kisi user ki profile dekhni ho to profile icon <img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/thumb/avatar/17f5a4b8-0c26-4ad2-9cc1-acbbaecde169.jpg" width="22" height="22" style="border-radius:50%;vertical-align:sub"> dabain</li>
+					<li style="text-align:left">Iskey ilawa dusrey users ki lagai hui photo and text posts pe reply karein</li>
+				{% elif user_var == 'var3' %}
+					<li style="text-align:left" class="mbl">Top pe 'Home' ya 'Photos' daba kar dusrey users ki mazedar posts dekhein</li>
+					<li style="text-align:left">Achi posts <img src="{{ STATIC_URL }}img/like.svg" width="18" height="18" style="vertical-align:sub"> 'like' karein, ya unpe apni raye dein</li>
+				{% elif user_var == 'var4' %}
+					<li style="text-align:left" class="mbl">Guppein lagain 'Home', 'Photos', 'Mehfils' mein ya '1&nbsp;on&nbsp;1'</li>
+					<li style="text-align:left" class="mbl">Mazedar posts ko <img src="{{ STATIC_URL }}img/like.svg" width="18" height="18" style="vertical-align:sub"> 'like' karein aur pasand ke users ko follow karein</li>
+					<li style="text-align:left">Puray mulq ke logoon se jaan pehchaan banain</li>
+				{% elif user_var == 'var5' %}
+					<li style="text-align:left" class="mbl">Top pe 'Mehfil' press karein</li>
+					<li style="text-align:left" class="mbl">Phir jo new page open ho us pe 'Popular' press karein</li>
+					<li style="text-align:left">Popular mehfils ki list open ho jaye gi. Is list se apni pasand ki mehfils join kar lein</li>
+				{% elif user_var == 'var6' %}
+					<li style="text-align:left" class="mbl">Top pe 'Home' ya 'Photos' daba kar dusrey users ki mazedar posts dekhein</li>
+					<li style="text-align:left" class="mbl">Achi posts <img src="{{ STATIC_URL }}img/like.svg" width="18" height="18" style="vertical-align:sub"> 'like' karein, ya unpe apni raye dein</li>
+					<li style="text-align:left" class="mbl">Guppein lagain 'Mehfils' ya '1&nbsp;on&nbsp;1' mein</li>
+					<li style="text-align:left">Puray mulq ke logoon se jaan pehchaan banain</li>
+				{% elif user_var == 'var7' %}
+					<li style="text-align:left" class="mbl">Top pe 'Home' ya 'Photos' daba kar dusrey users ki mazedar posts dekhein</li>
+					<li style="text-align:left" class="mbl">Achi posts <img src="{{ STATIC_URL }}img/like.svg" width="18" height="18" style="vertical-align:sub"> 'like' karein, ya unpe apni raye dein</li>
+					<li style="text-align:left" class="mbl">Guppein lagain 'Mehfils' ya '1&nbsp;on&nbsp;1' mein</li>
+					<li style="text-align:left">Puray mulq ke logoon se jaan pehchaan banain</li>
+				{% else %}
+					<li style="text-align:left" class="mbl">Guppein lagain 'Home', 'Photos', 'Mehfils' mein ya '1&nbsp;on&nbsp;1'</li>
+					<li style="text-align:left" class="mbl">Mazedar posts ko <img src="{{ STATIC_URL }}img/like.svg" width="18" height="18" style="vertical-align:sub"> 'like' karein aur pasand ke users ko follow karein</li>
+					<li style="text-align:left">Puray mulq ke logoon se jaan pehchaan banain</li>
+				{% endif %}
 			</ul>
 		</div>
 	</div>

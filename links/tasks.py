@@ -12,7 +12,7 @@ from cricket_score import cricket_scr
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
 process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ,\
-GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE,SEGMENT_STARTING_TIME#, UPVOTE, DOWNVOTE,
+GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE#, UPVOTE, DOWNVOTE,
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, Logout, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
@@ -41,13 +41,13 @@ log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_
 retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
 cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
-add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, push_hand_picked_obj_into_trending,retire_abandoned_topics,\
+add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, select_hand_picked_obj_for_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
-from redis8 import set_section_wise_retention, log_segment_action
-# from redis9 import delete_all_direct_responses_between_two_users
+# from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list
 from redis3 import log_vote_disc
+from redis8 import log_activity
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from namaz_timings import namaz_timings, streak_alive
@@ -397,23 +397,22 @@ def calc_ecomm_metrics():
 # 							# log_spam_text_writer(user_id, text)
 
 
-@celery_app1.task(name='tasks.log_action')
-def log_action(user_id, action_categ, action_sub_categ, action_liq, time_of_action):
+@celery_app1.task(name='tasks.log_user_action')
+def log_user_activity(user_id, activity_dict, time_now, which_var=None):
 	"""
-	Logs user action for segment analysis
+	Logs user actions for retention analysis
 	"""
-	hours_since_start_of_segment = int((time_of_action - SEGMENT_STARTING_TIME)/3600.0)
-	log_segment_action(user_id, hours_since_start_of_segment, action_categ, action_sub_categ, action_liq, time_of_action)
+	log_activity(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var=which_var)
 
 
 # @celery_app1.task(name='tasks.set_section_retention')
-# def set_section_retention(which_exp, user_id):
+# def set_variation_retention(user_id, which_var=None):
 # 	"""
 # 	Logs users for retention calculation of various cohorts
 
-# 	'which_exp' is the name of an experiment currently under progress
+# 	'which_var' is the name of an experimental variation currently under progress
 # 	"""
-# 	set_section_wise_retention(which_exp, user_id)
+# 	set_variation_wise_retention(user_id,which_var=which_var)
 
 
 @celery_app1.task(name='tasks.set_user_age')
@@ -820,13 +819,13 @@ def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,
 @celery_app1.task(name='tasks.rank_all_photos')
 def rank_all_photos():
 	"""
-	Used to find the single "best" foto from the current lot, criteria being an image with positive cumulative vote score, and at least 1 downvote
+	Used to find the single "best" photo from the current lot, criteria being an image with positive cumulative vote score, and at least 1 downvote
 
-	Can also push hand-picked objects into trending lists
+	Can also push hand-picked objects into trending lists (disabled for now)
 	Mislabeled task due to legacy reasons
 	"""
 	time_now = time.time()
-	pushed, obj_id = push_hand_picked_obj_into_trending()
+	pushed, obj_id = select_hand_picked_obj_for_trending()
 	if pushed and obj_id:
 		cohort_num = int(time_now/604800)#cohort size is 1 week
 		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
@@ -839,17 +838,19 @@ def rank_all_photos():
 			set_best_photo_for_fb_fan_page(obj_id)
 		#####################################################
 	else:
-		fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
-		best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
-		remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
-		trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
-		if trending_item_hash_name:
-			highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
-			highest_ranked_photo['tos'] = time_now
-			highest_ranked_photo['like_prob'] = item_score# what probability exists that this content will be liked by at least 1 audience member
-			obj_id = trending_item_hash_name.split(":")[1]
-			add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
-			pushed = True
+		pass
+		# TODO : activate when 'handpicked_prob' has been built
+		# fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
+		# best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
+		# remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
+		# trending_item_hash_name, item_score = extract_trending_obj(remaining_fresh_photo_ids, with_score=True)
+		# if trending_item_hash_name:
+		# 	highest_ranked_photo = retrieve_obj_feed([trending_item_hash_name])[0]
+		# 	highest_ranked_photo['tos'] = time_now
+		# 	highest_ranked_photo['like_prob'] = item_score# what probability exists that this content will be liked by at least 1 audience member
+		# 	obj_id = trending_item_hash_name.split(":")[1]
+		# 	add_single_trending_object(prefix="img:",obj_id=trending_item_hash_name.split(":")[1], obj_hash=highest_ranked_photo)
+		# 	pushed = True
 
 
 @celery_app1.task(name='tasks.rank_all_photos1')
@@ -869,10 +870,11 @@ def extract_trending_obj(obj_hash_names, with_score=False):
 	obj_list = retrieve_obj_scores(obj_hash_names)
 	only_liked = []
 	for obj_hash, likes, score in obj_list:
-		# ensure that the post is liked and has a positive 'score' (score is the prob it will receive 'likes' when it trends)
+		# ensure that the post is liked and has a positive 'score' (score is the prob it will get 'handpicked')
 		if likes > 0 and score > 0:
 			only_liked.append((obj_hash, score))
-	if only_liked:
+	if len(only_liked) > 1:
+		# run this only when at least 2 posts are competing against one another - otherwise don't push anything into trending
 		only_liked.sort(key=itemgetter(1),reverse=True)
 		trending_item_hash_name = only_liked[0][0]
 		if with_score:
@@ -930,20 +932,27 @@ def rank_photos():
 
 @celery_app1.task(name='tasks.fans')
 def fans():
-	user_ids = get_top_100()
-	user_ids_and_fan_counts = get_fan_counts_in_bulk(user_ids)
-	user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').defer('password','last_login','is_superuser',\
-		'first_name','email','is_staff','is_active','date_joined','id','last_name','totalfanandphotos__total_fans','totalfanandphotos__last_updated',\
-		'userprofile__bio','userprofile__shadi_shuda','userprofile__previous_retort','userprofile__attractiveness','userprofile__mobilenumber',\
-		'userprofile__score','userprofile__avatar','userprofile__streak','userprofile__age','userprofile__gender').in_bulk(user_ids)
-	top_list = []
-	for user_id in user_ids:
-		top_list.append({'username':user_ids_and_user_objects[int(user_id)].username,'id':user_id,\
-			"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
-			"media_score":user_ids_and_user_objects[int(user_id)].userprofile.media_score,\
-			"av_url":retrieve_avurl(user_id),"fan_count":user_ids_and_fan_counts[user_id]})
-	top_list = retrieve_thumbs(top_list)# add 'rows' key in the dictionary
-	set_top_stars(top_list)
+	"""
+	Cleans up expired (i.e. old) direct responses
+
+	Mislabeled due to legacy reasons
+	"""
+	pass
+	# cleanse_direct_response_list()
+	# user_ids = get_top_100()
+	# user_ids_and_fan_counts = get_fan_counts_in_bulk(user_ids)
+	# user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').defer('password','last_login','is_superuser',\
+	# 	'first_name','email','is_staff','is_active','date_joined','id','last_name','totalfanandphotos__total_fans','totalfanandphotos__last_updated',\
+	# 	'userprofile__bio','userprofile__shadi_shuda','userprofile__previous_retort','userprofile__attractiveness','userprofile__mobilenumber',\
+	# 	'userprofile__score','userprofile__avatar','userprofile__streak','userprofile__age','userprofile__gender').in_bulk(user_ids)
+	# top_list = []
+	# for user_id in user_ids:
+	# 	top_list.append({'username':user_ids_and_user_objects[int(user_id)].username,'id':user_id,\
+	# 		"photo_count":user_ids_and_user_objects[int(user_id)].totalfanandphotos.total_photos,\
+	# 		"media_score":user_ids_and_user_objects[int(user_id)].userprofile.media_score,\
+	# 		"av_url":retrieve_avurl(user_id),"fan_count":user_ids_and_fan_counts[user_id]})
+	# top_list = retrieve_thumbs(top_list)# add 'rows' key in the dictionary
+	# set_top_stars(top_list)
 
 
 @celery_app1.task(name='tasks.salat_info')

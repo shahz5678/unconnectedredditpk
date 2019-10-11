@@ -10,7 +10,8 @@ def home_replies_section(raw_replies, static_url, self_user_id, home_hash):
 		for payload in reversed(json.loads(raw_replies)):
 			replies.append(payload)
 			counter += 1
-			if counter >  5:
+			if counter > 3:
+				# this ensures only 4 comments can show up on the photo page (at max)
 				break
 		if replies:
 			return {'replies':replies,'static_url':static_url,'self_user_id':self_user_id, 'possible':True,'home_hash':home_hash} 

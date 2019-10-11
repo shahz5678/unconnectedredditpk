@@ -7,7 +7,7 @@
 {% load subtract %}
 {% load s3 %}
 {% block content %}
-<head><title>{{ user.username }}'s friend list | Damadam.pk</title></head>
+<head><title>{{ user.username }}'s friend list | Damadam</title></head>
 <style type="text/css">
 	body{background: #E9EBEE}
 	.pages{
@@ -72,6 +72,7 @@
 			<div class="fx fxjssb fxaibl">
 				{% if data.is_friend_anon == '0' %}
 				<div style="margin-left:12px">
+					{% if data.friend_id in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">&nbsp;{% endif %}
 					<a href="{% url 'user_profile' data.friend_username %}">
 					{% if data.lt_msg_wid != own_id and data.lt_msg_time|add:"0" > data.own_last_seen|add:"0" %}
 					<span style="color:#009973;margin-right:3px">{{ data.friend_username|truncatechars:13 }}</span>

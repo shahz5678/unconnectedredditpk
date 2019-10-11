@@ -74,8 +74,8 @@
 			{% load get_transparent_buttons_js %}
 
 			<section style="display:block">
-			<div class="fx fxjscn fxaibl">
-				<a href="{% url 'topic_page' topic_url %}" class="mrs" style="display:inline-block"><button class="rf rf-bg" style="background-image: url({{ STATIC_URL }}img/refresh.svg);vertical-align:text-bottom;width:22px;height:22px" type="submit">&nbsp;</button></a>
+			<div class="fx fxjscn fxaicn">
+				<a href="{% url 'topic_page' topic_url %}" style="display:inline-block"><button class="rf" style="vertical-align:text-bottom;height:24px;width:44px;background:0 0" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
 				<h2 style="text-align:center;font-weight:600" class="lsp cxl clb">Latest submissions:</h2>
 			</div>
 
@@ -88,7 +88,7 @@
 						<a name="section{{ forloop.counter }}"></a>
 						
 						<section style="display:block">
-						{% text_object obid=submission.i ooid=submission.si text=submission.d|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv home_hash=submission.h static_url=STATIC_URL is_pinkstar=submission.p alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
+						{% text_object obid=submission.i ooid=submission.si text=submission.d|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv home_hash=submission.h static_url=STATIC_URL is_star=submission.s alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
 						</section>
 
 						<section style="display:block" class="mls mrs mbl">

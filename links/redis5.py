@@ -5,14 +5,14 @@ import redis, time, random
 from urlparse import urlparse
 from location import REDLOC5
 from score import THUMB_HEIGHT, EXTRA_PADDING, PERSONAL_GROUP_SAVE_MSGS, PERSONAL_GROUP_NOTIF_IVT_RATE_LIMIT, PERSONAL_GROUP_NOTIF_RATE_LIMIT
+from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list, cache_meta_data, get_cached_meta_data,\
+add_group_to_log
 from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_FLOOR, PERSONAL_GROUP_BLOB_SIZE_LIMIT, PERSONAL_GROUP_PHT_XFER_IVTS, \
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED, USER_FRIEND_LIST_CACHING_TIME
-from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list, cache_meta_data, get_cached_meta_data,\
-add_group_to_log
 from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
-from get_meta_data import get_meta_data
+from get_meta_data import get_meta_data, extract_yt_id
 from urlmarker import URL_REGEX1
 
 '''
@@ -253,7 +253,7 @@ def retrieve_content_from_personal_group(group_id, own_id, target_id, time_now, 
 		personal_group_list = my_server.lrange("pgl:"+group_id, 0, -1)
 		pipeline2 = my_server.pipeline()
 		for key in personal_group_list:
-			pipeline2.hgetall("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
+			pipeline2.hgetall("pgh:"+group_id+":"+key.partition(":")[0]) #key.partition(":")[0] is 'blob_id' (e.g. 6973)
 		result = pipeline2.execute()
 		own_cred, their_cred = get_user_credentials(own_id, target_id, my_server)
 		return prev_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, result, own_cred, their_cred
@@ -469,7 +469,7 @@ def update_pg_obj_notif_after_bulk_deletion(group_id):
 		my_server = redis.Redis(connection_pool=POOL)
 		hash_list, pgh_list = my_server.lrange("pgl:"+group_id, 0, -1), []
 		for key in hash_list:
-			pgh_list.append("pgh:"+group_id+":"+key.split(":")[0]) #key.split(":")[0] is 'blob_id'
+			pgh_list.append("pgh:"+group_id+":"+key.partition(":")[0]) #key.partition(":")[0] is 'blob_id'
 		if latest_notif_obj_pgh in pgh_list:
 			blob_deletion_status = my_server.hget(latest_notif_obj_pgh,'status' if latest_type in ('img_res','text_res') else 'status'+latest_idx)
 			if blob_deletion_status != latest_deletion_status:
@@ -652,8 +652,9 @@ def personal_group_permanent_deletion(group_id, personal_group_list, objs_to_del
 	if not server:
 		server = redis.Redis(connection_pool=POOL)
 	pipeline1 = server.pipeline()
+	# blob_id is an integer, obj_name is a compisite ID such as 6973:1802862:10 (where the first number is blob_id)
 	for blob_id, obj_name in objs_to_delete_fully:
-		how_many_to_del = int(obj_name.split(":")[2]) # how_many_to_del is '-1' if 'res' blob, '0' if 'action' blob, and non-zero +int otherwise
+		how_many_to_del = int(obj_name.rpartition(":")[2]) # how_many_to_del is '-1' if 'res' blob, '0' if 'action' blob, and non-zero +int otherwise
 		if how_many_to_del < 0: 
 			# deleting related 'pgrl' objects
 			pipeline1.delete("pgrl:"+group_id+":"+blob_id+":-1")
@@ -665,8 +666,7 @@ def personal_group_permanent_deletion(group_id, personal_group_list, objs_to_del
 		else:
 			pass
 		# deleting hash object
-		hash_name = "pgh:"+group_id+":"+blob_id
-		pipeline1.delete(hash_name)
+		pipeline1.delete("pgh:"+group_id+":"+blob_id)
 		# removing obj_name from personal_group_list
 		pipeline1.lrem(personal_group_list,obj_name,num=-1)
 		# recalculating number of objects in personal_group
@@ -709,7 +709,7 @@ def reset_all_group_chat(group_id, my_server=None):
 		pipeline1.delete(related_hash_list)
 	# deleting all chat blobs next
 	for composite_obj in all_objs:
-		blob_id = composite_obj.split(":")[0]
+		blob_id = composite_obj.partition(":")[0]
 		pipeline1.delete("pgh:"+group_id+":"+blob_id)
 	# deleting list of all chat blobs
 	pipeline1.delete(personal_group_list)
@@ -1293,30 +1293,37 @@ def set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, typ
 		if urls:
 			url = urls[0]
 			is_yt = '1' if ('youtube.com/watch' in url or 'youtu.be/' in url) else '0'# detect youtube url
-			components = urlparse(url)
+			if is_yt:
+				vid_id, url_components = extract_yt_id(url, with_components=True)
+			else:
+				vid_id, url_components = None, urlparse(url)
+
 			# first search in cache, else fall back to BeautifulSoup
-			location = components.netloc+components.path+components.query+components.fragment
-			url = url if components.netloc else 'http://'+url
+			location = url_components.netloc+url_components.path+url_components.query+url_components.fragment
+			url = url if url_components.netloc else 'http://'+url
 			meta_data = get_cached_meta_data(location)
 			if meta_data:
 				# cached metadata exists, use that
-				# print "meta data from cache: %s" % meta_data
 				meta_data['url'] = url
 			else:
-				# if nothing is cached
+				# if nothing is cached, fall back to BeautifulSoup
 				meta_data, time_taken = get_meta_data(url=url)
-				# print "meta data from the internet: {} in {} seconds".format(meta_data,time_taken)
+
 				# if meaningful metadata was successfully retrieved, cache it
 				if 'doc' in meta_data:
 					cache_meta_data(location, meta_data, time_taken, parsing_time, is_yt, meta_data['doc'])
 					meta_data['url'] = url
 			meta_data['yt'] = is_yt
+			# vid_id allows the video to be played in an iframe - so whenever this exists and the user isn't on fbs, play the video!
+			meta_data['vid'] = vid_id if is_yt else None
 			if 'doc' in meta_data and meta_data['doc'] != '0':
 				if idx != '-1':
-					meta_data['doc'+idx], meta_data['url'+idx], meta_data['yt'+idx] = meta_data['doc'], meta_data['url'], meta_data['yt']
+					meta_data['doc'+idx], meta_data['url'+idx], meta_data['yt'+idx], meta_data['vid'+idx] = meta_data['doc'], meta_data['url'], \
+					meta_data['yt'], meta_data['vid']
 					del meta_data['doc']
 					del meta_data['url']
 					del meta_data['yt']
+					del meta_data['vid']
 					if 'url_desc' in meta_data:
 						meta_data['url_desc'+idx] = meta_data['url_desc']
 						del meta_data['url_desc']

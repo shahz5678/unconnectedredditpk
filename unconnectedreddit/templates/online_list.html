@@ -30,7 +30,7 @@
 					<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{{ header }}</h2>
 					{% for user_id, username, username_lower, world_age in users %}
 						<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f0f3f4">
-							{% if username in females %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">&nbsp;{% endif %}<b class="clb"><bdi>{{ username }}</bdi></b>
+							{% if user_id in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" alt="*" style="color:gold">&nbsp;{% endif %}<b class="clb"><bdi>{{ username }}</bdi></b>
 							
 							<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
 								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}
@@ -52,7 +52,7 @@
 					<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{% if not forloop.first %}<a class="mrs sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:-1 }}">prev</a>{% endif %}{{ header }}{% if not forloop.last %}<a class="mls sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:1 }}">next</a>{% endif %}</h2>
 					{% for user_id, username, username_lower, world_age in users %}
 						<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f0f3f4">
-							{% if username in females %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">&nbsp;{% endif %}<b class="clb"><bdi>{{ username }}</bdi></b>
+							{% if user_id in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" alt="*" style="color:gold">&nbsp;{% endif %}<b class="clb"><bdi>{{ username }}</bdi></b>
 							
 							<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
 								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}

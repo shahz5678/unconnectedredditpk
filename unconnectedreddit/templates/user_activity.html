@@ -15,9 +15,9 @@
 {% user_profile_navbar static_url=STATIC_URL section='posts' uname=uname is_own_profile=is_own_profile %}
 
 {% if is_own_profile %}
-<h1 class="cxl clb lsp" style="text-align:center">Your shared posts:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}Your shared posts:</h1>
 {% else %}
-<h1 class="cxl clb lsp" style="text-align:center">{% if verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="15" height="15">&nbsp;{% endif %}{{ uname|truncatechars:12 }}'s shared posts:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}{{ uname|truncatechars:12 }}'s shared posts:</h1>
 {% endif %}
 
 <div style="max-width:750px;margin:0 auto;width:97%;position:relative;">
@@ -27,7 +27,7 @@
 {% for link in object_list %}
 	<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<section itemscope itemtype="http://schema.org/SocialMediaPosting">
-	{% text_object obid=link.id ooid=submitter_id text=link.description|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on machine_time=link.machine_time oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_pinkstar=verified alignment=link.cagtegory block_time_remaining=time_remaining topic=link.topic_name topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
+	{% text_object obid=link.id ooid=submitter_id text=link.description|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on machine_time=link.machine_time oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_star=is_star alignment=link.cagtegory block_time_remaining=time_remaining topic=link.topic_name topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
 	</section>
 
 	<section style="display:block">

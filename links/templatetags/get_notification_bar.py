@@ -4,6 +4,7 @@ from links.redis2 import is_fan
 from links.views import GetLatest
 from links.forms import UnseenActivityForm
 from links.models import UserProfile, Photo
+from links.redis7 import is_pair_image_stars, is_image_star
 from links.score import VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION
 
 register = template.Library()
@@ -31,6 +32,7 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 			context["banned"] = False
 			context["parent"] = freshest_reply
 			context["parent_pk"] = group_id
+			context["their_star"] = is_image_star(freshest_reply['lrwi'])
 		elif is_groupreply:
 			if object_type == '1':
 				# private mehfil
@@ -39,6 +41,7 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 				context["banned"] = False
 				context["parent"] = freshest_reply
 				context["parent_pk"] = freshest_reply['oi'] #group id
+				context["their_star"] = is_image_star(freshest_reply['lrwi'])
 			elif object_type == '0':
 				# public mehfil
 				context["type_of_object"] = '3b'
@@ -47,19 +50,9 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 				context["first_time_user"] = False
 				context["parent"] = freshest_reply
 				context["parent_pk"] = freshest_reply['oi'] #group id
+				context["their_star"] = is_image_star(freshest_reply['lrwi'])
 			else:
 				context["notification"] = 0
-		# elif is_salat:
-		# 	salat_invite = freshest_reply
-		# 	context["type_of_object"] = '4'
-		# 	context["notification"] = 1
-		# 	try:
-		# 		context["first_time_user"] = UserProfile.objects.get(id=freshest_reply['ooi']).streak
-		# 	except:
-		# 		context["first_time_user"] = 0
-		# 	context["banned"] = False
-		# 	context["parent"] = salat_invite
-		# 	context["namaz"] = salat_timings['namaz'] 
 		elif is_link:
 			context["type_of_object"] = '2'
 			if freshest_reply:
@@ -87,6 +80,7 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 					context["first_time_user"] = True
 				else:
 					context["first_time_user"] = False
+				context["op_star"], context["their_star"] = is_pair_image_stars(freshest_reply['ooi'],freshest_reply['lrwi'])#
 			except:
 				context["notification"] = 0
 		elif is_photo:
@@ -103,6 +97,7 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 					context["comment_count"] = Photo.objects.only('comment_count').get(id=freshest_reply['oi']).comment_count
 				except Photo.DoesNotExist:
 					context["comment_count"] = 0
+				context["their_star"] = is_image_star(freshest_reply['ooi'])	
 			elif object_type == '0':
 				context["latest_comment"] = freshest_reply
 				context["type_of_object"] = '0'
@@ -110,7 +105,8 @@ def notification_bar(notification, origin, single_notif_error, user, user_id, fe
 				context["parent"] = freshest_reply
 				context["parent_pk"] = freshest_reply['oi']#.which_photo_id
 				context["first_time_user"] = False
-				context["banned"] = False					
+				context["banned"] = False	
+				context["their_star"] = is_image_star(freshest_reply['lrwi'])#			
 			else:
 				context["notification"] = 0
 	else:

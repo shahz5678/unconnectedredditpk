@@ -1274,6 +1274,25 @@ def many_short_messages(user_id,section,obj_id):
 	else:
 		return False
 
+######################################## Logging abusive text on home ########################################
+
+ABUSE_ON_HOME = 'aoh'# global sorted set keeping count of 
+ABUSIVE_HOME_TEXT = 'aht'# global sorted set containing abusive text on home
+
+
+def log_abusive_home_post(user_id, text):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zincrby(ABUSE_ON_HOME,user_id,amount=1)
+	my_server.zadd(ABUSIVE_HOME_TEXT,text+":"+str(time.time()),user_id)
+
+
+def retrieve_abusive_home_posts():
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(ABUSIVE_HOME_TEXT,0,-1,withscores=True)
+
 ################################################# Logging Sharing in Photos #################################################
 
 
@@ -1901,54 +1920,36 @@ def purge_exit_list(group_id, user_id):
 
 ###################################### Project Superhuman #########################################
 
-FIRST_SURVEY_REFERRER = 'fsr:'# key holding first-time referrer page of any survey entrant
-OTHER_SURVEY_REFERRER = 'osr:'# key holding first-time referrer page of any survey entrant
-SUPERHUMAN_ANSWERS = 'sans:'#key containing jsonized survey answers given by a user
-SUPERHUMAN_ANSWERERS = 'sansr'# sorted set containing all logged answerers
-SUPERHUMAN_ANSWERERS2 = 'sansr2'# sorted set containing all logged answerers of the second leg of the survey
-
-# def log_survey_referrer(user_id, referrer_url):
-# 	"""
-# 	logs the referring screen the user entered the survey from
-# 	"""
-# 	user_id = str(user_id)
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	if my_server.exists(FIRST_SURVEY_REFERRER+user_id):
-# 		my_server.setex(OTHER_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
-# 	else:
-# 		my_server.setex(FIRST_SURVEY_REFERRER+user_id,referrer_url,TWO_WEEKS)
+HXU_ANSWERS = 'hxu:'#'sans:'#key containing jsonized survey answers given by a user
+HXU_ANSWERERS = 'hansr'# sorted set containing all logged answerers
 
 
 def show_survey(user_id):
 	"""
 	Determines whether a user is shown the survey or not
 	"""
-	return not redis.Redis(connection_pool=POOL).zscore(SUPERHUMAN_ANSWERERS,SUPERHUMAN_ANSWERS+str(user_id))
+	return not redis.Redis(connection_pool=POOL).zscore(HXU_ANSWERERS,HXU_ANSWERS+str(user_id))
 
 
 def has_already_answered_superhuman_survey(user_id):
 	"""
 	Determines what state the survey is in, so that a screen can be shown to the user accordingly
 	"""
-	answer_key = SUPERHUMAN_ANSWERS+str(user_id)
+	answer_key = HXU_ANSWERS+str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	filled_prev_survey = my_server.exists(answer_key)
-	if filled_prev_survey:
+	already_filled_survey = my_server.exists(answer_key)
+	if already_filled_survey:
 		# allow this user, but only if they've not filled the new survey
-		json_prev_answer = my_server.get(answer_key)
-		prev_answer = json.loads(json_prev_answer)
-		if prev_answer.get("2nd_submission",None) == '1':
-			if prev_answer.get("2nd_sub_skipped",None) == '1':
-				# filled the previous one but skipped the new one
-				return True, True
-			else:
-				# filled the previous one and the new one both
-				return True, False
+		json_answer = my_server.get(answer_key)
+		answer = json.loads(json_answer)
+		if answer.get("skipped",None) == '1':
+			# filled the survey already, and in fact 'skipped' it
+			return True, True
 		else:
-			# filled the prev survey, but hasn't filled the new one yet
-			return False, False
+			# filled the previous one, answering all the required questions
+			return True, False
 	else:
-		# didn't fill the survey previously - shouldn't be allowed to fill it now
+		# didn't fill the survey previously - should be allowed to fill it now
 		return False, False
 
 
@@ -1957,26 +1958,18 @@ def log_superhuman_survey_answers(user_id, answers_dict, time_now):
 	saves all the answers for later analysis
 	"""
 	user_id = str(user_id)
-	answer_key = SUPERHUMAN_ANSWERS+user_id
+	answer_key = HXU_ANSWERS+user_id
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(answer_key):
-		json_prev_answer = my_server.get(answer_key)
-		prev_answer = json.loads(json_prev_answer)
-		prev_answer['2nd_submission'] = answers_dict['2nd_submission']
-		prev_answer['2nd_sub_skipped'] = answers_dict['2nd_sub_skipped']
-		prev_answer['ans9'] = answers_dict['ans9']
-		prev_answer['ans10'] = answers_dict['ans10']
-		prev_answer['ans11'] = answers_dict['ans11']
-		prev_answer['ans12'] = answers_dict['ans12']
-		prev_answer['num_topics'] = answers_dict['num_topics']
-		prev_answer['num_fans'] = answers_dict['num_fans']
-		my_server.setex(answer_key,json.dumps(prev_answer),TWO_WEEKS)
-		my_server.zrem(SUPERHUMAN_ANSWERERS,answer_key)#,time_now)
-		my_server.zadd(SUPERHUMAN_ANSWERERS2,answer_key,time_now)
-		my_server.expire(SUPERHUMAN_ANSWERERS,TWO_WEEKS)
-		return True
-	else:
+		# already answered, do nothing
 		return False
+	else:
+		# answering for the first time
+		answers = json.dumps(answers_dict)
+		my_server.setex(answer_key,answers,TWO_WEEKS)
+		my_server.zadd(HXU_ANSWERERS,answer_key,time_now)
+		my_server.expire(HXU_ANSWERERS,TWO_WEEKS)
+		return True
 
 
 def retrieve_survey_records():
@@ -1984,7 +1977,7 @@ def retrieve_survey_records():
 	Useful for exporting the data to a CSV for analysis
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	participating_survey_keys = my_server.zrange(SUPERHUMAN_ANSWERERS2,0,-1)
+	participating_survey_keys = my_server.zrange(HXU_ANSWERERS,0,-1)
 	if participating_survey_keys:
 		return my_server.mget(*participating_survey_keys)
 	else:

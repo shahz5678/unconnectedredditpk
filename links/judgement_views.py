@@ -18,12 +18,12 @@ from views import get_price, get_addendum, get_page_obj, convert_to_epoch
 from redirection_views import return_to_content
 from judgement_forms import PhotoReportForm, DefenderBlockingReasonForm, AddDefenderIDForm, RemDefenderIDForm
 from tasks import process_reporter_payables, sanitize_expired_bans, post_banning_tasks, remove_target_users_posts_from_all_feeds,\
-delete_temporarily_saved_content_data
+delete_temporarily_saved_content_data, log_user_activity
 from redis3 import set_inter_user_ban, temporarily_save_user_csrf, remove_single_ban, is_already_banned, get_banned_users, \
 save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, tutorial_unseen, retrieve_user_world_age
 from score import PHOTO_REPORT_PROMPT,TEXT_REPORT_PROMPT, HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES,\
 MEHFIL_REPORT_PROMPT, PROFILE_REPORT_PROMPT, GET_TEXT_REPORT_HELP_LABEL, GET_PHOTO_REPORT_HELP_LABEL, GET_PROFILE_REPORT_HELP_LABEL,\
-GET_MEHFIL_REPORT_HELP_LABEL
+GET_MEHFIL_REPORT_HELP_LABEL, SEGMENT_STARTING_USER_ID
 from redis7 import get_complaint_details, has_super_privilege, get_content_complaints, delete_complaint, \
 get_num_complaints, in_defenders, get_votes, rate_limit_complainer, in_defs_forever, get_complainer_ids, retrieve_top_complainer_reputation, \
 log_banning, get_defenders_ledger, get_global_admins_ledger, is_content_voting_closed, remove_defender, get_payables, retrieve_all_defenders, \
@@ -84,12 +84,12 @@ def banned_users_list(request):
 		banned_users_with_ttl = []
 		for user in banned_users:
 			banned_users_with_ttl.append((user,banned_ids_to_show_with_ttl[user.id]))
-		return render(request,"judgement/banned_users_list.html",{'banned_users_with_ttl':banned_users_with_ttl,'females':FEMALES,\
+		return render(request,"judgement/banned_users_list.html",{'banned_users_with_ttl':banned_users_with_ttl,\
 			'status':request.session.pop("user_ban_change_status",None),'cooloff_ttl':request.session.pop("user_ban_cooloff_ttl",None),\
 			'target_username':request.session.pop("user_ban_cooloff_username",None)})
 	else:
 		return render(request,"judgement/banned_users_list.html",{'status':request.session.pop("user_ban_change_status",None),\
-			'females':None,'cooloff_ttl':request.session.pop("user_ban_cooloff_ttl",None),'banned_users_with_ttl':[],\
+			'cooloff_ttl':request.session.pop("user_ban_cooloff_ttl",None),'banned_users_with_ttl':[],\
 			'target_username':request.session.pop("user_ban_cooloff_username",None)})
 
 
@@ -168,6 +168,13 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					time_now = time.time()
 					banned, ttl = set_inter_user_ban(own_id=user_id, target_id=target_user_id, target_username=target_username, \
 						ttl=CONVERT_DUR_CODE_TO_DURATION[second_decision], time_now=time_now, can_unban=can_unban)
+					################### Retention activity logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'J' if request.mobile_verified else 'J.u'
+						activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
 					if banned is None and ttl:
 						request.session["user_ban_cooloff_username"] = target_username
 						request.session["user_ban_cooloff_ttl"] = ttl
@@ -223,6 +230,13 @@ def enter_inter_user_ban(request,*args,**kwargs):
 			elif target_user_id != user_id:
 				target_username = retrieve_uname(target_user_id,decode=True)
 				if target_username:
+					################### Retention activity logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z11' if request.mobile_verified else 'Z11.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_user_id}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
 					save_ban_target_credentials(own_id=user_id, target_id=target_user_id, target_username=target_username)
 					banner_id, existing_ttl = is_already_banned(own_id=user_id, target_id=target_user_id, return_banner=True)# already banned by the user
 					orig = request.POST.get("orig",None)
@@ -537,6 +551,7 @@ def content_culling_instructions(request):
 def cull_content_loc(request,obj_id,obj_type):
 	"""
 	Helps in landing back at exact spot when defender checks out object details in cull list (e.g. to see what the pixellated image actually is)
+	
 	"""
 	complaints = get_content_complaints()
 	try:
@@ -1930,7 +1945,12 @@ def report_content(request,*args,**kwargs):
 								return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 							else:
 								#charge the price and send the report
-								# UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
+								################### Retention activity logging ###################
+								if own_id > SEGMENT_STARTING_USER_ID:
+									time_now = time.time()
+									activity_dict = {'m':'GET','act':'K','t':time_now,'ot':tp}# defines what activity just took place
+									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+								##################################################################
 								return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':dup_obid,'oun':oun,'tp':tp,\
 									'payload':dup_description if tp == 'tx' else dup_image,'lid':lid})
 						else:
@@ -1992,7 +2012,12 @@ def report_content(request,*args,**kwargs):
 									return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 								else:
 									#go ahead and charge the price
-									# UserProfile.objects.filter(user_id=request.user.id).update(score=F('score')-prc)
+									################### Retention activity logging ###################
+									if own_id > SEGMENT_STARTING_USER_ID:
+										time_now = time.time()
+										activity_dict = {'m':'POST','act':'K','t':time_now,'ot':tp}# defines what activity just took place
+										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									##################################################################
 									return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':obid,'oun':oun,'tp':tp,\
 										'payload':description if tp == 'tx' else purl,'lid':lid})
 							except (TypeError,AttributeError):
@@ -2039,6 +2064,13 @@ def report_content(request,*args,**kwargs):
 						return return_to_content(request,orig,obid,lid,oun)
 				else:
 				# show options with radio buttons to reporting user (this is screen 1, it's the default people land on)
+					################### Retention activity logging ###################
+					if own_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z12' if request.mobile_verified else 'Z12.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
 					own_id = str(own_id)
 					# score = request.user.userprofile.score
 					# price_of_report = get_price(score)
@@ -2059,37 +2091,39 @@ def report_content(request,*args,**kwargs):
 					elif not request.mobile_verified:
 						return render(request,"verification/unable_to_submit_without_verifying.html",{'file_report':True})
 					else:
-						if type_of_content == 'tx':
-							content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
-							report_options = TEXT_REPORT_PROMPT
-						elif type_of_content == 'img':
-							content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
-							report_options = PHOTO_REPORT_PROMPT
-						else:
-							# if profile being reported - currently there is no way to stop double reporting
-							content_points = 0 #TODO: ensure double reporting of profiles cant happen
-							report_options = PROFILE_REPORT_PROMPT
-						if content_points < -98:
-							# disallow reporting (content already has really low score - probably already banned before)
-							request.session["redirect_reason"+own_id] = 'item_already_downgraded'
+						banned, time_remaining = check_content_and_voting_ban(own_id)
+						if banned:
+							#disallow reporting from users who're banned themselves
+							request.session["redirect_reason"+own_id] = 'reporter_is_banned'
 							request.session["redirect_orig"+own_id] = orig
 							request.session["redirect_oun"+own_id] = oun
 							request.session["redirect_lid"+own_id] = lid
 							request.session["redirect_obid"+own_id] = obj_id
 							return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
-						# elif price_of_report > score:
-						#   #disallow reporting (user doesn't have requisite score)
-						#   request.session["redirect_reason"+own_id] = 'not_enough_score'
-						#   request.session["redirect_orig"+own_id] = orig
-						#   request.session["redirect_oun"+own_id] = oun
-						#   request.session["redirect_lid"+own_id] = lid
-						#   request.session["redirect_obid"+own_id] = obj_id
-						#   return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 						else:
-							# show all report options to user
-							context={'obj_id':obj_id, 'reporting_self':reporting_self,'orig':orig,'purl':purl,'owner_uname':oun,'lid':lid,\
-							'rep_opt':ordered_list_of_tup(report_options),'cap':request.POST.get("cap",None),'tp':type_of_content,'oid':ooid}#'price':price_of_report,
-							return render(request,"judgement/content_report.html",context)
+							if type_of_content == 'tx':
+								content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
+								report_options = TEXT_REPORT_PROMPT
+							elif type_of_content == 'img':
+								content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
+								report_options = PHOTO_REPORT_PROMPT
+							else:
+								# if profile being reported - currently there is no way to stop double reporting
+								content_points = 0 #TODO: ensure double reporting of profiles cant happen
+								report_options = PROFILE_REPORT_PROMPT
+							if content_points < -98:
+								# disallow reporting (content already has really low score - probably already banned before)
+								request.session["redirect_reason"+own_id] = 'item_already_downgraded'
+								request.session["redirect_orig"+own_id] = orig
+								request.session["redirect_oun"+own_id] = oun
+								request.session["redirect_lid"+own_id] = lid
+								request.session["redirect_obid"+own_id] = obj_id
+								return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
+							else:
+								# show all report options to user
+								context={'obj_id':obj_id, 'reporting_self':reporting_self,'orig':orig,'purl':purl,'owner_uname':oun,'lid':lid,\
+								'rep_opt':ordered_list_of_tup(report_options),'cap':request.POST.get("cap",None),'tp':type_of_content,'oid':ooid}#'price':price_of_report,
+								return render(request,"judgement/content_report.html",context)
 	else:
 		return redirect("missing_page")
 
@@ -2104,7 +2138,7 @@ def notify_and_redirect(request):
 	owner_uname = request.session.pop("redirect_oun"+own_id,None)
 	link_id = request.session.pop("redirect_lid"+own_id,None)
 	obj_id = request.session.pop("redirect_obid"+own_id,None)
-	if reason in ('not_your_ban','locked_by_super','reporting_own_content','temp_data_missing','cannot_ban_self','not_enough_score',\
+	if reason in ('not_your_ban','locked_by_super','reporting_own_content','temp_data_missing','cannot_ban_self','reporter_is_banned',\
 		'item_already_downgraded','not_original','report_tinkered'):
 		return render(request,"judgement/notify_and_redirect.html",{reason:True,'orig':origin,'oun':owner_uname,'lid':link_id,'obid':obj_id})
 	elif reason == 'ban_edited':

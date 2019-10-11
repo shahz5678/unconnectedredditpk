@@ -1,14 +1,8 @@
 <form method="post" action="{% url 'home_reply' pk=link_id %}">
 {% csrf_token %}
-<input type="hidden" name="tp" value="{{ tp }}">
-<input type="hidden" name="sk" value="{{ sk }}">
-<input type="hidden" name="lang" value="{{ lang }}">
-<input type="hidden" name="origin" value="{{ origin }}">
-<input type="hidden" name="sort_by" value="{{ sort_by }}">
-<input type="hidden" name="user_id" value="{{ user_id }}">
-<input type="hidden" name="lwpk" value="{{ link_writer_pk }}">
+<input type="hidden" name="tp" value="{{ tp }}"><input type="hidden" name="sk" value="{{ sk }}"><input type="hidden" name="lang" value="{{ lang }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="sort_by" value="{{ sort_by }}"><input type="hidden" name="user_id" value="{{ user_id }}"><input type="hidden" name="lwpk" value="{{ link_writer_pk }}">
 <div class="box-with-button-right" style="max-width:750px; border-radius:4px;background-color:transparent;box-shadow: 0 1px 3px 0 rgba(0,0,0,0.13);">
     {{ replyform.description }}
-    <button type="submit" class="bct pg_ok_res" style="border-top-right-radius:4px; border-bottom-right-radius:4px;">jawab&nbsp;do</button>
+    <button type="submit" class="bct pg_ok_res sp" style="border-top-right-radius:4px; border-bottom-right-radius:4px;">reply</button>
 </div>
 </form>

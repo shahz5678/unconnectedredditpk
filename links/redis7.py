@@ -2352,7 +2352,7 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 				handpicked_prob = None# a sybil locks the content, and can never get it into trending, hence this prob is 0 (we use 'None' for programmatic reasons)
 				is_sybil = True#a generic sybil in this case
 			else:
-				if world_age_discount < 5:
+				if world_age_discount < 1.0:
 					# voter is not experienced enough
 					handpicked_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
 				elif my_server.zcount(GLOBAL_EDITORIAL_LIKES_ON_IMGS, voter_id, voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+1):
@@ -2407,7 +2407,7 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 				is_vote_counted = False
 				is_sybil = True
 			else:
-				if world_age_discount < 5:
+				if world_age_discount < 1.0:
 					# voter is not experienced enough
 					is_vote_counted = False
 				elif my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+5):

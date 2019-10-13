@@ -18,7 +18,7 @@ from urls_judgement import urlpatterns as urlpatterns_judgement
 from urls_voting import urlpatterns as urlpatterns_voting
 from urls_search import urlpatterns as urlpatterns_search
 from urls_push_notif import urlpatterns as urlpatterns_push_notif
-from urls_direct_response import urlpatterns as urlpatterns_direct_response
+# from urls_direct_response import urlpatterns as urlpatterns_direct_response
 from urls_topics import urlpatterns as urlpatterns_topics
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
@@ -234,7 +234,7 @@ urlpatterns += urlpatterns_judgement
 urlpatterns += urlpatterns_voting
 urlpatterns += urlpatterns_search
 urlpatterns += urlpatterns_push_notif
-urlpatterns += urlpatterns_direct_response
+# urlpatterns += urlpatterns_direct_response
 urlpatterns += urlpatterns_topics# must always be the last thing object to be concatenated
 
 handler404 = 'links.error_views.not_found'

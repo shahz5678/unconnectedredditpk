@@ -18,7 +18,7 @@ from urls_judgement import urlpatterns as urlpatterns_judgement
 from urls_voting import urlpatterns as urlpatterns_voting
 from urls_search import urlpatterns as urlpatterns_search
 from urls_push_notif import urlpatterns as urlpatterns_push_notif
-# from urls_direct_response import urlpatterns as urlpatterns_direct_response
+from urls_direct_response import urlpatterns as urlpatterns_direct_response
 from urls_topics import urlpatterns as urlpatterns_topics
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
@@ -42,7 +42,7 @@ CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, Verify
 AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, AdTitleYesNoView, AdImageYesNoView,\
 AdImageView#, UserProfilePhotosView
 from links.voting_views import user_vote_history
-from links.announcement_views import export_survey_results, coming_soon, survey
+from links.announcement_views import export_survey_results, coming_soon#, survey
 from links.group_views import show_shared_photo_metrics
 
 admin.autodiscover()
@@ -209,7 +209,7 @@ urlpatterns = patterns('',
 	url(r'^kick_ban_user/$', auth(kick_ban_user),name='kick_ban_user'),
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
 	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
-	url(r'^survey/answers/$', auth(survey),name='survey'),
+	# url(r'^survey/answers/$', auth(survey),name='survey'),
 	url(r'^survey/export/$', auth(export_survey_results), name='export_survey_results'),
 	url(r'^announcement/new/$', auth(coming_soon), name='coming_soon'),
 	#################################################################################################
@@ -234,7 +234,7 @@ urlpatterns += urlpatterns_judgement
 urlpatterns += urlpatterns_voting
 urlpatterns += urlpatterns_search
 urlpatterns += urlpatterns_push_notif
-# urlpatterns += urlpatterns_direct_response
+urlpatterns += urlpatterns_direct_response
 urlpatterns += urlpatterns_topics# must always be the last thing object to be concatenated
 
 handler404 = 'links.error_views.not_found'

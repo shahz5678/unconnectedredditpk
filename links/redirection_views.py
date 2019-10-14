@@ -67,10 +67,10 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 			return redirect("photo",list_type='fresh-list')
 	elif origin == '7':
 		# originated from shared photos page
-		if target_uname:
-			return redirect("show_shared_photo_metrics", target_uname)
-		else:
-			return redirect("photo",list_type='fresh-list')
+		# if target_uname:
+		# 	return redirect("show_shared_photo_metrics", target_uname)
+		# else:
+		return redirect("photo",list_type='fresh-list')
 	elif origin == '8':
 		# originated from home history
 		if target_uname:
@@ -104,7 +104,7 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		return redirect(url)
 	elif origin == '16':
 		# originated from a public group
-		url = reverse_lazy("public_group",kwargs={'slug': obj_id})
+		url = reverse_lazy("public_group",kwargs={'slug': obj_id})#obj_id contains group_uuid, otherwise it won't work
 		return redirect(url)
 	elif origin == '17':
 		# originated from private chat list
@@ -122,9 +122,9 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		url = reverse_lazy("online_kon")+"#top"
 		return redirect(url)
 	# elif origin == '24':
-	# 	# originated from direct response page
-	# 	url = reverse_lazy("retrieve_direct_responses")
-	# 	return redirect(url)
+		# originated from direct response page
+		# url = reverse_lazy("retrieve_direct_responses")
+		# return redirect(url)
 	elif origin == '25':
 		# originated from 'upvoting' history page
 		return redirect('user_vote_history')

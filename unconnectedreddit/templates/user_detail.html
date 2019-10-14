@@ -186,9 +186,11 @@
 	  {% endif %}
 
 	  {% if is_defender and trending_pts %}
-	  <b class="cm sp lsp" style="color:darkgray">Trending points:</b>
+	  <b class="cm sp lsp" style="color:darkgray">Trending score:</b>
       {{ trending_pts }}
       <hr size=1 COLOR="#f4f4f4">
+      	<!-- "i.e. ye points barhaney ke liye apki zyada se zyada posts trending mein jani chahiyen"
+		"post trending mein janey ka tareeqa ye hai: <link>" -->
 	  {% endif %}
 
       <b class="cm sp lsp" style="color:darkgray">Total fans:</b>
@@ -207,8 +209,7 @@
       <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ stars }}</button>
       </a>
       <hr size=1 COLOR="#f4f4f4">
-      <b class="cm sp lsp" style="color:darkgray">Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' username %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">fotos</button></a>
-      <hr size=1 COLOR="#f4f4f4">
+
 		<b class="cm sp lsp" style="color:darkgray">Blocked users:</b>
 		<a href="{% url 'banned_users_list' %}#section0" class="cs">
 		<button class="btn" style="background-color:tomato;padding:2px 5px;height:22px">{{ blocked }}</button>
@@ -228,7 +229,7 @@
 		  {% endif %}
 
 		  {% if is_defender and trending_pts %}
-		  <b class="cm sp lsp" style="color:darkgray">Trending points:</b>
+		  <b class="cm sp lsp" style="color:darkgray">Trending score:</b>
 	      {{ trending_pts }}
 	      <hr size=1 COLOR="#f4f4f4">
 		  {% endif %}
@@ -238,8 +239,7 @@
 	      <hr size=1 COLOR="#f4f4f4">
 	      <b class="cm sp lsp" style="color:darkgray">Recent fans:</b>
 	      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn mrl" style="height:22px;background-color:#1edea8;padding:2px 5px">{{ recent_fans }}</button></a>
-	      <hr size=1 COLOR="#f4f4f4">
-	      <b class="cm sp lsp" style="color:darkgray">Most shared:</b>&nbsp;<a href="{% url 'show_shared_photo_metrics' username %}"><button type="submit" class="btn nw sp bm" style="background-color:#1edea8;padding:2px 0px;height:22px">fotos</button></a>
+	     
 		</div>
 
   {% endif %}

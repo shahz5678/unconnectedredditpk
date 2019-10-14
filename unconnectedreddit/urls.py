@@ -43,7 +43,7 @@ AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCom
 AdImageView#, UserProfilePhotosView
 from links.voting_views import user_vote_history
 from links.announcement_views import export_survey_results, coming_soon#, survey
-from links.group_views import show_shared_photo_metrics
+# from links.group_views import show_shared_photo_metrics
 
 admin.autodiscover()
 
@@ -72,7 +72,7 @@ urlpatterns = patterns('',
 	################################################################################################
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
-	url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
+	# url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
 	url(r'^user/likes/history/$', auth(user_vote_history), name='user_vote_history'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', user_profile_photos, name='profile'),

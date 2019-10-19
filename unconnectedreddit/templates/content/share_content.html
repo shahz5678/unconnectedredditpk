@@ -13,7 +13,7 @@ background: linear-gradient(135deg, rgba(153,121,251,1) 0%, rgba(250,91,98,1) 88
 <div style="padding:10px;border-bottom-left-radius:0;border-bottom-right-radius:0;color:snow" class="bizcard cxl sp lsp">Mazedar photos share kar ke <b>red star</b> hasil karein!
 </div>
 
-{% cache 1000 sharing_opts %}
+{% cache 1000 2haring_opts %}
 <div class="cxl lsp" style="padding:10px 0px 20px 0px;background:0 0;border-top:1px solid white;color:snow">Kya share karna hai?</div>
 <div class="fx fxjscn fxaicn" style="padding-bottom:30px;background:0 0">
 
@@ -23,7 +23,7 @@ background: linear-gradient(135deg, rgba(153,121,251,1) 0%, rgba(250,91,98,1) 88
 
 </div>
 {% endcache %}
-<div style="margin:3px;">
+<div style="margin:2px;">
 <a href="{% url 'sharing_help' %}#section0">
 	<button class="pg_ok_res" style="background:snow;padding:10px;border:none;border-radius:0;overflow:hidden;width:100%;border-bottom-left-radius:9px;border-bottom-right-radius:9px">
 	<div class="sp cl"><img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18" style="vertical-align:sub" class="mrl"><b style="color:#fa5b62">How to be a star!</b></div>

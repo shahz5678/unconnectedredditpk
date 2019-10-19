@@ -5,29 +5,33 @@
 <style>body{background: #f0f3f4}</style>
 
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Share on Damadam:</span></h1>
-<div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;margin: 0 auto;max-width:450px;width:97%;padding:0;background-color:#6dc9e5;background:linear-gradient(90deg, #6dc9e5 0%, #ffb265 100%) ;text-align:center">
+<div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;margin: 0 auto;max-width:450px;width:97%;padding:0;background: rgb(153,121,251);
+background: -moz-linear-gradient(135deg, rgba(153,121,251,1) 0%, rgba(250,91,98,1) 88%);
+background: -webkit-linear-gradient(135deg, rgba(153,121,251,1) 0%, rgba(250,91,98,1) 88%);
+background: linear-gradient(135deg, rgba(153,121,251,1) 0%, rgba(250,91,98,1) 88%);text-align:center">
 
-{% if first_time %}
-<div style="padding:10px">
-<div style="background:floralwhite;padding:10px 5px" class="bizcard cl clb sp lsp">Sharing se pehlay aik dafa <a href="{% url 'sharing_help' %}" class="cb" style="border-bottom:1px dotted blue">sharing help</a> zarur dekh lein. Thank you!</div>
+<div style="padding:10px;border-bottom-left-radius:0;border-bottom-right-radius:0;color:snow" class="bizcard cxl sp lsp">Mazedar photos share kar ke <b>red star</b> hasil karein!
 </div>
-{% endif %}
 
-{% cache 6000 sharing_page %}
-<div class="cxl lsp" style="padding:10px 10px 20px 10px;background:white">Ap kya share karna chahtey hain?</div>
-<div class="fx fxjscn fxaicn" style="padding-bottom:30px;border-bottom:1px solid #E9EBEE;background:white">
+{% cache 1000 sharing_opts %}
+<div class="cxl lsp" style="padding:10px 0px 20px 0px;background:0 0;border-top:1px solid white;color:snow">Kya share karna hai?</div>
+<div class="fx fxjscn fxaicn" style="padding-bottom:30px;background:0 0">
 
-<a href="{% url 'link_create' %}#section0"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px;background-color:#3cb7dd" class="mrl pg_ok_res"><img src="{{ STATIC_URL }}img/share_text.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white;font-weight:bold" class="mts lsp sp">TEXT<br>POST</div></button></a>
+<a href="{% url 'upload_public_photo' %}#section0"><button style="border-radius:8px;border:1px solid white;width:100px;height:100px;background-color:white" class="mrl pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold" class="mts lsp sp">PHOTO<br>POST</div></button></a>
 
-<a href="{% url 'upload_public_photo' %}#section0"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px;background-color:#ff9933" class="mll pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:white;font-weight:bold" class="mts lsp sp">FOTO<br>POST</div></button></a>
+<a href="{% url 'link_create' %}#section0"><button style="border-radius:8px;border:1px solid white;width:100px;height:100px;background-color:white" class="mll pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POST</div></button></a>
 
 </div>
 {% endcache %}
+<div style="margin:3px;">
 <a href="{% url 'sharing_help' %}#section0">
-	<button class="pg_ok_res" style="background:0 0;padding-top:0.7em;padding-bottom:0.7em;border:none;width:100%"><div class="sp clw cl"><b>sharing help</b></div></button>
+	<button class="pg_ok_res" style="background:snow;padding:10px;border:none;border-radius:0;overflow:hidden;width:100%;border-bottom-left-radius:9px;border-bottom-right-radius:9px">
+	<div class="sp cl"><img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18" style="vertical-align:sub" class="mrl"><b style="color:#fa5b62">How to be a star!</b></div>
+	</button>
 </a>
 </div>
+</div>
 
-<br>
+<br><br>
 
 {% endblock %}

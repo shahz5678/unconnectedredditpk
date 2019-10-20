@@ -1471,7 +1471,8 @@ class UserProfileDetailView(FormView):
 			context["star_id"] = star_id
 			num_trending_pics = is_image_star(user_id=star_id)
 			context["is_star"] = int(num_trending_pics) if num_trending_pics else num_trending_pics
-			context["trending_pts"] = retreive_trending_rep(user_id=star_id)
+			star_score = retreive_trending_rep(user_id=star_id)
+			context["star_score"] = int(star_score) if star_score > 0 else 0
 			context["city_name"] = REV_CITY_DICT.get(user_profile.streak,0)
 			context["zodiac"] = ZODIAC.get(user_profile.attractiveness,'None')
 			user_id = str(user_id) if user_id else None

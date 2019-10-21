@@ -92,7 +92,7 @@ rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
-is_image_star, get_all_image_star_ids, retreive_trending_rep
+is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text
 from redis8 import retrieve_variation_subset, set_tutorial_seen
 # from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
@@ -4153,6 +4153,7 @@ def submit_text_post(request):
 							is_star=is_image_star(user_id=own_id), text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False))
 					rate_limit_content_sharing(own_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
 					set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
+					log_recent_text(own_id)# useful for text content rep creation (of the submitter)
 					url = reverse_lazy("home")+"#shared"
 					return redirect(url)
 				else:

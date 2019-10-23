@@ -68,7 +68,7 @@ COMPLAINER_ATTEMPT_SORTED_SET = "cass" # sorted set containing sorted (by volume
 COMPLAINER_CORRECT_SORTED_SET = "ccss" # sorted set containing sorted (by volume) instances of correct reports made by a user
 TOP_50_CACHED_DATA = "top_50_reporters" # key containing cached data of top 50 reporters
 
-MARKED_TROLL = 'trolls'# a sorted set containing users who have been marked as trolls by defenders
+TROLLS = 'trolls'# a sorted set containing users who have been marked as trolls by defenders
 
 CONTENT_SUBMISSION_AND_VOTING_BAN = "csv:"#prefix for hash containing details about a ban levied by a defender on a user
 CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regarding a potentially bannable user

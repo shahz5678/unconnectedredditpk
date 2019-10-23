@@ -164,7 +164,7 @@ def process_public_image(image, quality=None, already_resized=None, already_reor
 	img_width = image.width
 	if img_width < MIN_PUBLIC_IMG_WIDTH:
 		return None, 'too_narrow', None, None
-	elif float(image.height)/img_width > 7.0:
+	elif float(image.height)/img_width > 12.0:#7.0:
 		return None, 'too_high', None, None
 	else:
 		image = image if already_reoriented else reorient_image(image)

@@ -1276,10 +1276,9 @@ def many_short_messages(user_id,section,obj_id):
 
 ######################################## Logging abusive text on home ########################################
 
-HOME_TEXT = 'ht'# global sorted set containing text on home (for various NLP analysis)
+HOME_TEXT_POSTS = 'htp'# global sorted set containing text on home (for various NLP analysis)
 
-
-def log_home_post(user_id, text, is_urdu):
+def log_home_post(user_id, text, is_urdu, on_opera, on_fbs):
 	"""
 	Questions this can answer include:
 	1) Below what text length is text meaningless?
@@ -1288,11 +1287,9 @@ def log_home_post(user_id, text, is_urdu):
 	4) What length-wise categories can exist for text (to impart different kinds of formatting to it)
 	5) What are the categories of text (formatting wise) - e.g. poetry, prose, joke, question, news etc
 	"""
-	text_length = len(text)
-	posting_time = time.time()
-	json_payload = json.dumps({'text':text,'is_urdu':is_urdu,'posting_time':posting_time,'user_id':user_id,\
-		'username':retrieve_uname(user_id,decode=False),'text_length':text_length})
-	redis.Redis(connection_pool=POOL).zadd(HOME_TEXT,json_payload,user_id)
+	json_payload = json.dumps({'text':text,'is_urdu':is_urdu,'posting_time':time.time(),'user_id':user_id,\
+		'username':retrieve_uname(user_id,decode=False),'text_length':len(text),'on_fbs':on_fbs,'on_opera':on_opera})
+	redis.Redis(connection_pool=POOL).zadd(HOME_TEXT_POSTS,json_payload,user_id)
 
 
 def log_abusive_home_post(user_id, text):

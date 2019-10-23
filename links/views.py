@@ -4112,9 +4112,13 @@ def submit_text_post(request):
 			elif request.user_banned:
 				return redirect("error")
 			elif ttl:
-				return render(request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit})# this is wrongly named, but tells the user to wait
+				return render(request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit,\
+				'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
 			else:
-				form = LinkForm(request.POST,user_id=own_id)
+				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+				on_opera = True if (not on_fbs and not is_js_env) else False
+				form = LinkForm(request.POST,user_id=own_id, on_fbs=on_fbs, on_opera=on_opera)
 				if form.is_valid():
 					description = form.cleaned_data['description']
 					alignment = form.cleaned_data['alignment']
@@ -4137,7 +4141,7 @@ def submit_text_post(request):
 						log_text_submissions('topic')#Logs the number of submisions in topic vs number of submissions of regular text posts
 						add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
 							submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now, \
-							text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=form.cleaned_data['turl'], \
+							text=description, from_fbs=on_fbs, topic_url=form.cleaned_data['turl'], \
 							topic_name= form.cleaned_data['tname'] ,bg_theme=form.cleaned_data['bgt'], add_to_public_feed=True,\
 							submitter_username=submitter_name)
 					else:
@@ -4150,7 +4154,7 @@ def submit_text_post(request):
 						log_text_submissions('text')
 						add_text_post(obj_id=obj_id, categ=alignment, submitter_id=own_id, submitter_av_url=av_url, \
 							submitter_username=submitter_name, submission_time=time_now, add_to_feed=True, \
-							is_star=is_image_star(user_id=own_id), text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False))
+							is_star=is_image_star(user_id=own_id), text=description, from_fbs=on_fbs)
 					rate_limit_content_sharing(own_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
 					set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
 					log_recent_text(own_id)# useful for text content rep creation (of the submitter)

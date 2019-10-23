@@ -185,7 +185,7 @@ def insert_hash(photo_id, photo_hash,categ=None):
 		if size < (limit+1):
 			my_server.zadd(set_name, photo_hash, photo_id)
 		else:
-		   my_server.zremrangebyrank(set_name, 0, (size-limit-1))
+		   my_server.zremrangebyrank(set_name, 0, 10)
 		   my_server.zadd(set_name, photo_hash, photo_id)
 	except:
 		my_server.zadd(set_name, photo_hash, photo_id)

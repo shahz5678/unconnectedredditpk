@@ -1,4 +1,18 @@
 <div>
+	<style type="text/css">
+	.main_txt > a {
+	  color: #01579B;
+	  text-decoration: none;
+	}
+
+	.main_txt > a:hover {
+	  text-decoration: underline;
+	}
+
+	.main_txt > a:active,.main_txt > a:visited {
+	  color: #01579B;
+	}
+	</style>
   {% if topic and show_topic %}
 	{% include "topics/topic_header.html" with topic_header=topic color1=c1 color2=c2 static_url=static_url topic_url=topic_url %}
   {% endif %}
@@ -14,6 +28,6 @@
 	</form>
   </div>
 </div>
-<div class="mbs mls mrs lsp" style="overflow:hidden">
-	{% if vsc|add:"0" < VDC or block_time_remaining %}<div class="mt cgy sp cs cxl" style="text-align:center">- mita diya gya -</div>{% else %}<h2 class="cxl clb mt mbs ow" style="text-align:{{ pos }};font-weight: 300" itemprop="text">{{ text }}</h2>{% endif %}
+<div class="mbs mls mrs lsp nos" style="overflow:hidden">
+	{% if vsc|add:"0" < VDC or block_time_remaining %}<div class="mt cgy sp cs cxl" style="text-align:center">- mita diya gya -</div>{% else %}<h2 class="cxl clb mt mbs ow main_txt" style="text-align:{{ pos }};font-weight: 300" itemprop="text">{{ text }}</h2>{% endif %}
 </div>

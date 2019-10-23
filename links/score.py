@@ -30,7 +30,7 @@ MIN_TOPIC_DESCRIPTION_SIZE = 20
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
-TRENDER_RANKS_TO_COUNT = 15 #of top trenders to be shown
+TRENDER_RANKS_TO_COUNT = 20 #of top trenders to be shown
 # SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 # SUPER_UPVOTE = 20# REMOVE
 # PERMANENT_RESIDENT_SCORE = 300#REMOVE

@@ -1449,7 +1449,9 @@ def submit_ban_category(request):
 				request.session["redirect_lid"+own_id] = request.POST.get("lid",None)
 				request.session["redirect_obid"+own_id] = request.POST.get("obid",None)
 				ban_time = request.POST.get("ban_time",None)
-				request.session["redirect_ban_time"+own_id] = float(ban_time) if ban_time else ban_time
+				ban_time = float(ban_time) if ban_time else ban_time
+				ban_time = '-1' if ban_time == -1 else ban_time
+				request.session["redirect_ban_time"+own_id] = ban_time
 
 				request.session.modified = True
 				return redirect("judge_not_and_red")#judgement modules notify_and_redirect function

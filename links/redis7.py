@@ -68,6 +68,7 @@ COMPLAINER_ATTEMPT_SORTED_SET = "cass" # sorted set containing sorted (by volume
 COMPLAINER_CORRECT_SORTED_SET = "ccss" # sorted set containing sorted (by volume) instances of correct reports made by a user
 TOP_50_CACHED_DATA = "top_50_reporters" # key containing cached data of top 50 reporters
 
+MARKED_TROLL = 'trolls'# a sorted set containing users who have been marked as trolls by defenders
 
 CONTENT_SUBMISSION_AND_VOTING_BAN = "csv:"#prefix for hash containing details about a ban levied by a defender on a user
 CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regarding a potentially bannable user
@@ -180,7 +181,7 @@ def insert_hash(photo_id, photo_hash,categ=None):
 		if categ == 'ecomm':
 			limit = 500
 		else:
-			limit = 10000
+			limit = 20000#10000
 		if size < (limit+1):
 			my_server.zadd(set_name, photo_hash, photo_id)
 		else:
@@ -2543,7 +2544,6 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
 			pipeline1.zadd(vote_store,own_id, 0 if handpicked_prob is None else handpicked_prob)#atomic
 			if is_sybil:
-				# lock images from trending
 				pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
 				pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
 			new_net_votes = pipeline1.execute()[0]
@@ -3436,6 +3436,20 @@ def is_ban_editing_locked(banned_id):
 		return True
 	else:
 		return False
+
+
+def is_abusive_troll(user_id):
+	"""
+	If user is an abusive troll, they ought to be rate-limited from submitting public posts
+	"""
+	return redis.Redis(connection_pool=POOL).zscore(TROLLS,user_id)
+
+
+def mark_abusive_troll(defender_id, target_user_id):
+	"""
+	When user write something excessively trollish and are banned, their public posts still remain curtailed
+	"""
+	redis.Redis(connection_pool=POOL).zadd(TROLLS,target_user_id,time.time())
 
 
 def impose_content_and_voting_ban(target_user_ids, target_usernames, ban_duration, current_time, banner_uname, obj_type, obj_id, obj_owner_uname, \

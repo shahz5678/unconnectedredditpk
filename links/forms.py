@@ -616,7 +616,7 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 								data['tpay'], data['turl'], data['tname'], data['bgt'] = bg_theme+":"+topic_name+":"+topic_url, topic_url, \
 								topic_name, bg_theme
 						##################################
-						log_home_post(user_id=user_id, text=description, is_urdu=data['alignment'], on_opera=on_opera, on_fbs=on_fbs)
+						# log_home_post(user_id=user_id, text=description, is_urdu=data['alignment'], on_opera=on_opera, on_fbs=on_fbs)
 						##################################
 						return data
 

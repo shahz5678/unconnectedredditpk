@@ -4116,9 +4116,9 @@ def submit_text_post(request):
 				'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
 			else:
 				on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-				on_opera = True if (not on_fbs and not is_js_env) else False
-				form = LinkForm(request.POST,user_id=own_id, on_fbs=on_fbs, on_opera=on_opera)
+				# is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+				# on_opera = True if (not on_fbs and not is_js_env) else False
+				form = LinkForm(request.POST,user_id=own_id)#, on_fbs=on_fbs, on_opera=on_opera)
 				if form.is_valid():
 					description = form.cleaned_data['description']
 					alignment = form.cleaned_data['alignment']

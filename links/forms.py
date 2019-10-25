@@ -555,13 +555,13 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
-		self.on_fbs = kwargs.pop('on_fbs',None)
-		self.on_opera = kwargs.pop('on_opera',None)
+		# self.on_fbs = kwargs.pop('on_fbs',None)
+		# self.on_opera = kwargs.pop('on_opera',None)
 		super(LinkForm, self).__init__(*args,**kwargs)
 		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #93d7ec solid; background-color:white;padding:7px;'
 
 	def clean(self):
-		on_fbs, on_opera = self.on_fbs, self.on_opera
+		# on_fbs, on_opera = self.on_fbs, self.on_opera
 		data = self.cleaned_data
 		description, user_id, section_id, section, secret_key_from_form, topic_url = data.get("description"), self.user_id, '1', 'home', \
 		data.get("sk"), data.get('turl',None)

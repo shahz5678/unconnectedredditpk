@@ -19,7 +19,7 @@ MAX_BIO_SIZE, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_REPLY_LENGTH
 from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
 Publicreply, VideoComment
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl, \
-is_attribute_change_rate_limited, log_home_post#, log_abusive_home_post
+is_attribute_change_rate_limited#, log_home_post#, log_abusive_home_post
 
 
 ########################################### Utilities #######################################

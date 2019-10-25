@@ -346,7 +346,7 @@ def get_cached_photo_dim(photo_id):
 	"""
 	key = 'pdim:'+photo_id
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.expire(key,THREE_DAYS)#extending life of cache
+	my_server.expire(key,TWO_WEEKS)#extending life of cache
 	return my_server.hmget(key,'h','w')
 
 
@@ -354,10 +354,10 @@ def cache_photo_dim(photo_id,img_height,img_width):
 	"""
 	Cache photo dimensions for use in photo sharing to personal groups
 	"""
-	mapping, key = {'h':img_height,'w':img_width}, 'pdim:'+photo_id
+	key ='pdim:'+photo_id
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.hmset(key,mapping)
-	my_server.expire(key,THREE_DAYS)
+	my_server.hmset(key,{'h':img_height,'w':img_width})
+	my_server.expire(key,TWO_WEEKS)
 
 
 def retrieve_photo_data(photo_ids, owner_id):

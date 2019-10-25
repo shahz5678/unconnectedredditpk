@@ -1277,6 +1277,7 @@ def many_short_messages(user_id,section,obj_id):
 ######################################## Logging abusive text on home ########################################
 
 HOME_TEXT_POSTS = 'htp'# global sorted set containing text on home (for various NLP analysis)
+PUBLIC_IMG_POSTS = 'pip'# global sorted set containing img data (for various analysis)
 
 def log_home_post(user_id, text, is_urdu, on_opera, on_fbs):
 	"""
@@ -1290,6 +1291,19 @@ def log_home_post(user_id, text, is_urdu, on_opera, on_fbs):
 	json_payload = json.dumps({'text':text,'is_urdu':is_urdu,'posting_time':time.time(),'user_id':user_id,\
 		'username':retrieve_uname(user_id,decode=False),'text_length':len(text),'on_fbs':on_fbs,'on_opera':on_opera})
 	redis.Redis(connection_pool=POOL).zadd(HOME_TEXT_POSTS,json_payload,user_id)
+
+
+def log_public_img(user_id, on_opera, on_fbs, img_width, img_height):
+	"""
+	Questions this can help answer include:
+
+	1) How many users use opera mini to upload images?
+	2) How many fbs users are uploading images?
+	3) What aspect-ratio imgs are mostly uploaded on the app?
+	"""
+	json_payload = json.dumps({'posting_time':time.time(),'user_id':user_id,'on_fbs':on_fbs,'on_opera':on_opera,\
+		'username':retrieve_uname(user_id,decode=False),'w':img_width,'h':img_height})
+	redis.Redis(connection_pool=POOL).zadd(PUBLIC_IMG_POSTS,json_payload,user_id)
 
 
 def log_abusive_home_post(user_id, text):

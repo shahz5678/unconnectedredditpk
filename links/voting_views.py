@@ -440,35 +440,39 @@ def export_voting_reputation_records(request):
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		data_to_write_to_csv = None
-		if data_to_write_to_csv:
-			import csv
-			filename = 'voting_and_content_reputation_data.csv'
-			with open(filename,'wb') as f:
-				wtr = csv.writer(f)
-				columns = []
-				
-				wtr.writerow(columns)
-				for data in data_to_write_to_csv:
-					to_write = [data['vid'], data['wad'], 'upvote', data['vt'], data['ss'], data.get('num_sybs','-'),\
-					data['toid'], data['tuid'], data['tv'], data.get('hp','-'), data.get('tos','-')]
-					wtr.writerows([to_write])
-		#################################################
-		# from redis4 import retrieve_abusive_home_posts
-		# data_to_write_to_csv = retrieve_abusive_home_posts()
+		# data_to_write_to_csv = None
 		# if data_to_write_to_csv:
 		# 	import csv
-		# 	filename = 'home_abuse_logs.csv'
+		# 	filename = 'voting_and_content_reputation_data.csv'
 		# 	with open(filename,'wb') as f:
 		# 		wtr = csv.writer(f)
-		# 		columns = ["posting time (human)","posting time (epoch)","writer_id","text"]
+		# 		columns = []
+				
 		# 		wtr.writerow(columns)
-		# 		for text_and_time, writer_id in data_to_write_to_csv:
-		# 			data = text_and_time.rpartition(":")
-		# 			posting_epoch_time = data[2]
-		# 			posting_human_time = exact_date(float(posting_epoch_time))
-		# 			to_write = [posting_human_time,posting_epoch_time,writer_id,data[0]]
+		# 		for data in data_to_write_to_csv:
+		# 			to_write = [data['vid'], data['wad'], 'upvote', data['vt'], data['ss'], data.get('num_sybs','-'),\
+		# 			data['toid'], data['tuid'], data['tv'], data.get('hp','-'), data.get('tos','-')]
 		# 			wtr.writerows([to_write])
+		#################################################
+		from redis4 import retrieve_home_post_logs
+		data_to_write_to_csv = retrieve_home_post_logs()
+		if data_to_write_to_csv:
+			import csv
+			filename = 'home_post_logs.csv'
+			with open(filename,'wb') as f:
+				wtr = csv.writer(f)
+				columns = ["posting time (human)","posting time (epoch)","writer_id","username","is_fbs","is_opera_mini","is_urdu","char_len","text"]
+				wtr.writerow(columns)
+				for json_data, writer_id in data_to_write_to_csv:
+					try:
+						data = json.loads(json_data)
+					except:
+						data = json_backup.loads(json_data)
+					posting_epoch_time = data['posting_time']
+					posting_human_time = exact_date(float(posting_epoch_time))
+					to_write = [posting_human_time,posting_epoch_time,writer_id,data['username'],data['on_fbs'],data['on_opera'],data['is_urdu'],\
+					data['text_length'],data['text']]
+					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 
 

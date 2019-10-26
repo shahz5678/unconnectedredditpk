@@ -70,7 +70,7 @@ from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
 cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data, set_attribute_change_rate_limit,\
-retrieve_image_count, cache_image_count
+retrieve_image_count, cache_image_count, log_public_img
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
@@ -2697,6 +2697,13 @@ def upload_public_photo(request,*args,**kwargs):
 					photo = Photo.objects.create(image_file = image_file, owner=user, caption=caption, comment_count=0, avg_hash=avghash, \
 						invisible_score=invisible_score)
 					photo_id = photo.id
+					##########################
+					img_height, img_width = photo.image_file.height, photo.image_file.width
+					cache_photo_dim(str(photo_id),img_height,img_width)
+					is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+					on_opera = True if (not on_fbs and not is_js_env) else False
+					log_public_img(user_id=user_id, on_opera=on_opera, on_fbs=on_fbs, img_width=img_width, img_height=img_height)
+					##########################
 					datetime_obj = photo.upload_time
 					epochtime = convert_to_epoch(datetime_obj)
 					banned = '1' if request.user_banned else '0'

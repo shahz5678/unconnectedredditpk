@@ -1279,6 +1279,14 @@ def many_short_messages(user_id,section,obj_id):
 HOME_TEXT_POSTS = 'htp'# global sorted set containing text on home (for various NLP analysis)
 PUBLIC_IMG_POSTS = 'pip'# global sorted set containing img data (for various analysis)
 
+
+def retrieve_home_post_logs():
+	"""
+	Retrieves logs saved by log_home_post()
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(HOME_TEXT_POSTS,0,-1,withscores=True)
+
+
 def log_home_post(user_id, text, is_urdu, on_opera, on_fbs):
 	"""
 	Questions this can answer include:

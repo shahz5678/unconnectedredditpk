@@ -470,12 +470,8 @@ def export_voting_reputation_records(request):
 						data = json_backup.loads(json_data)
 					posting_epoch_time = data['posting_time']
 					posting_human_time = exact_date(float(posting_epoch_time))
-					try:
-						text = data['text'].encode('utf-8')
-					except:
-						text = '*** encoding error ***'
-					to_write = [posting_human_time,posting_epoch_time,writer_id,data['username'],data['on_fbs'],data['on_opera'],data['is_urdu'],\
-					data['text_length'],text]
+					to_write = [posting_human_time,posting_epoch_time,writer_id,data['username'].encode('utf-8'),data['on_fbs'],data['on_opera'],\
+					data['is_urdu'],data['text_length'],data['text'].encode('utf-8')]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

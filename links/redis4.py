@@ -1280,11 +1280,11 @@ HOME_TEXT_POSTS = 'htp'# global sorted set containing text on home (for various 
 PUBLIC_IMG_POSTS = 'pip'# global sorted set containing img data (for various analysis)
 
 
-def retrieve_home_post_logs():
+def retrieve_public_img_logs():
 	"""
-	Retrieves logs saved by log_home_post()
+	Retrieves logs saved by log_public_img()
 	"""
-	return redis.Redis(connection_pool=POOL).zrange(HOME_TEXT_POSTS,0,-1,withscores=True)
+	return redis.Redis(connection_pool=POOL).zrange(PUBLIC_IMG_POSTS,0,-1,withscores=True)
 
 
 def log_home_post(user_id, text, is_urdu, on_opera, on_fbs):

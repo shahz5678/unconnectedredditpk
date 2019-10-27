@@ -454,24 +454,24 @@ def export_voting_reputation_records(request):
 		# 			data['toid'], data['tuid'], data['tv'], data.get('hp','-'), data.get('tos','-')]
 		# 			wtr.writerows([to_write])
 		#################################################
-		from redis4 import retrieve_home_post_logs
-		data_to_write_to_csv = retrieve_home_post_logs()
+		from redis4 import retrieve_public_img_logs
+		data_to_write_to_csv = retrieve_public_img_logs()
 		if data_to_write_to_csv:
 			import csv
-			filename = 'home_post_logs.csv'
+			filename = 'public_img_logs.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["posting time (human)","posting time (epoch)","writer_id","username","is_fbs","is_opera_mini","is_urdu","char_len","text"]
+				columns = ["posting time (human)","posting time (epoch)","uploader_id","username","is_fbs","is_opera_mini","img_width","img_height"]
 				wtr.writerow(columns)
-				for json_data, writer_id in data_to_write_to_csv:
+				for json_data, uploader_id in data_to_write_to_csv:
 					try:
 						data = json.loads(json_data)
 					except:
 						data = json_backup.loads(json_data)
 					posting_epoch_time = data['posting_time']
 					posting_human_time = exact_date(float(posting_epoch_time))
-					to_write = [posting_human_time,posting_epoch_time,writer_id,data['username'].encode('utf-8'),data['on_fbs'],data['on_opera'],\
-					data['is_urdu'],data['text_length'],data['text'].encode('utf-8')]
+					to_write = [posting_human_time,posting_epoch_time,uploader_id,data['username'].encode('utf-8'),data['on_fbs'],data['on_opera'],\
+					data['w'],data['h']]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

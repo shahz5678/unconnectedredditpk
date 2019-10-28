@@ -465,75 +465,83 @@ def submit_topic_post(request,topic_url):
 	"""
 	own_id = request.user.id
 	if request.method == "POST":
-		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-		if banned:
-			return render(request, 'links/link_form.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,\
-				'own_profile':True,'defender':None,'is_profile_banned':True})
+		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		on_opera = True if (not on_fbs and not is_js_env) else False
+		if on_opera:
+			# disallowing opera mini users from posting public text posts on topics
+			# mislabeled template - used to show some generic errors and such to posters
+			return render(request, 'error_photo.html', {'opera_detected':True, 'topic':topic_url})
 		else:
-			topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_name=True, with_theme=True, \
-				with_is_subscribed=True, retriever_id=own_id)
-			if is_subscribed:
-				time_now = time.time()
-				mobile_verified = request.mobile_verified
-				if not mobile_verified:
-					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						activity_dict = {'m':'POST','act':'W4.u','t':time_now}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
-					return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
-				elif request.user_banned:
-					return redirect("error")
-				else:
-					ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
-					if ttl:
-						# this is wrongly named, but tells the user to wait
-						return render(request, 'error_photo.html', {'time':ttl,'origin':'22','tp':type_of_rate_limit,'topic_url':topic_url})
-					else:
-						banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-						if banned:
-							# Cannot submit topic contribution if banned
-							request.session["origin_topic"] = topic_url
-							return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-								'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'22'})
-						else:
-							form = SubmitInTopicForm(request.POST,user_id=own_id)
-							if form.is_valid():
-								text = form.cleaned_data['description']
-								alignment = form.cleaned_data['alignment']
-								submitter_name, av_url = retrieve_credentials(own_id,decode_uname=True)
-								# parking bg_theme, topic url and name in 'url'
-								obj = Link.objects.create(description=text, submitter_id=own_id, cagtegory=alignment, \
-									url=bg_theme+":"+topic_name+":"+topic_url)
-								obj_id = obj.id
-								obj_hash = "tx:"+str(obj_id)
-								add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
-									submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now,\
-									text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=topic_url, \
-									topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True, submitter_username=submitter_name)
-								log_text_submissions('topic')
-								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
-								set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
-								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-								###################################################################
-								return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
-							else:
-								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									request.session['rd'] = '1'
-									activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-								###################################################################
-								error_string = form.errors.as_text().split("*")[2]
-								if error_string:
-									request.session["validation_error"] = error_string
-								return redirect("topic_page", topic_url=topic_url)
+			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			if banned:
+				return render(request, 'links/link_form.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,\
+					'own_profile':True,'defender':None,'is_profile_banned':True})
 			else:
-				# Some kind of error, just redirect to topic page
-				return redirect("topic_page", topic_url=topic_url)
+				topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_name=True, with_theme=True, \
+					with_is_subscribed=True, retriever_id=own_id)
+				if is_subscribed:
+					time_now = time.time()
+					mobile_verified = request.mobile_verified
+					if not mobile_verified:
+						################### Retention activity logging ###################
+						if own_id > SEGMENT_STARTING_USER_ID:
+							activity_dict = {'m':'POST','act':'W4.u','t':time_now}
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						###################################################################
+						return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
+					elif request.user_banned:
+						return redirect("error")
+					else:
+						ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
+						if ttl:
+							# this is wrongly named, but tells the user to wait
+							return render(request, 'error_photo.html', {'time':ttl,'origin':'22','tp':type_of_rate_limit,'topic_url':topic_url})
+						else:
+							banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+							if banned:
+								# Cannot submit topic contribution if banned
+								request.session["origin_topic"] = topic_url
+								return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+									'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'22'})
+							else:
+								form = SubmitInTopicForm(request.POST,user_id=own_id)
+								if form.is_valid():
+									text = form.cleaned_data['description']
+									alignment = form.cleaned_data['alignment']
+									submitter_name, av_url = retrieve_credentials(own_id,decode_uname=True)
+									# parking bg_theme, topic url and name in 'url'
+									obj = Link.objects.create(description=text, submitter_id=own_id, cagtegory=alignment, \
+										url=bg_theme+":"+topic_name+":"+topic_url)
+									obj_id = obj.id
+									obj_hash = "tx:"+str(obj_id)
+									add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
+										submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now,\
+										text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=topic_url, \
+										topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True, submitter_username=submitter_name)
+									log_text_submissions('topic')
+									rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
+									set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
+									################### Retention activity logging ###################
+									if own_id > SEGMENT_STARTING_USER_ID:
+										activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
+										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									###################################################################
+									return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
+								else:
+									################### Retention activity logging ###################
+									if own_id > SEGMENT_STARTING_USER_ID:
+										request.session['rd'] = '1'
+										activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
+										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									###################################################################
+									error_string = form.errors.as_text().split("*")[2]
+									if error_string:
+										request.session["validation_error"] = error_string
+									return redirect("topic_page", topic_url=topic_url)
+				else:
+					# Some kind of error, just redirect to topic page
+					return redirect("topic_page", topic_url=topic_url)
 	else:
 		# this is a GET request
 		return redirect("topic_page",topic_url=topic_url)

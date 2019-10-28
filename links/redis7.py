@@ -8,9 +8,10 @@ from django.db.models import F
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
-TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME
+TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME, PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from redis3 import retrieve_user_world_age, exact_date
+from abuse import FLAGGED_PUBLIC_TEXT_POSTING_WORDS
 from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
 from colors import COLOR_GRADIENTS
@@ -155,6 +156,8 @@ GLOBAL_SUBMITTED_TXT_VOLUME = 'gstv'# global sorted set containing num text post
 GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS = 'ghrhto'# sorted set containing number of text posts that received likes from high-rep voters (per submitter)
 GLOBAL_TXT_SUBMITTER_HIGH_REP_HANDPICKER_BASED_REP = 'gtshrhbr' # global sorted set containing the content 'rep' of txt submitters, based on handpicking by 'high-rep' voters (whose rep is sourced by handpick img rep)
 
+GLOBAL_RECENT_PUBLIC_TEXTS = 'grpt'# sorted set containing previous ~800 posts - useful for catching dups
+
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
 ##################################################################################################################
@@ -181,7 +184,7 @@ def insert_hash(photo_id, photo_hash,categ=None):
 		if categ == 'ecomm':
 			limit = 500
 		else:
-			limit = 20000#10000
+			limit = 50000
 		if size < (limit+1):
 			my_server.zadd(set_name, photo_hash, photo_id)
 		else:
@@ -204,6 +207,7 @@ def delete_avg_hash(hash_list, categ=None):
 ########################################## Content posted on the platform ########################################  
 ##################################################################################################################
 
+FLAGGED_PUBLIC_TEXTS_LOG = 'flagged'# remove once purpose is served
 
 def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, text, submission_time, \
 	from_fbs, add_to_feed=False):
@@ -220,12 +224,40 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 	if is_star:
 		immutable_data['s']='1'
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
+	my_server = redis.Redis(connection_pool=POOL)
+
+	######################################################
+	# flagging low quality posts based on certain text criteria
+	
+	if len(text) < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
+		# 'short post': this can never trend because short-posts are considered low-quality
+		mapping['sp'] = '1'
+	
+	flag_text, flagged_word = False, ''
+	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
+		if word in text:
+			flag_text = True
+			flagged_word = word
+			break
+	if flag_text:
+		# 'illegal words': this post is blocked from trending forever
+		mapping['iw'] = '1'
+		########### REMOVE ###########
+		my_server.lpush(FLAGGED_PUBLIC_TEXTS_LOG,flagged_word+":"+text)
+		if random() < 0.2:
+			my_server.ltrim(FLAGGED_PUBLIC_TEXTS_LOG, 0, 999)
+
+	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,text.lower()):
+		# text is being repeated within the last 800 posts
+		mapping['rt'] = '1'# 'repeated text': this post is repetitive, and therefore blocked from trending forever
+	######################################################
+	
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
-	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(hash_name,mapping)
 	pipeline1.expireat(hash_name,expire_at)#setting ttl to one day
+	
 	#### initialize voting sorted set ####
 	obj_vote_store_key = VOTE_ON_TXT+obj_id
 	pipeline1.zadd(obj_vote_store_key,-1,-1)
@@ -670,13 +702,29 @@ def save_recent_photo(user_id, photo_id):
 	my_server.zincrby(GLOBAL_UPLOADED_IMG_VOLUME,user_id,amount=1)
 
 
-def log_recent_text(user_id):
+def log_recent_text(user_id, description):
 	"""
-	Log volume of text uploaded by each user - useful for 'rep' calculation
+	Does various text logging (for multiple purposes)
+
+	1) Log volume of text uploaded by each user - useful for 'content rep' calculation
+	2) Log the posting time of the user - useful for calculating user activeness
+	3) Log prev 800 texts to mark repetition - useful for marking repetitions
 	"""
+	time_now = time.time()
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.setex(MOST_RECENT_TEXT_SUBMISSION_TIME+str(user_id),time.time(),ONE_MONTH)
+
+	# setting last posting time for each poster
+	my_server.setex(MOST_RECENT_TEXT_SUBMISSION_TIME+str(user_id),time_now,ONE_MONTH)
+	
+	# setting volume of text submitted by each poster
 	my_server.zincrby(GLOBAL_SUBMITTED_TXT_VOLUME,user_id,amount=1)
+	
+	# logging the latest 800 public text posts
+	my_server.zadd(GLOBAL_RECENT_PUBLIC_TEXTS,description.lower(),time_now)
+
+	if random() < 0.005:
+		# cull the set once in 200 trials
+		my_server.zremrangebyrank(GLOBAL_RECENT_PUBLIC_TEXTS, 0, -801)# to keep top 800 in the sorted set
 
 
 def get_recent_trending_photos(user_id):

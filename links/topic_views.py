@@ -13,7 +13,7 @@ from redis2 import bulk_is_fan
 from forms import PublicreplyMiniForm
 from redis3 import log_text_submissions
 from tasks import set_input_history, log_user_activity
-from views import get_indices, get_addendum, beautiful_date, format_post_times
+from views import get_indices, get_addendum, beautiful_date, format_post_times, retrieve_user_env
 from redis4 import retrieve_credentials, set_text_input_key, content_sharing_rate_limited, rate_limit_content_sharing
 from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_COLOR_DISTANCE, SECONDARY_COLOR_DISTANCE, \
 PRIMARY_COLOR_GRADIENT_MAPPING

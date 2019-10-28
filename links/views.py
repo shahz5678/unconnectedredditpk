@@ -4168,8 +4168,10 @@ def submit_text_post(request):
 							submitter_username=submitter_name, submission_time=time_now, add_to_feed=True, \
 							is_star=is_image_star(user_id=own_id), text=description, from_fbs=on_fbs)
 					rate_limit_content_sharing(own_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
-					set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
-					log_recent_text(own_id)# useful for text content rep creation (of the submitter)
+					# set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
+					##################################
+					log_recent_text(user_id=own_id, description=description)# useful for text content rep creation
+					##################################
 					url = reverse_lazy("home")+"#shared"
 					return redirect(url)
 				else:

@@ -1,3 +1,4 @@
+# coding=utf-8
 CORE_ENGLISH_ABUSE_WORDS = ['fuck','fck','fvck','fuk','fuq','phuck','phuk','phuc','phvk','sex','seks','s-e-x','s_e_x','s.e.x','s.e_x','s.e-x','s-e.x',\
 's_e.x','s-e_x','s_e-x','pusy','pussy','pssy','dick','penis','cock','vagina','vulva','boob','breast','pimp','whore','asshole','bastard','pubic','piss',\
 'shit','idiot','bitch','jackass','balls','testicle','sekks','cunt','fart','clit','asswhole','a_s_s','a-s-s','b00b','blowjob','blojob','booob','3some',\
@@ -72,6 +73,9 @@ BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pu
 'mhb','allah','bhagwan','allaah','quran','jesus','Damadam-Feedback','Damadam-Admin']
 
 CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin','pakistn','pakistaan','pkistan']
+
+FLAGGED_PUBLIC_TEXT_POSTING_WORDS = ['1 on 1', 'invite', ' hot ', 'lun', 'girl', 'bye', 'new', 'sex', 'fan', 'sis', 'join', 'boring', 'private',\
+'married', 'prvt', 'bored', 'fake', 'invt', 'pvt', 'copy', 'ldki', 'grl', 'noon', 'لڑکی'.decode('utf-8'), 'طلاق'.decode('utf-8'), 'یافتہ'.decode('utf-8')]
 
 BANNED_NICKS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+MISC_POLITICALLY_SENSITIVE_WORDS+\
 CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS+CONTEXTUALLY_SENSITIVE_WORDS

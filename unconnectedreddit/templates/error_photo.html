@@ -5,16 +5,37 @@
 <style>body{background: #E9EBEE}</style>
 <h1 class="cxl clb" style="text-align:center">Please wait!</h1>
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
-<div class="cxl lsp">Sorry! Ye share ho ga {{ time|future_time }}...</div>
-<hr size=1 COLOR="#E9EBEE">
-{% if tp == 'long' %}<div class="sp cl lsp">One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>{% else %}<div class="sp lsp cl">Sharing kartey waqt high quality ka khayal rakhein</div>{% endif %}
-{% if origin == '1' %}
-<div class="mtl mbs"><a href="{% url 'link_create' %}"><button class="btn bm bct pg_ok_res" style="height:28px">wapis</button></a></div>
-{% elif origin == '22' %}
-<div class="mtl mbs"><a href="{% url 'topic_page' topic_url %}"><button class="btn bm bct pg_ok_res" style="height:28px">wapis</button></a></div>
-{% else %}
-<div class="mtl mbs"><a href="{% url 'upload_public_photo' %}"><button class="btn bm bco pg_ok_res" style="height:28px">wapis</button></a></div>
+
+{% if time %}
+
+	<div class="cxl lsp">Sorry! Ye share ho ga {{ time|future_time }}...</div>
+	
+	<hr size=1 COLOR="#E9EBEE">
+	
+	{% if tp == 'long' %}<div class="sp cl lsp">One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>{% else %}<div class="sp lsp cl">Sharing kartey waqt high quality ka khayal rakhein</div>{% endif %}
+	{% if origin == '1' %}
+		<div class="mtl mbs"><a href="{% url 'link_create' %}"><button class="btn bm bct pg_ok_res" style="height:28px">wapis</button></a></div>
+	{% elif origin == '22' %}
+		<div class="mtl mbs"><a href="{% url 'topic_page' topic_url %}"><button class="btn bm bct pg_ok_res" style="height:28px">wapis</button></a></div>
+	{% else %}
+		<div class="mtl mbs"><a href="{% url 'upload_public_photo' %}"><button class="btn bm bco pg_ok_res" style="height:28px">wapis</button></a></div>
+	{% endif %}
+
+{% elif opera_detected %}
+
+	<div class="cxl lsp">Sorry! Opera Mini ke zariye posts share nahi ki ja saktein ...</div>
+	
+	<hr size=1 COLOR="#E9EBEE">
+	
+	<div class="sp cl lsp">Koi aur browser use karein. Maslan Chrome, ya 'Mini' ke beghair wala Opera</div>
+	
+	{% if topic %}
+		<div class="mtl mbs"><a href="{% url 'topic_page' topic %}"><button class="btn bm bct pg_ok_res sp" style="height:28px">wapis</button></a></div>
+	{% else %}
+		<div class="mtl mbs"><a href="{% url 'share_content' %}"><button class="btn bm bct pg_ok_res sp" style="height:28px">wapis</button></a></div>
+	{% endif %}
 {% endif %}
+
 </div>
 <br><br>
 {% endblock %}

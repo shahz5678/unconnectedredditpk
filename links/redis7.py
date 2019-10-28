@@ -207,7 +207,6 @@ def delete_avg_hash(hash_list, categ=None):
 ########################################## Content posted on the platform ########################################  
 ##################################################################################################################
 
-FLAGGED_PUBLIC_TEXTS_LOG = 'flagged'# remove once purpose is served
 
 def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, text, submission_time, \
 	from_fbs, add_to_feed=False):
@@ -242,10 +241,6 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 	if flag_text:
 		# 'illegal words': this post is blocked from trending forever
 		mapping['iw'] = '1'
-		########### REMOVE ###########
-		my_server.lpush(FLAGGED_PUBLIC_TEXTS_LOG,flagged_word+":"+text)
-		if random() < 0.2:
-			my_server.ltrim(FLAGGED_PUBLIC_TEXTS_LOG, 0, 999)
 
 	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,text.lower()):
 		# text is being repeated within the last 800 posts

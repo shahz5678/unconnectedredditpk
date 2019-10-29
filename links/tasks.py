@@ -40,11 +40,12 @@ from redis6 import group_attendance, add_to_universal_group_activity, retrieve_s
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest
 from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
-cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, get_home_feed,\
+cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars,\
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, select_hand_picked_obj_for_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences,retrieve_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
-create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes
+study_voting_preferences,retrieve_img_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
+create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes, \
+retrieve_all_home_text_obj_names, retrieve_text_obj_scores
 # from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list
 from redis3 import log_vote_disc
 from redis8 import log_activity
@@ -840,6 +841,7 @@ def rank_all_photos():
 	else:
 		pass
 		# TODO : activate when 'handpicked_prob' has been built
+		#####################################################
 		# fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
 		# best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
 		# remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
@@ -861,44 +863,70 @@ def rank_all_photos1():
 	sanitize_unused_subscriptions()
 
 
-def extract_trending_obj(obj_hash_names, with_score=False):
+def extract_trending_obj(obj_hash_names, obj_type='img', with_score=False):
 	"""
 	Given a list of hashes, singles out the hash_obj which tops our score criteria
 
 	Current criteria requires the top most obj to have the highest cumulative_vote_score but with at least one downvote
 	"""
-	obj_list = retrieve_obj_scores(obj_hash_names)
 	only_liked = []
-	for obj_hash, likes, score in obj_list:
-		# ensure that the post is liked and has a positive 'score' (score is the prob it will get 'handpicked')
-		if likes > 0 and score > 0:
-			only_liked.append((obj_hash, score))
+	if obj_type == 'img':
+		obj_list = retrieve_img_obj_scores(obj_hash_names)
+		for obj_hash, likes, score in obj_list:
+			# ensure that the post is liked and has a positive 'score' (score is the prob it will get 'handpicked')
+			
+			if likes > 0 and score > 0:
+				only_liked.append((obj_hash, score))# using 'score' as a means of ranking images (this is a measure of voter rep)
+	elif obj_type == 'tx':
+		obj_list = retrieve_text_obj_scores(obj_hash_names)
+		for obj_hash, likes, score in obj_list:
+			# ensure that the post is liked and has a positive 'score' (we don't have voter reps here yet)
+			
+			if likes > 0 and score > 0:
+				only_liked.append((obj_hash, likes))# using 'likes' as a means of ranking texts
+
+	#########################################
+	# run this only when at least 2 posts are competing against one another - otherwise don't push anything into trending!
 	if len(only_liked) > 1:
-		# run this only when at least 2 posts are competing against one another - otherwise don't push anything into trending
+
 		only_liked.sort(key=itemgetter(1),reverse=True)
 		trending_item_hash_name = only_liked[0][0]
+
 		if with_score:
 			return trending_item_hash_name, with_score
 		else:
 			return trending_item_hash_name
+
+	###########################################
+	if with_score:
+		return '', None
 	else:
-		if with_score:
-			return '', None
-		else:
-			return ''
+		return ''
 
 
 @celery_app1.task(name='tasks.rank_home_posts')
 def rank_home_posts():
 	"""
-	Celery scheduled task used to sort home posts
+	Celery scheduled task used to create a 'best' list of home posts
 	
-	Only posts with at least 1 downvote (but the highest cumulative_vote_score) make the cut
+	Currently, it's only an internal listing for us to view
 	"""
-	fresh_obj_hashes = get_home_feed()
+	# Step 1) Isolate all fresh text posts (only 'text' - no 'img' type objs)
+	fresh_obj_hashes = retrieve_all_home_text_obj_names()#get_home_feed()
+	
+	# Step 2) Isolate all best text posts
 	trending_obj_hashes = get_best_home_feed(trending_home=True)
-	remaining_obj_hashes = [hash_ for hash_ in fresh_obj_hashes if hash_ not in trending_obj_hashes]
-	trending_item_hash_name = extract_trending_obj(remaining_obj_hashes)# new 'like_prob' changes are breaking this for "texts"
+	
+	# Step 3) Filter out fresh posts that are already in best
+	if trending_obj_hashes:
+		remaining_obj_hashes = [obj_hash_name for obj_hash_name in fresh_obj_hashes if obj_hash_name not in trending_obj_hashes]
+	else:
+		remaining_obj_hashes = fresh_obj_hashes
+	
+	# Step 4) From the remainder, extract the next 'best' text obj
+	trending_item_hash_name = extract_trending_obj(remaining_obj_hashes, obj_type='tx')
+	
+	# Step 5) If trending obj has been found, push it into best
 	if trending_item_hash_name:
 		add_single_trending_object_in_feed(trending_item_hash_name, time.time())
 

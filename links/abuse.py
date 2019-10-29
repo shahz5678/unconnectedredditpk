@@ -75,7 +75,7 @@ BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pu
 CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin','pakistn','pakistaan','pkistan']
 
 FLAGGED_PUBLIC_TEXT_POSTING_WORDS = ['1 on 1', 'invite', ' hot ', 'lun', 'girl', 'bye', 'new', 'sex', ' fan ', 'sis', 'join', 'boring', 'private',\
-'married', 'prvt', 'bored', 'fake', 'invt', 'pvt', 'copy', 'ldki', 'grl', 'noon', 'طلاق'.decode('utf-8'), 'یافتہ'.decode('utf-8')]
+'married', 'prvt', 'bored', 'fake', 'invt', 'pvt', 'copy', 'ldki', 'grl', 'noon', 'allah', 'طلاق'.decode('utf-8'), 'یافتہ'.decode('utf-8')]
 
 BANNED_NICKS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+MISC_POLITICALLY_SENSITIVE_WORDS+\
 CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS+CONTEXTUALLY_SENSITIVE_WORDS

@@ -156,6 +156,7 @@ GLOBAL_SUBMITTED_TXT_VOLUME = 'gstv'# global sorted set containing num text post
 GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS = 'ghrhto'# sorted set containing number of text posts that received likes from high-rep voters (per submitter)
 GLOBAL_TXT_SUBMITTER_HIGH_REP_HANDPICKER_BASED_REP = 'gtshrhbr' # global sorted set containing the content 'rep' of txt submitters, based on handpicking by 'high-rep' voters (whose rep is sourced by handpick img rep)
 
+LOCKED_TXT = 'lt:'# set that contains sybil 'likes' given to a text obj - these lock the text from entering trending
 GLOBAL_RECENT_PUBLIC_TEXTS = 'grpt'# sorted set containing previous ~800 posts - useful for catching dups
 
 ##################################################################################################################
@@ -385,28 +386,93 @@ def retrieve_obj_feed(obj_list, with_colors=False):
 	return unpack_json_blob(filter(None, pipeline1.execute()),with_colors=with_colors)
 
 
-def retrieve_obj_scores(obj_list):
+def retrieve_text_obj_scores(obj_list):
 	"""
-	Retrieves obj vote scores - useful for calculating trending objs
+	Retrieves text obj vote scores - useful for calculating trending text posts
 
-	Only those objs are considered for trending that have at least 2 votes from users with reputation > 0
+	LIMITATION: Does NOT account for voter reputations yet - only based on number of upvotes
+	"""
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	for obj_hash_name in obj_list:
+
+		# Criteria 1) retrieve 'upvotes', 'short post', 'illegal words', 'repeated text'
+		pipeline1.hmget(obj_hash_name,'uv','sp','iw','rt')
+
+		# Criteria 2) is obj locked from trending because of sybils?
+		pipeline1.exists(LOCKED_TXT+obj_hash_name)
+
+	result1, counter, final_result = pipeline1.execute(), 0, []
+
+	################################################################
+	for obj_hash_name in obj_list:
+		
+		obj_data = result1[counter]#the obj's voting is still open (it exists in the feeds)
+		is_locked_out_from_trending = result1[counter+1]# e.g. because of sybil voting (criteria 2 was met)
+		
+		# skip content that has been voted on by sybils, or isn't open for voting any more
+		if is_locked_out_from_trending or not obj_data:
+			pass
+
+		# else: non-sybil voting, and voting is open!
+		else:
+			num_upvotes, short_post, illegal_words, repetitive_post = obj_data[0], obj_data[1], obj_data[2], obj_data[3]
+			
+			# the following kinds of posts will never trend anyway
+			if short_post or illegal_words or repetitive_post:
+				pass
+			
+			# this post can trend, if it has the requisite number of likes
+			else:
+				likes = int(num_upvotes) if num_upvotes else 0
+
+				if likes > 1:
+					# achieved 2 or more likes
+					prob_this_item_would_get_handpicked = 0.01# TODO: make this based on voter/content reputation
+
+				else:
+					# achieved less than 2 likes - we assume such a post has a 0% chance of getting handpicked (obviously not right at all)
+					prob_this_item_would_get_handpicked = 0# TODO: make this based on voter/content reputation
+				
+				final_result.append((obj_hash_name, likes, prob_this_item_would_get_handpicked))					
+
+		counter += 2
+
+	################################################################
+	return final_result
+
+
+def retrieve_img_obj_scores(obj_list):
+	"""
+	Retrieves img obj vote scores - useful for calculating trending images
+
+	Only those imgs are considered for trending that have at least 2 votes from users with reputation > 0
 	"""
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for obj_hash in obj_list:
 		data = obj_hash.partition(":")
 		obj_type, obj_id = data[0], data[-1]
 		vote_store = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
+
+		# Criteria 1) retrieve number of upvotes received by the object
 		pipeline1.hget(obj_hash,'uv')
+		
+		# Criteria 2) retrieve the voting reputation of the top two voters
 		pipeline1.zrange(vote_store+obj_id,-2,-1,withscores=True)
+		
+		# Criteria 3) is this obj locked from trending because of sybil voting?
 		pipeline1.exists(LOCKED_IMG+obj_hash)
 	result1, counter, final_result = pipeline1.execute(), 0, []
+
+	#############################################################
 	for obj_hash in obj_list:
-		is_locked_out_from_trending = result1[counter+2]# e.g. because of sybil voting
-		vote_store_exists = result1[counter+1]
+		is_locked_out_from_trending = result1[counter+2]# e.g. because of sybil voting (criteria 3 was met)
+		vote_store_exists = result1[counter+1]#the obj's voting is still open
 		
+		# skip content that has been voted on by sybils, or isn't open for voting any more
 		if is_locked_out_from_trending or not vote_store_exists:
-			# skip content that has been voted on by sybils, or isn't open for voting any more
 			pass
+
+		# else: non-sybil voting, and voting is open!
 		else:
 
 			likes = result1[counter]
@@ -414,6 +480,8 @@ def retrieve_obj_scores(obj_list):
 			
 			################################
 			num_votes = len(vote_store_exists)
+			
+			# enough votes have been cast
 			if num_votes == 2:
 				vote_1, vote_2 = vote_store_exists[0], vote_store_exists[1]
 				score_vote_1, score_vote_2 = vote_1[1], vote_2[1]
@@ -423,11 +491,13 @@ def retrieve_obj_scores(obj_list):
 				else:
 					# don't count this obj
 					score = 0
+
+			# not enough votes cast
 			elif num_votes < 2:
-				# not enough votes cast
 				score = 0
+			
+			# this should never happen
 			else:
-				# this should never happen
 				score = 0
 			
 			################################
@@ -436,6 +506,20 @@ def retrieve_obj_scores(obj_list):
 		counter += 3
 
 	return final_result
+
+
+def retrieve_all_home_text_obj_names():
+	"""
+	Retreives all 'tx' type objs from home
+	"""
+	final_objs = []
+	all_objs = redis.Redis(connection_pool=POOL).zrange(HOME_SORTED_FEED,0,-1)
+	if all_objs:
+		for obj_hash_name in all_objs:
+			if obj_hash_name.partition(":")[0] == 'tx':
+				# this is a text object - it's what we need
+				final_objs.append(obj_hash_name)
+	return final_objs
 
 
 def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
@@ -775,6 +859,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
 	img_thumb = get_s3_object(img_url,category="thumb")
 	hash_name = "img:"+obj_id
+	# img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
 	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name}
 	if from_fbs:
@@ -2537,7 +2622,10 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			pipeline1.hincrby(hash_name,'nv',amount=-1)#atomic
 			pipeline1.hincrby(hash_name,'uv',amount=-1)#atomic
 			pipeline1.zrem(vote_store,own_id)#atomic
-			pipeline1.srem(LOCKED_IMG+hash_name,own_id)
+			if is_pht == '1':
+				pipeline1.srem(LOCKED_IMG+hash_name,own_id)
+			else:
+				pipeline1.srem(LOCKED_TXT+hash_name,own_id)
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	
@@ -2578,7 +2666,7 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			# Step 1) Determine 'handpicked_prob', i.e. the prob this item could be picked by a super defender, given it was 'liked' by own_id!
 			handpicked_prob, is_sybil = determine_vote_score(is_editorial_vote=True, voter_id=own_id, target_user_id=target_user_id, \
 				my_server=my_server, world_age_discount=world_age_discount, is_pht=is_pht)
-
+			
 			###############################################
 
 			# Step 2) Record the 'handpicked_prob' in vote_store, and the act of liking in 'nv' and 'uv'
@@ -2587,8 +2675,12 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
 			pipeline1.zadd(vote_store,own_id, 0 if handpicked_prob is None else handpicked_prob)#atomic
 			if is_sybil:
-				pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
-				pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
+				if is_pht == '1':
+					pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
+					pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
+				else:
+					pipeline1.sadd(LOCKED_TXT+hash_name,own_id)
+					pipeline1.expire(LOCKED_TXT+hash_name,ONE_MONTH)
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	

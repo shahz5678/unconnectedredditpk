@@ -2032,7 +2032,7 @@ def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
 	"""
 	Just a quick way to add trending objs in a feed
 
-	Use the sophisticated add_single_trending_object() later, sunset this
+	TODO: Use the sophisticated add_single_trending_object() later, sunset this
 	"""
 	if feed_type == 'home':
 		feed_name = TRENDING_HOME_FEED
@@ -2042,6 +2042,17 @@ def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
 	my_server.zadd(feed_name,obj_hash, time_now)
 	if random() < 0.2:
 		my_server.zremrangebyrank(feed_name, 0, -201)# to keep top 200 in the sorted set
+	#############################
+	#############################
+	#  Logging trending posts for analysis (can remove)
+	json_data_blob, editorial_upvotes = my_server.hmget(obj_hash,'blob','uv')
+	try:
+		data = json.loads(json_data_blob)
+	except:
+		data = json_backup.loads(json_data_blob)
+	from redis4 import log_home_post
+	log_home_post(user_id=data['si'], username=data['su'], text=data['d'], on_fbs=data.get('fbs',''),is_urdu=data['c'], \
+		editorial_upvotes=editorial_upvotes, trending_time=time_now, posting_time=data['t'])
 
 
 def is_obj_trending(prefix, obj_id, with_trending_time=False):

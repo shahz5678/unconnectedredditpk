@@ -1287,17 +1287,23 @@ def retrieve_public_img_logs():
 	return redis.Redis(connection_pool=POOL).zrange(PUBLIC_IMG_POSTS,0,-1,withscores=True)
 
 
-def log_home_post(user_id, text, is_urdu, on_opera, on_fbs):
+def log_home_post(user_id, username, text, on_fbs, is_urdu, editorial_upvotes, trending_time, posting_time):
 	"""
+	Logging trending home text posts for analysis
+
 	Questions this can answer include:
-	1) Below what text length is text meaningless?
-	2) Above what text length is text meaningful?
-	3) Is the longest text meaningful?
-	4) What length-wise categories can exist for text (to impart different kinds of formatting to it)
-	5) What are the categories of text (formatting wise) - e.g. poetry, prose, joke, question, news etc
+	1) Which urdu words are most repeated in trending posts
+	2) Which english words are most repeated in trending posts
+	3) How are trending posts distributed by length
+	4) What are trending posts distributed by time of posting
+	5) How are trending posts distributed by submitter ID
+	6) How long does it take for a post to get into trending (trending_time - posting_time)
 	"""
-	json_payload = json.dumps({'text':text,'is_urdu':is_urdu,'posting_time':time.time(),'user_id':user_id,\
-		'username':retrieve_uname(user_id,decode=False),'text_length':len(text),'on_fbs':on_fbs,'on_opera':on_opera})
+	context = {'text':text,'is_urdu':is_urdu,'trending_time':trending_time,'user_id':user_id, 'username':username,\
+	'text_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time}
+	if on_fbs:
+		context['on_fbs'] = on_fbs
+	json_payload = json.dumps(context)
 	redis.Redis(connection_pool=POOL).zadd(HOME_TEXT_POSTS,json_payload,user_id)
 
 

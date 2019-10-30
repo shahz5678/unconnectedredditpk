@@ -233,9 +233,9 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 		# 'short post': this can never trend because short-posts are considered low-quality
 		mapping['sp'] = '1'
 	
-	flag_text, flagged_word = False, ''
+	flag_text, flagged_word, lower_text = False, '', text.lower()
 	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
-		if word in text:
+		if word in lower_text:
 			flag_text = True
 			flagged_word = word
 			break

@@ -1280,11 +1280,11 @@ HOME_TEXT_POSTS = 'htp'# global sorted set containing text on home (for various 
 PUBLIC_IMG_POSTS = 'pip'# global sorted set containing img data (for various analysis)
 
 
-def retrieve_public_img_logs():
+def retrieve_home_post_logs():
 	"""
 	Retrieves logs saved by log_public_img()
 	"""
-	return redis.Redis(connection_pool=POOL).zrange(PUBLIC_IMG_POSTS,0,-1,withscores=True)
+	return redis.Redis(connection_pool=POOL).zrange(HOME_TEXT_POSTS,0,-1,withscores=True)
 
 
 def log_home_post(user_id, username, text, on_fbs, is_urdu, editorial_upvotes, trending_time, posting_time):
@@ -1298,6 +1298,7 @@ def log_home_post(user_id, username, text, on_fbs, is_urdu, editorial_upvotes, t
 	4) What are trending posts distributed by time of posting
 	5) How are trending posts distributed by submitter ID
 	6) How long does it take for a post to get into trending (trending_time - posting_time)
+	7) What categories of post get into trending (poetry, religion, politics, jokes, etc)
 	"""
 	context = {'text':text,'is_urdu':is_urdu,'trending_time':trending_time,'user_id':user_id, 'username':username,\
 	'text_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time}

@@ -149,7 +149,7 @@
 								<input type="hidden" name="actpht" value="1">
 								<input type="hidden" name="tid" value="{{ tid }}">
 								<input type="hidden" name="phturl" value="{{ photo.img_url }}">
-								<button type="submit" class="del re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="minus"></div></button>
+								<button type="submit" class="no-bg own-bt cxs sp" style="height:19px;vertical-align: middle;color:#27579b;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}">DELETE</button>
 							</form>
 						</div><br>
 					{% else %}
@@ -169,7 +169,7 @@
 									<input type="hidden" name="actpht" value="1">
 									<input type="hidden" name="tid" value="{{ tid }}">
 									<input type="hidden" name="phturl" value="{{ photo.img_url }}">
-									<button type="submit" class="del re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="minus"></div></button>
+									<button type="submit" class="no-bg own-bt cxs sp" style="height:19px;vertical-align: middle;color:#27579b;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}">DELETE</button>
 								</form>
 						</div><br>
 					{% endif %}				
@@ -181,7 +181,7 @@
 							<input type="hidden" name="actpht" value="2">
 							<input type="hidden" name="tid" value="{{ tid }}">
 							<input type="hidden" name="phturl" value="{{ photo.img_url }}">
-							<button type="submit" class="del re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="plus"></div></button>
+							<button type="submit" class="no-bg own-bt cxs sp" style="height:19px;vertical-align: middle;color:#27579b;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}">UNDELETE</button>
 						</form>
 					</div><br>
 				{% endif %}
@@ -206,7 +206,7 @@
 									<input type="hidden" name="actpht" value="3">
 									<input type="hidden" name="tid" value="{{ tid }}">
 									<input type="hidden" name="phturl" value="{{ photo.img_url }}">
-									<button type="submit" class="re re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="bminus"></div></button>
+									<button type="submit" class="no-bg th-bt cxs sp" style="height:19px;vertical-align: middle;color:#2e6b54" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}">HIDE</button>
 								</form>
 
 						</div><br>
@@ -228,7 +228,7 @@
 									<input type="hidden" name="actpht" value="4">
 									<input type="hidden" name="tid" value="{{ tid }}">
 									<input type="hidden" name="phturl" value="{{ photo.img_url }}">
-									<button type="submit" class="re re-bg" style="padding:0;width:22px;height:19px;vertical-align: middle;" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}"><div id="bplus"></div></button>
+									<button type="submit" class="no-bg th-bt cxs sp" style="height:19px;vertical-align: middle;color:#2e6b54" name="imgd" value="{{ photo.blob_id}}:{{ photo.index }}:{{ photo.img_id }}">UNHIDE</button>
 								</form>
 						</div><br>
 

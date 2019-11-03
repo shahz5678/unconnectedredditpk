@@ -80,7 +80,8 @@ FLAGGED_PUBLIC_TEXT_POSTING_WORDS = ['1 on 1', 'invite', ' hot ', 'lun', 'girl',
 ' نبی '.decode('utf-8'),'اللہ'.decode('utf-8'),'الله'.decode('utf-8'), 'تعالی'.decode('utf-8'),'قرآن'.decode('utf-8'),'محمد'.decode('utf-8'),\
 'ﻣُﺤَﻤَّﺪ'.decode('utf-8'),'ﺭَّﺳُﻮْﻝ'.decode('utf-8'),'رسول'.decode('utf-8'),'سورۃ'.decode('utf-8'),'سورہ'.decode('utf-8'),'وَسَلَّم'.decode('utf-8'),\
 'مُحَمَّد'.decode('utf-8'),'مُحَمَّد'.decode('utf-8'),'طلاق'.decode('utf-8'), 'ﷺ'.decode('utf-8'),' رب '.decode('utf-8'),'مولا'.decode('utf-8'),\
-'یافتہ'.decode('utf-8'),'القرآن'.decode('utf-8'),'حجاب'.decode('utf-8'),'فرمایا'.decode('utf-8'),'امام'.decode('utf-8'),'اللّٰہ'.decode('utf-8')]
+'یافتہ'.decode('utf-8'),'القرآن'.decode('utf-8'),'حجاب'.decode('utf-8'),'فرمایا'.decode('utf-8'),'امام'.decode('utf-8'),'اللّٰہ'.decode('utf-8'),\
+'ﻗﺮﺁﻥ'.decode('utf-8')]
 
 BANNED_NICKS = CORE_ENGLISH_ABUSE_WORDS+CORE_URDU_ABUSE_WORDS+CORE_POLITICALLY_SENSITIVE_WORDS+MISC_POLITICALLY_SENSITIVE_WORDS+\
 CORE_RELIGIOUSLY_SENSITIVE_WORDS+MISC_SENSITIVE_WORDS+SOLICITATION_WORDS+CONTEXTUALLY_SENSITIVE_WORDS

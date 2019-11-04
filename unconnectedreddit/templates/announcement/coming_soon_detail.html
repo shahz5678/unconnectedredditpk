@@ -1,34 +1,33 @@
 {% extends "base.html" %}
 {% block content %}
 {% load cache %}
-{% cache 6000 announcement %}
+{% cache 6 new_feature %}
 <head><title>New feature</title></head>
 
 <style>body{background: #E9EBEE}</style>
 
-<h1 class="clb cxl lsp" style="text-align:center">The new <span style="color:#ff421d">Red Star</span> is here!</h1>
+<h1 class="clb cxl lsp" style="text-align:center">New changes coming to Damadam:</h1>
 
-<div class="bizcard clb" style="background-color:whitesmoke;max-width:750px;width:97%;margin:0 auto;overflow: hidden;text-align:center;">
+<div class="bizcard clb" style="background-color:#FEFCFC;max-width:750px;width:97%;margin:0 auto;overflow: hidden">
 
+  <div style="text-align:center;padding:0 8px;" class="cxl cgy lsp mts">"Matka" aur iske notifications delete ho jaien ge. Sath mein ye new options aien ge:</div>
 
-  <button class="vt mtl mbs" style="background:white;border:3px solid #F0F0F0;width:100px;height:84px;padding:0;text-align:center;border-radius:8px"><div><img src="{{ STATIC_URL }}img/gstar.svg" class="mt" width="30" height="30"></div><div style="font-size:16px;color:#ff421d" class="mt">RED STAR</div></button>
+  <ol class="cxl lsp" style="margin-top:0;margin-right:6px">
+    <li>Har comment aur chat ke aagey "reply" button, jis se ap kisi bhi user ko direct reply kar sako ge</li>
+    <li class="mts">Matkey ki jagah new "Inbox" option hoga</li>
+    <li class="mts">"Inbox" mein sirf apkey received replies aien ge, aur kuch nahi</li>
+  </ol>
 
-	<div class="cxl mts lsp" style="border-bottom:1px solid #e4e5e8;padding:0 10px 10px 10px;text-align:center">
-  	<span>Pink Star ki jagah <b style="color:#ff421d">Red Star</b> ne le li hai</span>
-  	</div>
-
-  <div class="sp lsp clb" style="background:white">
-    <div style="padding:0 12px">
-      <ul style="display:inline-block;padding: 0;list-style-type: circle;padding-left:15px">
-        <li style="text-align:left" class="mbl">Red star un IDs ko mile ga jo top star list mein hain</li>
-        <li style="text-align:left" class="mbl">Jab tak ID top star list mein rehay gi, red star show hota rehay ga</li>
-        <li style="text-align:left" class="mbl">Jab koi ID top star list se nikl jaye gi, tou red star bhi khatam</li>
-        <li style="text-align:left">Top star list mein ana hai? Tareeqa <a href="{% url 'top_photo_help' %}" style="color:#ff421d;border-bottom:1px dotted #ff421d"><b>ye hai</b></a></li>
-      </ul>
-    </div>
-  </div>
+  <div style="text-align:center;padding:8px 8px 0 8px;border-top:solid 1px lightgray;" class="cxl sp cgy lsp mtl">Yaad rakhein:</div>
+  
+  <ul style="margin-top:0">
+    <li style="padding:0 8px" class="sp cgy lsp">Inbox mein users apney stars ki posts nahi dekh sakein ge (jaisey matkay mein dekhtey thay). Takleef ke liye maazerat</li>
+    <li style="padding:0 8px" class="sp cgy lsp mtl">Mustaqbil mein aney wala "Follow" option apko stars ki posts dikhaye ga (photos and text dono)</li>
+    <li style="padding:0 8px" class="sp cgy lsp mtl">Lekin "Follow" option in changes ke baad release ho ga. Tab tak stars ki posts ap matkey se nahi dekh pain ge</li>
+  </ul>
 
 </div>
+
 <br>
 
 <br>

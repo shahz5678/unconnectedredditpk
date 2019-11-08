@@ -3,14 +3,13 @@
 {% load get_block_button %}
 {% load get_group_button %}
 {% load emoticons_tags %}
-{% load show_error %}
 {% load s3 %}
 {% block content %}
-<style>body{background: #E9EBEE}</style>
 
 {% if obj_deleted %}
 
     <head><title>Does not exist | Damadam</title></head>
+    <style>body{background: #E9EBEE}</style>
     <h1 class="cxl clb lsp" style="text-align:center">Sorry! Ye exist nahi karta</h1>
     <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 
@@ -22,7 +21,7 @@
         <a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs pg_ok_res" style="border:none;height:30px;">Home</button></a>
         <a href="{% url 'photo' 'best-list' %}"><button class="btn bco bl mrl cl mts mbs pg_ok_res" style="border:none;height:30px;">Photos</button></a>
         <a href="{% url 'group_page' %}"><button class="btn bcg mrl bl cl mts mbs pg_ok_res" style="border:none;height:30px;">Mehfil</button></a>
-        <a href="{% url 'unseen_activity' slug=user.username %}"><button class="btn bcp mrl bl cl mts pg_ok_res" style="border:none;height:30px;">Matka</button></a>
+        <a href="{% url 'retrieve_direct_responses' %}"><button class="btn bcp mrl bl cl mts pg_ok_res" style="border:none;height:30px;">Inbox</button></a>
         </div>
 
     </div>
@@ -31,14 +30,29 @@
 {% else %}
 
     <head><title>Comments on photo titled {{ photo.caption }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam</title></head>
-    <div style="margin: 0 auto;max-width:600px;width:98%">
+    <style>body{background:#f0f3f4}</style>
+
+    <script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+
+    <form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
+        {% csrf_token %}
+        <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
+        <div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
+        <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="11"><input type="hidden" name="srep" value="1"><input type="hidden" name="rorigin" value="{{ origin }}">
+
+        <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
+
+        <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+    </form>
+
+    <div style="margin: 0 auto;max-width:750px;width:98%">
 
     {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
     {% if authorized %}
 
     <h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ target_username|truncatechars:'13' }}'s photo:</h1>
-    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
+    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="bizcard">
         
         <form method="POST" style="overflow:hidden;text-align:center" action="{% url 'redirect_to_content' %}">
         {% csrf_token %}<input type="hidden" name="obid" value="{{ photo_id }}"><input type="hidden" name="orig" value="{{ origin }}"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="oun" value="{{ target_username }}">
@@ -46,8 +60,8 @@
             {% if photo.vote_score < VDC %}
                 <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="photo" style="border-radius:4px" width="38" height="38">
             {% else %}
-                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt ibb" style="border:2px solid dodgerblue;width:auto;border-radius:5px">
-                <div style="text-align:center" class="clb cs sp lsp">"{% emoticons %}{{ photo.caption }}{% endemoticons %}"</div>
+                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt ibb" style="border:1px solid dodgerblue;width:auto;border-radius:5px">
+                <div style="text-align:center;color:black" class="cs sp lsp">"{% emoticons %}{{ photo.caption }}{% endemoticons %}"</div>
             {% endif %}
         </button>
         </form>
@@ -63,13 +77,15 @@
             <hr size=1 class="co">
             <br>
         {% else %}
-        {% if form.errors %}<div class="cr mbs">{{ form.errors|show_error }}</div>{% else %}<div class="co sp mbs"><b>Reply likhein:</b></div>{% endif %}
-        <form class="mt" action="{% url 'comment' photo_id %}" method="POST" style="display:inline">
-        {% csrf_token %}<input type="hidden" name="sk" value="{{ sk }}"><input type="hidden" name="origin" value="{{ origin }}">
-        {{ form.text }}
-        
-        <input type="hidden" name="popk" value="{{ photo.owner_id }}">
-        <button class="btn bco sp bm mts mbl mrl pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
+        <a name="error"></a>
+        {% if dir_rep_invalid %}<div class="cr sp cxl lsp" style="text-align:center;color:white;background:tomato">{{ dir_rep_invalid }}</div>{% endif %}
+        <form class="mt" action="{% url 'post_direct_response' %}" method="POST" style="display:inline">
+            <!-- main reply -->
+            {% csrf_token %}<input type="hidden" name="tuid" value="{{ photo_owner_id }}"><input type="hidden" name="obtp" value="4"><input type="hidden" name="obid" value="{{ photo.id }}"><input type="hidden" name="poid" value="{{ photo.id }}"><input type="hidden" name="origin" value="11"><input type="hidden" name="mr" value="1"><input type="hidden" name="rorigin" value="{{ origin }}">
+            
+            <div style="border:1px solid #e0e0e0;border-radius:5px;overflow:hidden;background:#ecfffb">{{ main_rep_form.direct_response }}</div>
+
+            <button class="btn bct sp bm mts mbl mrl pg_ok_res" name="dec" value="1" type="submit" style="height:26px">Send</button>
         </form>
         &nbsp;
         <a href="{% url 'comment' photo_id origin %}" rel="nofollow"><button class="rf" style="background:0 0;vertical-align:baseline;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px;margin-bottom:-8px" width="24" height="24"></button></a>
@@ -97,31 +113,111 @@
         {% endif %}
 
         {% if comment.abuse %}
-            <span class="cs sp cgy"><b class="cgy"><a href="{% url 'user_profile' comment.submitted_by__username %}" class="clb"><bdi>{{ comment.submitted_by__username }}</bdi></a></b>&nbsp;ke reply ko hide kar dia gya</span>
+            
+            <span class="cs sp" style="color:#999"><b><a href="{% url 'user_profile' comment.submitted_by__username %}" style="color:#999"><bdi>{{ comment.submitted_by__username }}</bdi></a></b>&nbsp;ka reply hide ho gya</span>
+        
         {% else %}
 
-        {% if user_id == comment.submitted_by %}
-            <div style="overflow:hidden;background-color:ivory">
-        {% else %}
-            <div style="overflow:hidden">
-        {% endif %}
-       
-            {% if authenticated and unseen %}
-                {% if not comment_time %}
-                <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
-                {% elif comment.submitted_on > comment_time %}
-                <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
-                {% endif %}
+        {% if user_id == comment.submitted_by %}<div style="overflow:hidden;background-color:ivory">{% else %}<div style="overflow:hidden">{% endif %}
+            
+            {% if comment_time and comment.submitted_on > comment_time %}
+                <div class="sp cxs" style="display: inline;background:0 0;color:#5fb4e3;vertical-align:middle;font-weight:bold">NEW</div>&nbsp;
             {% endif %}
             
-        <a href="{% url 'user_profile' comment.submitted_by__username %}#section0" class="cm clb"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
-        <div style="display:inline-block">
-            <div class="fx fxjsfs fxaicn">
-                {% if authenticated and user == photo.owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo.owner_id %}{% endif %}
-                {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
-                {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
-            </div>
-        </div>
+            {% if comment.direct_reply_tgt_uname and comment.direct_reply_tgt_text_prefix %}
+
+                <!-- reference visible -->
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+            
+                {% if authenticated %}
+
+                    <div id="disc_btns{{ comment.id }}" style="display:inline-block">
+                        <div class="fx fxjsfs" style="max-width:300px">
+
+                            {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
+
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+
+                        </div>
+                    </div>
+
+                    {% include "direct_response/reference_snippet.html" with tgt_uname=comment.direct_reply_tgt_uname reply_prefix=comment.direct_reply_tgt_text_prefix|emoticons reply_postfix=comment.direct_reply_tgt_text_postfix|emoticons %}
+
+                {% endif %}
+            
+            {% elif comment.direct_reply_tgt_uname and comment.direct_reply_id %}
+
+                <!-- reference hidden -->
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+            
+                {% if authenticated %}
+
+                    <div id="disc_btns{{ comment.id }}" style="display:inline-block">
+                        <div class="fx fxjsfs" style="max-width:300px">
+
+                            {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
+
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+
+                        </div>
+                    </div>
+
+                    {% include "direct_response/reference_snippet.html" with tgt_uname=comment.direct_reply_tgt_uname state='1' %}
+
+                {% endif %}
+
+            {% else %}
+                
+                <!-- no reference -->
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+
+                {% if authenticated %}
+
+                    {% if comment.submitted_by == photo_owner_id %}
+                        <!-- op's reply -->
+                        <div id="disc_btns{{ comment.id }}" style="display:inline-block">
+                            <div class="fx fxjsfs" style="max-width:300px">
+
+                            {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
+
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+
+                            </div>
+                        </div>
+                    {% else %}
+                        <!-- someone else's reply -->
+                        <div id="disc_btns{{ comment.id }}" style="display:inline-block">
+                            <div class="fx fxjsfs" style="max-width:300px">
+
+                            {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
+
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+
+                            </div>
+                        </div>
+                        {% include "direct_response/reference_snippet.html" with tgt_uname=comment.direct_reply_tgt_uname state='2' %}
+                    {% endif %}
+
+                {% endif %}
+
+            {% endif %}
+
             </div>
         {% endif %}
         

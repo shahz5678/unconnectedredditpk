@@ -87,7 +87,10 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		return redirect("user_profile", target_uname)
 	elif origin == '11':
 		# originated from the comments page
-		return redirect("comment_pk", obj_id)
+		if target_uname:
+			return redirect("comment_pk", pk=obj_id, origin=target_uname)
+		else:
+			return redirect("comment_pk", pk=obj_id)
 	elif origin == '12':
 		# originated from user's own fan list
 		return redirect("fan_list", obj_id)
@@ -121,10 +124,9 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		# originated from online kon
 		url = reverse_lazy("online_kon")+"#top"
 		return redirect(url)
-	# elif origin == '24':
+	elif origin == '24':
 		# originated from direct response page
-		# url = reverse_lazy("retrieve_direct_responses")
-		# return redirect(url)
+		return redirect(reverse_lazy("retrieve_direct_responses"))
 	elif origin == '25':
 		# originated from 'upvoting' history page
 		return redirect('user_vote_history')

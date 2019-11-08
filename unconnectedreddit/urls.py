@@ -18,29 +18,28 @@ from urls_judgement import urlpatterns as urlpatterns_judgement
 from urls_voting import urlpatterns as urlpatterns_voting
 from urls_search import urlpatterns as urlpatterns_search
 from urls_push_notif import urlpatterns as urlpatterns_push_notif
-# from urls_direct_response import urlpatterns as urlpatterns_direct_response
+from urls_direct_response import urlpatterns as urlpatterns_direct_response
 from urls_topics import urlpatterns as urlpatterns_topics
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan, comment_pk, reply_to_photo, \
 link_create_pk, welcome_pk, unfan, show_online_users,perm_redirect_to_home, star_list, cross_salat_notif, best_home_page, \
 home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
-unseen_comment, unseen_activity, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
+unseen_comment, submit_text_post, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
 unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, reauth, reset_password, \
 fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
-first_time_unseen_refresh, missing_page, home_reply,photo_page, photo_redirect,upload_public_photo, website_rules, photo_comment,\
-public_reply_view, post_public_reply,redirect_to_profile_photos,public_photo_upload_denied, hide_jawab, hide_comment, logout_rules,\
-unseen_reply, sitemap, photo_sitemap, photo_sitemap_of_sitemaps, user_profile_photos, submit_text_post, user_profile_photos_redirect
+first_time_unseen_refresh, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules, photo_sitemap,\
+public_reply_view, display_image_comments, redirect_to_profile_photos,public_photo_upload_denied, hide_comment, logout_rules,\
+unseen_reply, sitemap, photo_sitemap_of_sitemaps, user_profile_photos_redirect, user_profile_photos
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import FacesHelpView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView, AdAddressView,\
-PicHelpView, PhotoJawabView, CommentView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView,\
+PicHelpView, PhotoJawabView, AdImageView, AboutView, ContactView, PrivacyPolicyView, CaptionDecView, PhotosHelpView,\
 PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, AuthPicsDisplayView, PicExpiryView, \
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
 AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, UserSettingsEditView, UserProfileDetailView, UserProfileEditView,\
 CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView,\
-AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, AdTitleYesNoView, AdImageYesNoView,\
-AdImageView#, UserProfilePhotosView
+AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, AdTitleYesNoView, AdImageYesNoView#, UserProfilePhotosView
 from links.voting_views import user_vote_history
 from links.announcement_views import export_survey_results, coming_soon#, survey
 # from links.group_views import show_shared_photo_metrics
@@ -58,8 +57,8 @@ urlpatterns = patterns('',
 	url(r'^redirect/home/$', auth(home_redirect), name='redirect_to_home'),
 	url(r'^redirect/home/(?P<pk>\d+)/$', auth(home_redirect), name='redirect_to_home'),
 	url(r'^redirect-to-content/$', auth(redirect_to_content), name='redirect_to_content'),
-	url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
-	url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
+	# url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
+	# url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
 	url(r'^$', auth(home_page), name='home'),
 	url(r'^best_home_test/$', best_home_page, name='best_home_test'),
 	url(r'^vun/$',verify_user_number, name="verify_user_number"),
@@ -103,10 +102,12 @@ urlpatterns = patterns('',
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
-	url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
+	# url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
 	url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
-	url(r'^comment/(?P<pk>\d+)/$', CommentView.as_view(), name='comment'),
-	url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
+	url(r'^comment/(?P<pk>\d+)/$', display_image_comments, name='comment'),
+	url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', display_image_comments, name='comment'),
+	# url(r'^comment/(?P<pk>\d+)/$', CommentView.as_view(), name='comment'),
+	# url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
 	url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
 	url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
@@ -193,7 +194,7 @@ urlpatterns = patterns('',
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	##################################################Publicreply################################################
 	url(r'^jawab/(?P<parent_id>\d+)/$', auth(public_reply_view), name='publicreply_view'),
-	url(r'^jawab/sent/$', auth(post_public_reply), name='publicreply_post'),
+	# url(r'^jawab/sent/$', auth(post_public_reply), name='publicreply_post'),
 	url(r'^unlink/(?P<pk>\d+)/$', auth(unseen_reply), name='unseen_reply'),
 	#############################################################################################################
 	url(r'^ungroup/(?P<pk>\d+)/$', auth(unseen_group), name='unseen_group'),
@@ -234,7 +235,7 @@ urlpatterns += urlpatterns_judgement
 urlpatterns += urlpatterns_voting
 urlpatterns += urlpatterns_search
 urlpatterns += urlpatterns_push_notif
-# urlpatterns += urlpatterns_direct_response
+urlpatterns += urlpatterns_direct_response
 urlpatterns += urlpatterns_topics# must always be the last thing object to be concatenated
 
 handler404 = 'links.error_views.not_found'

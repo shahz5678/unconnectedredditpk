@@ -246,6 +246,12 @@ class PhotoComment(models.Model):
 	image_comment = models.ImageField(upload_to=upload_to_photocomments)
 	has_image = models.BooleanField(default=False)
 	abuse = models.BooleanField(default=False)
+	############################
+	direct_reply_tgt_uname = models.TextField(blank=True, validators=[MaxLengthValidator(60)])
+	direct_reply_tgt_text_prefix = models.TextField(blank=True, validators=[MaxLengthValidator(45)])
+	direct_reply_tgt_text_postfix = models.TextField(blank=True, validators=[MaxLengthValidator(MAX_HOME_REPLY_SIZE-45)])
+	direct_reply = models.ForeignKey("self", blank=True, null=True)#self-referential foreign key (to enable tree layout)
+	level = models.IntegerField()
 
 	def __unicode__(self):
 		return u"%s commented on a photo, saying: %s" % (self.submitted_by, self.text)
@@ -394,6 +400,7 @@ class PhotoObjectSubscription(models.Model):
 	which_group = models.ForeignKey(Group, null=True, blank=True)
 	which_salat = models.ForeignKey(SalatInvite, null=True, blank=True)
 
+
 class GroupSeen(models.Model):
 	seen_user = models.ForeignKey(User)
 	seen_at = models.DateTimeField(auto_now_add=True)
@@ -462,6 +469,7 @@ class Report(models.Model):
 	which_group = models.ForeignKey(Group, null=True, blank=True)
 	which_reply = models.ForeignKey(Reply, null=True, blank=True)
 
+
 class Publicreply(models.Model):
 	submitted_by = models.ForeignKey(User)
 	answer_to = models.ForeignKey(Link)
@@ -471,6 +479,12 @@ class Publicreply(models.Model):
 	device = models.CharField(choices=DEVICE, default='1', max_length=10)
 	seen = models.BooleanField(default=False)
 	abuse = models.BooleanField(default=False)
+	############################
+	direct_reply_tgt_uname = models.TextField(blank=True, validators=[MaxLengthValidator(60)])
+	direct_reply_tgt_text_prefix = models.TextField(blank=True, validators=[MaxLengthValidator(45)])
+	direct_reply_tgt_text_postfix = models.TextField(blank=True, validators=[MaxLengthValidator(MAX_HOME_REPLY_SIZE-45)])
+	direct_reply = models.ForeignKey("self", blank=True, null=True)#self-referential foreign key (to enable tree layout)
+	level = models.IntegerField()
 
 	def __unicode__(self):
 		return u"%s replied %s to %s" % (self.submitted_by, self.description, self.answer_to)

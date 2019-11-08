@@ -10,8 +10,6 @@
 {% load get_big_photo_comment_button %}
 {% load get_notification_bar %}
 {% load get_big_external_share_button %}
-{% load get_photo_comment_bar %}
-{% load get_photo_comments_section %}
 {% block content %}
 
 <head><title>Trending content | Damadam.pk</title></head>
@@ -60,8 +58,6 @@
 	{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin='2' static_url=STATIC_URL %}
 	{% big_photo_comment_button photo_id=photo.i origin='2' comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
 	</div>
-
-	{% photo_comments_section raw_comments=photo.cb static_url=STATIC_URL self_user_id=ident origin='2' score=score %}
 
 	<div class="mts mrs mbl">
 	{% photo_comment_bar photo.i photo.si lang sort_by ident comment_form '2' sk %}

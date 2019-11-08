@@ -86,13 +86,13 @@ from .website_feedback_form import AdvertiseWithUsForm
 from redirection_views import return_to_content
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
 retrieve_group_reqd_data# invalidate_cached_mehfil_pages
-from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, add_photo_comment, get_best_photo_feed, get_photo_feed, retrieve_recent_votes,\
-update_comment_in_home_link, add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,\
-rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders,\
-invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
-retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
-get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
-is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text
+from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, check_votes_on_objs, get_best_photo_feed, get_photo_feed, retrieve_recent_votes,\
+add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, retrieve_photo_feed_index, rate_limit_fbs_public_photo_uploaders, \
+check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,retrieve_top_trenders, invalidate_cached_public_replies, \
+retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, retrieve_trending_photo_ids, \
+retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, get_recent_trending_photos, \
+cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, is_image_star, get_all_image_star_ids, \
+retreive_trending_rep, log_recent_text, in_defenders
 from redis9 import retrieve_latest_direct_reply, get_last_comment_time
 from redis8 import retrieve_variation_subset, set_tutorial_seen
 from direct_response_forms import DirectResponseForm
@@ -3374,8 +3374,8 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 							url = request.user.userprofile.avatar.url
 						except ValueError:
 							url = None
-						add_photo_comment(photo_id=pk,latest_comm_text=description,latest_comm_writer_id=user_id,\
-							comment_id=photocomment.id,latest_comm_writer_uname=username, time=comment_time)
+						# add_photo_comment(photo_id=pk,latest_comm_text=description,latest_comm_writer_id=user_id,\
+						# 	comment_id=photocomment.id,latest_comm_writer_uname=username, time=comment_time)
 						# unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, \
 						# 	username, url, request.mobile_verified)
 						################### Retention activity logging ###################

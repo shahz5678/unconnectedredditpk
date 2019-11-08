@@ -314,7 +314,7 @@ S1: Html styling
     padding-bottom:0.3em;
 }
 
-/*inline reply buttons for home and matka*/
+/*inline reply buttons for home and inbox*/
 
 .box-with-button-right {
   background-color: white;
@@ -1434,6 +1434,21 @@ button.pg_ex:focus{
 }
 }
 
+.stripy-gr {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      #77FFD1,
+      #77FFD1 10px,
+      #FFFF9E 10px,
+      #FFFF9E 20px /* determines size */
+    );
+}
+
+.stripy-gr {
+  background-color: #77FFD1;
+}
+
 .graph-gr{
   background-color: #77FFD1;
 }
@@ -1549,6 +1564,21 @@ button.pg_ex:focus{
   background-size:29px 29px;
   background-position:0 0, 14px 14px;
 }
+}
+
+.stripy {
+  background-image: 
+    repeating-linear-gradient(
+      45deg,
+      #BCE4FE,
+      #BCE4FE 10px,
+      #E0F5FF 10px,
+      #E0F5FF 20px /* determines size */
+    );
+}
+
+.stripy {
+  background-color: #BDEBFE;
 }
 
 .graph{
@@ -1698,6 +1728,64 @@ button.pg_ex:focus{
   80% {transform: scale( 1);}
   100% {transform: scale( 1);}
 }
+
+@-webkit-keyframes shake-horizontal {
+  0%,
+  100% {
+    -webkit-transform: translateX(0);
+            transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70% {
+    -webkit-transform: translateX(-10px);
+            transform: translateX(-10px);
+  }
+  20%,
+  40%,
+  60% {
+    -webkit-transform: translateX(10px);
+            transform: translateX(10px);
+  }
+  80% {
+    -webkit-transform: translateX(8px);
+            transform: translateX(8px);
+  }
+  90% {
+    -webkit-transform: translateX(-8px);
+            transform: translateX(-8px);
+  }
+}
+@keyframes shake-horizontal {
+  0%,
+  100% {
+    -webkit-transform: translateX(0);
+            transform: translateX(0);
+  }
+  10%,
+  30%,
+  50%,
+  70% {
+    -webkit-transform: translateX(-10px);
+            transform: translateX(-10px);
+  }
+  20%,
+  40%,
+  60% {
+    -webkit-transform: translateX(10px);
+            transform: translateX(10px);
+  }
+  80% {
+    -webkit-transform: translateX(8px);
+            transform: translateX(8px);
+  }
+  90% {
+    -webkit-transform: translateX(-8px);
+            transform: translateX(-8px);
+  }
+}
+
 
 /* renders straight line. Usage: Personal group invite icon, direct response icon (inside personal group)*/
 
@@ -1950,21 +2038,16 @@ button.acc:hover{
 
 /* renders the spinning refresh button (and its html5 animation) */
 
-.rf-bg{
-    background-repeat: no-repeat;
-    background-position: center; 
-    background-color: transparent;
-    background-size:cover;
-    width: 26px;
-    height: 26px;
-    margin-top: 6px;
-}
-
-button.rf:focus{
+button.rf:focus > img{
     -webkit-animation: rotation 0.5s 20 linear;
-    outline:none;
+    -o-animation: rotation 0.5s 20 linear;
+    -moz-animation: rotation 0.5s 20 linear;
+    -ms-animation: rotation 0.5s 20 linear;
     border:0;
+    outline:none;
     -moz-outline-style: none;
+    user-select:none;
+    border-style:none;
 }
 
 @-webkit-keyframes rotation {
@@ -1977,7 +2060,10 @@ button.rf:focus{
 }
 
 .rf{
+    outline:none;
+    -moz-outline-style: none;
     border-style:none;
+    user-select:none;
 }
 
 /* styles the online status bar at the top of personal group */

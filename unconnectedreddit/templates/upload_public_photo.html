@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-{% load future_time %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Share image | Damadam</title></head>
 <style>body{background: #f0f3f4}</style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.16.js"></script>
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
 
 <div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
@@ -52,15 +51,10 @@
     
         <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
         <div class="cgy lsp sp cm mbs" style="padding:0 10px;">
-            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is page se share ki hui photo Google search mein bhi show hogi</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Ap ne photo ke barey mein jo likha ho ga, wohi alfaz Google pe photo ko search karney mein use hon ge</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Maslan agr poetry ki photo ho, tou photo title mein "Urdu Poetry" ya phir "Sad Poetry" likh dein. Kuch days baad apki photo Google pe inhi alfaz se search ho paye gi</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Check karney ke liye ke photo Google search mein show ho rahi hai ke nahi, apna nickname aur photo ka title aik sath likh ke Google search karein (e.g. "user_123 Sad Poetry")</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Agar photo ap ne khud edit ki ho (kahien se copy na ki ho) tou Google aisi photos ko tarjeeh deta hai, aur unkey search ke top pe pohonchney ke chances barhtey hain!</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">6)</span> Kuch alfaz Pakistani Google pe buhut search kartey hain (e.g. 'whatsapp dp', 'sad dp', 'girls dp'). In alfaz se related photos, jinka title bhi yehi alfaz hon, Google search ke top pe ja sakti hain (lekin original photos hon, copied nahi)</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">7)</span> Google search pe sirf 'Share' se uploaded photos ja sakti hain. Mehfils ya 1 on 1 mein lagai pics Google search pe nahi jaatien</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">8)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">9)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Photo post ke zariye apne followers ke samney apne apko express karein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Hadd se zyada private photos share nahi karein. Agr screenshot le li gyi tou apke liye mushqil peda ho sakti hai</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Vulgarity, abuse, mazhabi fasaad aur spamming sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
         </div>
         </div>
         {% endif %}

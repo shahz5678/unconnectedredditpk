@@ -10,12 +10,6 @@ ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 
-#git init
-#git remote add origin https://github.com/mhb11/unconnectedredditpk.git
-#git pull origin master
-#git add <files>
-#git push origin master	
-
 expires = datetime.utcnow() + timedelta(days=365)
 expires = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
@@ -27,7 +21,6 @@ AWS_QUERYSTRING_AUTH = False
 
 if ON_AZURE == '1':
 	DEBUG=False
-	# STATIC_URL = '//damadamstatic.azureedge.net/'
 else:
 	DEBUG=True
 	
@@ -36,7 +29,7 @@ STATIC_URL = '/static/'
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-	('H B', 'baig.hassan@gmail.com'),
+	('H B', 'mhb11@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -377,7 +370,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.calc_photo_quality_benchmark': {
 		'task': 'tasks.calc_photo_quality_benchmark',
-		'schedule': timedelta(seconds=86400), # execute every 24 hours, setting top photo uploaders list
+		'schedule': timedelta(seconds=86400), # empty task - available for other stuff
 	},
 	'tasks.calc_ecomm_metrics': {
 		'task': 'tasks.calc_ecomm_metrics',
@@ -414,7 +407,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.fans': {
 		'task': 'tasks.fans',
-		'schedule': timedelta(seconds=1200),  # execute every 20 mins, displays correct num fans in top photos list
+		'schedule': timedelta(seconds=3600),  # execute every 1 hour, cleans up expired 'direct replies'
 		'args': (),
 	},
 	'tasks.salat_streaks': {

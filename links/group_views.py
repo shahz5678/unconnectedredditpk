@@ -30,11 +30,10 @@ get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rat
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, log_user_activity, cache_personal_group,\
-update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
-cache_photo_shares
+update_notif_object_anon, hide_associated_direct_responses, private_chat_seen, photo_sharing_metrics_and_rate_limit
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
-PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
+PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT, PERSONAL_GROUP_REJOIN_RATELIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
 from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT, SEGMENT_STARTING_USER_ID
 from push_notification_api import send_single_push_notification
@@ -655,11 +654,12 @@ def delete_post_from_personal_group(request):
 		if exists:
 			if decision == '1':
 				action = 'undel' if undelete == '1' else 'del'
-				deleted, ttl = delete_or_hide_chat_from_personal_group(blob_id=target_blob_id, idx=target_index, own_id=own_id, group_id=group_id, \
-					img_id=None, action=action)#img_id is used in 'hiding', not needed here
-				if deleted:
-					update_notif_object_del.delay(action=action,blob_id=target_blob_id,idx=target_index,group_id=group_id)
-				elif ttl and not deleted:
+				action_completed, ttl, update_dir_rep, is_hidden = delete_or_hide_chat_from_personal_group(blob_id=target_blob_id, idx=target_index, own_id=own_id, \
+					group_id=group_id, img_id=None, action=action)#img_id is used in 'hiding', not needed here
+				if update_dir_rep:
+					hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+					receiver_id=target_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+				if ttl and not action_completed:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
 						'one_post':True,'tid':target_id})
 			request.session["personal_group_tid_key"] = target_id
@@ -1032,10 +1032,12 @@ def hide_photo_from_personal_group_chat(request):
 					return redirect("enter_personal_group")
 				else:
 					action = request.POST.get('act',None)#values are either 'hide' or 'unhide' (i.e. 'hide' if request.POST.get('hval',None) == 'True' else 'unhide')
-					hidden, ttl = delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_id, action=action)
-					if hidden:
-						update_notif_object_hide.delay(action=action,blob_id=blob_id,idx=idx,group_id=group_id)
-					elif ttl and not hidden:
+					action_completed, ttl, update_dir_rep, is_hidden = delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, \
+						img_id, action=action)
+					if update_dir_rep:
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=target_id,\
+						receiver_id=own_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+					if ttl and not action_completed:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'act':action,\
 							'one_photo':True,'tid':target_id})
 					return redirect("enter_personal_group")
@@ -1280,7 +1282,7 @@ def personal_group_reentry(request):
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						return redirect(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'their_anon':their_anon_status,\
 						'avatar':their_avurl,'name':their_uname,'reentry_denied':True,'tid':tid})
-					elif time_diff < ONE_DAY:
+					elif time_diff < PERSONAL_GROUP_REJOIN_RATELIMIT:
 						# cant return yet - it's too soon
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'reentry_too_soon':True,\
@@ -1289,7 +1291,7 @@ def personal_group_reentry(request):
 						# re-enter normally, i.e. unsuspend group
 						unsuspend_personal_group(own_id, tid, group_id)
 						reset_all_group_chat(group_id) #permanently resetting group chat
-						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='reentry',txt_type='reentry',\
+						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='reentry in 1on1',txt_type='reentry',\
 							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
 							own_avurl='',deleted='undel',hidden='no')
 						request.session['personal_group_tid_key'] = tid
@@ -1410,13 +1412,20 @@ def delete_or_hide_photo_from_photo_settings(request):
 				except (AttributeError,IndexError):
 					pass
 				action = request.POST.get('act',None)
-				deleted, ttl = delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, action=action)
-				if deleted:
-					if action in ('del','undel'):
-						update_notif_object_del.delay(action=action,blob_id=blob_id,idx=idx,group_id=group_id)
-					elif action in ('hide','unhide'):
-						update_notif_object_hide.delay(action,blob_id,idx,group_id)
-				elif not deleted and ttl:
+				action_completed, ttl, update_dir_rep, is_hidden = delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, \
+					action=action)
+
+				if update_dir_rep:
+					if action in ('hide','unhide'):
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=target_id,\
+						receiver_id=own_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+					elif action in ('del','undel'):
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+						receiver_id=target_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+					else:
+						pass
+
+				if not action_completed and ttl:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'act':action,\
 						'one_photo':True,'tid':target_id})
 				request.session["personal_group_tid_key"] = target_id
@@ -1439,7 +1448,7 @@ def delete_or_hide_photo_from_photo_settings(request):
 @csrf_protect
 def delete_all_posts_from_personal_group(request):
 	"""
-	Used to cleanse/uncleanse personal group of all chat written in it. 
+	Used to cleanse/uncleanse personal group of all chat written in it (in bulk). 
 	"""
 	if request.method == "POST":
 		own_id, tid = request.user.id, request.POST.get("tid",None)
@@ -1454,9 +1463,11 @@ def delete_all_posts_from_personal_group(request):
 					{'their_anon':their_anon_status,'name':their_uname,'avatar':their_avurl,'tid':tid})
 			elif decision == '1':
 				undelete = request.POST.get('un',None)
-				deleted, ttl = delete_all_user_chats_from_personal_group(own_id=own_id, group_id=group_id, undelete=undelete)
-				if deleted:
-					update_notif_object_del.delay(group_id, bulk_deletion=True)
+				deleted, ttl, top_most_post_affected, top_most_post_hidden = delete_all_user_chats_from_personal_group(own_id=own_id, \
+					group_id=group_id, undelete=undelete)
+				if top_most_post_affected:
+					hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+					receiver_id=tid,to_hide=top_most_post_hidden)# reply_id is not relevant for 1on1s
 				elif not deleted and ttl:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
 						'all_chat':True,'tid':tid})
@@ -1527,7 +1538,8 @@ def personal_group_photo_settings(request):
 				# photo reception permissions
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phrec_value, ttl, garbage = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
+					new_phrec_value, ttl, garbage_1, garbage_2 = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
+						setting_type=photo_setting, group_id=group_id)
 				else:
 					request.session["personal_group_tid_key"] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
@@ -1537,12 +1549,16 @@ def personal_group_photo_settings(request):
 				# photo mass-deletion setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
-					if new_phdel_value == '1':
-						update_notif_object_del.delay(group_id=group_id,bulk_deletion=True)
+					new_phdel_value, ttl, undelete, top_most_post_affected = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
+						setting_type=photo_setting, group_id=group_id)
+					
+					if new_phdel_value == '1' and top_most_post_affected:# successfully deleted
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+						receiver_id=tid,to_hide=True)# reply_id is not relevant for 1on1s
+					
 					elif new_phdel_value is None and ttl is not None:
-						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
-							'tid':tid})
+						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
+							'all_photos':True,'tid':tid})
 				else:
 					request.session["personal_group_tid_key"] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
@@ -1552,9 +1568,12 @@ def personal_group_photo_settings(request):
 				# photo mass-restoration setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
-					if new_phdel_value == '0':
-						update_notif_object_del.delay(group_id=group_id,bulk_deletion=True)
+					new_phdel_value, ttl, undelete, top_most_post_affected = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
+						setting_type=photo_setting, group_id=group_id)
+					if new_phdel_value == '0' and top_most_post_affected:# successfully undeleted
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+						receiver_id=tid,to_hide=False)# reply_id is not relevant for 1on1s
+					
 					elif new_phdel_value is None and ttl is not None:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
 							'tid':tid})
@@ -2098,7 +2117,7 @@ def accept_personal_group_invite(request):
 					###################################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
-						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='1 on 1 started',txt_type='creation',\
 							own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 					request.session["personal_group_tid_key"] = target_id
 					request.session["personal_group_gid_key:"+target_id] = group_id
@@ -2204,7 +2223,7 @@ def change_personal_group_invite_privacy(request):
 						###################################################################
 						if not already_existed:
 							reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
-							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='1 on 1 started',txt_type='creation',\
 								own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 						request.session["personal_group_tid_key"] = target_id
 						request.session["personal_group_gid_key:"+target_id] = group_id
@@ -2278,7 +2297,7 @@ def process_personal_group_invite(request):
 					###################################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
-						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='1 on 1 started',txt_type='creation',\
 							own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl=own_av_url,deleted='undel',\
 							hidden='no')
 					request.session["personal_group_tid_key"] = target_id

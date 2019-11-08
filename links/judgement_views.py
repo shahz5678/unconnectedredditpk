@@ -264,7 +264,40 @@ def enter_inter_user_ban(request,*args,**kwargs):
 				return redirect("home")
 	else:
 		# it's a GET request from the direct response list
-		return redirect("banned_users_list")
+		origin = request.session.pop('from_dir_rep_list'+str(user_id),None)
+		if origin:
+			target_user_id= request.session.pop('tuid'+str(user_id),None)
+			if target_user_id:
+				target_username = retrieve_uname(target_user_id,decode=True)
+				if target_username:
+					# process the blocking screen
+					################### Retention activity logging ###################
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z11' if request.mobile_verified else 'Z11.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_user_id}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
+					save_ban_target_credentials(own_id=user_id, target_id=target_user_id, target_username=target_username)
+					banner_id, existing_ttl = is_already_banned(own_id=user_id, target_id=target_user_id, return_banner=True)# already banned by the user
+					if existing_ttl is None or existing_ttl is False:
+						return render(request,"judgement/inter_user_ban.html",{'target_username':target_username,'to_ban':True,'orig':origin,'lid':None,\
+							'tunm':target_username,'obid':None,'topic':None})
+					else:
+						if banner_id == str(user_id):
+							return render(request,"judgement/inter_user_ban.html",{'target_username':target_username,'target_user_id':target_user_id,\
+								'already_banned':True, 'banned_by':'self'})
+						else:
+							return render(request,"judgement/inter_user_ban.html",{'target_username':target_username,'target_user_id':target_user_id,\
+								'already_banned':True, 'banned_by':'other','tunm':target_username,'obid':None,'orig':origin,'lid':None})
+				else:
+					raise Http404("target username is non-existent")
+			else:
+				raise Http404("target user ID is non-existent")
+
+		# it's a GET request from an origin other than 'direct response list'
+		else:
+			return redirect("banned_users_list")
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -1284,6 +1317,7 @@ def judge_content_submitters(request):
 										return render(request,'judgement/ban_content_voters.html',context)
 									else:
 										# redirect to 'successfully banned' page (reconfigure this when originating from 'cull' list)
+										print ban_time
 										return render(request,"judgement/categorize_ban.html",{'cull_header':'ban_imposed','from_cull':from_cull,\
 											'origin':data['orig'],'oun':oun,'lid':data['lid'],'obid':obj_id,'ban_time':ban_time,'obj_owner_id':obj_owner_id})
 										##############################################

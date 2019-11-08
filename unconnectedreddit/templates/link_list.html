@@ -1,5 +1,4 @@
 {% extends "base.html" %}
-{% load get_item %}
 {% load emoticons_tags %}
 {% load get_text_object %}
 {% load url_target_blank %}
@@ -8,25 +7,15 @@
 {% load get_big_vote_button %}
 {% load get_big_send_button %}
 {% load get_big_group_button %}
-{% load get_home_publicreply_bar %}
-{% load get_home_replies_section %}
 {% load get_big_home_reply_button %}
-{% load get_photo_comments_section %}
-{% load get_home_photo_comment_bar %}
+{% load get_inline_replies_section %}
 {% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
 {% load get_big_external_share_button %}
 {% block content %}
 <head><title>Home | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
-<main style="display:block;max-width:750px;margin:0 auto;width:97%;position:relative;">
-
-<a name="error"></a>
-{% if home_direct_reply_error_string %}
-	<div style="background:tomato;text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
-		{{ home_direct_reply_error_string }}
-	</div>
-{% endif %}
+<main style="display:block;max-width:750px;margin:0 auto;width:98%;position:relative;">
 
 {% if newbie_flag %}
 	
@@ -34,11 +23,10 @@
 	
 {% else %}
 
-	{% load get_notification_bar %}
-
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-	{% notification_bar notification=process_notification origin='19' single_notif_error=single_notif_error user=user user_id=ident females=checked static_url=STATIC_URL random=random newest_user=newest_user lang=lang sort_by=sort_by is_home=True sk=sk %} 
+	{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin='19' %}
+
 {% endif %}
 
 {% include "topics/topics_navbar.html" with section='home' %}
@@ -47,6 +35,26 @@
 	<a href="{% url 'home' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
 </div>
+
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+
+<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
+    {% csrf_token %}
+    <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
+    <div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
+    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="3"><input type="hidden" name="srep" value="1">
+
+    <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
+
+    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+</form>
+
+<a name="error"></a>
+{% if dir_rep_invalid %}
+	<div style="background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
+		{{ dir_rep_invalid }}
+	</div>
+{% endif %}
 
 {% for link in link_list %}
 
@@ -61,28 +69,26 @@
 		(adsbygoogle = window.adsbygoogle || []).push({});
 		</script>
 	</aside>
-	
+
 {% elif forloop.counter == 4 %}
 	
-	<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#03fcdf">
+	<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff99">
 		<div class="mtl mbs fx fxjscn fxaicn">
 			<img src="{{ STATIC_URL }}img/ahem.svg" class="mrs" width="60" height="60">
 			<img src="{{ STATIC_URL }}img/matka.svg" class="mls" width="60" height="60">
 		</div>
-		<div style="text-align:center" class="cxl lsp mbl mtl clb"><b>"Matka" khatam ho raha hai</b></div>
-		<a href="{% url 'coming_soon' %}"><button class="btn cl sp bcb pg_ok_res" style="height:44px;width:100%;border-radius:0;overflow:hidden"><b>MAZEED MALUMAT</b></button></a>
+		<div style="text-align:center" class="cxl lsp mbl mtl clb"><b>"Matka" khatam ho gya hai</b></div>
+		<a href="{% url 'coming_soon' %}"><button class="btn cl sp bct pg_ok_res" style="height:44px;width:100%;border-radius:0;overflow:hidden"><b>MAZEED MALUMAT</b></button></a>
 	</div>
 
 {% endif %}
-
-{% with replyforms|get_item:link.h as replyform %}
 
 {% if link.c == '6' %}
 	
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|urlize|url_target_blank|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_star=link.s %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_star=link.s %}
 
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -96,11 +102,11 @@
 	</section>
 
 	<section style="display:block" class="mls mrs mbl">
-	{% home_photo_comment_bar photo_id=link.i photo_owner_id=link.si lang=lang sort_by=sort_by user_id=ident comment_form=comment_form origin='3' home_hash=link.h sk=sk %}
+		{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin='3' form=thin_rep_form btn_color='bct' %}
 	</section>
 
 	<section style="display:block" class="mls mbl"> 
-	{% photo_comments_section raw_comments=link.cb static_url=STATIC_URL self_user_id=ident origin='3' home_hash=link.h %}
+		{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='3' obj_owner_id=link.si obj_type='img' %}
 	</section>
 
 </article>
@@ -109,7 +115,7 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter  }}"></a>
 		<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
-		{% text_object obid=link.i ooid=link.si text=link.d|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
+		{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
 		</section>
 		<section class="mbl" style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -122,19 +128,17 @@
 		</section>
 
 		<section style="display:block" class="mls mrs mbl">
-		{% home_publicreply_bar link_pk=link.i link_writer_pk=link.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='3' sk=sk %}
+		{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin='3' form=thin_rep_form btn_color='bct' %}
 		</section>
 
 		<section style="display:block" class="mts mls mbl">
-		{% home_replies_section raw_replies=link.cb static_url=STATIC_URL self_user_id=ident home_hash=link.h %}
+		{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='3' obj_owner_id=link.si obj_type='tx' %}
 		</section>
 
 </article>
 {% else %}
 <!-- nothing -->
 {% endif %}
-
-{% endwith %}
 
 {% empty %}
 	<div style="text-align:center;padding:10px;background-color:white" class="sp bizcard mbl clb">Kuch mazedar baat <a class="cb" href="{% url 'link_create' %}"><b>share karein</b></a>!</div>

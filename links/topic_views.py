@@ -10,8 +10,9 @@ from page_controls import ITEMS_PER_PAGE
 from verified import FEMALES
 from models import Link
 from redis2 import bulk_is_fan
-from forms import PublicreplyMiniForm
+# from forms import PublicreplyMiniForm
 from redis3 import log_text_submissions
+from direct_response_forms import DirectResponseForm
 from tasks import set_input_history, log_user_activity
 from views import get_indices, get_addendum, beautiful_date, format_post_times, retrieve_user_env
 from redis4 import retrieve_credentials, set_text_input_key, content_sharing_rate_limited, rate_limit_content_sharing
@@ -22,7 +23,7 @@ retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_c
 retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes,\
 is_image_star
 ###############
-from score import SEGMENT_STARTING_USER_ID
+from score import SEGMENT_STARTING_USER_ID, NUM_SUBMISSION_ALLWD_PER_DAY
 
 
 ##########################################################################################################
@@ -335,9 +336,9 @@ def topic_page(request,topic_url):
 					with_oldest=True)
 				color_grads = COLOR_GRADIENTS[bg_theme]
 				#######################
-				replyforms = {}
-				for obj in list_of_dictionaries:
-					replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+				# replyforms = {}
+				# for obj in list_of_dictionaries:
+				# 	replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 				#######################
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
@@ -356,13 +357,14 @@ def topic_page(request,topic_url):
 				page = {'next_page_number':page_num+1,'number':page_num,'has_previous':True if page_num>1 else False,\
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 
-				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,'page':page,\
-				'replyforms':replyforms,'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),\
-				'sk':str(secret_key),'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
-				'topic_direct_reply_error_string':request.session.pop("topic_direct_reply_error_string",''),\
+				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,\
+				'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),'sk':str(secret_key),\
+				'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
+				'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 				'ident':own_id, 'validation_error':request.session.pop("validation_error",''),'topic_url':topic_url,\
 				'is_subscribed':is_subscribed, 'new_subscriber':request.session.pop("subscribed"+str(own_id),None),\
-				'cannot_recreate':request.session.pop("cannot_recreate"+str(own_id),None)}
+				'cannot_recreate':request.session.pop("cannot_recreate"+str(own_id),None), 'page':page,\
+				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True)}
 				
 				################### Retention activity logging ###################
 				from_redirect = request.session.pop('rd',None)
@@ -389,17 +391,18 @@ def topic_page(request,topic_url):
 				list_of_dictionaries, page_num, max_pages = retrieve_topic_contribution_page_data(topic_url, page_num)
 				color_grads = COLOR_GRADIENTS[bg_theme]
 				#######################
-				replyforms = {}
-				for obj in list_of_dictionaries:
-					replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+				# replyforms = {}
+				# for obj in list_of_dictionaries:
+				# 	replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 				#######################
 				
 				page = {'next_page_number':page_num+1,'number':page_num,'has_previous':True if page_num>1 else False,\
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 
 				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,'page':page,\
-				'replyforms':replyforms,'sk':'','topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
-				'topic_url':topic_url,'ident':None, 'is_subscribed':False}
+				'sk':'','topic_description':description,'c1':color_grads[0],'c2':color_grads[1], 'is_subscribed':False,\
+				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True),\
+				'topic_url':topic_url,'ident':None}
 				
 				return render(request, 'topics/unauth_topic_home.html', context)
 			else:
@@ -496,7 +499,8 @@ def submit_topic_post(request,topic_url):
 						ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
 						if ttl:
 							# this is wrongly named, but tells the user to wait
-							return render(request, 'error_photo.html', {'time':ttl,'origin':'22','tp':type_of_rate_limit,'topic_url':topic_url})
+							return render(request, 'error_photo.html', {'time':ttl,'origin':'22','tp':type_of_rate_limit,'topic_url':topic_url,\
+								'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})
 						else:
 							banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
 							if banned:
@@ -517,8 +521,8 @@ def submit_topic_post(request,topic_url):
 									obj_hash = "tx:"+str(obj_id)
 									add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
 										submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now,\
-										text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=topic_url, \
-										topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True, submitter_username=submitter_name)
+										text=text, from_fbs=on_fbs, topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme,\
+										add_to_public_feed=True, submitter_username=submitter_name)
 									log_text_submissions('topic')
 									rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
 									set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
@@ -621,3 +625,21 @@ def unsubscribe_topics(request):
 	else:
 		# render unsubscription options
 		return render(request,"topics/unsubscribe_topics.html",{'subscribed_topics':retrieve_subscribed_topics(str(own_id))})
+
+
+##########################################################################################################
+############################################### Utilities ################################################
+##########################################################################################################
+
+
+def isolate_topic_data(topic_data):
+	"""
+	Isolate topic data from composite payload of type "theme:topic_name:topic_url"
+
+	Used by retrieve_direct_response_data() in direct_response_views.py
+	"""
+	data = topic_data.split(":")
+	theme, topic_name, topic_url = data[0], data[1], data[2]
+	color_grads = COLOR_GRADIENTS[theme]
+	c1, c2 = color_grads[0], color_grads[1]
+	return theme, topic_name, c1, c2, topic_url

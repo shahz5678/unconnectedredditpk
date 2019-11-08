@@ -48,12 +48,12 @@
 
 	<!-- bunched HTML removes spaces between li elements -->
 	{% load count %}
-	{% check_notif_count as notif_count %}
+	{% check_reply_count as reply_count %}
 	{% load count_priv_invites %}
 	{% check_invite_count as invite_count %}
 	{% load count_group_invites %}
 	{% check_group_invite_count as group_invite_count %}
-	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li><a class="sharing" href="{% url 'unseen_activity' slug=user.username %}#section0">Matka{% if notif_count > 0 %}<span style="color:mediumblue"> ({{ notif_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+	<li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox{% if reply_count %}<span style="color:mediumblue"> ({{ reply_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue;"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 	
 	</ul>
 	<a name="section0"></a>
@@ -83,7 +83,7 @@
 				{% else %}
 					<h2 style="padding: 8px;margin:0;text-align:center;border-bottom:2px solid whitesmoke;font-weight:lighter" class="cs sp lsp clb">NEW SUBMISSION:</h2>
 				{% endif %}
-				<div>{{ form.description }}</div>
+				<div style="background:#ecfffb">{{ form.description }}</div>
 				<button type="submit" aria-label="submit" class="cm clw sp pg_ok_res" style="padding:0;margin:0;border:none;width:100%;height:40px;border-radius:0;font-weight:bold;background: {{ c1 }};background: linear-gradient(45deg, {{ c1 }} 0%, {{ c2 }} 100%)">SUBMIT</button>
 			</form>
 		</section>
@@ -98,6 +98,19 @@
 
 		{% if submissions %}
 
+			<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+
+			<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
+			    {% csrf_token %}
+			    <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
+	    		<div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
+			    <input id="drep_poid" type="hidden" name="poid" value=""><input id="drep_obid" type="hidden" name="obid" value=""><input id="drep_tuid" type="hidden" name="tuid" value=""><input id="drep_obtp" type="hidden" name="obtp" value="3"><input type="hidden" name="origin" value="22"><input type="hidden" name="srep" value="1"><input type="hidden" name="top_url" value="{{ topic_url }}">
+
+			    <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
+
+			    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+			</form>
+
 			{% load get_item %}
 			{% load emoticons_tags %}
 			{% load get_text_object %}
@@ -105,9 +118,8 @@
 			{% load get_big_fan_button %}
 			{% load get_big_vote_button %}
 			{% load get_big_group_button %}
-			{% load get_home_publicreply_bar %}
-			{% load get_home_replies_section %}
 			{% load get_big_home_reply_button %}
+			{% load get_inline_replies_section %}
 			{% load get_transparent_buttons_js %}
 
 			<section style="display:block">
@@ -117,15 +129,13 @@
 			</div>
 
 			<a name="error"></a>
-			{% if topic_direct_reply_error_string %}
-				<aside style="background:tomato;text-align:center;color:white;padding:5px 0;border-radius:12px;border:3px solid whitesmoke;max-width:750px;margin-left:auto;margin-right:auto;width:97%" class="cxl lsp mbs">
-					{{ topic_direct_reply_error_string }}
+			{% if dir_rep_invalid %}
+				<aside style="background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);text-align:center;color:white;padding:5px 0;border-radius:12px;border:3px solid whitesmoke;max-width:750px;margin-left:auto;margin-right:auto;width:97%" class="cxl lsp mbs">
+					{{ dir_rep_invalid }}
 				</aside>
 			{% endif %}
 
 			{% for submission in submissions %}
-
-			{% with replyforms|get_item:submission.h as replyform %}
 
 				<article itemprop="hasPart" itemscope itemtype="http://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
 					<div>
@@ -145,17 +155,15 @@
 						</section>
 						
 						<section style="display:block" class="mls mrs mbl">
-						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
+						{% include "reply_bar.html" with target_user_id=submission.si target_obj_type='3' obj_id=submission.i origin='22' form=thin_rep_form btn_color='bct' topic_url=topic_url %}
 						</section>
 
 						<section style="display:block" class="mts mls mbl">
-						{% home_replies_section raw_replies=submission.cb static_url=STATIC_URL self_user_id=ident home_hash=submission.h %}
+						{% inline_replies_section raw_replies=submission.rb static_url=STATIC_URL self_user_id=ident home_hash=submission.h origin='22' obj_owner_id=submission.si obj_type='tx' topic_url=topic_url %}
 						</section>
 
 					</div>
 				</article>
-
-			{% endwith %}
 				
 			{% endfor %}
 			</section>

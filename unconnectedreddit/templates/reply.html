@@ -1,15 +1,28 @@
 {% extends "base.html" %}
 {% load s3 %}
 {% load human_time %}
-{% load url_target_blank %}
-{% load get_block_button %}
-{% load get_transparent_buttons_js %}
-{% load get_text_object %}
 {% load emoticons_tags %}
+{% load get_text_object %}
+{% load get_block_button %}
+{% load url_target_blank %}
 {% load get_group_button %}
+{% load get_transparent_buttons_js %}
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
+
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+
+<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
+    {% csrf_token %}
+    <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
+    <div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
+    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input type="hidden" name="origin" value="9"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="srep" value="1">
+
+    <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
+
+    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+</form>
 
 <main style="display: block;margin: 0 auto;max-width:750px;width:97%" class="clb">
 
@@ -26,17 +39,14 @@
 </article>
 
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 7px;">
-    <a name="sectionJ"></a> 
 
-    {% if form_error %}<div class="cr">{{ form_error }}</div>{% else %}<div class="ct sp"><b>Reply likhein:</b></div>{% endif %}
-    <form action="{% url 'publicreply_post' %}" method="POST" style="display:inline">
-        {% csrf_token %}
-        <input type="hidden" name="sk" value="{{ sk }}">
-        <input type="hidden" name="link_id" value="{{ parent.id }}">
-        <input type="hidden" name="sid" value="{{ user_id }}">
-        <input type="hidden" name="lwpk" value="{{ parent_submitter_id }}">
-        {{ form.description }}
-        <button class="btn bm bct mbl mts mrl sp pg_ok_res" type="submit" style="height:26px" id="id_submit">OK</button>
+    <a name="error"></a>
+    {% if dir_rep_invalid %}<div class="cr sp cxl lsp" style="text-align:center;color:white;background:tomato">{{ dir_rep_invalid }}</div>{% endif %}
+    <form action="{% url 'post_direct_response' %}" method="POST" style="display:inline">
+        <!-- main reply -->
+        {% csrf_token %}<input type="hidden" name="tuid" value="{{ parent_submitter_id }}"><input type="hidden" name="obtp" value="3"><input type="hidden" name="obid" value="{{ parent.id }}"><input type="hidden" name="poid" value="{{ parent.id }}"><input type="hidden" name="origin" value="9"><input type="hidden" name="mr" value="1">
+        <div style="border:1px solid #e0e0e0;border-radius:5px;overflow:hidden;background:#ecfffb">{{ main_rep_form.direct_response }}</div>
+        <button class="btn bct sp bm mts mbl mrl pg_ok_res" name="dec" value="1" type="submit" style="height:26px">send</button>
     </form>
     &nbsp;
     <form action="{% url 'publicreply_view' parent.id %}" method="GET" style="display:inline"><button class="rf" name="from_rfrsh" value="1" style="vertical-align:text-bottom;width:44px;height:24px;background:0 0" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px;margin-bottom:-10px" width="24" height="24"></button></form>
@@ -70,24 +80,88 @@
     {% endif %}
 
         {% if reply.abuse %}
-            <span class="cs sp cgy"><b class="cgy"><a href="{% url 'user_profile' reply.submitted_by__username %}" class="clb"><bdi>{{ reply.submitted_by__username }}</bdi></a></b>&nbsp;ka reply hide kar dia gya</span>
+            <span class="cs sp" style="color:#999"><b><a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:#999"><bdi>{{ reply.submitted_by__username }}</bdi></a></b>&nbsp;ka reply hide ho gya</span>
         {% else %}
-            {% if unseen %}
-                {% if not reply_time %}
-                    <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
-                {% elif reply.submitted_on > reply_time %}
-                    <div class="sp cxs mrs" style="display: inline;border-radius:3px;background-color:orange;padding:3px 6px;color:white;vertical-align:middle">NEW</div>
-                {% endif %}
+
+            {% if reply_time and reply.submitted_on > reply_time %}
+                <div class="sp cxs" style="display: inline;background:0 0;color:#5fb4e3;vertical-align:middle;font-weight:bold">NEW</div>&nbsp;
             {% endif %}
-           <a href="{% url 'user_profile' reply.submitted_by__username %}" class="clb"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>
-               {% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span class="clb lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
-               <div style="display:inline-block">
-                   <div class="fx fxjsfs fxaicn">
-                       {% if user_id == parent_submitter_id %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
-                       {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
-                       {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
+
+            {% if reply.direct_reply_tgt_uname and reply.direct_reply_tgt_text_prefix %}
+                
+                <!-- reference visible -->
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+
+                        {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
+
+                        {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
+
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                    </div>
+                </div>
+
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.direct_reply_tgt_uname reply_prefix=reply.direct_reply_tgt_text_prefix|emoticons reply_postfix=reply.direct_reply_tgt_text_postfix|emoticons %}
+
+            {% elif reply.direct_reply_tgt_uname and reply.direct_reply_id %}
+                
+                <!-- reference hidden -->
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+
+                        {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
+
+                        {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
+
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                    </div>
+                </div>
+
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.direct_reply_tgt_uname state='1' %}
+
+            {% else %}
+
+                <!-- no reference -->
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+
+
+                {% if reply.submitted_by == parent_submitter_id %}
+                    <!-- op's reply -->
+                    <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+
+                        {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
+
+                        {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
+
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
                    </div>
-               </div>
+                   </div>
+                {% else %}
+                    <!-- reply by someone else -->
+                    <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+
+                        {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
+
+                        {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
+
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                   </div>
+                   </div>
+                   {% include "direct_response/reference_snippet.html" with tgt_uname=reply.direct_reply_tgt_uname state='2' %}
+                {% endif %}
+
+            {% endif %}
+
         {% endif %}
         </div>
     
@@ -101,11 +175,11 @@
 {% emoticons_index as emoticons_list %}
 {% for emoticons in emoticons_list %}
     {% if forloop.counter in random %}
-    <p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></p>
+    <div class="mts">{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></div>
     {% endif %}
 {% endfor %}
 
-</main><br><br>
+</main><br>
 {% transparent_buttons_js ident=user_id static_url=STATIC_URL %}
 {% endblock %}
 

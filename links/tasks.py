@@ -1,3 +1,4 @@
+import ujson as json
 import os, time, datetime, random, ast#, math
 from collections import defaultdict, Counter
 from operator import itemgetter
@@ -22,7 +23,7 @@ queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_c
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, \
 set_world_age, retrieve_random_pin, ratelimit_banner_from_unbanning_target, exact_date, calculate_world_age_discount
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
-invalidate_cached_user_data, update_pg_obj_notif_after_bulk_deletion, get_personal_group_anon_state, personal_group_soft_deletion, \
+invalidate_cached_user_data, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
@@ -32,28 +33,27 @@ sanitize_unused_subscriptions,log_1on1_chat#, log_photo_attention_from_fresh
 from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
 bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
 get_active_fans, skip_private_chat_notif, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
-remove_from_photo_owner_activity, update_pg_obj_anon, update_pg_obj_del, update_pg_obj_hide, sanitize_eachothers_unseen_activities,\
-update_private_chat_notif_object, update_private_chat_notifications, set_uploader_score, bulk_remove_multiple_group_notifications, \
-update_group_topic_in_obj
-# photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link,
+remove_from_photo_owner_activity, sanitize_eachothers_unseen_activities, set_uploader_score, update_private_chat_notif_object, \
+update_pg_obj_anon, update_private_chat_notifications, bulk_remove_multiple_group_notifications#, update_pg_obj_hide
+# photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
-retrieve_all_member_ids, group_owner_administrative_interest
+retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group
 from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, delete_avg_hash, insert_hash,\
-cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars,\
+cleanse_all_feeds_of_user_content, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, \
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, select_hand_picked_obj_for_trending,retire_abandoned_topics,\
 queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
 study_voting_preferences,retrieve_img_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, get_best_home_feed, \
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes, \
-retrieve_all_home_text_obj_names, retrieve_text_obj_scores
-# from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list
-from redis3 import log_vote_disc
-from redis8 import log_activity
+retrieve_all_home_text_obj_names, retrieve_text_obj_scores, hide_inline_direct_response
+from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list, submit_direct_response, set_comment_history, \
+delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
-from namaz_timings import namaz_timings, streak_alive
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
+from redis3 import log_vote_disc
+from redis8 import log_activity
 from math import log
 
 # from mixpanel import Mixpanel
@@ -100,6 +100,22 @@ def get_credentials(user_id, uname=None, avurl=None):
 		# both exist, do nothing
 		pass
 	return uname, avurl
+
+
+def hide_direct_response_in_db(obj_type, reply_id):
+	"""
+	When a sentence in comments is hidden, are there any "reply of reply" chats associated to it that need to be hidden too on the same page?
+	"""
+	# Retreive "replies to reply" that have replied to this particular reply_id, and set their addendums to 'hidden'
+	if obj_type == '3':
+		Publicreply.objects.filter(direct_reply=reply_id).update(direct_reply_tgt_text_prefix='', direct_reply_tgt_text_postfix='')
+
+	# Retreive "replies to reply" that have replied to this particular reply_id, and set their addendums to 'hidden'
+	elif obj_type == '4':
+		PhotoComment.objects.filter(direct_reply=reply_id).update(direct_reply_tgt_text_prefix='', direct_reply_tgt_text_postfix='')
+	
+	else:
+		pass
 
 
 def convert_to_epoch(time):
@@ -193,54 +209,120 @@ def cache_personal_group(pg_data, group_id):
 
 
 @celery_app1.task(name='tasks.private_chat_tasks')
-def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type, own_anon='', target_anon='', blob_id='', idx='', img_url='', own_uname='', \
-	own_avurl='',deleted='',hidden='',successful=True, from_unseen=False, sharing=False):
+def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type, own_anon='', target_anon='', blob_id='', idx='', img_url='', \
+	own_uname='', own_avurl='',deleted='',hidden='',successful=True, from_dir_rep_list=False, sharing=False):
 	if successful:
 		mark_personal_group_attendance(own_id, target_id, group_id, posting_time)
-		own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
-		pgh, index = "pgh:"+group_id+":"+blob_id if blob_id else '', idx if (idx and int(idx) > 0) else ''
-		updated = update_private_chat_notif_object(group_id=group_id,lt_res_wid=own_id,lt_res_sub_name=own_uname,lt_res_avurl=own_avurl,\
-			lt_res_time=posting_time,lt_res_text=text,reply_photourl=img_url,res_count=index,object_desc=txt_type,lt_pgh=pgh,deleted=deleted,\
-			hidden=hidden,update=True)
-		if not updated:
-			own_anon, target_anon, group_id = get_personal_group_anon_state(own_id,target_id)
-			their_uname, their_avurl = get_credentials(target_id)
-			update_private_chat_notif_object(group_id=group_id,lt_res_wid=own_id,lt_res_sub_name=own_uname,lt_res_avurl=own_avurl,hidden=hidden,\
-			lt_res_time=posting_time,lt_res_text=text,reply_photourl=img_url,res_count=index,object_desc=txt_type,lt_pgh=pgh,deleted=deleted,\
-			anon1=own_id if own_anon else '',anon2=target_id if target_anon else '',target_uname=their_uname,target_avurl=their_avurl, \
-			target_id=target_id)
-		update_private_chat_notifications(sender_id=own_id, receiver_id=target_id, group_id=group_id, sender_seen=True, receiver_seen=False,\
-			updated_at=posting_time,sender_ua=True,receiver_ua=True,sender_sn=False,receiver_sn=True,sender_bump_ua=True,receiver_bump_ua=True)
-		if from_unseen or sharing:
-			update_personal_group_last_seen(own_id, group_id, posting_time)#supposed to update 'seen' of contributer
-		# All txt_types are: 'notif','img','img_res','text','text_res','action','reentry','exited','creation','shared_img'
-		if txt_type in ('text','text_res','img_res','img','shared_img'):
-			set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)#Checks content and turns URLs clickable
-		elif txt_type == 'exited':
+
+		if txt_type == 'exited':
 			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
-		################### Logging 1on1 message ###################
-		# if txt_type == 'shared_img':
-		# 	payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
-		# else:
-		# 	payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
-		# log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
-		##############################################################
+			
+			# ensuring both side don't have notifications in their inboxes anymore
+			delete_single_direct_response(target_user_id=own_id, obj_type='7', parent_obj_id=group_id, sender_id=target_id)
+			delete_single_direct_response(target_user_id=target_id, obj_type='7', parent_obj_id=group_id, sender_id=str(own_id))
+		
+		else:
+			own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
+			target_uname = retrieve_uname(target_id,decode=True)
+
+			# All txt_types are: 'notif','img','img_res','text','text_res','action','reentry','exited','creation','shared_img'
+			if txt_type in ('text','img','shared_img','text_res','img_res'):
+				set_uri_metadata_in_personal_group(own_id, text, group_id, blob_id, idx, txt_type)#Checks content and turns URLs clickable
+
+			if from_dir_rep_list or sharing:
+				update_personal_group_last_seen(own_id, group_id, posting_time)#supposed to update 'seen' of contributer
+
+			########### GENERATE A DIR REP NOTIF ###########
+			if own_anon == '1':
+				sun = own_uname.decode('utf-8')[:1].upper()
+				group_name = '1 on 1 with {}'.format(sun)
+			elif own_anon == '0':
+				sun = own_uname
+				group_name = '1 on 1 with {}'.format(sun)
+			else:
+				own_anon, target_anon, group_id = get_personal_group_anon_state(own_id,target_id)
+				if own_anon:
+					sun = own_uname.decode('utf-8')[:1].upper()
+					group_name = '1 on 1 with {}'.format(sun)
+				else:
+					sun = own_uname
+					group_name = '1 on 1 with {}'.format(sun)
+
+			payload = {'tx':text,'tun':target_uname,'t':posting_time,'tid':target_id,'obid':None,\
+				'sid':own_id,'dbid':blob_id,'sun':sun,'ptun':None,'poid':group_id, 'ot':'7','idx':idx,\
+				'ptx':group_name}
+
+			if img_url:
+				payload['iu'] = img_url
+
+			###############################################################
+			# generating the actual reply for appearance in the 'direct response list' (in inbox) and the single notification across the website
+			submit_direct_response(json_data=json.dumps(payload), time_now=posting_time, sender_id=own_id, target_user_id=target_id, \
+				obj_type='7', parent_obj_id=group_id, reply_id=0)# reply_id doesn't matter for 1on1 groups
+			
+			###############################################################
+			# delete the message that was responded to, if it exists in 'direct response list'
+			delete_single_direct_response(target_user_id=own_id, obj_type='7', parent_obj_id=group_id, sender_id=target_id)
+
+			################################################
+
+			################### Logging 1on1 message ###################
+			# if txt_type == 'shared_img':
+			# 	payload = str(posting_time)+":"+txt_type+":"+img_url[-47:]+":"+str(own_id)+":"+target_id+":"+text
+			# else:
+			# 	payload = str(posting_time)+":"+txt_type+":"+img_url+":"+str(own_id)+":"+target_id+":"+text
+			# log_1on1_chat(payload=payload,oid=own_id,tid=target_id, group_id=group_id, is_creation=True if txt_type == 'creation' else False)
+			##############################################################
+
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
 def update_notif_object_anon(value,which_user,which_group):
 	update_pg_obj_anon(value=value,object_id=which_group,user_id=which_user)
 
-@celery_app1.task(name='tasks.update_notif_object_del')
-def update_notif_object_del(group_id, action=None, blob_id=None,idx=None,bulk_deletion=False):
-	if bulk_deletion:
-		# bulk deletion was called in personal group, handle notif object accordingly
-		update_pg_obj_notif_after_bulk_deletion(group_id)
-	else:
-		update_pg_obj_del(action,blob_id,idx,group_id)
 
-@celery_app1.task(name='tasks.update_notif_object_hide')
-def update_notif_object_hide(action,blob_id,idx,group_id):
-	update_pg_obj_hide(action,blob_id,idx,group_id)
+@celery_app1.task(name='tasks.direct_response_tasks')
+def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj_id=None, obj_owner_id=None, obj_hash_name=None, \
+	obj_type=None, commenter_id=None, time_now=None):
+	"""
+	Tasks to complete when a direct response is sent on a public post (text or image)
+	"""
+	############################
+	log_direct_response_metrics(action_status=action_status, action_type=action_type, num_skips=num_skips)
+	
+	############################
+	# it's a publicreply
+	if obj_type == '3':
+		# Logging who all visited a user's public posts
+		set_comment_history(obj_hash_name=obj_hash_name, obj_owner_id=obj_owner_id, commenter_id=commenter_id, time_now=time_now)
+		# Incrementing comment_count
+		Link.objects.filter(id=parent_obj_id).update(reply_count=F('reply_count')+1)
+	
+	# it's a photo comment
+	elif obj_type == '4':
+		# Logging who all visited a user's public posts
+		set_comment_history(obj_hash_name=obj_hash_name, obj_owner_id=obj_owner_id, commenter_id=commenter_id, time_now=time_now)
+		# Incrementing comment_count
+		Photo.objects.filter(id=parent_obj_id).update(comment_count=F('comment_count')+1)
+
+
+@celery_app1.task(name='tasks.hide_associated_direct_responses')
+def hide_associated_direct_responses(obj_type,parent_obj_id,reply_id,sender_id,receiver_id,to_hide):
+	"""
+	Used when comments or chat is hidden in groups or in content comments, etc.
+	"""
+	hide_direct_response_in_inbox(obj_type=obj_type,parent_obj_id=parent_obj_id,reply_id=reply_id,to_hide=to_hide,sender_id=sender_id,\
+	receiver_id=receiver_id)# in redis9
+	
+	# if the object in question belongs to the 'comments' ecosystem
+	if obj_type in ('3','4'):
+		# '3' is comment under text post, '4' is comment under img post
+		hide_direct_response_in_db(obj_type, reply_id)
+		hide_inline_direct_response(obj_type, parent_obj_id, reply_id)
+	
+	# if the object in question belongs to the 'mehfil' ecosystem
+	elif obj_type in ('5','6'):
+		# '5' is public, '6' is private
+		hide_direct_response_in_group(obj_type, parent_obj_id,reply_id,to_hide)# redis6
 
 
 @celery_app1.task(name='tasks.private_chat_seen')
@@ -297,7 +379,7 @@ def post_banning_tasks(own_id, target_id):
 	exit_user_from_targets_priv_chat(own_id,target_id)
 	################################################################################
 	# remove any direct responses exchanged between the two
-	# delete_all_direct_responses_between_two_users(first_user_id=target_id, second_user_id=own_id)# order of passing user IDs does not matter
+	delete_all_direct_responses_between_two_users(first_user_id=target_id, second_user_id=own_id)# order of passing user IDs does not matter
 	################################################################################
 	# we did a LOT of work, ensure banner didn't ban in vain!
 	ratelimit_banner_from_unbanning_target(own_id,target_id)
@@ -536,64 +618,66 @@ def calc_gibberish_punishment():
 
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
 def calc_photo_quality_benchmark():
-	two_days = datetime.utcnow()-timedelta(hours=24*2)
-	photos_total_score_list = Photo.objects.filter(upload_time__gte=two_days).values_list('owner_id','vote_score')#list of tuples
-	# print photos_total_score_list
-	if photos_total_score_list:
-		total_photos_per_user = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})
-		# print "total photos per user: %s" % total_photos_per_user
-		total_scores_per_user = defaultdict(int)# a python dictionary that doesn't give KeyError if key doesn't exist when dict is accessed
-		for key,val in photos_total_score_list:
-			total_scores_per_user[key] += val #ends with with {owner_id:total_photo_score}
-		# print "total scores per user: %s" % total_scores_per_user
-		uploader_scores = []
-		for key,val in total_scores_per_user.items():
-			uploader_scores.append(key)
-			uploader_scores.append(float(val)/total_photos_per_user[key])#avg score per photo
-		# print uploader_scores
-		set_benchmark(uploader_scores)# sets own_ids and avg score per photo in a huge sorted set called photos_benchmark
+	pass
+	# two_days = datetime.utcnow()-timedelta(hours=24*2)
+	# photos_total_score_list = Photo.objects.filter(upload_time__gte=two_days).values_list('owner_id','vote_score')#list of tuples
+	# # print photos_total_score_list
+	# if photos_total_score_list:
+	# 	total_photos_per_user = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})
+	# 	# print "total photos per user: %s" % total_photos_per_user
+	# 	total_scores_per_user = defaultdict(int)# a python dictionary that doesn't give KeyError if key doesn't exist when dict is accessed
+	# 	for key,val in photos_total_score_list:
+	# 		total_scores_per_user[key] += val #ends with with {owner_id:total_photo_score}
+	# 	# print "total scores per user: %s" % total_scores_per_user
+	# 	uploader_scores = []
+	# 	for key,val in total_scores_per_user.items():
+	# 		uploader_scores.append(key)
+	# 		uploader_scores.append(float(val)/total_photos_per_user[key])#avg score per photo
+	# 	# print uploader_scores
+	# 	set_benchmark(uploader_scores)# sets own_ids and avg score per photo in a huge sorted set called photos_benchmark
 
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, caption):
-	fan_ids_list, total_fans, recent_fans = get_all_fans(user_id)
-	if fan_ids_list:
-		fans_notified_in_ua = 0
-		percentage_of_users_beaten = get_uploader_percentile(user_id)
-		if 0 <= percentage_of_users_beaten < FLOOR_PERCENTILE:
-			notify_in_ua = []
-			fans_notified_in_ua = 0
-			percentage_of_fans_to_notify = 0
-			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
-				unseen_activity=False)
-		elif FLOOR_PERCENTILE <= percentage_of_users_beaten <= CEILING_PERCENTILE:
-			percentage_of_fans_to_notify = fans_targeted(percentage_of_users_beaten)
-			remaining_ids, notify_in_ua = fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify, fan_ids_list)
-			if notify_in_ua:
-				bulk_create_photo_notifications_for_fans(viewer_id_list=notify_in_ua,object_id=photo_id,seen=False,\
-					updated_at=epochtime,unseen_activity=True)
-				fans_notified_in_ua = len(notify_in_ua)
-			else:
-				fans_notified_in_ua = 0
-			bulk_create_photo_notifications_for_fans(viewer_id_list=remaining_ids,object_id=photo_id,seen=False,\
-				updated_at=epochtime,unseen_activity=False)
-		elif CEILING_PERCENTILE < percentage_of_users_beaten <= 1:
-			fans_notified_in_ua = len(fan_ids_list)
-			notify_in_ua = fan_ids_list
-			percentage_of_fans_to_notify = 1
-			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
-				unseen_activity=True)
-		else:
-			notify_in_ua = 0
-			fans_notified_in_ua = 0
-			percentage_of_fans_to_notify = 0
-			bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
-				unseen_activity=False)
-		# object and notification for self, that reports how many fans we reached out to!
-		create_object(object_id=photo_id, object_type='1',object_owner_id=user_id,photourl=photourl, vote_score=total_fans, \
-			slug=fans_notified_in_ua, res_count=notify_in_ua,is_thnks=percentage_of_fans_to_notify,object_owner_name=name, \
-			object_desc=caption)
-		create_notification(viewer_id=user_id,object_id=photo_id,object_type='1',seen=False, updated_at=epochtime,\
-			unseen_activity=True)
+	pass
+	# fan_ids_list, total_fans, recent_fans = get_all_fans(user_id)
+	# if fan_ids_list:
+	# 	fans_notified_in_ua = 0
+	# 	percentage_of_users_beaten = get_uploader_percentile(user_id)
+	# 	if 0 <= percentage_of_users_beaten < FLOOR_PERCENTILE:
+	# 		notify_in_ua = []
+	# 		fans_notified_in_ua = 0
+	# 		percentage_of_fans_to_notify = 0
+	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
+	# 			unseen_activity=False)
+	# 	elif FLOOR_PERCENTILE <= percentage_of_users_beaten <= CEILING_PERCENTILE:
+	# 		percentage_of_fans_to_notify = fans_targeted(percentage_of_users_beaten)
+	# 		remaining_ids, notify_in_ua = fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify, fan_ids_list)
+	# 		if notify_in_ua:
+	# 			bulk_create_photo_notifications_for_fans(viewer_id_list=notify_in_ua,object_id=photo_id,seen=False,\
+	# 				updated_at=epochtime,unseen_activity=True)
+	# 			fans_notified_in_ua = len(notify_in_ua)
+	# 		else:
+	# 			fans_notified_in_ua = 0
+	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=remaining_ids,object_id=photo_id,seen=False,\
+	# 			updated_at=epochtime,unseen_activity=False)
+	# 	elif CEILING_PERCENTILE < percentage_of_users_beaten <= 1:
+	# 		fans_notified_in_ua = len(fan_ids_list)
+	# 		notify_in_ua = fan_ids_list
+	# 		percentage_of_fans_to_notify = 1
+	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
+	# 			unseen_activity=True)
+	# 	else:
+	# 		notify_in_ua = 0
+	# 		fans_notified_in_ua = 0
+	# 		percentage_of_fans_to_notify = 0
+	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
+	# 			unseen_activity=False)
+	# 	# object and notification for self, that reports how many fans we reached out to!
+	# 	create_object(object_id=photo_id, object_type='1',object_owner_id=user_id,photourl=photourl, vote_score=total_fans, \
+	# 		slug=fans_notified_in_ua, res_count=notify_in_ua,is_thnks=percentage_of_fans_to_notify,object_owner_name=name, \
+	# 		object_desc=caption)
+	# 	create_notification(viewer_id=user_id,object_id=photo_id,object_type='1',seen=False, updated_at=epochtime,\
+	# 		unseen_activity=True)
 
 @celery_app1.task(name='tasks.trim_top_group_rankings')
 def trim_top_group_rankings():
@@ -724,11 +808,11 @@ def group_attendance_tasks(group_id,user_id, time_now):#, private=False):
 		remove_inactive_members(inactive_user_ids, group_id, time_now)
 
 @celery_app1.task(name='tasks.update_group_topic')
-def update_group_topic(group_id, topic):
+def update_group_topic(group_id, topic, group_type):
 	"""
 	Updates group topic in notification object
 	"""
-	update_group_topic_in_obj(group_id, topic)
+	modify_direct_response_objs(parent_obj_type=group_type, parent_obj_id=group_id, modification_type='topic', payload=topic)
 
 #####################################################################################################
 
@@ -826,7 +910,7 @@ def rank_all_photos():
 	Mislabeled task due to legacy reasons
 	"""
 	time_now = time.time()
-	pushed, obj_id = select_hand_picked_obj_for_trending()
+	pushed, obj_id = select_hand_picked_obj_for_trending()#push_hand_picked_obj_into_trending()
 	if pushed and obj_id:
 		cohort_num = int(time_now/604800)#cohort size is 1 week
 		Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
@@ -965,8 +1049,7 @@ def fans():
 
 	Mislabeled due to legacy reasons
 	"""
-	pass
-	# cleanse_direct_response_list()
+	cleanse_direct_response_list()
 	# user_ids = get_top_100()
 	# user_ids_and_fan_counts = get_fan_counts_in_bulk(user_ids)
 	# user_ids_and_user_objects = User.objects.select_related('userprofile','totalfanandphotos').defer('password','last_login','is_superuser',\
@@ -1023,11 +1106,12 @@ def photo_upload_tasks(user_id, photo_id, upload_time, username, temp_photo_obj,
 	if total_score > PHOTO_HOT_SCORE_REQ:
 		add_obj_to_home_feed(user_id, upload_time, temp_photo_obj)
 	if number_of_photos:
-		set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))
+		pass
+		# set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))
 
 
 @celery_app1.task(name='tasks.unseen_comment_tasks')
-def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
+def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, commenter, commenter_av, is_citizen):
 	user = User.objects.get(id=user_id)
 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
 	photo_owner_id = photo.owner_id
@@ -1073,61 +1157,61 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 		add_to_photo_owner_activity(photo_owner_id, user_id)
 
 
-@celery_app1.task(name='tasks.photo_tasks')
-def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, it_exists, commenter, commenter_av, is_citizen):
-	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
-	photo_owner_id = photo.owner_id
-	try:
-		owner_url = photo.owner.userprofile.avatar.url
-	except:
-		owner_url = None
-	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_owner_id,\
-		object_owner_name=photo.owner.username,object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,photourl=photo.image_file.url,\
-		lt_res_wid=user_id)
-	if not created:
-		update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
-	if photo_owner_id == user_id:
-		is_seen = True
-		unseen_activity = True
-		single_notif = None
-		same_writer = True
-	else:
-		is_seen = False
-		unseen_activity = True
-		single_notif = True
-		same_writer = False
-	created_for_parent = create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
-		updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
-	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
-		values_list('submitted_by', flat=True)[:25]))
-	if photo_owner_id not in all_commenter_ids:
-		all_commenter_ids.append(photo_owner_id)
-	try:
-		all_commenter_ids.remove(user_id)
-	except:
-		pass
-	if created_for_parent and not same_writer:
-		try:
-			all_commenter_ids.remove(photo_owner_id)
-		except:
-			pass
-	if all_commenter_ids:
-		bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
-			seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra')
-	if not created_for_parent or not same_writer:
-		updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-			single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
-		if not updated:
-			create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-				unseen_activity=True)
-	photo.second_latest_comment = photo.latest_comment
-	photo.latest_comment_id = photocomment_id
-	photo.comment_count = count+1
-	photo.save()
-	if is_fan(photo_owner_id,user_id):
-		add_to_photo_owner_activity(photo_owner_id, user_id)
+# @celery_app1.task(name='tasks.photo_tasks')
+# def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, commenter, commenter_av, is_citizen):
+# 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
+# 	photo_owner_id = photo.owner_id
+# 	try:
+# 		owner_url = photo.owner.userprofile.avatar.url
+# 	except:
+# 		owner_url = None
+# 	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_owner_id,\
+# 		object_owner_name=photo.owner.username,object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
+# 		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,photourl=photo.image_file.url,\
+# 		lt_res_wid=user_id)
+# 	if not created:
+# 		update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,\
+# 			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
+# 	if photo_owner_id == user_id:
+# 		is_seen = True
+# 		unseen_activity = True
+# 		single_notif = None
+# 		same_writer = True
+# 	else:
+# 		is_seen = False
+# 		unseen_activity = True
+# 		single_notif = True
+# 		same_writer = False
+# 	created_for_parent = create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
+# 		updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
+# 	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
+# 		values_list('submitted_by', flat=True)[:25]))
+# 	if photo_owner_id not in all_commenter_ids:
+# 		all_commenter_ids.append(photo_owner_id)
+# 	try:
+# 		all_commenter_ids.remove(user_id)
+# 	except:
+# 		pass
+# 	if created_for_parent and not same_writer:
+# 		try:
+# 			all_commenter_ids.remove(photo_owner_id)
+# 		except:
+# 			pass
+# 	if all_commenter_ids:
+# 		bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
+# 			seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra')
+# 	if not created_for_parent or not same_writer:
+# 		updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+# 			single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
+# 		if not updated:
+# 			create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+# 				unseen_activity=True)
+# 	photo.second_latest_comment = photo.latest_comment
+# 	photo.latest_comment_id = photocomment_id
+# 	photo.comment_count = count+1
+# 	photo.save()
+# 	if is_fan(photo_owner_id,user_id):
+# 		add_to_photo_owner_activity(photo_owner_id, user_id)
 
 
 @celery_app1.task(name='tasks.video_vote_tasks')

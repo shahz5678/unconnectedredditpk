@@ -1292,13 +1292,14 @@ def log_home_post(user_id, username, text, on_fbs, is_urdu, editorial_upvotes, t
 	Logging trending home text posts for analysis
 
 	Questions this can answer include:
-	1) Which urdu words are most repeated in trending posts
-	2) Which english words are most repeated in trending posts
+	1) Which Urdu words are most repeated in trending posts
+	2) Which English words are most repeated in trending posts
 	3) How are trending posts distributed by length
-	4) What are trending posts distributed by time of posting
+	4) How are trending posts distributed by time of posting
 	5) How are trending posts distributed by submitter ID
-	6) How long does it take for a post to get into trending (trending_time - posting_time)
-	7) What categories of post get into trending (poetry, religion, politics, jokes, etc)
+	6) How are trending posts distributed by language (English vs Urdu)
+	7) How long does it take for a post to get into trending (trending_time minus posting_time)
+	8) What categories of posts get into trending (poetry, religion, politics, jokes, etc)
 	"""
 	context = {'text':text,'is_urdu':is_urdu,'trending_time':trending_time,'user_id':user_id, 'username':username,\
 	'text_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time}

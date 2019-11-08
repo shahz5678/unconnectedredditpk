@@ -1,4 +1,4 @@
-// feeder for helper_funcs.v1.15.js
+// feeder for helper_funcs.v1.16.js
 // Compress via https://jscompress.com/ and press "download"
 var valid_img = false;
 var max_img_width = 450;
@@ -198,7 +198,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 		// uploading from public/private mehfil
 		form_data.append("gp",document.getElementById('grp_subform').value);
 		form_data.append("sk",document.getElementById('grp_sk').value);
-		form_data.append("wid",grp_writer_id);
+		// form_data.append("wid",grp_writer_id);
 	}; 
 	form_data.append(img_field, img_to_send, img_name);
 	personal_group_preloader('update');
@@ -999,20 +999,20 @@ if (grp_form) {grp_form.onsubmit = grp_form_submit;};
 var grp_browse_image_btn = document.getElementById('grp_browse_image_btn');//supported
 if (grp_browse_image_btn) {grp_browse_image_btn.onchange = validate_grp_img;};
 
-var grp_writer_id = -1;
-var grp_wid_input = document.getElementById('grp_wid');
-var atbtns = document.getElementsByClassName('at');
-if (atbtns) {
-	for (var i=0, len=atbtns.length; i < len; i++) atbtns[i].onclick = grp_at_submit;
-}
+// var grp_writer_id = -1;
+// var grp_wid_input = document.getElementById('grp_wid');
+// var atbtns = document.getElementsByClassName('at');
+// if (atbtns) {
+// 	for (var i=0, len=atbtns.length; i < len; i++) atbtns[i].onclick = grp_at_submit;
+// }
 
-function grp_at_submit(e) {
-	var vb = e.currentTarget;//at button
-	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !vb.value || !vb) return;
-	grp_wid_input.value = vb.value;
-	grp_writer_id = vb.value;
-	document.getElementById("grp_subform").click();
-}
+// function grp_at_submit(e) {
+// 	var vb = e.currentTarget;//at button
+// 	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !vb.value || !vb) return;
+// 	grp_wid_input.value = vb.value;
+// 	grp_writer_id = vb.value;
+// 	document.getElementById("grp_subform").click();
+// }
 
 function validate_grp_img(e) { 
 	// if opera mini, do nothing

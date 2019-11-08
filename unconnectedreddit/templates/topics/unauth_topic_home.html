@@ -70,8 +70,7 @@
 			{% load emoticons_tags %}
 			{% load get_text_object %}
 			{% load url_target_blank %}
-			{% load get_home_publicreply_bar %}
-			{% load get_home_replies_section %}
+			{% load get_inline_replies_section %}
 			{% load get_transparent_buttons_js %}
 
 			<section style="display:block">
@@ -82,8 +81,6 @@
 
 			{% for submission in submissions %}
 
-			{% with replyforms|get_item:submission.h as replyform %}
-
 				<article itemprop="hasPart" itemscope itemtype="http://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
 					<div>
 						<a name="section{{ forloop.counter }}"></a>
@@ -93,17 +90,15 @@
 						</section>
 
 						<section style="display:block" class="mls mrs mbl">
-						{% home_publicreply_bar link_pk=submission.i link_writer_pk=submission.si lang=lang sort_by=sort_by user_id=ident replyform=replyform origin='22' sk=sk topic=topic_url %}
+						{% include "reply_bar.html" with target_user_id=submission.si target_obj_type='3' obj_id=submission.i origin='22' form=thin_rep_form btn_color='bct' topic_url=topic_url %}
 						</section>
 
 						<section style="display:block" class="mls mbl">
-						{% home_replies_section raw_replies=submission.cb static_url=STATIC_URL self_user_id=ident home_hash=submission.h %}
+						{% inline_replies_section raw_replies=submission.rb static_url=STATIC_URL self_user_id=ident home_hash=submission.h origin='' obj_owner_id=submission.si obj_type='tx' %}
 						</section>
 
 					</div>
 				</article>
-
-			{% endwith %}
 				
 			{% endfor %}
 			</section>

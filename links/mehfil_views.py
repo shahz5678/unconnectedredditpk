@@ -25,7 +25,7 @@ from image_processing import process_group_image
 
 from models import HellBanList, UserProfile
 
-# from direct_response_forms import DirectResponseForm
+from direct_response_forms import DirectResponseForm
 
 from redis7 import check_content_and_voting_ban, get_all_image_star_ids
 
@@ -37,11 +37,11 @@ retrieve_user_env
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users
 
-from redis2 import update_notification, remove_group_notification, remove_group_object, get_replies_with_seen,create_notification, create_object, \
-bulk_remove_group_notification
+# from redis2 import remove_group_object, get_replies_with_seen,create_notification, create_object, bulk_remove_group_notification, update_notification, remove_group_notification
 
 from tasks import set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, construct_administrative_activity, \
-update_group_topic, trim_group_submissions, document_administrative_activity, log_group_owner_interaction, log_user_activity
+trim_group_submissions, document_administrative_activity, log_group_owner_interaction, hide_associated_direct_responses, log_user_activity,\
+update_group_topic
 
 from mehfil_forms import PrivateGroupReplyForm, PublicGroupReplyForm, ReinviteForm, ReinvitePrivateForm, GroupTypeForm, ChangePrivateGroupTopicForm,\
 ChangeGroupTopicForm, ChangeGroupRulesForm, DirectMessageCreateForm, DirectMessageForm, ClosedGroupCreateForm, OpenGroupCreateForm, \
@@ -1987,11 +1987,9 @@ def kick_out(request, slug):
 						return render(request,"mehfil/notify_and_redirect.html",{'kick_rate_limited':True,'ttl':ttl,'unique':guid,'is_public':is_public})
 					elif kicked_nicknames and activity_id:
 						# hide all messages of kicked culprits
-						hide_writers_group_messages(group_id,culprit_ids)# works for public, private both
-						###### remove from redis 1 legacy ##################
-						# remove_group_members(group_id, nickname_list)
-						# removed_culprit_ids = bulk_remove_user_group(culprit_ids, group_id, return_member_ids=True)
-						bulk_remove_group_notification(kicked_culprit_ids, group_id)# redis 2 - not legacy
+						hide_writers_group_messages(group_id,culprit_ids,group_type='6' if group_privacy == '1' else '5')# works for public, private both
+						###### remove from redis 2 legacy ##################
+						# bulk_remove_group_notification(kicked_culprit_ids, group_id)# redis 2 legacy
 						####################################################
 						# produce group message of kicking out user
 						save_group_submission(writer_id=own_id, group_id=group_id, text=kicked_nicknames,posting_time=time_now,\
@@ -2040,11 +2038,9 @@ def kick_out(request, slug):
 						return render(request,"mehfil/notify_and_redirect.html",{'kick_rate_limited':True,'ttl':ttl,'unique':guid})
 					elif kicked_nicknames and activity_id:
 						# hide all messages of kicked culprits
-						hide_writers_group_messages(group_id,culprit_ids)
-						###### remove from redis 1 legacy ##################
-						# remove_group_members(group_id, nickname_list)
-						# removed_culprit_ids = bulk_remove_user_group(culprit_ids, group_id, return_member_ids=True)
-						bulk_remove_group_notification(kicked_culprit_ids, group_id)
+						hide_writers_group_messages(group_id,culprit_ids,group_type='6' if group_privacy == '1' else '5')
+						###### remove from redis 2 legacy ##################
+						# bulk_remove_group_notification(kicked_culprit_ids, group_id)
 						####################################################
 						# produce group message
 						save_group_submission(writer_id=own_id, group_id=group_id, text=kicked_nicknames,posting_time=time_now,\
@@ -2287,8 +2283,12 @@ def private_group_hide_submission(request):
 							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
-						action_successful = hide_private_group_submission(group_id,submission_id,action_by='owner')
+						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,action_by='owner')
 						if action_successful:
+							################################################
+							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
+								sender_id=writer_id,receiver_id=target_user_id,to_hide=True)
+							################################################
 							####### construct and add to administrative activity #######
 							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'hide', submission_id)
 							############################################################
@@ -2304,8 +2304,12 @@ def private_group_hide_submission(request):
 							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
-						action_successful = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
+						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
 						if action_successful:
+							################################################
+							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
+								sender_id=writer_id,receiver_id=target_user_id,to_hide=False)
+							################################################
 							####### construct and add to administrative activity #######
 							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'unhide', submission_id)
 							############################################################
@@ -2323,8 +2327,12 @@ def private_group_hide_submission(request):
 							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
-						action_successful = hide_private_group_submission(group_id,submission_id,action_by='owner')
+						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,action_by='owner')
 						if action_successful:
+							################################################
+							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
+								sender_id=writer_id,receiver_id=target_user_id,to_hide=True)
+							################################################
 							####### construct and add to administrative activity #######
 							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'hide', submission_id)
 							############################################################
@@ -2334,7 +2342,7 @@ def private_group_hide_submission(request):
 						return redirect("private_group_reply")
 					else:
 						# can only unhide if it was hidden by group_owner, otherwise has no right to do it
-						action_successful = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
+						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
 						if action_successful:
 							###################### Retention activity logging ######################
 							if own_id > SEGMENT_STARTING_USER_ID:
@@ -2342,6 +2350,10 @@ def private_group_hide_submission(request):
 								activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
+							################################################
+							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
+								sender_id=writer_id,receiver_id=target_user_id,to_hide=False)
+							################################################
 							####### construct and add to administrative activity #######
 							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'unhide', submission_id)
 							############################################################
@@ -2362,8 +2374,12 @@ def private_group_hide_submission(request):
 							activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
-						action_successful = hide_private_group_submission(group_id,submission_id,action_by='writer')
+						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,action_by='writer')
 						if action_successful:
+							################################################
+							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
+								sender_id=writer_id,receiver_id=target_user_id,to_hide=True)
+							################################################
 							####### construct and add to administrative activity #######
 							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'hide', submission_id)
 							############################################################
@@ -2373,7 +2389,7 @@ def private_group_hide_submission(request):
 						return redirect("private_group_reply")
 					else:
 						# unhide, if possible
-						action_successful = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='writer')
+						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='writer')
 						if action_successful:
 							###################### Retention activity logging ######################
 							if own_id > SEGMENT_STARTING_USER_ID:
@@ -2381,6 +2397,10 @@ def private_group_hide_submission(request):
 								activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
+							################################################
+							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
+								sender_id=writer_id,receiver_id=target_user_id,to_hide=False)
+							################################################
 							####### construct and add to administrative activity #######
 							construct_administrative_activity.delay(own_id, writer_id, time_now, group_id, 'unhide', submission_id)
 							############################################################
@@ -2434,8 +2454,12 @@ def group_hide_submission(request, *args, **kwargs):
 					activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
-				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk)#hides group submission and returns writer ID by default
+				writer_id, target_user_id, action_successful, ttl = hide_group_submission(gid,own_id,pk)#hides group submission and returns writer ID by default
 				if action_successful:
+					################################################
+					hide_associated_direct_responses.delay(obj_type='5',parent_obj_id=gid,reply_id=pk,sender_id=writer_id,\
+						receiver_id=target_user_id,to_hide=True)
+					################################################
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
@@ -2470,11 +2494,15 @@ def group_hide_submission(request, *args, **kwargs):
 					activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
 					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
-				writer_id, action_successful, ttl = hide_group_submission(gid,own_id,pk,unhide=True)
+				writer_id, target_user_id, action_successful, ttl = hide_group_submission(gid,own_id,pk,unhide=True)
 				if ttl:
 					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide':True,'unique':data['u'],'is_public':True,\
 						'ttl':ttl})
 				elif action_successful:
+					################################################
+					hide_associated_direct_responses.delay(obj_type='5',parent_obj_id=gid,reply_id=pk,sender_id=writer_id,\
+						receiver_id=target_user_id,to_hide=False)
+					################################################
 					invalidate_cached_mehfil_replies(gid)
 					invalidate_presence(gid)
 					####### construct and add to administrative activity #######
@@ -2672,11 +2700,9 @@ class ChangePrivateGroupTopicView(FormView):
 					user_id = self.request.user.id
 					invalidate_cached_mehfil_replies(group_id)
 					invalidate_presence(group_id)
-					# Group.objects.filter(unique=unique).update(topic=topic)
-					# Reply.objects.create(text=topic ,which_group_id=group_id, writer_id=user_id, category='4')
 					##########################
 					##########################
-					update_group_topic.delay(group_id=group_id, topic=topic)#redis 2 object's "topic" field is updated
+					update_group_topic.delay(group_id=group_id, topic=topic, group_type='6')#changing the topic in direct response lists
 					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 					save_group_topic(group_id, topic, writer_id=user_id, time_now=time.time(), private=True)# redis 6 mehfil object is updated
 					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=topic,posting_time=time.time(),\
@@ -2765,13 +2791,11 @@ class ChangeGroupTopicView(FormView):
 			group_owner_id, group_id, group_privacy = retrieve_group_owner_id(group_uuid=unique, with_group_id=True,with_group_privacy=True)
 			if group_owner_id:
 				if group_privacy == '0' and (group_owner_id == str(user_id) or can_officer_change_topic(group_id, user_id)):
-					# Group.objects.filter(unique=unique).update(topic=topic)
 					invalidate_cached_mehfil_replies(group_id)
 					invalidate_presence(group_id)
-					# Reply.objects.create(text=topic, which_group_id=group_id, writer_id=user_id, category='4')
 					#############
 					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-					update_group_topic.delay(group_id=group_id, topic=topic)#redis 2
+					update_group_topic.delay(group_id=group_id, topic=topic, group_type='5')#changing the topic in direct response lists
 					save_group_topic(group_id, topic)#redis 6
 					save_group_submission(writer_id=user_id, group_id=group_id, text=topic,posting_time=time.time(),category='4',\
 						writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
@@ -2951,9 +2975,9 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						return render(request,"mehfil/notify_and_redirect.html",{'action_frozen':True,'unique':unique,'is_public':True})
 					else:
 						# removing group related notifications seen by owner of group (redis 2):
-						remove_group_notification(user_id=own_id,group_id=group_id)
+						# remove_group_notification(user_id=own_id,group_id=group_id)
 						# removing group notification parent object (redis 2)
-						remove_group_object(group_id)
+						# remove_group_object(group_id) (redis2)
 
 						# purging cached group invites before deleting own group
 						invalidate_cached_mehfil_invites(own_id, group_id, all_invites=True)
@@ -3004,9 +3028,9 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 					return render(request,"mehfil/notify_and_redirect.html",{'action_frozen':True,'unique':unique,'is_public':False})
 				else:
 					# removing group related notifications seen by owner of group (redis 2):
-					remove_group_notification(user_id=own_id,group_id=group_id)
+					# remove_group_notification(user_id=own_id,group_id=group_id)
 					# removing group notification parent object (redis 2)
-					remove_group_object(group_id)
+					# remove_group_object(group_id) (redis 2)
 
 					# purging cached group invites before deleting own group
 					invalidate_cached_mehfil_invites(own_id, group_id, all_invites=True)
@@ -3061,7 +3085,7 @@ def left_public_group(request, *args, **kwargs):
 				else:
 					# legacy_mehfil_exit(pk, user_id, own_uname, group_type='public')# legacy redis 1 - please remove
 					############################ Redis 2 ###############################
-					remove_group_notification(user_id,pk)# removing notification
+					# remove_group_notification(user_id,pk)# removing notification
 					############################ Redis 6 ###############################
 					exit_group(pk, user_id, time.time(), is_public=True)# redis 6 function - remove redis 1 funcs in the future
 					invalidate_cached_mehfil_pages(user_id)
@@ -3108,7 +3132,7 @@ def left_private_group(request, *args, **kwargs):
 			else:
 				# legacy_mehfil_exit(pk, user_id, own_uname, group_type='private')# legacy redis 1 - please remove
 				############################ Redis 2 ###############################
-				remove_group_notification(user_id,pk)# removing notification
+				# remove_group_notification(user_id,pk)# removing notification
 				############################ Redis 6 ###############################
 				exit_group(pk, user_id, time.time(), own_uname, get_s3_object(own_avurl,category='thumb'), is_public=False)
 				invalidate_cached_mehfil_pages(user_id)
@@ -3208,8 +3232,7 @@ class PrivateGroupView(FormView):
 					context["full_member"] = True
 					context["group_topic"] = data['tp']
 					context["group_id"] = group_id
-					context["display"] = 'inline' if retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), \
-						fbs=on_fbs) else 'none'
+					context["dir_rep_form"] = DirectResponseForm(with_id=True)
 					secret_key = uuid.uuid4()
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'prv_grp', secret_key)
@@ -3228,14 +3251,15 @@ class PrivateGroupView(FormView):
 						latest_replies = []
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
-								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None)})
+								'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None),'pre':data.get('pre',''),'post':data.get('post',''),\
+								'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
 					updated_at = time.time()#convert_to_epoch(timezone.now())
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)#, private=True)# fills group visitors
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
 					presence_dict[str(user_id)] = 'green'#ensures own status is 'green'
 					context["replies"] = [(reply,presence_dict.get(reply["wid"],'gone')) for reply in latest_replies]
-					context["unseen"] = False
+					context["error_string"] = self.request.session.pop("dir_rep_invalid"+str(user_id),None)
 					###################### Retention activity logging ######################
 					from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
 					if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
@@ -3247,9 +3271,8 @@ class PrivateGroupView(FormView):
 						# members = get_group_members(group_id)# redis 1 legacy function
 						if latest_replies:# and self.request.user.username in members:
 							# flip "unseen" notification here
-							context["unseen"] = True #i.e. replies exist; the prospect of unseen replies exists
-							update_notification(viewer_id=user_id, object_id=group_id, object_type='3', seen=True, updated_at=updated_at, \
-								single_notif=False, unseen_activity=True, priority='priv_mehfil',bump_ua=False) #just seeing means notification is updated, but not bumped up in matka (bump_ua handles bumping up in matka)
+							# update_notification(viewer_id=user_id, object_id=group_id, object_type='3', seen=True, updated_at=updated_at, \
+							# 	single_notif=False, unseen_activity=True, priority='priv_mehfil',bump_ua=False) #just seeing means notification is updated, but not bumped up in matka (bump_ua handles bumping up in matka)
 							try:
 								#finding latest time user herself replied - helps showing (new) inside mehfil
 								context["reply_time"] = max(reply["submitted_on"] for reply in latest_replies if str(reply["wid"]) == str(user_id))
@@ -3361,24 +3384,24 @@ class PrivateGroupView(FormView):
 						activity_dict = {'m':'POST','act':act,'t':time_now,'url':data['tp'],'tx':text,'pi':uploaded_img_loc}# defines what activity just took place
 						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					########################################################################
-					writer_id = str(form.cleaned_data.get('wid','-1'))# the target_id of the writer we're about to directly respond to
-					if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):    
-						# if the writer is not self, and is indeed a member of this group
-						raw_user_cred = retrieve_bulk_credentials([user_id,writer_id],decode_unames=True)
-						own_uname, own_avurl = raw_user_cred[user_id]['uname'], raw_user_cred[user_id]['avurl']
-						other_uname, other_avurl = raw_user_cred[int(writer_id)]['uname'], raw_user_cred[int(writer_id)]['avurl']
-						submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
-							image=uploaded_img_loc, posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
-							category='0',writer_uname=own_uname,target_uname=other_uname, target_uid=writer_id, save_latest_submission=True)
-						notify_single_user = True
-						notif_text = "@ "+other_uname+" - "+text
-					else:
-						own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-						submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, image=uploaded_img_loc, \
-							posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),category='0',writer_uname=own_uname,\
-							save_latest_submission=True)
-						notify_single_user = False
-						notif_text = text
+					# writer_id = str(form.cleaned_data.get('wid','-1'))# the target_id of the writer we're about to directly respond to
+					# if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):    
+					# 	# if the writer is not self, and is indeed a member of this group
+					# 	raw_user_cred = retrieve_bulk_credentials([user_id,writer_id],decode_unames=True)
+					# 	own_uname, own_avurl = raw_user_cred[user_id]['uname'], raw_user_cred[user_id]['avurl']
+					# 	other_uname, other_avurl = raw_user_cred[int(writer_id)]['uname'], raw_user_cred[int(writer_id)]['avurl']
+					# 	submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
+					# 		image=uploaded_img_loc, posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
+					# 		category='0',writer_uname=own_uname,target_uname=other_uname, target_uid=writer_id, save_latest_submission=True)
+					# 	notify_single_user = True
+					# 	notif_text = "@ "+other_uname+" - "+text
+					# else:
+					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
+					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, chat_image=uploaded_img_loc, \
+						posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),category='0',writer_uname=own_uname,\
+						save_latest_submission=True)
+					# notify_single_user = False
+					# notif_text = text
 					if num_submissions > DELETION_THRESHOLD:
 						# delete extra submissions
 						trim_group_submissions.delay(group_id)
@@ -3386,9 +3409,9 @@ class PrivateGroupView(FormView):
 					###########################################
 					unique_id = data['u']
 					group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=data['oi'], topic=data['tp'], \
-						reply_time=time_now, poster_url=own_avurl, poster_username=own_uname, reply_text=notif_text, priv='1', \
+						reply_time=time_now, poster_url=own_avurl, poster_username=own_uname, reply_text=text, priv='1', \
 						slug=unique_id,image_url=uploaded_img_loc,priority='priv_mehfil',from_unseen=False,\
-						notify_single_user=notify_single_user, single_target_id=writer_id)
+						notify_single_user=False, single_target_id=None)
 					if is_ajax:
 						return HttpResponse(json.dumps({'success':True,'message':reverse('private_group_reply')}),content_type='application/json',)
 					else:
@@ -3481,8 +3504,7 @@ class PublicGroupView(FormView):
 					context["furl"] = reverse_lazy("public_group", args=[unique])
 					context["full_member"] = True
 					context["member_since"] = is_member
-					context["display"] = 'inline' if retrieve_user_env(user_agent=self.request.META.get('HTTP_USER_AGENT',None), \
-						fbs=on_fbs) else 'none'
+					context["dir_rep_form"] = DirectResponseForm(with_id=True)
 					secret_key = uuid.uuid4()
 					context["sk"] = secret_key
 					set_text_input_key(user_id, group_id, 'pub_grp', secret_key)
@@ -3501,7 +3523,8 @@ class PublicGroupView(FormView):
 						latest_replies = []
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
-								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None)})
+								'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None),'pre':data.get('pre',''),\
+								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
 					###################### Retention activity logging ######################
 					from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
@@ -3514,11 +3537,11 @@ class PublicGroupView(FormView):
 					context["replies"] = [(reply,presence_dict.get(reply["wid"],'gone')) for reply in latest_replies]
 					context["unseen"] = False
 					context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
-					if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
-						#members = get_group_members(group_id)
-						if context["replies"]:
-							update_notification(viewer_id=user_id, object_id=group_id, object_type='3', seen=True, updated_at=updated_at, \
-								single_notif=False, unseen_activity=True, priority='public_mehfil', bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
+					# if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
+					# 	if context["replies"]:
+					# 		update_notification(viewer_id=user_id, object_id=group_id, object_type='3', seen=True, updated_at=updated_at, \
+					# 			single_notif=False, unseen_activity=True, priority='public_mehfil', bump_ua=False) #just seeing means notification is updated, but not bumped up in ua:
+					context["error_string"] = self.request.session.pop("dir_rep_invalid"+str(user_id),None)
 				else:
 					###################### Retention activity logging ######################
 					if user_id > SEGMENT_STARTING_USER_ID:
@@ -3648,26 +3671,26 @@ class PublicGroupView(FormView):
 					activity_dict = {'m':'POST','act':act,'t':reply_time,'url':topic,'tx':text,'pi':uploaded_img_loc}# defines what activity just took place
 					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
 				########################################################################
-				writer_id = str(form.cleaned_data.get('wid','-1'))# the target_id of the writer we're about to directly respond to
-				if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):
-					# ensure writer wasn't self
-					raw_user_cred = retrieve_bulk_credentials([user_id,writer_id],decode_unames=True)
-					own_uname, own_avurl = raw_user_cred[user_id]['uname'], raw_user_cred[user_id]['avurl']
-					other_uname, other_avurl = raw_user_cred[int(writer_id)]['uname'], raw_user_cred[int(writer_id)]['avurl']
-					notif_text = "@ "+other_uname+" - "+text
-					# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=notif_text, image='')
-					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
-						image=uploaded_img_loc, posting_time=reply_time,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
-						category='0',writer_uname=own_uname,target_uname=other_uname, target_uid=writer_id, save_latest_submission=True)
-					notify_single_user = True
-				else:
-					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
-					notif_text = text
-					# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=notif_text, image='')
-					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=notif_text, \
-						image=uploaded_img_loc, posting_time=reply_time,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
-						category='0',writer_uname=own_uname,save_latest_submission=True)
-					notify_single_user = False
+				# writer_id = str(form.cleaned_data.get('wid','-1'))# the target_id of the writer we're about to directly respond to
+				# if writer_id not in ('-1','None',str(user_id)) and group_member_exists(group_id, writer_id):
+				# 	# ensure writer wasn't self
+				# 	raw_user_cred = retrieve_bulk_credentials([user_id,writer_id],decode_unames=True)
+				# 	own_uname, own_avurl = raw_user_cred[user_id]['uname'], raw_user_cred[user_id]['avurl']
+				# 	other_uname, other_avurl = raw_user_cred[int(writer_id)]['uname'], raw_user_cred[int(writer_id)]['avurl']
+				# 	notif_text = "@ "+other_uname+" - "+text
+				# 	# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=notif_text, image='')
+				# 	submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
+				# 		image=uploaded_img_loc, posting_time=reply_time,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
+				# 		category='0',writer_uname=own_uname,target_uname=other_uname, target_uid=writer_id, save_latest_submission=True)
+				# 	notify_single_user = True
+				# else:
+				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
+				# notif_text = text
+				# reply = Reply.objects.create(writer_id=user_id, which_group_id=group_id, text=notif_text, image='')
+				submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
+					chat_image=uploaded_img_loc, posting_time=reply_time,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
+					category='0',writer_uname=own_uname,save_latest_submission=True)
+				# notify_single_user = False
 				if num_submissions > DELETION_THRESHOLD:
 					# delete extra submissions
 					trim_group_submissions.delay(group_id)
@@ -3675,9 +3698,9 @@ class PublicGroupView(FormView):
 				############################
 				#rank_public_groups.delay(group_id=group_id,writer_id=user_id)# legacy ranking redis3 function - please review_ownership_transfer_requests
 				group_notification_tasks.delay(group_id=group_id,sender_id=user_id,group_owner_id=group_data['oi'], topic=topic, \
-					reply_time=reply_time, poster_url=own_avurl, poster_username=own_uname, reply_text=notif_text, priv='0', \
+					reply_time=reply_time, poster_url=own_avurl, poster_username=own_uname, reply_text=text, priv='0', \
 					slug=public_uuid,image_url=uploaded_img_loc,priority='public_mehfil',from_unseen=False,\
-					notify_single_user=notify_single_user, single_target_id=writer_id)
+					notify_single_user=False, single_target_id=None)
 				if is_ajax:
 					return HttpResponse(json.dumps({'success':True,'message':reverse('public_group')}),content_type='application/json',)
 				else:
@@ -3946,18 +3969,11 @@ def owner_rejoining_public_group(request):
 					return redirect("public_group")
 				else:
 					time_now = time.time()
-					# Group.objects.filter(id=group_id).update(topic=topic,rules=rules)
-					update_group_topic.delay(group_id=group_id, topic=topic)#redis 2
+					update_group_topic.delay(group_id=group_id, topic=topic, group_type='5')#changing the topic in direct response lists
 					saved = save_group_topic_and_rules(group_id, topic=topic, rules=rules, raw_rules=raw_rules)
 					if saved:
 						own_uname, own_avurl = retrieve_credentials(own_id,decode_uname=True)
 						##############################################
-						# legacy functionality
-						# add_group_member(group_id, own_uname)
-						# remove_group_invite(own_id, group_id)
-						# add_user_group(own_id, group_id)#to take care of grouppageview()
-						##############################################
-						# reply = Reply.objects.create(which_group_id=group_id, writer_id=own_id, text='join', category='9')
 						group_notification_tasks.delay(group_id=group_id,sender_id=own_id,group_owner_id=own_id,topic=topic,reply_time=time_now,\
 							poster_url=own_avurl,poster_username=own_uname,reply_text='join',priv='0',image_url=None,priority='public_mehfil',\
 							from_unseen=False, txt_type='join')# to take care of matka, priv is group privacy

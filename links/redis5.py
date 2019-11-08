@@ -11,8 +11,9 @@ from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_F
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED, USER_FRIEND_LIST_CACHING_TIME
-from redis2 import bulk_delete_pergrp_notif, get_latest_notif_obj_pgh, update_pg_obj_del
+from redis2 import get_latest_notif_obj_pgh, update_pg_obj_del#, bulk_delete_pergrp_notif
 from get_meta_data import get_meta_data, extract_yt_id
+from redis9 import delete_single_direct_response
 from urlmarker import URL_REGEX1
 
 '''
@@ -309,11 +310,12 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgdrl:"+group_id+":"+own_id)
 	if ttl > 0:
-		return False, ttl
+		return False, ttl, False
 	to_delete, to_hide = action in ('del','undel'), action in ('hide','unhide')
 	parent_blob = "pgh:"+group_id+":"+blob_id
 	# if blob has been deleted, blow_owner_id and target_img_id should come out to be None
 	blob_owner_id, target_img_id = my_server.hmget(parent_blob,'id','img_id' if idx == '-1' else 'img_id'+idx)
+	top_most_msg_affected, top_most_msg_hidden = False, False
 	if to_delete:
 		own_blob = blob_owner_id == own_id
 		field, target_field, value = 'status' if idx == '-1' else 'status'+idx, 't_status', action
@@ -329,25 +331,36 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 				my_server.hset(image_hash,'status',value)
 			pipeline1.delete('pgd:'+group_id)
 			pipeline1.execute()
-			# if latest blob of the group was own blob and it was the same as the deleted blob, update it's status in pgah:group_id
+			
+			# if latest blob of the group was own blob and it was the same as the deleted blob, update it's status in pgah:group_id (and take care of any direct responses attached to it)
 			group_key = "pgah:"+group_id
-			if my_server.hget(group_key,'lt_msg_wid') == own_id:
+			if my_server.hget(group_key,'lt_msg_wid') == own_id:# i.e. own_id wrote the latest msg
 				latest_blob = my_server.lindex("pgl:"+group_id,0)
 				if latest_blob:
 					latest_blob = latest_blob.split(":")#blob_id:writer_id:comment_count
 					if blob_id == latest_blob[0] and idx == latest_blob[2]:
+						top_most_msg_affected = True# useful for hiding related direct response
+						
+						# undelete a chat
 						if value == 'undel':
 							if my_server.hget(parent_blob,'hidden' if idx == '-1' else 'hidden'+idx) == 'yes':
+								# undelete hidden chat
+								top_most_msg_hidden = True# useful for hiding related direct response
 								my_server.hset(group_key,'lt_msg_st','yes')
 							else:
+								# undelete deleted chat
 								my_server.hset(group_key,'lt_msg_st',value)
+						
+						# delete a chat
 						else:
+							top_most_msg_hidden = True# useful for hiding related direct response
 							my_server.hset(group_key,'lt_msg_st',value)
-			# ratelimiting:
-			my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
-			return True, None
+
+			# micro-ratelimiting the user (to avoid a clickfest)
+			my_server.setex("pgdrl:"+group_id+":"+own_id,1,THREE_SECS)
+			return True, None, top_most_msg_affected, top_most_msg_hidden
 		else:
-			return False, None
+			return False, None, top_most_msg_affected, top_most_msg_hidden
 	elif to_hide:
 		image_hash = 'pgih:'+group_id+":"+img_id
 		img_match = target_img_id == img_id
@@ -381,13 +394,16 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 			group_key = "pgah:"+group_id
 			if my_server.hget(group_key,'lt_img_id') == img_id:
 				my_server.hset(group_key,'lt_msg_st',value)
-			# ratelimiting
-			my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
-			return True, None
+				top_most_msg_affected = True# useful for hiding related direct response
+				top_most_msg_hidden = True if action == 'hide' else False# useful for hiding related direct response
+			
+			# micro-ratelimiting the user (to avoid clickfests)
+			my_server.setex("pgdrl:"+group_id+":"+own_id,1,THREE_SECS)
+			return True, None, top_most_msg_affected, top_most_msg_hidden
 		else:
-			return False, None
+			return False, None, top_most_msg_affected, top_most_msg_hidden
 	else:
-		return False, None
+		return False, None, top_most_msg_affected, top_most_msg_hidden
 
 
 
@@ -401,23 +417,26 @@ def delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, a
 	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgdrl:"+group_id+":"+own_id)
 	if ttl > 0:
-		return False, ttl
+		return False, ttl, False, False
 	img_id = str(img_id)
 	to_delete, to_hide = action in ('del','undel'), action in ('hide','unhide')
+	top_most_msg_affected, top_most_msg_hidden = False, False
 	if to_delete:
 		field = 'status'
 		target_field = 't_status'
-		value = action
+		value = action# del, undel
 	elif to_hide:
 		field = 'hidden'
 		target_field = 't_hidden'
-		value = 'yes' if action == 'hide' else 'no'
+		value = 'yes' if action == 'hide' else 'no'# yes, no
 	else:
-		return False, None
+		return False, None, top_most_msg_affected, top_most_msg_hidden
 	image_hash = 'pgih:'+group_id+":"+img_id
 	target_blobs = []
 	img_owner_id = my_server.hget(image_hash,'owner_id')
 	own_photo = img_owner_id == own_id
+
+	# handle both 'delete' and 'hide' below
 	if (to_delete and own_photo) or (to_hide and not own_photo):
 		all_blobs = my_server.lrange('pgl:'+group_id,0,-1)
 		for blob in all_blobs:
@@ -442,20 +461,28 @@ def delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, a
 		pipeline1.hset(image_hash,field,value)
 		pipeline1.delete('pgd:'+group_id)
 		pipeline1.execute()
+
 		# if affected image was the latest one, change its status
 		group_key = "pgah:"+group_id
 		if img_id == my_server.hget(group_key,'lt_img_id'):
+			top_most_msg_affected = True# useful for hiding related direct response
 			if value == 'undel':
 				# check if the image is hidden
 				if my_server.hget(parent_blob,'hidden' if idx == '-1' else 'hidden'+idx) == 'yes':
+					# undelete hidden img
+					top_most_msg_hidden = True
 					my_server.hset(group_key,'lt_msg_st','yes')
 				else:
+					# undelete deleted img
 					my_server.hset(group_key,'lt_msg_st',value)
+			
 			else:
+				top_most_msg_hidden = True if value in ('del','yes') else False# useful for hiding related direct response
 				my_server.hset(group_key,'lt_msg_st',value)
-		# ratelimiting:
-		my_server.setex("pgdrl:"+group_id+":"+own_id,1,SIX_SECS)
-	return True, None
+		
+		# micro-ratelimiting the user (to avoid clickfests)
+		my_server.setex("pgdrl:"+group_id+":"+own_id,1,THREE_SECS)
+	return True, None, top_most_msg_affected, top_most_msg_hidden
 
 
 def update_pg_obj_notif_after_bulk_deletion(group_id):
@@ -483,11 +510,13 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 	Deletes all photos of user from personal_group
 	"""
 	own_id = str(own_id)
-	if not server:
-		server = redis.Redis(connection_pool=POOL)
+	server = server if server else redis.Redis(connection_pool=POOL)
 	ttl = server.ttl("pgmdrl:"+group_id+":"+own_id)
 	if ttl > 0:
-		return False, ttl
+		return False, ttl, False
+
+	########################################
+	top_most_post_affected = False
 	status = 'undel' if undelete else 'del'
 	all_photos = server.lrange("pgpl:"+group_id,0,-1)
 	if all_photos:
@@ -520,10 +549,12 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 				pipeline1.hset(res_blob,'t_status',status)
 			pipeline1.delete('pgd:'+group_id)
 			pipeline1.execute()	
+
 		# if latest blob's lt_img_id is not None and its writer is self, change its status
 		group_key = "pgah:"+group_id
 		latest_img_id, latest_msg_writer_id = server.hmget(group_key,'lt_img_id','lt_msg_wid')
 		if latest_img_id and latest_msg_writer_id == own_id:
+			top_most_post_affected = True
 			if status == 'undel':
 				# first check if latest image is hidden or not
 				first_element = server.lindex("pgl:"+group_id,0).split(":")
@@ -536,9 +567,10 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 					server.hset(group_key,'lt_msg_st',status)
 			else:
 				server.hset(group_key,'lt_msg_st',status)
-		# ratelimiting
-		server.setex("pgmdrl:"+group_id+":"+own_id,1,TWO_MINS)
-	return True, None
+		
+		# micro-ratelimiting the user (to avoid clickfests)
+		server.setex("pgmdrl:"+group_id+":"+own_id,1,ONE_MIN)
+	return True, None, top_most_post_affected
 
 
 def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
@@ -549,11 +581,14 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgmdrl:"+group_id+":"+own_id)
 	if ttl > 0:
-		return False, ttl
+		return False, ttl, None, None
+
+	#######################################################
 	own_normal_blobs, own_res_blobs, their_res_blobs, own_photo_id_pool = [], [], [], []
 	status = 'undel' if undelete else 'del'
 	personal_group_list = "pgl:"+group_id
 	all_chat = my_server.lrange(personal_group_list,0,-1)
+	top_most_post_affected, top_most_post_hidden = False, False
 	if all_chat:
 		for chat in all_chat:
 			tup = chat.split(":")
@@ -590,10 +625,12 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 			pipeline1.hset('pgih:'+group_id+":"+photo_id,'status',status)
 		pipeline1.delete('pgd:'+group_id)
 		pipeline1.execute()
+
 		# if latest blob is a chat/img blob, and its writer is own self, then change its status
 		group_key = "pgah:"+group_id
 		latest_msg_writer_id, latest_msg_type = my_server.hmget(group_key,'lt_msg_wid','lt_msg_tp')
 		if latest_msg_writer_id == own_id and latest_msg_type in ('text','text_res','img','img_res'):
+			top_most_post_affected = True
 			if status == 'undel' and latest_msg_type in ('img','img_res'):
 				# is the image being undeleted hidden by other user?
 				first_element = my_server.lindex("pgl:"+group_id,0).split(":")
@@ -601,14 +638,17 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 				idx = my_server.hget(blob_hash,'idx')
 				is_hidden = my_server.hget(blob_hash,'hidden'+idx if idx else 'hidden')
 				if is_hidden == 'yes':
+					top_most_post_hidden = True
 					my_server.hset(group_key,'lt_msg_st','yes')
 				else:
 					my_server.hset(group_key,'lt_msg_st',status)
 			else:
+				top_most_post_hidden = True
 				my_server.hset(group_key,'lt_msg_st',status)
-		# ratelimiting:
-		my_server.setex("pgmdrl:"+group_id+":"+own_id,1,TWO_MINS)
-	return True, None
+		
+		# micro-ratelimiting the user (to avoid clickfests)
+		my_server.setex("pgmdrl:"+group_id+":"+own_id,1,ONE_MIN)
+	return True, None, top_most_post_affected, top_most_post_hidden
 
 
 def trim_personal_group(group_id, num_of_objs_in_group):
@@ -626,8 +666,7 @@ def personal_group_deletion_inspection(personal_group_list, num_of_objs_in_group
 	"""
 	Returns blob_ids that are candidates for permanent deletion
 	"""
-	if not server:
-		server = redis.Redis(connection_pool=POOL)
+	server = server if server else redis.Redis(connection_pool=POOL)
 	overflow, to_delete = num_of_objs_in_group - PERSONAL_GROUP_OBJECT_FLOOR, []
 	all_objs = server.lrange(personal_group_list,0,-1)
 	for obj in reversed(all_objs):
@@ -648,9 +687,10 @@ def personal_group_deletion_inspection(personal_group_list, num_of_objs_in_group
 def personal_group_permanent_deletion(group_id, personal_group_list, objs_to_delete_fully, server=None):
 	"""
 	Permanently deleting blobs and related keys
+
+	Used when called by trim_personal_group() - i.e. trimming the personal group when it grows beyond a certain size
 	"""
-	if not server:
-		server = redis.Redis(connection_pool=POOL)
+	server = server if server else redis.Redis(connection_pool=POOL)
 	pipeline1 = server.pipeline()
 	# blob_id is an integer, obj_name is a compisite ID such as 6973:1802862:10 (where the first number is blob_id)
 	for blob_id, obj_name in objs_to_delete_fully:
@@ -679,12 +719,12 @@ def personal_group_permanent_deletion(group_id, personal_group_list, objs_to_del
 
 def reset_all_group_chat(group_id, my_server=None):
 	"""
-	Reset group chat (e.g. if the group's returning from a suspension, or flagged for deletion)
+	Reset group chat (e.g. when the group's reactivating after being suspended, or flagged for deletion, or being sanitized for inactivity)
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
 	personal_group_list = "pgl:"+group_id
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	all_objs = my_server.lrange(personal_group_list,0,-1)
+	
 	# gathering all possible related keys
 	related_keys = []
 	for obj in all_objs:
@@ -704,28 +744,40 @@ def reset_all_group_chat(group_id, my_server=None):
 				related_keys.append(related_object_list)
 	# deleting everything at once
 	pipeline1 = my_server.pipeline()
+	
 	# deleting all related keys first				
 	for related_hash_list in related_keys:
 		pipeline1.delete(related_hash_list)
+	
 	# deleting all chat blobs next
 	for composite_obj in all_objs:
 		blob_id = composite_obj.partition(":")[0]
 		pipeline1.delete("pgh:"+group_id+":"+blob_id)
+	
 	# deleting list of all chat blobs
 	pipeline1.delete(personal_group_list)
+	
 	# get rid of related pgd
 	pipeline1.delete("pgd:"+group_id)
+	
 	# reset object_count in pgah
 	pipeline1.hset("pgah:"+group_id,'oc',0)
 	pipeline1.execute()
+
+	# ensure both side don't have notifications in their inboxes anymore
+	payload = my_server.get("pgp:"+group_id)
+	if payload:
+		data = payload.split(":")
+		user_1, user_2 = data[0], data[1]
+		delete_single_direct_response(target_user_id=user_1, obj_type='7', parent_obj_id=group_id, sender_id=user_2)
+		delete_single_direct_response(target_user_id=user_2, obj_type='7', parent_obj_id=group_id, sender_id=user_1)
 
 
 def permanently_delete_entire_personal_group(group_id, my_server=None):
 	"""
 	Permanently delete all keys related to personal group
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	reset_all_group_chat(group_id, my_server=my_server)
 	payload = my_server.get("pgp:"+group_id)
 	try:
@@ -1386,6 +1438,8 @@ def exit_already_triggered(own_id, target_id, group_id, sus_time=False):
 def get_suspension_details(own_id, target_id, group_id):
 	"""
 	Retreive details of suspended group
+
+	Details are shown when users enter a suspected group (just viewing it without rejoining it)
 	"""
 	own_suspension, their_suspension, suspension_time = redis.Redis(connection_pool=POOL).hmget("pgah:"+group_id,'susgrp'+str(own_id),\
 		'susgrp'+str(target_id),'sus_time')
@@ -1479,7 +1533,7 @@ def exit_user_from_targets_priv_chat(own_id,target_id):
 	"""
 	Called when user has triggered a block on target
 
-	If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them and shit is serious now
+	If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them (shit is serious now)
 	"""
 	own_id, target_id = str(own_id), str(target_id)
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1487,6 +1541,10 @@ def exit_user_from_targets_priv_chat(own_id,target_id):
 	if group_exists:
 		# suspend group, overriding any rate limits. This won't suspend if group already suspended (we'll handle those cases in re-entry)
 		suspend_personal_group(own_id, target_id, group_id, override_rl=True)
+
+		# ensuring both side don't have notifications in their inboxes anymore
+		delete_single_direct_response(target_user_id=own_id, obj_type='7', parent_obj_id=group_id, sender_id=target_id)
+		delete_single_direct_response(target_user_id=target_id, obj_type='7', parent_obj_id=group_id, sender_id=own_id)
 
 
 ########################################## Personal Group SMS Settings ###########################################
@@ -1670,27 +1728,21 @@ def toggle_personal_group_photo_settings(own_id, target_id, setting_type, group_
 			else:
 				my_server.hset(hash_name,'phrec'+own_id,'0')
 				new_value = '0'
-			return new_value, None, None
+			return new_value, None, None, None
 		elif setting_type == '2':
 			undelete = False
-			deleted, ttl = delete_all_photos_from_personal_group(own_id, group_id, undelete=undelete, server=my_server)
-			if deleted:
-				new_value = '1'
-			else:
-				new_value = None
-			return new_value, ttl, undelete
+			deleted, ttl, top_most_post_affected = delete_all_photos_from_personal_group(own_id, group_id, undelete=undelete, server=my_server)
+			new_value = '1' if deleted else None
+			return new_value, ttl, undelete, top_most_post_affected
 		elif setting_type == '3':
 			undelete = True
-			deleted, ttl = delete_all_photos_from_personal_group(own_id, group_id, undelete=undelete, server=my_server)
-			if deleted:
-				new_value = '0'
-			else:
-				new_value = None
-			return new_value, ttl, undelete
+			deleted, ttl, top_most_post_affected = delete_all_photos_from_personal_group(own_id, group_id, undelete=undelete, server=my_server)
+			new_value = '0' if deleted else None
+			return new_value, ttl, undelete, top_most_post_affected
 		else:
-			return None, None, None
+			return None, None, None, None
 	else:
-		return None, None, None
+		return None, None, None, None
 
 
 def get_personal_group_photo_rec_settings(own_id, target_id):
@@ -1918,8 +1970,8 @@ def personal_group_soft_deletion():
 	"""
 	Deleting chat in personal groups that have been unattended for a week
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	seven_days_ago = time.time() - PERSONAL_GROUP_SOFT_DELETION_CUTOFF
+	my_server = redis.Redis(connection_pool=POOL)
 	group_ids = my_server.zrangebyscore("personal_group_attendance",'-inf', seven_days_ago)
 	for group_id in group_ids:
 		reset_all_group_chat(group_id, my_server=my_server)
@@ -1953,7 +2005,8 @@ def personal_group_hard_deletion():
 		pipeline1.zrem("exited_personal_groups",*group_ids)
 		pipeline1.execute()
 		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_idle')
-		bulk_delete_pergrp_notif(groups_and_participants)
+		# bulk_delete_pergrp_notif(groups_and_participants)
+
 
 #call daily
 def exited_personal_group_hard_deletion(group_ids=None):
@@ -1984,7 +2037,7 @@ def exited_personal_group_hard_deletion(group_ids=None):
 		pipeline1.zrem("personal_group_attendance",*group_ids)
 		pipeline1.execute()
 		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_exit')
-		bulk_delete_pergrp_notif(groups_and_participants)
+		# bulk_delete_pergrp_notif(groups_and_participants)
 
 ########################################### Personal Group Anonymization ###########################################
 

@@ -293,7 +293,7 @@ class PrivateGroupReplyForm(forms.Form):
 	"""
 	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus','class': 'cxl',\
 		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_REPLY_LENGTH}),\
-	error_messages={'required': 'tip: likhna zaruri hai'})
+	error_messages={'required': 'Likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
 	wid = forms.IntegerField(required=False)
@@ -332,7 +332,7 @@ class PrivateGroupReplyForm(forms.Form):
 				else:
 					text_len = len(text)
 					if text_len < 1:
-						raise forms.ValidationError('tip: likhna zaruri hai')
+						raise forms.ValidationError('Likhna zaruri hai')
 					if text_len < 6:
 						if many_short_messages(user_id,section,section_id):
 							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
@@ -357,7 +357,7 @@ class PrivateGroupReplyForm(forms.Form):
 				if writer_id and writer_id != -1:
 					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "reply" dabain jisko yeh message bhejna hai')
 				else:
-					raise forms.ValidationError('tip: likhna zaruri hai')
+					raise forms.ValidationError('Likhna zaruri hai')
 
 
 class PublicGroupReplyForm(forms.Form):
@@ -368,10 +368,10 @@ class PublicGroupReplyForm(forms.Form):
 	"""
 	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
 		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_REPLY_LENGTH}),\
-	error_messages={'required': 'tip: likhna zaruri hai'})
+	error_messages={'required': 'Likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
-	wid = forms.IntegerField(required=False)
+	# wid = forms.IntegerField(required=False)
 	gp = forms.IntegerField()
 
 	# class Meta:
@@ -389,8 +389,8 @@ class PublicGroupReplyForm(forms.Form):
 
 	def clean(self):
 		data = self.cleaned_data
-		text, user_id, section_id, section, image, secret_key_from_form, writer_id = data.get("text"), self.user_id, data.get("gp"), 'pub_grp', \
-		data.get('image'), data.get('sk'), data.get('wid')
+		text, user_id, section_id, section, image, secret_key_from_form = data.get("text"), self.user_id, data.get("gp"), 'pub_grp', \
+		data.get('image'), data.get('sk')#, data.get('wid')
 		secret_key_from_session = get_and_delete_text_input_key(self.user_id,section_id,'pub_grp')
 		text = text.strip() if text else text # make function sophisticated https://stackoverflow.com/questions/1546226/simple-way-to-remove-multiple-spaces-in-a-string
 		if secret_key_from_form != secret_key_from_session:
@@ -427,10 +427,7 @@ class PublicGroupReplyForm(forms.Form):
 						". . . . .",".. .. .. ..",".... . ....","... .... ..."]) # for aesthetic reasons
 					return data
 			else:
-				if writer_id and writer_id != -1:
-					raise forms.ValidationError('Pehlay yahan message likhein, phir us nickname ke agey "reply" dabain jisko yeh message bhejna hai')
-				else:
-					raise forms.ValidationError('tip: likhna zaruri hai')
+				raise forms.ValidationError('Likhna zaruri hai')
 
 
 class ChangePrivateGroupTopicForm(forms.Form):

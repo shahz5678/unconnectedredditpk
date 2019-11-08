@@ -997,14 +997,6 @@ def get_best_photo():
 	except:
 		return None
 
-def get_previous_best_photo():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.get("best_photo")
-
-def set_best_photo(photo_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.set("best_photo",photo_id)
-
 # def all_photos():
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	return my_server.lrange("photos:1000", 0, -1)

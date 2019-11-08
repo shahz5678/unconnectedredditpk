@@ -13,12 +13,10 @@
 	<div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%">
 
 	{% if show_instructions %}
-		<div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
-			<div style="text-align:center" class="cxl lsp">Welcome! Purey Damadam se koi interesting cheez share karein!</div>
+		<div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px;text-align:center">
+			<div class="cxl lsp">Welcome! Damadam pe dilchusp khayalaat share kar ke dher sarey followers banain!</div>
 			<hr size=1 COLOR="#E9EBEE">
-			<div class="mt sp lsp">1) Maslan poetry, latest news, paheliyan (riddles), quotes, jokes and stories, sports, politics, religion, celebrities, fashion, nature or philosophy</div>
-			<div class="mts sp lsp">2) Apke shared items jin users ko pasand ai, woh unko 'like' kar ke save karein ge</div>
-			<div class="mts sp lsp">3) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+			<div class="mts sp lsp">Vulgarity, abuse, mazhabi fasaad aur spamming ke khilaf action lia jata hai. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
 		</div>
 	{% endif %}
 
@@ -61,15 +59,15 @@
 		</div>
 
 		{% if not show_instructions %}
-		<h2 class="cxl clb" style="text-align:center">Text sharing help:</h2>
+		<h2 class="cxl clb" style="text-align:center">Post sharing help:</h2>
 
 		<div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%">
 
 		<div class="cgy sp cm lsp mbs" style="padding:0 10px;text-align:left">
-			<div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is kisam ki posts share karein: latest news, paheliyan (riddles), poetry and attitude quotes, jokes, your stories, sports, politics, religion, celebrities, fashion, nature waghera</div>
-			<div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" target="_blank" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-			<div class="mts" style="text-align:left"><span class="cgy cs">3)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
-			<div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Agr sentence ke end mein 'new line' <img src="{{ STATIC_URL }}img/enter_key.svg" width="14" height="14" style="vertical-align:text-bottom"> dalein tou post 'new line' ke sath display ho gi</div>
+			<div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Text post ke zariye apney followers tak apney khayalaat forun pohonchain</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Vulgarity, abuse, mazhabi fasaad aur spamming ke khilaf action lia jata hai. Aik dafa <a href="{% url 'website_rules' %}#section0" target="_blank" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">3)</span> One day mein {{ sharing_limit }} se ziyada posts share nahi hoti</div>
+			<div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Agr post likhtey huay <img src="{{ STATIC_URL }}img/enter_key.svg" width="14" height="14" style="vertical-align:text-bottom"> dabain tou post mein new paragraph shuru ho jaye ga</div>
 		</div>
 		</div>
 

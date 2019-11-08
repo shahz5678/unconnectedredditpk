@@ -3,7 +3,10 @@
 <head><title>{{ slug }}'s likes | Damadam</title></head>
 <style>body{background: #f0f3f4}</style>
 
-{% include "inbox_navbar.html" with static_url=STATIC_URL section='likes' username=slug %}
+{% load count %}
+{% check_reply_count as reply_count %}
+
+{% include "inbox_navbar.html" with static_url=STATIC_URL section='likes' username=slug  num_rep=reply_count %}
 
 {% load s3 %}
 {% load human_time %}

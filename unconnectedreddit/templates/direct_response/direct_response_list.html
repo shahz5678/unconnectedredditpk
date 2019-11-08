@@ -160,9 +160,9 @@
 					{% if data.hide_tgt != '1' and data.ttxpre %}
 					<div class="lsp sp nos" style="color:#999">
 						{% if data.tiu %}
-							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: <img class="mrs" src="{{ data.tiu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:hidden"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
+							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: <img class="mrs" src="{{ data.tiu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:none"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
 						{% else %}
-							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: {% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:hidden"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
+							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: {% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:none"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
 						{% endif %}
 					</div>
 					{% endif %}

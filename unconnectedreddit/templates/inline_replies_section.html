@@ -80,7 +80,7 @@
 			
 			<time class="mrl cgy cxs sp" itemprop="datePublished" datetime="{{ reply.epoch_time|datetime }}">{{ reply.epoch_time|human_time }}</time>
 
-			{% if reply.wid|slugify == obj_owner_id %}
+			{% if reply.wid|slugify == obj_owner_id|slugify %}
 				<!-- op's reply -->
 				<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
 					<div class="fx fxjsfs" style="max-width:300px">

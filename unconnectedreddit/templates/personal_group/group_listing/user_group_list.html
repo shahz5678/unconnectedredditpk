@@ -26,7 +26,7 @@
 		background-color:#FDFDFD;
  	}
 </style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.16.js"></script>
 <div class="clb" style="max-width:450px;width:95%;margin:0 auto">
 <div class="lsp">	
 		<div class="mbl" style="text-align:center">
@@ -168,11 +168,11 @@
 							{% elif data.lt_msg_type == 'text_res' %}
 							<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;{% if data.lt_msg_st == 'del' %}Ap ne msg mita dia{% else %}<bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi>{% endif %}
 							{% elif data.lt_msg_type == 'img' %}
-							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Photo hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 							{% elif data.lt_msg_type == 'img_res' %}
-							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Photo hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 							{% elif data.lt_msg_type == 'shared_img' %}
-							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Foto hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
+							{% if data.lt_msg_st == 'del' %}<img src="{{ STATIC_URL }}img/chat.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne msg mita dia{% elif data.lt_msg_st == 'yes' %}<img src="{{ STATIC_URL }}img/pic.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Photo hide kar di geyi{% else %}<img src="{{ data.lt_msg_img|s3:'thumb' }}" height="60" style="border-radius:6px;max-width:99%">{% if data.lt_msg_tx != 'None' %}<div class="mt"><bdi>{% emoticons %}{{ data.lt_msg_tx|truncatechars:"28" }}{% endemoticons %}</bdi></div>{% endif %}{% endif %}
 							{% elif data.lt_msg_type == 'notif' %}
 							<img src="{{ STATIC_URL }}img/key.svg" style="width:22px;height:22px;vertical-align:middle">&nbsp;Ap ne ijazat mangi
 							{% elif data.lt_msg_type == 'creation' %}

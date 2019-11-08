@@ -263,33 +263,6 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 		add_obj_to_home_feed(submitter_id, time_now, hash_name, my_server)
 
 
-def update_comment_in_home_link(reply,writer,reply_id,time,writer_id,link_pk):
-	"""
-	Appends publicreply in home_replies_section displayed alongwith each 'text' post on 'home'
-	"""
-	hash_name = "tx:"+str(link_pk) #lk is 'link'
-	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.exists(hash_name):
-		#################################Saving latest publicreply################################
-		comment_blob = my_server.hget(hash_name,'cb')
-		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
-		payload = {'reply_id':reply_id,'replier_username':writer,'link_id':link_pk,'text':reply,'replier_id':writer_id,\
-		'epoch_time':time}
-		if is_image_star(writer_id, my_server=my_server):
-			payload['s'] = '1'
-		# if comment_target:
-		# 	payload['ct'] = comment_target
-		# 	payload['ttxpre'] = target_text_prefix
-		# if target_text_postfix:
-		# 	payload['ttxpos'] = target_text_postfix
-		comment_blob.append(payload)
-		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
-		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-		return amnt
-	else:
-		return 0
-
-
 def add_obj_to_home_feed(submitter_id, time_now, hash_name, my_server=None):
 	"""
 	Adding various objects to home feed
@@ -851,7 +824,7 @@ def add_obj_to_photo_feed(submitter_id, time_now, hash_name, my_server=None):
 
 
 def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_star,\
-	img_url, img_caption, submission_time, from_fbs, add_to_home_feed=False, add_to_photo_feed=True):
+	img_url, img_caption, submission_time, from_fbs, img_height, img_width, add_to_home_feed=False, add_to_photo_feed=True):
 	"""
 	Creating image object (used in home and photo feed, etc)
 	"""
@@ -861,7 +834,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	hash_name = "img:"+obj_id
 	# img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
-	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name}
+	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width}
 	if from_fbs:
 		immutable_data['fbs']='1'
 	if is_star:
@@ -885,8 +858,77 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	return hash_name
 
 
-def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,latest_comm_writer_id=None,\
-	comment_id=None,latest_comm_writer_uname=None,comment_count=None, time=None):
+def store_inline_reply(parent_obj_type, parent_obj_id, reply_text, reply_writer_id, reply_id, reply_writer_uname, time_now, \
+	reference_id='', reply_target=None, target_text_prefix=None,target_text_postfix=None):
+	"""
+	Adds a comment to text or photo object (if it exists in redis)
+	"""
+	num_comments = 0
+	obj_hash_name = 'tx:'+str(parent_obj_id) if parent_obj_type == '3' else 'img:'+str(parent_obj_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(obj_hash_name):
+		reply_blob = my_server.hget(obj_hash_name,'rb')
+		reply_blob = truncate_payload(json.loads(reply_blob)) if reply_blob else []
+		dict_data = {'poid':parent_obj_id,'tx':reply_text,'epoch_time':time_now,'wun':reply_writer_uname,'wid':reply_writer_id}
+		if is_image_star(reply_writer_id, my_server=my_server):
+			dict_data['s'] = '1'
+		if reply_target:
+			dict_data['ct'] = reply_target#'ct' means comment_target (mislabled - should have been 'rt')
+		if target_text_prefix:
+			dict_data['ttxpre'] = target_text_prefix
+			if target_text_postfix:
+				dict_data['ttxpos'] = target_text_postfix
+		payload = (reply_id,reference_id,dict_data)# this format is optimized for displaying the data and also doing a sequential search in it (when requiring to hide a reply)
+		reply_blob.append(payload)
+		my_server.hset(obj_hash_name,'rb',json.dumps(reply_blob))
+		num_comments = my_server.hincrby(obj_hash_name, "cc", amount=1) #updating comment count in the parent obj
+	return num_comments
+
+	
+def truncate_payload(reply_blob):
+	"""
+	Helper function for store_inline_reply()
+	
+	On average, truncate this after 14 comments have aggregated
+	A 'reply_blob' is a list of tuples
+	"""
+	return reply_blob[-4:] if (random() < 0.07 and reply_blob) else reply_blob
+
+
+def hide_inline_direct_response(obj_type, parent_obj_id, reply_id):
+	"""
+	Hides text in 'inline comments' (under text or photos)
+	"""
+	reply_id = str(reply_id)
+	obj_hash_name = 'tx:'+str(parent_obj_id) if obj_type == '3' else 'img:'+str(parent_obj_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	json_reply_data = my_server.hget(obj_hash_name,'rb')
+	if json_reply_data:
+		changed = False
+		reply_data = json.loads(json_reply_data)
+		
+		for rid, refid, data in reply_data:
+			if reply_id == str(rid):
+				# this reply ought to be completely hidden
+				data['mrh'] = '1'# main reply hidden
+				data.pop('ttxpre', None)# emptying out the reference too
+				data.pop('ttxpos', None)# emptying out the reference too
+				changed = True
+			elif reply_id == str(refid):
+				# this reply's reference ought to be hidden
+				data['rh'] = '1'# reference hidden
+				data.pop('ttxpre', None)# emptying out the reference
+				data.pop('ttxpos', None)# emptying out the reference
+				changed = True
+
+		if changed:
+			# saving altered data
+			my_server.hset(obj_hash_name,'rb',json.dumps(reply_data))
+
+
+
+def add_photo_comment(photo_id,latest_comm_text,latest_comm_writer_id,comment_id,latest_comm_writer_uname,time,\
+	comment_target=None, target_text_prefix=None,target_text_postfix=None):
 	"""
 	Adds comment to photo object (only if it exists in redis)
 	"""
@@ -900,28 +942,17 @@ def add_photo_comment(photo_id=None,photo_owner_id=None,latest_comm_text=None,la
 		'commenter_id':latest_comm_writer_id,'photo_id':photo_id}
 		if is_image_star(latest_comm_writer_id, my_server=my_server):
 			payload['s'] = '1'
-		# if comment_target:
-		# 	payload['ct'] = comment_target
-		# 	payload['ttxpre'] = target_text_prefix
-		# if target_text_postfix:
-		# 	payload['ttxpos'] = target_text_postfix
+		if comment_target:
+			payload['ct'] = comment_target
+			payload['ttxpre'] = target_text_prefix
+		if target_text_postfix:
+			payload['ttxpos'] = target_text_postfix
 		comment_blob.append(payload)
 		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
-		my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-	# 	return amnt
-	# else:
-	# 	return 0
-
-	
-def truncate_payload(comment_blob):
-	"""
-	Helper function for add_photo_comment and update_comment_in_home_link
-	
-	On average, truncate this after 14 comments have been aggregated
-	A 'comment_blob' is a list of lists stored as a JSON string
-	"""
-	return comment_blob[-5:] if (random() < 0.07 and comment_blob) else comment_blob
-
+		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
+		return amnt
+	else:
+		return 0
 
 
 def get_obj_owner(obj_id, obj_type):

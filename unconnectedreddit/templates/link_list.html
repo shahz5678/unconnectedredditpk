@@ -1,20 +1,21 @@
 {% extends "base.html" %}
-{% load emoticons_tags %}
 {% load get_item %}
-{% load get_photo_object %}
+{% load emoticons_tags %}
 {% load get_text_object %}
-{% load get_transparent_buttons_js %}
+{% load url_target_blank %}
+{% load get_photo_object %}
 {% load get_big_fan_button %}
 {% load get_big_vote_button %}
-{% load get_big_group_button %}
 {% load get_big_send_button %}
-{% load get_big_external_share_button %}
-{% load get_big_photo_comment_button %}
+{% load get_big_group_button %}
+{% load get_home_publicreply_bar %}
+{% load get_home_replies_section %}
 {% load get_big_home_reply_button %}
 {% load get_photo_comments_section %}
 {% load get_home_photo_comment_bar %}
-{% load get_home_publicreply_bar %}
-{% load get_home_replies_section %}
+{% load get_transparent_buttons_js %}
+{% load get_big_photo_comment_button %}
+{% load get_big_external_share_button %}
 {% block content %}
 <head><title>Home | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
@@ -61,6 +62,17 @@
 		</script>
 	</aside>
 	
+{% elif forloop.counter == 4 %}
+	
+	<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#03fcdf">
+		<div class="mtl mbs fx fxjscn fxaicn">
+			<img src="{{ STATIC_URL }}img/ahem.svg" class="mrs" width="60" height="60">
+			<img src="{{ STATIC_URL }}img/matka.svg" class="mls" width="60" height="60">
+		</div>
+		<div style="text-align:center" class="cxl lsp mbl mtl clb"><b>"Matka" khatam ho raha hai</b></div>
+		<a href="{% url 'coming_soon' %}"><button class="btn cl sp bcb pg_ok_res" style="height:44px;width:100%;border-radius:0;overflow:hidden"><b>MAZEED MALUMAT</b></button></a>
+	</div>
+
 {% endif %}
 
 {% with replyforms|get_item:link.h as replyform %}
@@ -70,7 +82,7 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_star=link.s %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|urlize|url_target_blank|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_star=link.s %}
 
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">

@@ -1,12 +1,12 @@
-{% if section == 'text' %}
+{% if section == 'photo' %}
 	<div class="fx fxjscn fxaicn">
-		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #229ec3;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#229ec3;font-weight:bold;"><img src="{{ static_url }}img/share_text_reversed.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">TEXT</div></button>
-		<a href="{% url 'upload_public_photo' %}#section0"><button type="submit" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px; border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/share_photo_cgy.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">PHOTO</div></button></a>
+		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #229ec3;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#229ec3;font-weight:bold;"><img src="{{ static_url }}img/share_foto_reversed.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">PHOTO</div></button>
+		<a href="{% url 'link_create' %}#section0"><button type="submit" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px; border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/share_text_cgy.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">TEXT</div></button></a>
 	</div>
-{% elif section == 'photo' %}
+{% elif section == 'text' %}
 	<div class="fx fxjscn fxaicn">
-		<a href="{% url 'link_create' %}#section0"><button name="dec" type="submit" value="2" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #DCDCDC;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold;"><img src="{{ static_url }}img/share_text_cgy.svg" width="18" height="18" style="vertical-align:middle"><div class="mts">TEXT</div></button></a>
-		<button type="submit" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #ff9933;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#ff9933;font-weight:bold;background:white"><img src="{{ static_url }}img/share_photo_reversed.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">PHOTO</div></button>
+		<a href="{% url 'upload_public_photo' %}#section0"><button name="dec" type="submit" value="2" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #DCDCDC;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold;"><img src="{{ static_url }}img/share_photo_cgy.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">PHOTO</div></button></a>
+		<button type="submit" class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #229ec3;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#229ec3;font-weight:bold;background:white"><img src="{{ static_url }}img/share_text_reversed.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">TEXT</div></button>
 	</div>
-{% else %}
 {% endif %}
+

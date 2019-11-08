@@ -6,6 +6,7 @@ MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
 MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
+PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH = 40# text-length below which a public text post is considered 'low quality'
 ###############################################################################################################
 VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 2419200# i.e. 28 days. This is the amount of time closed-voting objs are kept around for 'like_prob' or 'handpicked_prob' analysis
 ###############################################################################################################
@@ -13,7 +14,7 @@ PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
-NUM_SUBMISSION_ALLWD_PER_DAY = 100#num of home and photo posts allowed in one day
+NUM_SUBMISSION_ALLWD_PER_DAY = 150#num of home and photo posts allowed in one day
 CONTENT_SHARING_SHORT_RATELIMIT = 45#amount of time to wait between sharing posts (time pooled between home and photos) 
 CONTENT_SHARING_LONG_RATELIMIT = 86400# 
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
@@ -30,7 +31,7 @@ MIN_TOPIC_DESCRIPTION_SIZE = 20
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
-TRENDER_RANKS_TO_COUNT = 15 #of top trenders to be shown
+TRENDER_RANKS_TO_COUNT = 20 #of top trenders to be shown
 # SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 # SUPER_UPVOTE = 20# REMOVE
 # PERMANENT_RESIDENT_SCORE = 300#REMOVE

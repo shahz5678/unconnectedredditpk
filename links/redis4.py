@@ -346,7 +346,7 @@ def get_cached_photo_dim(photo_id):
 	"""
 	key = 'pdim:'+photo_id
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.expire(key,THREE_DAYS)#extending life of cache
+	my_server.expire(key,TWO_WEEKS)#extending life of cache
 	return my_server.hmget(key,'h','w')
 
 
@@ -354,10 +354,10 @@ def cache_photo_dim(photo_id,img_height,img_width):
 	"""
 	Cache photo dimensions for use in photo sharing to personal groups
 	"""
-	mapping, key = {'h':img_height,'w':img_width}, 'pdim:'+photo_id
+	key ='pdim:'+photo_id
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.hmset(key,mapping)
-	my_server.expire(key,THREE_DAYS)
+	my_server.hmset(key,{'h':img_height,'w':img_width})
+	my_server.expire(key,TWO_WEEKS)
 
 
 def retrieve_photo_data(photo_ids, owner_id):
@@ -1276,8 +1276,49 @@ def many_short_messages(user_id,section,obj_id):
 
 ######################################## Logging abusive text on home ########################################
 
-ABUSE_ON_HOME = 'aoh'# global sorted set keeping count of 
-ABUSIVE_HOME_TEXT = 'aht'# global sorted set containing abusive text on home
+HOME_TEXT_POSTS = 'htp'# global sorted set containing text on home (for various NLP analysis)
+PUBLIC_IMG_POSTS = 'pip'# global sorted set containing img data (for various analysis)
+
+
+def retrieve_home_post_logs():
+	"""
+	Retrieves logs saved by log_public_img()
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(HOME_TEXT_POSTS,0,-1,withscores=True)
+
+
+def log_home_post(user_id, username, text, on_fbs, is_urdu, editorial_upvotes, trending_time, posting_time):
+	"""
+	Logging trending home text posts for analysis
+
+	Questions this can answer include:
+	1) Which urdu words are most repeated in trending posts
+	2) Which english words are most repeated in trending posts
+	3) How are trending posts distributed by length
+	4) What are trending posts distributed by time of posting
+	5) How are trending posts distributed by submitter ID
+	6) How long does it take for a post to get into trending (trending_time - posting_time)
+	7) What categories of post get into trending (poetry, religion, politics, jokes, etc)
+	"""
+	context = {'text':text,'is_urdu':is_urdu,'trending_time':trending_time,'user_id':user_id, 'username':username,\
+	'text_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time}
+	if on_fbs:
+		context['on_fbs'] = on_fbs
+	json_payload = json.dumps(context)
+	redis.Redis(connection_pool=POOL).zadd(HOME_TEXT_POSTS,json_payload,user_id)
+
+
+def log_public_img(user_id, on_opera, on_fbs, img_width, img_height):
+	"""
+	Questions this can help answer include:
+
+	1) How many users use opera mini to upload images?
+	2) How many fbs users are uploading images?
+	3) What aspect-ratio imgs are mostly uploaded on the app?
+	"""
+	json_payload = json.dumps({'posting_time':time.time(),'user_id':user_id,'on_fbs':on_fbs,'on_opera':on_opera,\
+		'username':retrieve_uname(user_id,decode=False),'w':img_width,'h':img_height})
+	redis.Redis(connection_pool=POOL).zadd(PUBLIC_IMG_POSTS,json_payload,user_id)
 
 
 def log_abusive_home_post(user_id, text):
@@ -1920,8 +1961,8 @@ def purge_exit_list(group_id, user_id):
 
 ###################################### Project Superhuman #########################################
 
-HXU_ANSWERS = 'hxu:'#'sans:'#key containing jsonized survey answers given by a user
-HXU_ANSWERERS = 'hansr'# sorted set containing all logged answerers
+HXU_ANSWERS = 'hxua:'#key containing jsonized survey answers given by a user
+HXU_ANSWERERS = 'hxuar'# sorted set containing all logged answerers
 
 
 def show_survey(user_id):
@@ -1943,13 +1984,13 @@ def has_already_answered_superhuman_survey(user_id):
 		json_answer = my_server.get(answer_key)
 		answer = json.loads(json_answer)
 		if answer.get("skipped",None) == '1':
-			# filled the survey already, and in fact 'skipped' it
+			# 'skipped' the survey
 			return True, True
 		else:
-			# filled the previous one, answering all the required questions
+			# filled the survey
 			return True, False
 	else:
-		# didn't fill the survey previously - should be allowed to fill it now
+		# didn't fill the survey
 		return False, False
 
 

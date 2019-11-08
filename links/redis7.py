@@ -8,9 +8,10 @@ from django.db.models import F
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
-TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME
+TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME, PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from redis3 import retrieve_user_world_age, exact_date
+from abuse import FLAGGED_PUBLIC_TEXT_POSTING_WORDS
 from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
 from colors import COLOR_GRADIENTS
@@ -68,6 +69,7 @@ COMPLAINER_ATTEMPT_SORTED_SET = "cass" # sorted set containing sorted (by volume
 COMPLAINER_CORRECT_SORTED_SET = "ccss" # sorted set containing sorted (by volume) instances of correct reports made by a user
 TOP_50_CACHED_DATA = "top_50_reporters" # key containing cached data of top 50 reporters
 
+TROLLS = 'trolls'# a sorted set containing users who have been marked as trolls by defenders
 
 CONTENT_SUBMISSION_AND_VOTING_BAN = "csv:"#prefix for hash containing details about a ban levied by a defender on a user
 CONTENT_BAN_TEMP_KEY = "cbtk:"#prefix for key containing temporary data regarding a potentially bannable user
@@ -140,18 +142,22 @@ HANDPICKED_IMG_HASH_NAMES = 'hihn'# set of img obj_hashes that have been handpic
 LOCKED_IMG = 'li:'# set that contains sybil 'likes' given to an img obj - these lock the img from entering trending
 HANDPICKED_TRENDING_IMG = 'hti:'# a key that signifies that a certain obj has entered trending by way of being handpicked
 NONHANDPICKED_TRENDING_IMG = 'nti:'# a key that signifies that a certain obj has entered trending by way of being voted on by regular voters
-# TRENDING_OBJ = 'to:'# a key that signifies that a certain obj has entered trending
 
 MOST_RECENT_IMG_UPLOAD_TIME = 'mriut:'#key that saves the most recent time a user uploaded an img - useful for truncating reps of churned users
-# GLOBAL_UPLOADED_IMG_HASH_NAMES = 'guihn'# global sorted set containing all image hash names uploaded by users, useful for content reputation calculation
-# GLOBAL_AUD_LIKED_IMG_DATA = 'galid'# global sorted set containing image hashes+":"+uploader_id of imgs which received audience likes
 GLOBAL_HANDPICKED_IMG_DATA = 'ghid'#global sorted set containing image_hashes+":"+uploader_ID of imgs which were handpicked for trending
 GLOBAL_AUD_LIKED_IMG_OBJS = 'galio'# sorted set containing number of images that received audience likes for each uploader
 
-# GLOBAL_LIKED_IMG_VOLUME = 'gliv'# global sorted set containg num 'liked' images uploaded by an uploader
 GLOBAL_UPLOADED_IMG_VOLUME = 'guiv'# global sorted set containing num images that were uploaded by a certain user
 GLOBAL_IMG_UPLOADER_AUD_LIKE_BASED_REP = 'giualbr'# global sorted set containing the content 'rep' of img uploaders, based on audience 'likes'
 GLOBAL_IMG_UPLOADER_HANDPICKING_BASED_REP = 'giuhbr'# global sorted set containing the content 'rep' of img uploaders, based on handpicked imgs
+
+MOST_RECENT_TEXT_SUBMISSION_TIME = 'mrtst:'#key that saves the most recent time a user submitted text - useful for truncating reps of churned users
+GLOBAL_SUBMITTED_TXT_VOLUME = 'gstv'# global sorted set containing num text posts that were submitted by a certain user
+GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS = 'ghrhto'# sorted set containing number of text posts that received likes from high-rep voters (per submitter)
+GLOBAL_TXT_SUBMITTER_HIGH_REP_HANDPICKER_BASED_REP = 'gtshrhbr' # global sorted set containing the content 'rep' of txt submitters, based on handpicking by 'high-rep' voters (whose rep is sourced by handpick img rep)
+
+LOCKED_TXT = 'lt:'# set that contains sybil 'likes' given to a text obj - these lock the text from entering trending
+GLOBAL_RECENT_PUBLIC_TEXTS = 'grpt'# sorted set containing previous ~800 posts - useful for catching dups
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -179,11 +185,11 @@ def insert_hash(photo_id, photo_hash,categ=None):
 		if categ == 'ecomm':
 			limit = 500
 		else:
-			limit = 10000
+			limit = 50000
 		if size < (limit+1):
 			my_server.zadd(set_name, photo_hash, photo_id)
 		else:
-		   my_server.zremrangebyrank(set_name, 0, (size-limit-1))
+		   my_server.zremrangebyrank(set_name, 0, 10)
 		   my_server.zadd(set_name, photo_hash, photo_id)
 	except:
 		my_server.zadd(set_name, photo_hash, photo_id)
@@ -218,12 +224,36 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 	if is_star:
 		immutable_data['s']='1'
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
+	my_server = redis.Redis(connection_pool=POOL)
+
+	######################################################
+	# flagging low quality posts based on certain text criteria
+	
+	if len(text) < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
+		# 'short post': this can never trend because short-posts are considered low-quality
+		mapping['sp'] = '1'
+	
+	flag_text, flagged_word, lower_text = False, '', text.lower()
+	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
+		if word in lower_text:
+			flag_text = True
+			flagged_word = word
+			break
+	if flag_text:
+		# 'illegal words': this post is blocked from trending forever
+		mapping['iw'] = '1'
+
+	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text):
+		# text is being repeated within the last 800 posts
+		mapping['rt'] = '1'# 'repeated text': this post is repetitive, and therefore blocked from trending forever
+	######################################################
+	
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
-	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(hash_name,mapping)
 	pipeline1.expireat(hash_name,expire_at)#setting ttl to one day
+	
 	#### initialize voting sorted set ####
 	obj_vote_store_key = VOTE_ON_TXT+obj_id
 	pipeline1.zadd(obj_vote_store_key,-1,-1)
@@ -356,28 +386,93 @@ def retrieve_obj_feed(obj_list, with_colors=False):
 	return unpack_json_blob(filter(None, pipeline1.execute()),with_colors=with_colors)
 
 
-def retrieve_obj_scores(obj_list):
+def retrieve_text_obj_scores(obj_list):
 	"""
-	Retrieves obj vote scores - useful for calculating trending objs
+	Retrieves text obj vote scores - useful for calculating trending text posts
 
-	Only those objs are considered for trending that have at least 2 votes from users with reputation > 0
+	LIMITATION: Does NOT account for voter reputations yet - only based on number of upvotes
+	"""
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	for obj_hash_name in obj_list:
+
+		# Criteria 1) retrieve 'upvotes', 'short post', 'illegal words', 'repeated text'
+		pipeline1.hmget(obj_hash_name,'uv','sp','iw','rt')
+
+		# Criteria 2) is obj locked from trending because of sybils?
+		pipeline1.exists(LOCKED_TXT+obj_hash_name)
+
+	result1, counter, final_result = pipeline1.execute(), 0, []
+
+	################################################################
+	for obj_hash_name in obj_list:
+		
+		obj_data = result1[counter]#the obj's voting is still open (it exists in the feeds)
+		is_locked_out_from_trending = result1[counter+1]# e.g. because of sybil voting (criteria 2 was met)
+		
+		# skip content that has been voted on by sybils, or isn't open for voting any more
+		if is_locked_out_from_trending or not obj_data:
+			pass
+
+		# else: non-sybil voting, and voting is open!
+		else:
+			num_upvotes, short_post, illegal_words, repetitive_post = obj_data[0], obj_data[1], obj_data[2], obj_data[3]
+			
+			# the following kinds of posts will never trend anyway
+			if short_post or illegal_words or repetitive_post:
+				pass
+			
+			# this post can trend, if it has the requisite number of likes
+			else:
+				likes = int(num_upvotes) if num_upvotes else 0
+
+				if likes > 1:
+					# achieved 2 or more likes
+					prob_this_item_would_get_handpicked = 0.01# TODO: make this based on voter/content reputation
+
+				else:
+					# achieved less than 2 likes - we assume such a post has a 0% chance of getting handpicked (obviously not right at all)
+					prob_this_item_would_get_handpicked = 0# TODO: make this based on voter/content reputation
+				
+				final_result.append((obj_hash_name, likes, prob_this_item_would_get_handpicked))					
+
+		counter += 2
+
+	################################################################
+	return final_result
+
+
+def retrieve_img_obj_scores(obj_list):
+	"""
+	Retrieves img obj vote scores - useful for calculating trending images
+
+	Only those imgs are considered for trending that have at least 2 votes from users with reputation > 0
 	"""
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for obj_hash in obj_list:
 		data = obj_hash.partition(":")
 		obj_type, obj_id = data[0], data[-1]
 		vote_store = VOTE_ON_TXT if obj_type == 'tx' else VOTE_ON_IMG
+
+		# Criteria 1) retrieve number of upvotes received by the object
 		pipeline1.hget(obj_hash,'uv')
+		
+		# Criteria 2) retrieve the voting reputation of the top two voters
 		pipeline1.zrange(vote_store+obj_id,-2,-1,withscores=True)
+		
+		# Criteria 3) is this obj locked from trending because of sybil voting?
 		pipeline1.exists(LOCKED_IMG+obj_hash)
 	result1, counter, final_result = pipeline1.execute(), 0, []
+
+	#############################################################
 	for obj_hash in obj_list:
-		is_locked_out_from_trending = result1[counter+2]# e.g. because of sybil voting
-		vote_store_exists = result1[counter+1]
+		is_locked_out_from_trending = result1[counter+2]# e.g. because of sybil voting (criteria 3 was met)
+		vote_store_exists = result1[counter+1]#the obj's voting is still open
 		
+		# skip content that has been voted on by sybils, or isn't open for voting any more
 		if is_locked_out_from_trending or not vote_store_exists:
-			# skip content that has been voted on by sybils, or isn't open for voting any more
 			pass
+
+		# else: non-sybil voting, and voting is open!
 		else:
 
 			likes = result1[counter]
@@ -385,6 +480,8 @@ def retrieve_obj_scores(obj_list):
 			
 			################################
 			num_votes = len(vote_store_exists)
+			
+			# enough votes have been cast
 			if num_votes == 2:
 				vote_1, vote_2 = vote_store_exists[0], vote_store_exists[1]
 				score_vote_1, score_vote_2 = vote_1[1], vote_2[1]
@@ -394,11 +491,13 @@ def retrieve_obj_scores(obj_list):
 				else:
 					# don't count this obj
 					score = 0
+
+			# not enough votes cast
 			elif num_votes < 2:
-				# not enough votes cast
 				score = 0
+			
+			# this should never happen
 			else:
-				# this should never happen
 				score = 0
 			
 			################################
@@ -407,6 +506,20 @@ def retrieve_obj_scores(obj_list):
 		counter += 3
 
 	return final_result
+
+
+def retrieve_all_home_text_obj_names():
+	"""
+	Retreives all 'tx' type objs from home
+	"""
+	final_objs = []
+	all_objs = redis.Redis(connection_pool=POOL).zrange(HOME_SORTED_FEED,0,-1)
+	if all_objs:
+		for obj_hash_name in all_objs:
+			if obj_hash_name.partition(":")[0] == 'tx':
+				# this is a text object - it's what we need
+				final_objs.append(obj_hash_name)
+	return final_objs
 
 
 def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
@@ -665,8 +778,32 @@ def save_recent_photo(user_id, photo_id):
 	my_server.expire(key_name,FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
 	############################################
 	my_server.setex(MOST_RECENT_IMG_UPLOAD_TIME+str(user_id),time.time(),ONE_MONTH)
-	# my_server.zadd(GLOBAL_UPLOADED_IMG_HASH_NAMES,"img:"+str(photo_id),user_id)
 	my_server.zincrby(GLOBAL_UPLOADED_IMG_VOLUME,user_id,amount=1)
+
+
+def log_recent_text(user_id, description):
+	"""
+	Does various text logging (for multiple purposes)
+
+	1) Log volume of text uploaded by each user - useful for 'content rep' calculation
+	2) Log the posting time of the user - useful for calculating user activeness
+	3) Log prev 800 texts to mark repetition - useful for marking repetitions
+	"""
+	time_now = time.time()
+	my_server = redis.Redis(connection_pool=POOL)
+
+	# setting last posting time for each poster
+	my_server.setex(MOST_RECENT_TEXT_SUBMISSION_TIME+str(user_id),time_now,ONE_MONTH)
+	
+	# setting volume of text submitted by each poster
+	my_server.zincrby(GLOBAL_SUBMITTED_TXT_VOLUME,user_id,amount=1)
+	
+	# logging the latest 800 public text posts
+	my_server.zadd(GLOBAL_RECENT_PUBLIC_TEXTS,description.lower(),time_now)
+
+	if random() < 0.005:
+		# cull the set once in 200 trials
+		my_server.zremrangebyrank(GLOBAL_RECENT_PUBLIC_TEXTS, 0, -801)# to keep top 800 in the sorted set
 
 
 def get_recent_trending_photos(user_id):
@@ -722,6 +859,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
 	img_thumb = get_s3_object(img_url,category="thumb")
 	hash_name = "img:"+obj_id
+	# img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
 	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name}
 	if from_fbs:
@@ -1065,7 +1203,6 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 	Creating and submitting text object (used in topic feed and public feed)
 	"""
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
-	my_server = redis.Redis(connection_pool=POOL)
 	immutable_data = {'i':obj_id,'c':categ,'si':submitter_id,'sa':submitter_av_url,'su':submitter_username,'t':submission_time,\
 	'd':text,'h':obj_hash,'url':topic_url, 'th':bg_theme, 'tn':topic_name}
 	if from_fbs:
@@ -1075,6 +1212,29 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
 	time_now = time.time()
 	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	
+	######################################################
+	# flagging low quality posts based on certain text criteria
+	if len(text) < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
+		# 'short post': this can never trend because short-posts are considered low-quality
+		mapping['sp'] = '1'
+	
+	flag_text, flagged_word, lower_text = False, '', text.lower()
+	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
+		if word in lower_text:
+			flag_text = True
+			flagged_word = word
+			break
+	if flag_text:
+		# 'illegal words': this post is blocked from trending forever
+		mapping['iw'] = '1'
+
+	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text):
+		# text is being repeated within the last 800 posts
+		mapping['rt'] = '1'# 'repeated text': this post is repetitive, and therefore blocked from trending forever
+	######################################################
+
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(obj_hash,mapping)# creating the obj hash
 	pipeline1.expireat(obj_hash,expire_at)# setting a TTL of one week on this obj hash
@@ -1545,7 +1705,7 @@ def process_top_trenders_rep(top_trending_ids_and_scores):
 						num_trending_previously = prev_trending_ids_and_scores_dict[str(trending_id)]
 						num_trending_now = new_trending_ids_and_scores_dict[trending_id]
 						if num_trending_now > num_trending_previously and random() < 0.75:
-							# moreover, num trending pics are greater than before
+							# moreover, num trending pics are greater than before (and adding a bit of stochasticity to the proceedings)
 							scores_to_give[trending_id] = 1 
 						else:
 							scores_to_give[trending_id] = 0 
@@ -1894,7 +2054,7 @@ def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
 	"""
 	Just a quick way to add trending objs in a feed
 
-	Use the sophisticated add_single_trending_object() later, sunset this
+	TODO: Use the sophisticated add_single_trending_object() later, sunset this
 	"""
 	if feed_type == 'home':
 		feed_name = TRENDING_HOME_FEED
@@ -1904,6 +2064,18 @@ def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
 	my_server.zadd(feed_name,obj_hash, time_now)
 	if random() < 0.2:
 		my_server.zremrangebyrank(feed_name, 0, -201)# to keep top 200 in the sorted set
+	#############################
+	#############################
+	#  Logging trending posts for analysis (can remove)
+	json_data_blob, editorial_upvotes = my_server.hmget(obj_hash,'blob','uv')
+	try:
+		data = json.loads(json_data_blob)
+	except:
+		data = json_backup.loads(json_data_blob)
+	from redis4 import log_home_post
+	log_home_post(user_id=data['si'], username=data['su'], text=data['d'], on_fbs=data.get('fbs',''),is_urdu=data['c'], \
+		editorial_upvotes=editorial_upvotes, trending_time=time_now, posting_time=data['t'])
+
 
 
 def is_obj_trending(prefix, obj_id, with_trending_time=False):
@@ -2330,7 +2502,7 @@ def add_user_vote(voter_id, target_user_id, target_obj_id, obj_type, voting_time
 	
 
 
-def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editorial_vote, my_server):
+def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editorial_vote, is_pht, my_server):
 	"""
 	Determines if a vote is by a sybil, an inexperienced voter, or a non-partisan voter, alloting a value to the vote accordingly
 	"""
@@ -2352,44 +2524,66 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 				handpicked_prob = None# a sybil locks the content, and can never get it into trending, hence this prob is 0 (we use 'None' for programmatic reasons)
 				is_sybil = True#a generic sybil in this case
 			else:
-				if world_age_discount < 1.0:
+				if world_age_discount < 1.0:#'world_age_discount' floats between 0 and 1.0
 					# voter is not experienced enough
 					handpicked_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
-				elif my_server.zcount(GLOBAL_EDITORIAL_LIKES_ON_IMGS, voter_id, voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+1):
-					# voter has not editorially voted in the required volume
-					handpicked_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
 				else:
-					# voter is an experienced, non_partisan voter, get their 'handpicked_prob' (or 'like_prob' alternatively)
-					handpicked_prob = my_server.zscore(VOTER_HANDPICKED_PROBS,voter_id)
-					if handpicked_prob is None:
-						handpicked_prob = 0
-					elif handpicked_prob > 0:
+
+					# it's a vote on a photo obj
+					if is_pht == '1':
+						if my_server.zcount(GLOBAL_EDITORIAL_LIKES_ON_IMGS, voter_id, voter_id) < (MEANINGFUL_VOTING_SAMPLE_SIZE+1):
+							# voter has not editorially voted in the required volume
+							handpicked_prob = 0# an inexperienced voter can't contribute to getting an obj into trending
+						else:
+							# voter is an experienced, non_partisan voter, get their 'handpicked_prob' (or 'like_prob' alternatively)
+							handpicked_prob = my_server.zscore(VOTER_HANDPICKED_PROBS,voter_id)
+							if handpicked_prob is None:
+								handpicked_prob = 0
+							elif handpicked_prob > 0:
+								num_editorial_votes = my_server.zscore(NUM_EDITORIAL_LIKES,voter_id)
+								if num_editorial_votes and num_editorial_votes < 10:
+									# nerf said 'handpicked_prob' since it's based on too small a sample size
+									if num_editorial_votes == 1:
+										# nerfed the most
+										handpicked_prob = 0.1 * handpicked_prob
+									elif num_editorial_votes == 2:
+										handpicked_prob = 0.15 * handpicked_prob
+									elif num_editorial_votes == 3:
+										handpicked_prob = 0.25 * handpicked_prob
+									elif num_editorial_votes == 4:
+										handpicked_prob = 0.35 * handpicked_prob
+									elif num_editorial_votes == 5:
+										handpicked_prob = 0.45 * handpicked_prob
+									elif num_editorial_votes == 6:
+										handpicked_prob = 0.55 * handpicked_prob
+									elif num_editorial_votes == 7:
+										handpicked_prob = 0.65 * handpicked_prob
+									elif num_editorial_votes == 8:
+										handpicked_prob = 0.75 * handpicked_prob
+									elif num_editorial_votes == 9:
+										# nerfed the least
+										handpicked_prob = 0.85 * handpicked_prob
+									else:
+										# should never happen
+										handpicked_prob = 0.95 * handpicked_prob
+						return handpicked_prob, is_sybil
+					
+					#########################################################################
+					# EXPERIMENTAL
+					# it's a text vote - use the voter's handpicking rep for imgs to impart content reply to text posters (this is experimental)
+					else:
 						num_editorial_votes = my_server.zscore(NUM_EDITORIAL_LIKES,voter_id)
-						if num_editorial_votes and num_editorial_votes < 10:
-							# nerf said 'handpicked_prob' since it's based on too small a sample size
-							if num_editorial_votes == 1:
-								# nerfed the most
-								handpicked_prob = 0.1 * handpicked_prob
-							elif num_editorial_votes == 2:
-								handpicked_prob = 0.15 * handpicked_prob
-							elif num_editorial_votes == 3:
-								handpicked_prob = 0.25 * handpicked_prob
-							elif num_editorial_votes == 4:
-								handpicked_prob = 0.35 * handpicked_prob
-							elif num_editorial_votes == 5:
-								handpicked_prob = 0.45 * handpicked_prob
-							elif num_editorial_votes == 6:
-								handpicked_prob = 0.55 * handpicked_prob
-							elif num_editorial_votes == 7:
-								handpicked_prob = 0.65 * handpicked_prob
-							elif num_editorial_votes == 8:
-								handpicked_prob = 0.75 * handpicked_prob
-							elif num_editorial_votes == 9:
-								# nerfed the least
-								handpicked_prob = 0.85 * handpicked_prob
-							else:
-								# should never happen
-								handpicked_prob = 0.95 * handpicked_prob
+						
+						if num_editorial_votes >= 6:# why 6? Chosen arbitrarily after some CSV analysis
+							handpicked_prob = my_server.zscore(VOTER_HANDPICKED_PROBS,voter_id)
+							
+							if handpicked_prob < 0.28:# why 28%?Chosen arbitrarily after some CSV analysis
+								# this is not a 'high rep' voter, so handpicked_prob is 0
+								handpicked_prob = 0
+						
+						# this is not a 'high rep' voter, so handpicked_prob is 0
+						else:
+							handpicked_prob = 0
 
 		return handpicked_prob, is_sybil
 	######################################################################################################
@@ -2407,7 +2601,7 @@ def determine_vote_score(voter_id, target_user_id, world_age_discount, is_editor
 				is_vote_counted = False
 				is_sybil = True
 			else:
-				if world_age_discount < 1.0:
+				if world_age_discount < 1.0:#'world_age_discount' floats between 0 and 1.0
 					# voter is not experienced enough
 					is_vote_counted = False
 				elif my_server.zcard(VOTER_UVOTES_AND_TIMES+voter_id) < MEANINGFUL_VOTING_SAMPLE_SIZE:
@@ -2462,7 +2656,10 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			pipeline1.hincrby(hash_name,'nv',amount=-1)#atomic
 			pipeline1.hincrby(hash_name,'uv',amount=-1)#atomic
 			pipeline1.zrem(vote_store,own_id)#atomic
-			pipeline1.srem(LOCKED_IMG+hash_name,own_id)
+			if is_pht == '1':
+				pipeline1.srem(LOCKED_IMG+hash_name,own_id)
+			else:
+				pipeline1.srem(LOCKED_TXT+hash_name,own_id)
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	
@@ -2483,8 +2680,15 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 			# Step 4) Revert logging for 'handpicked_prob' and 'like_prob'
 			if is_pht == '1':
-				# only if img vote (for now)
+				# if img vote
 				my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1")
+
+			else:
+				# if text vote
+				key_name = hash_name+":"+str(target_user_id)
+				score = my_server.zscore(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS, key_name)
+				if score > 0:
+					my_server.zincrby(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,hash_name+":"+str(target_user_id), amount=-1)
 
 			return new_net_votes
 
@@ -2495,7 +2699,7 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 			# Step 1) Determine 'handpicked_prob', i.e. the prob this item could be picked by a super defender, given it was 'liked' by own_id!
 			handpicked_prob, is_sybil = determine_vote_score(is_editorial_vote=True, voter_id=own_id, target_user_id=target_user_id, \
-				my_server=my_server, world_age_discount=world_age_discount)
+				my_server=my_server, world_age_discount=world_age_discount, is_pht=is_pht)
 
 			###############################################
 
@@ -2505,8 +2709,12 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
 			pipeline1.zadd(vote_store,own_id, 0 if handpicked_prob is None else handpicked_prob)#atomic
 			if is_sybil:
-				pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
-				pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
+				if is_pht == '1':
+					pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
+					pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
+				else:
+					pipeline1.sadd(LOCKED_TXT+hash_name,own_id)
+					pipeline1.expire(LOCKED_TXT+hash_name,ONE_MONTH)
 			new_net_votes = pipeline1.execute()[0]
 
 			###############################################	
@@ -2547,6 +2755,11 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 			if handpicked_prob is not None and is_pht == '1':
 				# only if img vote (for now)
 				my_server.zadd(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1", time_of_vote)# '1' at the end signifies editorial vote
+
+			# EXPERIMENTAL - using img 'handpicked' voting rep to impart content rep to text posters!
+			elif handpicked_prob >= 0.28 and is_pht != '1':
+				# text vote
+				my_server.zincrby(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,hash_name+":"+str(target_user_id), amount=1)#, time_of_vote)
 
 			return new_net_votes
 
@@ -2589,7 +2802,6 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 				# only if img vote (for now)
 				removed = my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-0")
 				#################################################################
-				# my_server.zrem(GLOBAL_AUD_LIKED_IMG_DATA,hash_name+":"+str(target_user_id)+"-"+own_id)
 				if removed:
 					my_server.zincrby(GLOBAL_AUD_LIKED_IMG_OBJS,hash_name+":"+str(target_user_id), amount=-1)
 
@@ -2601,7 +2813,7 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 			# Step 1) check if this vote is to be counted or ignored
 			is_vote_counted, is_sybil = determine_vote_score(is_editorial_vote=False, voter_id=own_id, target_user_id=target_user_id, \
-				my_server=my_server, world_age_discount=world_age_discount)
+				my_server=my_server, world_age_discount=world_age_discount, is_pht=is_pht)
 
 			###############################################
 
@@ -2660,11 +2872,13 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 def archive_closed_objs_and_votes():
 	"""
-	Scheduled task that organizes and processes voting data of objs (where voting was closed) to calc 'like_prob' for voters
+	Scheduled task that organizes and processes voting data of objs (where voting was closed) to rep for voters
 
 	Executed every 7 hours
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
+
+	############### Processing for images only ###############
 
 	# Step 1) Isolate all votes recently cast
 	all_votes_cast_and_times = my_server.zrange(GLOBAL_IMG_LIKES,0,-1, withscores=True)
@@ -2751,6 +2965,43 @@ def archive_closed_objs_and_votes():
 		############################################################
 		uploader_data = process_closed_imgs_uploaders_rep(my_server=my_server)# calcs uploaders' reps: (i) via audience likes, (ii) via handpicking
 		expire_outdated_img_uploaders_rep(uploader_data, my_server=my_server)
+		############################################################
+		submitter_data = process_txt_submitters_rep(my_server=my_server)
+		expire_outdated_txt_submitters_rep(submitter_data, my_server=my_server)
+
+
+def process_txt_submitters_rep(my_server=None):
+	"""
+	Calculating txt submitter rep
+	"""
+	my_server = my_server if  my_server else redis.Redis(connection_pool=POOL)
+	submitter_ids_and_txt_counts = my_server.zrange(GLOBAL_SUBMITTED_TXT_VOLUME,0,-1,withscores=True)
+	txt_submitter_pairs_and_likes = my_server.zrange(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,0,-1,withscores=True)
+
+	submitter_ids_and_likes = defaultdict(int)
+	scanned_pairs = defaultdict(list)# useful for deletion later
+
+	for txt_submitter_pair, num_likes in txt_submitter_pairs_and_likes:
+		data = txt_submitter_pair.rpartition(":")
+		txt_hash_name, submitter_id = data[0], data[-1]
+		scanned_pairs[submitter_id].append(txt_submitter_pair)
+		if num_likes > 0:
+			submitter_ids_and_likes[submitter_id] += 1# +1 given if a post has been liked, regardless of how many likes were received
+
+	txt_submitter_high_rep_handpicked_based_content_rep = []
+	for submitter_id, txt_count in submitter_ids_and_txt_counts:
+
+		num_likes = submitter_ids_and_likes[submitter_id]
+		aud_likes_based_content_rep = (num_likes*1.0)/txt_count
+
+		txt_submitter_high_rep_handpicked_based_content_rep.append(submitter_id)
+		txt_submitter_high_rep_handpicked_based_content_rep.append(aud_likes_based_content_rep)
+
+	if txt_submitter_high_rep_handpicked_based_content_rep:
+		my_server.delete(GLOBAL_TXT_SUBMITTER_HIGH_REP_HANDPICKER_BASED_REP)
+		my_server.zadd(GLOBAL_TXT_SUBMITTER_HIGH_REP_HANDPICKER_BASED_REP,*txt_submitter_high_rep_handpicked_based_content_rep)
+
+	return scanned_pairs
 
 
 def process_closed_imgs_uploaders_rep(my_server=None):
@@ -2772,7 +3023,7 @@ def process_closed_imgs_uploaders_rep(my_server=None):
 		obj_hash_name, uploader_id = data[0], data[-1]
 		scanned_pairs[uploader_id].append(obj_uploader_pair)
 		if num_likes > 0:
-			uploader_ids_and_likes[uploader_id] += 1
+			uploader_ids_and_likes[uploader_id] += 1# +1 given if a post has been liked, regardless of how many likes were received
 
 	img_uploader_aud_likes_based_content_rep, img_uploader_handpicked_based_content_rep = [], []
 	for uploader_id, img_count in uploader_ids_and_img_counts:
@@ -2798,6 +3049,41 @@ def process_closed_imgs_uploaders_rep(my_server=None):
 		my_server.zadd(GLOBAL_IMG_UPLOADER_HANDPICKING_BASED_REP,*img_uploader_handpicked_based_content_rep)
 
 	return scanned_pairs
+
+
+def expire_outdated_txt_submitters_rep(submitter_data, my_server=None):
+	"""
+	If a user has not submitted a text post for over a month, reset their txt content reps to 0
+	"""
+	if submitter_data:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		txt_submitter_ids = my_server.zrange(GLOBAL_SUBMITTED_TXT_VOLUME,0,-1)
+
+		pipeline1 = my_server.pipeline()
+		for submitter_id in txt_submitter_ids:
+			pipeline1.exists(MOST_RECENT_TEXT_SUBMISSION_TIME+submitter_id)
+		result1, counter = pipeline1.execute(), 0
+
+		reset_reputation = []
+		for submitter_id in txt_submitter_ids:
+			if not result1[counter]:
+				# has not submitted a text post in the last 1 month - reset content reputation to 0
+				reset_reputation.append(submitter_id)
+			counter += 1
+
+		if reset_reputation:
+			pipeline2 = my_server.pipeline()
+			pipeline2.zrem(GLOBAL_SUBMITTED_TXT_VOLUME,*reset_reputation)# removing churned uploaders
+			pipeline2.zrem(GLOBAL_TXT_SUBMITTER_HIGH_REP_HANDPICKER_BASED_REP,*reset_reputation)
+			pipeline2.execute()
+
+		to_delete, set_of_expendibles = [], set(reset_reputation)
+		for submitter_id, txt_submitter_pair_list in submitter_data.iteritems():
+			if submitter_id in set_of_expendibles:
+				to_delete += txt_submitter_pair_list
+
+		if to_delete:
+			my_server.zrem(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,*to_delete)
 
 
 def expire_outdated_img_uploaders_rep(uploader_data, my_server=None):
@@ -3319,6 +3605,20 @@ def is_ban_editing_locked(banned_id):
 		return True
 	else:
 		return False
+
+
+def is_abusive_troll(user_id):
+	"""
+	If user is an abusive troll, they ought to be rate-limited from submitting public posts
+	"""
+	return redis.Redis(connection_pool=POOL).zscore(TROLLS,user_id)
+
+
+def mark_abusive_troll(defender_id, target_user_id):
+	"""
+	When user write something excessively trollish and are banned, their public posts still remain curtailed
+	"""
+	redis.Redis(connection_pool=POOL).zadd(TROLLS,target_user_id,time.time())
 
 
 def impose_content_and_voting_ban(target_user_ids, target_usernames, ban_duration, current_time, banner_uname, obj_type, obj_id, obj_owner_uname, \
@@ -4318,7 +4618,6 @@ def get_num_complaints():
 	return redis.Redis(connection_pool=POOL).zcard(COMPLAINT_LIST)
 
 
-
 ##################### Maintaining public replies cache #####################
 
 
@@ -4528,7 +4827,7 @@ def can_post_image_on_fb_fan_page():
 	"""
 	Regulates fan page posting
 
-	Currently, a new trending image is added every 6 hours
+	Currently, a new trending image is added every 3 hours
 	"""
 	return True if not redis.Redis(connection_pool=POOL).get("bp") else False
 
@@ -4536,4 +4835,4 @@ def set_best_photo_for_fb_fan_page(photo_id):
 	"""
 	Sets a lock on posting new content for our fan page
 	"""
-	redis.Redis(connection_pool=POOL).setex("bp",photo_id,SIX_HOURS)
+	redis.Redis(connection_pool=POOL).setex("bp",photo_id,THREE_HOURS)

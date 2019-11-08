@@ -2556,42 +2556,42 @@ def private_chat_help_ad(request):
 ######################################### Sharing Photos in Personal Groups #########################################
 #####################################################################################################################
 
-def show_shared_photo_metrics(request,nick):
-	"""
-	Shows shared photos metrics to users
-	"""
-	their_id = retrieve_user_id(nick)
-	if their_id:
-		own_id = str(request.user.id) if request.user.is_authenticated() else None
-		photo_content, is_cached = retrieve_fresh_photo_shares_or_cached_data(their_id)
-		if is_cached:
-			final_photo_data = photo_content
-		else:
-			epoch_time_one_week_ago = time.time()-ONE_WEEK
-			#############################
-			last_week_shared_by_others = defaultdict(int)
-			for content in photo_content:
-				data = content.split(":")
-				photo_id, num_shares, sharer_id, sharing_time = data[0], data[1], data[2], data[3]
-				if float(sharing_time) > epoch_time_one_week_ago:
-					if sharer_id != their_id:
-						last_week_shared_by_others[photo_id] += int(num_shares)
-			photos = sorted(last_week_shared_by_others.iteritems(),key=lambda (k,v):v,reverse=True)
-			photo_ids = [i[0] for i in photos][0:5]
-			photo_data = retrieve_photo_data(photo_ids, their_id)
-			final_photo_data = []
-			for photo_id in photo_ids:
-				photo_data[photo_id]['num_shares'] = last_week_shared_by_others[photo_id]
-				final_photo_data.append(photo_data[photo_id])
-			cache_photo_shares.delay(json.dumps(final_photo_data), their_id)
-		if own_id and tutorial_unseen(user_id=own_id, which_tut='4', renew_lease=True):
-			first_time = True
-		else:
-			first_time = False
-		return render(request,"personal_group/sharing/photo_sharing_metrics.html",{'final_photo_data':final_photo_data,'num_photos':len(final_photo_data),\
-			'own_profile': their_id == own_id,'username':nick,'photo_owner_id':their_id,'first_time':first_time})
-	else:
-		return redirect('user_profile',nick)
+# def show_shared_photo_metrics(request,nick):
+# 	"""
+# 	Shows shared photos metrics to users
+# 	"""
+# 	their_id = retrieve_user_id(nick)
+# 	if their_id:
+# 		own_id = str(request.user.id) if request.user.is_authenticated() else None
+# 		photo_content, is_cached = retrieve_fresh_photo_shares_or_cached_data(their_id)
+# 		if is_cached:
+# 			final_photo_data = photo_content
+# 		else:
+# 			epoch_time_one_week_ago = time.time()-ONE_WEEK
+# 			#############################
+# 			last_week_shared_by_others = defaultdict(int)
+# 			for content in photo_content:
+# 				data = content.split(":")
+# 				photo_id, num_shares, sharer_id, sharing_time = data[0], data[1], data[2], data[3]
+# 				if float(sharing_time) > epoch_time_one_week_ago:
+# 					if sharer_id != their_id:
+# 						last_week_shared_by_others[photo_id] += int(num_shares)
+# 			photos = sorted(last_week_shared_by_others.iteritems(),key=lambda (k,v):v,reverse=True)
+# 			photo_ids = [i[0] for i in photos][0:5]
+# 			photo_data = retrieve_photo_data(photo_ids, their_id)
+# 			final_photo_data = []
+# 			for photo_id in photo_ids:
+# 				photo_data[photo_id]['num_shares'] = last_week_shared_by_others[photo_id]
+# 				final_photo_data.append(photo_data[photo_id])
+# 			cache_photo_shares.delay(json.dumps(final_photo_data), their_id)
+# 		if own_id and tutorial_unseen(user_id=own_id, which_tut='4', renew_lease=True):
+# 			first_time = True
+# 		else:
+# 			first_time = False
+# 		return render(request,"personal_group/sharing/photo_sharing_metrics.html",{'final_photo_data':final_photo_data,'num_photos':len(final_photo_data),\
+# 			'own_profile': their_id == own_id,'username':nick,'photo_owner_id':their_id,'first_time':first_time})
+# 	else:
+# 		return redirect('user_profile',nick)
 
 
 def cant_share_photo(request, ttl=None,*args, **kwargs):

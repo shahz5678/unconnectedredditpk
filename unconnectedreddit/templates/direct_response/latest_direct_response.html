@@ -1,0 +1,109 @@
+{% if data %}
+{% load s3 %}
+{% load emoticons_tags %}
+<style>body{background:#f0f3f4}p{display:none}input:checked~p{display:block}input[type=checkbox]{position:absolute;left:-1000px}</style>
+<div class="mbl mtl" style="color:black;border:2px solid #1cc8e3;border-radius:12px;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;width:100%;box-sizing:border-box">
+{% if data.tn %}
+	<section style="background:#fcfafa;border-bottom:2px solid #ececec;text-align:center;padding:5px;">
+		<h2 itemprop="headline" style="margin:0;font-weight:normal;color:#999;" class="sp cs lsp">{{ data.tn }}</h2>
+	</section>
+{% endif %}
+
+	{% if data.ot == '3' %}
+		<!-- reply on text post, or reply to reply on text post -->
+		<div style="background:#f9f9f9">
+			<a href="{% url 'publicreply_view' data.poid %}">
+				<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+					<div class="fx fxjscn fxaicn">
+						<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>POST</span></div>
+						<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+						<div class="sp cm nos" style="text-align:left"><span style="color:#999"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+					</div>
+				</button>
+			</a>
+		</div>
+	{% elif data.ot == '4' %}
+		<!-- reply on img post, or reply to reply on img post -->
+		<div style="background:#f9f9f9">
+			<a href="{% url 'comment' data.poid origin %}">
+				<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+					<div class="fx fxjscn fxaicn">
+						<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>POST</span></div>
+						<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ data.piu|s3:'thumb' }}" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="38" alt="pic">
+							<div class="cm sp mls nos" style="text-align:left" style="word-break: break-all;"><span class="cgy"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+						</div>
+					</div>
+				</button>
+			</a>
+		</div>
+	{% elif data.ot == '5' %}
+		<!-- pub meh -->
+		<form method="GET" style="background:#f9f9f9" action="{% url 'public_group' data.guid %}">
+			<button type="submit" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+				<div class="fx fxjscn fxaicn">
+					<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>MEHFIL</span></div>
+					<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+					<div class="cm sp" style="text-align:left"><span class="cp">{% emoticons %}{{ data.gtp }}{% endemoticons %}</span></div>
+				</div>
+			</button>
+		</form>
+	{% elif data.ot == '6' %}
+		<!-- prv meh -->
+		<form method="POST" style="background:#f9f9f9" action="{% url 'priv_group' %}">
+		{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ data.guid }}">
+			<button type="submit" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+				<div class="fx fxjscn fxaicn">
+					<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>MEHFIL</span></div>
+					<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+					<div class="cm sp" style="text-align:left;color:#11ae59">{% emoticons %}{{ data.gtp }}{% endemoticons %}</div>
+				</div>
+			</button>
+		</form>
+	{% elif data.ot == '7' %}
+		<!-- 1 on 1 -->
+		<form method="POST" style="background:#f9f9f9" action="{% url 'enter_personal_group_from_single_notif' %}">
+			{% csrf_token %}
+			<button type="submit" name="tid" value="{{ data.sid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+				<div class="fx fxjscn fxaicn">
+					<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>1&nbsp;ON&nbsp;1</span></div>
+					<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+					<div class="cm sp" style="text-align:left;color:#6092f8">{{ data.ptx }}</div>
+				</div>
+			</button>
+		</form>
+	{% endif %}
+
+<div style="background:white">
+	<div style="padding:8px;border-top:1px solid #dbdbdb;border-bottom:1px solid #dbdbdb">
+		{% if data.hide_rep == '1' %}
+			<div class="cl sp lsp"><b>{{ data.sun }}</b> ka reply hide ho gya</div>
+		{% else %}
+			<div class="cl lsp nos"><b>{{ data.sun }}</b> : {% if data.iu %}<img class="mrs" src="{{ data.iu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% endif %}<span class="sp mrs">{% emoticons %}{{ data.tx }}{% endemoticons %}</span><span class="mrs cxs sp" style="text-align:right;color:#999999">{{ data.t|human_time }}</span></div>
+			{% if data.hide_tgt != '1' and data.ttxpre %}
+			<div class="lsp sp nos" style="color:#999">
+				{% if data.tiu %}
+					<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: <img class="mrs" src="{{ data.tiu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:hidden"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
+				{% else %}
+					<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: {% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:hidden"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
+				{% endif %}
+			</div>
+			{% endif %}
+		{% endif %}
+	</div>
+
+	<form method="POST" action="{% url 'post_direct_response' %}">
+		{% csrf_token %}<input type="hidden" name="obid" value="{{ data.dbid }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="tuid" value="{{ data.sid }}"><input type="hidden" name="poid" value="{{ data.poid }}"><input type="hidden" name="obtp" value="{{ data.ot }}">
+		<div style="background:#ecfffb">{{ form.direct_response }}</div>
+		<div style="background:#1cc8e3" class="fx fxjscn fxaicn">
+			<button type="submit" name="dec" class="btn sp pg_ok_res" style="width:25%;height:32px;color:white;background:coral;border-radius:0;border-right:1px solid coral;border-top:1px solid coral;text-shadow:none" value="0">BLOCK</button>
+			<button type="submit" name="dec" class="btn sp pg_ok_res" style="width:22%;height:32px;color:white;background:silver;border-radius:0;border-right:1px solid silver;border-top:1px solid silver;text-shadow:none" value="3">SKIP</button>
+			<button class="btn bct sp pg_ok_res" name="dec" style="width:53%;height:32px;color:white;background:#1cc8e3;border-radius:0;border-top:1px solid #1cc8e3;text-shadow:none" value="1">SEND</button>
+		</div>
+	</form>
+
+</div>
+
+</div>
+{% endif %}

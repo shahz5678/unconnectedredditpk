@@ -1,0 +1,7 @@
+<form method="post" action="{% url 'post_direct_response' %}">
+{% csrf_token %}<input type="hidden" name="tuid" value="{{ target_user_id }}"><input type="hidden" name="obtp" value="{{ target_obj_type }}"><input type="hidden" name="obid" value="{{ obj_id }}"><input type="hidden" name="poid" value="{{ obj_id }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="top_url" value="{{ topic_url }}"><input type="hidden" name="mr" value="1">
+<div class="box-with-button-right" style="max-width:750px;border-radius:4px;background-color:transparent;box-shadow: 0 1px 3px 0 rgba(0,0,0,0.13)">
+    {{ form.direct_response }}
+    <button class="{{ btn_color }} pg_ok_res sp" name="dec" type="submit" style="border-top-right-radius:4px; border-bottom-right-radius:4px;" value="1">reply</button>
+</div>
+</form>

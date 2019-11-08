@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+
+<head><title>Categorize ban | Damadam</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="cxl clb" style="text-align:center;overflow:hidden">Feedback from defender:</span></h1>
+
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+
+<div class="cxl lsp">Kya is user ko nehayat sexual ya ghaleez post karney pe ban kia gaya?</div>
+
+<form method="POST" action="{% url 'submit_ban_category' %}">
+	{% csrf_token %}<input type="hidden" name="report_judged" value="1"><input type="hidden" name="cull_header" value="ban_imposed"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="oun" value="{{ oun }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="ban_time" value="{{ ban_time }}"><input type="hidden" name="from_cull" value="{{ from_cull }}"><input type="hidden" name="obj_owner_id" value="{{ obj_owner_id }}">
+	<div class="fx fxjscn fxaicn">
+		<div class="mtl mbl mrl"><button name="dec" class="btn bcgy bl sp" value="1" style="height:28px">Yes</button></div>
+		<div class="mtl mbl mll"><button name="dec" class="btn bcb bl sp" value="0" style="height:28px">No</button></div>
+	</div>
+	<hr size=1 COLOR="#E9EBEE">
+	<div class="cgy lsp sp cs" style="text-align:center">Note: Ye feedback hamey system behtar bananey mein madad de ga</div>
+</form>
+
+</div>
+<br><br>
+{% endblock %}

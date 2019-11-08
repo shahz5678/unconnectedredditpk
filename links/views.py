@@ -70,7 +70,7 @@ from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
 cache_photo_dim, retrieve_bulk_unames, retrieve_online_cached_data, cache_online_data, set_attribute_change_rate_limit,\
-retrieve_image_count, cache_image_count
+retrieve_image_count, cache_image_count#, log_public_img
 from .redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, select_nick, retrieve_history_with_pics,\
 search_thumbs_missing, del_search_history, retrieve_thumbs, retrieve_single_thumbs, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, get_banned_users_count, \
@@ -92,7 +92,7 @@ rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
-is_image_star, get_all_image_star_ids, retreive_trending_rep
+is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text
 from redis8 import retrieve_variation_subset, set_tutorial_seen
 # from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
@@ -1471,7 +1471,8 @@ class UserProfileDetailView(FormView):
 			context["star_id"] = star_id
 			num_trending_pics = is_image_star(user_id=star_id)
 			context["is_star"] = int(num_trending_pics) if num_trending_pics else num_trending_pics
-			context["trending_pts"] = retreive_trending_rep(user_id=star_id)
+			star_score = retreive_trending_rep(user_id=star_id)
+			context["star_score"] = int(star_score) if star_score > 0 else 0
 			context["city_name"] = REV_CITY_DICT.get(user_profile.streak,0)
 			context["zodiac"] = ZODIAC.get(user_profile.attractiveness,'None')
 			user_id = str(user_id) if user_id else None
@@ -2696,6 +2697,13 @@ def upload_public_photo(request,*args,**kwargs):
 					photo = Photo.objects.create(image_file = image_file, owner=user, caption=caption, comment_count=0, avg_hash=avghash, \
 						invisible_score=invisible_score)
 					photo_id = photo.id
+					##########################
+					img_height, img_width = photo.image_file.height, photo.image_file.width
+					cache_photo_dim(str(photo_id),img_height,img_width)
+					# is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+					# on_opera = True if (not on_fbs and not is_js_env) else False
+					# log_public_img(user_id=user_id, on_opera=on_opera, on_fbs=on_fbs, img_width=img_width, img_height=img_height)
+					##########################
 					datetime_obj = photo.upload_time
 					epochtime = convert_to_epoch(datetime_obj)
 					banned = '1' if request.user_banned else '0'
@@ -2732,45 +2740,52 @@ def upload_public_photo(request,*args,**kwargs):
 						return redirect("photo",list_type='fresh-list')
 	else:
 		# if it's a GET request
-		context, own_id = {}, request.user.id
-		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-		if banned:
-			context["defender"] = None
-			context["own_profile"] = True
-			context["forbidden"] = True
-			context["ban_details"] = ban_details
-			context["time_remaining"] = time_remaining
-			return render(request,"upload_public_photo.html",context)
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		on_opera = True if (not on_fbs and not is_js_env) else False
+		if on_opera:
+			# disallowing opera mini users from posting public text posts
+			# mislabeled template - used to show some generic errors and such to posters
+			return render(request, 'error_photo.html', {'opera_detected':True})
 		else:
-			if on_fbs:
-				is_fbs_rate_limited, ttl = is_fbs_user_rate_limited_from_photo_upload(own_id)
-			else:
-				is_fbs_rate_limited, ttl = None, None
-			if is_fbs_rate_limited:
-				request.session["public_photo_upload_fbs_ttl"] = ttl
-				request.session["public_photo_upload_denied"] = '0'
-				request.session.modified = True
-				if is_ajax:
-					return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
-				else:
-					return redirect('public_photo_upload_denied')
-			else:
-				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					if request.mobile_verified:
-						activity_dict = {'m':'GET','act':'P1','t':time_now}# defines what activity just took place
-					else:
-						activity_dict = {'m':'GET','act':'P1.u','t':time_now}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-				##################################################################
-				context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='26', renew_lease=True) else False
-				context["form"] = UploadPhotoForm()
-				secret_key = str(uuid.uuid4())
-				context["sk"] = secret_key
-				context["sharing_limit"] = NUM_SUBMISSION_ALLWD_PER_DAY
-				set_photo_upload_key(own_id, secret_key)
+			context, own_id = {}, request.user.id
+			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			if banned:
+				context["defender"] = None
+				context["own_profile"] = True
+				context["forbidden"] = True
+				context["ban_details"] = ban_details
+				context["time_remaining"] = time_remaining
 				return render(request,"upload_public_photo.html",context)
+			else:
+				if on_fbs:
+					is_fbs_rate_limited, ttl = is_fbs_user_rate_limited_from_photo_upload(own_id)
+				else:
+					is_fbs_rate_limited, ttl = None, None
+				if is_fbs_rate_limited:
+					request.session["public_photo_upload_fbs_ttl"] = ttl
+					request.session["public_photo_upload_denied"] = '0'
+					request.session.modified = True
+					if is_ajax:
+						return HttpResponse(json.dumps({'success':False,'message':reverse('public_photo_upload_denied')}),content_type='application/json',)
+					else:
+						return redirect('public_photo_upload_denied')
+				else:
+					################### Retention activity logging ###################
+					if own_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						if request.mobile_verified:
+							activity_dict = {'m':'GET','act':'P1','t':time_now}# defines what activity just took place
+						else:
+							activity_dict = {'m':'GET','act':'P1.u','t':time_now}# defines what activity just took place
+						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
+					context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='26', renew_lease=True) else False
+					context["form"] = UploadPhotoForm()
+					secret_key = str(uuid.uuid4())
+					context["sk"] = secret_key
+					context["sharing_limit"] = NUM_SUBMISSION_ALLWD_PER_DAY
+					set_photo_upload_key(own_id, secret_key)
+					return render(request,"upload_public_photo.html",context)
 
 
 ##################################################################
@@ -4094,6 +4109,7 @@ def submit_text_post(request):
 	time_now = time.time()
 	own_id = request.user.id
 	mobile_verified = request.mobile_verified
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	if request.method == "POST":
 		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
 		if banned:
@@ -4111,7 +4127,8 @@ def submit_text_post(request):
 			elif request.user_banned:
 				return redirect("error")
 			elif ttl:
-				return render(request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit})# this is wrongly named, but tells the user to wait
+				return render(request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit,\
+				'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
 			else:
 				form = LinkForm(request.POST,user_id=own_id)
 				if form.is_valid():
@@ -4136,7 +4153,7 @@ def submit_text_post(request):
 						log_text_submissions('topic')#Logs the number of submisions in topic vs number of submissions of regular text posts
 						add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
 							submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now, \
-							text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), topic_url=form.cleaned_data['turl'], \
+							text=description, from_fbs=on_fbs, topic_url=form.cleaned_data['turl'], \
 							topic_name= form.cleaned_data['tname'] ,bg_theme=form.cleaned_data['bgt'], add_to_public_feed=True,\
 							submitter_username=submitter_name)
 					else:
@@ -4149,9 +4166,12 @@ def submit_text_post(request):
 						log_text_submissions('text')
 						add_text_post(obj_id=obj_id, categ=alignment, submitter_id=own_id, submitter_av_url=av_url, \
 							submitter_username=submitter_name, submission_time=time_now, add_to_feed=True, \
-							is_star=is_image_star(user_id=own_id), text=description, from_fbs=request.META.get('HTTP_X_IORG_FBS',False))
+							is_star=is_image_star(user_id=own_id), text=description, from_fbs=on_fbs)
 					rate_limit_content_sharing(own_id)#rate limiting for 5 mins (and hard limit set at 50 submissions per day)
-					set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
+					# set_input_history.delay(section='home',section_id='1',text=description,user_id=own_id)
+					##################################
+					log_recent_text(user_id=own_id, description=description)# useful for text content rep creation
+					##################################
 					url = reverse_lazy("home")+"#shared"
 					return redirect(url)
 				else:
@@ -4166,25 +4186,32 @@ def submit_text_post(request):
 					return render(request,"links/link_form.html",{'form':form,'sk':secret_key,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY,\
 						'random':random.sample(xrange(1,188),15),'subscribed_topics':retrieve_subscribed_topics(str(own_id))})#,'num_fans':get_follower_count(own_id)})
 	else:
-		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-		if banned:
-			context = {'time_remaining':time_remaining,'ban_details':ban_details,'forbidden':True, 'own_profile':True, 'defender':None,\
-			'is_profile_banned':True}
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		on_opera = True if (not on_fbs and not is_js_env) else False
+		if on_opera:
+			# disallowing opera mini users from posting public text posts
+			# mislabeled template - used to show some generic errors and such to posters
+			return render(request, 'error_photo.html', {'opera_detected':True})
 		else:
-			################### Retention activity logging ###################
-			if own_id > SEGMENT_STARTING_USER_ID:
-				if mobile_verified:
-					activity_dict = {'m':'GET','act':'X1','t':time_now}# defines what activity just took place
-				else:
-					activity_dict = {'m':'GET','act':'X1.u','t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-			##################################################################
-			secret_key = str(uuid.uuid4())
-			set_text_input_key(own_id, '1', 'likho', secret_key)
-			context = {'sk':secret_key,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY,'random':random.sample(xrange(1,188),15),\
-			'show_instructions':True if tutorial_unseen(user_id=own_id, which_tut='11', renew_lease=True) else False,'form':LinkForm(),\
-			'subscribed_topics':retrieve_subscribed_topics(str(own_id))}#,'num_fans':get_follower_count(own_id)}
-		return render(request,"links/link_form.html",context)
+			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			if banned:
+				context = {'time_remaining':time_remaining,'ban_details':ban_details,'forbidden':True, 'own_profile':True, 'defender':None,\
+				'is_profile_banned':True}
+			else:
+				################### Retention activity logging ###################
+				if own_id > SEGMENT_STARTING_USER_ID:
+					if mobile_verified:
+						activity_dict = {'m':'GET','act':'X1','t':time_now}# defines what activity just took place
+					else:
+						activity_dict = {'m':'GET','act':'X1.u','t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				##################################################################
+				secret_key = str(uuid.uuid4())
+				set_text_input_key(own_id, '1', 'likho', secret_key)
+				context = {'sk':secret_key,'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY,'random':random.sample(xrange(1,188),15),\
+				'show_instructions':True if tutorial_unseen(user_id=own_id, which_tut='11', renew_lease=True) else False,'form':LinkForm(),\
+				'subscribed_topics':retrieve_subscribed_topics(str(own_id))}#,'num_fans':get_follower_count(own_id)}
+			return render(request,"links/link_form.html",context)
 
 
 

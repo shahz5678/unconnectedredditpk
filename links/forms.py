@@ -19,7 +19,7 @@ MAX_BIO_SIZE, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_REPLY_LENGTH
 from models import UserProfile, TutorialFlag, ChatInbox, PhotoStream, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, \
 Publicreply, VideoComment
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl, \
-is_attribute_change_rate_limited, log_abusive_home_post
+is_attribute_change_rate_limited
 
 
 ########################################### Utilities #######################################
@@ -555,10 +555,13 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
+		# self.on_fbs = kwargs.pop('on_fbs',None)
+		# self.on_opera = kwargs.pop('on_opera',None)
 		super(LinkForm, self).__init__(*args,**kwargs)
 		self.fields['description'].widget.attrs['style'] = 'width:95%;height:220px;border-radius:10px;border: 1px #93d7ec solid; background-color:white;padding:7px;'
 
 	def clean(self):
+		# on_fbs, on_opera = self.on_fbs, self.on_opera
 		data = self.cleaned_data
 		description, user_id, section_id, section, secret_key_from_form, topic_url = data.get("description"), self.user_id, '1', 'home', \
 		data.get("sk"), data.get('turl',None)
@@ -579,19 +582,14 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 					raise forms.ValidationError('Itni zyada new lines nahi dalein!')
 				elif secret_key_from_form != secret_key_from_session:
 					raise forms.ValidationError('Sirf aik dafa button dabain')
-				elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
-					raise forms.ValidationError('Milti julti baatien nahi likhein')
+				# elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
+				# NOT NEEDED
+				# 	raise forms.ValidationError('Milti julti baatien nahi likhein')
 				else:
 					rate_limited, reason = is_limited(user_id,section='home',with_reason=True)
 					if rate_limited > 0:
 						raise forms.ValidationError('Ap yahan pe likhne se {0} tak banned hain. Reason: {1}'.format(human_readable_time(rate_limited),reason))
 					else:
-						##########################
-						# abusive_words=(' hot ','private','sex','xxx','1on1','1 on 1')
-						# lower_case_desc = description.lower()
-						# if any(word in lower_case_desc for word in abusive_words):
-						# 	log_abusive_home_post(user_id=user_id, text=description)
-						##########################
 						if len_ < 4:
 							raise forms.ValidationError('Itni choti reply nahi likh sakte')
 						elif len_ < 6:
@@ -612,7 +610,6 @@ class LinkForm(forms.ModelForm):#this controls the link edit form
 							if is_subscribed:
 								data['tpay'], data['turl'], data['tname'], data['bgt'] = bg_theme+":"+topic_name+":"+topic_url, topic_url, \
 								topic_name, bg_theme
-						##################################
 						return data
 
 

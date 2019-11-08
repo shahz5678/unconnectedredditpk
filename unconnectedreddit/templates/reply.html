@@ -1,11 +1,12 @@
 {% extends "base.html" %}
+{% load s3 %}
 {% load human_time %}
+{% load url_target_blank %}
 {% load get_block_button %}
 {% load get_transparent_buttons_js %}
 {% load get_text_object %}
 {% load emoticons_tags %}
 {% load get_group_button %}
-{% load s3 %}
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
@@ -19,7 +20,7 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 
 <section style="display:block" itemscope itemtype="https://schema.org/SocialMediaPosting">
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_star=is_star alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score static_url=STATIC_URL is_star=is_star alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
 </section>
 
 </article>

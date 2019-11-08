@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Send reply | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Send reply:</h1>
+
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;margin-left:auto;margin-right:auto">
+
+	{% if form.errors %}
+		{% load show_error %}
+		<div class="cr cl lsp sp" style="text-align:center;background:ivory;border-radius:5px;width:100%;padding:10px 8px 8px 8px;">{{ form.errors|show_error }}</div>
+	{% else %}
+		{% load emoticons_tags %}
+		<div style="padding:10px 8px 8px 8px" class="clb sp lsp"><b>{{ tunm }}</b> :&nbsp;{% emoticons %}{{ text }}{% endemoticons %}</div>
+	{% endif %}
+
+	<form action="{% url 'post_direct_response' %}" class="mts" method="POST" style="display:inline">
+	    {% csrf_token %}<input type="hidden" name="srep" value="1"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="poid" value="{{ poid }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="tuid" value="{{ tuid }}"><input type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="top_url" value="{{ topic_url }}">
+
+	    <div style="border-top:1px solid #ececec;background:#ecfffb">{{ form.direct_response }}</div>
+
+	    <div class="fx fxjscn fxaicn">
+		    <button type="submit" name="dec" class="btn bcgy bm sp pg_ok_res" style="border-radius:0;width:40%;height:40px" value="2"><b>CANCEL</b></button>
+		    <button class="btn bm bct pg_ok_res sp" style="border-radius:0;width:60%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+	    </div>
+	</form>
+
+</div>
+<br>
+{% endblock %}

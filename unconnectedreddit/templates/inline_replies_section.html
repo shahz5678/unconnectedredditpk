@@ -1,0 +1,126 @@
+{% if possible %}
+	{% load emoticons_tags %}
+	{% load get_block_button %}
+	{% load get_group_button %}
+	{% load get_datetime %}
+	<div class="mts mbs ow" style="overflow:hidden;padding:0 5px;color:black">
+	{% for reply in replies %}
+
+		{% if forloop.counter != 1 %}<hr size=1 COLOR="#f4f4f4">{% endif %}
+		<div itemprop="comment" itemscope itemtype="http://schema.org/Comment">
+
+		{% if reply.mrh %}
+			<!-- reply is hidden -->
+			<span class="sp" style="color:#999"><b><a href="{% url 'user_profile' reply.wun %}" style="color:#999"><bdi>{{ reply.wun }}</bdi></a></b>&nbsp;ka reply hide ho gya</span>
+		{% elif reply.ct and reply.ttxpre %}
+			<!-- reference visible -->
+			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName">{{ reply.wun }}</b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
+			
+			<span class="lsp mrs sp" itemprop="text">
+				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>
+			</span>
+			
+			<time itemprop="datePublished" class="cgy cxs sp mrl" datetime="{{ reply.epoch_time|datetime }}">{{ reply.epoch_time|human_time }}</time>
+			
+			<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
+				<div class="fx fxjsfs" style="max-width:300px">
+				{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+				
+				{% if reply.wid|slugify != self_user_id|slugify %}
+
+					{% group_button own_id=self_user_id target_id=reply.wid parent_object_id=reply.poid object_type=object_type origin=origin target_username=reply.wun home_hash=home_hash %}
+	           
+					{% include "direct_response/dr_button.html" with origin=origin obtp=obtp poid=reply.poid obid=reply.reply_id wid=reply.wid tx=reply.tx|truncatechars:'60' static_url=static_url %}
+
+	            {% endif %}
+	            </div>
+            </div>
+
+			{% include "direct_response/reference_snippet.html" with tgt_uname=reply.ct reply_prefix=reply.ttxpre|emoticons reply_postfix=reply.ttxpos|emoticons %}
+
+		{% elif reply.ct and reply.ref_id %}
+		
+			<!-- reference hidden -->
+			<span itemprop="author" itemscope itemtype="http://schema.org/Person">
+				<a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb">
+					<b itemprop="alternateName">{{ reply.wun }}</b>
+				</a>
+			</span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:
+			
+			<span class="lsp mrs sp" itemprop="text">
+				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>
+			</span>
+			
+			<time itemprop="datePublished" class="cgy cxs sp mrl" datetime="{{ reply.epoch_time|datetime }}">{{ reply.epoch_time|human_time }}</time>
+			
+			<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
+				<div class="fx fxjsfs" style="max-width:300px">
+				{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+				
+				{% if reply.wid|slugify != self_user_id|slugify %}
+
+					{% group_button own_id=self_user_id target_id=reply.wid parent_object_id=reply.poid object_type=object_type origin=origin target_username=reply.wun home_hash=home_hash %}
+	           
+					{% include "direct_response/dr_button.html" with origin=origin obtp=obtp poid=reply.poid obid=reply.reply_id wid=reply.wid tx=reply.tx|truncatechars:'60' static_url=static_url %}
+
+	            {% endif %}
+	            </div>
+            </div>
+
+            {% include "direct_response/reference_snippet.html" with tgt_uname=reply.ct state='1' %}
+
+		{% else %}
+
+			<!-- no reference -->
+			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName">{{ reply.wun }}</b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
+			
+			<span class="lsp mrs sp" itemprop="text">
+				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>
+			</span>
+			
+			<time class="mrl cgy cxs sp" itemprop="datePublished" datetime="{{ reply.epoch_time|datetime }}">{{ reply.epoch_time|human_time }}</time>
+
+			{% if reply.wid|slugify == obj_owner_id %}
+				<!-- op's reply -->
+				<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
+					<div class="fx fxjsfs" style="max-width:300px">
+					
+					{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+					
+					{% if reply.wid|slugify != self_user_id|slugify %}
+
+						{% group_button own_id=self_user_id target_id=reply.wid parent_object_id=reply.poid object_type=object_type origin=origin target_username=reply.wun home_hash=home_hash %}
+
+						{% include "direct_response/dr_button.html" with origin=origin obtp=obtp poid=reply.poid obid=reply.reply_id wid=reply.wid tx=reply.tx|truncatechars:'60' topic_url=topic_url static_url=static_url %}
+
+		            {% endif %}
+
+		            </div>
+	            </div>
+
+			{% else %}
+				<!-- someone else's reply -->
+				<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
+					<div class="fx fxjsfs" style="max-width:300px">
+					
+					{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+					
+					{% if reply.wid|slugify != self_user_id|slugify %}
+
+						{% group_button own_id=self_user_id target_id=reply.wid parent_object_id=reply.poid object_type=object_type origin=origin target_username=reply.wun home_hash=home_hash %}
+
+						{% include "direct_response/dr_button.html" with origin=origin obtp=obtp poid=reply.poid obid=reply.reply_id wid=reply.wid tx=reply.tx|truncatechars:'60' topic_url=topic_url static_url=static_url %}
+
+		            {% endif %}
+
+		            </div>
+	            </div>
+	            {% include "direct_response/reference_snippet.html" with tgt_uname=reply.ct state='2' %}
+
+			{% endif %}
+
+		{% endif %}
+		</div>
+	{% endfor %}
+	</div>
+{% endif %}

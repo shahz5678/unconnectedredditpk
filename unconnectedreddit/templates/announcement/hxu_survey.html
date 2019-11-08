@@ -9,29 +9,31 @@
 
 {% if not submitted and not skipped and not sure_about_skipping and not already_answered and not must_answer_all and not invalid_answers and not error_final_dec %}
 
-<h1 class="clb cxl lsp" style="text-align:center">The new <span class="sp" style="color:#ffae00">FOLLOW</span> option!</h1>
+<h1 class="clb cxl lsp" style="text-align:center">The new <span class="sp" style="color:#4fb2e3">REPLY</span> option!</h1>
 
 <div class="bizcard clb" style="background-color:#FEFCFC;max-width:750px;width:97%;margin:0 auto;overflow: hidden;text-align:center;">
 
-  <button class="vt mtl mbs" style="border:1px solid #ffae00;width:110px;height:84px;padding:0;text-align:center;border-radius:8px"><div><img src="{{ STATIC_URL }}img/temp.svg" class="mt" width="36" height="36"></div><div style="font-size:16px;color:#ffae00" class="sp mt">FOLLOW</div></button>
+
+  <button class="vt cxl sp mtl mbl" style="border:1px solid #4fb2e3;padding:4px 0;width:102px;color:#4fb2e3" name="dr_pl">REPLY</button>
 
 	<div class="cxl lsp" style="padding:0 10px 10px 10px;text-align:center">
-  		<span>'Fan' option khatam kar ke uski jagah 'Follow' option aney wala hai!</span>
+  		<span>Damadam pe aik new kisam ke 'reply' option aney wala hai</span>
   	</div>
 
   <div class="sp lsp clb" style="background:ivory;border-top:1px dashed darkgray;border-bottom:1px dotted white">
     <div style="padding:0 12px">
       <ul style="padding: 0;list-style-type: circle;padding-left:15px">
-        <li style="text-align:left" class="mbl">'Follow' ki khas baat ye hogi ke apkey followers ko apki tamam text aur photo posts show ho jaien gi. "Post matkey mein nahi gyi" wala silsila khatam</li>
-        <li style="text-align:left" class="mbl">'Follow' wali posts matkey ke bajai aik khas page pe show hon gi</li>
-        <li style="text-align:left" class="mbl">Is page tak pohonchna users ke liye nehayat asaan ho ga, takey zyada se zyada users apni 'follow' karda posts dekh sakein</li>
-        <li style="text-align:left" class="mbl">'Follow' wali posts ka home pe notification nahi aye ga, lekin agr un pe comments kiye tou phir notification ana shuru ho jaye ga</li>
-        <li style="text-align:left" class="mbl">Jab bhi koi user text ya photo post karney laggey ga, uskey paas ye options aien ge:</li>
-        <img src="{{ STATIC_URL }}img/follow.png" alt="img" class="mbl" style="width:100%;max-width: 307px;border:1px solid lightblue;border-radius:8px;overflow:hidden">
-		<li style="text-align:left" class="mbl">'Select Audience' ke zariye insan chun sakey ga ke kin users ko post dikhani hai</li>
-        <li style="text-align:left" class="mbl">Note: 'Select Audience' mein "only home" pe post karney ka option mojood nahi ho ga</li>
-        <li style="text-align:left" class="mbl">'Select Expiry' ke zariye insan chun sakey ga ke post kitney time baad ghayeb ho jaye</li>
-        <li style="text-align:left">Abhi ke liye bas itna hi. 'Follow' option jald Damadam pe dastyab ho jaye ga. Shukria!</li>
+        <li style="text-align:left" class="mbl">'Reply' button har jawab, tabsrey, post waghera pe show ho ga. Maslan:
+        	<div class="mts" style="text-align:center"><img src="{{ STATIC_URL }}img/reply1.png" width="290" height="53"></div>
+        </li>
+        <li style="text-align:left" class="mbl">Is button ko daba ke ap directly user ko reply de sakein ge. Maslan:
+        	<div class="mts" style="text-align:center"><img src="{{ STATIC_URL }}img/reply2.png" width="349" height="59"></div>
+        </li>
+        <li style="text-align:left" class="mbl">Post ke neechay tamam replies show hon ge. Lekin notification sirf ussi user ke matke mein jaiga jisko 'reply' dia gya ho</li>
+        <li style="text-align:left" class="mbl">Aik waqt mein sirf 1 user ko reply dia ja sakey ga. 2 users ko aik sath reply nahi ho ga</li>
+        <li style="text-align:left" class="mbl">Damadam mein tamam commenting sirf 'reply' button se ho gi</li>
+        <li style="text-align:left" class="mbl">Matke mein bhi sirf direct replies hi aien ge, aur kuch nahi ai ga</li>
+        <li style="text-align:left">'Reply' option jald Damadam pe dastyab ho ga ('Follow' option ke sath sath). Shukria!</li>
       </ul>
     </div>
   </div>
@@ -42,13 +44,13 @@
 
 <!--  -->
 
-<h1 class="clb cxl lsp nos" style="margin-top:0;padding-top:15px;text-align:center">'Follow' option pe feedback:</h1>
+<h1 class="clb cxl lsp nos" style="margin-top:0;padding-top:15px;text-align:center">'Reply' option pe feedback:</h1>
 
 <main class="mbl clb nos" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:97%;margin-right:auto;margin-left:auto">
 
 {% if submitted %}
 
-	<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Shukria! Apke jawab hamey 'follow' option ko behtar bananey mein madad dein ge</div>
+	<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Shukria! Apke jawab hamey 'reply' option ko behtar bananey mein madad dein ge</div>
 
 	<hr size=1 COLOR="#E6E6E6" style="margin:0">
 
@@ -62,7 +64,7 @@
 
 {% elif skipped %}
 
-	<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Apna waqt dene ka shukria!</div>
+	<div class="cxl lsp" style="padding:10px;text-align:center;background:ivory">Apna time dene ka shukria!</div>
 
 	<hr size=1 COLOR="#E6E6E6" style="margin:0">
 
@@ -134,13 +136,13 @@
 {% elif error_final_dec %}
 	<span class="cr cxl">Ye form sahi submit nahi ho saka. Dubara koshish karein</span>
 {% else %}
-	Neechay 'follow' option ke barey mein feedback dein. Is se ham 'follow' option ko apkey liye aur behtar banain ge
+	Neechay 'reply' option ke barey mein feedback dein. Is se ham 'reply' option ko apkey liye aur behtar banain ge
 {% endif %}
 </div>
 
 <form method="POST" class="mbl" action="{% url 'survey' %}" style="padding:10px">
 {% csrf_token %}
-<div class="cxl lsp mbl"><b>1)</b> Apko khud new 'follow' option ka kitna faida ho ga?</div>
+<div class="cxl lsp mbl"><b>1)</b> Apko khud 'reply' option ka kitna faida ho ga?</div>
 <div class="radbut cxl" style="margin: 0 auto;width: auto;text-align: left;display: table;">
 	{% if ans1 == '1' %}
 		<div class="mt">
@@ -213,7 +215,7 @@
 <div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp"><b>2)</b> Ap ne uper jo jawab chunna, usko chunney ki wajah kya hai?</div>
 <textarea class="mts cxl sp" style="border:1px solid #a8dff0;width:100%;height:120px;padding:8px;box-sizing:border-box;border-radius:8px;background:snow" maxlength="1000" name="q2">{% if ans2 %}{{ ans2 }}{% endif %}</textarea>
 
-<div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp"><b>3)</b> Hum 'follow' option ko apkey liye aur behtar kaisey bana saktey hain?</div>
+<div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp"><b>3)</b> Is 'reply' option mein koi kammi hai? Agr haan tou hum usko dur kesay kar saktey hain?</div>
 <textarea class="mts cxl sp" style="border:1px solid #a8dff0;width:100%;height:120px;padding:8px;box-sizing:border-box;border-radius:8px;background:snow" maxlength="1000" name="q3">{% if ans3 %}{{ ans3 }}{% endif %}</textarea>
 
 <div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp mbs"><b>4)</b> Ap Mard hein ya Aurat?</div> 
@@ -288,7 +290,7 @@
 </div>
 
 
-<div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp mbs"><b>6)</b> Apki taleem kitni hai?</div>
+<div style="border-top:1px solid #ececec;padding-top:15px" class="mtl cxl lsp mbs"><b>6)</b> Apki education kitni hai?</div>
 <div class="radbut cxl" style="margin: 0 auto;width: auto;text-align: left;display: table;">
 	{% if ans6 == '1' %}
 		<div class="mt">

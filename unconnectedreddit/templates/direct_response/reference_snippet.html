@@ -1,0 +1,14 @@
+{% if state == '2' %}
+	<div style="color:#999" class="lsp sp cs nos mt"><span style="color:#bfbfbf">➜</span> to {{ tgt_uname }}'s main post</div>
+{% elif state == '1' %}
+	<div style="color:#999" class="lsp sp cs nos mt"><span style="color:#bfbfbf">➜</span> to {{ tgt_uname|truncatechars:'11' }}'s hidden reply</div>
+{% else %}
+	<style>.more:checked~.pfix{display:block}.pfix{display:none}.more{position:absolute;opacity:0;height:0;width:0}.goto{color:#229ec3;}.goto:hover{color:teal}</style>
+	<div style="color:#999" class="lsp sp cs nos mt">
+		{% if img %}
+			<div style="display:inline"><span style="color:#bfbfbf">➜</span> to {{ tgt_uname }}: <img class="mrs" src="{{ img }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{{ reply_prefix }}</div>{% if reply_postfix %}<label style="display:inline"><span class="sp cgy">... <span class="cxs goto">MORE▼</span></span><input type="checkbox" class="more"><p class="pfix" style="margin:0;padding:0">{{ reply_postfix }}</p></label>{% endif %}
+		{% else %}
+			<div style="display:inline"><span style="color:#bfbfbf">➜</span> to {{ tgt_uname }}: {{ reply_prefix }}</div>{% if reply_postfix %}<label style="display:inline"><span class="sp cgy">... <span class="cxs goto">MORE▼</span></span><input type="checkbox" class="more"><p class="pfix" style="margin:0;padding:0">{{ reply_postfix }}</p></label>{% endif %}
+		{% endif %}
+	</div>
+{% endif %}

@@ -13,7 +13,7 @@
 	{% endif %}
 </h1>
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.16.js"></script>
 
 <div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:98%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
 
@@ -33,7 +33,7 @@
 				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/un_anon.svg" width="60" height="60" style="vertical-align:middle"></button>
 				</form>
 			</td>
-			<td><div class="lsp"><b>Show Nickname:</b>&nbsp;apna nick (and profile foto) is 1 on 1 mein show karein</div></td>
+			<td><div class="lsp"><b>Show Nickname:</b>&nbsp;apna nick (and profile photo) is 1 on 1 mein show karein</div></td>
 			{% else %}
 			<td>
 				<form method="POST" action="{% url 'anonymize_user_in_personal_group' %}">
@@ -41,7 +41,7 @@
 				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/anon.svg" width="60" height="60" style="vertical-align:middle"></button>
 				</form>
 			</td>
-			<td><div class="lsp"><b>Hide Nickname:</b>&nbsp;apna nick (and profile foto) is 1 on 1 mein hide kar dein</div></td>
+			<td><div class="lsp"><b>Hide Nickname:</b>&nbsp;apna nick (and profile photo) is 1 on 1 mein hide kar dein</div></td>
 			{% endif %}
 		</tr>
 		<tr>
@@ -51,7 +51,7 @@
 				<button type="submit" style="background-color:#fffff4" class="bizcard st-bg" name="tid" value="{{ tid }}"><img src="{{ STATIC_URL }}img/photo.svg" width="60" height="60"></button>
 				</form>
 			</td>
-			<td><div class="lsp"><b>Foto Settings:</b>&nbsp;fotos ki permission dein, fotos hide karein, ya all fotos view karein</div></td>
+			<td><div class="lsp"><b>Photo Settings:</b>&nbsp;photos ki permission dein, photos hide karein, ya all photos view karein</div></td>
 		</tr>
 		<tr>
 			<td>

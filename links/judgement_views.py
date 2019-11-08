@@ -30,7 +30,7 @@ log_banning, get_defenders_ledger, get_global_admins_ledger, is_content_voting_c
 temporarily_save_content_details, retrieve_temporary_saved_content_details, enrich_temporarily_saved_content_details_with_duration, \
 complaint_exists, impose_content_and_voting_ban, check_content_and_voting_ban, get_complainer_case_history, log_case_and_incr_reputation, \
 add_defender, filter_ids_with_content_and_voting_ban, retrieve_user_content_and_vote_ban_dictionary, remove_content_and_voting_ban, \
-edit_content_and_voting_ban, is_ban_editing_locked, set_complaint, are_ids_unbannable,log_case_closure, COMPLAINT
+edit_content_and_voting_ban, is_ban_editing_locked, set_complaint, are_ids_unbannable,log_case_closure, mark_abusive_troll, COMPLAINT
 from redis6 import retrieve_group_reqd_data, freeze_reported_group_functionality, retrieve_group_owner_id, retrieve_group_creation_time, \
 retrieve_group_rules, get_reported_group_info
 from redis4 import return_referrer_logs, retrieve_uname, retrieve_bulk_unames, freeze_critical_profile_functionality, retrieve_credentials
@@ -125,11 +125,11 @@ def enter_inter_user_ban(request,*args,**kwargs):
 	"""
 	Responsible for setting the ban on a given target_id
 	"""
+	user_id = request.user.id
 	if request.method == "POST":
 		can_unban = request.POST.get("can_unban",None)
 		second_decision = request.POST.get("sec_dec",None)
 		initial_decision = request.POST.get("init_dec",None)
-		user_id = request.user.id
 		if second_decision:
 			if second_decision == '0':
 				if can_unban:
@@ -263,6 +263,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 			else:
 				return redirect("home")
 	else:
+		# it's a GET request from the direct response list
 		return redirect("banned_users_list")
 
 
@@ -552,6 +553,7 @@ def cull_content_loc(request,obj_id,obj_type):
 	"""
 	Helps in landing back at exact spot when defender checks out object details in cull list (e.g. to see what the pixellated image actually is)
 	
+	TODO: change page_obj calc (from get_page_obj()) to something else so that it's JSON serializable
 	"""
 	complaints = get_content_complaints()
 	try:
@@ -1282,20 +1284,23 @@ def judge_content_submitters(request):
 										return render(request,'judgement/ban_content_voters.html',context)
 									else:
 										# redirect to 'successfully banned' page (reconfigure this when originating from 'cull' list)
-										if from_cull == '1':
-											request.session["report_judged"] = '1'
-											request.session["cull_header"] = 'ban_imposed'
-											request.session.modified = True
-											return redirect("cull_content")
-										else:
-											request.session["redirect_reason"+own_id] = 'ban_imposed'
-											request.session["redirect_orig"+own_id] = data['orig']
-											request.session["redirect_oun"+own_id] = oun
-											request.session["redirect_lid"+own_id] = data['lid']
-											request.session["redirect_obid"+own_id] = obj_id
-											request.session["redirect_ban_time"+own_id] = ban_time
-											request.session.modified = True
-											return redirect("judge_not_and_red")#judgement modules notify_and_redirect function
+										return render(request,"judgement/categorize_ban.html",{'cull_header':'ban_imposed','from_cull':from_cull,\
+											'origin':data['orig'],'oun':oun,'lid':data['lid'],'obid':obj_id,'ban_time':ban_time,'obj_owner_id':obj_owner_id})
+										##############################################
+										# if from_cull == '1':
+										# 	request.session["report_judged"] = '1'
+										# 	request.session["cull_header"] = 'ban_imposed'
+										# 	request.session.modified = True
+										# 	return redirect("cull_content")
+										# else:
+										# 	request.session["redirect_reason"+own_id] = 'ban_imposed'
+										# 	request.session["redirect_orig"+own_id] = data['orig']
+										# 	request.session["redirect_oun"+own_id] = oun
+										# 	request.session["redirect_lid"+own_id] = data['lid']
+										# 	request.session["redirect_obid"+own_id] = obj_id
+										# 	request.session["redirect_ban_time"+own_id] = ban_time
+										# 	request.session.modified = True
+										# 	return redirect("judge_not_and_red")#judgement modules notify_and_redirect function
 								else:
 									# due to some unforeseen error
 									if from_cull == '1':
@@ -1415,6 +1420,48 @@ def judge_content_submitters(request):
 	else:
 		# not a POST request
 		return redirect("missing_page")
+
+
+@csrf_protect
+def submit_ban_category(request):
+	"""
+	Was this user an abusive troll who doesn't deserve to write publicly even once their ban is lifted?
+	"""
+	own_id = str(request.user.id)
+	if in_defenders(own_id):
+		if request.method == "POST":
+			ban_reason = request.POST.get('dec','0')
+			target_user_id = request.POST.get('obj_owner_id',None)
+			if ban_reason == '1':
+				# mark this person as an abuser/vulgur user who should be rate-limited from public posts even once/if their ban is lifted
+				mark_abusive_troll(defender_id=own_id, target_user_id=target_user_id)
+			#######################################################
+			from_cull = request.POST.get("from_cull",None)
+			if from_cull == '1':
+				request.session["report_judged"] = request.POST.get("report_judged",None)
+				request.session["cull_header"] = request.POST.get("cull_header",None)
+				request.session.modified = True
+				return redirect("cull_content")
+			else:
+				request.session["redirect_reason"+own_id] = request.POST.get("cull_header",None)
+				request.session["redirect_orig"+own_id] = request.POST.get("origin",None)
+				request.session["redirect_oun"+own_id] = request.POST.get("oun",None)
+				request.session["redirect_lid"+own_id] = request.POST.get("lid",None)
+				request.session["redirect_obid"+own_id] = request.POST.get("obid",None)
+				ban_time = request.POST.get("ban_time",None)
+				ban_time = float(ban_time) if ban_time else ban_time
+				ban_time = '-1' if ban_time == -1 else ban_time
+				request.session["redirect_ban_time"+own_id] = ban_time
+
+				request.session.modified = True
+				return redirect("judge_not_and_red")#judgement modules notify_and_redirect function
+		else:
+			# it's a GET request
+			return redirect("cull_content")
+	else:
+		# not a defender
+		raise Http404("You are not an authorized defender")
+
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

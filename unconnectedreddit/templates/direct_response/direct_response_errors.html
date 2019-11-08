@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>Cannot complete action | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+   
+   	<div style="margin-left:auto;margin-right:auto">
+		<h1 class="cxl lsp clb" style="text-align:center">Sorry! Cannot complete action</h1>
+	</div>
+
+    <div class="clb mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%;text-align:center">
+
+		{% if resp_to_self %}
+			<div style="border-bottom:1px solid lightgray;padding:8px" class="cxl lsp">Sorry! Ap apney ap ko reply nahi kar saktey, sirf dusrey users ko reply kar saktey hain</div>
+			<div style="padding:5px" class="cl sp lsp">Wapis ja ke phir se koshish karein</div>
+		{% elif blocked %}
+			<div style="border-bottom:1px solid lightgray;padding:8px" class="cxl lsp">Sorry! Ap is user ko reply nahi kar saktey</div>
+			<div style="padding:5px" class="cl sp lsp">Wapis jaien aur kisi aur ko reply karein</div>
+		{% elif unable_to_del %}
+			<div style="border-bottom:1px solid lightgray;padding:8px" class="cxl lsp">Sorry! Ye ya tou pehlay se deleted hai, ya phir exist nahi karta</div>
+			<div style="padding:5px" class="cl sp lsp">Wapis jaien aur dubara check karein</div>
+		{% elif content_ban %}
+			{% load get_display_ban_msg %}
+			{% display_ban_msg static_url=STATIC_URL is_banned=content_ban is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=uname ban_detail=ban_detail %}
+		{% endif %}
+
+		<form method="POST" class="mtl mbl" style="text-align:center" action="{% url 'redirect_to_content' %}">
+			{% csrf_token %}<input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="orig" value="{{ org }}"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="oun" value="{{ tun }}">
+			<button type="submit" name="obid" class="btn bct bl pg_ok_res sp" style="height:30px" value="{{ obid }}">wapis</button>
+		</form>
+
+	</div>
+<br><br>
+{% endblock %}

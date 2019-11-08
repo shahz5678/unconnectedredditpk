@@ -1,11 +1,12 @@
 # coding=utf-8
 MAX_BIO_SIZE = 1000
-# NOTIF_OBJECT_LIFE = 604800# 7 days set as ttl for how long a direct response object lives
+REPLY_OBJECT_TTL = 604800# 7 days set as ttl for how long a direct response object lives
 MAX_HOME_SUBMISSION_SIZE = 750
 MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
 MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
+POST_HISTORY_TTL = 259200# 3 days - time length a user's post visitors are logged for
 PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH = 40# text-length below which a public text post is considered 'low quality'
 ###############################################################################################################
 VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 2419200# i.e. 28 days. This is the amount of time closed-voting objs are kept around for 'like_prob' or 'handpicked_prob' analysis

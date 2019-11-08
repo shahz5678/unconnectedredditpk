@@ -18,7 +18,7 @@ from cricket_score import cricket_scr
 from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE, PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC#, MAX_HOME_REPLY_SIZE
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC, MAX_HOME_REPLY_SIZE
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -43,11 +43,11 @@ PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, 
 PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
 WelcomeMessageForm, WelcomeForm, PublicreplyMiniForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
 SearchNicknameForm, UserProfileDetailForm,RegisterLoginForm, ScoreHelpForm, HistoryHelpForm, BestPhotosListForm, TestAdsForm, \
-UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, PublicreplyForm, PhotosListForm, UnseenActivityForm, \
-CommentForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
+UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, ResetPasswordForm, PhotosListForm, UnseenActivityForm, \
+AdImageForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
 PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, CricketCommentForm, AdAddressForm, \
 AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, \
-AdTitleForm, AdTitleForm, AdImageForm, TestReportForm, HomeLinkListForm, ResetPasswordForm
+AdTitleForm, AdTitleForm, TestReportForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
@@ -58,9 +58,9 @@ from user_sessions.models import Session
 from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
-from tasks import bulk_create_notifications, photo_tasks, unseen_comment_tasks, publicreply_tasks, photo_upload_tasks, \
+from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, photo_upload_tasks, \
 video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, log_user_activity, populate_search_thumbs,\
-sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks, group_attendance_tasks, log_404, set_input_history
+sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks#, set_input_history
 #from .html_injector import create_gibberish_punishment_text
 # from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -93,8 +93,9 @@ invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_r
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
 is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text
+from redis9 import retrieve_latest_direct_reply, get_last_comment_time
 from redis8 import retrieve_variation_subset, set_tutorial_seen
-# from direct_response_forms import DirectResponseForm
+from direct_response_forms import DirectResponseForm
 from cities import CITY_TUP_LIST, REV_CITY_DICT
 
 # from optimizely_config_manager import OptimizelyConfigManager
@@ -809,14 +810,28 @@ def hide_comment(request,comment_id,photo_id,origin,*args,**kwargs):
 		raise Http404("Cannot hide comment")
 	elif request.method == "POST":
 		slug = request.POST.get("slug",None)
+		own_id = request.user.id
 		if PhotoComment.objects.filter(pk=comment_id,which_photo_id=photo_id,abuse=False).exists() and \
-		Photo.objects.filter(pk=photo_id,owner_id=request.user.id).exists():
-			submitted_by_id = PhotoComment.objects.only('submitted_by').get(id=comment_id).submitted_by_id
+		Photo.objects.filter(pk=photo_id,owner_id=own_id).exists():
+			photocomment_obj = PhotoComment.objects.only('submitted_by','direct_reply').get(id=comment_id)
+			submitted_by_id = photocomment_obj.submitted_by_id
+			
 			# mark as abusive
 			PhotoComment.objects.filter(pk=comment_id).update(abuse=True)
-			# cut writers points
-			# UserProfile.objects.filter(user_id=submitted_by_id).update(score=F('score')-2)
-			# prepare to redirect
+
+			################################################
+			# handle direct replies
+			direct_reply_id = photocomment_obj.direct_reply_id
+			if direct_reply_id:
+				target_user_id = PhotoComment.objects.only('submitted_by').get(id=direct_reply_id).submitted_by_id
+			else:
+				target_user_id = None if submitted_by_id == own_id else own_id# there's no target_user_id if response targeted at self (else self is the target)
+
+			hide_associated_direct_responses.delay(obj_type='4',parent_obj_id=photo_id,reply_id=comment_id,\
+				sender_id=submitted_by_id,receiver_id=target_user_id,to_hide=True)
+			################################################
+			
+		# prepare to redirect
 		if slug and slug != 'None':
 			return redirect("comment_pk", pk=photo_id, origin=origin, ident=slug)
 		else:
@@ -831,22 +846,34 @@ def hide_jawab(request,publicreply_id,link_id,*args,**kwargs):
 	"""
 	Processing hiding a 'jawab' of a home post
 	"""
-	if getattr(request, 'limits', False):
-		raise Http404("Cannot hide publicreply")
-	elif request.method == "POST":
+	if request.method == "POST":
+		own_id = request.user.id
 		if Publicreply.objects.filter(pk=publicreply_id,answer_to_id=link_id,abuse=False).exists() and \
-		Link.objects.filter(pk=link_id,submitter_id=request.user.id).exists():
-			submitted_by_id = Publicreply.objects.only('submitted_by').get(id=publicreply_id).submitted_by_id
+		Link.objects.filter(pk=link_id,submitter_id=own_id).exists():
+			publicreply_obj = Publicreply.objects.only('submitted_by','direct_reply').get(id=publicreply_id)
+			submitted_by_id = publicreply_obj.submitted_by_id
+
 			# mark as abusive
 			Publicreply.objects.filter(pk=publicreply_id).update(abuse=True)
+
+			################################################
+			# handle direct replies
+			direct_reply_id = publicreply_obj.direct_reply_id
+			if direct_reply_id:
+				target_user_id = Publicreply.objects.only('submitted_by').get(id=direct_reply_id).submitted_by_id
+			else:	
+				target_user_id = None if submitted_by_id == own_id else own_id# there's no target_user_id if response targeted at self (else self is the target)
+
+			hide_associated_direct_responses.delay(obj_type='3',parent_obj_id=link_id,reply_id=publicreply_id,\
+				sender_id=submitted_by_id,receiver_id=target_user_id,to_hide=True)
+			################################################
+
 			# invalidate cached replies
 			invalidate_cached_public_replies(link_id)
-			# prepare to redirect
-		# request.session["link_pk"] = link_id
-		# request.session.modified = True
+		
 		return redirect("publicreply_view",link_id)
 	else:
-		raise Http404("Not a POST request")
+		raise Http404("Not a POST request - cannot hide publicreply")
 
 
 def display_link_detail(request, link_id):
@@ -944,89 +971,89 @@ class PhotoDetailView(DetailView):
 # @ratelimit(rate='3/s')
 # @ratelimit(field='user_id',ip=False,rate='22/38s')
 # @ratelimit(field='user_id',ip=False,rate='4/s')
-@csrf_protect
-def home_reply(request,pk=None,*args,**kwargs):
-	"""
-	Processes replying to a piece of content from directly underneath it
-	"""
-	if request.user_banned:
-		return redirect("error")
-	else:
-		user_id = request.user.id
-		ipp = ITEMS_PER_PAGE#MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
-		sort_by_best = False#True if request.POST.get("sort_by",None) == 'best' else False
-		origin = '3'# pre-setting origin to '3' (to handle the GET request scenario)
-		notif = "tx:"+pk# appending tx: to pk to match object names in homefeed
-		if request.method == 'POST':
-			origin = request.POST.get("origin",'3')
-			banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
-			if banned:
-				# Cannot submit home_reply if banned
-				return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-					'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':origin,'obid':pk,'lid':notif})
-			else:
-				link_writer_id = request.POST.get("lwpk",None)
-				topic = request.POST.get("tp",None)
-				if topic:
-					request.session["origin_topic"] = topic
-				banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
-				if banned_by:
-					request.session["banned_by"] = banned_by
-					request.session["ban_time"] = ban_time
-					request.session["where_from"] = origin
-					request.session["obj_id"] = pk
-					request.session["lid"] = notif
-					request.session.modified = True
-					return redirect("ban_underway")
-				else:
-					is_verified = request.mobile_verified
-					time_now = time.time()
-					form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk,mob_verified=is_verified)
-					if form.is_valid():
-						text = form.cleaned_data.get("description")
-						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time_now)
-						target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)# target is target_username
-						request.session['home_hash_id'] = notif
-						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							sub_categ = '3' if origin == '3' else '4'# inline home tabsra or inline topic tabsra
-							parent_text = Link.objects.only('description').get(id=pk).description
-							activity_dict = {'m':'POST','act':'I'+sub_categ,'t':time_now,'tx':text,'pc':parent_text}# defines what activity just took place
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-						##################################################################
-						if target == ":":
-							return redirect("ban_underway")
-						elif target == ';':
-							remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(pk), user_id=user_id)
-							return render(request,"object_deleted.html",{})
-						else:
-							return return_to_content(request,origin,pk,notif)
-					else:
-						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							sub_categ = '3' if origin == '3' else '4'# inline home tabsra or inline topic tabsra
-							request.session['rd'] = '1'
-							parent_text = Link.objects.only('description').get(id=pk).description
-							if not is_verified: 
-								activity_dict = {'m':'POST','act':'I'+sub_categ+'.u','t':time_now,'tx':request.POST.get('description',None),\
-								'pc':parent_text}# defines what activity just took place
-							else:
-								activity_dict = {'m':'POST','act':'I'+sub_categ+'.i','t':time_now,'tx':request.POST.get('description',None),\
-								'pc':parent_text}# defines what activity just took place
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-						##################################################################
-						#redirecting to error display position on the page
-						error_string = form.errors.as_text().split("*")[2]
-						if origin == '3':
-							request.session['home_direct_reply_error_string'] = error_string
-							url = reverse_lazy("home")+'?page=1#error'
-						else:
-							request.session['topic_direct_reply_error_string'] = error_string
-							url = reverse_lazy("topic_page",args=[topic])+'?page=1#error'
-						return redirect(url)
-		else:
-			request.session['home_hash_id'] = notif
-			return return_to_content(request,origin,pk,notif)
+# @csrf_protect
+# def home_reply(request,pk=None,*args,**kwargs):
+# 	"""
+# 	Processes replying to a piece of content from directly underneath it
+# 	"""
+# 	if request.user_banned:
+# 		return redirect("error")
+# 	else:
+# 		user_id = request.user.id
+# 		ipp = ITEMS_PER_PAGE#MAX_ITEMS_PER_PAGE if lang == 'urdu' else ITEMS_PER_PAGE
+# 		sort_by_best = False#True if request.POST.get("sort_by",None) == 'best' else False
+# 		origin = '3'# pre-setting origin to '3' (to handle the GET request scenario)
+# 		notif = "tx:"+pk# appending tx: to pk to match object names in homefeed
+# 		if request.method == 'POST':
+# 			origin = request.POST.get("origin",'3')
+# 			banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+# 			if banned:
+# 				# Cannot submit home_reply if banned
+# 				return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+# 					'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':origin,'obid':pk,'lid':notif})
+# 			else:
+# 				link_writer_id = request.POST.get("lwpk",None)
+# 				topic = request.POST.get("tp",None)
+# 				if topic:
+# 					request.session["origin_topic"] = topic
+# 				banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
+# 				if banned_by:
+# 					request.session["banned_by"] = banned_by
+# 					request.session["ban_time"] = ban_time
+# 					request.session["where_from"] = origin
+# 					request.session["obj_id"] = pk
+# 					request.session["lid"] = notif
+# 					request.session.modified = True
+# 					return redirect("ban_underway")
+# 				else:
+# 					is_verified = request.mobile_verified
+# 					time_now = time.time()
+# 					form = PublicreplyMiniForm(data=request.POST,user_id=user_id,link_id=pk,mob_verified=is_verified)
+# 					if form.is_valid():
+# 						text = form.cleaned_data.get("description")
+# 						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=user_id,time_now=time_now)
+# 						target = process_publicreply(request=request,link_id=pk,text=text,link_writer_id=link_writer_id)# target is target_username
+# 						request.session['home_hash_id'] = notif
+# 						################### Retention activity logging ###################
+# 						if user_id > SEGMENT_STARTING_USER_ID:
+# 							sub_categ = '3' if origin == '3' else '4'# inline home tabsra or inline topic tabsra
+# 							parent_text = Link.objects.only('description').get(id=pk).description
+# 							activity_dict = {'m':'POST','act':'I'+sub_categ,'t':time_now,'tx':text,'pc':parent_text}# defines what activity just took place
+# 							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+# 						##################################################################
+# 						if target == ":":
+# 							return redirect("ban_underway")
+# 						elif target == ';':
+# 							remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(pk), user_id=user_id)
+# 							return render(request,"object_deleted.html",{})
+# 						else:
+# 							return return_to_content(request,origin,pk,notif)
+# 					else:
+# 						################### Retention activity logging ###################
+# 						if user_id > SEGMENT_STARTING_USER_ID:
+# 							sub_categ = '3' if origin == '3' else '4'# inline home tabsra or inline topic tabsra
+# 							request.session['rd'] = '1'
+# 							parent_text = Link.objects.only('description').get(id=pk).description
+# 							if not is_verified: 
+# 								activity_dict = {'m':'POST','act':'I'+sub_categ+'.u','t':time_now,'tx':request.POST.get('description',None),\
+# 								'pc':parent_text}# defines what activity just took place
+# 							else:
+# 								activity_dict = {'m':'POST','act':'I'+sub_categ+'.i','t':time_now,'tx':request.POST.get('description',None),\
+# 								'pc':parent_text}# defines what activity just took place
+# 							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+# 						##################################################################
+# 						#redirecting to error display position on the page
+# 						error_string = form.errors.as_text().split("*")[2]
+# 						if origin == '3':
+# 							request.session['home_direct_reply_error_string'] = error_string
+# 							url = reverse_lazy("home")+'?page=1#error'
+# 						else:
+# 							request.session['topic_direct_reply_error_string'] = error_string
+# 							url = reverse_lazy("topic_page",args=[topic])+'?page=1#error'
+# 						return redirect(url)
+# 		else:
+# 			request.session['home_hash_id'] = notif
+# 			return return_to_content(request,origin,pk,notif)
 
 
 def best_home_page(request):
@@ -1106,9 +1133,9 @@ def home_page(request, lang=None):
 		oldest_post_time = 0.0
 	#######################
 	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
-	replyforms = {}
-	for obj in list_of_dictionaries:
-		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+	# replyforms = {}
+	# for obj in list_of_dictionaries:
+	# 	replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 	#######################
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
@@ -1139,11 +1166,14 @@ def home_page(request, lang=None):
 	########################################################################
 
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
-	'is_auth':True,'checked':FEMALES,'replyforms':replyforms,'on_fbs':on_fbs,'ident':own_id, 'process_notification':False,\
-	'newest_user':User.objects.only('username').latest('id') if num > 2 else None,'random':num, 'sk':secret_key,\
-	'newbie_lang':request.session.get("newbie_lang",None),'mobile_verified':is_mob_verified,'on_opera':on_opera}
+	'is_auth':True,'on_fbs':on_fbs,'ident':own_id,'newest_user':User.objects.only('username').latest('id') if num > 2 else None,\
+	'mobile_verified':is_mob_verified,'random':num, 'sk':secret_key,'newbie_lang':request.session.get("newbie_lang",None),\
+	'on_opera':on_opera,'dir_rep_form':DirectResponseForm(with_id=True),'thin_rep_form':DirectResponseForm(thin_strip=True),\
+	'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),'single_notif_dir_rep_form':DirectResponseForm()}#'process_notification':False,
+
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
+	
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = newbie_flag
@@ -1161,13 +1191,12 @@ def home_page(request, lang=None):
 	# extraneous
 	context["lang"] = 'None'
 	context["sort_by"] = 'recent'
-	# context["max_home_reply_size"] = MAX_HOME_REPLY_SIZE
+	context["max_home_reply_size"] = MAX_HOME_REPLY_SIZE
 	#####################
-	context["single_notif_error"] = request.session.pop("single_notif_error",None)
-	context["comment_form"] = PhotoCommentForm()
-	if not request.user_banned:
-		context["process_notification"] = True
-		context["home_direct_reply_error_string"] = request.session.pop("home_direct_reply_error_string",None)
+	# context["single_notif_error"] = request.session.pop("single_notif_error",None)
+	# if not request.user_banned:
+		# context["process_notification"] = True
+	context["dir_rep_invalid"] = request.session.pop("dir_rep_invalid"+str(own_id),None)
 	return render(request, 'link_list.html', context)
 
 
@@ -1919,208 +1948,81 @@ class VideoCommentView(CreateView):
 			context = {'pk': 'pk'}
 			return render(self.request, 'auth_commentpk.html', context)
 
-	
-class CommentView(CreateView):
-	model = PhotoComment
-	form_class = CommentForm
-	template_name = "comments.html"
 
-	def get_form_kwargs( self ):
-		kwargs = super(CommentView,self).get_form_kwargs()
-		kwargs['user_id'] = self.request.user.id
-		kwargs['mobile_verified'] = self.request.mobile_verified
-		kwargs['photo_id'] = self.kwargs['pk']
-		return kwargs
-
-	def get_context_data(self, **kwargs):
-		context = super(CommentView, self).get_context_data(**kwargs)
-		context["feature_phone"] = True if self.request.is_feature_phone else False
-		pk = self.kwargs.get('pk',None)
-		if pk:
-			try:
-				photo = Photo.objects.select_related('owner').get(id=pk)
-			except Photo.DoesNotExist:
-				if self.request.user.is_authenticated():
-					user_id = self.request.user.id
-					remove_erroneous_notif(notif_name="np:"+str(user_id)+":0:"+str(pk), user_id=user_id)
-					context["obj_deleted"] = True
-					return context
-				else:
-					context['target_username'] = 'User'
-					context['authorized'] = False
-					return context
+def display_image_comments(request,pk,origin=None):
+	"""
+	Render the comments page for image comments
+	"""
+	user_id = request.user.id
+	try:
+		photo = Photo.objects.select_related('owner').get(id=pk)
+		photo_owner_id = photo.owner_id
+	except Photo.DoesNotExist:
+		context = {}
+		if user_id:
+			remove_erroneous_notif(notif_name="np:"+str(user_id)+":0:"+str(pk), user_id=user_id)
+			context["obj_deleted"] = True
 		else:
-			raise Http404("Photo ID does not exist")
-		context["obj_deleted"] = False
-		context["photo_id"] = pk
-		home_hash = 'img:'+pk
-		context["lid"] = home_hash
-		secret_key = uuid.uuid4()
-		set_text_input_key(self.request.user.id, pk, 'pht_comm', secret_key)
-		context["sk"] = secret_key
-		context["photo"] = photo
-		target_username = photo.owner.username
-		context["target_username"] = target_username
-		context["thumbs"] = retrieve_trending_thumbs(photo.owner_id)
-		context["stars"] = get_all_image_star_ids()
-		context["is_star"] = is_image_star(user_id=photo.owner_id)
-		context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
-		context["VDC"] = (VOTING_DRIVEN_CENSORSHIP+1) #VDC is voting driven censorship
-		context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-		context["authorized"] = True
-		comments = PhotoComment.objects.only('abuse','text','id','submitted_by','submitted_on','submitted_by__username').\
-		values('abuse','text','id','submitted_by','submitted_on','submitted_by__username').filter(which_photo_id=pk).\
-		order_by('-id')[:25]
-		context["latest_comment_time"] = comments[0]['submitted_on'] if comments else None#used in the title of the page
-		for comment in comments:
-			comment["submitted_on"] = convert_to_epoch(comment["submitted_on"])
-		context["comments"] = comments
-		origin = self.kwargs.get("origin",None)
-		context["origin"] = origin if origin else '1'
-		if origin == '3':
-			# originating from home            
-			self.request.session["target_id"] = home_hash if pk else ''#turn pk into 'home_hash' (so that it can lead to accurate redirects)
-			self.request.session.modified = True
-		if self.request.user.is_authenticated():
-			time_now = time.time()
-			user_id = self.request.user.id
-			# context["dir_rep_form"] = DirectResponseForm()
-			context["is_auth"] = True
-			context["mob_verified"] = True
-			context["user_id"] = user_id
-			if not self.request.mobile_verified:
-				context["mob_verified"] = False
-				# context["score"] = self.request.user.userprofile.score
-			context["authenticated"] = True
-			context["own_username"] = self.request.user.username
-			updated = update_notification(viewer_id=user_id, object_id=pk,object_type='0',seen=True,\
-				updated_at=time_now,single_notif=False, unseen_activity=True,priority='photo_tabsra',\
-				bump_ua=False,no_comment=True)#ensures the notification is shown as seen in matka (and removed from single_notifications)
-			if comments:
-				if updated:
-					context["unseen"] = True
-					try:
-						#finding latest time user HERSELF commented
-						context["comment_time"] = max(comment['submitted_on'] for comment in comments if comment['submitted_by'] == user_id)
-					except ValueError:
-						context["comment_time"] = None #i.e. it's her very first comment
-				else:
-					context["unseen"] = False
-					context["comment_time"] = None
-			else:
-				context["unseen"] = False
-				context["comment_time"] = None
-			################### Retention activity logging ###################
-			from_redirect = self.request.session.pop('rd','')
-			if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-				act = 'C1' if self.request.mobile_verified else 'C1.u'
-				activity_dict = {'m':'GET','act':act,'t':time_now,'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-			##################################################################
-		else:
-			context["authenticated"] = False
+			context['target_username'] = 'User'
+			context['authorized'] = False
 		return context
-
-
-	def form_invalid(self, form):
-		"""
-		If the form is invalid, log the data point (if need be)
-		"""
-		user_id = self.request.user.id
-		################### Retention activity logging ###################
-		if user_id > SEGMENT_STARTING_USER_ID:
-			obj_id = self.kwargs['pk']
-			try:
-				photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-			except Photo.DoesNotExist:
-				photo = None
-			if photo:
-				time_now = time.time()
-				self.request.session['rd'] = '1'
-				if self.request.mobile_verified:
-					activity_dict = {'m':'POST','act':'C.i','t':time_now,'tx':self.request.POST.get("text",None),'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
-				else:
-					activity_dict = {'m':'POST','act':'C.u','t':time_now,'tx':self.request.POST.get("text",None),'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-		##################################################################
-		return self.render_to_response(self.get_context_data(form=form))
+	###################################################
+	secret_key = uuid.uuid4()
+	home_hash = 'img:'+pk
+	target_username = retrieve_uname(photo_owner_id,decode=True)
 	
+	comments = PhotoComment.objects.only('abuse','text','id','submitted_by','submitted_on','submitted_by__username',\
+		'direct_reply_tgt_uname','direct_reply_tgt_text_prefix','direct_reply_tgt_text_postfix','direct_reply_id').\
+	values('abuse','text','id','submitted_by','submitted_on','submitted_by__username','direct_reply_tgt_uname',\
+		'direct_reply_tgt_text_prefix','direct_reply_tgt_text_postfix','direct_reply_id').filter(which_photo_id=pk).\
+	order_by('-id')[:25]
 
-	def form_valid(self, form):
-		if self.request.user_banned:
-			return redirect("error")#errorbanning
-		else:
-			user_id = self.request.user.id
-			if user_id:
-				pk = self.kwargs.get('pk',None)
-				photo_owner_id = self.request.POST.get("popk",None)
-				banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
-				if banned:
-					# Cannot comment if banned
-					return render(self.request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-						'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'11','obid':pk})
-				else:
-					banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
-					if banned_by:
-						self.request.session["banned_by"] = banned_by
-						self.request.session["ban_time"] = ban_time
-						self.request.session["where_from"] = '11'
-						self.request.session["obj_id"] = pk
-						self.request.session.modified = True
-						return redirect("ban_underway")
-					else:
-						time_now = time.time()
-						f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-						text = f.text#self.request.POST.get("text")
-						origin = self.request.POST.get("origin")
-						star_user_id = None
-						link_id = None
-						try:
-							which_photo = Photo.objects.get(id=pk)
-							if which_photo.owner_id != int(photo_owner_id):
-								self.request.session["where_from"] = '3'
-								return redirect("ban_underway")
-						except Photo.DoesNotExist:
-							raise Http404("This photo does not exist")
-						set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=text,user_id=user_id,time_now=time_now)
-						already_commented = PhotoComment.objects.filter(which_photo=which_photo, submitted_by_id=user_id).exists()
-						if self.request.is_feature_phone:
-							device = '1'
-						elif self.request.is_phone:
-							device = '2'
-						elif self.request.is_tablet:
-							device = '4'
-						elif self.request.is_mobile:
-							device = '5'
-						else:
-							device = '3'
-						photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo=which_photo, text=text,device=device)
-						comment_time = convert_to_epoch(photocomment.submitted_on)
-						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
-						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=text,latest_comm_writer_id=user_id,\
-							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name,time=comment_time)
-						photo_tasks.delay(user_id, pk, comment_time, photocomment.id, which_photo.comment_count, text, already_commented, \
-							commenter_name, url, self.request.mobile_verified)
-						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							self.request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'C','t':time_now,'tx':text,'pi':which_photo.image_file.url,'pc':which_photo.caption}# defines what activity just took place
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-						##################################################################
+	for comment in comments:
+		comment["submitted_on"] = convert_to_epoch(comment["submitted_on"])
 
-						if pk and origin and link_id:
-							return redirect("comment_pk",pk=pk,origin=origin, ident=link_id)
-						elif pk and origin and star_user_id:
-							return redirect("comment_pk",pk=pk,origin=origin, ident=star_user_id)
-						elif pk and origin:
-							return redirect("comment_pk",pk=pk,origin=origin)
-						elif pk:
-							#fires if user from chat
-							return redirect("comment_pk", pk=pk)
-						else:
-							return return_to_content(self.request,origin,None,None,None)
-			else:
-				return redirect('login')
+	context = {'feature_phone':True if request.is_feature_phone else False,'lid':home_hash,'photo_id':pk,'obj_deleted':False,\
+	'photo':photo,'sk':secret_key,'thumbs':retrieve_trending_thumbs(photo_owner_id),'stars':get_all_image_star_ids(), \
+	'is_star':is_image_star(user_id=photo_owner_id),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'authorized':True,\
+	'random':random.sample(xrange(1,188),15),'VDC':VOTING_DRIVEN_CENSORSHIP+1,'target_username':target_username,\
+	'latest_comment_time':comments[0]['submitted_on'] if comments else None,'origin':origin if origin else '3',\
+	'comments':comments,'photo_owner_id':photo_owner_id,'user_is_owner':photo_owner_id == user_id}
+
+	if origin == '3':
+		# originating from home            
+		request.session["target_id"] = home_hash#turn pk into 'home_hash' (for accurate redirects)
+		request.session.modified = True
+
+	if user_id:
+		set_text_input_key(user_id, pk, 'pht_comm', secret_key)
+		time_now = time.time()
+		context["dir_rep_form"] = DirectResponseForm(with_id=True)
+		context["main_rep_form"] = DirectResponseForm()
+		context["is_auth"] = True
+		context["mob_verified"] = True
+		context["user_id"] = user_id
+		if not request.mobile_verified:
+			context["mob_verified"] = False
+		context["authenticated"] = True
+		context["dir_rep_invalid"] = request.session.pop("dir_rep_invalid"+str(user_id),None)
+		context["own_username"] = retrieve_uname(user_id,decode=True)
+		if comments:	
+			# useful for showing  'NEW' tag next to comments
+			last_seen_time = get_last_comment_time(commenter_id=user_id, obj_owner_id=photo_owner_id, obj_hash_name=home_hash)
+			# useful for showing a 'NEW' tag next to replies
+			context["comment_time"] = float(last_seen_time) if last_seen_time else None
+		
+		################### Retention activity logging ###################
+		from_redirect = request.session.pop('rd','')
+		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+			act = 'C1' if request.mobile_verified else 'C1.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now,'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
+			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		##################################################################
+	else:
+		context["authenticated"] = False
+
+	return render(request,"comments.html",context)
+
 
 
 @ratelimit(rate='3/s')
@@ -2162,124 +2064,124 @@ def special_photo(request, *args, **kwargs):
 
 # @ratelimit(rate='3/s')
 # @ratelimit(field='user_id',ip=False,rate='4/s')
-@csrf_protect
-def photo_comment(request,pk=None,*args,**kwargs):
-	"""
-	Processes comment written directly under a photo via home, top or best photos
+# @csrf_protect
+# def photo_comment(request,pk=None,*args,**kwargs):
+# 	"""
+# 	Processes comment written directly under a photo via home, top or best photos
 
-	'pk' arg is photo_id
-	"""
-	if request.user_banned:
-		return redirect("error")	
-	elif request.method == 'POST':
-		home_hash = request.POST.get("home_hash",None)# e.g. typical value is in the form of 'img:1234' where 1234 is photo_id
-		user_id = request.user.id
-		origin = request.POST.get("origin",None)
-		banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
-		if banned:
-			# Cannot submit home_reply if banned
-			return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-				'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':origin,'obid':pk,'lid':home_hash})
-		else:
-			photo_owner_id = request.POST.get("popk",None)
-			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
-			if banned_by:
-				request.session["banned_by"] = banned_by
-				request.session["ban_time"] = ban_time
-				if origin in ('1','20'):
-					request.session["where_from"] = '1'
-				elif origin in ('2','21'):
-					request.session["where_from"] = '2'
-				elif origin in ('3','19'):
-					request.session["where_from"] = '3'
-				request.session["obj_id"] = pk
-				request.session["lid"] = home_hash
-				request.session.modified = True
-				return redirect("ban_underway")
-			else:
-				time_now = time.time()
-				is_mob_verified = request.mobile_verified
-				form = PhotoCommentForm(data=request.POST,user_id=user_id,photo_id=pk,mob_verified=is_mob_verified)
-				origin = request.POST.get("origin",None)
-				lang = request.POST.get("lang",None)
-				sort_by = request.POST.get("sort_by",None)
-				if form.is_valid():
-					photo = Photo.objects.only('owner','comment_count').get(id=pk)
-					if photo.owner_id != int(photo_owner_id):
-						request.session["where_from"] = '2'
-						return redirect("ban_underway")
-					else:
-						description = form.cleaned_data.get("photo_comment")
-						set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time_now)
-						if request.is_feature_phone:
-							device = '1'
-						elif request.is_phone:
-							device = '2'
-						elif request.is_tablet:
-							device = '4'
-						elif request.is_mobile:
-							device = '5'
-						else:
-							device = '3'
-						exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
-						photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
-						comment_time = convert_to_epoch(photocomment.submitted_on)
-						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
-						add_photo_comment(photo_id=pk,photo_owner_id=photo.owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
-							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
-						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, exists,\
-							commenter_name, url, is_mob_verified)
-						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							if origin == '1':
-								sub_categ = '7'#inline photocomment in fresh list
-							elif origin == '2':
-								sub_categ = '8'#inline photo comment in best list
-							else:
-								sub_categ = '6'#inline photo comment on home
-							activity_dict = {'m':'POST','act':'I'+sub_categ,'t':time_now,'tx':description,'pi':photo.image_file.url,\
-							'pc':photo.caption}# defines what activity just took place
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-						##################################################################
-						if origin == '3':
-							request.session["home_hash_id"] = home_hash
-							request.session.modified = True
-							return redirect("redirect_to_home")
-						else:
-							return return_to_content(request,origin,pk,None,None)
-				else:
-					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						if origin == '1':
-							sub_categ = '7'#inline photocomment in fresh list
-						elif origin == '2':
-							sub_categ = '8'#inline photo comment in best list
-						else:
-							sub_categ = '6'#inline photo comment on home
-						request.session['rd'] = '1'
-						photo = Photo.objects.only('image_file','caption').get(id=pk)
-						if is_mob_verified:
-							activity_dict = {'m':'POST','act':'I'+sub_categ+'.i','t':time_now,'tx':request.POST.get('photo_comment',None),\
-							'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
-						else:
-							activity_dict = {'m':'POST','act':'I'+sub_categ+'.u','t':time_now,'tx':request.POST.get('photo_comment',None),\
-							'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
-					error_string = form.errors.as_text().split("*")[2]
-					if origin == '3':
-						request.session['home_direct_reply_error_string'] = error_string
-						return redirect(reverse_lazy("home")+'?page=1#error')#redirecting to special error section
-					else:
-						request.session['photo_direct_reply_error_string'] = error_string
-						if origin == '1':
-							return redirect(reverse_lazy("photo", args=['fresh-list'])+'?page=1#error')#redirecting to special error section
-						elif origin == '2':
-							return redirect(reverse_lazy("photo", args=['best-list'])+'?page=1#error')#redirecting to special error section
-						else:
-							return return_to_content(request,origin,pk,None,None)
-	else:
-		return redirect("home")
+# 	'pk' arg is photo_id
+# 	"""
+# 	if request.user_banned:
+# 		return redirect("error")	
+# 	elif request.method == 'POST':
+# 		home_hash = request.POST.get("home_hash",None)# e.g. typical value is in the form of 'img:1234' where 1234 is photo_id
+# 		user_id = request.user.id
+# 		origin = request.POST.get("origin",None)
+# 		banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+# 		if banned:
+# 			# Cannot submit home_reply if banned
+# 			return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+# 				'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':origin,'obid':pk,'lid':home_hash})
+# 		else:
+# 			photo_owner_id = request.POST.get("popk",None)
+# 			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=photo_owner_id, return_banner=True)
+# 			if banned_by:
+# 				request.session["banned_by"] = banned_by
+# 				request.session["ban_time"] = ban_time
+# 				if origin in ('1','20'):
+# 					request.session["where_from"] = '1'
+# 				elif origin in ('2','21'):
+# 					request.session["where_from"] = '2'
+# 				elif origin in ('3','19'):
+# 					request.session["where_from"] = '3'
+# 				request.session["obj_id"] = pk
+# 				request.session["lid"] = home_hash
+# 				request.session.modified = True
+# 				return redirect("ban_underway")
+# 			else:
+# 				time_now = time.time()
+# 				is_mob_verified = request.mobile_verified
+# 				form = PhotoCommentForm(data=request.POST,user_id=user_id,photo_id=pk,mob_verified=is_mob_verified)
+# 				origin = request.POST.get("origin",None)
+# 				lang = request.POST.get("lang",None)
+# 				sort_by = request.POST.get("sort_by",None)
+# 				if form.is_valid():
+# 					photo = Photo.objects.only('owner','comment_count').get(id=pk)
+# 					if photo.owner_id != int(photo_owner_id):
+# 						request.session["where_from"] = '2'
+# 						return redirect("ban_underway")
+# 					else:
+# 						description = form.cleaned_data.get("photo_comment")
+# 						set_input_rate_and_history.delay(section='pht_comm',section_id=pk,text=description,user_id=user_id,time_now=time_now)
+# 						if request.is_feature_phone:
+# 							device = '1'
+# 						elif request.is_phone:
+# 							device = '2'
+# 						elif request.is_tablet:
+# 							device = '4'
+# 						elif request.is_mobile:
+# 							device = '5'
+# 						else:
+# 							device = '3'
+# 						# exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
+# 						photocomment = PhotoComment.objects.create(submitted_by=request.user, which_photo_id=pk, text=description,device=device)
+# 						comment_time = convert_to_epoch(photocomment.submitted_on)
+# 						commenter_name, url = retrieve_credentials(user_id,decode_uname=True)
+# 						add_photo_comment(photo_id=pk,latest_comm_text=description,latest_comm_writer_id=user_id,\
+# 							comment_id=photocomment.id,latest_comm_writer_uname=commenter_name, time=comment_time)
+# 						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo.comment_count, description, \
+# 							commenter_name, url, is_mob_verified)
+# 						################### Retention activity logging ###################
+# 						if user_id > SEGMENT_STARTING_USER_ID:
+# 							if origin == '1':
+# 								sub_categ = '7'#inline photocomment in fresh list
+# 							elif origin == '2':
+# 								sub_categ = '8'#inline photo comment in best list
+# 							else:
+# 								sub_categ = '6'#inline photo comment on home
+# 							activity_dict = {'m':'POST','act':'I'+sub_categ,'t':time_now,'tx':description,'pi':photo.image_file.url,\
+# 							'pc':photo.caption}# defines what activity just took place
+# 							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+# 						##################################################################
+# 						if origin == '3':
+# 							request.session["home_hash_id"] = home_hash
+# 							request.session.modified = True
+# 							return redirect("redirect_to_home")
+# 						else:
+# 							return return_to_content(request,origin,pk,None,None)
+# 				else:
+# 					################### Retention activity logging ###################
+# 					if user_id > SEGMENT_STARTING_USER_ID:
+# 						if origin == '1':
+# 							sub_categ = '7'#inline photocomment in fresh list
+# 						elif origin == '2':
+# 							sub_categ = '8'#inline photo comment in best list
+# 						else:
+# 							sub_categ = '6'#inline photo comment on home
+# 						request.session['rd'] = '1'
+# 						photo = Photo.objects.only('image_file','caption').get(id=pk)
+# 						if is_mob_verified:
+# 							activity_dict = {'m':'POST','act':'I'+sub_categ+'.i','t':time_now,'tx':request.POST.get('photo_comment',None),\
+# 							'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
+# 						else:
+# 							activity_dict = {'m':'POST','act':'I'+sub_categ+'.u','t':time_now,'tx':request.POST.get('photo_comment',None),\
+# 							'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
+# 						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+# 					###################################################################
+# 					error_string = form.errors.as_text().split("*")[2]
+# 					if origin == '3':
+# 						request.session['home_direct_reply_error_string'] = error_string
+# 						return redirect(reverse_lazy("home")+'?page=1#error')#redirecting to special error section
+# 					else:
+# 						request.session['photo_direct_reply_error_string'] = error_string
+# 						if origin == '1':
+# 							return redirect(reverse_lazy("photo", args=['fresh-list'])+'?page=1#error')#redirecting to special error section
+# 						elif origin == '2':
+# 							return redirect(reverse_lazy("photo", args=['best-list'])+'?page=1#error')#redirecting to special error section
+# 						else:
+# 							return return_to_content(request,origin,pk,None,None)
+# 	else:
+# 		return redirect("home")
 
 
 # def photo_location(request,*args,**kwargs):
@@ -2415,11 +2317,14 @@ def photo_page(request,list_type='best-list'):
 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 		on_opera = True if (not on_fbs and not is_js_env) else False
-		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'girls':FEMALES,\
-		'ident':own_id, 'newbie_lang':newbie_lang,'process_notification':False,'newbie_flag':newbie_flag,\
-		'page_origin':page_origin,'sk':secret_key,'comment_form':PhotoCommentForm(),"mobile_verified":mobile_verified,\
-		'single_notif_origin':single_notif_origin,'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,\
-		'num_in_last_1_day':num_in_last_1_day,'list_type':list_type}
+		
+		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,\
+		'ident':own_id, 'newbie_lang':newbie_lang,'newbie_flag':newbie_flag,'single_notif_origin':single_notif_origin,\
+		'page_origin':page_origin,'sk':secret_key,"mobile_verified":mobile_verified,\
+		'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,'num_in_last_1_day':num_in_last_1_day,\
+		'list_type':list_type,'dir_rep_form':DirectResponseForm(with_id=True),'thin_rep_form':DirectResponseForm(thin_strip=True),\
+		'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),'single_notif_dir_rep_form':DirectResponseForm()}#
+		
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -2449,10 +2354,11 @@ def photo_page(request,list_type='best-list'):
 		context["sort_by"] = 'recent'
 		#####################
 		context["fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		context["single_notif_error"] = request.session.pop("single_notif_error",None)
-		if own_id and not request.user_banned:
-			context["process_notification"] = True
-			context["photo_direct_reply_error_string"] = request.session.pop("photo_direct_reply_error_string",None)
+		# context["single_notif_error"] = request.session.pop("single_notif_error",None)
+		if own_id:
+			# context["process_notification"] = True
+			# context["photo_direct_reply_error_string"] = request.session.pop("photo_direct_reply_error_string",None)
+			context["dir_rep_invalid"] = request.session.pop("dir_rep_invalid"+str(own_id),None)
 		return render(request,"photos_page.html",context)
 	else:
 		raise Http404("Such a photo listing does not exist")
@@ -2700,8 +2606,6 @@ def upload_public_photo(request,*args,**kwargs):
 					##########################
 					img_height, img_width = photo.image_file.height, photo.image_file.width
 					cache_photo_dim(str(photo_id),img_height,img_width)
-					# is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-					# on_opera = True if (not on_fbs and not is_js_env) else False
 					# log_public_img(user_id=user_id, on_opera=on_opera, on_fbs=on_fbs, img_width=img_width, img_height=img_height)
 					##########################
 					datetime_obj = photo.upload_time
@@ -2710,7 +2614,7 @@ def upload_public_photo(request,*args,**kwargs):
 					name, owner_url = retrieve_credentials(user_id,decode_uname=True)
 					photo_obj = add_image_post(obj_id=photo_id, categ='6', submitter_id=user_id, submitter_av_url=owner_url, submitter_username=name, \
 						submitter_score=0, is_star=is_image_star(user_id=user_id),img_url=photo.image_file.url, img_caption=caption,\
-						submission_time=epochtime, from_fbs=on_fbs)
+						submission_time=epochtime, from_fbs=on_fbs, img_height=img_height, img_width=img_width)
 					recent_photo_ids = get_recent_photos(user_id)
 					number_of_photos, total_score = 0, 0
 					if recent_photo_ids:
@@ -2727,7 +2631,7 @@ def upload_public_photo(request,*args,**kwargs):
 					rate_limit_content_sharing(user_id)#rate limiting for 5 mins (and hard limit set at 20 items per day)
 					if on_fbs:
 						rate_limit_fbs_public_photo_uploaders(user_id)
-					bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, caption)
+					# bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, caption)
 					################### Retention activity logging ###################
 					if user_id > SEGMENT_STARTING_USER_ID:
 						request.session['rd'] = '1'
@@ -3352,7 +3256,7 @@ def unseen_group(request, pk=None, *args, **kwargs):
 							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
 						##################################################################
 					
-					save_group_submission(writer_id=user_id, group_id=pk, text=description, image=None, posting_time=reply_time,\
+					save_group_submission(writer_id=user_id, group_id=pk, text=description, chat_image=None, posting_time=reply_time,\
 						writer_avurl=get_s3_object(own_avurl,category='thumb'), category='0',writer_uname=username, save_latest_submission=True)
 					group_notification_tasks.delay(group_id=pk, sender_id=user_id, group_owner_id=grp["oi"], topic=grp["tp"],\
 						reply_time=reply_time, poster_url=own_avurl, poster_username=username, reply_text=description, priv=grp["p"], \
@@ -3463,17 +3367,17 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 							device = '5'
 						else:
 							device = '3'
-						exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
+						# exists = PhotoComment.objects.filter(which_photo_id=pk, submitted_by=request.user).exists() #i.e. user commented before
 						photocomment = PhotoComment.objects.create(submitted_by_id=user_id, which_photo_id=pk, text=description,device=device)
 						comment_time = convert_to_epoch(photocomment.submitted_on)
 						try:
 							url = request.user.userprofile.avatar.url
 						except ValueError:
 							url = None
-						add_photo_comment(photo_id=pk,photo_owner_id=photo_owner_id,latest_comm_text=description,latest_comm_writer_id=user_id,\
+						add_photo_comment(photo_id=pk,latest_comm_text=description,latest_comm_writer_id=user_id,\
 							comment_id=photocomment.id,latest_comm_writer_uname=username, time=comment_time)
-						unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, exists, \
-							username, url, request.mobile_verified)
+						# unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, \
+						# 	username, url, request.mobile_verified)
 						################### Retention activity logging ###################
 						if user_id > SEGMENT_STARTING_USER_ID:
 							request.session['rd'] = '1'
@@ -3721,33 +3625,33 @@ def unseen_fans(request,pk=None,*args, **kwargs):
 		return redirect("unseen_activity",request.user.username)
 
 
-#@ratelimit(field='sid',ip=False,rate='5/s')
-@csrf_protect
-def public_reply_view(request,parent_id,*args,**kwargs):
+def public_reply_view(request,parent_id):
 	"""
-	Renders the 'jawab' page
+	Render the comments page for text comments
 	"""
-	context, user_id = {}, request.user.id
-	if request.GET.get("from_rfrsh",'0') == '1' and tutorial_unseen(user_id=user_id, which_tut='14', renew_lease=True):
-		return render(request, 'jawab_refresh.html', {'lid':parent_id})
+	user_id = request.user.id
 	try:
 		link = Link.objects.values('id','reply_count','description','submitted_on','submitter','net_votes','url','cagtegory').get(id=parent_id)
 		link['machine_time'] = link['submitted_on']
 		link['submitted_on'] = naturaltime(link['submitted_on'])
 	except Link.DoesNotExist:
 		# purge single notification and matka of request.user.id
-		own_id = request.user.id
-		remove_erroneous_notif(notif_name="np:"+str(own_id)+":2:"+str(parent_id), user_id=own_id)
+		remove_erroneous_notif(notif_name="np:"+str(user_id)+":2:"+str(parent_id), user_id=user_id)
 		return render(request, 'object_deleted.html',{})
-	context["form_error"] = request.session.pop("publicreply_error",None)
-	context["is_auth"] = True
+	##########################################################
 	secret_key = uuid.uuid4()
 	set_text_input_key(user_id, parent_id, 'home_rep', secret_key)
-	context["sk"] = secret_key
-	context["form"] = PublicreplyForm()
-	context["mob_verified"] = True if request.mobile_verified else False
-	context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-	context["user_id"] = user_id
+	##########################################################
+	parent_submitter_id = link['submitter']
+	parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
+	##########################################################
+	context = {'main_rep_form': DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(user_id),None),\
+	'dir_rep_form':DirectResponseForm(with_id=True),'is_auth':True,'user_id':user_id,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),\
+	'mob_verified':True if request.mobile_verified else False,'sk':secret_key,'parent_submitter_id':parent_submitter_id,\
+	'parent_av_url':parent_avurl,'parent_submitter_username':parent_uname,'is_star':is_image_star(user_id=parent_submitter_id),\
+	'stars':get_all_image_star_ids(),'vote_score':link['net_votes'],'feature_phone':True if request.is_feature_phone else False,\
+	'random':random.sample(xrange(1,188),15),'parent':link, 'user_is_owner':parent_submitter_id == user_id}
+	##########################################################
 	if link['url']:
 		payload = link['url'].split(":")
 		try:
@@ -3756,124 +3660,39 @@ def public_reply_view(request,parent_id,*args,**kwargs):
 			context["c1"], context["c2"] = color_grads[0], color_grads[1]
 		except IndexError:
 			pass
-	parent_submitter_id = link['submitter']
-	parent_uname, parent_avurl = retrieve_credentials(parent_submitter_id,decode_uname=True)
-	# context["dir_rep_form"] = DirectResponseForm()
-	context["parent_submitter_id"] = parent_submitter_id
-	context["is_star"] = is_image_star(user_id=parent_submitter_id)
-	context["stars"] = get_all_image_star_ids()
-	context["parent_av_url"] = parent_avurl
-	context["vote_score"] = link['net_votes']
-	context["parent"] = link #the parent link
-	context["parent_submitter_username"] = parent_uname
-	context["feature_phone"] = True if request.is_feature_phone else False
-	context["random"] = random.sample(xrange(1,188),15) #select 15 random emoticons out of 188
-	replies = retrieve_cached_public_replies(parent_id)
-	################### Retention activity logging ###################
+	############### Retention activity logging ###############
 	from_redirect = request.session.pop('rd','')
 	if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
 		time_now = time.time()
 		act = 'L1' if request.mobile_verified else 'L1.u'
 		activity_dict = {'m':'GET','act':act,'t':time_now,'pc':link['description']}# defines what activity just took place
 		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-	##################################################################
+	##########################################################
+	replies = retrieve_cached_public_replies(parent_id)
 	if replies:
 		replies_data = json.loads(replies)
 	else:
-		replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username').\
-		values('submitted_on','description','id','submitted_by','abuse','submitted_by__username').filter(answer_to_id=parent_id).\
+		replies_data = Publicreply.objects.only('submitted_on','description','id','submitted_by','abuse','submitted_by__username',\
+			'direct_reply_tgt_uname','direct_reply_tgt_text_prefix','direct_reply_tgt_text_postfix','direct_reply_id').\
+		values('submitted_on','description','id','submitted_by','abuse','submitted_by__username','direct_reply_tgt_uname',\
+			'direct_reply_tgt_text_prefix','direct_reply_tgt_text_postfix','direct_reply_id').filter(answer_to_id=parent_id).\
 		order_by('-id')[:25]
 		for reply in replies_data:
 			reply["submitted_on"] = convert_to_epoch(reply["submitted_on"])
 		cache_public_replies(json.dumps(replies_data),parent_id)
 	context["replies"] = replies_data#replies
-	#########################################################################################
+	##########################################################
 	if request.user_banned:
-		context["unseen"] = False
 		context["reply_time"] = None
 	elif replies_data:
-		updated = update_notification(viewer_id=user_id, object_id=parent_id, object_type='2', seen=True, \
-			updated_at=time.time(), single_notif=False, unseen_activity=True,priority='home_jawab',bump_ua=False)
-		if updated:
-			context["unseen"] = True
-			try:
-				# calculating the max 'own reply' time
-				own_reply_time = max(reply['submitted_on'] for reply in replies_data if reply['submitted_by'] == user_id)
-				context["reply_time"] = own_reply_time
-			except (AttributeError,ValueError):
-				context["reply_time"] = None
-		else:
-			context["unseen"] = False
-			context["reply_time"] = None
+		# useful for showing  'NEW' tag next to comments
+		last_seen_time = get_last_comment_time(commenter_id=user_id, obj_owner_id=parent_submitter_id, obj_hash_name='tx:'+str(parent_id))
+		# useful for showing a 'NEW' tag next to replies
+		context["reply_time"] = float(last_seen_time) if last_seen_time else None
 	else:
-		context["unseen"] = False
 		context["reply_time"] = None
+	##########################################################
 	return render(request,"reply.html",context)
-
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def post_public_reply(request,*args,**kwargs):
-	context = {}
-	if request.user_banned:
-		return redirect("error")
-	elif request.method == "POST":
-		link_id = request.POST.get("link_id")
-		link_writer_id = request.POST.get("lwpk")
-		user_id = request.user.id
-		time_now = time.time()
-		banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
-		if banned:
-			# Cannot submit publicreply if banned
-			return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-				'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'9','obid':link_id})
-		else:
-			banned_by, ban_time = is_already_banned(own_id=user_id,target_id=link_writer_id, return_banner=True)
-			if banned_by:
-				request.session["banned_by"] = banned_by
-				request.session["ban_time"] = ban_time
-				request.session["where_from"] = '9'
-				request.session["obj_id"] = link_id
-				request.session["lid"] = 'tx:'+str(link_id)
-				request.session.modified = True
-				return redirect("ban_underway")
-			else:
-				is_verified = request.mobile_verified
-				form = PublicreplyForm(request.POST,user_id=user_id, link_id=link_id, mob_verified=is_verified)
-				if form.is_valid():
-					text = form.cleaned_data["description"]
-					set_input_rate_and_history.delay(section='home_rep',section_id=link_id,text=text,user_id=user_id,time_now=time_now)
-					target = process_publicreply(request=request,link_id=link_id,text=text, link_writer_id=link_writer_id)
-					if target == ":":
-						return redirect("ban_underway")
-					elif target == ";":
-						remove_erroneous_notif(notif_name="np:"+str(user_id)+":2:"+str(link_id), user_id=user_id)
-						return render(request,"object_deleted.html",{})
-					request.session["link_pk"] = link_id
-					request.session.modified = True
-					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						parent_text = Link.objects.only('description').get(id=link_id).description
-						activity_dict = {'m':'POST','act':'L','t':time_now,'tx':text,'pc':parent_text}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-					##################################################################
-				else:
-					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						act = 'L.i' if is_verified else 'L.u'
-						parent_text = Link.objects.only('description').get(id=link_id).description
-						activity_dict = {'m':'POST','act':act,'t':time_now,'tx':request.POST.get("description",None),'pc':parent_text}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-					##################################################################
-
-					request.session["publicreply_error"] = form.errors.as_text().split("*")[2]
-					request.session.modified = True
-				return redirect("publicreply_view",link_id)
-	else:
-		context["from_publicreply"] = True
-		return render(request,"dont_click_again_and_again.html",context)
 
 
 class UserActivityView(ListView):
@@ -4130,7 +3949,7 @@ def submit_text_post(request):
 				return render(request, 'error_photo.html', {'time':ttl,'origin':'1','tp':type_of_rate_limit,\
 				'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})# this is wrongly named, but tells the user to wait
 			else:
-				form = LinkForm(request.POST,user_id=own_id)
+				form = LinkForm(request.POST,user_id=own_id)#, on_fbs=on_fbs, on_opera=on_opera)
 				if form.is_valid():
 					description = form.cleaned_data['description']
 					alignment = form.cleaned_data['alignment']

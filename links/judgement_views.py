@@ -1317,7 +1317,6 @@ def judge_content_submitters(request):
 										return render(request,'judgement/ban_content_voters.html',context)
 									else:
 										# redirect to 'successfully banned' page (reconfigure this when originating from 'cull' list)
-										print ban_time
 										return render(request,"judgement/categorize_ban.html",{'cull_header':'ban_imposed','from_cull':from_cull,\
 											'origin':data['orig'],'oun':oun,'lid':data['lid'],'obid':obj_id,'ban_time':ban_time,'obj_owner_id':obj_owner_id})
 										##############################################

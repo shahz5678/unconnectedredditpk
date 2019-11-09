@@ -45,7 +45,7 @@ def submit_direct_response(json_data, time_now, sender_id, target_user_id, paren
 	try:
 		my_server.zadd(dr_po_key,obj_key,reply_id)
 	except:
-		my_server.lpush("error_reply_ids",*[reply_id,obj_type])
+		my_server.lpush("error_reply_ids",*[reply_id,obj_type,json_data])
 		my_server.zadd(dr_po_key,obj_key,reply_id)
 	my_server.zadd(dr_sr_key,obj_key,expire_at)
 

@@ -4973,15 +4973,3 @@ def bulk_update_user_officership_set(user_ids, group_id, time_now=None, remove=F
 			for user_id in user_ids:
 				pipeline1.zadd(GROUPS_IN_WHICH_USER_IS_OFFICER+str(user_id), group_id, time_now)
 			pipeline1.execute()
-
-
-########################## Error logging ##########################
-
-def log_mehfil_error(latest_replies):
-	"""
-	"""
-	to_log = []
-	for reply in latest_replies:
-		reqd_data = {'pre':reply.get('pre',''),'post':reply.get('post',''),'tgt_img':reply.get('tgt_img',''),'chat_img':reply.get('chat_img','')}
-		to_log.append(reqd_data)
-	redis.Redis(connection_pool=POOL).lpush("mehfil_error_data",to_log)

@@ -3253,12 +3253,7 @@ class PrivateGroupView(FormView):
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 								'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None),'pre':data.get('pre',''),'post':data.get('post',''),\
 								'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)})
-						try:
-							cache_mehfil_replies(json.dumps(latest_replies),group_id)
-						except:
-							from redis6 import log_mehfil_error
-							log_mehfil_error(latest_replies=latest_replies)
-							cache_mehfil_replies(json.dumps(latest_replies),group_id)					
+						cache_mehfil_replies(json.dumps(latest_replies),group_id)			
 					updated_at = time.time()#convert_to_epoch(timezone.now())
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)#, private=True)# fills group visitors
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)

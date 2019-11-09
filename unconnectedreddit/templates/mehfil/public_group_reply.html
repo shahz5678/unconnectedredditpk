@@ -260,9 +260,9 @@
             <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             {% if reply.tgt_image %}
-                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons static_url=STATIC_URL img=reply.tgt_image|s3 state=reply.hd %}
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre reply_postfix=reply.post static_url=STATIC_URL img=reply.tgt_image|s3 state=reply.hd %}
             {% elif reply.pre %}
-                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons static_url=STATIC_URL state=reply.hd %}
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre reply_postfix=reply.post static_url=STATIC_URL state=reply.hd %}
             {% endif %}
 
         {% else %}

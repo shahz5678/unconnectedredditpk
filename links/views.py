@@ -1964,7 +1964,8 @@ def display_image_comments(request,pk,origin=None):
 		else:
 			context['target_username'] = 'User'
 			context['authorized'] = False
-		return context
+		
+		return render(request,"comments.html",context)
 	###################################################
 	secret_key = uuid.uuid4()
 	home_hash = 'img:'+pk

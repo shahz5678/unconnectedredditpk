@@ -387,7 +387,7 @@ def hide_direct_response_in_inbox(obj_type,parent_obj_id,reply_id, to_hide,sende
 			pass
 	
 	##############################################
-	# when 'base reply' (i.e. base reply on which a reply came) is to be hidden
+	# when 'base reply' (i.e. base reply on which a reply came) is to be hidden (never run for obj_type '7' - i.e. 1on1s)
 	if reply_id:
 		parent_obj_composite_id = obj_type+":"+str(parent_obj_id)
 		reply_objs = my_server.zrangebyscore(DIRECT_RESPONSE_PARENT+obj_type+":"+parent_obj_id,reply_id,reply_id)

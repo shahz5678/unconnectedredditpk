@@ -430,7 +430,7 @@ def post_direct_response(request):
 										# add the following if groups (mehfils) are involved
 										if group_topic and group_uuid:
 											payload['gtp'] = group_topic
-											payload['guid'] = group_uuid
+											payload['guid'] = str(group_uuid)
 
 										if idx:
 											payload['idx'] = idx

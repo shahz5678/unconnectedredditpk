@@ -28,9 +28,9 @@ home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo
 unseen_comment, submit_text_post, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
 unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, reauth, reset_password, \
 fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
-first_time_unseen_refresh, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules, photo_sitemap,\
+user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules, photo_sitemap,\
 public_reply_view, display_image_comments, redirect_to_profile_photos,public_photo_upload_denied, hide_comment, logout_rules,\
-unseen_reply, sitemap, photo_sitemap_of_sitemaps, user_profile_photos_redirect, user_profile_photos
+unseen_reply, sitemap, photo_sitemap_of_sitemaps, user_profile_photos_redirect
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import FacesHelpView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView, AdAddressView,\
@@ -158,7 +158,7 @@ urlpatterns = patterns('',
 	############################################################################################################################
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
 	url(r'^khushamdeed/$', auth(WelcomeView.as_view()), name='welcome'),
-	url(r'^ftur/$', auth(first_time_unseen_refresh), name='first_time_unseen_refresh'),
+	# url(r'^ftur/$', auth(first_time_unseen_refresh), name='first_time_unseen_refresh'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
 	url(r'^damadam_par_khushamdeed/$', auth(welcome_reply), name='welcome_reply'),

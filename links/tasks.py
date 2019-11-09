@@ -248,9 +248,10 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 					sun = own_uname
 					group_name = '1 on 1 with {}'.format(sun)
 
+			# ensure a non-empty blob_id is passed, otherwise the code won't work correctly
 			payload = {'tx':text,'tun':target_uname,'t':posting_time,'tid':target_id,'obid':None,\
-				'sid':own_id,'dbid':blob_id,'sun':sun,'ptun':None,'poid':group_id, 'ot':'7','idx':idx,\
-				'ptx':group_name}
+				'sid':own_id,'dbid':blob_id if blob_id else '0','sun':sun,'ptun':None,'poid':group_id, \
+				'ot':'7','idx':idx,'ptx':group_name}
 
 			if img_url:
 				payload['iu'] = img_url

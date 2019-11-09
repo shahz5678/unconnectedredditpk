@@ -36,12 +36,17 @@ def submit_direct_response(json_data, time_now, sender_id, target_user_id, paren
 	dr_sr_key = DIRECT_RESPONSE_SENDER_RECEIVER+sender_receiver_id#sorted set containing all responses attached to a particular sender:receiver pair (useful in pvp blocking)
 	
 	###############################################################
+	# TODO: insert a pipeline into the following
 	my_server = redis.Redis(connection_pool=POOL)
 
 	my_server.setex(obj_key,json_data,REPLY_OBJECT_TTL)
 	
 	my_server.zadd(dr_key,obj_key,expire_at)
-	my_server.zadd(dr_po_key,obj_key,reply_id)
+	try:
+		my_server.zadd(dr_po_key,obj_key,reply_id)
+	except:
+		my_server.zadd("logged_reply_ids",reply_id,time.time())
+		my_server.zadd(dr_po_key,obj_key,reply_id)
 	my_server.zadd(dr_sr_key,obj_key,expire_at)
 
 	my_server.zadd(GLOBAL_DIRECT_RESPONSE_LOGGER,obj_key,expire_at)# global set containing all direct responses, useful for "clean-up scheduled tasks" (performed later)

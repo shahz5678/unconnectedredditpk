@@ -3135,15 +3135,15 @@ class PicPasswordView(NeverCacheMixin,FormView):
 # 			return redirect("cricket_comment")
 
 
-@ratelimit(rate='7/s')
-def first_time_unseen_refresh(request, *args, **kwargs):
-	if getattr(request, 'limits', False):
-		return redirect("missing_page")
-	else:
-		if tutorial_unseen(user_id=request.user.id, which_tut='14', renew_lease=True):
-			return render(request, 'unseen_activity_refresh.html', {'unique': request.user.username})
-		else:
-			return redirect("unseen_activity", request.user.username)
+# @ratelimit(rate='7/s')
+# def first_time_unseen_refresh(request, *args, **kwargs):
+# 	if getattr(request, 'limits', False):
+# 		return redirect("missing_page")
+# 	else:
+# 		if tutorial_unseen(user_id=request.user.id, which_tut='14', renew_lease=True):
+# 			return render(request, 'unseen_activity_refresh.html', {'unique': request.user.username})
+# 		else:
+# 			return redirect("unseen_activity", request.user.username)
 				
 
 @ratelimit(rate='3/s')

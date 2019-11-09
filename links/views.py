@@ -191,12 +191,12 @@ def break_text_into_prefix_and_postfix(target_text):
 	Does a reasonable effort at breaking the string along 'space' character
 	"""
 	STARTING_CHAR_IDX = 43
-	postfix_text = target_text[STARTING_CHAR_IDX:]
-	if postfix_text:
-		# target string is longer than 43 chars - i.e. it's a candidate for break-up
+	if len(target_text) <= STARTING_CHAR_IDX:
+		return target_text, ''
+	else:
 		broken = False
-		CEILING = min(len(postfix_text),4) 
-		for z in xrange(STARTING_CHAR_IDX-7,STARTING_CHAR_IDX+CEILING,1):
+		# go backward from 43rd char and break when the first space is encountered
+		for z in xrange(STARTING_CHAR_IDX, 0, -1):
 			if target_text[z].isspace():
 				# break at this point
 				broken = True
@@ -205,13 +205,11 @@ def break_text_into_prefix_and_postfix(target_text):
 				# break at STARTING_CHAR_IDX
 				pass
 		if broken:
-			prefix = target_text[:z]
-			postfix = target_text[z:].strip()
-			return prefix, postfix
+			prefix, postfix = target_text[:z], target_text[z:].strip()
 		else:
-			return target_text[:STARTING_CHAR_IDX], postfix_text
-	else:
-		return target_text, ''
+			# it is a continual string!
+			prefix, postfix = target_text[:STARTING_CHAR_IDX], target_text[STARTING_CHAR_IDX:]
+		return prefix, postfix
 
 
 def retrieve_trending_thumbs(user_id):

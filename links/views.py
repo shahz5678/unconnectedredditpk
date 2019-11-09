@@ -195,7 +195,8 @@ def break_text_into_prefix_and_postfix(target_text):
 	if postfix_text:
 		# target string is longer than 43 chars - i.e. it's a candidate for break-up
 		broken = False
-		for z in xrange(STARTING_CHAR_IDX-5,STARTING_CHAR_IDX+4,1):
+		CEILING = min(len(postfix_text),4) 
+		for z in xrange(STARTING_CHAR_IDX-7,STARTING_CHAR_IDX+CEILING,1):
 			if target_text[z].isspace():
 				# break at this point
 				broken = True

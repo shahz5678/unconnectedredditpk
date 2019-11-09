@@ -3253,7 +3253,13 @@ class PrivateGroupView(FormView):
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 								'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None),'pre':data.get('pre',''),'post':data.get('post',''),\
 								'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)})
-						cache_mehfil_replies(json.dumps(latest_replies),group_id)			
+						#################################################
+						try:
+							json_data = json.dumps(latest_replies)
+							cache_mehfil_replies(json_data,group_id)
+						except:
+							pass	
+						#################################################
 					updated_at = time.time()#convert_to_epoch(timezone.now())
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)#, private=True)# fills group visitors
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
@@ -3525,7 +3531,11 @@ class PublicGroupView(FormView):
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 								'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None),'pre':data.get('pre',''),\
 								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)})
-						cache_mehfil_replies(json.dumps(latest_replies),group_id)
+						try:
+							json_data = json.dumps(latest_replies)
+							cache_mehfil_replies(json.dumps(latest_replies),group_id)
+						except:
+							pass
 					###################### Retention activity logging ######################
 					from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
 					if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:

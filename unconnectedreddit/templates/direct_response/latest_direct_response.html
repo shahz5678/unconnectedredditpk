@@ -1,7 +1,9 @@
 {% if data %}
 {% load s3 %}
 {% load emoticons_tags %}
-<style>body{background:#f0f3f4}p{display:none}input:checked~p{display:block}input[type=checkbox]{position:absolute;left:-1000px}</style>
+
+<style>p{display:none}input:checked~p{display:block}input[type=checkbox]{position:absolute;left:-1000px}#show,:checked~.btn-default{display:none}:checked~#show{display:block}.show-text:after{content:"REPLY▼";color:#fff}:checked+.show-text:after{content:""}.show-text{cursor:pointer}</style>
+
 <div class="mbl mtl" style="color:black;border:2px solid #1cc8e3;border-radius:12px;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;width:100%;box-sizing:border-box">
 {% if data.tn %}
 	<section style="background:#fcfafa;border-bottom:2px solid #ececec;text-align:center;padding:5px;">
@@ -76,11 +78,12 @@
 	{% endif %}
 
 <div style="background:white">
+	
 	<div style="padding:8px;border-top:1px solid #dbdbdb;border-bottom:1px solid #dbdbdb">
 		{% if data.hide_rep == '1' %}
 			<div class="cl sp lsp"><b>{{ data.sun }}</b> ka reply hide ho gya</div>
 		{% else %}
-			<div class="cl lsp nos"><b>{{ data.sun }}</b> : {% if data.iu %}<img class="mrs" src="{{ data.iu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% endif %}<span class="sp mrs">{% emoticons %}{{ data.tx }}{% endemoticons %}</span><span class="mrs cxs sp" style="text-align:right;color:#999999">{{ data.t|human_time }}</span></div>
+			<div class="cl lsp nos"><b>{{ data.sun }}</b> : {% if data.iu %}<img class="mrs" src="{{ data.iu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% endif %}<span class="sp mrs"><bdi>{% emoticons %}{{ data.tx }}{% endemoticons %}</bdi></span><span class="mrs cxs sp" style="text-align:right;color:#999999">{{ data.t|human_time }}</span></div>
 			{% if data.hide_tgt != '1' and data.ttxpre %}
 			<div class="lsp sp nos" style="color:#999">
 				{% if data.tiu %}
@@ -91,17 +94,26 @@
 			</div>
 			{% endif %}
 		{% endif %}
+
 	</div>
 
-	<form method="POST" action="{% url 'post_direct_response' %}">
-		{% csrf_token %}<input type="hidden" name="obid" value="{{ data.dbid }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="tuid" value="{{ data.sid }}"><input type="hidden" name="poid" value="{{ data.poid }}"><input type="hidden" name="obtp" value="{{ data.ot }}">
-		<div style="background:#ecfffb">{{ form.direct_response }}</div>
-		<div style="background:#1cc8e3" class="fx fxjscn fxaicn">
-			<button type="submit" name="dec" class="btn sp pg_ok_res" style="width:25%;height:32px;color:white;background:coral;border-radius:0;border-right:1px solid coral;border-top:1px solid coral;text-shadow:none" value="0">BLOCK</button>
-			<button type="submit" name="dec" class="btn sp pg_ok_res" style="width:22%;height:32px;color:white;background:silver;border-radius:0;border-right:1px solid silver;border-top:1px solid silver;text-shadow:none" value="3">SKIP</button>
-			<button class="btn bct sp pg_ok_res" name="dec" style="width:53%;height:32px;color:white;background:#1cc8e3;border-radius:0;border-top:1px solid #1cc8e3;text-shadow:none" value="1">SEND</button>
+	<div style="text-align:center;background:#1cc8e3">
+		<input id="checkbox" type="checkbox" style="display:none">
+		<label id="open" for="checkbox" class="cs sp btn-default">
+			<span class="show-text"></b>
+		</label>
+		<div id="show">
+			<form method="POST" action="{% url 'post_direct_response' %}">
+				{% csrf_token %}<input type="hidden" name="obid" value="{{ data.dbid }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="tuid" value="{{ data.sid }}"><input type="hidden" name="poid" value="{{ data.poid }}"><input type="hidden" name="obtp" value="{{ data.ot }}">
+				<div style="background:#ecfffb">{{ form.direct_response }}</div>
+				<div style="background:#1cc8e3" class="fx fxjscn fxaicn">
+					<button type="submit" name="dec" class="btn sp pg_ok_res" style="width:25%;height:32px;color:white;background:coral;border-radius:0;border-right:1px solid coral;border-top:1px solid coral;text-shadow:none" value="0">BLOCK</button>
+					<button type="submit" name="dec" class="btn sp pg_ok_res" style="width:22%;height:32px;color:white;background:silver;border-radius:0;border-right:1px solid silver;border-top:1px solid silver;text-shadow:none" value="3">SKIP</button>
+					<button class="btn bct sp pg_ok_res" name="dec" style="width:53%;height:32px;color:white;background:#1cc8e3;border-radius:0;border-top:1px solid #1cc8e3;text-shadow:none" value="1">SEND</button>
+				</div>
+			</form>
 		</div>
-	</form>
+	</div>
 
 </div>
 

@@ -79,7 +79,7 @@ retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_m
 get_ranked_mehfils, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
 retrieve_officer_stats, invalidate_cached_ranked_groups, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites,\
 filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, retrieve_user_group_invites, group_invite_exists,\
-get_group_id, retrieve_user_group_data, retrieve_cached_mehfil_pages, cache_mehfil_pages, invalidate_cached_mehfil_pages
+get_group_id, retrieve_user_group_data, retrieve_cached_mehfil_pages, cache_mehfil_pages, invalidate_cached_mehfil_pages, remove_group_chat_submissions
 
 
 ################################### Mehfil info #####################################
@@ -3255,8 +3255,14 @@ class PrivateGroupView(FormView):
 							'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)}
 							latest_replies.append(data)
 						#################################################
-						json_data = json.dumps(latest_replies)
-						cache_mehfil_replies(json_data,group_id)
+						# TODO: remove once cleaned up (e.g. after a week)
+						try:
+							json_data = json.dumps(latest_replies)
+							cache_mehfil_replies(json_data,group_id)
+						except:
+							# clean up this group's chat and start anew!
+							latest_replies = []
+							remove_group_chat_submissions(group_id=group_id, group_type='6')
 						#################################################
 					updated_at = time.time()#convert_to_epoch(timezone.now())
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)#, private=True)# fills group visitors
@@ -3529,8 +3535,15 @@ class PublicGroupView(FormView):
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 								'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None),'pre':data.get('pre',''),\
 								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)})
-						json_data = json.dumps(latest_replies)
-						cache_mehfil_replies(json.dumps(latest_replies),group_id)
+						#################################################
+						# TODO: remove once cleaned up (e.g. after a week)
+						try:
+							json_data = json.dumps(latest_replies)# erroneous line
+							cache_mehfil_replies(json.dumps(latest_replies),group_id)
+						except:
+							# clean up this group's chat and start anew!
+							latest_replies = []
+							remove_group_chat_submissions(group_id=group_id, group_type='5')
 					###################### Retention activity logging ######################
 					from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
 					if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:

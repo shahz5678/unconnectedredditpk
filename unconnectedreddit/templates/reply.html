@@ -90,7 +90,7 @@
             {% if reply.direct_reply_tgt_uname and reply.direct_reply_tgt_text_prefix %}
                 
                 <!-- reference visible -->
-                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -128,7 +128,7 @@
             {% else %}
 
                 <!-- no reference -->
-                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
 
 
                 {% if reply.submitted_by == parent_submitter_id %}

@@ -87,10 +87,7 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		return redirect("user_profile", target_uname)
 	elif origin == '11':
 		# originated from the comments page
-		if target_uname:
-			return redirect("comment_pk", pk=obj_id, origin=target_uname)
-		else:
-			return redirect("comment_pk", pk=obj_id)
+		return redirect("comment_pk", pk=obj_id)
 	elif origin == '12':
 		# originated from user's own fan list
 		return redirect("fan_list", obj_id)

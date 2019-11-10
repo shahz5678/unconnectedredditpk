@@ -135,7 +135,7 @@
 
                     </div>
                 </div>
-                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre reply_postfix=reply.post img=reply.tgt_image|s3 state=reply.hd %}
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons img=reply.tgt_image|s3 state=reply.hd %}
             
             {% elif reply.pre %}
 
@@ -153,7 +153,7 @@
 
                     </div>
                 </div>
-                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre reply_postfix=reply.post state=reply.hd %}
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons state=reply.hd %}
 
             {% endif %}
 

@@ -8,6 +8,7 @@ MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
 POST_HISTORY_TTL = 259200# 3 days - time length a user's post visitors are logged for
 PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH = 40# text-length below which a public text post is considered 'low quality'
+PREFIX_TEXT_LENGTH = 43# useful when splitting a sentence into prefix and postfix parts (for 'reference' display)
 ###############################################################################################################
 VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 2419200# i.e. 28 days. This is the amount of time closed-voting objs are kept around for 'like_prob' or 'handpicked_prob' analysis
 ###############################################################################################################

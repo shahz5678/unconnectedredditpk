@@ -477,7 +477,7 @@ def get_reply_count(user_id):
 ##################### Logging basic metrics of direct_reply usage #####################
 
 
-def log_direct_response_metrics(action_status, action_type, num_skips):
+def log_direct_response_metrics(action_status, action_type, num_skips, obj_type):
 	"""
 	Logs basic metrics of direct response usage
 
@@ -489,9 +489,35 @@ def log_direct_response_metrics(action_status, action_type, num_skips):
 	action_type: '1' (replied) or '3' (skipped)
 	"""
 	if action_type == '1':
-		if action_status:
-			redis.Redis(connection_pool=POOL).zincrby(DIRECT_RESPONSE_METRICS,'replies_to_replies',amount=1)
-		redis.Redis(connection_pool=POOL).zincrby(DIRECT_RESPONSE_METRICS,'total_replies',amount=1)
+		my_server = redis.Redis(connection_pool=POOL)
+		if obj_type == '7':
+			# this is a 1on1
+			if action_status:
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'1on1_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'1on1_total_reps',amount=1)
+		elif obj_type == '3':
+			# this is text post comment
+			if action_status:
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'txt_post_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'txt_post_total_reps',amount=1)
+		elif obj_type == '4':
+			# this is an img post comment
+			if action_status:
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'img_post_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'img_post_total_reps',amount=1)
+		elif obj_type == '5':
+			# this is a public mehfil
+			if action_status:
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_total_reps',amount=1)
+		elif obj_type == '6':
+			# this is a private mehfil
+			if action_status:
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_total_reps',amount=1)
+		else:
+			# these are posts
+			pass
 	elif action_type == '3':
 		redis.Redis(connection_pool=POOL).zincrby(DIRECT_RESPONSE_METRICS,'skips',amount=num_skips)
 

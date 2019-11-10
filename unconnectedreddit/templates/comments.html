@@ -140,7 +140,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 
@@ -165,7 +165,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 
@@ -192,7 +192,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 
@@ -207,7 +207,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 

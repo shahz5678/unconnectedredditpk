@@ -288,7 +288,7 @@ def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj
 	Tasks to complete when a direct response is sent on a public post (text or image)
 	"""
 	############################
-	log_direct_response_metrics(action_status=action_status, action_type=action_type, num_skips=num_skips)
+	log_direct_response_metrics(action_status=action_status, action_type=action_type, num_skips=num_skips, obj_type=obj_type)
 	
 	############################
 	# it's a publicreply

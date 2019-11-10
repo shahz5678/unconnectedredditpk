@@ -1,3 +1,4 @@
+# coding=utf-8
 from django import forms
 from django.core.exceptions import ValidationError
 from forms import strip_zero_width_characters, repetition_found
@@ -63,7 +64,6 @@ class DirectResponseForm(forms.Form):
 			len_reply = len(direct_response)
 			if len_reply > MAX_HOME_REPLY_SIZE:
 				raise forms.ValidationError('Reply {} chars se lamba nahi likhein, ap ne {} chars likhe'.format(MAX_HOME_REPLY_SIZE, len_reply))
-			
 			##########################################################
 			# only applicable to mehfils
 			if obj_type in ('5','6'):

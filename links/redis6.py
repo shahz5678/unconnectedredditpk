@@ -4146,7 +4146,7 @@ def is_group_recently_deleted(group_id):
 
 def remove_group_chat_submissions(group_id, group_type, my_server=None):
 	"""
-	Getting rid of all chat data related to a group (for permanent deletion)
+	Getting rid of all chat data related to a group (e.g. for permanent deletion)
 	"""
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 

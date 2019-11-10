@@ -338,10 +338,6 @@ class PrivateGroupReplyForm(forms.Form):
 							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
 						else:
 							log_short_message(user_id,section,section_id)
-					elif text_len > 43:
-						# must contain at least one space for readability
-						if ' ' not in text:
-							raise forms.ValidationError('Jumley mein space zarur dalein')
 					elif text_len > PRIVATE_GROUP_REPLY_LENGTH:
 						raise forms.ValidationError('Itni barri baat nahi likh sakte')
 					data["text"] = text
@@ -415,10 +411,6 @@ class PublicGroupReplyForm(forms.Form):
 							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
 						else:
 							log_short_message(user_id,section,section_id)
-					elif text_len > 43:
-						# must contain at least one space for readability
-						if ' ' not in text:
-							raise forms.ValidationError('Jumley mein space zarur dalein')
 					elif text_len > PUBLIC_GROUP_REPLY_LENGTH:
 						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
 					data["text"] = text

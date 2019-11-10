@@ -18,7 +18,7 @@ from cricket_score import cricket_scr
 from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE, PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC, MAX_HOME_REPLY_SIZE
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC, MAX_HOME_REPLY_SIZE, PREFIX_TEXT_LENGTH
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -190,25 +190,27 @@ def break_text_into_prefix_and_postfix(target_text):
 	"""
 	Does a reasonable effort at breaking the string along 'space' character
 	"""
-	STARTING_CHAR_IDX = 43
-	if len(target_text) <= STARTING_CHAR_IDX:
+	# This line turns a typical string into "unicode" string. "non-ascii" chars can sometimes crash without this line (esp in open/closed mehfils)
+	target_text = target_text if isinstance(target_text,unicode) else unicode(target_text, "utf-8")
+	######################
+	if len(target_text) <= PREFIX_TEXT_LENGTH:
 		return target_text, ''
 	else:
 		broken = False
 		# go backward from 43rd char and break when the first space is encountered
-		for z in xrange(STARTING_CHAR_IDX, 0, -1):
+		for z in xrange(PREFIX_TEXT_LENGTH, 0, -1):
 			if target_text[z].isspace():
 				# break at this point
 				broken = True
 				break
 			else:
-				# break at STARTING_CHAR_IDX
+				# break at PREFIX_TEXT_LENGTH
 				pass
 		if broken:
 			prefix, postfix = target_text[:z], target_text[z:].strip()
 		else:
 			# it is a continual string!
-			prefix, postfix = target_text[:STARTING_CHAR_IDX], target_text[STARTING_CHAR_IDX:]
+			prefix, postfix = target_text[:PREFIX_TEXT_LENGTH], target_text[PREFIX_TEXT_LENGTH:]
 		return prefix, postfix
 
 

@@ -310,7 +310,7 @@ def delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_
 	my_server = redis.Redis(connection_pool=POOL)
 	ttl = my_server.ttl("pgdrl:"+group_id+":"+own_id)
 	if ttl > 0:
-		return False, ttl, False
+		return False, ttl, False, False
 	to_delete, to_hide = action in ('del','undel'), action in ('hide','unhide')
 	parent_blob = "pgh:"+group_id+":"+blob_id
 	# if blob has been deleted, blow_owner_id and target_img_id should come out to be None

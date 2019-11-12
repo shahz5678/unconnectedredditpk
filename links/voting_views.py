@@ -22,7 +22,7 @@ from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, 
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
 retrieve_users_voting_relationships, retrieve_detailed_voting_data, log_section_wise_voting_liquidity, is_image_star
-from score import SEGMENT_STARTING_USER_ID
+# from score import SEGMENT_STARTING_USER_ID
 
 
 def vote_result(request):
@@ -145,14 +145,14 @@ def cast_vote(request,*args,**kwargs):
 			mob_verified = request.mobile_verified
 			if not mob_verified:
 				###################### Retention activity logging ######################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					if is_pht == '1':
-						photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-						activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
-					else:
-						description = Link.objects.only('description').get(id=obj_id).description
-						activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	if is_pht == '1':
+				# 		photo = Photo.objects.only('image_file','caption').get(id=obj_id)
+				# 		activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+				# 	else:
+				# 		description = Link.objects.only('description').get(id=obj_id).description
+				# 		activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				request.session["vote_result"] = '1'
 				request.session.modified = True
@@ -192,14 +192,14 @@ def cast_vote(request,*args,**kwargs):
 						
 						if can_vote:
 							###################### Retention activity logging ######################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								if is_pht == '1':
-									photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-									activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
-								else:
-									description = Link.objects.only('description').get(id=obj_id).description
-									activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	if is_pht == '1':
+							# 		photo = Photo.objects.only('image_file','caption').get(id=obj_id)
+							# 		activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+							# 	else:
+							# 		description = Link.objects.only('description').get(id=obj_id).description
+							# 		activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
 							# votes cast in fresh lists are considered 'editorial' votes - handpickers build their reputation by voting here
 							# votes cast in best lists are considered 'audience' votes - voters vote on curated stuff and validate curators' choice
@@ -246,14 +246,14 @@ def cast_vote(request,*args,**kwargs):
 								return return_to_content(request,origin,obj_id,'img:'+obj_id if is_pht=='1' else 'tx:'+obj_id)
 						elif time_remaining:
 							###################### Retention activity logging ######################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								if is_pht == '1':
-									photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-									activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
-								else:
-									description = Link.objects.only('description').get(id=obj_id).description
-									activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	if is_pht == '1':
+							# 		photo = Photo.objects.only('image_file','caption').get(id=obj_id)
+							# 		activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+							# 	else:
+							# 		description = Link.objects.only('description').get(id=obj_id).description
+							# 		activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
 							request.session["vote_topic"] = request.POST.get("tp",None)
 							request.session["vote_origin"] = origin
@@ -669,11 +669,11 @@ def user_vote_history(request):
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 	on_opera = True if (not on_fbs and not is_js_env) else False
 	###################### Retention activity logging ######################
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'M8' if request.mobile_verified else 'M8.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# if own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'M8' if request.mobile_verified else 'M8.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
 	return render(request,"voting/voting_history.html",{'slug':retrieve_uname(own_id,decode=True), 'own_profile':True,\
 		'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\

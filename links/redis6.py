@@ -18,7 +18,7 @@ CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAG
 INVITER_PRIVATE_INVITE_LOCK_DURATION, INVITER_PUBLIC_INVITE_LOCK_DURATION
 from redis4 import retrieve_bulk_unames, retrieve_uname, retrieve_bulk_credentials, retrieve_credentials
 from redis9 import delete_direct_responses_upon_obj_deletion, delete_direct_responses_linked_to_obj
-from redis2 import remove_group_notification
+# from redis2 import remove_group_notification
 from redis3 import exact_date
 from location import REDLOC6
 
@@ -4380,7 +4380,7 @@ def remove_inactive_members(user_ids, group_id, time_now):
 					# group is private
 					# legacy_mehfil_exit(group_id, user_id, own_uname, group_type='private')# legacy redis 1 - please remove
 					############################ Redis 2 ###############################
-					remove_group_notification(user_id,group_id)# removing notification from redis 2
+					# remove_group_notification(user_id,group_id)# removing notification from redis 2
 					############################ Redis 6 ###############################
 					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 					exit_group(group_id, user_id, time_now, own_uname, get_s3_object(own_avurl,category='thumb'), is_public=False,\
@@ -4390,7 +4390,7 @@ def remove_inactive_members(user_ids, group_id, time_now):
 					# group is public
 					# legacy_mehfil_exit(group_id, user_id, own_uname, group_type='public')# legacy redis 1 - please remove
 					############################ Redis 2 ###############################
-					remove_group_notification(user_id,group_id)# removing notification from redis 2
+					# remove_group_notification(user_id,group_id)# removing notification from redis 2
 					############################ Redis 6 ###############################
 					exit_group(group_id, user_id, time_now, is_public=True, inactive=True, rescind_apps=rescind_apps)
 					####################################################################

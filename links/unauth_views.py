@@ -21,7 +21,7 @@ from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewFor
 ForgettersMobileNumber, ForgettersPin
 from verification_views import get_requirements
 from forms import getip
-from score import PW, SEGMENT_STARTING_USER_ID
+from score import PW#, SEGMENT_STARTING_USER_ID
 from brake.decorators import ratelimit
 
 ######################################################################################

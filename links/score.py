@@ -287,7 +287,7 @@ MERCH = {
 ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
-SEGMENT_STARTING_USER_ID = 2004144# starting user ID of user segment analysis
+# SEGMENT_STARTING_USER_ID = 2004144# starting user ID of user segment analysis
 PROJ_ZUCK_STARTING_USER_ID = 1975000
 
 """

@@ -10,7 +10,7 @@ from django.http import HttpResponse, Http404
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from redis2 import skip_private_chat_notif
+# from redis2 import skip_private_chat_notif
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
 from redis7 import check_content_and_voting_ban, is_pair_image_stars, get_all_image_star_ids
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\
@@ -30,7 +30,7 @@ get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rat
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, log_user_activity, cache_personal_group,\
-update_notif_object_anon, hide_associated_direct_responses, private_chat_seen, photo_sharing_metrics_and_rate_limit
+hide_associated_direct_responses, private_chat_seen, photo_sharing_metrics_and_rate_limit#, update_notif_object_anon
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
 PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT, PERSONAL_GROUP_REJOIN_RATELIMIT
@@ -1146,19 +1146,21 @@ def x_per_grp_notif(request, gid, fid, from_home):
 	"""
 	Used to skip personal group single notification
 	"""
-	own_id = request.user.id
-	group_id, exists = personal_group_already_exists(own_id, fid)
-	if exists and group_id == str(gid):
-		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	################### Retention activity logging ###################
-	# if own_id > SEGMENT_STARTING_USER_ID:
-	# 	time_now = time.time()
-	# 	request.session['rd'] = '1'
-	# 	act = 'Q4' if request.mobile_verified else 'Q4.u'
-	# 	activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':fid}
-	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-	###################################################################
-	return return_to_content(request,from_home,group_id,None,None)
+	raise Http404("The page you requested has gone AWOL")
+	# own_id = request.user.id
+	# group_id, exists = personal_group_already_exists(own_id, fid)
+	# if exists and group_id == str(gid):
+	# 	pass
+	# 	# skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
+	# ################### Retention activity logging ###################
+	# # if own_id > SEGMENT_STARTING_USER_ID:
+	# # 	time_now = time.time()
+	# # 	request.session['rd'] = '1'
+	# # 	act = 'Q4' if request.mobile_verified else 'Q4.u'
+	# # 	activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':fid}
+	# # 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# ###################################################################
+	# return return_to_content(request,from_home,group_id,None,None)
 
 
 # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -1506,7 +1508,7 @@ def anonymize_user_in_personal_group(request):
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 				new_value = set_personal_group_anon_state(own_id, tid)
 				if new_value:
-					update_notif_object_anon.delay(value=new_value,which_user=own_id,which_group=group_id)
+					# update_notif_object_anon.delay(value=new_value,which_user=own_id,which_group=group_id)
 					return render(request,"personal_group/anon_settings/personal_group_anonymize.html",{'their_anon':their_anon_status,\
 						'own_anon':False if new_value == '0' else True,'name':their_uname,'avatar':their_avurl,'new_anon_value':new_value,\
 						'own_name':get_target_username(str(own_id)) if new_value == '1' else None,'tid':tid})

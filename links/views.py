@@ -60,7 +60,7 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, photo_upload_tasks, \
 video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, log_user_activity, populate_search_thumbs,\
-sanitize_erroneous_notif, set_input_rate_and_history, video_vote_tasks#, set_input_history
+set_input_rate_and_history, video_vote_tasks#, sanitize_erroneous_notif, set_input_history
 #from .html_injector import create_gibberish_punishment_text
 # from .check_abuse import check_video_abuse # check_photo_abuse
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
@@ -444,59 +444,60 @@ def GetLatest(user):
 	"""
 	Get latest notification that is to appear in the single-notif box
 	"""
-	notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
-	try:
-		if latest_notif['ot'] == '3':
-			# group chat - 'g' is privacy status
-			return latest_notif['g'], latest_notif, False, False, True, False, False
-		elif latest_notif['ot'] == '5':
-			return  '5', latest_notif, False, False, False, False, True
-		elif latest_notif['ot'] == '2':
-			#home publicreply
-			return '2', latest_notif, True, False, False, False, False
-		elif latest_notif['ot'] == '0':
-			#photo comment
-			if latest_notif.get('f'):
-				if latest_notif['nc'] == 'True':
-					# photo notif for fans
-					return '1', latest_notif, False, True, False, False, False
-				else:
-					# photo comment received by fan
-					return '0', latest_notif, False, True, False, False, False  
-			else:
-				# photo comment received by non-fan
-				return '0', latest_notif, False, True, False, False, False
-		elif latest_notif['ot'] == '4':
-			# salat invites
-			delete_salat_notification(notif_name, hash_name, user.id)
-			return None, None, False, False, False, False, False
-			# time_now = datetime.utcnow()+timedelta(hours=5)
-			# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
-			# 	'LOCATION': MEMLOC, 'TIMEOUT': 70,
-			# })
-			# salat_timings = cache_mem.get('salat_timings')
-			# if not salat_timings['namaz']:
-			# 	#time for namaz has gone
-			# 	delete_salat_notification(notif_name, hash_name, user.id)
-			# 	return None, None, False, False, False, False, False
-			# else:
-			# 	starting_time = datetime.combine(time_now.today(), salat_timings['current_namaz_start_time'])
-			# 	ending_time = datetime.combine(time_now.today(), salat_timings['current_namaz_end_time'])
-			# 	try:
-			# 		latest_namaz = LatestSalat.objects.filter(salatee=user).latest('when')
-			# 	except:
-			# 		#latest_namaz does not exist
-			# 		latest_namaz = None
-			# 	if (convert_to_epoch(starting_time) <= float(latest_notif['u']) < convert_to_epoch(ending_time)) and not \
-			# 	AlreadyPrayed(latest_namaz,time_now):
-			# 		return '4',latest_notif, False, False, False, True, False
-			# 	else:
-			# 		delete_salat_notification(notif_name, hash_name, user.id)           
-			# 		return None, None, False, False, False, False, False
-	except (KeyError,TypeError):
-		if latest_notif and notif_name:
-			sanitize_erroneous_notif.delay(notif_name, user.id)
-		return None, None, False, False, False, False, False
+	pass
+	# notif_name, hash_name, latest_notif = retrieve_latest_notification(user.id)
+	# try:
+	# 	if latest_notif['ot'] == '3':
+	# 		# group chat - 'g' is privacy status
+	# 		return latest_notif['g'], latest_notif, False, False, True, False, False
+	# 	elif latest_notif['ot'] == '5':
+	# 		return  '5', latest_notif, False, False, False, False, True
+	# 	elif latest_notif['ot'] == '2':
+	# 		#home publicreply
+	# 		return '2', latest_notif, True, False, False, False, False
+	# 	elif latest_notif['ot'] == '0':
+	# 		#photo comment
+	# 		if latest_notif.get('f'):
+	# 			if latest_notif['nc'] == 'True':
+	# 				# photo notif for fans
+	# 				return '1', latest_notif, False, True, False, False, False
+	# 			else:
+	# 				# photo comment received by fan
+	# 				return '0', latest_notif, False, True, False, False, False  
+	# 		else:
+	# 			# photo comment received by non-fan
+	# 			return '0', latest_notif, False, True, False, False, False
+	# 	elif latest_notif['ot'] == '4':
+	# 		# salat invites
+	# 		delete_salat_notification(notif_name, hash_name, user.id)
+	# 		return None, None, False, False, False, False, False
+	# 		# time_now = datetime.utcnow()+timedelta(hours=5)
+	# 		# cache_mem = get_cache('django.core.cache.backends.memcached.MemcachedCache', **{
+	# 		# 	'LOCATION': MEMLOC, 'TIMEOUT': 70,
+	# 		# })
+	# 		# salat_timings = cache_mem.get('salat_timings')
+	# 		# if not salat_timings['namaz']:
+	# 		# 	#time for namaz has gone
+	# 		# 	delete_salat_notification(notif_name, hash_name, user.id)
+	# 		# 	return None, None, False, False, False, False, False
+	# 		# else:
+	# 		# 	starting_time = datetime.combine(time_now.today(), salat_timings['current_namaz_start_time'])
+	# 		# 	ending_time = datetime.combine(time_now.today(), salat_timings['current_namaz_end_time'])
+	# 		# 	try:
+	# 		# 		latest_namaz = LatestSalat.objects.filter(salatee=user).latest('when')
+	# 		# 	except:
+	# 		# 		#latest_namaz does not exist
+	# 		# 		latest_namaz = None
+	# 		# 	if (convert_to_epoch(starting_time) <= float(latest_notif['u']) < convert_to_epoch(ending_time)) and not \
+	# 		# 	AlreadyPrayed(latest_namaz,time_now):
+	# 		# 		return '4',latest_notif, False, False, False, True, False
+	# 		# 	else:
+	# 		# 		delete_salat_notification(notif_name, hash_name, user.id)           
+	# 		# 		return None, None, False, False, False, False, False
+	# except (KeyError,TypeError):
+	# 	if latest_notif and notif_name:
+	# 		sanitize_erroneous_notif.delay(notif_name, user.id)
+	# 	return None, None, False, False, False, False, False
 
 
 def csrf_failure(request, reason=""):
@@ -676,6 +677,7 @@ class AboutView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(AboutView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
+			pass
 			################### Retention activity logging ###################
 			# user_id = self.request.user.id
 			# if user_id > SEGMENT_STARTING_USER_ID:
@@ -698,6 +700,7 @@ class HelpView(FormView):
 	def get_context_data(self, **kwargs):
 		context = super(HelpView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
+			pass
 			################### Retention activity logging ###################
 			# user_id = self.request.user.id
 			# if user_id > SEGMENT_STARTING_USER_ID:

@@ -1134,9 +1134,6 @@ def home_page(request, lang=None):
 		oldest_post_time = 0.0
 	#######################
 	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
-	# replyforms = {}
-	# for obj in list_of_dictionaries:
-	# 	replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 	#######################
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
@@ -1167,10 +1164,12 @@ def home_page(request, lang=None):
 	########################################################################
 
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
-	'is_auth':True,'on_fbs':on_fbs,'ident':own_id,'newest_user':User.objects.only('username').latest('id') if num > 2 else None,\
 	'mobile_verified':is_mob_verified,'random':num, 'sk':secret_key,'newbie_lang':request.session.get("newbie_lang",None),\
-	'on_opera':on_opera,'dir_rep_form':DirectResponseForm(with_id=True),'thin_rep_form':DirectResponseForm(thin_strip=True),\
-	'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),'single_notif_dir_rep_form':DirectResponseForm()}#'process_notification':False,
+	'on_opera':on_opera,'dir_rep_form':DirectResponseForm(with_id=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
+	'single_notif_dir_rep_form':DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
+	'uname_rep_sent_to':request.session.pop("dir_rep_sent"+str(own_id),None),'thin_rep_form':DirectResponseForm(thin_strip=True),\
+	'obj_type_rep_sent_to':request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None),'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
+	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'is_auth':True,'on_fbs':on_fbs,'ident':own_id}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
@@ -1189,15 +1188,7 @@ def home_page(request, lang=None):
 				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 		else:
 			context["newbie_tutorial_page"] = 'newbie_rules.html'
-	# extraneous
-	context["lang"] = 'None'
-	context["sort_by"] = 'recent'
-	context["max_home_reply_size"] = MAX_HOME_REPLY_SIZE
-	#####################
-	# context["single_notif_error"] = request.session.pop("single_notif_error",None)
-	# if not request.user_banned:
-		# context["process_notification"] = True
-	context["dir_rep_invalid"] = request.session.pop("dir_rep_invalid"+str(own_id),None)
+
 	return render(request, 'link_list.html', context)
 
 
@@ -2316,21 +2307,22 @@ def photo_page(request,list_type='best-list'):
 			secret_key = ''
 			newbie_lang, newbie_flag = None, None
 			mobile_verified = None
+		
 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 		on_opera = True if (not on_fbs and not is_js_env) else False
 		
-		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,\
-		'ident':own_id, 'newbie_lang':newbie_lang,'newbie_flag':newbie_flag,'single_notif_origin':single_notif_origin,\
-		'page_origin':page_origin,'sk':secret_key,"mobile_verified":mobile_verified,\
+		context = {'object_list':list_of_dictionaries,'fanned':fanned,'is_auth':is_auth,'sk':secret_key,\
+		'single_notif_origin':single_notif_origin, 'page_origin':page_origin,'fbs':on_fbs,'list_type':list_type,\
 		'feed_type':type_,'navbar_type':navbar_type,'on_opera':on_opera,'num_in_last_1_day':num_in_last_1_day,\
-		'list_type':list_type,'dir_rep_form':DirectResponseForm(with_id=True),'thin_rep_form':DirectResponseForm(thin_strip=True),\
+		'dir_rep_form':DirectResponseForm(with_id=True),'thin_rep_form':DirectResponseForm(thin_strip=True),\
 		'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),'single_notif_dir_rep_form':DirectResponseForm()}#
 		
 		next_page_number = page_num+1 if page_num<max_pages else 1
 		previous_page_number = page_num-1 if page_num>1 else max_pages
-		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
-		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
+		context["page"] = {'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages,'number':page_num}
+		
 		if newbie_flag:
 			if newbie_flag in ('1','2','3','5','6','7'):
 				if newbie_flag == '5':
@@ -2351,16 +2343,19 @@ def photo_page(request,list_type='best-list'):
 					context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
 			else:
 				context["newbie_tutorial_page"] = 'newbie_rules.html'
-		# extraneous
-		context["lang"] = 'None'
-		context["sort_by"] = 'recent'
+		
 		#####################
-		context["fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
-		# context["single_notif_error"] = request.session.pop("single_notif_error",None)
 		if own_id:
-			# context["process_notification"] = True
-			# context["photo_direct_reply_error_string"] = request.session.pop("photo_direct_reply_error_string",None)
-			context["dir_rep_invalid"] = request.session.pop("dir_rep_invalid"+str(own_id),None)
+			# only pass these if user is logged in
+			context['ident'] = own_id
+			context['newbie_lang'] = newbie_lang
+			context['newbie_flag'] = newbie_flag
+			context['mobile_verified'] = mobile_verified
+			context['dir_rep_invalid'] = request.session.pop("dir_rep_invalid"+str(own_id),None)
+			context['uname_rep_sent_to'] = request.session.pop("dir_rep_sent"+str(own_id),None)
+			context['obj_type_rep_sent_to'] = request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None)
+			context['parent_obj_id_rep_sent_to'] = request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None)
+
 		return render(request,"photos_page.html",context)
 	else:
 		raise Http404("Such a photo listing does not exist")

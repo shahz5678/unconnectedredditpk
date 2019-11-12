@@ -30,12 +30,10 @@ from redis4 import expire_online_users, get_recent_online, set_online_users, log
 retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,\
 log_share, logging_sharing_metrics, cache_photo_share_data, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,\
 sanitize_unused_subscriptions,log_1on1_chat#, log_photo_attention_from_fresh
-from redis2 import set_benchmark, get_uploader_percentile, bulk_create_photo_notifications_for_fans, remove_erroneous_notif,\
-bulk_update_notifications, update_notification, create_notification, update_object, create_object, add_to_photo_owner_activity,\
-get_active_fans, skip_private_chat_notif, clean_expired_notifications, get_top_100,get_fan_counts_in_bulk, get_all_fans, is_fan, \
-remove_from_photo_owner_activity, sanitize_eachothers_unseen_activities, set_uploader_score, update_private_chat_notif_object, \
-update_pg_obj_anon, update_private_chat_notifications, bulk_remove_multiple_group_notifications#, update_pg_obj_hide
-# photo_link_mapping,get_photo_link_mapping, add_home_rating_ingredients, add_home_link
+from redis2 import remove_from_photo_owner_activity#update_pg_obj_anon, set_uploader_score, sanitize_eachothers_unseen_activities, is_fan, get_all_fans, \
+#get_fan_counts_in_bulk, get_top_100, clean_expired_notifications, skip_private_chat_notif, get_active_fans, add_to_photo_owner_activity, create_object, \
+#update_object, create_notification, update_notification, bulk_update_notifications, bulk_create_photo_notifications_for_fans, get_uploader_percentile, \
+#update_pg_obj_hide, remove_erroneous_notif, set_benchmark
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group
@@ -47,7 +45,7 @@ study_voting_preferences,retrieve_img_obj_scores, add_single_trending_object_in_
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes, \
 retrieve_all_home_text_obj_names, retrieve_text_obj_scores, hide_inline_direct_response
 from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list, submit_direct_response, set_comment_history, \
-delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics
+delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics#, log_location_for_sender
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from django.contrib.auth.models import User
@@ -154,7 +152,7 @@ def fans_targeted(current_percentile):
 def fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify,fan_ids_list):
 	num_of_fans_to_notify = len(fan_ids_list) * percentage_of_fans_to_notify
 	if num_of_fans_to_notify:
-		fan_ids_to_notify = get_active_fans(user_id,int(num_of_fans_to_notify))
+		fan_ids_to_notify = []#get_active_fans(user_id,int(num_of_fans_to_notify))
 	try:
 		fan_ids_to_notify = map(int, fan_ids_to_notify)
 		remaining_fan_ids = set(fan_ids_list) - set(fan_ids_to_notify)
@@ -278,7 +276,8 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 
 @celery_app1.task(name='tasks.update_notif_object_anon')
 def update_notif_object_anon(value,which_user,which_group):
-	update_pg_obj_anon(value=value,object_id=which_group,user_id=which_user)
+	pass
+	# update_pg_obj_anon(value=value,object_id=which_group,user_id=which_user)
 
 
 @celery_app1.task(name='tasks.direct_response_tasks')
@@ -289,6 +288,8 @@ def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj
 	"""
 	############################
 	log_direct_response_metrics(action_status=action_status, action_type=action_type, num_skips=num_skips, obj_type=obj_type)
+	# if log_location:
+	# 	log_location_for_sender(obj_type=obj_type, obj_owner_id=obj_owner_id, parent_obj_id=parent_obj_id, sender_id=commenter_id)
 	
 	############################
 	# it's a publicreply
@@ -304,6 +305,7 @@ def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj
 		set_comment_history(obj_hash_name=obj_hash_name, obj_owner_id=obj_owner_id, commenter_id=commenter_id, time_now=time_now)
 		# Incrementing comment_count
 		Photo.objects.filter(id=parent_obj_id).update(comment_count=F('comment_count')+1)
+
 
 
 @celery_app1.task(name='tasks.hide_associated_direct_responses')
@@ -333,7 +335,8 @@ def private_chat_seen(own_id, group_id, curr_time):
 
 	But not called from 'from_unseen' or 'sharing'
 	"""
-	skip_private_chat_notif(own_id, group_id,curr_time, seen=True)
+	pass
+	# skip_private_chat_notif(own_id, group_id,curr_time, seen=True)
 
 
 # execute every 3 days
@@ -371,7 +374,7 @@ def post_banning_tasks(own_id, target_id):
 	rate_limit_unfanned_user(own_id=own_id,target_id=target_id)
 	################################################################################
 	# this ensures all posts of eachothers are deleted from the matka
-	sanitize_eachothers_unseen_activities(user1_id=own_id, user2_id=target_id)
+	# sanitize_eachothers_unseen_activities(user1_id=own_id, user2_id=target_id)
 	################################################################################
 	# 1) Exit yourself if group is non-exited
 	# 2) If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them!
@@ -605,7 +608,8 @@ def enqueue_query_sms(mobile_number, ad_id, order_data, buyer_number=None):
 
 @celery_app1.task(name='tasks.delete_notifications')
 def delete_notifications(user_id):
-	clean_expired_notifications(user_id)
+	pass
+	# clean_expired_notifications(user_id)
 
 @celery_app1.task(name='tasks.calc_gibberish_punishment')
 def calc_gibberish_punishment():
@@ -733,9 +737,9 @@ def populate_search_thumbs(user_id,ids_with_urls):
 	bulk_add_search_photos(user_id,ids_with_urls)
 
 
-@celery_app1.task(name='tasks.sanitize_erroneous_notif')
-def sanitize_erroneous_notif(notif_name, user_id):
-	remove_erroneous_notif(notif_name, user_id)
+# @celery_app1.task(name='tasks.sanitize_erroneous_notif')
+# def sanitize_erroneous_notif(notif_name, user_id):
+# 	remove_erroneous_notif(notif_name, user_id)
 
 @celery_app1.task(name='tasks.document_administrative_activity')
 def document_administrative_activity(group_id, main_sentence, history_type):
@@ -837,7 +841,7 @@ def delete_idle_public_and_private_groups():
 	# grp_ids_and_members is a dict of the sort { group_id:[member_ids] }
 
 	grp_ids_and_members = delete_ghost_groups()#redis6
-	bulk_remove_multiple_group_notifications(grp_ids_and_members)#redis2
+	# bulk_remove_multiple_group_notifications(grp_ids_and_members)#redis2
 	# cleanse_public_and_private_groups_data(grp_ids_and_members)#redis1 (DEPRECATE THIS ENTIRE FUNCTIONALITY)
 	# marking postgresql Group object as deleted (deprecate this later)
 	# group_ids = grp_ids_and_members.keys()
@@ -857,45 +861,46 @@ def trim_group_submissions(group_id):
 def group_notification_tasks(group_id,sender_id,group_owner_id,topic,reply_time,poster_url,poster_username,reply_text,priv,\
 	image_url,priority,from_unseen, slug=None, txt_type=None, notify_single_user=False, single_target_id=None):
 	if txt_type == 'join':
+		pass
 		# own self has seen this, and no need to show a notification to other users
 		###############################
-		updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-			unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
-		if not updated:
-			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-				unseen_activity=True, check_parent_obj=True)# matka notif won't be created if original object doesn't exist
+		# updated=update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+		# 	unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+		# if not updated:
+		# 	create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+		# 		unseen_activity=True, check_parent_obj=True)# matka notif won't be created if original object doesn't exist
 	else:
-		if from_unseen:
-			# i.e. from unseen_group() in views.py
-			update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-				lt_res_sub_name=poster_username,reply_photourl=image_url,lt_res_wid=sender_id)
-		else:
-			created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
-				lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
-				group_privacy=priv,slug=slug, lt_res_wid=sender_id)
-			if not created:
-				update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
-					lt_res_sub_name=poster_username,reply_photourl=image_url, lt_res_wid=sender_id)
-		###############################
-		# updating notification for single target or bulk targets
-		if notify_single_user and single_target_id:
-			# notify just a single targeted user (i.e. used in a direct response in mehfils)
-			update_notification(viewer_id=single_target_id,object_id=group_id,object_type='3',seen=False,updated_at=reply_time,\
-				unseen_activity=True,single_notif=True,priority=priority,bump_ua=True)
-		else:
-			all_group_member_ids = retrieve_all_member_ids(group_id)
-			all_group_member_ids.remove(str(sender_id))
-			if all_group_member_ids:
-				# this does NOT update notifications for users whose notification object was deleted (or wasn't created in the first place)
-				bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
-					updated_at=reply_time,single_notif=True,unseen_activity=True,priority=priority)
-		###############################
-		# updating notification for sender
-		updated = update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-			unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
-		if not updated:
-			create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
-				unseen_activity=True)
+		# if from_unseen:
+		# 	# i.e. from unseen_group() in views.py
+		# 	update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
+		# 		lt_res_sub_name=poster_username,reply_photourl=image_url,lt_res_wid=sender_id)
+		# else:
+		# 	created = create_object(object_id=group_id,object_type='3',object_owner_id=group_owner_id,object_desc=topic,\
+		# 		lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_sub_name=poster_username,lt_res_text=reply_text,\
+		# 		group_privacy=priv,slug=slug, lt_res_wid=sender_id)
+		# 	if not created:
+		# 		update_object(object_id=group_id,object_type='3',lt_res_time=reply_time,lt_res_avurl=poster_url,lt_res_text=reply_text,\
+		# 			lt_res_sub_name=poster_username,reply_photourl=image_url, lt_res_wid=sender_id)
+		# ###############################
+		# # updating notification for single target or bulk targets
+		# if notify_single_user and single_target_id:
+		# 	# notify just a single targeted user (i.e. used in a direct response in mehfils)
+		# 	update_notification(viewer_id=single_target_id,object_id=group_id,object_type='3',seen=False,updated_at=reply_time,\
+		# 		unseen_activity=True,single_notif=True,priority=priority,bump_ua=True)
+		# else:
+		# 	all_group_member_ids = retrieve_all_member_ids(group_id)
+		# 	all_group_member_ids.remove(str(sender_id))
+		# 	if all_group_member_ids:
+		# 		# this does NOT update notifications for users whose notification object was deleted (or wasn't created in the first place)
+		# 		bulk_update_notifications(viewer_id_list=all_group_member_ids,object_id=group_id,object_type='3',seen=False,
+		# 			updated_at=reply_time,single_notif=True,unseen_activity=True,priority=priority)
+		# ###############################
+		# # updating notification for sender
+		# updated = update_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+		# 	unseen_activity=True,single_notif=False,priority=priority,bump_ua=True)
+		# if not updated:
+		# 	create_notification(viewer_id=sender_id,object_id=group_id,object_type='3',seen=True,updated_at=reply_time,\
+		# 		unseen_activity=True)
 		if priv == '1':
 			log_group_chatter(group_id, sender_id)# redis 6
 			if image_url:
@@ -1106,56 +1111,56 @@ def photo_upload_tasks(user_id, photo_id, upload_time, username, temp_photo_obj,
 	add_search_photo(photo_img_file, photo_id,user_id)
 	if total_score > PHOTO_HOT_SCORE_REQ:
 		add_obj_to_home_feed(user_id, upload_time, temp_photo_obj)
-	if number_of_photos:
-		pass
-		# set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))
+	# if number_of_photos:
+	# 	pass
+	# 	# set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))
 
 
 @celery_app1.task(name='tasks.unseen_comment_tasks')
 def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, commenter, commenter_av, is_citizen):
-	user = User.objects.get(id=user_id)
+	# user = User.objects.get(id=user_id)
 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
-	photo_owner_id = photo.owner_id
-	try:
-		owner_url = photo.owner.userprofile.avatar.url
-	except ValueError:
-		owner_url = None
-	update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
-		lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
-	if photo_owner_id == user_id:
-		is_seen = True
-		unseen_activity = True
-		single_notif = None
-		same_writer = True
-	else:
-		is_seen = False
-		unseen_activity = True
-		single_notif = True
-		same_writer = False
-	create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
-		updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
-	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
-		values_list('submitted_by', flat=True)[:25]))
-	if photo_owner_id not in all_commenter_ids:
-		all_commenter_ids.append(photo_owner_id)
-	try:
-		all_commenter_ids.remove(user_id)
-	except:
-		pass
-	if all_commenter_ids:
-		bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
-			seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra') #only update if it existed
-	updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-		single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
-	if not updated:
-		create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-			unseen_activity=True)
+	# photo_owner_id = photo.owner_id
+	# try:
+	# 	owner_url = photo.owner.userprofile.avatar.url
+	# except ValueError:
+	# 	owner_url = None
+	# update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
+	# 	lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
+	# if photo_owner_id == user_id:
+	# 	is_seen = True
+	# 	unseen_activity = True
+	# 	single_notif = None
+	# 	same_writer = True
+	# else:
+	# 	is_seen = False
+	# 	unseen_activity = True
+	# 	single_notif = True
+	# 	same_writer = False
+	# create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
+	# 	updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
+	# all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
+	# 	values_list('submitted_by', flat=True)[:25]))
+	# if photo_owner_id not in all_commenter_ids:
+	# 	all_commenter_ids.append(photo_owner_id)
+	# try:
+	# 	all_commenter_ids.remove(user_id)
+	# except:
+	# 	pass
+	# if all_commenter_ids:
+	# 	bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
+	# 		seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra') #only update if it existed
+	# updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+	# 	single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
+	# if not updated:
+	# 	create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
+	# 		unseen_activity=True)
 	photo.second_latest_comment = photo.latest_comment
 	photo.latest_comment_id = photocomment_id
 	photo.comment_count = count+1
 	photo.save()
-	if is_fan(photo_owner_id,user_id):
-		add_to_photo_owner_activity(photo_owner_id, user_id)
+	# if is_fan(photo_owner_id,user_id):
+	# 	add_to_photo_owner_activity(photo_owner_id, user_id)
 
 
 # @celery_app1.task(name='tasks.photo_tasks')
@@ -1242,7 +1247,7 @@ def vote_tasks(own_id, target_user_id, target_obj_id, revert_prev, is_pht, time_
 			time_of_vote=time_of_vote, is_editorial_vote=is_editorial_vote)
 		if is_pht == '1' and new_net_votes >= 0:
 			# is a photo object
-			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+			# update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
 			# if it's a 'like' by a super-defender, handpick the object
 			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 			if is_super_defender:
@@ -1254,7 +1259,7 @@ def vote_tasks(own_id, target_user_id, target_obj_id, revert_prev, is_pht, time_
 			time_of_vote=time_of_vote, world_age_discount=world_age_discount, is_editorial_vote=is_editorial_vote)
 		if is_pht == '1' and new_net_votes >= 0:
 			# is a photo object
-			update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
+			# update_object(object_id=target_obj_id,object_type='0',vote_score=new_net_votes, just_vote=True)# updates vote count attached to notification object of photo
 			# if it's a 'like' by a super-defender, handpick the object
 			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 			if is_super_defender:
@@ -1299,68 +1304,69 @@ def publicreply_tasks(user_id, reply_id, link_id, description, epochtime, is_som
 @celery_app1.task(name='tasks.publicreply_notification_tasks')
 def publicreply_notification_tasks(link_id,sender_id,link_submitter_url,link_submitter_id,link_submitter_username,link_desc,\
 	reply_time,reply_poster_url,reply_poster_username,reply_desc,is_welc,reply_count,priority,from_unseen):
-	if from_unseen:
-		update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
-			lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
-		all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').\
-			values_list('submitted_by', flat=True)[:25]))
-		if link_submitter_id not in all_reply_ids:
-			all_reply_ids.append(link_submitter_id)
-		try:
-			all_reply_ids.remove(sender_id)
-		except:
-			pass
-		if all_reply_ids:
-			bulk_update_notifications(viewer_id_list=all_reply_ids, object_id=link_id, object_type='2',seen=False, \
-				updated_at=reply_time, single_notif=True, unseen_activity=True,priority=priority)
-		updated = update_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, \
-			updated_at=reply_time, single_notif=False, unseen_activity=True,priority='home_jawab', bump_ua=True)
-		if not updated:
-			create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, \
-				updated_at=reply_time, unseen_activity=True)
-	else:
-		created = create_object(object_id=link_id, object_type='2', object_owner_avurl=link_submitter_url,\
-			object_owner_id=link_submitter_id,object_owner_name=link_submitter_username,object_desc=link_desc,lt_res_time=reply_time,\
-			lt_res_avurl=reply_poster_url,lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,is_welc=is_welc,\
-			res_count=reply_count, lt_res_wid=sender_id)
-		if not created:
-			update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
-				lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
-		if link_submitter_id == sender_id:
-			is_seen = True
-			unseen_activity = True
-			single_notif = None
-			same_writer = True
-		else:
-			is_seen = False
-			unseen_activity = True
-			single_notif = True
-			same_writer = False
-		created_for_parent = create_notification(viewer_id=link_submitter_id, object_id=link_id, object_type='2', seen=is_seen,\
-				updated_at=reply_time, unseen_activity=unseen_activity, single_notif=single_notif,priority=priority)
-		all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
-		if link_submitter_id not in all_reply_ids:
-			all_reply_ids.append(link_submitter_id)
-		try:
-			all_reply_ids.remove(sender_id)
-		except:
-			pass
-		if created_for_parent and not same_writer:
-			try:
-				#remove link_submitter_id from all_reply_ids so it doesn't get updated again in 'bulk update notifcations'
-				all_reply_ids.remove(link_submitter_id)
-			except:
-				pass
-		if all_reply_ids:
-			bulk_update_notifications(viewer_id_list=all_reply_ids, object_id=link_id, object_type='2',seen=False, \
-				updated_at=reply_time, single_notif=True, unseen_activity=True,priority=priority)
-		#create or update notification for self, but not when it's the first-ever reply and that too, by parent obj owner, i.e. not(created_for_parent and same_writer) = (not created_for_parent or not same_writer) - logical operation
-		if not created_for_parent or not same_writer:
-			updated = update_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
-				single_notif=False, unseen_activity=True, priority=priority, bump_ua=True)
-			if not updated:
-				create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
-					unseen_activity=True)
+	pass
+	# if from_unseen:
+		# update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
+		# 	lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
+		# all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').\
+		# 	values_list('submitted_by', flat=True)[:25]))
+		# if link_submitter_id not in all_reply_ids:
+		# 	all_reply_ids.append(link_submitter_id)
+		# try:
+		# 	all_reply_ids.remove(sender_id)
+		# except:
+		# 	pass
+		# if all_reply_ids:
+		# 	bulk_update_notifications(viewer_id_list=all_reply_ids, object_id=link_id, object_type='2',seen=False, \
+		# 		updated_at=reply_time, single_notif=True, unseen_activity=True,priority=priority)
+		# updated = update_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, \
+		# 	updated_at=reply_time, single_notif=False, unseen_activity=True,priority='home_jawab', bump_ua=True)
+		# if not updated:
+		# 	create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, \
+		# 		updated_at=reply_time, unseen_activity=True)
+	# else:
+		# created = create_object(object_id=link_id, object_type='2', object_owner_avurl=link_submitter_url,\
+		# 	object_owner_id=link_submitter_id,object_owner_name=link_submitter_username,object_desc=link_desc,lt_res_time=reply_time,\
+		# 	lt_res_avurl=reply_poster_url,lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,is_welc=is_welc,\
+		# 	res_count=reply_count, lt_res_wid=sender_id)
+		# if not created:
+		# 	update_object(object_id=link_id, object_type='2', lt_res_time=reply_time,lt_res_avurl=reply_poster_url,\
+		# 		lt_res_sub_name=reply_poster_username,lt_res_text=reply_desc,res_count=reply_count, lt_res_wid=sender_id)
+		# if link_submitter_id == sender_id:
+		# 	is_seen = True
+		# 	unseen_activity = True
+		# 	single_notif = None
+		# 	same_writer = True
+		# else:
+		# 	is_seen = False
+		# 	unseen_activity = True
+		# 	single_notif = True
+		# 	same_writer = False
+		# created_for_parent = create_notification(viewer_id=link_submitter_id, object_id=link_id, object_type='2', seen=is_seen,\
+		# 		updated_at=reply_time, unseen_activity=unseen_activity, single_notif=single_notif,priority=priority)
+		# all_reply_ids = list(set(Publicreply.objects.filter(answer_to=link_id).order_by('-id').values_list('submitted_by', flat=True)[:25]))
+		# if link_submitter_id not in all_reply_ids:
+		# 	all_reply_ids.append(link_submitter_id)
+		# try:
+		# 	all_reply_ids.remove(sender_id)
+		# except:
+		# 	pass
+		# if created_for_parent and not same_writer:
+		# 	try:
+		# 		#remove link_submitter_id from all_reply_ids so it doesn't get updated again in 'bulk update notifcations'
+		# 		all_reply_ids.remove(link_submitter_id)
+		# 	except:
+		# 		pass
+		# if all_reply_ids:
+		# 	bulk_update_notifications(viewer_id_list=all_reply_ids, object_id=link_id, object_type='2',seen=False, \
+		# 		updated_at=reply_time, single_notif=True, unseen_activity=True,priority=priority)
+		# #create or update notification for self, but not when it's the first-ever reply and that too, by parent obj owner, i.e. not(created_for_parent and same_writer) = (not created_for_parent or not same_writer) - logical operation
+		# if not created_for_parent or not same_writer:
+		# 	updated = update_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
+		# 		single_notif=False, unseen_activity=True, priority=priority, bump_ua=True)
+		# 	if not updated:
+		# 		create_notification(viewer_id=sender_id, object_id=link_id, object_type='2', seen=True, updated_at=reply_time, \
+		# 			unseen_activity=True)
 
 # @celery_app1.task(name='tasks.report')
 # def report(reporter_id, target_id, report_origin=None, report_reason=None, which_link_id=None, which_publicreply_id=None, which_photo_id=None, which_photocomment_id=None, which_group_id=None, which_reply_id=None, nickname=None):

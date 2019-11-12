@@ -10,7 +10,7 @@ from models import Link, Photo, PhotoComment, UserProfile, Publicreply, UserFan,
 from redis7 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
 from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes, remove_verified_mob
 from redis4 import save_deprecated_photo_ids_and_filenames, invalidated_cached_uname_credentials#, report_rate_limited_conversation
-from redis2 import bulk_sanitize_notifications
+# from redis2 import bulk_sanitize_notifications
 
 ######################################## Notifications ########################################
 
@@ -461,7 +461,7 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_5K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
-				notification_hash_deleted, sorted_sets_deleted, object_hash_deleted = bulk_sanitize_notifications(id_list)
+				notification_hash_deleted, sorted_sets_deleted, object_hash_deleted = None, None, None#bulk_sanitize_notifications(id_list)
 				if last_batch:
 					# delete_inactives_copy(delete_orig=True)
 					delete_inactives_copy()

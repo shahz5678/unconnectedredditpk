@@ -23,7 +23,7 @@ retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_c
 retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes,\
 is_image_star
 ###############
-from score import SEGMENT_STARTING_USER_ID, NUM_SUBMISSION_ALLWD_PER_DAY
+from score import NUM_SUBMISSION_ALLWD_PER_DAY#, SEGMENT_STARTING_USER_ID
 
 
 ##########################################################################################################
@@ -367,12 +367,12 @@ def topic_page(request,topic_url):
 				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True)}
 				
 				################### Retention activity logging ###################
-				from_redirect = request.session.pop('rd',None)
-				if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					act = 'T' if request.mobile_verified else 'T.u'
-					activity_dict = {'m':'GET','act':act,'url':topic_url,'t':time_now,'pg':page_num}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# from_redirect = request.session.pop('rd',None)
+				# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	act = 'T' if request.mobile_verified else 'T.u'
+				# 	activity_dict = {'m':'GET','act':act,'url':topic_url,'t':time_now,'pg':page_num}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 
 				return render(request, 'topics/topic_home.html', context)
@@ -437,13 +437,13 @@ def topic_listing(request):
 	Displays all topics currently available in Damadam
 	"""
 	################### Retention activity logging ###################
-	own_id = request.user.id
-	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-	if not from_redirect and  own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z5' if request.mobile_verified else 'Z5.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# own_id = request.user.id
+	# from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	# if not from_redirect and  own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z5' if request.mobile_verified else 'Z5.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	context = {}
 	newbie_flag = request.session.get("newbie_flag",None)
@@ -488,9 +488,9 @@ def submit_topic_post(request,topic_url):
 					mobile_verified = request.mobile_verified
 					if not mobile_verified:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							activity_dict = {'m':'POST','act':'W4.u','t':time_now}
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	activity_dict = {'m':'POST','act':'W4.u','t':time_now}
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
 					elif request.user_banned:
@@ -527,17 +527,17 @@ def submit_topic_post(request,topic_url):
 									rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
 									set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
 									################### Retention activity logging ###################
-									if own_id > SEGMENT_STARTING_USER_ID:
-										activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
-										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									# if own_id > SEGMENT_STARTING_USER_ID:
+									# 	activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
+									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									###################################################################
 									return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
 								else:
 									################### Retention activity logging ###################
-									if own_id > SEGMENT_STARTING_USER_ID:
-										request.session['rd'] = '1'
-										activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
-										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									# if own_id > SEGMENT_STARTING_USER_ID:
+									# 	request.session['rd'] = '1'
+									# 	activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
+									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									###################################################################
 									error_string = form.errors.as_text().split("*")[2]
 									if error_string:
@@ -579,10 +579,10 @@ def subscribe_to_topic(request, topic_url):
 					response = redirect("topic_page",topic_url=topic_url)
 					response['Location'] += '?subscribed=True#section0'# added 'subscribe' parameter so that the act of subscription is measured separately in GA
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'W4.s','t':time_now,'url':topic_url}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'W4.s','t':time_now,'url':topic_url}
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					return response
 				else:
@@ -596,11 +596,11 @@ def subscribe_to_topic(request, topic_url):
 			return redirect("topic_page",topic_url=topic_url)
 	else:
 		################### Retention activity logging ###################
-		own_id = request.user.id
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'POST','act':'W4.u','t':time_now}
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# own_id = request.user.id
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'POST','act':'W4.u','t':time_now}
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'subscribe_to_topic':True})
 

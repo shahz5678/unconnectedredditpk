@@ -18,7 +18,7 @@ from cricket_score import cricket_scr
 from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE, PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, SEGMENT_STARTING_USER_ID, ZODIAC, MAX_HOME_REPLY_SIZE, PREFIX_TEXT_LENGTH
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, ZODIAC, MAX_HOME_REPLY_SIZE, PREFIX_TEXT_LENGTH#, SEGMENT_STARTING_USER_ID
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -559,11 +559,11 @@ def star_list(request, *args, **kwargs):
 		context["users"] = []
 		context["fan"] = User.objects.get(id=pk)
 	################### Retention activity logging ###################
-	if pk > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z7' if request.mobile_verified else 'Z7.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=pk, activity_dict=activity_dict, time_now=time_now)
+	# if pk > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z7' if request.mobile_verified else 'Z7.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=pk, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"star_list.html",context)
 
@@ -581,12 +581,12 @@ def fan_list(request, pk=None, *args, **kwargs):
 	new_users = [(id,True) for id in new_fan_ids]
 	all_users = new_users + existing_users
 	################### Retention activity logging ###################
-	own_id = request.user.id
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z6' if request.mobile_verified else 'Z6.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':pk}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# own_id = request.user.id
+	# if own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z6' if request.mobile_verified else 'Z6.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':pk}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	if all_users:
 		page_obj = get_page_obj(page_num,all_users,FANS_PER_PAGE)
@@ -656,12 +656,12 @@ def website_rules(request):
 	Renders website rules
 	"""
 	################### Retention activity logging ###################
-	user_id = request.user.id
-	if user_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z2' if request.mobile_verified else 'Z2.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# user_id = request.user.id
+	# if user_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z2' if request.mobile_verified else 'Z2.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"website_rules.html",{})
 
@@ -677,12 +677,12 @@ class AboutView(FormView):
 		context = super(AboutView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			################### Retention activity logging ###################
-			user_id = self.request.user.id
-			if user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				act = 'Z3' if self.request.mobile_verified else 'Z3.u'
-				activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# user_id = self.request.user.id
+			# if user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	act = 'Z3' if self.request.mobile_verified else 'Z3.u'
+			# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 		return context
 
@@ -699,12 +699,12 @@ class HelpView(FormView):
 		context = super(HelpView, self).get_context_data(**kwargs)
 		if self.request.user.is_authenticated():
 			################### Retention activity logging ###################
-			user_id = self.request.user.id
-			if user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				act = 'Z1' if self.request.mobile_verified else 'Z1.u'
-				activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# user_id = self.request.user.id
+			# if user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	act = 'Z1' if self.request.mobile_verified else 'Z1.u'
+			# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 		return context
 
@@ -956,12 +956,12 @@ class PhotoDetailView(DetailView):
 			if self.request.user == photo.owner:
 				context["own_photo"] = True
 			################### Retention activity logging ###################
-			user_id = self.request.user.id
-			if user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				act = 'Z8' if self.request.mobile_verified else 'Z8.u'
-				activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# user_id = self.request.user.id
+			# if user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	act = 'Z8' if self.request.mobile_verified else 'Z8.u'
+			# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 		return context
 
@@ -1154,13 +1154,13 @@ def home_page(request, lang=None):
 	is_mob_verified = request.mobile_verified
 
 	###################### Retention activity logging ######################
-	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-	if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'H' if page_num == 1 else 'H2'
-		act = act if is_mob_verified else act+'.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'H' if page_num == 1 else 'H2'
+	# 	act = act if is_mob_verified else act+'.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
 
 	context = {'link_list':list_of_dictionaries,'fanned':bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id),\
@@ -1233,11 +1233,11 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 				# these particular variations have subsets too
 				choice = retrieve_variation_subset(user_id, choice)
 			request.session["newbie_flag"] = choice
-			if user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				request.session['rd'] = '1'
-				activity_dict = {'m':'POST','act':'V'+choice,'t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var'+choice)
+			# if user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	request.session['rd'] = '1'
+			# 	activity_dict = {'m':'POST','act':'V'+choice,'t':time_now}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var'+choice)
 			############################################
 			############################################
 			if choice == '5':
@@ -1288,11 +1288,11 @@ def show_online_users(request):
 			final_data, num_online = [], 0
 	own_id = request.user.id
 	################### Retention activity logging ###################
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'O' if request.mobile_verified else 'O.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# if own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'O' if request.mobile_verified else 'O.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"online_list.html",{'online_data':final_data,'stars':get_all_image_star_ids(), 'num_online':num_online,\
 		'own_id':own_id,'bottom':len(final_data),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)})
@@ -1449,22 +1449,22 @@ def user_profile_photos(request,slug,type):
 	context["page_obj"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
 	################### Retention activity logging ###################
-	if user_id:
-		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			if list_type == 'trending-fotos':
-				if own_profile:
-					act = 'A4' if request.mobile_verified else 'A4.u'
-				else:
-					act = 'A8' if request.mobile_verified else 'A8.u'
-			else:
-				if own_profile:
-					act = 'A3' if request.mobile_verified else 'A3.u'
-				else:
-					act = 'A7' if request.mobile_verified else 'A7.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id,'pg':page_num}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# if user_id:
+	# 	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	# 	if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+	# 		time_now = time.time()
+	# 		if list_type == 'trending-fotos':
+	# 			if own_profile:
+	# 				act = 'A4' if request.mobile_verified else 'A4.u'
+	# 			else:
+	# 				act = 'A8' if request.mobile_verified else 'A8.u'
+	# 		else:
+	# 			if own_profile:
+	# 				act = 'A3' if request.mobile_verified else 'A3.u'
+	# 			else:
+	# 				act = 'A7' if request.mobile_verified else 'A7.u'
+	# 		activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id,'pg':page_num}# defines what activity just took place
+	# 		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"user_detail1.html",context)
 
@@ -1522,16 +1522,16 @@ class UserProfileDetailView(FormView):
 				context["mobile_verified"] = is_mobile_verified(star_id)
 			context["noindex"] = True if (banned or not context["mobile_verified"]) else False
 			################### Retention activity logging ###################
-			if user_id:
-				from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
-				if not from_redirect and int(user_id) > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					if is_own_profile:
-						act = 'A2' if self.request.mobile_verified else 'A2.u'
-					else:
-						act = 'A6' if self.request.mobile_verified else 'A6.u'
-					activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place
-					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# if user_id:
+			# 	from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
+			# 	if not from_redirect and int(user_id) > SEGMENT_STARTING_USER_ID:
+			# 		time_now = time.time()
+			# 		if is_own_profile:
+			# 			act = 'A2' if self.request.mobile_verified else 'A2.u'
+			# 		else:
+			# 			act = 'A6' if self.request.mobile_verified else 'A6.u'
+			# 		activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':star_id}# defines what activity just took place
+			# 		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 		else:
 			# user does not exist
@@ -1691,12 +1691,12 @@ def photo_top_trenders(request):
 	Renders the top trending users (in terms of photos uploaded)
 	"""
 	################### Retention activity logging ###################
-	user_id = request.user.id
-	if user_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z9' if request.mobile_verified else 'Z9.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# user_id = request.user.id
+	# if user_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z9' if request.mobile_verified else 'Z9.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"top_photo.html",{'object_list':retrieve_top_trenders(),'list_size':TRENDER_RANKS_TO_COUNT})
 
@@ -2005,11 +2005,11 @@ def display_image_comments(request,pk,origin=None):
 			context["comment_time"] = float(last_seen_time) if last_seen_time else None
 		
 		################### Retention activity logging ###################
-		from_redirect = request.session.pop('rd','')
-		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-			act = 'C1' if request.mobile_verified else 'C1.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now,'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# from_redirect = request.session.pop('rd','')
+		# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+		# 	act = 'C1' if request.mobile_verified else 'C1.u'
+		# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pi':photo.image_file.url,'pc':photo.caption}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 	else:
 		context["authenticated"] = False
@@ -2292,13 +2292,13 @@ def photo_page(request,list_type='best-list'):
 							obj['v'] = True# user 'liked' this particular object, so mark it
 			
 			###################### Retention activity logging ######################
-			from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-			if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				char = char if page_num == 1 else char+'2'
-				act = char if mobile_verified else char+".u"
-				activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
-				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			# from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+			# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	char = char if page_num == 1 else char+'2'
+			# 	act = char if mobile_verified else char+".u"
+			# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 
 		else:
@@ -2432,9 +2432,9 @@ def upload_public_photo(request,*args,**kwargs):
 			is_fbs_rate_limited, ttl = None, None
 		if is_fbs_rate_limited:
 			################### Retention activity logging ###################
-			if user_id > SEGMENT_STARTING_USER_ID:
-				activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# if user_id > SEGMENT_STARTING_USER_ID:
+			# 	activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 			request.session["public_photo_upload_fbs_ttl"] = ttl
 			request.session["public_photo_upload_denied"] = '0'
@@ -2455,9 +2455,9 @@ def upload_public_photo(request,*args,**kwargs):
 					return redirect('public_photo_upload_denied')
 			elif not mob_verified:
 				################### Retention activity logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					activity_dict = {'m':'POST','act':'P.u','t':time_now}# defines what activity just took place
-					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+				# if user_id > SEGMENT_STARTING_USER_ID:
+				# 	activity_dict = {'m':'POST','act':'P.u','t':time_now}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
 				# only verified users can upload a photo
 				request.session["public_photo_upload_denied"] = '2'
@@ -2500,9 +2500,9 @@ def upload_public_photo(request,*args,**kwargs):
 						image_file = request.FILES['image_file']
 					else:
 						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+						# if user_id > SEGMENT_STARTING_USER_ID:
+						# 	activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						error_dict = dict(form.errors)
 						caption_error = error_dict.get('caption',[])
@@ -2521,9 +2521,9 @@ def upload_public_photo(request,*args,**kwargs):
 						if on_fbs:
 							if image_file.size > 200000:
 								################### Retention activity logging ###################
-								if user_id > SEGMENT_STARTING_USER_ID:
-									activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
-									log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+								# if user_id > SEGMENT_STARTING_USER_ID:
+								# 	activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
+								# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 								##################################################################
 								request.session["public_photo_upload_denied"] = '6'
 								request.session.modified = True
@@ -2534,9 +2534,9 @@ def upload_public_photo(request,*args,**kwargs):
 						else:
 							if image_file.size > 10000000:
 								################### Retention activity logging ###################
-								if user_id > SEGMENT_STARTING_USER_ID:
-									activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
-									log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+								# if user_id > SEGMENT_STARTING_USER_ID:
+								# 	activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
+								# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 								##################################################################
 								request.session["public_photo_upload_denied"] = '7'
 								request.session.modified = True
@@ -2550,9 +2550,9 @@ def upload_public_photo(request,*args,**kwargs):
 						already_reoriented=reoriented)#, caption=request.POST.get('caption',None))
 						if isinstance(dup_photo_id,float):
 							################### Retention activity logging ###################
-							if user_id > SEGMENT_STARTING_USER_ID:
-								activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
-								log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+							# if user_id > SEGMENT_STARTING_USER_ID:
+							# 	activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 							##################################################################
 							request.session["public_photo_upload_denied"] = '8'
 							request.session["public_photo_upload_denied_photo_pk"] = dup_photo_id
@@ -2563,9 +2563,9 @@ def upload_public_photo(request,*args,**kwargs):
 								return redirect('public_photo_upload_denied')
 						elif img_height == 'too_high':
 							################### Retention activity logging ###################
-							if user_id > SEGMENT_STARTING_USER_ID:
-								activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
-								log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+							# if user_id > SEGMENT_STARTING_USER_ID:
+							# 	activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 							##################################################################
 							request.session["public_photo_upload_denied"] = '9'
 							request.session.modified = True
@@ -2575,9 +2575,9 @@ def upload_public_photo(request,*args,**kwargs):
 								return redirect('public_photo_upload_denied')
 						elif img_height == 'too_narrow':
 							################### Retention activity logging ###################
-							if user_id > SEGMENT_STARTING_USER_ID:
-								activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
-								log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+							# if user_id > SEGMENT_STARTING_USER_ID:
+							# 	activity_dict = {'m':'POST','act':'P.i','t':time_now}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 							##################################################################
 							# this image is too narrow, don't upload it since it's probably low quality
 							request.session["public_photo_upload_denied"] = '11'
@@ -2630,10 +2630,10 @@ def upload_public_photo(request,*args,**kwargs):
 						rate_limit_fbs_public_photo_uploaders(user_id)
 					# bulk_create_notifications.delay(user_id, photo_id, epochtime,photo.image_file.url, name, caption)
 					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'P','t':time_now,'pi':photo.image_file.url,'pc':caption}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					# if user_id > SEGMENT_STARTING_USER_ID:
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'P','t':time_now,'pi':photo.image_file.url,'pc':caption}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					if is_ajax:
 						return HttpResponse(json.dumps({'success':True,'message':reverse('photo',kwargs={"list_type": 'fresh-list'})}),content_type='application/json',)
@@ -2672,13 +2672,13 @@ def upload_public_photo(request,*args,**kwargs):
 						return redirect('public_photo_upload_denied')
 				else:
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						if request.mobile_verified:
-							activity_dict = {'m':'GET','act':'P1','t':time_now}# defines what activity just took place
-						else:
-							activity_dict = {'m':'GET','act':'P1.u','t':time_now}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	if request.mobile_verified:
+					# 		activity_dict = {'m':'GET','act':'P1','t':time_now}# defines what activity just took place
+					# 	else:
+					# 		activity_dict = {'m':'GET','act':'P1.u','t':time_now}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='26', renew_lease=True) else False
 					context["form"] = UploadPhotoForm()
@@ -3227,30 +3227,30 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						set_input_rate_and_history.delay(section='prv_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='priv_mehfil'
 						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							if origin:
-								# this is a single notification
-								activity_dict = {'m':'POST','act':'S3','t':reply_time,'tx':description}
-							else:
-								# this is within the matka
-								activity_dict = {'m':'POST','act':'M3','t':reply_time,'tx':description}
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
+						# if user_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	if origin:
+						# 		# this is a single notification
+						# 		activity_dict = {'m':'POST','act':'S3','t':reply_time,'tx':description}
+						# 	else:
+						# 		# this is within the matka
+						# 		activity_dict = {'m':'POST','act':'M3','t':reply_time,'tx':description}
+						# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
 						##################################################################
 					else:
 						set_input_rate_and_history.delay(section='pub_grp',section_id=pk,text=description,user_id=user_id,time_now=reply_time)
 						priority='public_mehfil'
 						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							if origin:
-								# this is a single notification
-								activity_dict = {'m':'POST','act':'S4','t':reply_time,'tx':description}
+						# if user_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	if origin:
+						# 		# this is a single notification
+						# 		activity_dict = {'m':'POST','act':'S4','t':reply_time,'tx':description}
 								
-							else:
-								# this is within the matka
-								activity_dict = {'m':'POST','act':'M4','t':reply_time,'tx':description}
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
+						# 	else:
+						# 		# this is within the matka
+						# 		activity_dict = {'m':'POST','act':'M4','t':reply_time,'tx':description}
+						# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
 						##################################################################
 					
 					save_group_submission(writer_id=user_id, group_id=pk, text=description, chat_image=None, posting_time=reply_time,\
@@ -3264,27 +3264,27 @@ def unseen_group(request, pk=None, *args, **kwargs):
 						return redirect("unseen_activity", username)
 				else:
 					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						if origin:
-							# this is a single notification
-							if grp['p'] == '1':
-								act = 'S3.i'
-								tx = request.POST.get("private_group_reply",'')
-							else:
-								act = 'S4.i'
-								tx = request.POST.get("public_group_reply",'')
-							activity_dict = {'m':'POST','act':act,'t':reply_time,'tx':tx}
-						else:
-							# this is within the matka
-							request.session['rd'] = '1'
-							if grp['p'] == '1':
-								act = 'M3.i' 
-								tx = request.POST.get("private_group_reply",'')
-							else:
-								act = 'M4.i'
-								tx = request.POST.get("public_group_reply",'')
-							activity_dict = {'m':'POST','act':act,'t':reply_time,'tx':tx}
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
+					# if user_id > SEGMENT_STARTING_USER_ID:
+					# 	if origin:
+					# 		# this is a single notification
+					# 		if grp['p'] == '1':
+					# 			act = 'S3.i'
+					# 			tx = request.POST.get("private_group_reply",'')
+					# 		else:
+					# 			act = 'S4.i'
+					# 			tx = request.POST.get("public_group_reply",'')
+					# 		activity_dict = {'m':'POST','act':act,'t':reply_time,'tx':tx}
+					# 	else:
+					# 		# this is within the matka
+					# 		request.session['rd'] = '1'
+					# 		if grp['p'] == '1':
+					# 			act = 'M3.i' 
+					# 			tx = request.POST.get("private_group_reply",'')
+					# 		else:
+					# 			act = 'M4.i'
+					# 			tx = request.POST.get("public_group_reply",'')
+					# 		activity_dict = {'m':'POST','act':act,'t':reply_time,'tx':tx}
+					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
 					##################################################################
 					err_string = form.errors.as_text().split("*")[2]
 					if origin:
@@ -3307,12 +3307,12 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 		return redirect("error")
 	elif not request.mobile_verified:
 		################### Retention activity logging ###################
-		user_id = request.user.id
-		if user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			act = 'M6.u' if request.POST.get("origin",'14') == '14' else 'S6.u'
-			activity_dict = {'m':'POST','act':act,'t':time_now,'tx':request.POST.get("photo_comment",None)}
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# user_id = request.user.id
+		# if user_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	act = 'M6.u' if request.POST.get("origin",'14') == '14' else 'S6.u'
+		# 	activity_dict = {'m':'POST','act':act,'t':time_now,'tx':request.POST.get("photo_comment",None)}
+		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		return render(request, 'verification/unable_to_submit_without_verifying.html', {'comment':True})
 	else:
@@ -3371,33 +3371,29 @@ def unseen_comment(request, pk=None, *args, **kwargs):
 							url = request.user.userprofile.avatar.url
 						except ValueError:
 							url = None
-						# add_photo_comment(photo_id=pk,latest_comm_text=description,latest_comm_writer_id=user_id,\
-						# 	comment_id=photocomment.id,latest_comm_writer_uname=username, time=comment_time)
-						# unseen_comment_tasks.delay(user_id, pk, comment_time, photocomment.id, photo_comment_count, description, \
-						# 	username, url, request.mobile_verified)
 						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							if origin == '14':
-								# this is matka
-								activity_dict = {'m':'POST','act':'M6','t':time_now,'tx':description}
-							else:
-								# this is a single notification
-								activity_dict = {'m':'POST','act':'S6','t':time_now,'tx':description}
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+						# if user_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	if origin == '14':
+						# 		# this is matka
+						# 		activity_dict = {'m':'POST','act':'M6','t':time_now,'tx':description}
+						# 	else:
+						# 		# this is a single notification
+						# 		activity_dict = {'m':'POST','act':'S6','t':time_now,'tx':description}
+						# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						return return_to_content(request,origin,pk,None,username)
 					else:
 						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							if origin == '14':
-								# this is matka
-								activity_dict = {'m':'POST','act':'M6.i','t':time_now,'tx':request.POST.get("photo_comment",None)}
-							else:
-								# this is a single notification
-								activity_dict = {'m':'POST','act':'S6.i','t':time_now,'tx':request.POST.get("photo_comment",None)}
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+						# if user_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	if origin == '14':
+						# 		# this is matka
+						# 		activity_dict = {'m':'POST','act':'M6.i','t':time_now,'tx':request.POST.get("photo_comment",None)}
+						# 	else:
+						# 		# this is a single notification
+						# 		activity_dict = {'m':'POST','act':'S6.i','t':time_now,'tx':request.POST.get("photo_comment",None)}
+						# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						err_string = form.errors.as_text().split("*")[2]
 						if origin == '14':
@@ -3421,15 +3417,15 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 		return redirect("error")
 	elif not request.mobile_verified:
 		################### Retention activity logging ###################
-		own_id = request.user.id
-		if own_id > SEGMENT_STARTING_USER_ID:
-			if request.POST.get("origin",'14') == '14':
-				# this is matka
-				activity_dict = {'m':'POST','act':'M7.u','t':time_now,'tx':request.POST.get("home_comment",'')}
-			else:
-				# this is a single notification
-				activity_dict = {'m':'POST','act':'S7.u','t':time_now,'tx':request.POST.get("home_comment",'')}
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# own_id = request.user.id
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	if request.POST.get("origin",'14') == '14':
+		# 		# this is matka
+		# 		activity_dict = {'m':'POST','act':'M7.u','t':time_now,'tx':request.POST.get("home_comment",'')}
+		# 	else:
+		# 		# this is a single notification
+		# 		activity_dict = {'m':'POST','act':'S7.u','t':time_now,'tx':request.POST.get("home_comment",'')}
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		return render(request, 'verification/unable_to_submit_without_verifying.html', {'reply':True})
 	else:
@@ -3468,15 +3464,15 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 							link_writer_id=link_writer_id)
 						set_input_rate_and_history.delay(section='home_rep',section_id=pk,text=text,user_id=own_id,time_now=time_now)
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							if origin == '14':
-								# this is matka
-								activity_dict = {'m':'POST','act':'M7','t':time_now,'tx':text}
-							else:
-								# this is a single notification
-								activity_dict = {'m':'POST','act':'S7','t':time_now,'tx':text}
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	if origin == '14':
+						# 		# this is matka
+						# 		activity_dict = {'m':'POST','act':'M7','t':time_now,'tx':text}
+						# 	else:
+						# 		# this is a single notification
+						# 		activity_dict = {'m':'POST','act':'S7','t':time_now,'tx':text}
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						if target == ":":
 							return redirect("ban_underway")
@@ -3487,15 +3483,15 @@ def unseen_reply(request, pk=None, *args, **kwargs):
 							return return_to_content(request,origin,pk,None,own_uname)
 					else:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							if origin == '14':
-								# this is matka
-								activity_dict = {'m':'POST','act':'M7.i','t':time_now,'tx':request.POST.get("home_comment",'')}
-							else:
-								# this is a single notification
-								activity_dict = {'m':'POST','act':'S7.i','t':time_now,'tx':request.POST.get("home_comment",'')}
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	if origin == '14':
+						# 		# this is matka
+						# 		activity_dict = {'m':'POST','act':'M7.i','t':time_now,'tx':request.POST.get("home_comment",'')}
+						# 	else:
+						# 		# this is a single notification
+						# 		activity_dict = {'m':'POST','act':'S7.i','t':time_now,'tx':request.POST.get("home_comment",'')}
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						err_string = form.errors.as_text().split("*")[2]
 						if origin == '14':
@@ -3537,13 +3533,13 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 			page_num = int(page_num)
 
 			###################### Retention activity logging ######################
-			from_redirect = request.session.pop('rd',None)
-			if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				is_mob_verified = request.mobile_verified
-				act = 'M' if is_mob_verified else 'M.u'
-				activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# from_redirect = request.session.pop('rd',None)
+			# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	is_mob_verified = request.mobile_verified
+			# 	act = 'M' if is_mob_verified else 'M.u'
+			# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 
 			if oblist:
@@ -3577,13 +3573,13 @@ def unseen_activity(request, slug=None, *args, **kwargs):
 					'nickname':username,'user_id':user_id,'object_list':[],'section':'matka'})
 		else:
 			###################### Retention activity logging ######################
-			from_redirect = request.session.pop('rd',None)
-			if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				is_mob_verified = request.mobile_verified
-				act = 'M' if is_mob_verified else 'M.u'
-				activity_dict = {'m':'GET','act':act,'t':time_now,'pg':0}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# from_redirect = request.session.pop('rd',None)
+			# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	is_mob_verified = request.mobile_verified
+			# 	act = 'M' if is_mob_verified else 'M.u'
+			# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pg':0}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			return render(request, 'user_unseen_activity.html', {'object_list': [], 'page':{},'nickname':username,'user_id':user_id,\
 				'section':'matka'})
@@ -3598,12 +3594,12 @@ def top_photo_help(request,*args,**kwargs):
 	Shows help page regarding how to get into 'trending'
 	"""
 	################### Retention activity logging ###################
-	user_id = request.user.id
-	if user_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z10' if request.mobile_verified else 'Z10.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# user_id = request.user.id
+	# if user_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z10' if request.mobile_verified else 'Z10.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,'top_photo_help.html',{'list_size':TRENDER_RANKS_TO_COUNT})
 
@@ -3658,12 +3654,12 @@ def public_reply_view(request,parent_id):
 		except IndexError:
 			pass
 	############### Retention activity logging ###############
-	from_redirect = request.session.pop('rd','')
-	if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'L1' if request.mobile_verified else 'L1.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now,'pc':link['description']}# defines what activity just took place
-		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# from_redirect = request.session.pop('rd','')
+	# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'L1' if request.mobile_verified else 'L1.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pc':link['description']}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##########################################################
 	replies = retrieve_cached_public_replies(parent_id)
 	if replies:
@@ -3751,14 +3747,14 @@ class UserActivityView(ListView):
 				context["submitter_id"] = target_id
 				context["submitter_av_url"] = retrieve_avurl(target_id)
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					if is_own_profile:
-						act = 'A1' if self.request.mobile_verified else 'A1.u'
-					else:
-						act = 'A5' if self.request.mobile_verified else 'A5.u'
-					activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	if is_own_profile:
+				# 		act = 'A1' if self.request.mobile_verified else 'A1.u'
+				# 	else:
+				# 		act = 'A5' if self.request.mobile_verified else 'A5.u'
+				# 	activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
 			return context
 		else:
@@ -3812,12 +3808,12 @@ class UserProfileEditView(UpdateView):
 		context["zodiac"] =  UserProfile.objects.only('attractiveness').get(user_id=own_id).attractiveness
 		context["username"] = retrieve_uname(own_id,decode=True)
 		################### Retention activity logging ###################
-		from_redirect = self.request.session.pop("rd",None)
-		if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			act = 'D' if self.request.mobile_verified else 'D.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# from_redirect = self.request.session.pop("rd",None)
+		# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	act = 'D' if self.request.mobile_verified else 'D.u'
+		# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		return context
 
@@ -3826,13 +3822,13 @@ class UserProfileEditView(UpdateView):
 		If the form is invalid, log the data point (if need be)
 		"""
 		################### Retention activity logging ###################
-		user_id = self.request.user.id
-		time_now = time.time()
-		if user_id > SEGMENT_STARTING_USER_ID:
-			self.request.session['rd'] = '1'
-			act = 'D.i' if self.request.mobile_verified else 'D.u.i'
-			activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# user_id = self.request.user.id
+		# time_now = time.time()
+		# if user_id > SEGMENT_STARTING_USER_ID:
+		# 	self.request.session['rd'] = '1'
+		# 	act = 'D.i' if self.request.mobile_verified else 'D.u.i'
+		# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		return self.render_to_response(self.get_context_data(form=form))
 
@@ -3844,19 +3840,19 @@ class UserProfileEditView(UpdateView):
 		city_value = f.streak# using 'streak' attribute for legacy reasons
 		set_attribute_change_rate_limit(user_id, zodiac_value, city_value, time_now)
 		################### Retention activity logging ###################
-		if user_id > SEGMENT_STARTING_USER_ID:
-			self.request.session['rd'] = '1'
-			if f.avatar.name == 'temp.jpg':
-				# new avatar uploaded
-				act = 'D1' if self.request.mobile_verified else 'D1.u'
-				activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-			old_bio = UserProfile.objects.only('bio').get(user_id=user_id).bio
-			if f.bio != old_bio:
-				# bio has been updated
-				act = 'D2' if self.request.mobile_verified else 'D2.u'
-				activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# if user_id > SEGMENT_STARTING_USER_ID:
+		# 	self.request.session['rd'] = '1'
+		# 	if f.avatar.name == 'temp.jpg':
+		# 		# new avatar uploaded
+		# 		act = 'D1' if self.request.mobile_verified else 'D1.u'
+		# 		activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+		# 		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# 	old_bio = UserProfile.objects.only('bio').get(user_id=user_id).bio
+		# 	if f.bio != old_bio:
+		# 		# bio has been updated
+		# 		act = 'D2' if self.request.mobile_verified else 'D2.u'
+		# 		activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+		# 		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		return super(UpdateView, self).form_valid(form) # saves automatically
 
@@ -3878,12 +3874,12 @@ def sharing_help(request):
 	Renders a page about sharing ettiquette
 	"""
 	################### Retention activity logging ###################
-	own_id = request.user.id
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'X3' if request.mobile_verified else 'X3.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# own_id = request.user.id
+	# if own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'X3' if request.mobile_verified else 'X3.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"content/share_content_help.html",{})
 
@@ -3896,12 +3892,12 @@ def share_content(request):
 	Redirects to text or foto sharing pages accordingly
 	"""
 	################### Retention activity logging ###################
-	own_id = request.user.id
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'X2' if request.mobile_verified else 'X2.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# own_id = request.user.id
+	# if own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'X2' if request.mobile_verified else 'X2.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"content/share_content.html",{'first_time':True if tutorial_unseen(user_id=request.user.id, which_tut='25',\
 	renew_lease=True) else False})
@@ -3935,9 +3931,9 @@ def submit_text_post(request):
 			ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
 			if not mobile_verified:
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					activity_dict = {'m':'POST','act':'X.u','t':time_now,'tx':request.POST.get("description",None)}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	activity_dict = {'m':'POST','act':'X.u','t':time_now,'tx':request.POST.get("description",None)}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
 				return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
 			elif request.user_banned:
@@ -3961,10 +3957,10 @@ def submit_text_post(request):
 
 					if topic_payload:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'X.t','t':time_now,'tx':description,'url':form.cleaned_data['turl']}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'X.t','t':time_now,'tx':description,'url':form.cleaned_data['turl']}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						log_text_submissions('topic')#Logs the number of submisions in topic vs number of submissions of regular text posts
 						add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
@@ -3974,10 +3970,10 @@ def submit_text_post(request):
 							submitter_username=submitter_name)
 					else:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'X','t':time_now,'tx':description}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'X','t':time_now,'tx':description}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						log_text_submissions('text')
 						add_text_post(obj_id=obj_id, categ=alignment, submitter_id=own_id, submitter_av_url=av_url, \
@@ -3993,9 +3989,9 @@ def submit_text_post(request):
 				else:
 					# form is invalid
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						activity_dict = {'m':'POST','act':'X.i','t':time_now,'tx':request.POST.get("description",None)}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	activity_dict = {'m':'POST','act':'X.i','t':time_now,'tx':request.POST.get("description",None)}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					secret_key = str(uuid.uuid4())
 					set_text_input_key(own_id, '1', 'likho', secret_key)
@@ -4015,12 +4011,12 @@ def submit_text_post(request):
 				'is_profile_banned':True}
 			else:
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					if mobile_verified:
-						activity_dict = {'m':'GET','act':'X1','t':time_now}# defines what activity just took place
-					else:
-						activity_dict = {'m':'GET','act':'X1.u','t':time_now}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	if mobile_verified:
+				# 		activity_dict = {'m':'GET','act':'X1','t':time_now}# defines what activity just took place
+				# 	else:
+				# 		activity_dict = {'m':'GET','act':'X1.u','t':time_now}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(own_id, '1', 'likho', secret_key)
@@ -4115,12 +4111,12 @@ def welcome_reply(request,*args,**kwargs):
 					reply_time=reply_time,reply_poster_url=url,reply_poster_username=username,reply_desc=reply.description,\
 					is_welc=False,reply_count=parent.reply_count,priority='home_jawab',from_unseen=False)
 				################### Retention activity logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					request.session['rd'] = '1'
-					act = 'Q' if request.mobile_verified else 'Q.u'
-					activity_dict = {'m':'POST','act':act,'t':time_now,'tuid':pk}# defines what activity just took place
-					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+				# if user_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	request.session['rd'] = '1'
+				# 	act = 'Q' if request.mobile_verified else 'Q.u'
+				# 	activity_dict = {'m':'POST','act':act,'t':time_now,'tuid':pk}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
 				return redirect("home")
 			else:
@@ -4133,13 +4129,13 @@ def cross_group_notif(request,pk=None, uid=None,from_home=None, lang=None, sort_
 	update_notification(viewer_id=uid,object_id=pk, object_type='3',seen=True,unseen_activity=True, single_notif=False,\
 		bump_ua=False)
 	################### Retention activity logging ###################
-	user_id = request.user.id
-	if user_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		request.session['rd'] = '1'
-		act = 'Q3' if request.mobile_verified else 'Q3.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# user_id = request.user.id
+	# if user_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	request.session['rd'] = '1'
+	# 	act = 'Q3' if request.mobile_verified else 'Q3.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return return_to_content(request,from_home,pk,None,None)
 
@@ -4148,13 +4144,13 @@ def cross_comment_notif(request, pk=None, usr=None, from_home=None, object_type=
 	update_notification(viewer_id=usr, object_id=pk, object_type='0',seen=True, unseen_activity=True,\
 		single_notif=False,bump_ua=False)
 	################### Retention activity logging ###################
-	user_id = request.user.id
-	if user_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		request.session['rd'] = '1'
-		act = 'Q2' if request.mobile_verified else 'Q2.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# user_id = request.user.id
+	# if user_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	request.session['rd'] = '1'
+	# 	act = 'Q2' if request.mobile_verified else 'Q2.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return return_to_content(request,from_home,pk,None,None)
 
@@ -4176,13 +4172,13 @@ def cross_notif(request, pk=None, user=None, from_home=None, lang=None, sort_by=
 	update_notification(viewer_id=user, object_id=pk, object_type='2',seen=True, unseen_activity=True,\
 		single_notif=False, bump_ua=False)
 	################### Retention activity logging ###################
-	user_id = request.user.id
-	if user_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		request.session['rd'] = '1'
-		act = 'Q1' if request.mobile_verified else 'Q1.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	# user_id = request.user.id
+	# if user_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	request.session['rd'] = '1'
+	# 	act = 'Q1' if request.mobile_verified else 'Q1.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return return_to_content(request,from_home,pk,None,None)
 
@@ -4241,13 +4237,13 @@ def fan(request,*args,**kwargs):
 			star_username = retrieve_uname(star_id,decode=True)
 			if UserFan.objects.filter(fan_id=user_id, star_id=star_id).exists():
 				################### Retention activity logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					activity_dict = {'m':'POST','act':'N1','t':time_now,'tuid':star_id}# defines what activity just took place
-					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-					if origin in ('4','10','8'):
-						# setting 'from_redict' for 'home text history', 'about', 'home photo history', etc
-						request.session['rd'] = '1'
+				# if user_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	activity_dict = {'m':'POST','act':'N1','t':time_now,'tuid':star_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+				# 	if origin in ('4','10','8'):
+				# 		# setting 'from_redict' for 'home text history', 'about', 'home photo history', etc
+				# 		request.session['rd'] = '1'
 				##################################################################
 				# allow unfanning even if user unverified
 				UserFan.objects.get(fan_id=user_id, star_id=star_id).delete()
@@ -4256,10 +4252,10 @@ def fan(request,*args,**kwargs):
 				# fan does not already exist
 				if not request.mobile_verified:
 					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						activity_dict = {'m':'POST','act':'N.u','t':time_now,'tuid':star_id}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					# if user_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	activity_dict = {'m':'POST','act':'N.u','t':time_now,'tuid':star_id}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					return render(request,'verification/unable_to_submit_without_verifying.html', {'fan':True})
 				else:
@@ -4284,12 +4280,12 @@ def fan(request,*args,**kwargs):
 								'origin':origin,'obid':object_id})
 						else:
 							################### Retention activity logging ###################
-							if user_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								activity_dict = {'m':'POST','act':'N','t':time_now,'tuid':star_id}# defines what activity just took place
-								log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-								if origin in ('4','10','8'):
-									request.session['rd'] = '1'
+							# if user_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	activity_dict = {'m':'POST','act':'N','t':time_now,'tuid':star_id}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+							# 	if origin in ('4','10','8'):
+							# 		request.session['rd'] = '1'
 							##################################################################
 							UserFan.objects.create(fan_id=user_id,star_id=star_id,fanning_time=datetime.utcnow()+timedelta(hours=5))
 							add_to_photo_owner_activity(star_id, user_id, new=True)

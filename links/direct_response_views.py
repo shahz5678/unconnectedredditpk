@@ -473,7 +473,8 @@ def post_direct_response(request):
 										parent_obj_id = group_uuid# this is needed for return_to_content() below
 									
 									###############################################################
-									if from_direct_response_list:
+									# helps in showing a 'reply sent' notification in dir rep list, or single dir rep
+									if from_direct_response_list or request.POST.get('sdr',False):
 										request.session["dir_rep_sent"+str(own_id)] = target_uname
 										request.session["dir_rep_tgt_obj_type"+str(own_id)] = obj_type
 										request.session["dir_rep_tgt_obj_id"+str(own_id)] = target_id if obj_type == '7' else parent_obj_id

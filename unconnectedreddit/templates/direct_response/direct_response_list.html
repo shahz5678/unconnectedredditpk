@@ -91,9 +91,9 @@
 					<a href="{% url 'publicreply_view' data.poid %}">
 						<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 							<div class="fx fxjscn fxaicn">
-								<div class="sp cxs mrs" style="text-align:center"><span class="ct">POST</span></div>
+								<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
 								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
-								<div class="sp cm nos" style="text-align:left"><span style="color:#999"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+								<div class="sp cm nos" style="text-align:left"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
 							</div>
 						</button>
 					</a>
@@ -104,11 +104,11 @@
 					<a href="{% url 'comment' data.poid '24' %}">
 						<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 							<div class="fx fxjscn fxaicn">
-								<div class="sp cxs mrs" style="text-align:center"><span class="ct">POST</span></div>
+								<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
 								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
 								<div class="fx fxjscn fxaicn">
 									<img src="{{ data.piu|s3:'thumb' }}" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="38" alt="pic">
-									<div class="cm sp mls nos" style="text-align:left" style="word-break: break-all;"><span class="cgy"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+									<div class="cm sp mls nos" style="text-align:left" style="word-break: break-all;"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
 								</div>
 							</div>
 						</button>
@@ -119,8 +119,8 @@
 				<form method="GET" style="background:#f9f9f9" action="{% url 'public_group' data.guid %}">
 					<button type="submit" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">MEHFIL</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+							<div class="sp cs mrs" style="text-align:center"><span class="cp">MEHFIL</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span class="cp">►</div>
 							<div class="cm sp" style="text-align:left"><span class="cp">{% emoticons %}{{ data.gtp }}{% endemoticons %}</span></div>
 						</div>
 					</button>
@@ -131,8 +131,8 @@
 					{% csrf_token %}
 					<button name="private_uuid" type="submit" value="{{ data.guid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">MEHFIL</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+							<div class="sp cs mrs" style="text-align:center"><span style="color:#11ae59">MEHFIL</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span style="color:#11ae59">►</div>
 							<div class="cm sp" style="text-align:left;color:#11ae59">{% emoticons %}{{ data.gtp }}{% endemoticons %}</div>
 						</div>
 					</button>
@@ -143,9 +143,9 @@
 					{% csrf_token %}
 					<button type="submit" name="tid" value="{{ data.sid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">1&nbsp;ON&nbsp;1</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
-							<div class="cm sp" style="text-align:left;color:#6092f8">{{ data.ptx }}</div>
+							<div class="sp cs mrs" style="text-align:center"><span style="color:#3b7af7">1&nbsp;ON&nbsp;1</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span style="color:#3b7af7">►</div>
+							<div class="cm sp" style="text-align:left;color:#3b7af7">{{ data.ptx }}</div>
 						</div>
 					</button>
 				</form>

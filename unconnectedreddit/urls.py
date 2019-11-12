@@ -22,15 +22,15 @@ from urls_direct_response import urlpatterns as urlpatterns_direct_response
 from urls_topics import urlpatterns as urlpatterns_topics
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
-from links.views import cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan, comment_pk, reply_to_photo, \
-link_create_pk, welcome_pk, unfan, show_online_users,perm_redirect_to_home, star_list, cross_salat_notif, best_home_page, \
+from links.views import user_profile_photo, welcome_reply, fan, comment_pk, reply_to_photo, unseen_reply, \
+link_create_pk, welcome_pk, unfan, show_online_users,perm_redirect_to_home, star_list, best_home_page, \
 home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
-unseen_comment, submit_text_post, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
-unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, reauth, reset_password, \
+submit_text_post, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
+unseen_fans, unseen_help, make_ad, ad_finalize, click_ad,suspend, top_photo_help, reauth, reset_password, unseen_comment, \
 fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules, photo_sitemap,\
 public_reply_view, display_image_comments, redirect_to_profile_photos,public_photo_upload_denied, hide_comment, logout_rules,\
-unseen_reply, sitemap, photo_sitemap_of_sitemaps, user_profile_photos_redirect
+sitemap, photo_sitemap_of_sitemaps, user_profile_photos_redirect#, , , cross_salat_notif, cross_group_notif, cross_comment_notif, cross_notif
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import FacesHelpView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView, AdAddressView,\
@@ -114,18 +114,18 @@ urlpatterns = patterns('',
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/$', comment_pk, name='comment_pk'), #origin is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/(?P<ident>\d+)/$', comment_pk, name='comment_pk'), #origin and ident are an optional variable
 	################################################# Home Notifications #######################################################
-	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
-	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
-	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
-	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
-	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
-	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/$', auth(cross_group_notif), name='x_group_notif'),
-	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
-	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
-	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_notif), name='x_notif'),
-	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
-	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
-	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
+	# url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
+	# url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
+	# url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
+	# url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
+	# url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
+	# url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/$', auth(cross_group_notif), name='x_group_notif'),
+	# url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
+	# url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
+	# url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_notif), name='x_notif'),
+	# url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
+	# url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
+	# url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
 	############################################################################################################################
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
@@ -194,11 +194,10 @@ urlpatterns = patterns('',
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	##################################################Publicreply################################################
 	url(r'^jawab/(?P<parent_id>\d+)/$', auth(public_reply_view), name='publicreply_view'),
-	# url(r'^jawab/sent/$', auth(post_public_reply), name='publicreply_post'),
 	url(r'^unlink/(?P<pk>\d+)/$', auth(unseen_reply), name='unseen_reply'),
-	#############################################################################################################
 	url(r'^ungroup/(?P<pk>\d+)/$', auth(unseen_group), name='unseen_group'),
 	url(r'^unphoto/(?P<pk>\d+)/$', auth(unseen_comment), name='unseen_comment'),
+	#############################################################################################################
 	url(r'^reply/hide/(?P<publicreply_id>\d+)/(?P<link_id>\d+)/$', auth(hide_jawab), name='hide_jawab'),
 	url(r'^comment/hide/(?P<comment_id>\d+)/(?P<photo_id>\d+)/(?P<origin>\d+)/$', auth(hide_comment), name='hide_comment'),
 	#################################################################################################

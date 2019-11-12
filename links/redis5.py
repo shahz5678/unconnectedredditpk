@@ -11,7 +11,7 @@ from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_F
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED, USER_FRIEND_LIST_CACHING_TIME
-from redis2 import get_latest_notif_obj_pgh, update_pg_obj_del#, bulk_delete_pergrp_notif
+# from redis2 import get_latest_notif_obj_pgh, update_pg_obj_del, bulk_delete_pergrp_notif
 from get_meta_data import get_meta_data, extract_yt_id
 from redis9 import delete_single_direct_response
 from urlmarker import URL_REGEX1
@@ -491,18 +491,19 @@ def update_pg_obj_notif_after_bulk_deletion(group_id):
 	
 	ALL TYPES of txt_types: 'notif','img','img_res','text','text_res','action','reentry','exited','creation'
 	"""
-	latest_notif_obj_pgh, latest_idx, latest_type, latest_deletion_status = get_latest_notif_obj_pgh(group_id,send_status=True)
-	if latest_type in ('img','img_res','text','text_res'):
-		my_server = redis.Redis(connection_pool=POOL)
-		hash_list, pgh_list = my_server.lrange("pgl:"+group_id, 0, -1), []
-		for key in hash_list:
-			pgh_list.append("pgh:"+group_id+":"+key.partition(":")[0]) #key.partition(":")[0] is 'blob_id'
-		if latest_notif_obj_pgh in pgh_list:
-			blob_deletion_status = my_server.hget(latest_notif_obj_pgh,'status' if latest_type in ('img_res','text_res') else 'status'+latest_idx)
-			if blob_deletion_status != latest_deletion_status:
-				#sync them
-				blob_id = latest_notif_obj_pgh.split(":")[2]
-				update_pg_obj_del(blob_deletion_status,blob_id,latest_idx,group_id)
+	pass
+	# latest_notif_obj_pgh, latest_idx, latest_type, latest_deletion_status = get_latest_notif_obj_pgh(group_id,send_status=True)
+	# if latest_type in ('img','img_res','text','text_res'):
+	# 	my_server = redis.Redis(connection_pool=POOL)
+	# 	hash_list, pgh_list = my_server.lrange("pgl:"+group_id, 0, -1), []
+	# 	for key in hash_list:
+	# 		pgh_list.append("pgh:"+group_id+":"+key.partition(":")[0]) #key.partition(":")[0] is 'blob_id'
+	# 	if latest_notif_obj_pgh in pgh_list:
+	# 		blob_deletion_status = my_server.hget(latest_notif_obj_pgh,'status' if latest_type in ('img_res','text_res') else 'status'+latest_idx)
+	# 		if blob_deletion_status != latest_deletion_status:
+	# 			#sync them
+	# 			blob_id = latest_notif_obj_pgh.split(":")[2]
+	# 			update_pg_obj_del(blob_deletion_status,blob_id,latest_idx,group_id)
 
 
 def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, server=None):

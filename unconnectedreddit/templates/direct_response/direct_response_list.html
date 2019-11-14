@@ -154,9 +154,9 @@
 			<div style="background:white">
 				<div style="padding:8px;border-top:1px solid #dbdbdb;border-bottom:1px solid #dbdbdb">
 				{% if data.hide_rep == '1' %}
-					<div class="cl sp lsp"><b>{{ data.sun }}</b> ka reply hide ho gya</div>
+					<div class="cl sp lsp"><b><bdi>{{ data.sun }}</bdi></b> ka reply hide ho gya</div>
 				{% else %}
-					<div class="cl lsp nos"><b>{{ data.sun }}</b> : {% if data.iu %}<img class="mrs" src="{{ data.iu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% endif %}<span class="sp mrs"><bdi>{% emoticons %}{{ data.tx }}{% endemoticons %}</bdi></span><span class="mrs cxs sp" style="text-align:right;color:#999999">{{ data.t|human_time }}</span></div>
+					<div class="cl lsp nos"><b><bdi>{{ data.sun }}</bdi></b> : {% if data.iu %}<img class="mrs" src="{{ data.iu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% endif %}<span class="sp mrs"><bdi>{% emoticons %}{{ data.tx }}{% endemoticons %}</bdi></span><span class="mrs cxs sp" style="text-align:right;color:#999999">{{ data.t|human_time }}</span></div>
 					{% if data.hide_tgt != '1' and data.ttxpre %}
 					<div class="lsp sp nos" style="color:#999">
 						{% if data.tiu %}

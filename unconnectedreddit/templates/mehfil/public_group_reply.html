@@ -68,7 +68,7 @@
         {% include "mehfil/public_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
 
         {% for reply,status in replies %}
-        
+
         {% if reply.category == '2' %}
             <div class="lsp sp cs" style="overflow:hidden;color:#999"><bdi><b>{{ reply.text }}</b></bdi> ko mehfil se kick kar dia gya</div>
         {% elif reply.category == '3' or reply.category == '1' %}
@@ -148,6 +148,21 @@
                     </div>
                 </div>
                 {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons %}
+
+            {% else %}
+
+                <!-- no reference -->
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% include "mehfil/hide_reply.html" with dec='h' reply_gid=reply.gid reply_id=reply.id %}
+
+                        {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+                        
+                        {% if reply.wid != own_id|slugify %}{% include "direct_response/dr_button.html" with origin='16' obtp='5' poid=reply.gid obid=reply.id wid=reply.wid tx=reply.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                    </div>
+                </div>
 
             {% endif %}
             

@@ -103,8 +103,9 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 				# performing a double check
 				obj_exists = True
 				parent_uname = retrieve_uname(target_user_id,decode=True)
-				parent_text = '1 on 1 with {}'.format(own_uname.decode('utf-8')[:1].upper()) \
-				if their_anon_status else '1 on 1 with {}'.format(own_uname)# group topic
+				parent_uname = parent_uname[:1].upper() if their_anon_status else parent_uname
+				own_uname = own_uname.decode('utf-8')[:1].upper() if own_anon_status else own_uname
+				parent_text = '1 on 1 with {}'.format(own_uname) # group topic
 			else:
 				obj_exists = False
 	
@@ -142,7 +143,7 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 			if group_uuid:
 				obj_exists = True
 	return obj_exists, target_text, parent_uname, parent_text, parent_user_id, topic_name, theme, c1, c2, topic_url, image_url, group_topic, \
-	group_uuid
+	group_uuid, own_uname
 
 
 ################################################# Direct response functionality #################################################
@@ -242,8 +243,6 @@ def post_direct_response(request):
 					else:
 						banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 						if banned_by:
-							# origins checked: inbox, home, best photos, fresh photos
-							#############################################################
 							# there's a block that exists between you and the target - disallowed from proceeding
 							if origin in ('15','16'):
 								# these are public and private groups
@@ -276,7 +275,7 @@ def post_direct_response(request):
 							is_main_reply = '1' if obj_type == '7' else is_main_reply# i.e. always a main_reply if obj_type is '7'
 							
 							obj_exists, target_text, parent_uname, parent_text, parent_user_id, topic_name, theme, c1, c2, \
-							topic_url, image_url, group_topic, group_uuid = retrieve_direct_response_data(obj_type=obj_type,\
+							topic_url, image_url, group_topic, group_uuid, own_username = retrieve_direct_response_data(obj_type=obj_type,\
 								target_user_id=target_id, obj_id=obj_id, parent_obj_id=parent_obj_id,is_main_reply=is_main_reply,\
 								own_id=own_id, own_uname=own_username)
 						
@@ -287,6 +286,7 @@ def post_direct_response(request):
 									target_text_prefix, target_text_postfix = break_text_into_prefix_and_postfix(target_text)
 								else:
 									target_text_prefix, target_text_postfix = '', ''
+
 								text, tgt_is_hidden = form.cleaned_data['direct_response']# what the submitter wrote							
 								lid, db_obj_id, created_obj_type, idx = None, None, None, None
 
@@ -475,9 +475,13 @@ def post_direct_response(request):
 									###############################################################
 									# helps in showing a 'reply sent' notification in dir rep list, or single dir rep
 									if from_direct_response_list or request.POST.get('sdr',False):
-										request.session["dir_rep_sent"+str(own_id)] = target_uname
 										request.session["dir_rep_tgt_obj_type"+str(own_id)] = obj_type
-										request.session["dir_rep_tgt_obj_id"+str(own_id)] = target_id if obj_type == '7' else parent_obj_id
+										if obj_type == '7':
+											request.session["dir_rep_sent"+str(own_id)] = parent_uname
+											request.session["dir_rep_tgt_obj_id"+str(own_id)] = target_id
+										else:
+											request.session["dir_rep_sent"+str(own_id)] = target_uname
+											request.session["dir_rep_tgt_obj_id"+str(own_id)] = parent_obj_id
 
 									# log direct response metrics, and some other stuff
 									direct_response_tasks.delay(action_status=is_reply_to_reply, action_type='1', \

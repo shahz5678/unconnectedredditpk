@@ -232,19 +232,19 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 
 			########### GENERATE A DIR REP NOTIF ###########
 			if own_anon == '1':
-				sun = own_uname.decode('utf-8')[:1].upper()
-				group_name = '1 on 1 with {}'.format(sun)
+				sun = own_uname[:1].upper()
+				group_name = '1 on 1 with {}'.format(sun.encode('utf-8'))
 			elif own_anon == '0':
 				sun = own_uname
-				group_name = '1 on 1 with {}'.format(sun)
+				group_name = '1 on 1 with {}'.format(sun.encode('utf-8'))
 			else:
 				own_anon, target_anon, group_id = get_personal_group_anon_state(own_id,target_id)
 				if own_anon:
-					sun = own_uname.decode('utf-8')[:1].upper()
-					group_name = '1 on 1 with {}'.format(sun)
+					sun = own_uname[:1].upper()
+					group_name = '1 on 1 with {}'.format(sun.encode('utf-8'))
 				else:
 					sun = own_uname
-					group_name = '1 on 1 with {}'.format(sun)
+					group_name = '1 on 1 with {}'.format(sun.encode('utf-8'))
 
 			# ensure a non-empty blob_id is passed, otherwise the code won't work correctly
 			payload = {'tx':text,'tun':target_uname,'t':posting_time,'tid':target_id,'obid':None,\

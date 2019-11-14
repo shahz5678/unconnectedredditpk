@@ -155,6 +155,23 @@
                 </div>
                 {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons state=reply.hd %}
 
+            {% else %}
+
+                <!-- no reference -->
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+
+                    {% include "mehfil/hide_private_reply.html" with dec='h' reply_gid=group_id reply_id=reply.id %}
+
+                    {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='15' target_username=reply.writer_uname %}
+
+                    {% if reply.wid != own_id|slugify %}{% include "direct_response/dr_button.html" with origin='15' obtp='6' poid=group_id obid=reply.id wid=reply.wid tx=reply.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+
+                    </div>
+                </div>
+
             {% endif %}
 
             </div>

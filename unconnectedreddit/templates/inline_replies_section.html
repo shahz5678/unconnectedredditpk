@@ -14,7 +14,7 @@
 			<span class="sp" style="color:#999"><b><a href="{% url 'user_profile' reply.wun %}" style="color:#999"><bdi>{{ reply.wun }}</bdi></a></b>&nbsp;ka reply hide ho gya</span>
 		{% elif reply.ct and reply.ttxpre %}
 			<!-- reference visible -->
-			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName">{{ reply.wun }}</b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
+			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName"><bdi>{{ reply.wun }}</bdi></b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
 			
 			<span class="lsp mrs sp" itemprop="text">
 				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>
@@ -43,7 +43,7 @@
 			<!-- reference hidden -->
 			<span itemprop="author" itemscope itemtype="http://schema.org/Person">
 				<a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb">
-					<b itemprop="alternateName">{{ reply.wun }}</b>
+					<b itemprop="alternateName"><bdi>{{ reply.wun }}</bdi></b>
 				</a>
 			</span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:
 			
@@ -72,7 +72,7 @@
 		{% else %}
 
 			<!-- no reference -->
-			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName">{{ reply.wun }}</b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
+			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName"><bdi>{{ reply.wun }}</bdi></b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
 			
 			<span class="lsp mrs sp" itemprop="text">
 				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>

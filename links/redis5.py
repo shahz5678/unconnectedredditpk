@@ -6,14 +6,13 @@ from urlparse import urlparse
 from location import REDLOC5
 from score import THUMB_HEIGHT, EXTRA_PADDING, PERSONAL_GROUP_SAVE_MSGS, PERSONAL_GROUP_NOTIF_IVT_RATE_LIMIT, PERSONAL_GROUP_NOTIF_RATE_LIMIT
 from redis4 import retrieve_bulk_credentials, retrieve_credentials, log_personal_group_exit_or_delete, purge_exit_list, cache_meta_data, get_cached_meta_data,\
-add_group_to_log
+add_group_to_log, retrieve_bulk_unames
 from page_controls import PERSONAL_GROUP_OBJECT_CEILING, PERSONAL_GROUP_OBJECT_FLOOR, PERSONAL_GROUP_BLOB_SIZE_LIMIT, PERSONAL_GROUP_PHT_XFER_IVTS, \
 PERSONAL_GROUP_MAX_PHOTOS, MOBILE_NUM_CHG_COOLOFF, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_SMS_IVTS, PERSONAL_GROUP_SAVED_CHAT_COUNTER, \
 PERSONAL_GROUP_REJOIN_RATELIMIT, PERSONAL_GROUP_SOFT_DELETION_CUTOFF, PERSONAL_GROUP_HARD_DELETION_CUTOFF, EXITED_PERSONAL_GROUP_HARD_DELETION_CUTOFF,\
 PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF, USER_GROUP_LIST_CACHING_TIME, URL_POSTINGS_ALLOWED, USER_FRIEND_LIST_CACHING_TIME
 # from redis2 import get_latest_notif_obj_pgh, update_pg_obj_del, bulk_delete_pergrp_notif
 from get_meta_data import get_meta_data, extract_yt_id
-from redis9 import delete_single_direct_response
 from urlmarker import URL_REGEX1
 
 '''
@@ -764,14 +763,6 @@ def reset_all_group_chat(group_id, my_server=None):
 	# reset object_count in pgah
 	pipeline1.hset("pgah:"+group_id,'oc',0)
 	pipeline1.execute()
-
-	# ensure both side don't have notifications in their inboxes anymore
-	payload = my_server.get("pgp:"+group_id)
-	if payload:
-		data = payload.split(":")
-		user_1, user_2 = data[0], data[1]
-		delete_single_direct_response(target_user_id=user_1, obj_type='7', parent_obj_id=group_id, sender_id=user_2)
-		delete_single_direct_response(target_user_id=user_2, obj_type='7', parent_obj_id=group_id, sender_id=user_1)
 
 
 def permanently_delete_entire_personal_group(group_id, my_server=None):
@@ -1543,10 +1534,6 @@ def exit_user_from_targets_priv_chat(own_id,target_id):
 		# suspend group, overriding any rate limits. This won't suspend if group already suspended (we'll handle those cases in re-entry)
 		suspend_personal_group(own_id, target_id, group_id, override_rl=True)
 
-		# ensuring both side don't have notifications in their inboxes anymore
-		delete_single_direct_response(target_user_id=own_id, obj_type='7', parent_obj_id=group_id, sender_id=target_id)
-		delete_single_direct_response(target_user_id=target_id, obj_type='7', parent_obj_id=group_id, sender_id=own_id)
-
 
 ########################################## Personal Group SMS Settings ###########################################
 
@@ -1966,6 +1953,7 @@ def mark_personal_group_attendance(own_id, target_id, group_id, time_now):
 	pipeline1.zadd("pgfgm:"+target_id,group_id+":"+own_id,time_now)
 	pipeline1.execute()
 
+
 # call every 3 days
 def personal_group_soft_deletion():
 	"""
@@ -1974,8 +1962,23 @@ def personal_group_soft_deletion():
 	seven_days_ago = time.time() - PERSONAL_GROUP_SOFT_DELETION_CUTOFF
 	my_server = redis.Redis(connection_pool=POOL)
 	group_ids = my_server.zrangebyscore("personal_group_attendance",'-inf', seven_days_ago)
+	pgp_keys = []
 	for group_id in group_ids:
+		pgp_keys.append("pgp:"+group_id)
 		reset_all_group_chat(group_id, my_server=my_server)
+	if pgp_keys:
+		user_id_pairs = my_server.mget(*pgp_keys)
+		count, groups_and_participants = 0, []
+		for group_id in group_ids:
+			try:
+				participants = user_id_pairs[count].partition(":")
+				groups_and_participants.append((group_id,participants[0],participants[-1]))
+			except (AttributeError, IndexError):
+				pass
+			count += 1
+		return groups_and_participants
+	else:
+		return []
 
 
 # call every 6 days
@@ -2006,7 +2009,9 @@ def personal_group_hard_deletion():
 		pipeline1.zrem("exited_personal_groups",*group_ids)
 		pipeline1.execute()
 		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_idle')
-		# bulk_delete_pergrp_notif(groups_and_participants)
+		return groups_and_participants
+	else:
+		return []
 
 
 #call daily
@@ -2038,7 +2043,9 @@ def exited_personal_group_hard_deletion(group_ids=None):
 		pipeline1.zrem("personal_group_attendance",*group_ids)
 		pipeline1.execute()
 		log_personal_group_exit_or_delete(group_id=group_ids, action_type='del_exit')
-		# bulk_delete_pergrp_notif(groups_and_participants)
+		return groups_and_participants
+	else:
+		return []
 
 ########################################### Personal Group Anonymization ###########################################
 
@@ -2064,6 +2071,7 @@ def set_personal_group_anon_state(own_id, target_id):
 		return new_value
 	else:
 		return None
+
 
 def get_personal_group_anon_state(own_id, target_id):
 	"""
@@ -2092,32 +2100,45 @@ def are_users_anon(groups_and_friends,my_server=None):
 
 	Must be fed {group_id:friend_id} dictionary
 	"""
-	if not my_server:
-		my_server = redis.Redis(connection_pool=POOL)
-	if len(groups_and_friends) > 3:
+	group_anon_states = {}
+	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+	if len(groups_and_friends) > 2:
 		pipeline1 = my_server.pipeline()
 		for group_id, friend_id in groups_and_friends.iteritems():
 			pipeline1.hget('pgah:'+group_id,'anon'+friend_id)
-		result1, counter, group_anon_states = pipeline1.execute(), 0, {}
+		result1, counter = pipeline1.execute(), 0
 		for group_id, friend_id in groups_and_friends.iteritems():
 			group_anon_states[group_id] = result1[counter]
 			counter += 1
-		return group_anon_states
 	else:
-		group_anon_states = {}
 		for group_id, friend_id in groups_and_friends.iteritems():
 			group_anon_states[group_id] = my_server.hget('pgah:'+group_id,'anon'+friend_id)
-		return group_anon_states
+	return group_anon_states
 
 
-# def get_obj_state(pgh, index=None):
-# 	"""
-# 	Retrieves the 'del' and 'hidden' status of a message
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	is_hidden, is_deleted = my_server.hmget(pgh,'hidden'+index,'status'+index) if index else my_server.hmget(pgh,'hidden','status')
-# 	is_hidden = 'no' if not is_hidden else is_hidden
-# 	return is_hidden, is_deleted
+def retrieve_bulk_group_labels(groups_and_friends, user_id):
+	"""
+	Retreives provided groups' 'anon' states, and creates a label based on that
+
+	These labels are to be shown in reply history for the provided user
+	"""
+	final_data = {}
+	group_anon_states = are_users_anon(groups_and_friends)# Must be fed {group_id:friend_id} dictionary
+	username_dictionary = retrieve_bulk_unames(groups_and_friends.values(),decode=True)
+	for group_id, friend_id in groups_and_friends.iteritems():
+		group_anon_state = group_anon_states[group_id]
+		if group_anon_state == '1':
+			# group is anonymized (from user_id's perspective)
+			uname = username_dictionary[int(friend_id)][:1].upper().encode('utf-8')
+			final_data[group_id] = {'label':'1 on 1 with {}'.format(uname),'uname':uname}
+		elif group_anon_state == '0':
+			# group is not anonymized (from user_id's perspective)
+			uname = username_dictionary[int(friend_id)].encode('utf-8')
+			final_data[group_id] = {'label':'1 on 1 with {}'.format(uname),'uname':uname}
+		else:
+			# group may not exist
+			final_data[group_id] = {}
+	return final_data
 
 ######################################## Personal Group Mobile Verification ########################################
 

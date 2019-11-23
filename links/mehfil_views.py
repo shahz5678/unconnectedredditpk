@@ -37,6 +37,8 @@ retrieve_user_env
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users
 
+from redis9 import delete_direct_responses_upon_obj_deletion, delete_direct_responses_linked_to_obj, cleanse_replier_data_from_location
+
 # from redis2 import remove_group_object, get_replies_with_seen,create_notification, create_object, bulk_remove_group_notification, update_notification, remove_group_notification
 
 from tasks import set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, construct_administrative_activity, \
@@ -1986,12 +1988,19 @@ def kick_out(request, slug):
 						# cannot do it since rate limited
 						return render(request,"mehfil/notify_and_redirect.html",{'kick_rate_limited':True,'ttl':ttl,'unique':guid,'is_public':is_public})
 					elif kicked_nicknames and activity_id:
+						grp_type = '6' if group_privacy == '1' else '5'
+
 						# hide all messages of kicked culprits
-						hide_writers_group_messages(group_id,culprit_ids,group_type='6' if group_privacy == '1' else '5')# works for public, private both
-						###### remove from redis 2 legacy ##################
-						# bulk_remove_group_notification(kicked_culprit_ids, group_id)# redis 2 legacy
-						####################################################
-						# produce group message of kicking out user
+						hide_writers_group_messages(group_id,culprit_ids,group_type=grp_type)# works for public, private both
+						
+						# deleting direct responses from culprit IDs' 'direct response lists'
+						delete_direct_responses_linked_to_obj(obj_type=grp_type, parent_obj_id=group_id, target_user_ids=culprit_ids)
+
+						# removing meh from culprits' 'activities'
+						cleanse_replier_data_from_location(obj_type=grp_type, parent_obj_id=guid, obj_owner_id=group_owner_id, \
+							replier_ids=culprit_ids)# note this requires 'guid', not 'group_id'
+						
+						# produce group message (of kicking out user)
 						save_group_submission(writer_id=own_id, group_id=group_id, text=kicked_nicknames,posting_time=time_now,\
 							category='2',writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
 						invalidate_cached_mehfil_replies(group_id)
@@ -2037,11 +2046,18 @@ def kick_out(request, slug):
 						# cannot do it since rate limited
 						return render(request,"mehfil/notify_and_redirect.html",{'kick_rate_limited':True,'ttl':ttl,'unique':guid})
 					elif kicked_nicknames and activity_id:
+						grp_type = '6' if group_privacy == '1' else '5'
+
 						# hide all messages of kicked culprits
-						hide_writers_group_messages(group_id,culprit_ids,group_type='6' if group_privacy == '1' else '5')
-						###### remove from redis 2 legacy ##################
-						# bulk_remove_group_notification(kicked_culprit_ids, group_id)
-						####################################################
+						hide_writers_group_messages(group_id,culprit_ids,group_type=grp_type)
+						
+						# deleting direct responses from culprint IDs' 'direct response lists'
+						delete_direct_responses_linked_to_obj(obj_type=grp_type, parent_obj_id=group_id, target_user_ids=culprit_ids)
+
+						# removing meh from culprits' 'activities'
+						cleanse_replier_data_from_location(obj_type=grp_type, parent_obj_id=guid, obj_owner_id=group_owner_id, \
+							replier_ids=culprit_ids)# note this requires 'guid', not 'group_id'
+
 						# produce group message
 						save_group_submission(writer_id=own_id, group_id=group_id, text=kicked_nicknames,posting_time=time_now,\
 							category='2',writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
@@ -2871,7 +2887,7 @@ class ChangeGroupRulesView(FormView):
 	def form_valid(self, form): #this processes the form before it gets saved to the database
 		user_id = str(self.request.user.id)
 		if self.request.user_banned:
-			return redirect("profile", slug=user.username, type='fotos')
+			return redirect("profile", slug=self.request.user.username, type='fotos')
 		else:
 			rules, raw_rules = form.cleaned_data.get("rules")
 			unique = self.request.session.get("public_uuid",None)
@@ -2988,6 +3004,9 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						# purging redis 6 group related data structures:
 						permanently_delete_group(group_id, group_type='public')# get rid of all redis 6 data related to the group
 
+						# deleting 'direct resposes' given in the group
+						delete_direct_responses_upon_obj_deletion(obj_type='5', obj_id=group_id)
+
 						return render(request,'mehfil/notify_and_redirect.html', {'deleted':True,'is_public':True})
 				elif group_id != str(pk):
 					# maybe the input was tinkered with?
@@ -3041,6 +3060,9 @@ def del_private_group(request, pk=None, unique=None, *args, **kwargs):
 					# purging redis 6 group related data structures:
 					permanently_delete_group(group_id, group_type='private')# get rid of all redis 6 data related to the group
 
+					# deleting 'direct resposes' given in the group
+					delete_direct_responses_upon_obj_deletion(obj_type='6', obj_id=group_id)
+
 					return render(request,'mehfil/notify_and_redirect.html', {'deleted':True,'is_public':False})
 			elif group_id != str(pk):
 				# maybe the input was tinkered with?
@@ -3083,12 +3105,13 @@ def left_public_group(request, *args, **kwargs):
 				if ttl:
 					return render(request,"mehfil/notify_and_redirect.html",{'cannot_exit':True,'time_remaining':ttl,'is_public':True,'unique':unique})
 				else:
-					# legacy_mehfil_exit(pk, user_id, own_uname, group_type='public')# legacy redis 1 - please remove
-					############################ Redis 2 ###############################
-					# remove_group_notification(user_id,pk)# removing notification
 					############################ Redis 6 ###############################
 					exit_group(pk, user_id, time.time(), is_public=True)# redis 6 function - remove redis 1 funcs in the future
 					invalidate_cached_mehfil_pages(user_id)
+					####################################################################
+					# redis 9: removing pub-meh from user's 'reply activity'
+					cleanse_replier_data_from_location(obj_type='5', parent_obj_id=unique, obj_owner_id=retrieve_group_owner_id(group_id=pk), \
+						replier_ids=[str(user_id)])# note this requires 'unique_id', not 'group_id'
 					####################################################################
 					return redirect("group_page")
 			# elif check_group_invite(user_id, pk):# redis1 legacy - replace with similar redis6 functionality
@@ -3130,12 +3153,13 @@ def left_private_group(request, *args, **kwargs):
 			if ttl:
 				return render(request,"mehfil/notify_and_redirect.html",{'cannot_exit':True,'time_remaining':ttl, 'is_public':False,'unique':unique})
 			else:
-				# legacy_mehfil_exit(pk, user_id, own_uname, group_type='private')# legacy redis 1 - please remove
-				############################ Redis 2 ###############################
-				# remove_group_notification(user_id,pk)# removing notification
 				############################ Redis 6 ###############################
 				exit_group(pk, user_id, time.time(), own_uname, get_s3_object(own_avurl,category='thumb'), is_public=False)
 				invalidate_cached_mehfil_pages(user_id)
+				####################################################################
+				# redis 9: removing prv-meh from user's 'reply activity'
+				cleanse_replier_data_from_location(obj_type='6', parent_obj_id=unique, obj_owner_id=retrieve_group_owner_id(group_id=pk), \
+					replier_ids=[str(user_id)])# note this requires 'unique_id', not 'group_id'
 				####################################################################
 				return redirect("group_page")
 		# elif check_group_invite(user_id, pk):#sorted set containing user invites ipg:user_id: (redis 1)

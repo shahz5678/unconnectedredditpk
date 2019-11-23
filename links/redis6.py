@@ -17,8 +17,6 @@ NUM_RULES_CHANGE_ATTEMPTS_ALLOWED, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, FEEDBACK_T
 CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE, PRIVATE_GROUP_CREATION_RATE_LIMIT, PUBLIC_GROUP_CREATION_RATE_LIMIT,\
 INVITER_PRIVATE_INVITE_LOCK_DURATION, INVITER_PUBLIC_INVITE_LOCK_DURATION
 from redis4 import retrieve_bulk_unames, retrieve_uname, retrieve_bulk_credentials, retrieve_credentials
-from redis9 import delete_direct_responses_upon_obj_deletion, delete_direct_responses_linked_to_obj
-# from redis2 import remove_group_notification
 from redis3 import exact_date
 from location import REDLOC6
 
@@ -640,6 +638,90 @@ def retrieve_group_topic_log(group_id):
 		return final_data
 
 
+def retrieve_group_topics_in_bulk(public_grp_uuids, private_grp_uuids):
+	"""
+	Retrieves the topics of relevant groups
+
+	Useful when displaying 'reply activity' of a given user
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	###########################
+	public_group_topics = {}
+
+	if len(public_grp_uuids) > 10:
+		# retreive the data using a pipeline
+		pipeline1 = my_server.pipeline()
+		for public_group_uuid in public_grp_uuids:
+			pipeline1.get(GROUP_UUID_TO_ID_MAPPING+public_group_uuid)
+		result1, counter = pipeline1.execute(), 0
+
+		pipeline2 = my_server.pipeline()
+		for public_group_uuid in public_grp_uuids:
+			group_id = result1[counter]
+			if group_id:
+				pipeline2.hget(GROUP+group_id,'tp')
+			counter += 1
+		result2 = pipeline2.execute()
+
+		loop_iterator, group_iterator = 0, 0
+		for public_group_uuid in public_grp_uuids:
+			group_id = result1[loop_iterator]
+			if group_id:
+				# topic exists because group exists
+				public_group_topics[public_group_uuid] = result2[group_iterator]
+				group_iterator += 1
+			else:
+				# topic does not exist because group is gone
+				public_group_topics[public_group_uuid] = ''
+
+			loop_iterator += 1
+
+	else:
+		# retrieve the data without a pipeline
+		for public_group_uuid in public_grp_uuids:
+			group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+public_group_uuid)
+			public_group_topics[public_group_uuid] = my_server.hget(GROUP+group_id,'tp') if group_id else ''
+
+	######################################################
+	######################################################
+
+	private_group_topics = {}
+
+	if len(private_grp_uuids) > 1:
+		# retreive the data using a pipeline
+		pipeline1 = my_server.pipeline()
+		for private_group_uuid in private_grp_uuids:
+			pipeline1.get(GROUP_UUID_TO_ID_MAPPING+private_group_uuid)
+		result1, counter = pipeline1.execute(), 0
+
+		pipeline2 = my_server.pipeline()
+		for private_group_uuid in private_grp_uuids:
+			group_id = result1[counter]
+			if group_id:
+				pipeline2.hget(GROUP+group_id,'tp')
+			counter += 1
+		result2 = pipeline2.execute()
+
+		loop_iterator, group_iterator = 0, 0
+		for private_group_uuid in private_grp_uuids:
+			group_id = result1[loop_iterator]
+			if group_id:
+				# topic exists because group exists
+				private_group_topics[private_group_uuid] = result2[group_iterator]
+				group_iterator += 1
+			else:
+				# topic does not exist because group is gone
+				private_group_topics[private_group_uuid] = ''
+			loop_iterator += 1
+	else:
+		# retrieve the data without a pipeline
+		for private_group_uuid in private_grp_uuids:
+			group_id = my_server.get(GROUP_UUID_TO_ID_MAPPING+private_group_uuid)
+			private_group_topics[private_group_uuid] = my_server.hget(GROUP+group_id,'tp') if group_id else ''
+
+	return public_group_topics, private_group_topics
+
+
 def retrieve_group_topic(group_id=None, group_uuid=None,requestor_id=None):
 	"""
 	Returns group's topic from meta data hash
@@ -682,6 +764,12 @@ def retrieve_group_privacy(group_id=None,group_uuid=None,requestor_id=None):
 	else:
 		return None
 
+
+def retrieve_group_uuid_topic_owner_id(group_id):
+	"""
+	Useful for a specific case - direct replies in groups
+	"""
+	return redis.Redis(connection_pool=POOL).hmget(GROUP+str(group_id),'u','tp','oi')
 
 
 def retrieve_group_owner_id(group_id=None,group_uuid=None,with_group_id=False,with_group_privacy=False):
@@ -939,7 +1027,7 @@ def retrieve_group_submissions(group_id,how_many=MSGS_TO_SHOW_IN_GROUP):
 	return result1
 
 
-def retrieve_single_group_submission(group_id, submission_id, text_only=False, writer_id_only=False, text_img_tp_uuid=True):
+def retrieve_single_group_submission(group_id, submission_id, text_only=False, writer_id_only=False, text_img_tp_uuid_ooid=True):
 	"""
 	Retrieves a single submission
 
@@ -951,11 +1039,10 @@ def retrieve_single_group_submission(group_id, submission_id, text_only=False, w
 		return text.decode('utf-8')
 	elif writer_id_only:
 		return redis.Redis(connection_pool=POOL).hget(key,'wi')
-	elif text_img_tp_uuid:
+	elif text_img_tp_uuid_ooid:
 		text, img_url = redis.Redis(connection_pool=POOL).hmget(key,'tx','ciu')
-		group_uuid = retrieve_group_uuid(group_id=group_id)
-		group_topic = retrieve_group_topic(group_id=group_id)
-		return text, img_url, group_uuid, group_topic
+		group_uuid, group_topic, group_owner_id = retrieve_group_uuid_topic_owner_id(group_id)
+		return text, img_url, group_uuid, group_topic, group_owner_id
 	else:
 		return redis.Redis(connection_pool=POOL).hgetall(key)
 
@@ -3136,9 +3223,6 @@ def kick_users_from_group(group_id, culprit_ids, time_now, kicked_by_uname, kick
 					# deleting kicked culprits feedback from the mehfil
 					delete_specific_users_group_feedback(group_id, culprit_ids, my_server)
 
-					# deleting direct responses from culprint IDs' 'direct response lists'
-					delete_direct_responses_linked_to_obj(obj_type='5', parent_obj_id=group_id, target_user_ids=culprit_ids)
-
 					return None, nicknames, nickname_list, activity_id, culprit_ids
 				else:
 					# kicking from a private group
@@ -3210,9 +3294,6 @@ def kick_users_from_group(group_id, culprit_ids, time_now, kicked_by_uname, kick
 					pipeline2.setex(PUNISHER_RATE_LIMITED+group_id+":"+kicked_by_id,'1',TEN_MINS)#setting a rate limit so kicker can't go on a spree
 
 					pipeline2.execute()
-
-					# deleting direct responses from culprint IDs' 'direct response lists'
-					delete_direct_responses_linked_to_obj(obj_type='6', parent_obj_id=group_id, target_user_ids=culprit_ids)
 
 					return None, nicknames, nickname_list, activity_id, culprit_ids
 			else:
@@ -4222,7 +4303,6 @@ def permanently_delete_group(group_id, group_type, return_member_ids=False):
 		delete_all_group_feedback(group_id, my_server=my_server)
 		invalidate_cached_group_reqd_data(group_id, my_server=my_server)
 		unfreeze_deletion(group_id, my_server=my_server)
-		delete_direct_responses_upon_obj_deletion(obj_type='5', obj_id=group_id)# obj_type as it pertains to 'direct resposes' given in a group
 		my_server.setex(RECENTLY_DELETED_GROUP+group_id,'1',ONE_MONTH)
 	else:
 		# handling deletion for private mehfils
@@ -4260,7 +4340,6 @@ def permanently_delete_group(group_id, group_type, return_member_ids=False):
 		invalidate_cached_mehfil_replies(group_id,my_server=my_server)
 		invalidate_presence(group_id, my_server=my_server)
 		invalidate_cached_group_reqd_data(group_id, my_server=my_server)
-		delete_direct_responses_upon_obj_deletion(obj_type='6', obj_id=group_id)# obj_type as it pertains to 'direct resposes' given in a group
 		my_server.setex(RECENTLY_DELETED_GROUP+group_id,'1',ONE_MONTH)
 	if return_member_ids:
 		return member_ids
@@ -4316,13 +4395,11 @@ def delete_ghost_groups(group_ids=None):
 		groups_to_delete.append((group_id, 'private' if result1[counter] == '1' else 'public'))
 		counter += 1
 	if groups_to_delete:
-		grp_ids_and_members = {}
 		for group_id, group_type in groups_to_delete:
-			member_ids = permanently_delete_group(group_id, group_type, return_member_ids=True)# redis 1 legacy membership sets are not consulted to get member_ids, delete legacy sets
-			grp_ids_and_members[group_id] = member_ids
-		return grp_ids_and_members
+			permanently_delete_group(group_id, group_type)# redis 1 legacy membership sets are not consulted to get member_ids, delete legacy sets
+		return groups_to_delete
 	else:
-		return {}
+		return []
 
 
 def permanently_empty_idle_group_content(group_id, group_type):

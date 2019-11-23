@@ -6,7 +6,7 @@
 {% load count %}
 {% check_reply_count as reply_count %}
 
-{% include "inbox_navbar.html" with static_url=STATIC_URL section='likes' username=slug  num_rep=reply_count %}
+{% include "inbox_navbar.html" with section='likes' username=slug  num_rep=reply_count %}
 
 {% load s3 %}
 {% load human_time %}
@@ -58,7 +58,7 @@
 		
 	{% empty %}
 
-	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:97%;margin-right:auto;margin-left:auto;text-align:center;background:snow">
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:98%;margin-right:auto;margin-left:auto;text-align:center;background:snow">
 
 		<div class="cxl lsp clb mts mbs" style="text-align:center">Sorry! Ye khali hai ...</div>
 		<hr size=1 COLOR="#f4f4f4" style="margin:0">

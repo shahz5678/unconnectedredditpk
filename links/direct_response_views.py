@@ -4,7 +4,6 @@ from django.db.models import F
 from django.http import Http404
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, redirect
-from score import DELETION_THRESHOLD
 from redis3 import is_already_banned
 from page_controls import ITEMS_PER_PAGE
 from templatetags.s3 import get_s3_object
@@ -14,16 +13,17 @@ from group_views import personal_group_sanitization
 from direct_response_forms import DirectResponseForm
 from django.views.decorators.csrf import csrf_protect
 from models import Publicreply, Link, PhotoComment, Photo
+from score import DELETION_THRESHOLD, NUM_ACTIVITY_ITEMS_PER_PAGE
 from redis4 import retrieve_uname, retrieve_bulk_unames, retrieve_avurl
 from views import get_indices, break_text_into_prefix_and_postfix, convert_to_epoch
 from redis7 import check_content_and_voting_ban, invalidate_cached_public_replies, store_inline_reply
 from tasks import publicreply_notification_tasks, trim_group_submissions, set_input_rate_and_history, direct_response_tasks
-from redis9 import retrieve_direct_response_list, delete_single_direct_response, bulk_delete_selective_dir_reps_of_single_user, \
-submit_direct_response
-from redis6 import retrieve_single_group_submission, save_group_submission, invalidate_cached_mehfil_replies, invalidate_presence,\
-retrieve_group_uuid, populate_reply_mapping
 from redis5 import add_content_to_personal_group, get_personal_group_anon_state, mark_personal_group_attendance, update_personal_group_last_seen,\
 set_uri_metadata_in_personal_group
+from redis6 import retrieve_single_group_submission, save_group_submission, invalidate_cached_mehfil_replies, invalidate_presence,\
+retrieve_group_uuid, populate_reply_mapping
+from redis9 import retrieve_direct_response_list, delete_single_direct_response, bulk_delete_selective_dir_reps_of_single_user, \
+submit_direct_response, display_recent_reply_locations, retrieve_interacted_unames, remove_direct_response_activity
 
 
 ################################################# Utilities #################################################
@@ -64,8 +64,9 @@ def retrieve_target_text(obj_id, submitter_id, parent_obj_id, obj_type, is_main_
 			return target_text
 		elif obj_type in ('5','6'):
 			# public/private mehfil
-			target_text, target_img_url, group_uuid, group_topic  = retrieve_single_group_submission(parent_obj_id, obj_id, text_img_tp_uuid=True)
-			return target_text, target_img_url, group_topic, group_uuid
+			target_text, target_img_url, group_uuid, group_topic, group_owner_id  = retrieve_single_group_submission(group_id=parent_obj_id, \
+				submission_id=obj_id, text_img_tp_uuid_ooid=True)
+			return target_text, target_img_url, group_topic, group_uuid, group_owner_id
 
 
 def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_id, is_main_reply, own_id, own_uname):
@@ -99,9 +100,10 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 		elif obj_type == '7':
 			# reply in 1on1 (even 'reply to reply' is deemed as a 'main_reply' for the purposes of a 1on1)
 			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_user_id)
+			
+			# performing a double check
 			if group_id == parent_obj_id:
-				# performing a double check
-				obj_exists = True
+				obj_exists, parent_user_id = True, target_user_id
 				parent_uname = retrieve_uname(target_user_id,decode=True)
 				parent_uname = parent_uname[:1].upper() if their_anon_status else parent_uname
 				own_uname = own_uname[:1].upper() if own_anon_status else own_uname
@@ -138,7 +140,7 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 					parent_uname = retrieve_uname(parent_user_id,decode=True)
 		elif obj_type in ('5','6'):
 			# reply to chat in public/private mehfil
-			target_text, image_url, group_topic, group_uuid = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, \
+			target_text, image_url, group_topic, group_uuid, parent_user_id = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, \
 				parent_obj_id=parent_obj_id, obj_type=obj_type, is_main_reply=is_main_reply)
 			if group_uuid:
 				obj_exists = True
@@ -245,6 +247,7 @@ def post_direct_response(request):
 					else:
 						banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 						if banned_by:
+							# TODO: is own_id banned by post owner? In that case, don't let them reply here anyway
 							# there's a block that exists between you and the target - disallowed from proceeding
 							if origin in ('15','16'):
 								# these are public and private groups
@@ -476,19 +479,21 @@ def post_direct_response(request):
 									
 									###############################################################
 									# helps in showing a 'reply sent' notification in dir rep list, or single dir rep
+									tuname = target_uname
 									if from_direct_response_list or request.POST.get('sdr',False):
 										request.session["dir_rep_tgt_obj_type"+str(own_id)] = obj_type
 										if obj_type == '7':
-											request.session["dir_rep_sent"+str(own_id)] = parent_uname
+											tuname = parent_uname
 											request.session["dir_rep_tgt_obj_id"+str(own_id)] = target_id
 										else:
-											request.session["dir_rep_sent"+str(own_id)] = target_uname
 											request.session["dir_rep_tgt_obj_id"+str(own_id)] = parent_obj_id
+										request.session["dir_rep_sent"+str(own_id)] = tuname
 
 									# log direct response metrics, and some other stuff
 									direct_response_tasks.delay(action_status=is_reply_to_reply, action_type='1', \
 										parent_obj_id=parent_obj_id, obj_owner_id=parent_user_id,obj_hash_name=lid, \
-										obj_type=obj_type, commenter_id=own_id, time_now=time_now)
+										obj_type=obj_type, commenter_id=own_id, time_now=time_now, log_location=True, \
+										target_uname=tuname, target_id=target_id)
 
 									return return_to_content(request=request,origin=origin,obj_id=parent_obj_id,link_id=lid,\
 										target_uname=request.POST.get('rorigin',None))#using target_uname as a 'placeholder' for some extra data
@@ -657,3 +662,53 @@ def skip_direct_responses(request):
 		##################################
 		request.session["page_skipped"+str(own_id)] = '1'
 	return redirect(reverse_lazy("retrieve_direct_responses"))
+
+
+def retrieve_direct_response_activity(request):
+	"""
+	Renders the 'reply history' of a given user
+	"""
+	page_num = request.GET.get('page', '1')
+	start_index, end_index = get_indices(page_num, NUM_ACTIVITY_ITEMS_PER_PAGE)
+	own_id = request.user.id
+
+	final_data, next_page_available = display_recent_reply_locations(replier_id=own_id, page_num=page_num, \
+		start_idx=start_index, end_idx=end_index)
+
+	context = {'object_list':final_data,'page_num':page_num,'activity_removed':request.session.pop('activity_removed','')}
+
+	################ Pagination ################
+	page_num = int(page_num)
+
+	context["page"] = {'has_previous':True if page_num>1 else False,'has_next':next_page_available,\
+	'previous_page_number':page_num-1,'next_page_number':page_num+1}
+	############################################
+
+	return render(request,"direct_response/direct_response_activity.html",context)
+
+
+def render_uname_list(request, obj_type, parent_obj_id):
+	"""
+	Renders a list of usernames a user has interacted with on a post
+	"""
+	return render(request,"direct_response/uname_list.html",{'unames':retrieve_interacted_unames(request.user.id, obj_type, parent_obj_id)})
+
+
+@csrf_protect
+def remove_direct_response_activity_log(request):
+	"""
+	Remove an entry from the 'reply activity'
+	"""
+	if request.method == "POST":
+		visited_location = request.POST.get("pl",None)
+		page_num = request.POST.get("pg",'1')
+		removed = False
+		if visited_location:
+			# remove the activity
+			removed = remove_direct_response_activity(request.user.id, visited_location, page_num)
+		if removed:
+			request.session['activity_removed'] = '1'
+		url = reverse_lazy("retrieve_direct_response_activity")+'?page={}#section0'.format(page_num)
+		return redirect(url)
+	else:
+		raise Http404("Can't remove via a GET request")

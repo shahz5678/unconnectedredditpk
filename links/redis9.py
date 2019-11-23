@@ -3,21 +3,26 @@ from random import random
 import redis, time
 import ujson as json
 from location import REDLOC9
-from score import REPLY_OBJECT_TTL, POST_HISTORY_TTL
+from redis5 import retrieve_bulk_group_labels
+from redis6 import retrieve_group_topics_in_bulk
+from redis4 import retrieve_post_details_in_bulk
+from score import REPLY_OBJECT_TTL, POST_HISTORY_TTL, NUM_ACTIVITY_ITEMS_PER_PAGE
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC9, db=0)
 
-DIRECT_RESPONSE_OBJ = 'drobj:'# the object containing the actual details of the direct response (JSON format)
+TWO_WEEKS = 2*7*24*60*60
+ONE_DAY = 24*60*60
+ONE_HOUR = 60*60
 
+DIRECT_RESPONSE_OBJ = 'drobj:'# the object containing the actual details of the direct response (JSON format)
 DIRECT_RESPONSE = 'dr:'#sorted set containing all responses received by a particular user (useful for populating "received direct responses" list)
 DIRECT_RESPONSE_PARENT = 'drp:'#sorted set containing all responses attached to a particular parent obj (useful in parent obj deletion, or 'hiding'/'unhiding' a reply)
 DIRECT_RESPONSE_SENDER_RECEIVER = 'drsr:'#sorted set containing all responses attached to a particular sender:receiver pair (useful in pvp blocking)
 GLOBAL_DIRECT_RESPONSE_LOGGER = 'gdrl'# global set containing all direct responses, useful for "clean-up" scheduled tasks (performed later)
 
-POSTER_VISITORS = 'pv:'# visitors who visit certain posts
+POSTER_VISITORS = 'pv:'# visitors who visit certain posters' posts
 
 DIRECT_RESPONSE_METRICS = 'drm'# sorted set holding usage rates of direct response feature
-
 
 
 def submit_direct_response(json_data, time_now, sender_id, target_user_id, parent_obj_id, obj_type, reply_id):
@@ -128,6 +133,349 @@ def	direct_response_exists(obj_type, parent_obj_id, sender_id, receiver_id, with
 		else:
 			return False
 
+
+########################### Logging history of locations user replied at ###########################
+
+
+REPLIER_VISITS = 'rv:'# sorted set containing list of locations visited by a replier
+POST_INTERACTIONS = 'pi:'# sorted set containing usernames a replier replied to in a specific location
+CACHED_REPLIER_VISITS = 'crv:'# key that holds a json blob of cached replier visits
+
+REPLIER_VISITS_CULL_LOCK = 'rvcl:'# key that locks culling of REPLIER_VISITS sorted set
+POST_INTERACTIONS_CULL_LOCK = 'picl:'# key that locks culling of POST_INTERACTIONS sorted set
+
+
+def retrieve_interacted_unames(replier_id, obj_type, parent_obj_id):
+	"""
+	Returns a list of usernames that a user has interacted on in a given location
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrange(POST_INTERACTIONS+obj_type+":"+parent_obj_id+":"+str(replier_id),0,-1, withscores=True)
+
+
+def display_recent_reply_locations(replier_id, page_num, start_idx=0, end_idx=-1):
+	"""
+	Retrieve replier history for display
+	"""
+	replier_id = str(replier_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	
+	cached_data = my_server.get(CACHED_REPLIER_VISITS+replier_id+":"+str(page_num))
+	if cached_data:
+		try:
+			return json.loads(cached_data)
+		except:
+			return json_backup.loads(cached_data)
+	###############################################################################
+	else:
+
+		visit_key = REPLIER_VISITS+replier_id
+		list_of_visits_and_times = my_server.zrevrange(visit_key,start_idx,end_idx,withscores=True)
+
+		text_post_ids, img_post_ids, public_grps, private_grps, groups_and_friends = [], [], [], [], {}
+		for visit, time_of_visit in list_of_visits_and_times:
+			data = visit.split(":")
+			obj_type, parent_obj_id, obj_owner_id = data[0], data[1], data[2]
+			##############################
+			if obj_type == '3':
+				# this is a text post
+				text_post_ids.append(parent_obj_id)
+			elif obj_type == '4':
+				# this is an image post
+				img_post_ids.append(parent_obj_id)
+			elif obj_type == '5':
+				# this is a public group
+				public_grps.append(parent_obj_id)
+			elif obj_type == '6':
+				# this is a private group
+				private_grps.append(parent_obj_id)
+			elif obj_type == '7':
+				# this is a 1on1s - this requires a 'dictionary', it's a quirk of how the data needs to be fed to redis5
+				groups_and_friends[parent_obj_id] = obj_owner_id
+			##############################
+
+		if text_post_ids or img_post_ids:
+			# handles '3' and '4' (i.e. text and img posts respectively)
+			parent_text_data, parent_img_data = retrieve_post_details_in_bulk(txt_post_ids=text_post_ids, img_post_ids=img_post_ids)
+
+		if public_grps or private_grps:
+			# handles '5' and '6' (i.e. public and private mehs respectively)
+			public_group_topics, private_group_topics = retrieve_group_topics_in_bulk(public_grp_uuids=public_grps, private_grp_uuids=private_grps)
+
+		if groups_and_friends:
+			# handles '7' (i.e. 1on1s)
+			groups_and_labels = retrieve_bulk_group_labels(groups_and_friends=groups_and_friends, user_id=replier_id)
+
+		############################################################
+		final_data, deleted_visit_locs, deleted_interactions = [], [], []
+		for visit, time_of_visit in list_of_visits_and_times:
+			visit_data, obj_detail = {}, {}
+			data = visit.split(":")
+			obj_type, parent_obj_id, obj_owner_id = data[0], data[1], data[2]
+			post_interactions_key = POST_INTERACTIONS+obj_type+":"+parent_obj_id+":"+replier_id
+
+			if obj_type == '7':
+				# this is a 1on1 - we already know who the target_uname is
+				list_of_unames = []
+				num_unames = 0
+			else:
+				list_of_unames = my_server.zrevrange(post_interactions_key,0,4)# retrieve latest 4 people replier has talked to
+				num_unames = len(list_of_unames)
+				list_of_unames = list_of_unames[:3] if num_unames > 3 else list_of_unames
+
+			visit_data['ot'] = obj_type
+			visit_data['poid'] = parent_obj_id
+			visit_data['tunames'] = list_of_unames
+			visit_data['time'] = time_of_visit
+			visit_data['ooid'] = obj_owner_id
+			visit_data['nu'] = num_unames
+
+			if obj_type == '3':
+				data = parent_text_data.get(parent_obj_id,{})
+				if data:
+					#this data exists
+					visit_data['wu'], visit_data['label'] = data['submitter_uname'], data['description']
+					final_data.append(visit_data)
+				else:
+					# this data does not exist
+					deleted_visit_locs.append(visit)
+					deleted_interactions.append(post_interactions_key)
+
+			elif obj_type == '4':
+				data = parent_img_data.get(parent_obj_id,{})
+				if data:
+					# this data exists
+					visit_data['wu'], visit_data['label'], visit_data['iu'] = data['submitter_uname'], data['caption'], data['image_file']
+					final_data.append(visit_data)
+				else:
+					# this data does not exist
+					deleted_visit_locs.append(visit)
+					deleted_interactions.append(post_interactions_key)
+				
+			elif obj_type == '5':
+				group_topic = public_group_topics.get(parent_obj_id,'')
+				if group_topic:
+					# this topic exists
+					visit_data['label'] = group_topic
+					final_data.append(visit_data)
+				else:
+					# this topic does not exist (group might have been deleted)
+					deleted_visit_locs.append(visit)
+					deleted_interactions.append(post_interactions_key)
+
+			elif obj_type == '6':
+				group_topic = private_group_topics.get(parent_obj_id,'')
+				if group_topic:
+					# this topic exists
+					visit_data['label'] = group_topic
+					final_data.append(visit_data)
+				else:
+					# this topic does not exist (group might have been deleted)
+					deleted_visit_locs.append(visit)
+					deleted_interactions.append(post_interactions_key)
+
+			elif obj_type == '7':
+				data = groups_and_labels.get(parent_obj_id,{})
+				if data:
+					# this data exists
+					visit_data['label'], visit_data['wu'] = data['label'], data['uname']
+					final_data.append(visit_data)
+				else:
+					# this data does not exist
+					deleted_visit_locs.append(visit)
+
+		############################################################
+		
+		# deleting the loc from REPLIER_VISITS+replier_id
+		if deleted_visit_locs:
+			my_server.zrem(visit_key,*deleted_visit_locs)
+		
+		# deleting POST_INTERACTIONS+obj_type+":"+parent_obj_id+":"+replier_id
+		if deleted_interactions:
+			my_server.execute_command('UNLINK',*deleted_interactions)
+
+		# what's the total list size after 'deleted_visit_locs' has been removed?
+		total_list_size = my_server.zcard(visit_key)
+
+		# some data exists that can be shown (although this partcular page might have been deleted in entirety - we can't be sure yet)
+		if total_list_size:
+
+			# entire page deleted
+			if len(deleted_visit_locs) == NUM_ACTIVITY_ITEMS_PER_PAGE:
+				return [], True
+
+			# entire page not deleted
+			else:
+				# determine whether to show the 'next' pagination button or not
+				next_page_available = False if (total_list_size <= len(final_data) or (end_idx+1) >= total_list_size) else True
+
+				# result is micro-cached for 3 mins
+				my_server.setex(CACHED_REPLIER_VISITS+replier_id+":"+str(page_num),json.dumps((final_data, next_page_available)),180)
+				
+				return final_data, next_page_available
+		
+		# no data exists that can be shown
+		else:
+			return [], False
+
+
+def log_location_for_sender(obj_type, obj_owner_id, parent_obj_id, replier_id, target_uname, time_now, target_id):
+	"""
+	When to add these locations?
+	1) When 'responding' in a location - no other way
+
+	When to sanitize these locations?
+	1) Private/Public mehfil deletion/kicking i.e. delete the location via obj_type+parent_obj_id
+	2) 1on1 exit i.e. delete the location via obj_type+parent_obj_id
+	3) 2 weeks natural expiry i.e. utilize ttls
+	4) PvP blocking i.e. delete all locations owned by the 'other' user i.e. isolate all of target's posts that the culprit visited
+	"""
+	###############################################
+	# should the location be logged for the sender's viewing pleasure?
+	obj_owner_id, expire_at = str(obj_owner_id), int(time_now+TWO_WEEKS)
+	parent_obj_composite_id = obj_type+":"+parent_obj_id
+	data = parent_obj_composite_id+":"+obj_owner_id
+	visitations_and_times_key = REPLIER_VISITS+replier_id
+	post_interactions_key = POST_INTERACTIONS+parent_obj_composite_id+":"+replier_id
+
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	# the following are useful for showing a list of visited locations to sender
+	pipeline1.zadd(visitations_and_times_key,data,time_now)
+	pipeline1.expireat(visitations_and_times_key,expire_at)
+	pipeline1.execute_command('UNLINK',CACHED_REPLIER_VISITS+replier_id+":1")# invalidate cache of the 'first page' of user history
+
+	# the following is useful for showing a list usernames the sender talked to at the visited location
+	if obj_type != '7':
+		# no need to maintain post interactions for obj_type = '7' (1on1) since we ALWAYS know who the target is
+		pipeline1.zadd(post_interactions_key,target_uname,time_now)
+		pipeline1.expireat(post_interactions_key,expire_at)
+	pipeline1.execute()
+
+	############## Maintenance ##############
+
+	random_num = random()
+
+	# every now and then - trim 'post_interactions_key' so that the list of unames replied to doesn't grow to extremes
+	cull_lock_key = POST_INTERACTIONS_CULL_LOCK+parent_obj_composite_id+":"+replier_id
+	if obj_type != '7' and random_num < 0.05:
+		if not my_server.exists(cull_lock_key):
+			my_server.zremrangebyrank(post_interactions_key, 0, -11)# keep top-10 in the sorted set (this operation doesn't affect the TTL of the key)
+			my_server.setex(cull_lock_key,'1',ONE_HOUR)
+	
+	# even more rarely, perform maintenance on 'visitations_and_times_key' too
+	cull_lock_key = REPLIER_VISITS_CULL_LOCK+replier_id
+	if random_num > 0.99:
+		if not my_server.exists(cull_lock_key):
+			two_weeks_ago = time_now - TWO_WEEKS
+			# not removing related 'post interactions' - those keys have a ttl on them and will expire silently themselves
+			my_server.zremrangebyscore(visitations_and_times_key,'-inf',two_weeks_ago)# this operation doesn't affect the TTL of the key
+			my_server.setex(cull_lock_key,'1',ONE_DAY)
+	
+	#########################################
+
+
+def cleanse_replier_history_when_pvp_blocked(replier_id_1, replier_id_2):
+	"""
+	Handles PVP blocking, by cleansing relevant visitor data for both users in the blocking stream (regardless of who blocked who)
+	"""
+	replier_id_1, replier_id_2 = str(replier_id_1), str(replier_id_2)
+	user_1_replier_key, user_2_replier_key = REPLIER_VISITS+replier_id_1, REPLIER_VISITS+replier_id_2 
+
+	my_server = redis.Redis(connection_pool=POOL)
+
+	#####################################################################
+	# processing the first user
+	visits_to_remove, target_unames_to_remove = [], []
+
+	# Step 1) Getting first user's reply activity
+	all_visits_by_user_1 = my_server.zrange(user_1_replier_key,0,-1)
+	
+	# Step 2) Scanning the reply activity and removing visits to locations owned by user_2 (including mehfils)
+	for visit in all_visits_by_user_1:
+		data = visit.split(":")
+		obj_type, parent_obj_id, obj_owner_id = data[0], data[1], data[2]
+		if obj_owner_id == replier_id_2:
+			# this location is 'owned' by the opposing user - let's remove it from history
+			visits_to_remove.append(visit)
+			if obj_type != '7':
+				target_unames_to_remove.append(POST_INTERACTIONS+obj_type+":"+parent_obj_id+":"+replier_id_1)
+	
+	# Step 3) The actual removal takes place here
+	if visits_to_remove:
+		my_server.zrem(user_1_replier_key,*visits_to_remove)
+	if target_unames_to_remove:
+		my_server.execute_command('UNLINK',*target_unames_to_remove)
+
+	#####################################################################
+	# processing the second user
+	visits_to_remove, target_unames_to_remove = [], []
+
+	# Step 1) Getting second user's reply activity
+	all_visits_by_user_2 = my_server.zrange(user_2_replier_key,0,-1)
+
+	# Step 2) Scanning the reply activity and removing visits to locations owned by user_1 (including mehfils)
+	for visit in all_visits_by_user_2:
+		data = visit.split(":")
+		obj_type, parent_obj_id, obj_owner_id = data[0], data[1], data[2]
+		if obj_owner_id == replier_id_1:
+			# this location is 'owned' by the opposing user - let's remove it from history
+			visits_to_remove.append(visit)
+			if obj_type != '7':
+				target_unames_to_remove.append(POST_INTERACTIONS+obj_type+":"+parent_obj_id+":"+replier_id_2)
+	
+	#####################################################################
+	# Step 3) The actual removal takes place here
+	pipeline1 = my_server.pipeline()
+	if visits_to_remove:
+		pipeline1.zrem(user_2_replier_key,*visits_to_remove)
+	if target_unames_to_remove:
+		pipeline1.execute_command('UNLINK',*target_unames_to_remove)
+	pipeline1.execute_command('UNLINK',CACHED_REPLIER_VISITS+replier_id_1+":1")# invalidate cache of the 'first page' of user history
+	pipeline1.execute_command('UNLINK',CACHED_REPLIER_VISITS+replier_id_2+":1")# invalidate cache of the 'first page' of user history
+	pipeline1.execute_command('UNLINK',CACHED_REPLIER_VISITS+replier_id_1+":2")# invalidate cache of the 'second page' of user history
+	pipeline1.execute_command('UNLINK',CACHED_REPLIER_VISITS+replier_id_2+":2")# invalidate cache of the 'second page' of user history
+	pipeline1.execute()
+
+
+def cleanse_replier_data_from_location(obj_type, parent_obj_id, obj_owner_id, replier_ids):
+	"""
+	Remove the conversation from the target repliers' visit history
+
+	Used in cases where:
+	- User kicked from private/public group (or exits it)
+	- User exits a 1on1
+	"""	
+	if replier_ids:
+		parent_obj_composite_id = obj_type+":"+parent_obj_id
+		pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+		for replier_id in replier_ids:
+			pipeline1.zrem(REPLIER_VISITS+replier_id,parent_obj_composite_id+":"+obj_owner_id)
+			if obj_type != '7':
+				pipeline1.execute_command('UNLINK', POST_INTERACTIONS+parent_obj_composite_id+":"+replier_id)
+		pipeline1.execute()
+
+
+def remove_direct_response_activity(replier_id, location, page_num):
+	"""
+	Removes provided location from a replier's 'reply activity'
+	"""
+	data = location.split(":")
+	try:
+		obj_type, parent_obj_id, obj_owner_id = data[0], data[1], data[2]
+		replier_id = str(replier_id)
+	except:
+		return False
+	my_server = redis.Redis(connection_pool=POOL)
+	removed = my_server.zrem(REPLIER_VISITS+replier_id,location)
+	if removed > 0:
+		if obj_type != '7':
+			my_server.execute_command('UNLINK',POST_INTERACTIONS+obj_type+":"+parent_obj_id+":"+replier_id)
+		my_server.execute_command('UNLINK',CACHED_REPLIER_VISITS+replier_id+":"+str(page_num))# invalidate cache
+		return True
+	else:
+		return False
+
+
 #######################################################################################
 ############################## Deleting Direct Responses ##############################
 #######################################################################################
@@ -168,6 +516,7 @@ def delete_single_direct_response(target_user_id, obj_type, parent_obj_id, sende
 	sr_key = DIRECT_RESPONSE_SENDER_RECEIVER+sender_id+":"+str(target_user_id)# sender receiver key
 	my_server = redis.Redis(connection_pool=POOL)
 	
+	###############################################
 	# obj exists - process deletion
 	if my_server.zscore(dr_key,obj_key):
 		dr_po_key = DIRECT_RESPONSE_PARENT+parent_obj_composite_id
@@ -463,7 +812,7 @@ def modify_direct_response_objs(parent_obj_type, parent_obj_id, modification_typ
 					counter += 1
 
 
-##################### Showing num replies in 'Inbox' #####################
+########################### Showing num replies in 'Inbox' ###########################
 
 
 def get_reply_count(user_id):

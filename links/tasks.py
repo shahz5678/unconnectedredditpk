@@ -45,7 +45,8 @@ study_voting_preferences,retrieve_img_obj_scores, add_single_trending_object_in_
 create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes, \
 retrieve_all_home_text_obj_names, retrieve_text_obj_scores, hide_inline_direct_response
 from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list, submit_direct_response, set_comment_history, \
-delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics#, log_location_for_sender
+delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics, log_location_for_sender,\
+delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, cleanse_replier_history_when_pvp_blocked
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from django.contrib.auth.models import User
@@ -213,11 +214,15 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 		mark_personal_group_attendance(own_id, target_id, group_id, posting_time)
 
 		if txt_type == 'exited':
-			log_personal_group_exit_or_delete(group_id, exit_by_id=str(own_id), action_type='exit')
+			own_id = str(own_id)
+			log_personal_group_exit_or_delete(group_id, exit_by_id=own_id, action_type='exit')
 			
 			# ensuring both side don't have notifications in their inboxes anymore
 			delete_single_direct_response(target_user_id=own_id, obj_type='7', parent_obj_id=group_id, sender_id=target_id)
 			delete_single_direct_response(target_user_id=target_id, obj_type='7', parent_obj_id=group_id, sender_id=str(own_id))
+
+			#ensuring own_id's 'reply activity' doesn't contain any trace of the exited 1on1
+			cleanse_replier_data_from_location(obj_type='7', parent_obj_id=group_id, obj_owner_id=target_id, replier_ids=[own_id])
 		
 		else:
 			own_uname, own_avurl = get_credentials(own_id, own_uname, own_avurl)
@@ -263,7 +268,10 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 			# delete the message that was responded to, if it exists in 'direct response list'
 			delete_single_direct_response(target_user_id=own_id, obj_type='7', parent_obj_id=group_id, sender_id=target_id)
 
-			################################################
+			###############################################################
+			# generate footprint in 'reply history'
+			log_location_for_sender(obj_type='7', obj_owner_id=target_id, parent_obj_id=group_id, replier_id=str(own_id),\
+				target_uname=target_uname, time_now=posting_time, target_id=target_id)
 
 			################### Logging 1on1 message ###################
 			# if txt_type == 'shared_img':
@@ -282,14 +290,21 @@ def update_notif_object_anon(value,which_user,which_group):
 
 @celery_app1.task(name='tasks.direct_response_tasks')
 def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj_id=None, obj_owner_id=None, obj_hash_name=None, \
-	obj_type=None, commenter_id=None, time_now=None):
+	obj_type=None, commenter_id=None, time_now=None, log_location=False, target_uname=None, target_id=None):
 	"""
 	Tasks to complete when a direct response is sent on a public post (text or image)
 	"""
 	############################
 	log_direct_response_metrics(action_status=action_status, action_type=action_type, num_skips=num_skips, obj_type=obj_type)
-	# if log_location:
-	# 	log_location_for_sender(obj_type=obj_type, obj_owner_id=obj_owner_id, parent_obj_id=parent_obj_id, sender_id=commenter_id)
+	if log_location:
+		commenter_id = str(commenter_id)
+		if (obj_type in ('3','4') and commenter_id == target_id):
+			# no need to log location when talking on own posts without a reference (since that's essentially talking to 'self')
+			pass
+		else:
+			# log the location for 'recent activity'
+			log_location_for_sender(obj_type=obj_type, obj_owner_id=obj_owner_id, parent_obj_id=parent_obj_id, replier_id=commenter_id,\
+				target_uname=target_uname, time_now=time_now, target_id=target_id)
 	
 	############################
 	# it's a publicreply
@@ -342,29 +357,37 @@ def private_chat_seen(own_id, group_id, curr_time):
 # execute every 3 days
 @celery_app1.task(name='tasks.delete_chat_from_idle_personal_group')
 def delete_chat_from_idle_personal_group():
-	personal_group_soft_deletion()
+	deleted_group_ids_and_participants = personal_group_soft_deletion()
+	if deleted_group_ids_and_participants:
+		for group_id, user_1, user_2 in deleted_group_ids_and_participants:
+			delete_single_direct_response(target_user_id=user_1, obj_type='7', parent_obj_id=group_id, sender_id=user_2)
+			delete_single_direct_response(target_user_id=user_2, obj_type='7', parent_obj_id=group_id, sender_id=user_1)
+
 
 # execute every 6 days
 @celery_app1.task(name='tasks.delete_idle_personal_group')
 def delete_idle_personal_group():
-	personal_group_hard_deletion()
-
+	deleted_group_ids_and_participants = personal_group_hard_deletion()
+	if deleted_group_ids_and_participants:
+		for group_id, user_1, user_2 in deleted_group_ids_and_participants:
+			delete_single_direct_response(target_user_id=user_1, obj_type='7', parent_obj_id=group_id, sender_id=user_2)
+			delete_single_direct_response(target_user_id=user_2, obj_type='7', parent_obj_id=group_id, sender_id=user_1)
 
 # execute daily
 @celery_app1.task(name='tasks.delete_exited_personal_group')
 def delete_exited_personal_group():
-	exited_personal_group_hard_deletion()
+	deleted_group_ids_and_participants = exited_personal_group_hard_deletion()
+	if deleted_group_ids_and_participants:
+		for group_id, user_1, user_2 in deleted_group_ids_and_participants:
+			delete_single_direct_response(target_user_id=user_1, obj_type='7', parent_obj_id=group_id, sender_id=user_2)
+			delete_single_direct_response(target_user_id=user_2, obj_type='7', parent_obj_id=group_id, sender_id=user_1)
+
 
 
 @celery_app1.task(name='tasks.post_banning_tasks')
 def post_banning_tasks(own_id, target_id):
 	"""
-	Remove's banner's notification from from the bannee's matka, also unfans them.
-
-	It's a good-to-have task, not mission critical (and can be improved).
-	Problems include: 
-	1) If bannee wanted to eavesdrop on banner's posts, they could do so in myriad of ways
-	2) In fact, much better to design a new matka which includes the '@' functionality, deprecate this prototypical one.
+	Remove's banner's notifications from from the bannee's inbox, also unfans them, and a bunch of other tasks!
 	"""
 	# unfan (in case was a fan)
 	UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
@@ -373,19 +396,19 @@ def post_banning_tasks(own_id, target_id):
 	remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
 	rate_limit_unfanned_user(own_id=own_id,target_id=target_id)
 	################################################################################
-	# this ensures all posts of eachothers are deleted from the matka
-	# sanitize_eachothers_unseen_activities(user1_id=own_id, user2_id=target_id)
-	################################################################################
+	# this ensures they can't 1on1 chat with eachother
 	# 1) Exit yourself if group is non-exited
 	# 2) If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them!
 	# 3) No notifications will be generated since we already sanitized each user's activity
-	# this ensures they can't private chat with eachother
 	exit_user_from_targets_priv_chat(own_id,target_id)
 	################################################################################
 	# remove any direct responses exchanged between the two
 	delete_all_direct_responses_between_two_users(first_user_id=target_id, second_user_id=own_id)# order of passing user IDs does not matter
 	################################################################################
-	# we did a LOT of work, ensure banner didn't ban in vain!
+	# remove locations owned by each other from the 'reply history'
+	cleanse_replier_history_when_pvp_blocked(replier_id_1=target_id, replier_id_2=own_id)
+	################################################################################
+	# we did a lot of work, ensure banner didn't ban in vain!
 	ratelimit_banner_from_unbanning_target(own_id,target_id)
 	################################################################################
 
@@ -624,65 +647,12 @@ def calc_gibberish_punishment():
 @celery_app1.task(name='tasks.calc_photo_quality_benchmark')
 def calc_photo_quality_benchmark():
 	pass
-	# two_days = datetime.utcnow()-timedelta(hours=24*2)
-	# photos_total_score_list = Photo.objects.filter(upload_time__gte=two_days).values_list('owner_id','vote_score')#list of tuples
-	# # print photos_total_score_list
-	# if photos_total_score_list:
-	# 	total_photos_per_user = Counter(elem[0] for elem in photos_total_score_list) #dictionary, e.g. Counter({2: 8, 1: 7})
-	# 	# print "total photos per user: %s" % total_photos_per_user
-	# 	total_scores_per_user = defaultdict(int)# a python dictionary that doesn't give KeyError if key doesn't exist when dict is accessed
-	# 	for key,val in photos_total_score_list:
-	# 		total_scores_per_user[key] += val #ends with with {owner_id:total_photo_score}
-	# 	# print "total scores per user: %s" % total_scores_per_user
-	# 	uploader_scores = []
-	# 	for key,val in total_scores_per_user.items():
-	# 		uploader_scores.append(key)
-	# 		uploader_scores.append(float(val)/total_photos_per_user[key])#avg score per photo
-	# 	# print uploader_scores
-	# 	set_benchmark(uploader_scores)# sets own_ids and avg score per photo in a huge sorted set called photos_benchmark
+
 
 @celery_app1.task(name='tasks.bulk_create_notifications')
 def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, caption):
 	pass
-	# fan_ids_list, total_fans, recent_fans = get_all_fans(user_id)
-	# if fan_ids_list:
-	# 	fans_notified_in_ua = 0
-	# 	percentage_of_users_beaten = get_uploader_percentile(user_id)
-	# 	if 0 <= percentage_of_users_beaten < FLOOR_PERCENTILE:
-	# 		notify_in_ua = []
-	# 		fans_notified_in_ua = 0
-	# 		percentage_of_fans_to_notify = 0
-	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
-	# 			unseen_activity=False)
-	# 	elif FLOOR_PERCENTILE <= percentage_of_users_beaten <= CEILING_PERCENTILE:
-	# 		percentage_of_fans_to_notify = fans_targeted(percentage_of_users_beaten)
-	# 		remaining_ids, notify_in_ua = fans_to_notify_in_ua(user_id, percentage_of_fans_to_notify, fan_ids_list)
-	# 		if notify_in_ua:
-	# 			bulk_create_photo_notifications_for_fans(viewer_id_list=notify_in_ua,object_id=photo_id,seen=False,\
-	# 				updated_at=epochtime,unseen_activity=True)
-	# 			fans_notified_in_ua = len(notify_in_ua)
-	# 		else:
-	# 			fans_notified_in_ua = 0
-	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=remaining_ids,object_id=photo_id,seen=False,\
-	# 			updated_at=epochtime,unseen_activity=False)
-	# 	elif CEILING_PERCENTILE < percentage_of_users_beaten <= 1:
-	# 		fans_notified_in_ua = len(fan_ids_list)
-	# 		notify_in_ua = fan_ids_list
-	# 		percentage_of_fans_to_notify = 1
-	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
-	# 			unseen_activity=True)
-	# 	else:
-	# 		notify_in_ua = 0
-	# 		fans_notified_in_ua = 0
-	# 		percentage_of_fans_to_notify = 0
-	# 		bulk_create_photo_notifications_for_fans(viewer_id_list=fan_ids_list,object_id=photo_id,seen=False,updated_at=epochtime,\
-	# 			unseen_activity=False)
-	# 	# object and notification for self, that reports how many fans we reached out to!
-	# 	create_object(object_id=photo_id, object_type='1',object_owner_id=user_id,photourl=photourl, vote_score=total_fans, \
-	# 		slug=fans_notified_in_ua, res_count=notify_in_ua,is_thnks=percentage_of_fans_to_notify,object_owner_name=name, \
-	# 		object_desc=caption)
-	# 	create_notification(viewer_id=user_id,object_id=photo_id,object_type='1',seen=False, updated_at=epochtime,\
-	# 		unseen_activity=True)
+
 
 @celery_app1.task(name='tasks.trim_top_group_rankings')
 def trim_top_group_rankings():
@@ -840,7 +810,14 @@ def delete_idle_public_and_private_groups():
 	"""
 	# grp_ids_and_members is a dict of the sort { group_id:[member_ids] }
 
-	grp_ids_and_members = delete_ghost_groups()#redis6
+	deleted_groups = delete_ghost_groups()#redis6
+	for group_id, group_type in deleted_groups:
+		if group_type == 'public':
+			delete_direct_responses_upon_obj_deletion(obj_type='5', obj_id=group_id)# deleting 'direct resposes' given in the group
+		elif group_type == 'private':
+			delete_direct_responses_upon_obj_deletion(obj_type='6', obj_id=group_id)# deleting 'direct resposes' given in the group
+		else:
+			pass
 	# bulk_remove_multiple_group_notifications(grp_ids_and_members)#redis2
 	# cleanse_public_and_private_groups_data(grp_ids_and_members)#redis1 (DEPRECATE THIS ENTIRE FUNCTIONALITY)
 	# marking postgresql Group object as deleted (deprecate this later)

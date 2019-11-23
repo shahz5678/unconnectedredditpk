@@ -127,6 +127,9 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 	elif origin == '25':
 		# originated from 'upvoting' history page
 		return redirect('user_vote_history')
+	elif origin == '35':
+		# originated from 'reply' history page
+		return redirect('retrieve_direct_response_activity')
 	else:
 		# take the voter to best photos by default
 		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))

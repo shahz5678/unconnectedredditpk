@@ -14,5 +14,5 @@ urlpatterns = patterns('',
 	url(r'^direct-response/create/$', auth(render_direct_response_form), name='render_direct_response_form'),
 	url(r'^inbox/activity/$', auth(retrieve_direct_response_activity), name='retrieve_direct_response_activity'),
 	url(r'^inbox/activity/remove/$', auth(remove_direct_response_activity_log), name='remove_direct_response_activity_log'),
-	url(r'^inbox/activity/interactions/(?P<obj_type>\d+)/(?P<parent_obj_id>\d+)/$', auth(render_uname_list), name='render_uname_list'),
+	url(r'^inbox/activity/interactions/(?P<obj_type>\d+)/(?P<parent_obj_id>[\w.@+-]+)/$', auth(render_uname_list), name='render_uname_list'),
 )

@@ -36,13 +36,12 @@
 								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_fotos_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_text_button.html" with username=username static_url=STATIC_URL %}
-								{% big_group_button own_id=own_id target_id=user_id parent_object_id='' object_type='online' origin='23' %}
 							</div>
 
 						</li>
 					{% endfor %}
 				{% empty %}
-				<div class="mtl cs sp cgy">- list empty hai -</div>
+				<div class="mtl cs sp cgy">- Ye list empty hai -</div>
 				{% endfor %}
 				{% endcache %}
 			{% else %}
@@ -58,7 +57,6 @@
 								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_fotos_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_text_button.html" with username=username static_url=STATIC_URL %}
-								{% big_group_button own_id=own_id target_id=user_id parent_object_id='' object_type='online' origin='23' %}
 							</div>
 
 						</li>

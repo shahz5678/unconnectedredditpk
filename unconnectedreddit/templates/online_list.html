@@ -21,7 +21,6 @@
 	{% endif %}
 	<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0;padding:5px 7px 0 7px;">
 		<div class="mts" style="word-break: break-all">
-			{% load get_big_group_button %}
 			{% load cache %}
 			{% if on_fbs %}
 				{% cache 60 fbs_online_page own_id %}

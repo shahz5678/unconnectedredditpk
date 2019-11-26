@@ -295,14 +295,21 @@ def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj
 	Tasks to complete when a direct response is sent on a public post (text or image)
 	"""
 	############################
-	log_direct_response_metrics(action_status=action_status, action_type=action_type, num_skips=num_skips, obj_type=obj_type)
+	if action_type == '1' and obj_type == '7':
+		# don't log this metric for 1on1s
+		pass
+	else:
+		# log the metric otherwise
+		log_direct_response_metrics(action_status=action_status, action_type=action_type, num_skips=num_skips, obj_type=obj_type)
+	
+	############################
 	if log_location:
 		commenter_id = str(commenter_id)
 		if (obj_type in ('3','4') and commenter_id == target_id):
-			# no need to log location when talking on own posts without a reference (since that's essentially talking to 'self')
+			# don't log location when talking on own posts without a reference (since that's essentially talking to 'self')
 			pass
 		else:
-			# log the location for 'recent activity'
+			# otherwise, log the location for 'recent activity'
 			log_location_for_sender(obj_type=obj_type, obj_owner_id=obj_owner_id, parent_obj_id=parent_obj_id, replier_id=commenter_id,\
 				target_uname=target_uname, time_now=time_now, target_id=target_id)
 	

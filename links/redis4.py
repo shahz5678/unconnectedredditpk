@@ -899,7 +899,7 @@ def cache_online_data(json_data):
 	"""
 	Caches prepared data to be shown in global online listing
 	"""
-	redis.Redis(connection_pool=POOL).setex('online_user_data',json_data,55)# micro-caching for 55 seconds
+	redis.Redis(connection_pool=POOL).setex('online_user_data',json_data,155)# micro-caching for 155 seconds
 
 
 def retrieve_online_cached_data():

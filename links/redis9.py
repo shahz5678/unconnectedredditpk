@@ -43,10 +43,14 @@ def submit_direct_response(json_data, time_now, sender_id, target_user_id, paren
 	###############################################################
 
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-	pipeline1.setex(obj_key,json_data,REPLY_OBJECT_TTL)	
-	pipeline1.zadd(dr_key,obj_key,expire_at)
-	pipeline1.zadd(dr_po_key,obj_key,reply_id)
-	pipeline1.zadd(dr_sr_key,obj_key,expire_at)
+	pipeline1.setex(obj_key,json_data,REPLY_OBJECT_TTL)# DIRECT_RESPONSE_OBJ
+	pipeline1.zadd(dr_key,obj_key,expire_at)# DIRECT_RESPONSE
+	################################################
+	if obj_type != '7':
+		# no longer generated for a 1on1. Does it hurt the cause?
+		pipeline1.zadd(dr_po_key,obj_key,reply_id)# DIRECT_RESPONSE_PARENT
+		pipeline1.zadd(dr_sr_key,obj_key,expire_at)# DIRECT_RESPONSE_SENDER_RECEIVER
+	################################################
 	pipeline1.zadd(GLOBAL_DIRECT_RESPONSE_LOGGER,obj_key,expire_at)# global set containing all direct responses, useful for "clean-up scheduled tasks" (performed later)
 	pipeline1.execute()
 
@@ -107,7 +111,6 @@ def retrieve_latest_direct_reply(user_id):
 			return []
 	else:
 		return []
-
 
 
 def	direct_response_exists(obj_type, parent_obj_id, sender_id, receiver_id, with_hide_status=True):
@@ -502,33 +505,57 @@ def cleanse_direct_response_list(target_user_id=None):
 		pipeline1.execute()
 
 
-
 def delete_single_direct_response(target_user_id, obj_type, parent_obj_id, sender_id):
 	"""
 	Deletes a single direct response object
 
 	Explicitly called when a user skips an object, or 'replies' to an object
+	Also used when 1on1 is deleted
 	"""
-	target_user_id = str(target_user_id)
+	target_user_id, sender_id = str(target_user_id), str(sender_id)
 	parent_obj_composite_id = obj_type+":"+parent_obj_id
 	dr_key = DIRECT_RESPONSE+target_user_id
 	obj_key = DIRECT_RESPONSE_OBJ+parent_obj_composite_id+":"+sender_id+":"+target_user_id
-	sr_key = DIRECT_RESPONSE_SENDER_RECEIVER+sender_id+":"+str(target_user_id)# sender receiver key
+	sr_key = DIRECT_RESPONSE_SENDER_RECEIVER+sender_id+":"+target_user_id# sender receiver key
 	my_server = redis.Redis(connection_pool=POOL)
 	
 	###############################################
 	# obj exists - process deletion
 	if my_server.zscore(dr_key,obj_key):
-		dr_po_key = DIRECT_RESPONSE_PARENT+parent_obj_composite_id
-		my_server.execute_command('UNLINK', obj_key)
-		my_server.zrem(dr_key,obj_key)
-		my_server.zrem(dr_po_key,obj_key)
-		my_server.zrem(sr_key,obj_key)
-		my_server.zrem(GLOBAL_DIRECT_RESPONSE_LOGGER,obj_key)
+		pipeline1 = my_server.pipeline()
+		pipeline1.execute_command('UNLINK', obj_key)
+		pipeline1.zrem(dr_key,obj_key)
+		################################################
+		pipeline1.zrem(DIRECT_RESPONSE_PARENT+parent_obj_composite_id,obj_key)# key not generated for a 1on1
+		pipeline1.zrem(sr_key,obj_key)# key not generated for a 1on1
+		################################################
+		pipeline1.zrem(GLOBAL_DIRECT_RESPONSE_LOGGER,obj_key)
+		pipeline1.execute()
 		return True
 	# obj does not exist
 	else:
 		return False
+
+
+def remove_1on1_direct_responses(group_id, first_user_id, second_user_id):
+	"""
+	Sanitizes footprint of 1on1 from given user_ids
+
+	Sole usecase: when 1on1 is exited because of a pvp block (not applicable in a normal exit)
+	"""
+	first_user_id, second_user_id = str(first_user_id), str(second_user_id)
+	obj_key_1 = DIRECT_RESPONSE_OBJ+'7:'+group_id+":"+second_user_id+":"+first_user_id
+	obj_key_2 = DIRECT_RESPONSE_OBJ+'7:'+group_id+":"+first_user_id+":"+second_user_id
+
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	pipeline1.zrem(DIRECT_RESPONSE+first_user_id, obj_key_1)
+	pipeline1.zrem(DIRECT_RESPONSE+second_user_id, obj_key_2)
+	pipeline1.execute_command('UNLINK', obj_key_1)
+	pipeline1.execute_command('UNLINK', obj_key_2)
+	pipeline1.zrem(GLOBAL_DIRECT_RESPONSE_LOGGER, obj_key_1)
+	pipeline1.zrem(GLOBAL_DIRECT_RESPONSE_LOGGER, obj_key_2)
+	pipeline1.execute()
+
 
 
 def delete_all_direct_responses_between_two_users(first_user_id, second_user_id):
@@ -537,10 +564,11 @@ def delete_all_direct_responses_between_two_users(first_user_id, second_user_id)
 
 	Useful when one party blocks another (p-v-p blocking)
 	"""
+	first_user_id, second_user_id = str(first_user_id), str(second_user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	###############################################################
 	# direct responses sent by first_user_id to second_user_id
-	obj_list1 = my_server.zrange(DIRECT_RESPONSE_SENDER_RECEIVER+str(first_user_id)+":"+str(second_user_id),0,-1)
+	obj_list1 = my_server.zrange(DIRECT_RESPONSE_SENDER_RECEIVER+first_user_id+":"+second_user_id,0,-1)
 
 	if obj_list1:
 		pipeline1 = my_server.pipeline()
@@ -551,14 +579,16 @@ def delete_all_direct_responses_between_two_users(first_user_id, second_user_id)
 			
 			pipeline1.execute_command('UNLINK', obj_key)# getting rid of the obj hash
 			pipeline1.zrem(DIRECT_RESPONSE+target_user_id, obj_key)# removing from direct_response_list
-			pipeline1.zrem(DIRECT_RESPONSE_PARENT+obj_type+":"+parent_obj_id, obj_key)# removing from the parent obj list
-			pipeline1.zrem(DIRECT_RESPONSE_SENDER_RECEIVER+sender_id+":"+target_user_id, obj_key)
+			######################################
+			pipeline1.zrem(DIRECT_RESPONSE_PARENT+obj_type+":"+parent_obj_id, obj_key)# key not generated for a 1on1
+			pipeline1.zrem(DIRECT_RESPONSE_SENDER_RECEIVER+sender_id+":"+target_user_id, obj_key)# key not generated for a 1on1
+			######################################
 			pipeline1.zrem(GLOBAL_DIRECT_RESPONSE_LOGGER, obj_key)
 			
 		pipeline1.execute()
 	###############################################################
 	# direct responses sent by second_user_id to first_user_id
-	obj_list2 = my_server.zrange(DIRECT_RESPONSE_SENDER_RECEIVER+str(second_user_id)+":"+str(first_user_id),0,-1)
+	obj_list2 = my_server.zrange(DIRECT_RESPONSE_SENDER_RECEIVER+second_user_id+":"+first_user_id,0,-1)
 	
 	if obj_list2:
 		pipeline2 = my_server.pipeline()
@@ -569,8 +599,10 @@ def delete_all_direct_responses_between_two_users(first_user_id, second_user_id)
 			
 			pipeline2.execute_command('UNLINK', obj_key)# getting rid of the obj hash
 			pipeline2.zrem(DIRECT_RESPONSE+target_user_id, obj_key)# removing from direct_response_list
-			pipeline2.zrem(DIRECT_RESPONSE_PARENT+obj_type+":"+parent_obj_id, obj_key)# removing from the parent obj list
-			pipeline2.zrem(DIRECT_RESPONSE_SENDER_RECEIVER+sender_id+":"+target_user_id, obj_key)
+			######################################
+			pipeline2.zrem(DIRECT_RESPONSE_PARENT+obj_type+":"+parent_obj_id, obj_key)# key not generated for a 1on1
+			pipeline2.zrem(DIRECT_RESPONSE_SENDER_RECEIVER+sender_id+":"+target_user_id, obj_key)# key not generated for a 1on1
+			######################################
 			pipeline2.zrem(GLOBAL_DIRECT_RESPONSE_LOGGER, obj_key)
 			
 		pipeline2.execute()
@@ -581,7 +613,7 @@ def delete_direct_responses_upon_obj_deletion(obj_type, obj_id):
 	"""
 	Delete all associated direct responses if an obj is deleted
 
-	Useful when mehfils or 1on1s are deleted, etc
+	Used when mehfils are deleted (has nothing to do with other obj's deletion - e.g. 1on1 deletion)
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	list_of_responses = my_server.zrange(DIRECT_RESPONSE_PARENT+obj_type+":"+str(obj_id),0,-1)
@@ -599,12 +631,11 @@ def delete_direct_responses_upon_obj_deletion(obj_type, obj_id):
 		pipeline1.execute()
 
 
-
 def delete_direct_responses_linked_to_obj(obj_type, parent_obj_id, target_user_ids):
 	"""
 	Used when users are removed from a particular 'obj' (and so can't send direct responses to users on the said post)
 
-	Biggest use case: when a 'perp' is kicked out of a mehfil
+	The only use case: when a 'perp' is kicked out of a mehfil (public or private)
 	"""
 	target_user_ids = map(str,target_user_ids)
 	my_server = redis.Redis(connection_pool=POOL)
@@ -638,6 +669,8 @@ def delete_direct_responses_linked_to_obj(obj_type, parent_obj_id, target_user_i
 def bulk_delete_selective_dir_reps_of_single_user(user_id, dir_rep_list):
 	"""
 	Delete the provided dir reps in 'dir_rep_list' for the provided user
+
+	Sole use-case: when deleting entire page's worth of reply notifs
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 
@@ -657,12 +690,12 @@ def bulk_delete_selective_dir_reps_of_single_user(user_id, dir_rep_list):
 		pipeline1.execute()
 
 
-
 def bulk_delete_user_direct_responses(target_user_ids):
 	"""
 	Delete all responses received by provided target_user_ids
 
-	Note: This functionality is tested, but not shipped
+	It can help clear out inbox in one button press
+	Unused function: This functionality is tested, but NOT shipped
 	"""
 	if target_user_ids:
 		keys_to_delete = []
@@ -730,7 +763,7 @@ def hide_direct_response_in_inbox(obj_type,parent_obj_id,reply_id, to_hide,sende
 			pass
 	
 	##############################################
-	# when 'base reply' (i.e. base reply on which a reply came) is to be hidden (never run for obj_type '7' - i.e. 1on1s)
+	# when 'base reply' (i.e. base reply on which a reply came) is to be hidden (never run this for obj_type '7' - i.e. 1on1s)
 	if reply_id:
 		parent_obj_composite_id = obj_type+":"+str(parent_obj_id)
 		reply_objs = my_server.zrangebyscore(DIRECT_RESPONSE_PARENT+obj_type+":"+parent_obj_id,reply_id,reply_id)
@@ -759,9 +792,7 @@ def modify_direct_response_objs(parent_obj_type, parent_obj_id, modification_typ
 	"""
 	Helps modify the direct response objs in lists
 
-	Useful when:
-	1) Topic changed in mehfils
-	2) Users hide nicknames in 1o1s (unused at the moment)
+	Solely used when: topic changed in mehfils
 	"""
 
 	my_server = redis.Redis(connection_pool=POOL)
@@ -791,6 +822,7 @@ def modify_direct_response_objs(parent_obj_type, parent_obj_id, modification_typ
 
 		# it's a 1on1 
 		# UNUSED - because 1on1 direct responses just over-write eachother so we don't care about being uber-accurate
+		# UNUSED - also because 1on1 have no DIRECT_RESPONSE_PARENT object (it was removed post-launch of this feature)
 		elif parent_obj_type == '7':
 			if modification_type == 'topic':
 				# Alter the topic text in all related direct response objs

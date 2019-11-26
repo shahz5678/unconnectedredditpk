@@ -1345,8 +1345,8 @@ def personal_group_exit_settings(request):
 						purge_all_saved_chat_of_user(own_id, tid, group_id)
 						delete_all_user_chats_from_personal_group(own_id, group_id) #hides all user chat - not permanent deletion
 						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='exit',txt_type='exited',\
-							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
-							own_avurl='',deleted='undel',hidden='no')
+							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',\
+							own_uname='',own_avurl='',deleted='undel',hidden='no')
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						################### Retention activity logging ###################
 						# if own_id > SEGMENT_STARTING_USER_ID:
@@ -1541,7 +1541,7 @@ def personal_group_photo_settings(request):
 				# photo reception permissions
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phrec_value, ttl, garbage_1, garbage_2 = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
+					new_phrec_value, ttl, garbage_1, garbage_2, garbage_3 = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
 						setting_type=photo_setting, group_id=group_id)
 				else:
 					request.session["personal_group_tid_key"] = tid
@@ -1552,8 +1552,8 @@ def personal_group_photo_settings(request):
 				# photo mass-deletion setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete, top_most_post_affected = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
-						setting_type=photo_setting, group_id=group_id)
+					new_phdel_value, ttl, undelete, top_most_post_affected, top_most_post_hidden = toggle_personal_group_photo_settings(own_id=own_id,\
+						target_id=tid,setting_type=photo_setting, group_id=group_id)
 					
 					if new_phdel_value == '1' and top_most_post_affected:# successfully deleted
 						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
@@ -1571,11 +1571,11 @@ def personal_group_photo_settings(request):
 				# photo mass-restoration setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete, top_most_post_affected = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
-						setting_type=photo_setting, group_id=group_id)
+					new_phdel_value, ttl, undelete, top_most_post_affected, top_most_post_hidden = toggle_personal_group_photo_settings(own_id=own_id,\
+						target_id=tid,setting_type=photo_setting, group_id=group_id)
 					if new_phdel_value == '0' and top_most_post_affected:# successfully undeleted
 						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
-						receiver_id=tid,to_hide=False)# reply_id is not relevant for 1on1s
+						receiver_id=tid,to_hide=top_most_post_hidden)#False)# reply_id is not relevant for 1on1s
 					
 					elif new_phdel_value is None and ttl is not None:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\

@@ -46,7 +46,7 @@ create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on
 retrieve_all_home_text_obj_names, retrieve_text_obj_scores, hide_inline_direct_response
 from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list, submit_direct_response, set_comment_history, \
 delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics, log_location_for_sender,\
-delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, cleanse_replier_history_when_pvp_blocked
+delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, cleanse_replier_history_when_pvp_blocked, remove_1on1_direct_responses
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from django.contrib.auth.models import User
@@ -219,7 +219,7 @@ def private_chat_tasks(own_id, target_id, group_id, posting_time, text, txt_type
 			
 			# ensuring both side don't have notifications in their inboxes anymore
 			delete_single_direct_response(target_user_id=own_id, obj_type='7', parent_obj_id=group_id, sender_id=target_id)
-			delete_single_direct_response(target_user_id=target_id, obj_type='7', parent_obj_id=group_id, sender_id=str(own_id))
+			delete_single_direct_response(target_user_id=target_id, obj_type='7', parent_obj_id=group_id, sender_id=own_id)
 
 			#ensuring own_id's 'reply activity' doesn't contain any trace of the exited 1on1
 			cleanse_replier_data_from_location(obj_type='7', parent_obj_id=group_id, obj_owner_id=target_id, replier_ids=[own_id])
@@ -400,12 +400,14 @@ def post_banning_tasks(own_id, target_id):
 	# 1) Exit yourself if group is non-exited
 	# 2) If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them!
 	# 3) No notifications will be generated since we already sanitized each user's activity
-	exit_user_from_targets_priv_chat(own_id,target_id)
+	group_id, group_exists = exit_user_from_targets_priv_chat(own_id,target_id)
+	if group_id:
+		remove_1on1_direct_responses(group_id=group_id, first_user_id=target_id, second_user_id=own_id)
 	################################################################################
-	# remove any direct responses exchanged between the two
+	# remove any direct responses exchanged between the two (except for 1on1, which is handled in the previous step)
 	delete_all_direct_responses_between_two_users(first_user_id=target_id, second_user_id=own_id)# order of passing user IDs does not matter
 	################################################################################
-	# remove locations owned by each other from the 'reply history'
+	# remove locations owned by each other from 'reply history'
 	cleanse_replier_history_when_pvp_blocked(replier_id_1=target_id, replier_id_2=own_id)
 	################################################################################
 	# we did a lot of work, ensure banner didn't ban in vain!

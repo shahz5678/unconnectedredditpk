@@ -107,7 +107,7 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 				parent_uname = retrieve_uname(target_user_id,decode=True)
 				parent_uname = parent_uname[:1].upper() if their_anon_status else parent_uname
 				own_uname = own_uname[:1].upper() if own_anon_status else own_uname
-				parent_text = '1 on 1 with {}'.format(own_uname.encode('utf-8')) # group topic
+				parent_text = '1 on 1 with {}'.format(own_uname.encode('utf-8')) # group label
 			else:
 				obj_exists = False
 	
@@ -263,8 +263,6 @@ def post_direct_response(request):
 					- target_id
 					- target_obj_tp
 					- text (submitted by replier)
-
-					Data we still need:
 					- topic_name
 					- topic_theme
 					"""

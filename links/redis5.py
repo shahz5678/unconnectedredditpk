@@ -513,11 +513,12 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 	server = server if server else redis.Redis(connection_pool=POOL)
 	ttl = server.ttl("pgmdrl:"+group_id+":"+own_id)
 	if ttl > 0:
-		return False, ttl, False
+		return False, ttl, None, None
 
 	########################################
-	top_most_post_affected = False
+	top_most_post_affected, top_most_msg_hidden = False, False
 	status = 'undel' if undelete else 'del'
+
 	all_photos = server.lrange("pgpl:"+group_id,0,-1)
 	if all_photos:
 		own_photos, own_photo_id_pool = [], []
@@ -538,6 +539,7 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 					t_img_id = server.hget(blob_hash,'t_img_id')
 					if t_img_id in own_photo_id_pool:
 						target_response_blobs.append(blob_hash)
+
 			# final deletion happening below (in one go)
 			pipeline1 = server.pipeline()
 			for photo in own_photos:
@@ -562,6 +564,7 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 				idx = server.hget(blob_hash,'idx')
 				is_hidden = server.hget(blob_hash,'hidden'+idx if idx else 'hidden')
 				if is_hidden == 'yes':
+					top_most_msg_hidden = True
 					server.hset(group_key,'lt_msg_st','yes')
 				else:
 					server.hset(group_key,'lt_msg_st',status)
@@ -570,7 +573,7 @@ def delete_all_photos_from_personal_group(own_id, group_id, undelete=None, serve
 		
 		# micro-ratelimiting the user (to avoid clickfests)
 		server.setex("pgmdrl:"+group_id+":"+own_id,1,ONE_MIN)
-	return True, None, top_most_post_affected
+	return True, None, top_most_post_affected, top_most_msg_hidden
 
 
 def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
@@ -587,6 +590,7 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 	own_normal_blobs, own_res_blobs, their_res_blobs, own_photo_id_pool = [], [], [], []
 	status = 'undel' if undelete else 'del'
 	personal_group_list = "pgl:"+group_id
+
 	all_chat = my_server.lrange(personal_group_list,0,-1)
 	top_most_post_affected, top_most_post_hidden = False, False
 	if all_chat:
@@ -642,7 +646,11 @@ def delete_all_user_chats_from_personal_group(own_id, group_id, undelete=None):
 					my_server.hset(group_key,'lt_msg_st','yes')
 				else:
 					my_server.hset(group_key,'lt_msg_st',status)
+			elif status == 'undel':
+				# restoring a 'tx' msg
+				my_server.hset(group_key,'lt_msg_st',status)
 			else:
+				# 'del' a 'tx' msg
 				top_most_post_hidden = True
 				my_server.hset(group_key,'lt_msg_st',status)
 		
@@ -1528,12 +1536,11 @@ def exit_user_from_targets_priv_chat(own_id,target_id):
 	If 'target' has already exited group, tell them they can't re-enter because the other party outright blocked them (shit is serious now)
 	"""
 	own_id, target_id = str(own_id), str(target_id)
-	my_server = redis.Redis(connection_pool=POOL)
-	group_id, group_exists = personal_group_already_exists(own_id, target_id, server=my_server)
+	group_id, group_exists = personal_group_already_exists(own_id, target_id, server=redis.Redis(connection_pool=POOL))
 	if group_exists:
 		# suspend group, overriding any rate limits. This won't suspend if group already suspended (we'll handle those cases in re-entry)
 		suspend_personal_group(own_id, target_id, group_id, override_rl=True)
-
+	return group_id, group_exists
 
 ########################################## Personal Group SMS Settings ###########################################
 
@@ -1716,21 +1723,23 @@ def toggle_personal_group_photo_settings(own_id, target_id, setting_type, group_
 			else:
 				my_server.hset(hash_name,'phrec'+own_id,'0')
 				new_value = '0'
-			return new_value, None, None, None
+			return new_value, None, None, None, None
 		elif setting_type == '2':
 			undelete = False
-			deleted, ttl, top_most_post_affected = delete_all_photos_from_personal_group(own_id, group_id, undelete=undelete, server=my_server)
+			deleted, ttl, top_most_post_affected, top_most_msg_hidden = delete_all_photos_from_personal_group(own_id, group_id, \
+				undelete=undelete, server=my_server)
 			new_value = '1' if deleted else None
-			return new_value, ttl, undelete, top_most_post_affected
+			return new_value, ttl, undelete, top_most_post_affected, top_most_msg_hidden
 		elif setting_type == '3':
 			undelete = True
-			deleted, ttl, top_most_post_affected = delete_all_photos_from_personal_group(own_id, group_id, undelete=undelete, server=my_server)
+			deleted, ttl, top_most_post_affected, top_most_msg_hidden = delete_all_photos_from_personal_group(own_id, group_id, \
+				undelete=undelete, server=my_server)
 			new_value = '0' if deleted else None
-			return new_value, ttl, undelete, top_most_post_affected
+			return new_value, ttl, undelete, top_most_post_affected, top_most_msg_hidden
 		else:
-			return None, None, None, None
+			return None, None, None, None, None
 	else:
-		return None, None, None, None
+		return None, None, None, None, None
 
 
 def get_personal_group_photo_rec_settings(own_id, target_id):

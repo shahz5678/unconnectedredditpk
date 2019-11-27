@@ -286,7 +286,7 @@ def post_direct_response(request):
 							return render(request,"direct_response/direct_response_errors.html",{'resp_to_self':True,'org':origin,\
 								'obid':parent_obj_id})
 					else:
-						# TODO: is own_id banned by post owner? In that case, don't let them reply here anyway
+						# is own_id banned by target_id? In that case, don't let them reply here anyway
 						banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 						if banned_by:
 							# there's a block that exists between you and the target - disallowed from proceeding
@@ -294,7 +294,7 @@ def post_direct_response(request):
 								# these are public and private groups
 								parent_obj_id = retrieve_group_uuid(parent_obj_id)
 							return render(request,"direct_response/direct_response_errors.html",{'blocked':True,'org':origin,\
-								'obid':parent_obj_id})
+								'obid':parent_obj_id,'tgt_uname':target_uname})
 					############################################################
 					"""
 					Data we need:
@@ -322,9 +322,19 @@ def post_direct_response(request):
 							topic_url, image_url, group_topic, group_uuid, own_username = retrieve_direct_response_data(obj_type=obj_type,\
 								target_user_id=target_id, obj_id=obj_id, parent_obj_id=parent_obj_id,is_main_reply=is_main_reply,\
 								own_id=own_id, own_uname=own_username)
-						
+
+							# is own_id banned by post owner? In that case, don't let them reply here anyway
+							banned_by, ban_time = is_already_banned(own_id=own_id,target_id=parent_user_id, return_banner=True)
+							if banned_by:
+								# there's a block that exists between you and the post owner - disallowed from proceeding
+								# if origin in ('15','16'):
+								# 	# these are public and private groups
+								# 	parent_obj_id = retrieve_group_uuid(parent_obj_id)
+								return render(request,"direct_response/direct_response_errors.html",{'op_blocked':True,'org':origin,\
+									'obid':parent_obj_id,'op_uname':parent_uname})
+
 							###########################################################################
-							if obj_exists:
+							elif obj_exists:
 								# process the direct response
 								if target_text:
 									target_text_prefix, target_text_postfix = break_text_into_prefix_and_postfix(target_text)

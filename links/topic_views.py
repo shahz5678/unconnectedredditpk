@@ -632,14 +632,18 @@ def unsubscribe_topics(request):
 ##########################################################################################################
 
 
-def isolate_topic_data(topic_data):
+def isolate_topic_data(topic_data, colors_only=False):
 	"""
 	Isolate topic data from composite payload of type "theme:topic_name:topic_url"
 
 	Used by retrieve_direct_response_data() in direct_response_views.py
 	"""
-	data = topic_data.split(":")
-	theme, topic_name, topic_url = data[0], data[1], data[2]
-	color_grads = COLOR_GRADIENTS[theme]
-	c1, c2 = color_grads[0], color_grads[1]
-	return theme, topic_name, c1, c2, topic_url
+	if colors_only:
+		color_grads = COLOR_GRADIENTS[topic_data]
+		return color_grads[0], color_grads[1]
+	else:
+		data = topic_data.split(":")
+		theme, topic_name, topic_url = data[0], data[1], data[2]
+		color_grads = COLOR_GRADIENTS[theme]
+		c1, c2 = color_grads[0], color_grads[1]
+		return theme, topic_name, c1, c2, topic_url

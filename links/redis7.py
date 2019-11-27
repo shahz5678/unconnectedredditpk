@@ -4838,6 +4838,56 @@ def bulk_sanitize_group_invite_and_membership(user_ids_list):
 	pipeline1.execute()
 
 
+################################## Direct response data retrieval ##############################################
+
+
+def retrieve_shared_obj_meta_data(obj_type,obj_id, with_owner_id=False):
+	"""
+	Retrieves some meta data required by direct_response functionality(e.g. parent obj text, submitter, etc)
+
+	Optimization function: this looks into redis, before falling back into Postgresql data
+	"""
+	# it's a post of type 'tx'
+	via_db = False
+	if obj_type == '3':
+		my_server = redis.Redis(connection_pool=POOL)
+		redis_json_blob = my_server.hget('tx:'+str(obj_id),'blob')
+		if redis_json_blob:
+			# the obj is cached in redis
+			data = json.loads(redis_json_blob)
+			final_data = {'turl':data.get('url',''),'tn':data.get('tn',''),'th':data.get('th',None),'ooid':data['si'] if with_owner_id else '',\
+			'd':data['d']}
+		else:
+			# the object is not available in redis - fall back to postgresql
+			via_db = True
+			if with_owner_id:
+				final_data = Link.objects.values('url','description','submitter_id').filter(id=obj_id)[0]
+			else:
+				final_data = Link.objects.values('url','description').filter(id=obj_id)[0]
+		return final_data, via_db
+
+	# it's a post of type 'img'
+	elif obj_type == '4':
+		my_server = redis.Redis(connection_pool=POOL)
+		redis_json_blob = my_server.hget('img:'+str(obj_id),'blob')
+		if redis_json_blob:
+			# the obj is cached in redis
+			data = json.loads(redis_json_blob)
+			final_data = {'iu':data['iu'],'d':data['d'],'ooid':data['si'] if with_owner_id else ''}
+		else:
+			# the object is not available in redis - fall back to postgresql
+			via_db = True
+			if with_owner_id:
+				final_data = Photo.objects.values('image_file','caption','owner_id').filter(id=obj_id)[0]
+			else:
+				final_data = Photo.objects.values('image_file','caption').filter(id=obj_id)[0]
+		return final_data, via_db
+	
+	# unidentified obj_type
+	else:
+		return {}, via_db
+
+
 ################################## export_website_feedback.py ##############################################
 
 def get_website_feedback():

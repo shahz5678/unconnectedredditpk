@@ -8,16 +8,16 @@ from redis3 import is_already_banned
 from page_controls import ITEMS_PER_PAGE
 from templatetags.s3 import get_s3_object
 from topic_views import isolate_topic_data
+from models import Publicreply, PhotoComment
 from redirection_views import return_to_content
 from group_views import personal_group_sanitization
 from direct_response_forms import DirectResponseForm
 from django.views.decorators.csrf import csrf_protect
-from models import Publicreply, Link, PhotoComment, Photo
 from score import DELETION_THRESHOLD, NUM_ACTIVITY_ITEMS_PER_PAGE
 from redis4 import retrieve_uname, retrieve_bulk_unames, retrieve_avurl
 from views import get_indices, break_text_into_prefix_and_postfix, convert_to_epoch
-from redis7 import check_content_and_voting_ban, invalidate_cached_public_replies, store_inline_reply
 from tasks import publicreply_notification_tasks, trim_group_submissions, set_input_rate_and_history, direct_response_tasks
+from redis7 import check_content_and_voting_ban, invalidate_cached_public_replies, store_inline_reply, retrieve_shared_obj_meta_data
 from redis5 import add_content_to_personal_group, get_personal_group_anon_state, mark_personal_group_attendance, update_personal_group_last_seen,\
 set_uri_metadata_in_personal_group
 from redis6 import retrieve_single_group_submission, save_group_submission, invalidate_cached_mehfil_replies, invalidate_presence,\
@@ -36,18 +36,14 @@ def retrieve_target_text(obj_id, submitter_id, parent_obj_id, obj_type, is_main_
 	###################################################################
 	# reply from text box under the post (img or text)
 	if is_main_reply:
-		if obj_type == '3':
-			# return text post description
-			link = Link.objects.values('url','description').filter(id=parent_obj_id)[0]
-			return link['description'], link['url']
-		elif obj_type == '4':
-			# return img post caption and url
-			photo = Photo.objects.values('image_file','caption').filter(id=parent_obj_id)[0]
-			return photo['caption'], photo['image_file']
+		
+		meta_data, retrieved_via_db = retrieve_shared_obj_meta_data(obj_type=obj_type,obj_id=parent_obj_id)
+		return meta_data, retrieved_via_db
 	
 	###################################################################
 	# 'reply to reply' under comments of various posts 
 	else:
+		
 		if obj_type == '3':
 			# text post: return target of "reply to reply", or simple reply
 			try:
@@ -79,26 +75,50 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 	###################################################################
 	# reply from text box under the post (img or text)
 	if is_main_reply:
+
+		# reply under text post
 		if obj_type == '3':
-			# reply under text post
-			parent_text, topic_data = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
-				obj_type=obj_type, is_main_reply=is_main_reply)
-			if topic_data:
-				theme, topic_name, c1, c2, topic_url = isolate_topic_data(topic_data)
+			
+			meta_data, retrieved_via_db = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
+				obj_type=obj_type, is_main_reply=True)
+			if retrieved_via_db:
+				# data not found in redis - retrieved via DB lookup
+				parent_text, topic_data = meta_data['description'], meta_data['url']
+				if topic_data:
+					theme, topic_name, c1, c2, topic_url = isolate_topic_data(topic_data)
+				else:
+					theme, topic_name, c1, c2, topic_url = None, '', '', '', ''
 			else:
-				theme, topic_name, c1, c2, topic_url = None, '', '', '', ''
+				#retrieved via cached redis data - lesser processing required for 'topic' retrieval here
+				parent_text, theme, topic_name, topic_url = meta_data['d'] ,meta_data['th'], meta_data['tn'], meta_data['turl']
+				if theme:
+					c1, c2 = isolate_topic_data(theme,colors_only=True)
+				else:
+					c1, c2 = '', ''
+
 			parent_user_id = target_user_id
 			parent_uname = retrieve_uname(target_user_id,decode=True)
 			obj_exists = True
+		
+		# reply under img post
 		elif obj_type == '4':
-			# reply under img post
-			parent_text, image_url = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
-				obj_type=obj_type, is_main_reply=is_main_reply)
+			
+			meta_data, retrieved_via_db = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
+				obj_type=obj_type, is_main_reply=True)
+			if retrieved_via_db:
+				# data not found in redis - retrieved via DB lookup
+				parent_text, image_url = meta_data['caption'], meta_data['image_file']
+			else:
+				#retrieved via cached redis data
+				parent_text, image_url = meta_data['d'], meta_data['iu']
+
 			parent_user_id = target_user_id
 			parent_uname = retrieve_uname(target_user_id,decode=True)
 			obj_exists = True
+		
+		# reply in 1on1 (even 'reply to reply' is deemed as a 'main_reply' for the purposes of a 1on1)
 		elif obj_type == '7':
-			# reply in 1on1 (even 'reply to reply' is deemed as a 'main_reply' for the purposes of a 1on1)
+			
 			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_user_id)
 			
 			# performing a double check
@@ -114,36 +134,57 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 	###################################################################
 	# 'reply to reply' under comments of various posts 
 	else:
+
+		# 'reply to reply' under a text post
 		if obj_type == '3':
-			# 'reply to reply' under a text post
+			
 			target_text = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, obj_type=obj_type,\
-				is_main_reply=is_main_reply)
+				is_main_reply=False)
 			if target_text:
 				obj_exists = True
-				data = Link.objects.values('url','description','submitter').filter(id=parent_obj_id)[0]
-				if data:
-					topic_data, parent_text, parent_user_id = data['url'], data['description'], data['submitter']
-					parent_uname = retrieve_uname(parent_user_id,decode=True)
+				meta_data, retrieved_via_db = retrieve_shared_obj_meta_data(obj_type='3',obj_id=parent_obj_id,with_owner_id=True)
+				if retrieved_via_db:
+					# data not found in redis - retrieved via DB lookup
+					topic_data, parent_text, parent_user_id = meta_data['url'], meta_data['description'], meta_data['submitter_id']
 					if topic_data:
 						theme, topic_name, c1, c2, topic_url = isolate_topic_data(topic_data)
 					else:
 						theme, topic_name, c1, c2, topic_url = None, '', '', '', ''
+				else:
+					#retrieved via cached redis data
+					parent_text, parent_user_id = meta_data['d'], meta_data['ooid']
+					theme, topic_name, topic_url = meta_data['th'], meta_data['tn'], meta_data['turl']
+					if theme:
+						c1, c2 = isolate_topic_data(theme,colors_only=True)
+					else:
+						c1, c2 = '', ''
+				parent_uname = retrieve_uname(parent_user_id,decode=True)	
+
+		# 'reply to reply' under an img post
 		elif obj_type == '4':
-			# 'reply to reply' under an img post
+			
 			target_text = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, obj_type=obj_type,\
-				is_main_reply=is_main_reply)
+				is_main_reply=False)
 			if target_text:
 				obj_exists = True
-				data = Photo.objects.values('image_file','caption','owner').filter(id=parent_obj_id)[0]
-				if data:
-					parent_text, parent_user_id, image_url = data['caption'], data['owner'], data['image_file']
-					parent_uname = retrieve_uname(parent_user_id,decode=True)
+				meta_data, retrieved_via_db = retrieve_shared_obj_meta_data(obj_type='4',obj_id=parent_obj_id,with_owner_id=True)
+				
+				if retrieved_via_db:
+					# data not found in redis - retrieved via DB lookup
+					parent_text, parent_user_id, image_url = meta_data['caption'], meta_data['owner_id'], meta_data['image_file']
+				else:
+					#retrieved via cached redis data
+					parent_text, parent_user_id, image_url = meta_data['d'], meta_data['ooid'], meta_data['iu']
+				parent_uname = retrieve_uname(parent_user_id,decode=True)
+		
+		# reply to chat in public/private mehfil
 		elif obj_type in ('5','6'):
-			# reply to chat in public/private mehfil
+			
 			target_text, image_url, group_topic, group_uuid, parent_user_id = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, \
-				parent_obj_id=parent_obj_id, obj_type=obj_type, is_main_reply=is_main_reply)
+				parent_obj_id=parent_obj_id, obj_type=obj_type, is_main_reply=False)
 			if group_uuid:
 				obj_exists = True
+
 	return obj_exists, target_text, parent_uname, parent_text, parent_user_id, topic_name, theme, c1, c2, topic_url, image_url, group_topic, \
 	group_uuid, own_uname
 
@@ -184,7 +225,7 @@ def post_direct_response(request):
 	"""
 	Processes a direct reply, a.k.a direct response (send, skip or block)
 	
-	A direct response is broadly originate from two places: 'main reply' (i.e. replied from text box under post), or 'reply of reply' (i.e. replied to a reply under a post)
+	A direct response broadly originates from two contexts: 'main reply' (i.e. replied from text box under post), or 'reply of reply' (i.e. replied to a reply under a post)
 
 	A direct response can be of various types (called ob_type), including:
 	'3' reply to reply under text post, OR reply under text post
@@ -245,9 +286,9 @@ def post_direct_response(request):
 							return render(request,"direct_response/direct_response_errors.html",{'resp_to_self':True,'org':origin,\
 								'obid':parent_obj_id})
 					else:
+						# TODO: is own_id banned by post owner? In that case, don't let them reply here anyway
 						banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 						if banned_by:
-							# TODO: is own_id banned by post owner? In that case, don't let them reply here anyway
 							# there's a block that exists between you and the target - disallowed from proceeding
 							if origin in ('15','16'):
 								# these are public and private groups

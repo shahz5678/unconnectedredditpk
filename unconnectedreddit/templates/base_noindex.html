@@ -44,7 +44,7 @@
     <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 {% endif %}
 </ul>
-
+<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 <a name="section0"></a>
 <div class="mbl"></div>
 {% block content %}

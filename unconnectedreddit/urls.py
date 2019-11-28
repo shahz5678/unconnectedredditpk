@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 from urls_unauth import urlpatterns as urlpatterns_unauth
-from urls_ecomm import urlpatterns as urlpatterns_ecomm
+# from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_maint import urlpatterns as urlpatterns_maint
 from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_retention import urlpatterns as urlpatterns_retention
@@ -219,7 +219,7 @@ urlpatterns = patterns('',
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$',perm_redirect_to_home, name='perm_redirect_to_home'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$',perm_redirect_to_home, name='perm_redirect_to_home'),
 )
-urlpatterns += urlpatterns_ecomm
+# urlpatterns += urlpatterns_ecomm
 urlpatterns += urlpatterns_ads
 urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback

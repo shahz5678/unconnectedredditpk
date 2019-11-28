@@ -58,6 +58,7 @@ VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jha
 ###############################################################################################################
 THUMB_HEIGHT = 38
 MIN_PUBLIC_IMG_WIDTH = 315# this number must belong to this interval: [450, 405, 360, 315, 270, 225, 180, 135, 90] (equal to resize_ranges in image_processing.py)
+MAX_PUBLIC_IMG_WIDTH = 450
 ###############################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 900#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT

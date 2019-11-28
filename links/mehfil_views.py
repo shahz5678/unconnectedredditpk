@@ -3276,7 +3276,8 @@ class PrivateGroupView(FormView):
 						for data in latest_data:
 							data = {'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 							'writer_avurl':data.get('wa',None),'id':data['si'],'tu':data.get('tu',None),'pre':data.get('pre',''),'post':data.get('post',''),\
-							'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)}
+							'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None),'rt':data.get('rt',None),\
+							'nht':data.get('nht',None)}
 							latest_replies.append(data)
 						#################################################
 						# TODO: remove once cleaned up (e.g. after a week)
@@ -3375,6 +3376,7 @@ class PrivateGroupView(FormView):
 				else:
 					text = form.cleaned_data["text"]
 					image = form.cleaned_data.get('image',None)
+					img_width, img_height = None, None
 					invalidate_cached_mehfil_replies(group_id)
 					invalidate_presence(group_id)
 					if image:
@@ -3422,7 +3424,7 @@ class PrivateGroupView(FormView):
 					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, chat_image=uploaded_img_loc, \
 						posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),category='0',writer_uname=own_uname,\
-						save_latest_submission=True)
+						save_latest_submission=True, img_width=img_width, img_height=img_height)
 
 					if num_submissions > DELETION_THRESHOLD:
 						# delete extra submissions
@@ -3546,7 +3548,8 @@ class PublicGroupView(FormView):
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
 								'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None),'pre':data.get('pre',''),\
-								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None)})
+								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None),\
+								'rt':data.get('rt',None),'nht':data.get('nht',None)})
 						#################################################
 						# TODO: remove once cleaned up (e.g. after a week)
 						try:
@@ -3653,6 +3656,7 @@ class PublicGroupView(FormView):
 			if is_signatory and is_member:
 				text = form.cleaned_data["text"]
 				image = form.cleaned_data.get('image',None)
+				img_width, img_height = None, None
 				if image and group_data['pics'] == '1':
 					on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 					if on_fbs:
@@ -3705,7 +3709,7 @@ class PublicGroupView(FormView):
 				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 				submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, \
 					chat_image=uploaded_img_loc, posting_time=reply_time,writer_avurl=get_s3_object(own_avurl,category='thumb'),\
-					category='0',writer_uname=own_uname,save_latest_submission=True)
+					category='0',writer_uname=own_uname,save_latest_submission=True, img_width=img_width, img_height=img_height)
 				# notify_single_user = False
 				if num_submissions > DELETION_THRESHOLD:
 					# delete extra submissions

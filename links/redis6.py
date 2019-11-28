@@ -15,7 +15,7 @@ PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_REENTRY_LOCK, EXCESSIVE_A
 RULES_CHANGE_RATE_LIMIT, MAX_TIME_BETWEEN_RULE_CHANGE_ATTEMPTS, EXCESSIVE_ATTEMPTS_TO_CHANGE_RULES_RATE_LIMIT, TOPIC_LONG_RATE_LIMIT, TOPIC_SHORT_RATE_LIMIT,\
 NUM_RULES_CHANGE_ATTEMPTS_ALLOWED, NUM_TOPIC_CHANGE_ATTEMPTS_ALLOWED, FEEDBACK_TTL, FEEDBACK_RATELIMIT, FEEDBACK_CACHE,PRIVATE_GROUP_INVITE_TTL,\
 CANCEL_PRIVATE_INVITE_AFTER_TIME_PASSAGE, CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE, PRIVATE_GROUP_CREATION_RATE_LIMIT, PUBLIC_GROUP_CREATION_RATE_LIMIT,\
-INVITER_PRIVATE_INVITE_LOCK_DURATION, INVITER_PUBLIC_INVITE_LOCK_DURATION
+INVITER_PRIVATE_INVITE_LOCK_DURATION, INVITER_PUBLIC_INVITE_LOCK_DURATION, MAX_PUBLIC_IMG_WIDTH
 from redis4 import retrieve_bulk_unames, retrieve_uname, retrieve_bulk_credentials, retrieve_credentials
 from redis3 import exact_date
 from location import REDLOC6
@@ -968,7 +968,7 @@ def populate_reply_mapping(obj_type, parent_obj_id, targeted_reply_id, reply_id)
 
 def save_group_submission(writer_id, group_id, text, posting_time, writer_uname,writer_avurl,category,chat_image=None,\
 	target_image=None,target_uname=None, target_uid=None, save_latest_submission=False, direct_reply_tgt_text_prefix=None, \
-	direct_reply_tgt_text_postfix=None, tgt_is_hidden=None):
+	direct_reply_tgt_text_postfix=None, tgt_is_hidden=None, img_width=None, img_height=None):
 	"""
 	Saves a reply submitted by a mehfil member
 
@@ -982,7 +982,12 @@ def save_group_submission(writer_id, group_id, text, posting_time, writer_uname,
 	'hidden':'1' if tgt_is_hidden else '0'}
 
 	if chat_image:
+		img_hw_ratio = (1.0*img_width/img_height)
 		payload['ciu'] = chat_image
+		payload['ht'] = img_height
+		payload['wd'] = img_width
+		payload['rt'] = round((100.0/img_hw_ratio),2)
+		payload['nht'] = round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)
 	if target_uname and target_uid:
 		payload['tu'] = target_uname
 		payload['tid'] = target_uid

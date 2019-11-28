@@ -1292,7 +1292,7 @@ def show_online_users(request):
 	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	return render(request,"online_list.html",{'online_data':final_data,'stars':get_all_image_star_ids(), 'num_online':num_online,\
-		'own_id':own_id,'bottom':len(final_data),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)})
+		'own_id':str(own_id),'bottom':len(final_data),'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)})
 
 
 class LinkDeleteView(DeleteView):

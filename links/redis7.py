@@ -8,7 +8,8 @@ from django.db.models import F
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
-TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME, PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH
+TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME, PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH, \
+MAX_PUBLIC_IMG_WIDTH
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from redis3 import retrieve_user_world_age, exact_date
 from abuse import FLAGGED_PUBLIC_TEXT_POSTING_WORDS
@@ -832,9 +833,10 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
 	img_thumb = get_s3_object(img_url,category="thumb")
 	hash_name = "img:"+obj_id
-	# img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
+	img_hw_ratio = (1.0*img_width/img_height)
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
-	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width}
+	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width,'rt':round((100.0/img_hw_ratio),2),\
+	'nht':round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)}
 	if from_fbs:
 		immutable_data['fbs']='1'
 	if is_star:

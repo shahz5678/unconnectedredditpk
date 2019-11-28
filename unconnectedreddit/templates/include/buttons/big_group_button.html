@@ -1,8 +1,12 @@
 {% if own_id and own_id != tid %}
-	<form method="POST" style="margin-bottom:4px;margin-right:4px" action="{% url 'render_personal_group_invite' %}">
+	<form method="GET" style="margin-bottom:4px;margin-right:4px" action="{% url 'render_personal_group_invite' %}">
 		{% csrf_token %}<input type="hidden" name="ot" value="{{ ot }}"><input type="hidden" name="org" value="{{ origin }}"><input type="hidden" name="tun" value="{{ tun }}"><input type="hidden" name="hh" value="{{ home_hash }}"><input type="hidden" name="poid" value="{{ poid }}"><input type="hidden" name="tp" value="{{ tp }}">
-
-		<button name="tid" class="vt" style="border:1px solid #67B0FD;width:50px;height:42px;padding:0;text-align:center" value="{{ tid }}"><img src="{{ static_url }}img/chat_boxes.svg" width="15" height="15" style="vertical-align:middle"><div style="font-size:8.2px;color:#3b7af7" class="mts">1 ON 1</div></button>
+		
+		<button name="tid" class="vt" style="border:1px solid #67B0FD;width:50px;height:42px;padding:0;text-align:center" value="{{ tid }}"><div style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none;">
+		<div id="line"></div>
+		<div id="line"></div>
+		<div id="line" style="width: 8px;"></div>
+		</div><div style="font-size:8.2px;color:#3b7af7" class="mts">1 ON 1</div></button>
 
 	</form>
 {% endif %}

@@ -1408,9 +1408,23 @@ def log_home_post(user_id, username, text, on_fbs, is_urdu, editorial_upvotes, t
 	6) How are trending posts distributed by language (English vs Urdu)
 	7) How long does it take for a post to get into trending (trending_time minus posting_time)
 	8) What categories of posts get into trending (poetry, religion, politics, jokes, etc)
+	9) What % post chars are 'non-readable chars' (i.e. non-english and non-urdu)
+	10) Can we identify posts that are mostly non-readable via the analysis in (9)?
 	"""
+	ascii_len, readable_urdu_len, digit_len, readable_eng_len = 0, 0, 0, 0
+	for c in text:
+		if u'\u0600' <= c <= u'\u06FF' or u'\uFB50' <= c <= u'\uFEFF':
+			readable_urdu_len += 1
+		elif ord(c) < 128:
+			ascii_len += 1
+			if c.isalpha():
+				readable_eng_len += 1
+			elif c.isdigit():
+				digit_len += 1
+
 	context = {'text':text,'is_urdu':is_urdu,'trending_time':trending_time,'user_id':user_id, 'username':username,\
-	'text_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time}
+	'total_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time,'readable_urdu_len':readable_urdu_len,\
+	'readable_eng_len':readable_eng_len,'ascii_len':ascii_len,'digit_len':digit_len}
 	if on_fbs:
 		context['on_fbs'] = on_fbs
 	json_payload = json.dumps(context)

@@ -463,7 +463,7 @@ def export_voting_reputation_records(request):
 				wtr = csv.writer(f)
 				# columns = ["posting time (human)","posting time (epoch)","uploader_id","username","is_fbs","is_opera_mini","img_width","img_height"]
 				columns = ["posting time (human)","trending time (human)","posting time (epoch)","trending time (epoch)","user_id","username","is_fbs",\
-				"is_urdu","upvotes","text_length","text"]
+				"is_urdu","upvotes","text_length","ascii_len","eng_len","urdu_len","digit_len","text"]
 				wtr.writerow(columns)
 				for json_data, submitter_id in data_to_write_to_csv:
 					try:
@@ -477,8 +477,8 @@ def export_voting_reputation_records(request):
 					trending_human_time = exact_date(float(trending_epoch_time))
 					
 					to_write = [posting_human_time,trending_human_time,posting_epoch_time,trending_epoch_time,submitter_id,\
-					data['username'].encode('utf-8'),data.get('on_fbs',''),data['is_urdu'], data['uv'],data['text_length'],\
-					data['text'].encode('utf-8')]
+					data['username'].encode('utf-8'),data.get('on_fbs',''),data['is_urdu'], data['uv'],data['total_length'],\
+					data['ascii_len'],data['readable_eng_len'],data['readable_urdu_len'],data['digit_len'],data['text'].encode('utf-8')]
 
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")

@@ -172,7 +172,7 @@
 
             <!-- no reference -->
             {% if reply.chat_image %}
-                <div style="text-align:center"><img src="{{ reply.chat_image|s3 }}" style="border-radius:12px;max-width:100%" alt="pic"></div>
+                <div style="max-width:450px;max-height:{{ reply.nht }}px;margin:0 auto"><div style="display: block;position: relative;padding-bottom:{{ reply.rt }}%;height: 0;">{% if on_fbs %}<img src="{{ reply.chat_image|s3 }}" style="background:whitesmoke;border-radius:6px;width:100%" alt="pic">{% else %}<img data-src="{{ reply.chat_image|s3 }}" class="lazyload" style="background:whitesmoke;border-radius:6px;width:100%" alt="pic">{% endif %}</div></div>
             {% endif %}
             
             {% if reply.wid == own_id|slugify %}
@@ -282,7 +282,7 @@
 
         {% else %}
             {% if reply.chat_image %}
-                <div style="text-align:center"><img class="pht" src="{{ reply.chat_image|s3 }}" style="border-radius:12px;" alt="img"></div>
+                <div style="max-width:450px;max-height:{{ reply.nht }}px;margin:0 auto"><div style="display: block;position: relative;padding-bottom:{{ reply.rt }}%;height: 0;">{% if on_fbs %}<img src="{{ reply.chat_image|s3 }}" style="background:whitesmoke;border-radius:6px;width:100%" alt="img">{% else %}<img class="lazyload" data-src="{{ reply.chat_image|s3 }}" style="background:whitesmoke;border-radius:6px;width:100%" alt="img">{% endif %}</div></div>
             {% endif %}
             <div class="lsp" style="overflow:hidden">
 

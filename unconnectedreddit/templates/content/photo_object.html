@@ -42,7 +42,7 @@
 					{% elif vsc < VDP %}
 						<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
 					{% else %}
-						<div style="display: block;overflow:hidden;position: relative;padding-bottom:{{ ratio }}%;height: 0;text-align:center">{% if is_fbs == '1' or lazyload_idx == 1 %}<img style="width: 100%;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else%}<img style="width: 100%;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}</div>
+						<div style="display: block;overflow:hidden;position: relative;padding-bottom:{{ ratio }}%;height: 0;text-align:center">{% if is_fbs or lazyload_idx == 1 %}<img style="width: 100%;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else%}<img style="width: 100%;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}</div>
 					{% endif %}
 				{% endif %}
 			</div>
@@ -59,7 +59,7 @@
 					{% elif vsc < VDP %}
 						<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
 					{% else %}
-						{% if is_fbs == '1' or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else%}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}
+						{% if is_fbs or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else%}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}
 					{% endif %}
 				</span>
 				{% endif %}
@@ -109,14 +109,14 @@
 			{% elif vsc < VDP %}
 				<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="{{ raw_caption }}" style="border-radius:12px">
 			{% else %}
-				{% if is_fbs == '1' or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}
+				{% if is_fbs or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}
 			{% endif %}
 		</span>
 	{% endif %}
 
 	</div>
 
-	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" style="border-bottom:1px dotted lightgray" datetime="{{ mt }}">{{ ut }}</time></a>{% if is_fbs == '1' %}<span class="mls cgy">(fbs)</span>{% endif %}</div>
+	<div class="cxs sp" style="text-align:center">{% if show_trending %}<img src="{{ static_url }}img/fire.svg" class="mrs" style="vertical-align:sub" width="15" height="15">{% endif %}<a href="{% url 'photo_detail' pid %}" itemprop="url"><time class="cgy" itemprop="datePublished" style="border-bottom:1px dotted lightgray" datetime="{{ mt }}">{{ ut }}</time></a></div>
 	</span>
 
 

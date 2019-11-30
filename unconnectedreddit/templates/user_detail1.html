@@ -39,7 +39,7 @@
     {% endif %}
 
     <div class="cl sp" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa"> 
-        Profile foto:
+        Profile photo:
     </div>
 
     {% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=slug ban_detail=ban_detail %}
@@ -99,7 +99,7 @@
   <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
       <a name="section{{ forloop.counter }}"></a>
         
-        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending=photo.device %}
+        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending=photo.device lazyload_idx=forloop.counter %}
         
         <div class="mbs mtl">
           <div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -132,14 +132,14 @@
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Trending images view karein:</div>
-      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Photos</button></a>
     </div>
     {% else %}
     <div class="cxl lsp"><b>{{ slug }}</b> ne Damadam pe koi image nahi share kia</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Dusrey users ke trending images view karein:</div>
-      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Photos</button></a>
     </div>
     {% endif %}
   {% endif %}

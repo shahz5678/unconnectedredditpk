@@ -75,7 +75,7 @@ BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pu
 CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin','pakistn','pakistaan','pkistan']
 
 FLAGGED_PUBLIC_TEXT_POSTING_WORDS = ['1 on 1', 'invite', ' hot ', 'lun', 'girl', 'bye', 'new', 'sex', ' fan ', 'sis', 'join', 'boring', 'private',\
-'married', 'prvt', 'bored', 'fake', 'invt', 'pvt', ' post ','copy', 'ldki', 'grl', 'noon', 'allah', 'ﺍِﻟٰﻪ'.decode('utf-8'),'ﺍﻟﻠّﻪ'.decode('utf-8'),\
+'married', 'prvt', 'bored', 'fake', 'invt', 'pvt', ' post ',' copy ', 'ldki', 'grl', 'noon', 'allah', 'ﺍِﻟٰﻪ'.decode('utf-8'),'ﺍﻟﻠّﻪ'.decode('utf-8'),\
 'اللّه'.decode('utf-8'),'ﺍﻟﻠﻪ'.decode('utf-8'),'نماز'.decode('utf-8'),'ﺍﻟﻠّٰﻪ'.decode('utf-8'),'اللّٰه'.decode('utf-8'),'ﺍﻟﻠﮧ'.decode('utf-8'),\
 ' نبی '.decode('utf-8'),'اللہ'.decode('utf-8'),'لله'.decode('utf-8'), 'تعالی'.decode('utf-8'),'قرآن'.decode('utf-8'),'محمد'.decode('utf-8'),\
 'ﻣُﺤَﻤَّﺪ'.decode('utf-8'),'ﺭَّﺳُﻮْﻝ'.decode('utf-8'),'رسول'.decode('utf-8'),'سورۃ'.decode('utf-8'),'سورہ'.decode('utf-8'),'وَسَلَّم'.decode('utf-8'),\

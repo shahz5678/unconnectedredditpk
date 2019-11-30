@@ -1443,6 +1443,7 @@ def user_profile_photos(request,slug,type):
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 	context["on_opera"] = True if (not on_fbs and not is_js_env) else False
+	context["on_fbs"] = on_fbs
 	###########
 	context["subject"] = subject
 	context["star_id"] = star_id

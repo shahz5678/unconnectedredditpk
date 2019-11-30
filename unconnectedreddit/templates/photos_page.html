@@ -40,6 +40,7 @@
 
 	{% google_analytics %}
 	{% include "ga_user_analytics.html" with my_var=ident %}
+
 </head>
 
 <body style="background:#f0f3f4">
@@ -59,6 +60,7 @@
 			<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li>
 		{% endif %}
 		</ul>
+		<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 		<a name="section0"></a>
 	</nav>
 
@@ -172,7 +174,7 @@
 				<a name="section{{ forloop.counter }}"></a>
 
 				<section style="display:block">
-				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_star=photo.s %}
+				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=photo.fbs static_url=STATIC_URL is_star=photo.s lazyload_idx=forloop.counter ratio=photo.rt %}
 				</section>
 
 				<div class="mls">

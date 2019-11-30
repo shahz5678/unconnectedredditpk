@@ -927,6 +927,7 @@ class PhotoDetailView(DetailView):
 			context["av_url"] = None
 		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
 		context["is_js_env"] = False
+		context["on_fbs"] = on_fbs
 		if on_fbs:
 			context["show_copy_prompt"] = True
 			context["regular_url"] = "https://damadam.pk"+reverse('photo_detail',kwargs={"pk": pk})

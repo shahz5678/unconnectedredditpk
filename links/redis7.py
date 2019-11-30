@@ -210,6 +210,69 @@ def delete_avg_hash(hash_list, categ=None):
 ##################################################################################################################
 
 
+def retrieve_text_quality(text,lower_text,text_lang,is_being_reposted):
+	"""
+	Flags posts as 'low quality' if some obvious quality compromises are present
+
+	Helper func for add_text_post() and add_topic_post()
+	"""
+	if is_being_reposted:
+		# is an obvious repost
+		return '1'
+
+	##########
+
+	text_len = len(text)
+
+	if text_len < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
+		# 'short post': short-posts are considered low-quality
+		return '1'
+
+
+	##########
+
+	flag_text = False
+	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
+		if word in lower_text:
+			flag_text = True
+			break
+
+	if flag_text:
+		# 'illegal words': this post is blocked from trending forever
+		return '1'
+
+	##########
+	
+	other_chars = 0
+	for c in text:
+		if u'\u0600' <= c <= u'\u06FF' or u'\uFB50' <= c <= u'\uFEFF':
+			# urdu is readable
+			pass
+		elif c.isalpha():
+			# eng is readable
+			pass
+		else:
+			# these chars may not be deemed readable content
+			other_chars += 1
+	other_char_ratio = (other_chars*1.0)/text_len
+	if text_lang == '1':
+		# text is english
+		if other_char_ratio > 0.3:# this threshold was determined after some analysis
+			return '1'
+	else:
+		# text is urdu
+		if other_char_ratio > 0.32:# this threshold was determined after some analysis
+			return '1'
+
+	##########
+
+	# post doesn't suffer from any obvious quality defects
+	return '0'
+	
+	
+
+
+
 def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, text, submission_time, \
 	from_fbs, add_to_feed=False):
 	"""
@@ -229,24 +292,10 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 
 	######################################################
 	# flagging low quality posts based on certain text criteria
-	
-	if len(text) < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
-		# 'short post': this can never trend because short-posts are considered low-quality
-		mapping['sp'] = '1'
-	
-	flag_text, flagged_word, lower_text = False, '', text.lower()
-	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
-		if word in lower_text:
-			flag_text = True
-			flagged_word = word
-			break
-	if flag_text:
-		# 'illegal words': this post is blocked from trending forever
-		mapping['iw'] = '1'
+	lower_text = text.lower()
+	mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
+		is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
 
-	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text):
-		# text is being repeated within the last 800 posts
-		mapping['rt'] = '1'# 'repeated text': this post is repetitive, and therefore blocked from trending forever
 	######################################################
 	
 	time_now = time.time()
@@ -369,8 +418,8 @@ def retrieve_text_obj_scores(obj_list):
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for obj_hash_name in obj_list:
 
-		# Criteria 1) retrieve 'upvotes', 'short post', 'illegal words', 'repeated text'
-		pipeline1.hmget(obj_hash_name,'uv','sp','iw','rt')
+		# Criteria 1) retrieve 'upvotes', 'low quality'
+		pipeline1.hmget(obj_hash_name,'uv','lq')
 
 		# Criteria 2) is obj locked from trending because of sybils?
 		pipeline1.exists(LOCKED_TXT+obj_hash_name)
@@ -389,10 +438,10 @@ def retrieve_text_obj_scores(obj_list):
 
 		# else: non-sybil voting, and voting is open!
 		else:
-			num_upvotes, short_post, illegal_words, repetitive_post = obj_data[0], obj_data[1], obj_data[2], obj_data[3]
+			num_upvotes, low_quality = obj_data[0], obj_data[1]
 			
-			# the following kinds of posts will never trend anyway
-			if short_post or illegal_words or repetitive_post:
+			# loq quality posts will never trend anyway
+			if low_quality == '1':
 				pass
 			
 			# this post can trend, if it has the requisite number of likes
@@ -1246,26 +1295,13 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 	time_now = time.time()
 	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	
+
 	######################################################
 	# flagging low quality posts based on certain text criteria
-	if len(text) < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
-		# 'short post': this can never trend because short-posts are considered low-quality
-		mapping['sp'] = '1'
-	
-	flag_text, flagged_word, lower_text = False, '', text.lower()
-	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
-		if word in lower_text:
-			flag_text = True
-			flagged_word = word
-			break
-	if flag_text:
-		# 'illegal words': this post is blocked from trending forever
-		mapping['iw'] = '1'
+	lower_text = text.lower()
+	mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
+		is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
 
-	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text):
-		# text is being repeated within the last 800 posts
-		mapping['rt'] = '1'# 'repeated text': this post is repetitive, and therefore blocked from trending forever
 	######################################################
 
 	pipeline1 = my_server.pipeline()

@@ -577,7 +577,7 @@ def vote_history_admin_view(request,user_id):
 		return render(request,"voting/admin_voting_history_view.html",{'data':final_data,'slug':retrieve_uname(own_id,decode=True), \
 			'own_profile':False,'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 			'previous_page_number':page_num-1,'next_page_number':page_num+1},'own_id':own_id,'on_opera':on_opera,'defender_id':defender_id,\
-			'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id)})
+			'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id),'on_fbs':on_fbs})
 	else:
 		raise Http404("Not authorized to view user voting histories")
 
@@ -678,7 +678,7 @@ def user_vote_history(request):
 	return render(request,"voting/voting_history.html",{'slug':retrieve_uname(own_id,decode=True), 'own_profile':True,\
 		'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 		'previous_page_number':page_num-1,'next_page_number':page_num+1},'own_id':own_id,'on_opera':on_opera,'data':final_data,\
-		'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id)})
+		'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id),'on_fbs':on_fbs})
 
 
 def user_sybil_history(request, user_id, hist_type):

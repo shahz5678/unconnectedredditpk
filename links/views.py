@@ -18,7 +18,7 @@ from cricket_score import cricket_scr
 from colors import COLOR_GRADIENTS
 from page_controls import MAX_ITEMS_PER_PAGE, ITEMS_PER_PAGE, PHOTOS_PER_PAGE, FANS_PER_PAGE, STARS_PER_PAGE, PERSONAL_GROUP_IMG_WIDTH
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, UPLOAD_PHOTO_REQ, VOTING_DRIVEN_CENSORSHIP, VOTING_DRIVEN_PIXELATION, \
-NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, ZODIAC, MAX_HOME_REPLY_SIZE, PREFIX_TEXT_LENGTH, MAX_PUBLIC_IMG_WIDTH
+NUM_SUBMISSION_ALLWD_PER_DAY, TRENDER_RANKS_TO_COUNT, ZODIAC, MAX_HOME_REPLY_SIZE, PREFIX_TEXT_LENGTH#, MAX_PUBLIC_IMG_WIDTH
 from django.core.cache import get_cache, cache
 from django.views.decorators.csrf import csrf_protect
 from django.db.models import Max, Count, Q, Sum, F
@@ -917,7 +917,7 @@ class PhotoDetailView(DetailView):
 			context["photo_height"] = img_height
 			img_hw_ratio = (1.0*int(img_width)/int(img_height))
 			context["ratio"] = round((100.0/img_hw_ratio),2)
-			context["normalized_height"] = round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)
+			# context["normalized_height"] = round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)
 		except:
 			context["absent"] = True
 			return context

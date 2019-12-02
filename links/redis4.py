@@ -2159,6 +2159,11 @@ def log_replier_reply_rate(replier_id, text, time_now, target_username):
 	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+target_username,replier_id)
 
 
+def retrieve_replier_rate():
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(REPLY_RATE,0,-1,withscores=True)
+
 
 ######################################### Project Zuck ############################################
 from score import PROJ_ZUCK_STARTING_USER_ID 

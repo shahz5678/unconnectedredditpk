@@ -16,8 +16,8 @@ from judgement_views import get_usernames
 from redis3 import tutorial_unseen, exact_date
 from redirection_views import return_to_content
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
-from redis4 import retrieve_uname, retrieve_credentials
 from tasks import vote_tasks, cache_voting_history, log_user_activity
+from redis4 import retrieve_uname, retrieve_credentials, retrieve_replier_rate
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
@@ -415,20 +415,37 @@ def export_voting_records(request):
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		data_to_write_to_csv = retrieve_global_voting_records()# list of lists (where each list is a list of dictionaries)
+		# data_to_write_to_csv = retrieve_global_voting_records()# list of lists (where each list is a list of dictionaries)
+		# if data_to_write_to_csv:
+		# 	import csv
+		# 	filename = 'voting_data.csv'
+		# 	with open(filename,'wb') as f:
+		# 		wtr = csv.writer(f)
+		# 		columns = ["Voting time (human)","voter ID","target user ID","vote value","target obj type","target obj ID"]
+		# 		wtr.writerow(columns)
+		# 		for vote_data, voting_time in data_to_write_to_csv:
+		# 			# vote_data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
+		# 			data_list = vote_data.split(":")
+		# 			voter_id, target_user_id, vote_value, target_obj_tp, target_obj_id = data_list[0],data_list[1],data_list[2],\
+		# 			data_list[3], data_list[4]
+		# 			to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
+		# 			wtr.writerows([to_write])
+		#####################################################
+		data_to_write_to_csv = retrieve_replier_rate()
 		if data_to_write_to_csv:
 			import csv
-			filename = 'voting_data.csv'
+			filename = 'reply_rate.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["Voting time (human)","voter ID","target user ID","vote value","target obj type","target obj ID"]
+				columns = ["Reply time (epoch)","Target Username","Replier ID","Text"]
 				wtr.writerow(columns)
-				for vote_data, voting_time in data_to_write_to_csv:
-					# vote_data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
-					data_list = vote_data.split(":")
-					voter_id, target_user_id, vote_value, target_obj_tp, target_obj_id = data_list[0],data_list[1],data_list[2],\
-					data_list[3], data_list[4]
-					to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
+				for reply_data, replier_id in data_to_write_to_csv:
+					data_1 = reply_data.partition(":")
+					reply_time = data_1[0]
+					data_2 = data_1[-1].rpartition(":")
+					text = data_2[0]
+					target_uname = data_2[-1]
+					to_write = [reply_time,target_uname,replier_id,text]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

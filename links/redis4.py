@@ -2148,6 +2148,18 @@ def retrieve_survey_records():
 		return []
 
 
+######################################### Log direct repsonse rate ############################################
+#TODO: temp logger - needs to be removed
+
+REPLY_RATE = 'reply_rate'
+
+def log_replier_reply_rate(replier_id, text, time_now, target_username):
+	"""
+	"""
+	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+target_username,replier_id)
+
+
+
 ######################################### Project Zuck ############################################
 from score import PROJ_ZUCK_STARTING_USER_ID 
 

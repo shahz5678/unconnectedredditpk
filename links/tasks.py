@@ -27,9 +27,8 @@ invalidate_cached_user_data, get_personal_group_anon_state, personal_group_soft_
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
-retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_replier_reply_rate,\
-log_share, logging_sharing_metrics, cache_photo_share_data, retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,\
-sanitize_unused_subscriptions,log_1on1_chat#, log_photo_attention_from_fresh
+retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_share, logging_sharing_metrics, cache_photo_share_data, \
+retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,sanitize_unused_subscriptions,log_1on1_chat#, log_photo_attention_from_fresh
 from redis2 import remove_from_photo_owner_activity#update_pg_obj_anon, set_uploader_score, sanitize_eachothers_unseen_activities, is_fan, get_all_fans, \
 #get_fan_counts_in_bulk, get_top_100, clean_expired_notifications, skip_private_chat_notif, get_active_fans, add_to_photo_owner_activity, create_object, \
 #update_object, create_notification, update_notification, bulk_update_notifications, bulk_create_photo_notifications_for_fans, get_uploader_percentile, \
@@ -524,12 +523,12 @@ def log_user_activity(user_id, activity_dict, time_now, which_var=None):
 	log_activity(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var=which_var)
 
 
-@celery_app1.task(name='tasks.log_reply_rate')
-def log_reply_rate(replier_id, text, time_now, reply_target):
-	"""
-	TODO: temp logger that should be removed
-	"""
-	log_replier_reply_rate(replier_id, text, time_now, reply_target)
+# @celery_app1.task(name='tasks.log_reply_rate')
+# def log_reply_rate(replier_id, text, time_now, reply_target):
+# 	"""
+# 	TODO: temp logger that should be removed
+# 	"""
+# 	log_replier_reply_rate(replier_id, text, time_now, reply_target)
 
 
 # @celery_app1.task(name='tasks.set_section_retention')

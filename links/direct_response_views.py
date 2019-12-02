@@ -16,7 +16,8 @@ from django.views.decorators.csrf import csrf_protect
 from score import DELETION_THRESHOLD, NUM_ACTIVITY_ITEMS_PER_PAGE
 from redis4 import retrieve_uname, retrieve_bulk_unames, retrieve_avurl
 from views import get_indices, break_text_into_prefix_and_postfix, convert_to_epoch
-from tasks import publicreply_notification_tasks, trim_group_submissions, set_input_rate_and_history, direct_response_tasks
+from tasks import publicreply_notification_tasks, trim_group_submissions, set_input_rate_and_history, direct_response_tasks,\
+log_reply_rate
 from redis7 import check_content_and_voting_ban, invalidate_cached_public_replies, store_inline_reply, retrieve_shared_obj_meta_data
 from redis5 import add_content_to_personal_group, get_personal_group_anon_state, mark_personal_group_attendance, update_personal_group_last_seen,\
 set_uri_metadata_in_personal_group
@@ -522,6 +523,11 @@ def post_direct_response(request):
 												reply_writer_id=own_id, reply_id=db_obj_id, reply_writer_uname=own_username, \
 												time_now=time_now, reference_id=obj_id, reply_target=target_uname, \
 												target_text_prefix=target_text_prefix,target_text_postfix=target_text_postfix)
+
+										################################
+										# TODO: remove this once the analysis is complete
+										log_reply_rate.delay(replier_id=own_id, text=text, time_now=time_now, reply_target=target_uname)
+										################################
 
 									elif obj_type in ('5','6'):
 										parent_obj_id = group_uuid# this is needed for return_to_content() below

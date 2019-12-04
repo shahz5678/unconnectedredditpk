@@ -17,7 +17,7 @@ from redis3 import tutorial_unseen, exact_date
 from redirection_views import return_to_content
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
 from tasks import vote_tasks, cache_voting_history, log_user_activity
-from redis4 import retrieve_uname, retrieve_credentials#, retrieve_replier_rate
+from redis4 import retrieve_uname, retrieve_credentials, retrieve_replier_rate
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
@@ -431,21 +431,24 @@ def export_voting_records(request):
 		# 			to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
 		# 			wtr.writerows([to_write])
 		#####################################################
-		data_to_write_to_csv = []#retrieve_replier_rate()
+		data_to_write_to_csv = retrieve_replier_rate()
 		if data_to_write_to_csv:
 			import csv
+
 			filename = 'reply_rate.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["Reply time (epoch)","Target Username","Replier ID","Text"]
+				columns = ["Reply time (epoch)","Target ID","Replier ID","Marked fast","Text"]
 				wtr.writerow(columns)
 				for reply_data, replier_id in data_to_write_to_csv:
 					data_1 = reply_data.partition(":")
 					reply_time = data_1[0]
 					data_2 = data_1[-1].rpartition(":")
-					text = data_2[0]
-					target_uname = data_2[-1]
-					to_write = [reply_time,target_uname,replier_id,text]
+					marked_fast = data_2[-1]
+					data_3 = data_2[0].partition(":")
+					text = data_3[0]
+					target_id = data_3[-1]
+					to_write = [reply_time,target_id,replier_id,marked_fast,text]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

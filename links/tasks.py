@@ -28,7 +28,7 @@ personal_group_hard_deletion, exited_personal_group_hard_deletion, update_person
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_share, logging_sharing_metrics, cache_photo_share_data, \
-retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,sanitize_unused_subscriptions,log_1on1_chat#, log_photo_attention_from_fresh
+retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,sanitize_unused_subscriptions,log_1on1_chat, log_replier_reply_rate#, log_photo_attention_from_fresh
 from redis2 import remove_from_photo_owner_activity#update_pg_obj_anon, set_uploader_score, sanitize_eachothers_unseen_activities, is_fan, get_all_fans, \
 #get_fan_counts_in_bulk, get_top_100, clean_expired_notifications, skip_private_chat_notif, get_active_fans, add_to_photo_owner_activity, create_object, \
 #update_object, create_notification, update_notification, bulk_update_notifications, bulk_create_photo_notifications_for_fans, get_uploader_percentile, \
@@ -45,7 +45,8 @@ create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on
 retrieve_all_home_text_obj_names, retrieve_text_obj_scores, hide_inline_direct_response
 from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list, submit_direct_response, set_comment_history, \
 delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics, log_location_for_sender,\
-delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, cleanse_replier_history_when_pvp_blocked, remove_1on1_direct_responses
+delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, cleanse_replier_history_when_pvp_blocked, remove_1on1_direct_responses,\
+log_rate_of_reply
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from django.contrib.auth.models import User
@@ -289,7 +290,7 @@ def update_notif_object_anon(value,which_user,which_group):
 
 @celery_app1.task(name='tasks.direct_response_tasks')
 def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj_id=None, obj_owner_id=None, obj_hash_name=None, \
-	obj_type=None, commenter_id=None, time_now=None, log_location=False, target_uname=None, target_id=None):
+	obj_type=None, commenter_id=None, time_now=None, log_location=False, target_uname=None, target_id=None, text_len=-1):
 	"""
 	Tasks to complete when a direct response is sent on a public post (text or image)
 	"""
@@ -319,6 +320,8 @@ def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj
 		set_comment_history(obj_hash_name=obj_hash_name, obj_owner_id=obj_owner_id, commenter_id=commenter_id, time_now=time_now)
 		# Incrementing comment_count
 		Link.objects.filter(id=parent_obj_id).update(reply_count=F('reply_count')+1)
+		# Logging response rate (for rate limiting reasons)
+		log_rate_of_reply(replier_id=commenter_id, text_len=text_len, time_now=time_now)
 	
 	# it's a photo comment
 	elif obj_type == '4':
@@ -326,6 +329,8 @@ def direct_response_tasks(action_status, action_type, num_skips=None, parent_obj
 		set_comment_history(obj_hash_name=obj_hash_name, obj_owner_id=obj_owner_id, commenter_id=commenter_id, time_now=time_now)
 		# Incrementing comment_count
 		Photo.objects.filter(id=parent_obj_id).update(comment_count=F('comment_count')+1)
+		# Logging response rate (for rate limiting reasons)
+		log_rate_of_reply(replier_id=commenter_id, text_len=text_len, time_now=time_now)
 
 
 
@@ -523,12 +528,12 @@ def log_user_activity(user_id, activity_dict, time_now, which_var=None):
 	log_activity(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var=which_var)
 
 
-# @celery_app1.task(name='tasks.log_reply_rate')
-# def log_reply_rate(replier_id, text, time_now, reply_target):
-# 	"""
-# 	TODO: temp logger that should be removed
-# 	"""
-# 	log_replier_reply_rate(replier_id, text, time_now, reply_target)
+@celery_app1.task(name='tasks.log_reply_rate')
+def log_reply_rate(replier_id, text, time_now, reply_target, marked_fast):
+	"""
+	TODO: temp logger that should be removed
+	"""
+	log_replier_reply_rate(replier_id, text, time_now, reply_target, marked_fast)
 
 
 # @celery_app1.task(name='tasks.set_section_retention')

@@ -310,8 +310,9 @@ def post_direct_response(request):
 					obj_id = request.POST.get("obid",None)
 					own_avurl = retrieve_avurl(own_id)
 					if target_uname:
+						time_now = time.time()# useful for a host of operations below, but over-ridden below in some cases too
 						form = DirectResponseForm(request.POST,obj_type=obj_type,parent_obj_id=parent_obj_id,sender_id=target_id,\
-							receiver_id=own_id)
+							receiver_id=own_id, time_now=time_now)
 						if form.is_valid():
 								
 							#'3' reply on text, or reply to reply on text, '4' reply on photo, or reply on reply on photo, '5' comment on public mehfil text, '6' comment on private mehfil text
@@ -342,7 +343,7 @@ def post_direct_response(request):
 									target_text_prefix, target_text_postfix = '', ''
 
 								text, tgt_is_hidden = form.cleaned_data['direct_response']# what the submitter wrote							
-								lid, db_obj_id, created_obj_type, idx = None, None, None, None
+								lid, db_obj_id, created_obj_type, idx, text_len = None, None, None, None, -1
 
 								# this is a 'reply' from a text box under a post (img or txt)
 								if is_main_reply:
@@ -375,7 +376,6 @@ def post_direct_response(request):
 									elif obj_type == '7':
 										# '7' replying to chat in 1on1 (always considered a 'main_reply')
 										type_ = 'text'# the reply is a vanilla 'text' reply
-										time_now = time.time()
 										obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text,\
 											type_=type_, writer_id=own_id, group_id=parent_obj_id)
 										personal_group_sanitization(obj_count, obj_ceiling, gid)
@@ -419,7 +419,6 @@ def post_direct_response(request):
 									elif obj_type in ('5','6'):
 										# '5' reply to chat in public mehfil, '6' is reply to chat in private mehfil
 										# note: 'target_image' is an image url from the targeted (parent) text
-										time_now = time.time()
 										db_obj_id, num_submissions = save_group_submission(writer_id=own_id, \
 											group_id=parent_obj_id, text=text, target_image=image_url, posting_time=time_now, \
 											writer_avurl=get_s3_object(own_avurl,category='thumb'), category='11', \
@@ -503,6 +502,9 @@ def post_direct_response(request):
 									# updating said reply in the 'hash object' of the parent object (accessed by feeds, or mehfils, etc)
 									if obj_type in ('3','4'):
 
+										# useful for rate-limit logging (anti-flooding measures)
+										text_len = len(text)
+										
 										# a 'main' reply doesn't need to appear with any addendum
 										if is_main_reply:
 											if replying_on_own_post:
@@ -547,7 +549,7 @@ def post_direct_response(request):
 									direct_response_tasks.delay(action_status=is_reply_to_reply, action_type='1', \
 										parent_obj_id=parent_obj_id, obj_owner_id=parent_user_id,obj_hash_name=lid, \
 										obj_type=obj_type, commenter_id=own_id, time_now=time_now, log_location=True, \
-										target_uname=tuname, target_id=target_id)
+										target_uname=tuname, target_id=target_id,text_len=text_len)
 
 									return return_to_content(request=request,origin=origin,obj_id=parent_obj_id,link_id=lid,\
 										target_uname=request.POST.get('rorigin',None))#using target_uname as a 'placeholder' for some extra data

@@ -17,7 +17,7 @@ from redis3 import tutorial_unseen, exact_date
 from redirection_views import return_to_content
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
 from tasks import vote_tasks, cache_voting_history, log_user_activity
-from redis4 import retrieve_uname, retrieve_credentials, retrieve_replier_rate
+from redis4 import retrieve_uname, retrieve_credentials#, retrieve_replier_rate
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
@@ -431,7 +431,7 @@ def export_voting_records(request):
 		# 			to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
 		# 			wtr.writerows([to_write])
 		#####################################################
-		data_to_write_to_csv = retrieve_replier_rate()
+		data_to_write_to_csv = []#retrieve_replier_rate()
 		if data_to_write_to_csv:
 			import csv
 			filename = 'reply_rate.csv'

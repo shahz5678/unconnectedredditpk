@@ -2,11 +2,72 @@
 from django import forms
 from django.core.exceptions import ValidationError
 from forms import strip_zero_width_characters, repetition_found
-from redis9 import direct_response_exists
+from redis9 import direct_response_exists, retrieve_prev_replier_rate
 from redis6 import human_readable_time
 from score import MAX_HOME_REPLY_SIZE
 from redis4 import is_limited
+from tasks import log_reply_rate
 
+
+def prescribe_direct_response_rate_limit(typing_speed_1, typing_speed_2=None, typing_speed_3=None):
+	"""
+
+	"""
+	is_rate_limited = False
+	if typing_speed_1 and typing_speed_2 and typing_speed_3:
+		avg_typing_speed = (typing_speed_1+typing_speed_2+typing_speed_3)/3.0
+		if avg_typing_speed > 4:
+			# rate-limit this person
+			is_rate_limited = True
+
+	elif typing_speed_1 and typing_speed_2:
+		avg_typing_speed = (typing_speed_1+typing_speed_2)/2.0
+		if avg_typing_speed > 6:
+			# rate-limit this person
+			is_rate_limited = True
+
+	# elif typing_speed_1:
+	# 	pass
+
+	return is_rate_limited
+
+
+
+
+def determine_direct_response_rate(reply_len, replier_id, time_now):
+	"""
+	Determines whether a replier is writing too fast (and needs to be slowed down)
+	"""
+	is_rate_limited = False
+	recent_reply_lens_and_times = retrieve_prev_replier_rate(replier_id)
+	if recent_reply_lens_and_times:
+		# generate prev 3 typing speeds
+		# provide validation error if reply rates have exceeded acceptable thresholds
+		len_data = len(recent_reply_lens_and_times)
+
+		if len_data == 1:
+			latest_typing_speed = (1.0*reply_len/(time_now-recent_reply_lens_and_times[0][1]))
+			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed)
+		
+		elif len_data == 2:
+			latest_typing_speed = (1.0*reply_len/(time_now-recent_reply_lens_and_times[0][1]))
+			previous_typing_speed = (float(recent_reply_lens_and_times[0][0])/(recent_reply_lens_and_times[0][1]-recent_reply_lens_and_times[1][1]))
+			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed,typing_speed_2=previous_typing_speed)
+
+		elif len_data >= 3:
+			latest_typing_speed = (1.0*reply_len/(time_now-recent_reply_lens_and_times[0][1]))
+			previous_typing_speed = (float(recent_reply_lens_and_times[0][0])/(recent_reply_lens_and_times[0][1]-recent_reply_lens_and_times[1][1]))
+			last_typing_speed = (float(recent_reply_lens_and_times[1][0])/(recent_reply_lens_and_times[1][1]-recent_reply_lens_and_times[2][1]))
+			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed,typing_speed_2=previous_typing_speed,typing_speed_3=last_typing_speed)
+
+		else:
+			# this should never happen
+			pass
+
+	return is_rate_limited
+
+
+#################################################
 
 class DirectResponseForm(forms.Form):
 	"""
@@ -23,6 +84,7 @@ class DirectResponseForm(forms.Form):
 		self.parent_obj_id = kwargs.pop('parent_obj_id',None)
 		self.sender_id = kwargs.pop('sender_id',None)
 		self.receiver_id = kwargs.pop('receiver_id',None)
+		self.time_now = kwargs.pop('time_now',None)
 		super(DirectResponseForm, self).__init__(*args,**kwargs)
 		if self.thin_strip:
 			# initializing a default, 'thin' Charfield for inline usage
@@ -65,8 +127,17 @@ class DirectResponseForm(forms.Form):
 			if len_reply > MAX_HOME_REPLY_SIZE:
 				raise forms.ValidationError('Reply {} chars se lamba nahi likhein, ap ne {} chars likhe'.format(MAX_HOME_REPLY_SIZE, len_reply))
 			##########################################################
+			# only applicable to replies under posts
+			if obj_type in ('3','4'):
+				time_now = self.time_now
+				is_rate_limited = determine_direct_response_rate(reply_len=len_reply, replier_id=sender_id, time_now=time_now)
+				marked_fast = '1' if is_rate_limited else '0'
+				log_reply_rate.delay(replier_id=sender_id, text=direct_response, time_now=time_now, reply_target=receiver_id, marked_fast=marked_fast)
+				# raise forms.ValidationError('Please slow down!')
+
+			##########################################################
 			# only applicable to mehfils
-			if obj_type in ('5','6'):
+			elif obj_type in ('5','6'):
 				section = 'pub_grp' if obj_type == '5' else 'prv_grp'
  				if repetition_found(section=section,section_id=parent_obj_id,user_id=receiver_id, target_text=direct_response):
 					raise forms.ValidationError('Milti julti baatien nahi likhein')

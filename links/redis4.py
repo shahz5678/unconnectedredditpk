@@ -371,6 +371,26 @@ def cache_image_count(num_images,list_type):
 	redis.Redis(connection_pool=POOL).setex("cic:"+list_type,num_images,TWENTY_MINS)
 
 
+
+######################################### Log direct repsonse rate ############################################
+#TODO: temp logger - needs to be removed
+
+REPLY_RATE = 'reply_rate'
+
+def log_replier_reply_rate(replier_id, text, time_now, target_id, marked_fast):
+	"""
+	Temporarily logging who all is illegally flooding
+	"""
+	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+marked_fast,replier_id)
+
+
+def retrieve_replier_rate():
+	"""
+	Retrieves logged data
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(REPLY_RATE,0,-1,withscores=True)
+
+
 ######################## Rate limiting content sharing on feeds ########################
 
 
@@ -2146,23 +2166,6 @@ def retrieve_survey_records():
 		return my_server.mget(*participating_survey_keys)
 	else:
 		return []
-
-
-######################################### Log direct repsonse rate ############################################
-#TODO: temp logger - needs to be removed
-
-REPLY_RATE = 'reply_rate'
-
-def log_replier_reply_rate(replier_id, text, time_now, target_username):
-	"""
-	"""
-	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+target_username,replier_id)
-
-
-def retrieve_replier_rate():
-	"""
-	"""
-	return redis.Redis(connection_pool=POOL).zrange(REPLY_RATE,0,-1,withscores=True)
 
 
 ######################################### Project Zuck ############################################

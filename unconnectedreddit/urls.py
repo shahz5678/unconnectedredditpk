@@ -37,7 +37,7 @@ PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, 
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
 AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, UserSettingsEditView, UserProfileDetailView, UserProfileEditView,\
 CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView,\
-AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, AdTitleYesNoView, AdImageYesNoView
+AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, AdTitleYesNoView, AdImageYesNoView
 from links.voting_views import user_vote_history
 from links.announcement_views import export_survey_results, coming_soon#, survey
 
@@ -98,7 +98,7 @@ urlpatterns = patterns('',
 	# url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
 	url(r'^comment/(?P<pk>\d+)/$', display_image_comments, name='comment'),
 	url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', display_image_comments, name='comment'),
-	url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
+	# url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
 	url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/$', comment_pk, name='comment_pk'), #origin is an optional variable

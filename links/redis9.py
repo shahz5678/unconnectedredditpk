@@ -935,7 +935,7 @@ def set_comment_history(obj_hash_name, obj_owner_id, commenter_id, time_now):
 
 ######################################### Log direct repsonse rate ############################################
 
-REPLY_RATE = 'rr:'
+REPLY_RATE = 'rera:'
 
 def log_rate_of_reply(replier_id, text_len, time_now):
 	"""

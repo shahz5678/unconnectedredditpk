@@ -8,7 +8,6 @@
 {% load emoticons_tags %}
 {% load get_text_object %}
 {% load get_photo_object %}
-{% load get_big_fan_button %}
 {% load get_big_send_button %}
 {% load get_big_group_button %}
 {% load get_big_points_button %}
@@ -28,7 +27,6 @@
 			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 				{% big_points_button obj_id=datum.obid owner_id=datum.ooid is_pht=0 origin='25' net_votes=datum.nv base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
 				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='link' origin='25' target_username=datum.ou home_hash='' %}
-				{% big_fan_button own_user_id=own_id target_user_id=datum.ooid object_id=datum.obid origin='25' home_hash='' fan_list=fanned static_url=STATIC_URL %}
 				{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL always_show=True %}
 			</div>
 
@@ -42,7 +40,6 @@
 			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 				{% big_points_button obj_id=datum.obid owner_id=datum.ooid is_pht=1 origin='25' net_votes=datum.nv base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
 				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
-				{% big_fan_button own_user_id=own_id target_user_id=datum.ooid object_id=datum.obid origin='25' home_hash='' fan_list=fanned static_url=STATIC_URL %}
 				{% big_photo_comment_button photo_id=datum.obid origin='25' comm_count=datum.cc static_url=STATIC_URL star_id=datum.ooid %}
 				{% big_send_button photo_owner_username=datum.ou photo_id=datum.obid photo_owner_id=datum.ooid photo_caption=datum.cp origin='25' home_hash='' img_url=datum.i static_url=STATIC_URL %}
 				{% big_external_share_button owner_username=datum.ou on_opera=on_opera photo_id=datum.obid origin='25' static_url=STATIC_URL %}	

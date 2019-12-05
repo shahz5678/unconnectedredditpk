@@ -45,9 +45,8 @@ WelcomeMessageForm, WelcomeForm, PublicreplyMiniForm, LogoutHelpForm, LogoutPena
 SearchNicknameForm, UserProfileDetailForm,RegisterLoginForm, AdTitleForm, HistoryHelpForm, BestPhotosListForm, TestAdsForm, \
 UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, ResetPasswordForm, PhotosListForm, TestReportForm, \
 AdImageForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
-PhotoShareForm, UploadVideoForm, VideoCommentForm, VideoScoreForm, FacesHelpForm, FacesPagesForm, CricketCommentForm, AdAddressForm, \
-AdAddressYesNoForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm, AdTitleYesNoForm, \
-AdTitleForm
+PhotoShareForm, AdTitleYesNoForm, FacesHelpForm, FacesPagesForm, CricketCommentForm, AdAddressYesNoForm, AdTitleForm, \
+AdAddressForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, AdDescriptionForm, AdMobileNumForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
@@ -59,11 +58,10 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, photo_upload_tasks, \
-video_tasks, group_notification_tasks, publicreply_notification_tasks, fan_recount, log_user_activity, populate_search_thumbs,\
-set_input_rate_and_history, video_vote_tasks
+group_notification_tasks, publicreply_notification_tasks, fan_recount, log_user_activity, populate_search_thumbs,\
+set_input_rate_and_history
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
-ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, LatestSalat, SalatInvite, \
-Logout, Video, VideoComment
+ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, LatestSalat, Logout
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, is_potential_fan_rate_limited,\
 rate_limit_unfanned_user, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
@@ -1783,88 +1781,6 @@ def reply_to_photo(request, pk=None, ident=None, *args, **kwargs):
 		else:
 			return redirect("profile", request.user.username, 'fotos')
 
-
-@ratelimit(rate='3/s')
-def videocomment_pk(request, pk=None, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		return redirect("missing_page")
-	else:
-		if pk.isdigit():
-			request.session["video_pk"] = pk
-			return redirect("video_comment")
-		else:
-			return redirect("home")
-
-class VideoCommentView(CreateView):
-	model = VideoComment
-	form_class = VideoCommentForm
-	template_name = "video_comments.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(VideoCommentView, self).get_context_data(**kwargs)
-		context["verified"] = FEMALES
-		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-		# try:
-		#   on_fbs = self.request.META.get('X-IORG-FBS')
-		# except:
-		#   on_fbs = False
-		if on_fbs:
-			context["on_fbs"] = True
-		else:
-			context["on_fbs"] = False
-		try:
-			pk = self.request.session["video_pk"]
-			video = Video.objects.select_related('owner').get(id=pk)
-			context["video"] = video
-			comms = VideoComment.objects.select_related('submitted_by__userprofile').filter(which_video_id=pk)
-			context["count"] = comms.count()
-			comments = comms.order_by('-id')[:25]
-			context["comments"] = comments
-		except:
-			context["video"] = None
-		return context
-
-	def form_valid(self, form):
-		if self.request.user.is_authenticated():
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			user = self.request.user
-			text = self.request.POST.get("text")
-			try:
-				pk = self.request.session["video_pk"]
-				self.request.session["video_pk"] = None
-				self.request.session.modified = True
-				which_video = Video.objects.get(id=pk)
-			except:
-				user.userprofile.score = user.userprofile.score - 3
-				user.userprofile.save()
-				return redirect("profile", slug=user.username, type='fotos')
-			if self.request.user_banned:
-				return redirect("see_video")
-			else:
-				exists = VideoComment.objects.filter(which_video=which_video, submitted_by=user).exists()
-				comments = which_video.comment_count + 1
-				if self.request.is_feature_phone:
-					device = '1'
-				elif self.request.is_phone:
-					device = '2'
-				elif self.request.is_tablet:
-					device = '4'
-				elif self.request.is_mobile:
-					device = '5'
-				else:
-					device = '3'
-				videocomment = VideoComment.objects.create(submitted_by=user, which_video=which_video, text=text,device=device)
-				time = videocomment.submitted_on
-				timestring = time.isoformat()
-				video_tasks.delay(self.request.user.id, pk, timestring, videocomment.id, comments, text, exists)
-				try:
-					return redirect("videocomment_pk", pk=pk)
-				except:
-					return redirect("profile", slug=user.username, type='fotos')
-		else:
-			context = {'pk': 'pk'}
-			return render(self.request, 'auth_commentpk.html', context)
 
 
 def display_image_comments(request,pk,origin=None):

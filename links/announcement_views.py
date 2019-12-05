@@ -11,7 +11,6 @@ from forms import strip_zero_width_characters
 from redis4 import log_superhuman_survey_answers, has_already_answered_superhuman_survey, retrieve_uname, retrieve_survey_records
 from redis7 import in_defenders, get_num_topics
 from redis3 import get_world_age, exact_date
-# from redis2 import get_fan_counts_in_bulk
 from views import convert_to_epoch
 from redis6 import get_num_groups
 from redis5 import get_num_grps

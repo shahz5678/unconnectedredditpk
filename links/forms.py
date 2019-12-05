@@ -1095,11 +1095,11 @@ class UploadPhotoForm(forms.Form):
 				return caption
 
 
-class UploadVideoForm(forms.Form):
-	video_file = forms.FileField()
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Video ke bary mien likhna zaroori hai'})
-	class Meta:
-		fields = ("video_file", "caption",)
+# class UploadVideoForm(forms.Form):
+# 	video_file = forms.FileField()
+# 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Video ke bary mien likhna zaroori hai'})
+# 	class Meta:
+# 		fields = ("video_file", "caption",)
 
 class PicsChatUploadForm(forms.ModelForm):
 	image = forms.ImageField(label='Upload')
@@ -1183,10 +1183,6 @@ class ChainPhotoTutorialForm(forms.Form):
 	class Meta:
 		pass
 
-class VideoScoreForm(forms.Form):
-	class Meta:
-		pass
-
 class PhotoScoreForm(forms.Form):
 	class Meta:
 		pass
@@ -1194,10 +1190,6 @@ class PhotoScoreForm(forms.Form):
 class BaqiPhotosHelpForm(forms.Form):
 	class Meta:
 		pass
-
-# class PhotoQataarHelpForm(forms.Form):
-# 	class Meta:
-# 		pass
 
 class ContactForm(forms.Form):
 	class Meta:

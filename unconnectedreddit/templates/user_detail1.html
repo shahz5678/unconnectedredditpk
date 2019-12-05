@@ -76,10 +76,8 @@
         <form method="POST" class="mbs" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ user_id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm sp pg_ok_res" style="height:32px">manage</button></form>
       {% else %}
         {% if authenticated %}
-          {% load get_big_fan_button %}
           {% load get_big_group_button %}
           <div class="mts fx fxjscn fxaicn">
-          {% big_fan_button own_user_id=user_id target_user_id=star_id object_id='' origin='4' home_hash='' fan_list=fanned static_url=STATIC_URL %}
           {% big_group_button own_id=user_id target_id=star_id parent_object_id=slug object_type='profile' origin='4' target_username=slug %}
           </div>
         {% endif %}

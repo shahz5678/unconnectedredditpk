@@ -1930,8 +1930,9 @@ def photo_page(request,list_type='best-list'):
 	Displays both the latest photos page (sorted by latest first) and the best photos page (sorted by best first)
 	"""
 	if list_type in ('best-list','fresh-list'):
-		own_id, page_num = request.user.id, request.GET.get('page', '1')
-		start_index, end_index = get_indices(page_num, PHOTOS_PER_PAGE)
+		own_id, page_num, on_fbs = request.user.id, request.GET.get('page', '1'), request.META.get('HTTP_X_IORG_FBS',False)
+		photos_per_page = 10 if on_fbs else PHOTOS_PER_PAGE
+		start_index, end_index = get_indices(page_num, photos_per_page)
 		cached_image_count = retrieve_image_count(list_type=list_type)
 		if list_type == 'best-list':
 			type_, page_origin, char = 'best_photos', '2', 'B'# 'char' is used in retention activity logging - can be removed
@@ -1952,8 +1953,8 @@ def photo_page(request,list_type='best-list'):
 				num_in_last_1_day = Photo.objects.filter(upload_time__gte=one_day_ago).count()
 				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		obj_list, list_total_size = get_photo_feed(start_idx=start_index, end_idx=end_index, feed_type=type_, with_feed_size=True)
-		num_pages = list_total_size/PHOTOS_PER_PAGE
-		max_pages = num_pages if list_total_size % PHOTOS_PER_PAGE == 0 else (num_pages+1)
+		num_pages = list_total_size/photos_per_page
+		max_pages = num_pages if list_total_size % photos_per_page == 0 else (num_pages+1)
 		page_num = int(page_num)
 		list_of_dictionaries = retrieve_obj_feed(obj_list)
 		#######################
@@ -2003,7 +2004,6 @@ def photo_page(request,list_type='best-list'):
 			newbie_lang, newbie_flag = None, None
 			mobile_verified = None
 		
-		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 		on_opera = True if (not on_fbs and not is_js_env) else False
 		

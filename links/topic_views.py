@@ -10,7 +10,6 @@ from page_controls import ITEMS_PER_PAGE
 from verified import FEMALES
 from models import Link
 from redis2 import bulk_is_fan
-# from forms import PublicreplyMiniForm
 from redis3 import log_text_submissions
 from direct_response_forms import DirectResponseForm
 from tasks import set_input_history, log_user_activity
@@ -252,8 +251,9 @@ def suggest_new_topic_feed(request):
 			if created:
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=topic_owner_id, obj_id='1', obj_type='home', secret_key=secret_key)
-				context = {'c1':primary_color,'c2':secondary_color,'submissions':[],'form':SubmitInTopicForm(),'topic':topic_name,'page':{},\
-				'fanned':[],'sk':str(secret_key),'topic_started':True,'topic_description':description,'topic_url':topic_in_url_form}
+				context = {'c1':primary_color,'c2':secondary_color,'submissions':[],'form':SubmitInTopicForm(),\
+				'topic':topic_name,'sk':str(secret_key),'topic_started':True,'topic_description':description,\
+				'page':{},'topic_url':topic_in_url_form}
 				return render(request, 'topics/topic_home.html', context)
 			else:
 				# it already existed, so redirect to it
@@ -358,8 +358,7 @@ def topic_page(request,topic_url):
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 
 				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,\
-				'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),'sk':str(secret_key),\
-				'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
+				'sk':str(secret_key),'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
 				'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 				'ident':own_id, 'validation_error':request.session.pop("validation_error",''),'topic_url':topic_url,\
 				'is_subscribed':is_subscribed, 'new_subscriber':request.session.pop("subscribed"+str(own_id),None),\

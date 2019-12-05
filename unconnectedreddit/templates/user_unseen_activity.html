@@ -6,7 +6,6 @@
 {% load get_big_send_button %}
 {% load get_big_external_share_button %}
 {% load get_big_photo_comment_button %}
-{% load get_big_fan_button %}
 {% load get_transparent_buttons_js %}
 {% load get_item %}
 {% load truncap %}
@@ -543,7 +542,6 @@
 
 	{% if notif.s == 'True' %}
 		<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
-			{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL seen='1' %}
 			{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL seen='1' %}
 			{% big_external_share_button owner_username=notif.oon on_opera=on_opera photo_id=notif.oi origin='14' static_url=STATIC_URL seen='1' %}
 			{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id seen='1' %}
@@ -574,7 +572,6 @@
 		</div>
 	{% else %}
 	<div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
-		{% big_fan_button own_user_id=user_id target_user_id=notif.ooi object_id=notif.oi origin='14' fan_list=fanned static_url=STATIC_URL %}
 		{% big_send_button photo_owner_username=notif.oon photo_id=notif.oi photo_owner_id=notif.ooi photo_caption=notif.od origin='14' img_url=notif.p static_url=STATIC_URL %}
 		{% big_external_share_button owner_username=notif.oon on_opera=on_opera photo_id=notif.oi origin='14' static_url=STATIC_URL %}
 		{% big_photo_comment_button photo_id=notif.oi origin='14' comm_count=notif.r|add:"0" static_url=STATIC_URL star_id=user_id %}

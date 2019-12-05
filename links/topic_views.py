@@ -9,7 +9,6 @@ from topic_forms import SubmitInTopicForm, CreateTopicform
 from page_controls import ITEMS_PER_PAGE
 from verified import FEMALES
 from models import Link
-from redis2 import bulk_is_fan
 from redis3 import log_text_submissions
 from direct_response_forms import DirectResponseForm
 from tasks import set_input_history, log_user_activity

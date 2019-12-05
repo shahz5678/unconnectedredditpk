@@ -917,179 +917,179 @@ class PhotoCommentForm(forms.Form):
 					return data
 
 
-class UnseenActivityForm(forms.Form):
-	home_comment = forms.CharField(required=False, max_length=MAX_HOME_REPLY_SIZE, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
-	photo_comment = forms.CharField(required=False, max_length=MAX_PHOTO_COMMENT_SIZE, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
-	public_group_reply = forms.CharField(required=False, max_length=PUBLIC_GROUP_REPLY_LENGTH, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
-	private_group_reply = forms.CharField(required=False, max_length=PRIVATE_GROUP_REPLY_LENGTH, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
-	personal_group_reply = forms.CharField(required=False, max_length=500, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
-	sk = forms.CharField(required=False)
-	origin = forms.CharField(required=False)
+# class UnseenActivityForm(forms.Form):
+# 	home_comment = forms.CharField(required=False, max_length=MAX_HOME_REPLY_SIZE, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
+# 	photo_comment = forms.CharField(required=False, max_length=MAX_PHOTO_COMMENT_SIZE, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
+# 	public_group_reply = forms.CharField(required=False, max_length=PUBLIC_GROUP_REPLY_LENGTH, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
+# 	private_group_reply = forms.CharField(required=False, max_length=PRIVATE_GROUP_REPLY_LENGTH, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
+# 	personal_group_reply = forms.CharField(required=False, max_length=500, error_messages={'required': 'Pehlay yahan likhein, phir "reply" button dabain'})
+# 	sk = forms.CharField(required=False)
+# 	origin = forms.CharField(required=False)
 
-	class Meta:
-		fields = ("home_comment", "photo_comment", "public_group_reply", "private_group_reply", "personal_group_reply")
+# 	class Meta:
+# 		fields = ("home_comment", "photo_comment", "public_group_reply", "private_group_reply", "personal_group_reply")
 
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		self.link_id = kwargs.pop('link_id',None)
-		self.photo_id = kwargs.pop('photo_id',None)
-		self.pub_grp_id = kwargs.pop('pub_grp_id',None)
-		self.prv_grp_id = kwargs.pop('prv_grp_id',None)
-		self.per_grp_id = kwargs.pop('per_grp_id',None)
-		super(UnseenActivityForm, self).__init__(*args, **kwargs)
-		self.fields['public_group_reply'].widget.attrs['class'] = 'box-with-button-right cp'
-		self.fields['public_group_reply'].widget.attrs['style'] = 'border: 1px solid #765989'
-		self.fields['public_group_reply'].widget.attrs['autocomplete'] = 'off'
-		self.fields['public_group_reply'].widget.attrs['autocapitalize'] = 'off'
-		self.fields['public_group_reply'].widget.attrs['spellcheck'] = 'false'
+# 	def __init__(self,*args,**kwargs):
+# 		self.user_id = kwargs.pop('user_id',None)
+# 		self.link_id = kwargs.pop('link_id',None)
+# 		self.photo_id = kwargs.pop('photo_id',None)
+# 		self.pub_grp_id = kwargs.pop('pub_grp_id',None)
+# 		self.prv_grp_id = kwargs.pop('prv_grp_id',None)
+# 		self.per_grp_id = kwargs.pop('per_grp_id',None)
+# 		super(UnseenActivityForm, self).__init__(*args, **kwargs)
+# 		self.fields['public_group_reply'].widget.attrs['class'] = 'box-with-button-right cp'
+# 		self.fields['public_group_reply'].widget.attrs['style'] = 'border: 1px solid #765989'
+# 		self.fields['public_group_reply'].widget.attrs['autocomplete'] = 'off'
+# 		self.fields['public_group_reply'].widget.attrs['autocapitalize'] = 'off'
+# 		self.fields['public_group_reply'].widget.attrs['spellcheck'] = 'false'
 
-		self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
-		self.fields['private_group_reply'].widget.attrs['style'] = 'border: 1px solid #00c853'
-		self.fields['private_group_reply'].widget.attrs['autocomplete'] = 'off'
-		self.fields['private_group_reply'].widget.attrs['autocapitalize'] = 'off'
-		self.fields['private_group_reply'].widget.attrs['spellcheck'] = 'false'
+# 		self.fields['private_group_reply'].widget.attrs['class'] = 'box-with-button-right cdg'
+# 		self.fields['private_group_reply'].widget.attrs['style'] = 'border: 1px solid #00c853'
+# 		self.fields['private_group_reply'].widget.attrs['autocomplete'] = 'off'
+# 		self.fields['private_group_reply'].widget.attrs['autocapitalize'] = 'off'
+# 		self.fields['private_group_reply'].widget.attrs['spellcheck'] = 'false'
 
-		self.fields['home_comment'].widget.attrs['class'] = 'box-with-button-right cdt'
-		self.fields['home_comment'].widget.attrs['style'] = 'border: 1px solid #229ec3'
-		self.fields['home_comment'].widget.attrs['autocomplete'] = 'off'
-		self.fields['home_comment'].widget.attrs['autocapitalize'] = 'off'
-		self.fields['home_comment'].widget.attrs['spellcheck'] = 'false'
+# 		self.fields['home_comment'].widget.attrs['class'] = 'box-with-button-right cdt'
+# 		self.fields['home_comment'].widget.attrs['style'] = 'border: 1px solid #229ec3'
+# 		self.fields['home_comment'].widget.attrs['autocomplete'] = 'off'
+# 		self.fields['home_comment'].widget.attrs['autocapitalize'] = 'off'
+# 		self.fields['home_comment'].widget.attrs['spellcheck'] = 'false'
 
-		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
-		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
-		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
-		self.fields['photo_comment'].widget.attrs['autocapitalize'] = 'off'
-		self.fields['photo_comment'].widget.attrs['spellcheck'] = 'false'
+# 		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
+# 		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid #ff9933'
+# 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
+# 		self.fields['photo_comment'].widget.attrs['autocapitalize'] = 'off'
+# 		self.fields['photo_comment'].widget.attrs['spellcheck'] = 'false'
 
-		self.fields['personal_group_reply'].widget.attrs['class'] = 'box-with-button-right'
-		self.fields['personal_group_reply'].widget.attrs['style'] = 'color:#306654;border: 1px solid #306654'
-		self.fields['personal_group_reply'].widget.attrs['autocomplete'] = 'off'
-		self.fields['personal_group_reply'].widget.attrs['autocapitalize'] = 'off'
-		self.fields['personal_group_reply'].widget.attrs['spellcheck'] = 'false'
+# 		self.fields['personal_group_reply'].widget.attrs['class'] = 'box-with-button-right'
+# 		self.fields['personal_group_reply'].widget.attrs['style'] = 'color:#306654;border: 1px solid #306654'
+# 		self.fields['personal_group_reply'].widget.attrs['autocomplete'] = 'off'
+# 		self.fields['personal_group_reply'].widget.attrs['autocapitalize'] = 'off'
+# 		self.fields['personal_group_reply'].widget.attrs['spellcheck'] = 'false'
 
 
-	def clean(self):
-		data, user_id = self.cleaned_data, self.user_id
-		origin, secret_key_from_form = data.get("origin"), data.get("sk")
-		if origin in ('1','20'):
-			org = 'fresh_photos'
-		elif origin in ('3','19'):
-			org = 'home'
-		elif origin in ('2','21'):
-			org = 'best_photos'
-		else:
-			org = 'home'
-		secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
-		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('Sirf aik dafa button dabain, bar bar nahi')
-		else:
-			link_id, photo_id, pub_grp_id, prv_grp_id, per_grp_id = self.link_id, self.photo_id, self.pub_grp_id, self.prv_grp_id, self.per_grp_id
-			if link_id:
-				section, payload, obj_id = 'home_rep', data.get("home_comment"), link_id
-				payload = payload.strip() if payload else None
-				if not payload:
-					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
-				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-					raise forms.ValidationError('Aik hi reply bar bar nahi likhein')
-				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					len_payload = len(payload)
-					if len_payload < 6:
-						if many_short_messages(user_id,section,obj_id):
-							raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
-						else:
-							log_short_message(user_id,section,obj_id)
-					elif len_payload > MAX_HOME_REPLY_SIZE:
-						raise forms.ValidationError('Itni lambi reply nahi likh sakte')
-					return data
-			elif photo_id:
-				section, payload, obj_id = 'pht_comm', data.get("photo_comment"), photo_id
-				payload = payload.strip() if payload else None
-				if not payload:
-					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
-				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-					raise forms.ValidationError('Aik hi reply bar bar nah likhein')
-				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap photo pe reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					len_payload = len(payload)
-					if len_payload < 6:
-						if many_short_messages(user_id,section,obj_id):
-							raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
-						else:
-							log_short_message(user_id,section,obj_id)
-					elif len_payload > MAX_PHOTO_COMMENT_SIZE:
-						raise forms.ValidationError('Itni lambi reply nahi likh sakte')
-					return data
-			elif pub_grp_id:
-				section, payload, obj_id= 'pub_grp', data.get("public_group_reply"), pub_grp_id
-				#######################################
-				membership = is_group_member_and_rules_signatory(group_id=obj_id, user_id=user_id)
-				is_member, is_signatory = membership[0], membership[1]
-				#######################################
-				if is_member and is_signatory:
-					payload = payload.strip() if payload else None
-					if not payload:
-						raise forms.ValidationError('Pehlay text likhein, phir button dabain')
-					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-						raise forms.ValidationError('Milti julti baatien nahi post karein')
-					rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
-					if rate_limited > 0:
-						raise forms.ValidationError('Ap public mehfils mein post karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-					else:
-						len_payload = len(payload)
-						if len_payload < 6:
-							if many_short_messages(user_id,section,obj_id):
-								raise forms.ValidationError('Har thori deir baad yahan choti reply nah likhein')
-							else:
-								log_short_message(user_id,section,obj_id)
-						elif len_payload > 500:
-							raise forms.ValidationError('Itni lambi reply nahi likh sakte')
-						return data
-				elif is_member:
-					# needs to become a signatory
-					raise forms.ValidationError('Pehlay mehfil ke andr ja ke rules accept karein')
-				else:
-					raise forms.ValidationError('Pehlay mehfil ke andr ja ke "join" press karein')
-			elif prv_grp_id:
-				section, payload, obj_id = 'prv_grp', data.get("private_group_reply"), prv_grp_id
-				#######################################
-				is_member = group_member_exists(group_id=obj_id, user_id=user_id)
-				#######################################
-				if is_member:
-					payload = payload.strip() if payload else None
-					if not payload:
-						raise forms.ValidationError('Pehlay text likhein, phir button dabain')
-					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
-						raise forms.ValidationError('Aik hi reply bar bar nahi likhein')
-					rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
-					if rate_limited > 0:
-						raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-					else:
-						len_payload = len(payload)
-						if len_payload < 6:
-							if many_short_messages(user_id,section,obj_id):
-								raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
-							else:
-								log_short_message(user_id,section,obj_id)
-						elif len_payload > 500:
-							raise forms.ValidationError('Itni lambi reply nahi likh sakte')
-						return data
-				else:
-					raise forms.ValidationError('Pehlay mehfil ke andr ja ke "join" press karein')
-			elif per_grp_id:
-				payload = data.get("personal_group_reply")
-				payload = payload.strip() if payload else None
-				if not payload:
-					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
-				# No need to check for repetition, length or rate limit
-				return data
-			else:
-				pass
-			return data
+# 	def clean(self):
+# 		data, user_id = self.cleaned_data, self.user_id
+# 		origin, secret_key_from_form = data.get("origin"), data.get("sk")
+# 		if origin in ('1','20'):
+# 			org = 'fresh_photos'
+# 		elif origin in ('3','19'):
+# 			org = 'home'
+# 		elif origin in ('2','21'):
+# 			org = 'best_photos'
+# 		else:
+# 			org = 'home'
+# 		secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
+# 		if secret_key_from_form != secret_key_from_session:
+# 			raise forms.ValidationError('Sirf aik dafa button dabain, bar bar nahi')
+# 		else:
+# 			link_id, photo_id, pub_grp_id, prv_grp_id, per_grp_id = self.link_id, self.photo_id, self.pub_grp_id, self.prv_grp_id, self.per_grp_id
+# 			if link_id:
+# 				section, payload, obj_id = 'home_rep', data.get("home_comment"), link_id
+# 				payload = payload.strip() if payload else None
+# 				if not payload:
+# 					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
+# 				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+# 					raise forms.ValidationError('Aik hi reply bar bar nahi likhein')
+# 				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
+# 				if rate_limited > 0:
+# 					raise forms.ValidationError('Ap reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+# 				else:
+# 					len_payload = len(payload)
+# 					if len_payload < 6:
+# 						if many_short_messages(user_id,section,obj_id):
+# 							raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
+# 						else:
+# 							log_short_message(user_id,section,obj_id)
+# 					elif len_payload > MAX_HOME_REPLY_SIZE:
+# 						raise forms.ValidationError('Itni lambi reply nahi likh sakte')
+# 					return data
+# 			elif photo_id:
+# 				section, payload, obj_id = 'pht_comm', data.get("photo_comment"), photo_id
+# 				payload = payload.strip() if payload else None
+# 				if not payload:
+# 					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
+# 				elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+# 					raise forms.ValidationError('Aik hi reply bar bar nah likhein')
+# 				rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
+# 				if rate_limited > 0:
+# 					raise forms.ValidationError('Ap photo pe reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+# 				else:
+# 					len_payload = len(payload)
+# 					if len_payload < 6:
+# 						if many_short_messages(user_id,section,obj_id):
+# 							raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
+# 						else:
+# 							log_short_message(user_id,section,obj_id)
+# 					elif len_payload > MAX_PHOTO_COMMENT_SIZE:
+# 						raise forms.ValidationError('Itni lambi reply nahi likh sakte')
+# 					return data
+# 			elif pub_grp_id:
+# 				section, payload, obj_id= 'pub_grp', data.get("public_group_reply"), pub_grp_id
+# 				#######################################
+# 				membership = is_group_member_and_rules_signatory(group_id=obj_id, user_id=user_id)
+# 				is_member, is_signatory = membership[0], membership[1]
+# 				#######################################
+# 				if is_member and is_signatory:
+# 					payload = payload.strip() if payload else None
+# 					if not payload:
+# 						raise forms.ValidationError('Pehlay text likhein, phir button dabain')
+# 					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+# 						raise forms.ValidationError('Milti julti baatien nahi post karein')
+# 					rate_limited, reason = is_limited(user_id,section=section,with_reason=True)
+# 					if rate_limited > 0:
+# 						raise forms.ValidationError('Ap public mehfils mein post karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+# 					else:
+# 						len_payload = len(payload)
+# 						if len_payload < 6:
+# 							if many_short_messages(user_id,section,obj_id):
+# 								raise forms.ValidationError('Har thori deir baad yahan choti reply nah likhein')
+# 							else:
+# 								log_short_message(user_id,section,obj_id)
+# 						elif len_payload > 500:
+# 							raise forms.ValidationError('Itni lambi reply nahi likh sakte')
+# 						return data
+# 				elif is_member:
+# 					# needs to become a signatory
+# 					raise forms.ValidationError('Pehlay mehfil ke andr ja ke rules accept karein')
+# 				else:
+# 					raise forms.ValidationError('Pehlay mehfil ke andr ja ke "join" press karein')
+# 			elif prv_grp_id:
+# 				section, payload, obj_id = 'prv_grp', data.get("private_group_reply"), prv_grp_id
+# 				#######################################
+# 				is_member = group_member_exists(group_id=obj_id, user_id=user_id)
+# 				#######################################
+# 				if is_member:
+# 					payload = payload.strip() if payload else None
+# 					if not payload:
+# 						raise forms.ValidationError('Pehlay text likhein, phir button dabain')
+# 					elif repetition_found(section=section,section_id=obj_id,user_id=user_id, target_text=payload):
+# 						raise forms.ValidationError('Aik hi reply bar bar nahi likhein')
+# 					rate_limited, reason = is_limited(user_id,section='prv_grp',with_reason=True)
+# 					if rate_limited > 0:
+# 						raise forms.ValidationError('Ap private mehfils mein likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+# 					else:
+# 						len_payload = len(payload)
+# 						if len_payload < 6:
+# 							if many_short_messages(user_id,section,obj_id):
+# 								raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
+# 							else:
+# 								log_short_message(user_id,section,obj_id)
+# 						elif len_payload > 500:
+# 							raise forms.ValidationError('Itni lambi reply nahi likh sakte')
+# 						return data
+# 				else:
+# 					raise forms.ValidationError('Pehlay mehfil ke andr ja ke "join" press karein')
+# 			elif per_grp_id:
+# 				payload = data.get("personal_group_reply")
+# 				payload = payload.strip() if payload else None
+# 				if not payload:
+# 					raise forms.ValidationError('Pehlay text likhein, phir button dabain')
+# 				# No need to check for repetition, length or rate limit
+# 				return data
+# 			else:
+# 				pass
+# 			return data
 
 
 class PhotoTimeForm(forms.Form):
@@ -1328,10 +1328,6 @@ class LogoutPenaltyForm(forms.Form):
 		pass
 
 class UserProfileDetailForm(forms.Form):
-	class Meta:
-		pass
-
-class ScoreHelpForm(forms.Form):
 	class Meta:
 		pass
 

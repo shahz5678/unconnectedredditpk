@@ -68,10 +68,8 @@
 			<div style="text-align:center"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px;width:100%;border-radius:0;background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);"><b>Edit your profile</b></button></a></div>
 		{% else %}
 			{% if own_id %}
-				{% load get_big_fan_button %}
 				{% load get_big_group_button %}
 				<div class="mts mbs fx fxjscn fxaicn">
-				{% big_fan_button own_user_id=own_id target_user_id=object.id object_id=object.id origin='10' home_hash='' fan_list=fanned static_url=STATIC_URL %}
 				{% big_group_button own_id=own_id target_id=object.id parent_object_id='' object_type='profile' origin='10' target_username=username %}
 				</div>
 			{% endif %}
@@ -175,7 +173,7 @@
 
   {% if is_own_profile %} 
 
-	<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Popularity and blocks:</div>
+	<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Blocks:</div>
 
 	<div class="mls mrs">
 
@@ -190,24 +188,6 @@
       {{ star_score }}&nbsp;<span style="color:lightgray">-</span>&nbsp;<span class="cgy cs sp lsp">ye score barhaney ke liye apki zyada se zyada posts trending mein jani chahiyen</span>
       <hr size=1 COLOR="#f4f4f4">
 	  {% endif %}
-
-      <b class="cm sp lsp" style="color:darkgray">Total fans:</b>
-      <a href="{% url 'fan_list' star_id %}#section0" class="cs">
-      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ fans }}</button>
-      </a>
-      <hr size=1 COLOR="#f4f4f4">
-      <b class="cm sp lsp" style="color:darkgray">Recent fans:</b>
-      <a href="{% url 'fan_list' star_id %}#section0" class="cs">
-      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">
-      {{ recent_fans }}</button>
-      </a>
-      <hr size=1 COLOR="#f4f4f4">
-      <b class="cm sp lsp" style="color:darkgray">Total stars:</b>
-      <a href="{% url 'star_list' %}#section0" class="cs">
-      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ stars }}</button>
-      </a>
-      <hr size=1 COLOR="#f4f4f4">
-
 		<b class="cm sp lsp" style="color:darkgray">Blocked users:</b>
 		<a href="{% url 'banned_users_list' %}#section0" class="cs">
 		<button class="btn" style="background-color:tomato;padding:2px 5px;height:22px">{{ blocked }}</button>
@@ -223,20 +203,13 @@
   		  {% if is_star %}
 		  <b class="cm sp lsp" style="color:darkgray">Top star:</b>
 	      <img src="{{ STATIC_URL }}img/gstar.svg" height="18" width="18">&nbsp;<span style="color:lightgray">-</span>&nbsp;<span class="cgy cs sp lsp">{{ is_star }} trending images</span>
-	      <hr size=1 COLOR="#f4f4f4">
 		  {% endif %}
 
 		  {% if star_score %}
+		  <hr size=1 COLOR="#f4f4f4">
 		  <b class="cm sp lsp" style="color:darkgray">Star score:</b>
 	      {{ star_score }}
-	      <hr size=1 COLOR="#f4f4f4">
 		  {% endif %}
-
-	      <b class="cm sp lsp" style="color:darkgray">Total Fans:</b>
-	      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn mrl" style="height:22px;background-color:#1edea8;padding:2px 5px">{{ fans }}</button></a>
-	      <hr size=1 COLOR="#f4f4f4">
-	      <b class="cm sp lsp" style="color:darkgray">Recent fans:</b>
-	      <a href="{% url 'fan_list' star_id %}" class="cs"><button class="btn mrl" style="height:22px;background-color:#1edea8;padding:2px 5px">{{ recent_fans }}</button></a>
 	     
 		</div>
 

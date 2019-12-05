@@ -2,7 +2,6 @@
 {% load get_photo_object %}
 {% load show_error %}
 {% load emoticons_tags %}
-{% load get_big_fan_button %}
 {% load get_big_send_button %}
 {% load get_transparent_buttons_js %}
 {% load get_big_vote_button %}
@@ -60,7 +59,6 @@
 	<div class="mls">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 	{% big_vote_button vote_type='photo_vote' obid=photo.i origin=1 net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL %}
-	{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin='1' fan_list=fanned static_url=STATIC_URL %}
 	{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin='1' target_username=photo.su %}
 	{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin='1' img_url=photo.iu static_url=STATIC_URL %}
 	{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin='1' static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}

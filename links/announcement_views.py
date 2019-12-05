@@ -11,7 +11,7 @@ from forms import strip_zero_width_characters
 from redis4 import log_superhuman_survey_answers, has_already_answered_superhuman_survey, retrieve_uname, retrieve_survey_records
 from redis7 import in_defenders, get_num_topics
 from redis3 import get_world_age, exact_date
-from redis2 import get_fan_counts_in_bulk
+# from redis2 import get_fan_counts_in_bulk
 from views import convert_to_epoch
 from redis6 import get_num_groups
 from redis5 import get_num_grps
@@ -98,7 +98,7 @@ def survey(request):
 			answers = {}
 			answers['skipped'] = '1'
 			answers['num_topics'] = get_num_topics(user_id)
-			fan_count = get_fan_counts_in_bulk([str(user_id)])
+			fan_count = 0#get_fan_counts_in_bulk([str(user_id)])
 			answers['num_fans'] = fan_count[str(user_id)]
 			answers['num_pub_grps'], answers['num_prv_grps'] = get_num_groups(user_id)
 			answers['join_date'] = convert_to_epoch(User.objects.only('date_joined').get(id=user_id).date_joined)
@@ -201,7 +201,7 @@ def survey(request):
 					time_now = time.time()
 					answers['skipped'] = '0'
 					answers['num_topics'] = get_num_topics(user_id)
-					fan_count = get_fan_counts_in_bulk([str(user_id)])
+					fan_count = 0#get_fan_counts_in_bulk([str(user_id)])
 					answers['num_fans'] = fan_count[str(user_id)]
 					answers['num_pub_grps'], answers['num_prv_grps'] = get_num_groups(user_id)
 					answers['join_date'] = convert_to_epoch(User.objects.only('date_joined').get(id=user_id).date_joined)

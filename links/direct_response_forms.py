@@ -118,6 +118,8 @@ class DirectResponseForm(forms.Form):
 		direct_response, obj_type, parent_obj_id, sender_id, receiver_id = self.cleaned_data["direct_response"].strip(), self.obj_type, \
 		self.parent_obj_id, self.sender_id, self.receiver_id
 		
+		# NOTE: receiver_id is own_id, sender_id is target_id (for the purposes of this function)
+
 		##########################################################
 		if parent_obj_id and sender_id and receiver_id and obj_type in ('3','4','5','6','7'):
 			direct_response = strip_zero_width_characters(direct_response)
@@ -130,9 +132,9 @@ class DirectResponseForm(forms.Form):
 			# only applicable to replies under posts
 			if obj_type in ('3','4'):
 				time_now = self.time_now
-				is_rate_limited = determine_direct_response_rate(reply_len=len_reply, replier_id=sender_id, time_now=time_now)
-				marked_fast = '1' if is_rate_limited else '0'
-				log_reply_rate.delay(replier_id=sender_id, text=direct_response, time_now=time_now, reply_target=receiver_id, marked_fast=marked_fast)
+				is_rate_limited = determine_direct_response_rate(reply_len=len_reply, replier_id=receiver_id, time_now=time_now)
+				log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
+					marked_fast='1' if is_rate_limited else '0')
 				# raise forms.ValidationError('Please slow down!')
 
 			##########################################################
@@ -148,7 +150,8 @@ class DirectResponseForm(forms.Form):
 							format(human_readable_time(rate_limited),reason))
 			##########################################################
 
-			exists, hide_status = direct_response_exists(obj_type, parent_obj_id, sender_id, receiver_id, with_hide_status=True)
+			exists, hide_status = direct_response_exists(obj_type=obj_type, parent_obj_id=parent_obj_id, sender_id=sender_id, \
+				receiver_id=receiver_id, with_hide_status=True)
 			if exists:
 				return direct_response, hide_status
 			else:

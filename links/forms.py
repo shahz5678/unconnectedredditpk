@@ -622,62 +622,6 @@ class WelcomeMessageForm(forms.ModelForm):
 		fields = ("description",)
 
 
-# class CommentForm(forms.ModelForm):
-# 	text = forms.CharField(widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
-# 		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_PHOTO_COMMENT_SIZE}))
-# 	sk = forms.CharField(required=False)
-
-# 	class Meta:
-# 		model = PhotoComment
-# 		exclude = ("which_video", "device", "submitted_by", "submitted_on",)
-# 		fields = ("text",)
-
-# 	def __init__(self,*args,**kwargs):
-# 		self.user_id = kwargs.pop('user_id',None)
-# 		self.photo_id = kwargs.pop('photo_id',None)
-# 		self.mob_verified = kwargs.pop('mobile_verified',None)
-# 		super(CommentForm, self).__init__(*args,**kwargs)
-# 		self.fields['text'].widget.attrs['style'] = 'width:97%;height:75px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-
-# 	def clean(self):
-# 		user_id = self.user_id
-# 		if user_id and not self.mob_verified:
-# 			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
-# 		else:
-# 			data = self.cleaned_data
-# 			text, photo_id, section, secret_key_from_form = data.get("text"), self.photo_id, 'pht_comm', data.get("sk")
-# 			secret_key_from_session = get_and_delete_text_input_key(user_id, self.photo_id,'pht_comm')
-# 			if secret_key_from_form != secret_key_from_session:
-# 				raise forms.ValidationError('Rabta munqata ho gaya, phir se karien')
-# 			text = text.strip() if text else text
-# 			if not text:
-# 				raise forms.ValidationError('Likhna zaruri hai')
-# 			elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=text):
-# 				raise forms.ValidationError('Milti julti baatien nahi likhein, kuch new likho')
-# 			else:
-# 				rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
-# 				if rate_limited > 0:
-# 					raise forms.ValidationError('Ap photos pe reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-# 				else:
-# 					text_len = len(text)
-# 					if text_len < 6:
-# 						if many_short_messages(user_id,section,photo_id):
-# 							raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
-# 						else:
-# 							log_short_message(user_id,section,photo_id)
-# 					elif text_len > MAX_PHOTO_COMMENT_SIZE:
-# 						raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(text_len,MAX_PHOTO_COMMENT_SIZE))
-# 					return data
-
-
-class VideoCommentForm(forms.ModelForm):
-	text = forms.CharField(widget=forms.Textarea(attrs={'cols':30,'rows':2,'style':'width:98%;'}))
-	class Meta:
-		model = VideoComment
-		exclude = ("which_photo", "device", "submitted_by", "submitted_on",)
-		fields = ("text",)
-
-
 class PublicreplyForm(forms.ModelForm):
 	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
 		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_REPLY_SIZE}), \

@@ -79,8 +79,6 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 			return redirect("home")
 	elif origin == '9':
 		# originated from a publicreply
-		# request.session["link_pk"] = obj_id
-		# request.modified = True
 		return redirect("publicreply_view",obj_id)
 	elif origin == '10':
 		# originated from user profile (About page)
@@ -89,14 +87,14 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 		# originated from the comments page
 		return redirect("comment_pk", pk=obj_id)
 	elif origin == '12':
-		# originated from user's own fan list
-		return redirect("fan_list", obj_id)
+		# UNUSED, previously: originated from user's own fan list
+		return redirect("home")
 	elif origin == '13':
-		# originated from user's own star list
-		return redirect("star_list")
+		# UNUSED, previously: originated from user's own star list
+		return redirect("home")
 	elif origin == '14':
-		# originated from user's own unseen activity
-		return redirect("unseen_activity", target_uname)
+		# UNUSED, previously: originated from user's own unseen activity
+		return redirect("home")
 	elif origin == '15':
 		# originated from a private group
 		request.session["unique_id"] = obj_id#obj_id contains group_uuid, otherwise it won't work

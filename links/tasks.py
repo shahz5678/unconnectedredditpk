@@ -28,11 +28,7 @@ personal_group_hard_deletion, exited_personal_group_hard_deletion, update_person
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_share, logging_sharing_metrics, cache_photo_share_data, \
-retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,sanitize_unused_subscriptions,log_1on1_chat, log_replier_reply_rate#, log_photo_attention_from_fresh
-from redis2 import remove_from_photo_owner_activity#update_pg_obj_anon, set_uploader_score, sanitize_eachothers_unseen_activities, is_fan, get_all_fans, \
-#get_fan_counts_in_bulk, get_top_100, clean_expired_notifications, skip_private_chat_notif, get_active_fans, add_to_photo_owner_activity, create_object, \
-#update_object, create_notification, update_notification, bulk_update_notifications, bulk_create_photo_notifications_for_fans, get_uploader_percentile, \
-#update_pg_obj_hide, remove_erroneous_notif, set_benchmark
+retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,sanitize_unused_subscriptions,log_1on1_chat, log_replier_reply_rate
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group
@@ -403,8 +399,8 @@ def post_banning_tasks(own_id, target_id):
 	# unfan (in case was a fan)
 	UserFan.objects.filter(fan_id=own_id, star_id=target_id).delete()
 	UserFan.objects.filter(fan_id=target_id, star_id=own_id).delete()
-	remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
-	remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
+	# remove_from_photo_owner_activity(photo_owner_id=own_id, fan_id=target_id)
+	# remove_from_photo_owner_activity(photo_owner_id=target_id, fan_id=own_id)
 	rate_limit_unfanned_user(own_id=own_id,target_id=target_id)
 	################################################################################
 	# this ensures they can't 1on1 chat with eachother

@@ -116,7 +116,6 @@
 			{% load emoticons_tags %}
 			{% load get_text_object %}
 			{% load url_target_blank %}
-			{% load get_big_fan_button %}
 			{% load get_big_vote_button %}
 			{% load get_big_group_button %}
 			{% load get_big_home_reply_button %}
@@ -149,7 +148,6 @@
 						<section class="mbl" style="display:block">
 						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 						{% if ident|stringformat:"s" != submission.si|stringformat:"s" %}{% big_vote_button is_pht='0' obid=submission.i origin='22' ooid=submission.si user_voted=submission.v static_url=STATIC_URL topic=topic_url %}{% endif %}
-						{% big_fan_button own_user_id=ident target_user_id=submission.si object_id=submission.i origin='22' home_hash=submission.h fan_list=fanned static_url=STATIC_URL topic=topic_url %}
 						{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
 						{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL %}
 						</div>

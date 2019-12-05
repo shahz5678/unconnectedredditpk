@@ -9,8 +9,8 @@ set_personal_group_photo_sharing_perm_from_chat, delete_or_hide_photo_from_photo
 personal_group_receive_sms, personal_group_customize_sms_text, personal_group_receive_sms_from_chat, enter_personal_group,personal_group_help1,\
 personal_group_send_sms, personal_group_sms_text_form, personal_group_exit_settings, personal_group_their_chat_buttons, personal_group_reentry,\
 show_all_saved_posts_in_personal_group, retrieve_personal_group_saved_content,personal_group_delete_saved_post, personal_group_photo_settings,\
-post_js_reply_to_personal_group, personal_group_user_listing, export_chat_counts, x_per_grp_notif, export_chat_logs, share_photo_in_personal_group,\
-photo_shared, cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4, enter_personal_group_from_single_notif
+post_js_reply_to_personal_group, personal_group_user_listing, export_chat_counts, photo_shared, export_chat_logs, share_photo_in_personal_group,\
+cant_share_photo, personal_group_help2, personal_group_help3, personal_group_help4, enter_personal_group_from_single_notif
 from links.number_verification import verify_personal_group_user
 from links.views import redirect_to_1on1_list
 
@@ -61,7 +61,7 @@ urlpatterns = patterns('',
 	url(r'^1-on-1/friends/$', auth(personal_group_user_listing), name='personal_group_user_listing'),
 	############################## Personal Group Notifications ###############################
 	# url(r'^unpergrp/(?P<gid>\d+)/(?P<fid>\d+)/$', auth(unseen_per_grp), name='unseen_per_grp'),
-	url(r'^xpergrp/(?P<gid>\d+)/(?P<fid>\d+)/(?P<from_home>\d+)/$', auth(x_per_grp_notif), name='x_per_grp_notif'),
+	# url(r'^xpergrp/(?P<gid>\d+)/(?P<fid>\d+)/(?P<from_home>\d+)/$', auth(x_per_grp_notif), name='x_per_grp_notif'),
 	################################# Personal Group Help Ad ##################################
 	url(r'^private_chat_ad/$', auth(private_chat_help_ad), name='private_chat_help_ad'),
 	############################ Export chat logs #############################

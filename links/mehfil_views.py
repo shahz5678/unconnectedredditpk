@@ -39,8 +39,6 @@ get_most_recent_online_users
 
 from redis9 import delete_direct_responses_upon_obj_deletion, delete_direct_responses_linked_to_obj, cleanse_replier_data_from_location
 
-# from redis2 import remove_group_object, get_replies_with_seen,create_notification, create_object, bulk_remove_group_notification, update_notification, remove_group_notification
-
 from tasks import set_input_rate_and_history, group_notification_tasks, group_attendance_tasks, construct_administrative_activity, \
 trim_group_submissions, document_administrative_activity, log_group_owner_interaction, hide_associated_direct_responses, log_user_activity,\
 update_group_topic

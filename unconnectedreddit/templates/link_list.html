@@ -3,7 +3,6 @@
 {% load get_text_object %}
 {% load url_target_blank %}
 {% load get_photo_object %}
-{% load get_big_fan_button %}
 {% load get_big_vote_button %}
 {% load get_big_send_button %}
 {% load get_big_group_button %}
@@ -70,11 +69,12 @@
 		</script>
 	</aside>
 
-{% elif forloop.counter == 3 %}
+{% elif forloop.counter == 4 %}
 
 <div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff66;text-align:center">
-<img src="{{ STATIC_URL }}img/balloons.svg" width="80" height="80" class="mts">
-<div class="cxl lsp" style="color:black"><b>Suno! Aik barri change aney wali hai...</b></div>
+<img src="{{ STATIC_URL }}img/confetti.svg" width="80" height="80" class="mts">
+<div class="cxl lsp" style="color:black"><b>Fans khatam ho gaye!</b></div>
+<div class="cxl lsp" style="color:black"><b>Followers ka daur aney wala hai</b></div>
 <a href="{% url 'coming_soon' %}#section0"><button class="btn bct cl sp pg_ok_res mts" style="background:#08cfdd;height:50px;width:100%;border-radius:0;overflow:hidden"><b>MAZEED MALUMAT</b></button></a>
 
 </div>
@@ -91,7 +91,6 @@
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
-		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
 		{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='3' static_url=STATIC_URL %}
@@ -119,7 +118,6 @@
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 
 		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='0' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
-		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
 		</div>

@@ -278,7 +278,6 @@
 		</div>
 		
 	{% elif type_of_object == '1' %}
-		{% load get_big_fan_button %}
 		{% load get_big_group_button %}
 		{% load get_big_photo_comment_button %}
 		<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
@@ -303,7 +302,6 @@
 		</a>
 
 		<div class="mbl mtl fx fxjscn fxaicn">
-		{% big_fan_button own_user_id=ident target_user_id=parent.ooi object_id=parent.oi origin=origin fan_list=fanned static_url=static_url %}
 		{% big_group_button own_id=ident target_id=parent.ooi parent_object_id=parent.oi object_type='' origin=origin target_username=parent.oon %}
 		{% big_photo_comment_button photo_id=parent.oi origin=origin comm_count=parent.comment_count|default_if_none:"0"|add:"0" static_url=STATIC_URL from_single_notif='1' %}
 		</div>

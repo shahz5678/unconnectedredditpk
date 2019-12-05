@@ -3,7 +3,6 @@ import redis, time
 from multiprocessing import Pool
 from random import randint, random
 from location import REDLOC1
-# from redis2 import remove_group_notification, remove_group_object
 from score import VOTE_TEXT
 from home_post_rating_algos import recency_and_length_score
 

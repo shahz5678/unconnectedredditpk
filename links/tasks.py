@@ -1214,10 +1214,10 @@ def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, t
 # 		add_to_photo_owner_activity(photo_owner_id, user_id)
 
 
-@celery_app1.task(name='tasks.video_vote_tasks')
-def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
-	Video.objects.filter(id=video_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
-	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
+# @celery_app1.task(name='tasks.video_vote_tasks')
+# def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
+# 	Video.objects.filter(id=video_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
+# 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
 
 
 @celery_app1.task(name='tasks.cache_voting_history')
@@ -1271,23 +1271,6 @@ def log_sharing_click(photo_id, photo_owner_id, sharer_id, share_type, origin_ke
 	except KeyError:
 		origin = None
 	log_share(photo_id, photo_owner_id, sharer_id, share_type, origin)
-
-@celery_app1.task(name='tasks.video_tasks')
-def video_tasks(user_id, video_id, timestring, videocomment_id, count, text, it_exists):
-	user = User.objects.get(id=user_id)
-	video = Video.objects.get(id=video_id)
-	video.second_latest_comment = video.latest_comment
-	video.latest_comment_id = videocomment_id
-	video.comment_count = count
-	# set_prev_retort(user_id,text)
-	if user_id != video.owner_id and not it_exists:
-		user.userprofile.score = user.userprofile.score + 2 #giving score to the commenter
-		video.owner.userprofile.media_score = video.owner.userprofile.media_score + 2 #giving media score to the video poster
-		video.owner.userprofile.score = video.owner.userprofile.score + 2 # giving score to the video poster
-		video.visible_score = video.visible_score + 2
-		video.owner.userprofile.save()
-	video.save()
-	user.userprofile.save()
 
 
 @celery_app1.task(name='tasks.publicreply_tasks')

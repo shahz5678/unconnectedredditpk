@@ -42,7 +42,6 @@ from image_processing import process_group_image
 from redirection_views import return_to_content
 from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
-from forms import UnseenActivityForm
 from models import Photo
 
 ONE_DAY = 60*60*24
@@ -1140,111 +1139,6 @@ def get_user_perms_for_group(request):
 	Get group permissions for a user
 	"""
 	return render(request,"404.html",{})
-
-
-def x_per_grp_notif(request, gid, fid, from_home):
-	"""
-	Used to skip personal group single notification
-	"""
-	raise Http404("The page you requested has gone AWOL")
-	# own_id = request.user.id
-	# group_id, exists = personal_group_already_exists(own_id, fid)
-	# if exists and group_id == str(gid):
-	# 	pass
-	# 	# skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	# ################### Retention activity logging ###################
-	# # if own_id > SEGMENT_STARTING_USER_ID:
-	# # 	time_now = time.time()
-	# # 	request.session['rd'] = '1'
-	# # 	act = 'Q4' if request.mobile_verified else 'Q4.u'
-	# # 	activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':fid}
-	# # 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-	# ###################################################################
-	# return return_to_content(request,from_home,group_id,None,None)
-
-
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @csrf_protect
-def unseen_per_grp(request, gid, fid):
-	"""
-	Processes reply given in personal group straight from a notification or unseen activity
-	"""
-	pass
-	# if not request.mobile_verified:
-	# 	return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
-	# elif request.method == "POST":
-	# 	own_id = request.user.id
-	# 	time_now = time.time()
-	# 	own_uname = get_target_username(str(own_id))
-	# 	group_id, exists = personal_group_already_exists(own_id, fid)
-	# 	if exists and group_id == str(gid):
-	# 		origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-	# 		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-	# 		if banned:
-	# 			# show "user banned" message and redirect them to home
-	# 			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-	# 				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
-	# 		else:
-	# 			form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
-	# 			if form.is_valid():
-	# 				text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
-	# 				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
-	# 					writer_id=own_id, group_id=group_id)
-	# 				private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time_now,text=text,txt_type=type_,\
-	# 					own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
-	# 					successful=True if bid else False, from_unseen=True)
-	# 				personal_group_sanitization(obj_count, obj_ceiling, gid)
-	# 				################### Retention activity logging ###################
-	# 				if own_id > SEGMENT_STARTING_USER_ID:
-	# 					request.session['rd'] = '1'
-	# 					if origin:
-	# 						# this is a single notification
-	# 						activity_dict = {'m':'POST','act':'S5','t':time_now,'tx':text,'tuid':fid}
-	# 					else:
-	# 						# this is within the matka
-	# 						activity_dict = {'m':'POST','act':'M5','t':time_now,'tx':text,'tuid':fid}
-	# 					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-	# 				###################################################################
-	# 				if origin:
-	# 					return return_to_content(request,origin,None,None,own_id)
-	# 				else:
-	# 					return redirect("unseen_activity", own_uname)
-	# 			else:
-	# 				################### Retention activity logging ###################
-	# 				if own_id > SEGMENT_STARTING_USER_ID:
-	# 					request.session['rd'] = '1'
-	# 					if origin:
-	# 						# this is a single notification
-	# 						activity_dict = {'m':'POST','act':'S5.i','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-	# 					else:
-	# 						# this is within the matka
-	# 						activity_dict = {'m':'POST','act':'M5.i','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-	# 					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-	# 				###################################################################
-	# 				if origin:
-	# 					request.session["notif_form"] = form
-	# 					request.session.modified = True
-	# 					return return_to_content(request,origin,None,None,own_id)
-	# 				else:
-	# 					request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
-	# 					return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
-	# 	else:
-	# 		################### Retention activity logging ###################
-	# 		if own_id > SEGMENT_STARTING_USER_ID:
-	# 			request.session['rd'] = '1'
-	# 			if request.POST.get("origin",None):
-	# 				# this is a single notification
-	# 				activity_dict = {'m':'POST','act':'S5.e','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-	# 			else:
-	# 				# this is within the matka
-	# 				activity_dict = {'m':'POST','act':'M5.e','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-	# 			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-	# 		###################################################################
-	# 		return redirect("unseen_activity", own_uname)
-	# else:
-	# 	return redirect("unseen_activity", request.user.username)
-
-
 
 ###########################################################################################################
 ######################################### Personal Group Settings #########################################

@@ -203,13 +203,16 @@
   		  {% if is_star %}
 		  <b class="cm sp lsp" style="color:darkgray">Top star:</b>
 	      <img src="{{ STATIC_URL }}img/gstar.svg" height="18" width="18">&nbsp;<span style="color:lightgray">-</span>&nbsp;<span class="cgy cs sp lsp">{{ is_star }} trending images</span>
+	      <hr size=1 COLOR="#f4f4f4">
 		  {% endif %}
 
 		  {% if star_score %}
-		  <hr size=1 COLOR="#f4f4f4">
 		  <b class="cm sp lsp" style="color:darkgray">Star score:</b>
 	      {{ star_score }}
+	      <hr size=1 COLOR="#f4f4f4">
 		  {% endif %}
+
+		  <b class="cm sp lsp" style="color:darkgray">Followers:</b>&nbsp;&nbsp;<span style="color:darkgray" class="sp">coming soon</span>
 	     
 		</div>
 

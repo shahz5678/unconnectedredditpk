@@ -10,7 +10,6 @@ from django.http import HttpResponse, Http404
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
-# from redis2 import skip_private_chat_notif
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
 from redis7 import check_content_and_voting_ban, is_pair_image_stars, get_all_image_star_ids
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\

@@ -24,11 +24,11 @@ from links.webhooks import webhook_event
 from links.views import user_profile_photo, welcome_reply, reauth, comment_pk, reply_to_photo, public_reply_view,\
 link_create_pk, welcome_pk, sitemap, show_online_users,perm_redirect_to_home, logout_rules, best_home_page, \
 home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
-submit_text_post, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, photo_sitemap, \
+submit_text_post, display_image_comments, profile_pk, faces_pages, error, share_content, sharing_help, photo_sitemap, \
 hide_comment, photo_sitemap_of_sitemaps, make_ad, ad_finalize, click_ad,suspend, top_photo_help, reset_password, \
 manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
 user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules,\
-display_image_comments, redirect_to_profile_photos,public_photo_upload_denied, user_profile_photos_redirect
+redirect_to_profile_photos,public_photo_upload_denied, user_profile_photos_redirect
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import FacesHelpView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView, AdAddressView,\
@@ -99,7 +99,7 @@ urlpatterns = patterns('',
 	url(r'^comment/(?P<pk>\d+)/$', display_image_comments, name='comment'),
 	url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', display_image_comments, name='comment'),
 	# url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
-	url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
+	# url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/$', comment_pk, name='comment_pk'), #origin is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/(?P<ident>\d+)/$', comment_pk, name='comment_pk'), #origin and ident are an optional variable

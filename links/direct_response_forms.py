@@ -9,20 +9,36 @@ from redis4 import is_limited
 from tasks import log_reply_rate
 
 
-def prescribe_direct_response_rate_limit(typing_speed_1, typing_speed_2=None, typing_speed_3=None):
+def prescribe_direct_response_rate_limit(typing_speed_1, text_1_len, typing_speed_2=None, text_2_len=None, typing_speed_3=None, text_3_len=None):
 	"""
-
+	Determines whether the rate of typing exceeds benchmarks of 'flooding'
 	"""
 	is_rate_limited = False
 	if typing_speed_1 and typing_speed_2 and typing_speed_3:
+		
 		avg_typing_speed = (typing_speed_1+typing_speed_2+typing_speed_3)/3.0
-		if avg_typing_speed > 4:
+		##################################
+		# this user is writing short stuff - take that into account when judging the rate limit
+		if text_1_len < 4 and text_2_len < 4 and text_3_len < 4:
+			if avg_typing_speed > 0.58:
+				# rate-limit this person
+				is_rate_limited = True
+		##################################
+		elif avg_typing_speed > 3.5:
 			# rate-limit this person
 			is_rate_limited = True
 
 	elif typing_speed_1 and typing_speed_2:
+
 		avg_typing_speed = (typing_speed_1+typing_speed_2)/2.0
-		if avg_typing_speed > 6:
+		##################################
+		# this user is writing short stuff - take that into account when judging the rate limit
+		if text_1_len < 4 and text_2_len < 4:
+			if avg_typing_speed > 0.68:
+				# rate-limit this person
+				is_rate_limited = True
+		##################################
+		elif avg_typing_speed > 5.5:
 			# rate-limit this person
 			is_rate_limited = True
 
@@ -45,23 +61,38 @@ def determine_direct_response_rate(reply_len, replier_id, time_now):
 		# provide validation error if reply rates have exceeded acceptable thresholds
 		len_data = len(recent_reply_lens_and_times)
 
-		if len_data == 1:
-			latest_typing_speed = (1.0*reply_len/(time_now-recent_reply_lens_and_times[0][1]))
-			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed)
+		# if len_data == 1:
+		# 	text_2_time = float(recent_reply_lens_and_times[0].partition(":")[-1])
+		# 	latest_typing_speed = (1.0*reply_len/(time_now-text_2_time))
+		# 	is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed, text_1_len=reply_len)
 		
-		elif len_data == 2:
-			latest_typing_speed = (1.0*reply_len/(time_now-recent_reply_lens_and_times[0][1]))
-			previous_typing_speed = (float(recent_reply_lens_and_times[0][0])/(recent_reply_lens_and_times[0][1]-recent_reply_lens_and_times[1][1]))
-			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed,typing_speed_2=previous_typing_speed)
+		if len_data == 2:
+			data_2 = recent_reply_lens_and_times[0].partition(":")
+			text_2_len, text_2_time = float(data_2[0]), float(data_2[-1])
+			data_3 = recent_reply_lens_and_times[1].partition(":")
+			text_3_len, text_3_time = float(data_3[0]), float(data_3[-1])
+
+			latest_typing_speed = (1.0*reply_len/(time_now-text_2_time))
+			previous_typing_speed = (text_2_len/(text_2_time-text_3_time))
+			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed,text_1_len=reply_len,\
+				typing_speed_2=previous_typing_speed, text_2_len=text_2_len)
 
 		elif len_data >= 3:
-			latest_typing_speed = (1.0*reply_len/(time_now-recent_reply_lens_and_times[0][1]))
-			previous_typing_speed = (float(recent_reply_lens_and_times[0][0])/(recent_reply_lens_and_times[0][1]-recent_reply_lens_and_times[1][1]))
-			last_typing_speed = (float(recent_reply_lens_and_times[1][0])/(recent_reply_lens_and_times[1][1]-recent_reply_lens_and_times[2][1]))
-			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed,typing_speed_2=previous_typing_speed,typing_speed_3=last_typing_speed)
+			data_2 = recent_reply_lens_and_times[0].partition(":")
+			text_2_len, text_2_time = float(data_2[0]), float(data_2[-1])
+			data_3 = recent_reply_lens_and_times[1].partition(":")
+			text_3_len, text_3_time = float(data_3[0]), float(data_3[-1])
+			text_4_time = float(recent_reply_lens_and_times[2].partition(":")[-1])
+
+			latest_typing_speed = (1.0*reply_len/(time_now-text_2_time))
+			previous_typing_speed = (text_2_len/(text_2_time-text_3_time))
+			last_typing_speed = (text_3_len/(text_3_time-text_4_time))
+
+			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed,text_1_len=reply_len,\
+				typing_speed_2=previous_typing_speed, text_2_len=text_2_len, typing_speed_3=last_typing_speed, text_3_len=text_3_len)
 
 		else:
-			# this should never happen
+			# do nothing
 			pass
 
 	return is_rate_limited
@@ -132,7 +163,9 @@ class DirectResponseForm(forms.Form):
 			# only applicable to replies under posts
 			if obj_type in ('3','4'):
 				time_now = self.time_now
+
 				is_rate_limited = determine_direct_response_rate(reply_len=len_reply, replier_id=receiver_id, time_now=time_now)
+				
 				log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
 					marked_fast='1' if is_rate_limited else '0')
 				# raise forms.ValidationError('Please slow down!')

@@ -1,6 +1,6 @@
+<!-- this adds a lot of response time -->
 <form method="GET" style="margin-bottom:4px;margin-right:4px" action="{% url 'user_activity' username %}">
-	<input type="hidden" name="ot" value="{{ ot }}"><input type="hidden" name="org" value="{{ origin }}"><input type="hidden" name="tun" value="{{ tun }}"><input type="hidden" name="hh" value="{{ home_hash }}"><input type="hidden" name="poid" value="{{ poid }}"><input type="hidden" name="tp" value="{{ tp }}">
-	<button name="tid" class="vt" style="border:1px solid #67B0FD;width:50px;height:42px;padding:0;text-align:center" value="{{ tid }}"><div style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none;">
+	<button name="pl" class="vt" style="border:1px solid #67B0FD;width:50px;height:42px;padding:0;text-align:center" value="{{ ot }}:{{ origin }}:{{ username }}:{{ home_hash }}:{{ poid }}:{{ tp }}:{{ tid }}"><div style="background-color:#67B0FD;display:inline-block;padding:2px 3px;border-radius:3px;vertical-align:middle;border:none;">
 		<div id="line"></div>
 		<div id="line"></div>
 		<div id="line" style="width: 8px;"></div>

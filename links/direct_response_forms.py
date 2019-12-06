@@ -85,8 +85,10 @@ def determine_direct_response_rate(reply_len, replier_id, time_now):
 			text_4_time = float(recent_reply_lens_and_times[2].partition(":")[-1])
 
 			latest_typing_speed = (1.0*reply_len/(time_now-text_2_time))
-			previous_typing_speed = (text_2_len/(text_2_time-text_3_time))
-			last_typing_speed = (text_3_len/(text_3_time-text_4_time))
+			denom_2 = text_2_time-text_3_time
+			previous_typing_speed = text_2_len/denom_2 if denom_2 > 0 else 100# give it a huge value
+			denom_3 = text_3_time-text_4_time
+			last_typing_speed = text_3_len/denom_3 if denom_3 > 0 else 100# give it a huge value
 
 			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed,text_1_len=reply_len,\
 				typing_speed_2=previous_typing_speed, text_2_len=text_2_len, typing_speed_3=last_typing_speed, text_3_len=text_3_len)

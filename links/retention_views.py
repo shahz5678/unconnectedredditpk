@@ -1,6 +1,6 @@
 import csv
 from django.http import Http404
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from redis8 import report_section_wise_retention, retrieve_all_logged_actions, retention_clean_up, retrieve_retention_activity_raw_records,\
 compile_activity_occurence_rows, compile_activity_frequency_rows
@@ -10,6 +10,11 @@ from redis7 import in_defenders
 from redis3 import exact_date
 from actions import actions
 
+
+def test_sample_out(request,uname,ot,origin,home_hash,poid,tp,tid):
+	"""
+	"""
+	return redirect("user_activity", uname)
 
 def display_retention(request,variation):
 	"""

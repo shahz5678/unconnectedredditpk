@@ -149,13 +149,13 @@
 
   <div class="fx fxjscn">
     {% if page_obj.has_previous %}
-      <div style="padding:0 10px">
-      <a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+      <div class="mbl" style="padding:0 8px 0 10px">
+      <a href="?page={{ page_obj.previous_page_number }}#sectionJ">{% include 'big_buttons/big_prev_button.html' %}</a>
       </div>
     {% endif %}
     {% if page_obj.has_next %}
-      <div class="mbs" style="padding:0 10px">
-      <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+      <div class="mbl" style="padding:0 10px 0 8px">
+      <a href="?page={{ page_obj.next_page_number }}#sectionJ">{% include 'big_buttons/big_next_button.html' %}</a>
       </div>
     {% endif %}
   </div>

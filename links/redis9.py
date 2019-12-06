@@ -935,7 +935,7 @@ def set_comment_history(obj_hash_name, obj_owner_id, commenter_id, time_now):
 
 ######################################### Log direct repsonse rate ############################################
 
-REPLY_RATE = 'rera:'
+REPLY_RATE = 'rr:'
 
 def log_rate_of_reply(replier_id, text_len, time_now):
 	"""
@@ -945,12 +945,12 @@ def log_rate_of_reply(replier_id, text_len, time_now):
 	"""
 	reply_rate_key = REPLY_RATE+str(replier_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zadd(reply_rate_key,text_len,time_now)
-	my_server.expire(reply_rate_key,30)#expire the data after 30 secs of inactivity
+	my_server.lpush(reply_rate_key,str(text_len)+":"+str(time_now))
+	my_server.expire(reply_rate_key,20)#expire the data after 20 secs of inactivity
 
 
 def retrieve_prev_replier_rate(replier_id):
 	"""
 	Retrieves the rate of last 3 replies (if key hasn't expired yet)
 	"""
-	return redis.Redis(connection_pool=POOL).zrevrange(REPLY_RATE+str(replier_id),0,2,withscores=True)
+	return redis.Redis(connection_pool=POOL).lrange(REPLY_RATE+str(replier_id),0,2)

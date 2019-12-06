@@ -444,7 +444,7 @@ def export_voting_records(request):
 					reply_time = data_1[0]
 					data_2 = data_1[-1].rpartition(":")
 					marked_fast = data_2[-1]
-					data_3 = data_2[0].partition(":")
+					data_3 = data_2[0].rpartition(":")
 					text = data_3[0]
 					target_id = data_3[-1]
 					to_write = [reply_time,target_id,replier_id,marked_fast,text]

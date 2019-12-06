@@ -3278,14 +3278,13 @@ class PrivateGroupView(FormView):
 							'nht':data.get('nht',None)}
 							latest_replies.append(data)
 						#################################################
-						# TODO: remove once cleaned up (e.g. after a week)
-						try:
-							json_data = json.dumps(latest_replies)
-							cache_mehfil_replies(json_data,group_id)
-						except:
-							# clean up this group's chat and start anew!
-							latest_replies = []
-							remove_group_chat_submissions(group_id=group_id, group_type='6')
+						# try:
+						json_data = json.dumps(latest_replies)
+						cache_mehfil_replies(json_data,group_id)
+						# except:
+						# 	# clean up this group's chat and start anew!
+						# 	latest_replies = []
+						# 	remove_group_chat_submissions(group_id=group_id, group_type='6')
 						#################################################
 					updated_at = time.time()#convert_to_epoch(timezone.now())
 					group_attendance_tasks.delay(group_id=group_id, user_id=user_id, time_now=updated_at)#, private=True)# fills group visitors
@@ -3549,14 +3548,13 @@ class PublicGroupView(FormView):
 								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None),\
 								'rt':data.get('rt',None),'nht':data.get('nht',None)})
 						#################################################
-						# TODO: remove once cleaned up (e.g. after a week)
-						try:
-							json_data = json.dumps(latest_replies)# erroneous line
-							cache_mehfil_replies(json.dumps(latest_replies),group_id)
-						except:
-							# clean up this group's chat and start anew!
-							latest_replies = []
-							remove_group_chat_submissions(group_id=group_id, group_type='5')
+						# try:
+						json_data = json.dumps(latest_replies)# erroneous line
+						cache_mehfil_replies(json.dumps(latest_replies),group_id)
+						# except:
+						# 	# clean up this group's chat and start anew!
+						# 	latest_replies = []
+						# 	remove_group_chat_submissions(group_id=group_id, group_type='5')
 					###################### Retention activity logging ######################
 					# from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
 					# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:

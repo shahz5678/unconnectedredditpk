@@ -946,7 +946,7 @@ def log_rate_of_reply(replier_id, text_len, time_now):
 	reply_rate_key = REPLY_RATE+str(replier_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush(reply_rate_key,str(text_len)+":"+str(time_now))
-	my_server.expire(reply_rate_key,20)#expire the data after 20 secs of inactivity
+	my_server.expire(reply_rate_key,15)#expire the data after 15 secs of inactivity
 
 
 def retrieve_prev_replier_rate(replier_id):

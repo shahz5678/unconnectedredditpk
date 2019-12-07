@@ -671,6 +671,11 @@ def bulk_create_notifications(user_id, photo_id, epochtime, photourl, name, capt
 	pass
 
 
+@celery_app1.task(name='tasks.trim_whose_online')
+def trim_whose_online():
+	expire_online_users()
+
+
 @celery_app1.task(name='tasks.trim_top_group_rankings')
 def trim_top_group_rankings():
 	"""
@@ -679,10 +684,6 @@ def trim_top_group_rankings():
 	Mislabeled for legacy reasons
 	"""
 	trim_expired_user_submissions()
-
-@celery_app1.task(name='tasks.trim_whose_online')
-def trim_whose_online():
-	expire_online_users()
 
 
 @celery_app1.task(name='tasks.remove_target_users_posts_from_all_feeds')
@@ -835,12 +836,6 @@ def delete_idle_public_and_private_groups():
 			delete_direct_responses_upon_obj_deletion(obj_type='6', obj_id=group_id)# deleting 'direct resposes' given in the group
 		else:
 			pass
-	# bulk_remove_multiple_group_notifications(grp_ids_and_members)#redis2
-	# cleanse_public_and_private_groups_data(grp_ids_and_members)#redis1 (DEPRECATE THIS ENTIRE FUNCTIONALITY)
-	# marking postgresql Group object as deleted (deprecate this later)
-	# group_ids = grp_ids_and_members.keys()
-	# if group_ids:
-	# 	Group.objects.filter(id__in=group_ids).update(category='99')#'99' implies deleted
 
 
 @celery_app1.task(name='tasks.trim_group_submissions')
@@ -1109,115 +1104,6 @@ def photo_upload_tasks(user_id, photo_id, upload_time, username, temp_photo_obj,
 	# 	pass
 	# 	# set_uploader_score(user_id, ((total_score*1.0)/number_of_photos))
 
-
-@celery_app1.task(name='tasks.unseen_comment_tasks')
-def unseen_comment_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, commenter, commenter_av, is_citizen):
-	# user = User.objects.get(id=user_id)
-	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
-	# photo_owner_id = photo.owner_id
-	# try:
-	# 	owner_url = photo.owner.userprofile.avatar.url
-	# except ValueError:
-	# 	owner_url = None
-	# update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,lt_res_sub_name=commenter,\
-	# 	lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
-	# if photo_owner_id == user_id:
-	# 	is_seen = True
-	# 	unseen_activity = True
-	# 	single_notif = None
-	# 	same_writer = True
-	# else:
-	# 	is_seen = False
-	# 	unseen_activity = True
-	# 	single_notif = True
-	# 	same_writer = False
-	# create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
-	# 	updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
-	# all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
-	# 	values_list('submitted_by', flat=True)[:25]))
-	# if photo_owner_id not in all_commenter_ids:
-	# 	all_commenter_ids.append(photo_owner_id)
-	# try:
-	# 	all_commenter_ids.remove(user_id)
-	# except:
-	# 	pass
-	# if all_commenter_ids:
-	# 	bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
-	# 		seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra') #only update if it existed
-	# updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-	# 	single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
-	# if not updated:
-	# 	create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-	# 		unseen_activity=True)
-	photo.second_latest_comment = photo.latest_comment
-	photo.latest_comment_id = photocomment_id
-	photo.comment_count = count+1
-	photo.save()
-	# if is_fan(photo_owner_id,user_id):
-	# 	add_to_photo_owner_activity(photo_owner_id, user_id)
-
-
-# @celery_app1.task(name='tasks.photo_tasks')
-# def photo_tasks(user_id, photo_id, epochtime, photocomment_id, count, text, commenter, commenter_av, is_citizen):
-# 	photo = Photo.objects.select_related('owner__userprofile').get(id=photo_id)
-# 	photo_owner_id = photo.owner_id
-# 	try:
-# 		owner_url = photo.owner.userprofile.avatar.url
-# 	except:
-# 		owner_url = None
-# 	created = create_object(object_id=photo_id, object_type='0', object_owner_avurl=owner_url,object_owner_id=photo_owner_id,\
-# 		object_owner_name=photo.owner.username,object_desc=photo.caption,lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-# 		lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score,photourl=photo.image_file.url,\
-# 		lt_res_wid=user_id)
-# 	if not created:
-# 		update_object(object_id=photo_id, object_type='0', lt_res_time=epochtime,lt_res_avurl=commenter_av,\
-# 			lt_res_sub_name=commenter,lt_res_text=text,res_count=(count+1),vote_score=photo.vote_score, lt_res_wid=user_id)
-# 	if photo_owner_id == user_id:
-# 		is_seen = True
-# 		unseen_activity = True
-# 		single_notif = None
-# 		same_writer = True
-# 	else:
-# 		is_seen = False
-# 		unseen_activity = True
-# 		single_notif = True
-# 		same_writer = False
-# 	created_for_parent = create_notification(viewer_id=photo_owner_id, object_id=photo_id, object_type='0', seen=is_seen,\
-# 		updated_at=epochtime, unseen_activity=unseen_activity, single_notif=single_notif, priority='photo_tabsra')
-# 	all_commenter_ids = list(set(PhotoComment.objects.filter(which_photo_id=photo_id).order_by('-id').\
-# 		values_list('submitted_by', flat=True)[:25]))
-# 	if photo_owner_id not in all_commenter_ids:
-# 		all_commenter_ids.append(photo_owner_id)
-# 	try:
-# 		all_commenter_ids.remove(user_id)
-# 	except:
-# 		pass
-# 	if created_for_parent and not same_writer:
-# 		try:
-# 			all_commenter_ids.remove(photo_owner_id)
-# 		except:
-# 			pass
-# 	if all_commenter_ids:
-# 		bulk_update_notifications(viewer_id_list=all_commenter_ids, object_id=photo_id, object_type='0',\
-# 			seen=False, updated_at=epochtime, single_notif=True, unseen_activity=True,priority='photo_tabsra')
-# 	if not created_for_parent or not same_writer:
-# 		updated = update_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-# 			single_notif=False, unseen_activity=True,priority='photo_tabsra', bump_ua=True)
-# 		if not updated:
-# 			create_notification(viewer_id=user_id, object_id=photo_id, object_type='0', seen=True, updated_at=epochtime, \
-# 				unseen_activity=True)
-# 	photo.second_latest_comment = photo.latest_comment
-# 	photo.latest_comment_id = photocomment_id
-# 	photo.comment_count = count+1
-# 	photo.save()
-# 	if is_fan(photo_owner_id,user_id):
-# 		add_to_photo_owner_activity(photo_owner_id, user_id)
-
-
-# @celery_app1.task(name='tasks.video_vote_tasks')
-# def video_vote_tasks(video_id, user_id, vote_score_increase, visible_score_increase, media_score_increase, score_increase):
-# 	Video.objects.filter(id=video_id).update(vote_score=F('vote_score')+vote_score_increase, visible_score=F('visible_score')+visible_score_increase)
-# 	UserProfile.objects.filter(user_id=user_id).update(media_score=F('media_score')+media_score_increase, score=F('score')+score_increase)
 
 
 @celery_app1.task(name='tasks.cache_voting_history')

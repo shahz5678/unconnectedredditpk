@@ -9,7 +9,7 @@
 <style>body{background:#f0f3f4}p{display:none}input:checked~p{display:block}input[type=checkbox]{position:absolute;left:-1000px}</style>
 
 	{% check_reply_count as reply_count %}
-	{% include "inbox_navbar.html" with username=user.username static_url=STATIC_URL section='replies' num_rep=reply_count %}
+	{% include "inbox_navbar.html" with username=user.username section='replies' num_rep=reply_count %}
 
 	<div class="mbs fx fxjscn fxaibl">
 		<form action="{% url 'retrieve_direct_responses' %}" method="GET" enctype="multipart/form-data" style="display:inline-block"><button class="rf" style="vertical-align:text-bottom;height:24px;width:44px;background:0 0" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></form>
@@ -69,11 +69,11 @@
 			</div>
 
 		{% elif dir_reps_skipped %}
-			<div style="text-align:center;background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);color:white;border:3px solid #ececec;border-radius:12px;max-width:750px;width:98%;margin-left:auto;margin-right:auto;padding:10px;box-sizing:border-box" class="sp lsp cl">Skipped replies</div>
+			<div style="text-align:center;background: rgb(195,195,195);background: -moz-linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);background: -webkit-linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);background: linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);color:white;border:3px solid #ececec;border-radius:12px;max-width:750px;width:98%;margin-left:auto;margin-right:auto;padding:10px;box-sizing:border-box" class="nos sp lsp cl">Skipped replies</div>
 		{% elif uname_of_deleted_rep %}
-			<div style="text-align:center;background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);color:white;border:3px solid #ececec;border-radius:12px;max-width:750px;width:98%;margin-left:auto;margin-right:auto;padding:10px;box-sizing:border-box" class="sp lsp cl">Skipped <span style="font-weight: 500;">{{ uname_of_deleted_rep }}'s</span> reply</div>
+			<div style="text-align:center;background: rgb(195,195,195);background: -moz-linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);background: -webkit-linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);background: linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);color:white;border:3px solid #ececec;border-radius:12px;max-width:750px;width:98%;margin-left:auto;margin-right:auto;padding:10px;box-sizing:border-box" class="nos sp lsp cl">Skipped <span style="font-weight: 500;">{{ uname_of_deleted_rep }}'s</span> reply</div>
 		{% elif rep_invalid %}
-			<div style="text-align:center;background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);color:white;border:3px solid #ececec;border-radius:12px;max-width:750px;width:98%;margin-left:auto;margin-right:auto;padding:10px;box-sizing:border-box;font-weight: 500;" class="sp lsp cl">{{ rep_invalid }}</div>
+			<div style="text-align:center;background: rgb(255,121,0);background: rgb(255,127,80);background: -moz-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: -webkit-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);;color:white;border:3px solid #ececec;border-radius:12px;max-width:750px;width:98%;margin-left:auto;margin-right:auto;padding:10px;box-sizing:border-box;font-weight: 500;" class="nos sp lsp cl">{{ rep_invalid }}</div>
 		{% endif %}
 
 		{% load get_block_button %}
@@ -91,9 +91,9 @@
 					<a href="{% url 'publicreply_view' data.poid %}">
 						<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 							<div class="fx fxjscn fxaicn">
-								<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>POST</span></div>
+								<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
 								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
-								<div class="sp cm nos" style="text-align:left"><span style="color:#999"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+								<div class="sp cm nos" style="text-align:left"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
 							</div>
 						</button>
 					</a>
@@ -104,11 +104,11 @@
 					<a href="{% url 'comment' data.poid '24' %}">
 						<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 							<div class="fx fxjscn fxaicn">
-								<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>POST</span></div>
+								<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
 								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
 								<div class="fx fxjscn fxaicn">
 									<img src="{{ data.piu|s3:'thumb' }}" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="38" alt="pic">
-									<div class="cm sp mls nos" style="text-align:left" style="word-break: break-all;"><span class="cgy"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+									<div class="cm sp mls nos" style="text-align:left" style="word-break: break-all;"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
 								</div>
 							</div>
 						</button>
@@ -119,8 +119,8 @@
 				<form method="GET" style="background:#f9f9f9" action="{% url 'public_group' data.guid %}">
 					<button type="submit" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>MEHFIL</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+							<div class="sp cs mrs" style="text-align:center"><span class="cp">MEHFIL</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span class="cp">►</div>
 							<div class="cm sp" style="text-align:left"><span class="cp">{% emoticons %}{{ data.gtp }}{% endemoticons %}</span></div>
 						</div>
 					</button>
@@ -131,8 +131,8 @@
 					{% csrf_token %}
 					<button name="private_uuid" type="submit" value="{{ data.guid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>MEHFIL</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+							<div class="sp cs mrs" style="text-align:center"><span style="color:#11ae59">MEHFIL</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span style="color:#11ae59">►</div>
 							<div class="cm sp" style="text-align:left;color:#11ae59">{% emoticons %}{{ data.gtp }}{% endemoticons %}</div>
 						</div>
 					</button>
@@ -143,9 +143,9 @@
 					{% csrf_token %}
 					<button type="submit" name="tid" value="{{ data.sid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">GO&nbsp;TO<br>1&nbsp;ON&nbsp;1</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
-							<div class="cm sp" style="text-align:left;color:#6092f8">{{ data.ptx }}</div>
+							<div class="sp cs mrs" style="text-align:center"><span style="color:#3b7af7">1&nbsp;ON&nbsp;1</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span style="color:#3b7af7">►</div>
+							<div class="cm sp" style="text-align:left;color:#3b7af7">{{ data.ptx }}</div>
 						</div>
 					</button>
 				</form>
@@ -154,15 +154,15 @@
 			<div style="background:white">
 				<div style="padding:8px;border-top:1px solid #dbdbdb;border-bottom:1px solid #dbdbdb">
 				{% if data.hide_rep == '1' %}
-					<div class="cl sp lsp"><b>{{ data.sun }}</b> ka reply hide ho gya</div>
+					<div class="cl sp lsp"><b><bdi>{{ data.sun }}</bdi></b> ka reply hide ho gya</div>
 				{% else %}
-					<div class="cl lsp nos"><b>{{ data.sun }}</b> : {% if data.iu %}<img class="mrs" src="{{ data.iu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% endif %}<span class="sp mrs">{% emoticons %}{{ data.tx }}{% endemoticons %}</span><span class="mrs cxs sp" style="text-align:right;color:#999999">{{ data.t|human_time }}</span></div>
+					<div class="cl lsp nos"><b><bdi>{{ data.sun }}</bdi></b> : {% if data.iu %}<img class="mrs" src="{{ data.iu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% endif %}<span class="sp mrs"><bdi>{% emoticons %}{{ data.tx }}{% endemoticons %}</bdi></span><span class="mrs cxs sp" style="text-align:right;color:#999999">{{ data.t|human_time }}</span></div>
 					{% if data.hide_tgt != '1' and data.ttxpre %}
 					<div class="lsp sp nos" style="color:#999">
 						{% if data.tiu %}
-							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: <img class="mrs" src="{{ data.tiu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:hidden"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
+							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: <img class="mrs" src="{{ data.tiu|s3 }}" style="height:36px;border:1px solid lightgray;border-radius:6px;vertical-align:sub" height="36">{% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:none"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
 						{% else %}
-							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: {% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:hidden"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
+							<div style="display:inline"><b><span style="color:#bfbfbf">➜</span> you</b>: {% emoticons %}{{ data.ttxpre }}{% endemoticons %}</div>{% if data.ttxpos %}<label style="display:inline"><span class="sp">... <span class="cxs ct">MORE▼</span></span><input type="checkbox" style="display:none"><p style="margin:0;padding:0">{% emoticons %}{{ data.ttxpos }}{% endemoticons %}</p></label>{% endif %}
 						{% endif %}
 					</div>
 					{% endif %}
@@ -184,23 +184,23 @@
 			</div>
 		{% empty %}
 		<div class="clb mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:98%;text-align:center;box-sizing:border-box">
-			<div class="cxl lsp" style="padding:8px;border-bottom:1px solid #f0f3f4">Sorry! Ye khali hai ...</div>
-			<div style="padding:8px" class="lsp sp">Posts pe receive honay waley replies yahan nazr atey hain</div>
-			<a href="{% url 'home' %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:28px">home</button></a>
+			<div class="cxl lsp" style="padding:8px;border-bottom:1px solid #f0f3f4">Sorry! Apke liye koi reply nahi aya hua</div>
+			<div style="padding:8px" class="lsp sp">Ap ne jo replies send kiye woh 'activity' mein dekh lein</div>
+			<a href="{% url 'retrieve_direct_response_activity' %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:28px">activity</button></a>
 		</div>
 		{% endfor %}
 
 	{% if response_data %}
 
-		<div class="mbl fx fxjscn">
+		<div class="mbl fx fxjscn fxaicn">
 			{% if page.has_previous %}
 			    <div style="padding:0 10px">
-			    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+			    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
 			    </div>
 		    {% endif %}
 		    {% if page.has_next %}
 			    <div style="padding:0 10px">
-			    <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+			    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
 			    </div>
 		    {% endif %}
 		</div>

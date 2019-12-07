@@ -39,7 +39,7 @@
     {% endif %}
 
     <div class="cl sp" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa"> 
-        Profile foto:
+        Profile photo:
     </div>
 
     {% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=own_profile time_remaining=time_remaining uname=slug ban_detail=ban_detail %}
@@ -76,10 +76,8 @@
         <form method="POST" class="mbs" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ user_id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm sp pg_ok_res" style="height:32px">manage</button></form>
       {% else %}
         {% if authenticated %}
-          {% load get_big_fan_button %}
           {% load get_big_group_button %}
           <div class="mts fx fxjscn fxaicn">
-          {% big_fan_button own_user_id=user_id target_user_id=star_id object_id='' origin='4' home_hash='' fan_list=fanned static_url=STATIC_URL %}
           {% big_group_button own_id=user_id target_id=star_id parent_object_id=slug object_type='profile' origin='4' target_username=slug %}
           </div>
         {% endif %}
@@ -99,7 +97,7 @@
   <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
       <a name="section{{ forloop.counter }}"></a>
         
-        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score origin=4 upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending=photo.device %}
+        {% photo_object pid=photo.id ooid=star_id img_url=photo.image_file.url img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption vsc=photo.vote_score is_fbs=on_fbs origin=4 upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=slug static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending=photo.device lazyload_idx=forloop.counter %}
         
         <div class="mbs mtl">
           <div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -132,14 +130,14 @@
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Trending images view karein:</div>
-      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Photos</button></a>
     </div>
     {% else %}
     <div class="cxl lsp"><b>{{ slug }}</b> ne Damadam pe koi image nahi share kia</div>
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Dusrey users ke trending images view karein:</div>
-      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Fotos</button></a>
+      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res" style="height:26px">Photos</button></a>
     </div>
     {% endif %}
   {% endif %}
@@ -151,13 +149,13 @@
 
   <div class="fx fxjscn">
     {% if page_obj.has_previous %}
-      <div style="padding:0 10px">
-      <a href="?page={{ page_obj.previous_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+      <div class="mbl" style="padding:0 8px 0 10px">
+      <a href="?page={{ page_obj.previous_page_number }}#sectionJ">{% include 'big_buttons/big_prev_button.html' %}</a>
       </div>
     {% endif %}
     {% if page_obj.has_next %}
-      <div class="mbs" style="padding:0 10px">
-      <a href="?page={{ page_obj.next_page_number }}#sectionJ"><button class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+      <div class="mbl" style="padding:0 10px 0 8px">
+      <a href="?page={{ page_obj.next_page_number }}#sectionJ">{% include 'big_buttons/big_next_button.html' %}</a>
       </div>
     {% endif %}
   </div>

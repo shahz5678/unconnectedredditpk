@@ -1,5 +1,6 @@
 
 # coding=utf-8
+import json as json_backup
 import ujson as json
 import redis, time, random
 from datetime import datetime
@@ -7,7 +8,7 @@ from django.contrib.auth.models import User
 from location import REDLOC4
 from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD, \
 SHARED_PHOTOS_CEILING, PHOTO_DELETION_BUFFER, NUM_SUBMISSION_ALLWD_PER_DAY, CONTENT_SHARING_SHORT_RATELIMIT, CONTENT_SHARING_LONG_RATELIMIT
-from models import UserProfile, Photo
+from models import UserProfile, Link, Photo
 
 '''
 ##########Redis Namespace##########
@@ -247,6 +248,112 @@ def get_and_delete_text_input_key(user_id, obj_id, obj_type):
 		return '1'
 
 
+################ Caching text/image information for user reply histories ################
+
+
+def retrieve_post_details_in_bulk(txt_post_ids, img_post_ids):
+	"""
+	Retrieves 'parent' data related to provided post ids
+
+	Useful when displaying user's activity on recent posts
+	"""
+
+	my_server = redis.Redis(connection_pool=POOL)
+
+	parent_text_data = {}
+	if txt_post_ids:
+		cached_text_objs = my_server.mget(*('txc:'+txt_post_id for txt_post_id in txt_post_ids))
+		remainder_text_objs, counter = [], 0
+		for json_text_obj in cached_text_objs:
+			post_id = txt_post_ids[counter]
+			if json_text_obj:
+				try:
+					text_obj = json.loads(json_text_obj)
+				except:
+					text_obj = json_backup.loads(json_text_obj)
+				parent_text_data[post_id] = text_obj
+			else:
+				remainder_text_objs.append(post_id)
+			counter += 1
+		if remainder_text_objs:
+			
+			# falling back to DB
+			text_objs = Link.objects.values('id','submitter','description').filter(id__in=remainder_text_objs)
+			
+			# enrich the data with usernames
+			submitter_ids = [data['submitter'] for data in text_objs]
+			username_dictionary = retrieve_bulk_unames(user_ids=submitter_ids,decode=True)
+			for dictionary in text_objs:
+				dictionary['submitter_uname'] = username_dictionary[dictionary['submitter']]
+
+			# cache the retrieved text_objs
+			if len(text_objs) > 1:
+				pipeline1 = my_server.pipeline()
+				for text_obj in text_objs:
+					obj_id = str(text_obj['id'])
+					parent_text_data[obj_id] = text_obj
+					pipeline1.setex('txc:'+obj_id,json.dumps(text_obj),THREE_DAYS)
+				pipeline1.execute()
+			else:
+				for text_obj in text_objs:
+					obj_id = str(text_obj['id'])
+					parent_text_data[obj_id] = text_obj
+					my_server.setex('txc:'+obj_id,json.dumps(text_obj),THREE_DAYS)
+
+	######################################################################
+	parent_img_data = {}
+	if img_post_ids:
+		# change name of this cache key when "Follow" is introduced
+		cached_img_objs = my_server.mget(*('imc:'+img_post_id for img_post_id in img_post_ids))
+		remainder_img_objs, counter = [], 0
+		for json_img_obj in cached_img_objs:
+			post_id = img_post_ids[counter]
+			if json_img_obj:
+				try:
+					img_obj = json.loads(json_img_obj)
+				except:
+					img_obj = json_backup.loads(json_img_obj)
+				parent_img_data[post_id] = img_obj
+			else:
+				remainder_img_objs.append(post_id)
+			counter += 1
+		if remainder_img_objs:
+			
+			########################## Uncomment for "Follow" feature ##########################
+			# falling back to DB
+			# img_objs = Link.objects.values('id','submitter','description','image_file').filter(id__in=remainder_img_objs)
+			
+			# enrich the data with usernames
+			# submitter_ids = [data['submitter'] for data in img_objs]
+			# username_dictionary = retrieve_bulk_unames(user_ids=submitter_ids,decode=True)
+			# for dictionary in img_objs:
+			# 	dictionary['submitter_uname'] = username_dictionary[dictionary['submitter']]
+			####################################################################################
+
+			img_objs = Photo.objects.values('id','owner','caption','image_file').filter(id__in=remainder_img_objs)
+
+			submitter_ids = [data['owner'] for data in img_objs]
+			username_dictionary = retrieve_bulk_unames(user_ids=submitter_ids,decode=True)
+			for dictionary in img_objs:
+				dictionary['submitter_uname'] = username_dictionary[dictionary['owner']]
+
+			# cache the retrieved img_objs
+			if len(img_objs) > 1:
+				pipeline1 = my_server.pipeline()
+				for img_obj in img_objs:
+					obj_id = str(img_obj['id'])
+					parent_img_data[obj_id] = img_obj
+					pipeline1.setex('imc:'+obj_id,json.dumps(img_obj),THREE_DAYS)
+				pipeline1.execute()
+			else:
+				for img_obj in img_objs:
+					obj_id = str(img_obj['id'])
+					parent_img_data[obj_id] = img_obj
+					my_server.setex('imc:'+obj_id,json.dumps(img_obj),THREE_DAYS)
+		
+	return parent_text_data, parent_img_data
+
+
 ################ Caching number of images circulating in Photos section ################
 
 
@@ -262,6 +369,26 @@ def cache_image_count(num_images,list_type):
 	Saving number of images in circulation in best and fresh lists of the Photo section
 	"""
 	redis.Redis(connection_pool=POOL).setex("cic:"+list_type,num_images,TWENTY_MINS)
+
+
+
+######################################### Log direct repsonse rate ############################################
+#TODO: temp logger - needs to be removed
+
+REPLY_RATE = 'reply_rate'
+
+def log_replier_reply_rate(replier_id, text, time_now, target_id, marked_fast):
+	"""
+	Temporarily logging who all is illegally flooding
+	"""
+	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+marked_fast,replier_id)
+
+
+def retrieve_replier_rate():
+	"""
+	Retrieves logged data
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(REPLY_RATE,0,-1,withscores=True)
 
 
 ######################## Rate limiting content sharing on feeds ########################
@@ -537,6 +664,7 @@ def retrieve_bulk_unames(user_ids, decode=False):
 		pipeline2.execute()
 	return usernames
 
+
 def retrieve_uname(user_id,decode=False):
 	"""
 	Returns user's nickname
@@ -791,7 +919,7 @@ def cache_online_data(json_data):
 	"""
 	Caches prepared data to be shown in global online listing
 	"""
-	redis.Redis(connection_pool=POOL).setex('online_user_data',json_data,55)# micro-caching for 55 seconds
+	redis.Redis(connection_pool=POOL).setex('online_user_data',json_data,155)# micro-caching for 155 seconds
 
 
 def retrieve_online_cached_data():
@@ -1300,9 +1428,23 @@ def log_home_post(user_id, username, text, on_fbs, is_urdu, editorial_upvotes, t
 	6) How are trending posts distributed by language (English vs Urdu)
 	7) How long does it take for a post to get into trending (trending_time minus posting_time)
 	8) What categories of posts get into trending (poetry, religion, politics, jokes, etc)
+	9) What % post chars are 'non-readable chars' (i.e. non-english and non-urdu)
+	10) Can we identify posts that are mostly non-readable via the analysis in (9)?
 	"""
+	ascii_len, readable_urdu_len, digit_len, readable_eng_len = 0, 0, 0, 0
+	for c in text:
+		if u'\u0600' <= c <= u'\u06FF' or u'\uFB50' <= c <= u'\uFEFF':
+			readable_urdu_len += 1
+		elif ord(c) < 128:
+			ascii_len += 1
+			if c.isalpha():
+				readable_eng_len += 1
+			elif c.isdigit():
+				digit_len += 1
+
 	context = {'text':text,'is_urdu':is_urdu,'trending_time':trending_time,'user_id':user_id, 'username':username,\
-	'text_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time}
+	'total_length':len(text),'uv':editorial_upvotes, 'posting_time':posting_time,'readable_urdu_len':readable_urdu_len,\
+	'readable_eng_len':readable_eng_len,'ascii_len':ascii_len,'digit_len':digit_len}
 	if on_fbs:
 		context['on_fbs'] = on_fbs
 	json_payload = json.dumps(context)

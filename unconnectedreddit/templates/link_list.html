@@ -3,7 +3,6 @@
 {% load get_text_object %}
 {% load url_target_blank %}
 {% load get_photo_object %}
-{% load get_big_fan_button %}
 {% load get_big_vote_button %}
 {% load get_big_send_button %}
 {% load get_big_group_button %}
@@ -71,15 +70,14 @@
 	</aside>
 
 {% elif forloop.counter == 4 %}
-	
-	<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff99">
-		<div class="mtl mbs fx fxjscn fxaicn">
-			<img src="{{ STATIC_URL }}img/ahem.svg" class="mrs" width="60" height="60">
-			<img src="{{ STATIC_URL }}img/matka.svg" class="mls" width="60" height="60">
-		</div>
-		<div style="text-align:center" class="cxl lsp mbl mtl clb"><b>"Matka" khatam ho gya hai</b></div>
-		<a href="{% url 'coming_soon' %}"><button class="btn cl sp bct pg_ok_res" style="height:44px;width:100%;border-radius:0;overflow:hidden"><b>MAZEED MALUMAT</b></button></a>
-	</div>
+
+<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff66;text-align:center">
+<img src="{{ STATIC_URL }}img/confetti.svg" width="80" height="80" class="mts">
+<div class="cxl lsp" style="color:black"><b>Fans khatam ho gaye!</b></div>
+<div class="cxl lsp" style="color:black"><b>Followers ka daur aney wala hai</b></div>
+<a href="{% url 'coming_soon' %}#section0"><button class="btn bct cl sp pg_ok_res mts" style="background:#08cfdd;height:50px;width:100%;border-radius:0;overflow:hidden"><b>MAZEED MALUMAT</b></button></a>
+
+</div>
 
 {% endif %}
 
@@ -88,12 +86,11 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=link.fbs home_hash=link.h static_url=STATIC_URL is_star=link.s %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s lazyload_idx=forloop.counter ratio=link.rt %}
 
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
-		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
 		{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='3' static_url=STATIC_URL %}
@@ -121,7 +118,6 @@
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 
 		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='0' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
-		{% big_fan_button own_user_id=ident target_user_id=link.si object_id=link.i origin='3' home_hash=link.h fan_list=fanned static_url=STATIC_URL %}
 		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
 		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
 		</div>
@@ -146,18 +142,19 @@
 {% endfor %}
 
 </main>
-	<div class="mbl fx fxjscn">
-		{% if page.has_previous %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
-	    {% if page.has_next %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
-	    </div>
-	    {% endif %}
-	</div>
+	
+<div class="mbl fx fxjscn">
+	{% if page.has_previous %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+    </div>
+    {% endif %}
+    {% if page.has_next %}
+    <div style="padding:0 10px">
+    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+    </div>
+    {% endif %}
+</div>
 
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>

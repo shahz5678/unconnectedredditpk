@@ -8,7 +8,8 @@ from django.db.models import F
 from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
-TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME, PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH
+TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME, PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH, \
+MAX_PUBLIC_IMG_WIDTH
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from redis3 import retrieve_user_world_age, exact_date
 from abuse import FLAGGED_PUBLIC_TEXT_POSTING_WORDS
@@ -209,6 +210,69 @@ def delete_avg_hash(hash_list, categ=None):
 ##################################################################################################################
 
 
+def retrieve_text_quality(text,lower_text,text_lang,is_being_reposted):
+	"""
+	Flags posts as 'low quality' if some obvious quality compromises are present
+
+	Helper func for add_text_post() and add_topic_post()
+	"""
+	if is_being_reposted:
+		# is an obvious repost
+		return '1'
+
+	##########
+
+	text_len = len(text)
+
+	if text_len < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
+		# 'short post': short-posts are considered low-quality
+		return '1'
+
+
+	##########
+
+	flag_text = False
+	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
+		if word in lower_text:
+			flag_text = True
+			break
+
+	if flag_text:
+		# 'illegal words': this post is blocked from trending forever
+		return '1'
+
+	##########
+	
+	other_chars = 0
+	for c in text:
+		if u'\u0600' <= c <= u'\u06FF' or u'\uFB50' <= c <= u'\uFEFF':
+			# urdu is readable
+			pass
+		elif c.isalpha():
+			# eng is readable
+			pass
+		else:
+			# these chars may not be deemed readable content
+			other_chars += 1
+	other_char_ratio = (other_chars*1.0)/text_len
+	if text_lang == '1':
+		# text is english
+		if other_char_ratio > 0.3:# this threshold was determined after some analysis
+			return '1'
+	else:
+		# text is urdu
+		if other_char_ratio > 0.32:# this threshold was determined after some analysis
+			return '1'
+
+	##########
+
+	# post doesn't suffer from any obvious quality defects
+	return '0'
+	
+	
+
+
+
 def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, text, submission_time, \
 	from_fbs, add_to_feed=False):
 	"""
@@ -228,24 +292,10 @@ def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_usern
 
 	######################################################
 	# flagging low quality posts based on certain text criteria
-	
-	if len(text) < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
-		# 'short post': this can never trend because short-posts are considered low-quality
-		mapping['sp'] = '1'
-	
-	flag_text, flagged_word, lower_text = False, '', text.lower()
-	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
-		if word in lower_text:
-			flag_text = True
-			flagged_word = word
-			break
-	if flag_text:
-		# 'illegal words': this post is blocked from trending forever
-		mapping['iw'] = '1'
+	lower_text = text.lower()
+	mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
+		is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
 
-	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text):
-		# text is being repeated within the last 800 posts
-		mapping['rt'] = '1'# 'repeated text': this post is repetitive, and therefore blocked from trending forever
 	######################################################
 	
 	time_now = time.time()
@@ -368,8 +418,8 @@ def retrieve_text_obj_scores(obj_list):
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for obj_hash_name in obj_list:
 
-		# Criteria 1) retrieve 'upvotes', 'short post', 'illegal words', 'repeated text'
-		pipeline1.hmget(obj_hash_name,'uv','sp','iw','rt')
+		# Criteria 1) retrieve 'upvotes', 'low quality'
+		pipeline1.hmget(obj_hash_name,'uv','lq')
 
 		# Criteria 2) is obj locked from trending because of sybils?
 		pipeline1.exists(LOCKED_TXT+obj_hash_name)
@@ -388,10 +438,10 @@ def retrieve_text_obj_scores(obj_list):
 
 		# else: non-sybil voting, and voting is open!
 		else:
-			num_upvotes, short_post, illegal_words, repetitive_post = obj_data[0], obj_data[1], obj_data[2], obj_data[3]
+			num_upvotes, low_quality = obj_data[0], obj_data[1]
 			
-			# the following kinds of posts will never trend anyway
-			if short_post or illegal_words or repetitive_post:
+			# loq quality posts will never trend anyway
+			if low_quality == '1':
 				pass
 			
 			# this post can trend, if it has the requisite number of likes
@@ -832,9 +882,10 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
 	img_thumb = get_s3_object(img_url,category="thumb")
 	hash_name = "img:"+obj_id
-	# img_hw_ratio = int((float(img_height)/(2*float(img_wid)))*100)
+	img_hw_ratio = (1.0*img_width/img_height)
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
-	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width}
+	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width,'rt':round((100.0/img_hw_ratio),2),\
+	'nht':round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)}
 	if from_fbs:
 		immutable_data['fbs']='1'
 	if is_star:
@@ -1244,26 +1295,13 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 	time_now = time.time()
 	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	
+
 	######################################################
 	# flagging low quality posts based on certain text criteria
-	if len(text) < PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH:
-		# 'short post': this can never trend because short-posts are considered low-quality
-		mapping['sp'] = '1'
-	
-	flag_text, flagged_word, lower_text = False, '', text.lower()
-	for word in FLAGGED_PUBLIC_TEXT_POSTING_WORDS:
-		if word in lower_text:
-			flag_text = True
-			flagged_word = word
-			break
-	if flag_text:
-		# 'illegal words': this post is blocked from trending forever
-		mapping['iw'] = '1'
+	lower_text = text.lower()
+	mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
+		is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
 
-	if my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text):
-		# text is being repeated within the last 800 posts
-		mapping['rt'] = '1'# 'repeated text': this post is repetitive, and therefore blocked from trending forever
 	######################################################
 
 	pipeline1 = my_server.pipeline()
@@ -2098,14 +2136,14 @@ def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
 	#############################
 	#############################
 	#  Logging trending posts for analysis (can remove)
-	json_data_blob, editorial_upvotes = my_server.hmget(obj_hash,'blob','uv')
-	try:
-		data = json.loads(json_data_blob)
-	except:
-		data = json_backup.loads(json_data_blob)
-	from redis4 import log_home_post
-	log_home_post(user_id=data['si'], username=data['su'], text=data['d'], on_fbs=data.get('fbs',''),is_urdu=data['c'], \
-		editorial_upvotes=editorial_upvotes, trending_time=time_now, posting_time=data['t'])
+	# json_data_blob, editorial_upvotes = my_server.hmget(obj_hash,'blob','uv')
+	# try:
+	# 	data = json.loads(json_data_blob)
+	# except:
+	# 	data = json_backup.loads(json_data_blob)
+	# from redis4 import log_home_post
+	# log_home_post(user_id=data['si'], username=data['su'], text=data['d'], on_fbs=data.get('fbs',''),is_urdu=data['c'], \
+	# 	editorial_upvotes=editorial_upvotes, trending_time=time_now, posting_time=data['t'])
 
 
 
@@ -4836,6 +4874,56 @@ def bulk_sanitize_group_invite_and_membership(user_ids_list):
 		pipeline1.delete('ipg:'+user_id)
 		pipeline1.delete("pir:"+user_id)
 	pipeline1.execute()
+
+
+################################## Direct response data retrieval ##############################################
+
+
+def retrieve_shared_obj_meta_data(obj_type,obj_id, with_owner_id=False):
+	"""
+	Retrieves some meta data required by direct_response functionality(e.g. parent obj text, submitter, etc)
+
+	Optimization function: this looks into redis, before falling back into Postgresql data
+	"""
+	# it's a post of type 'tx'
+	via_db = False
+	if obj_type == '3':
+		my_server = redis.Redis(connection_pool=POOL)
+		redis_json_blob = my_server.hget('tx:'+str(obj_id),'blob')
+		if redis_json_blob:
+			# the obj is cached in redis
+			data = json.loads(redis_json_blob)
+			final_data = {'turl':data.get('url',''),'tn':data.get('tn',''),'th':data.get('th',None),'ooid':data['si'] if with_owner_id else '',\
+			'd':data['d']}
+		else:
+			# the object is not available in redis - fall back to postgresql
+			via_db = True
+			if with_owner_id:
+				final_data = Link.objects.values('url','description','submitter_id').filter(id=obj_id)[0]
+			else:
+				final_data = Link.objects.values('url','description').filter(id=obj_id)[0]
+		return final_data, via_db
+
+	# it's a post of type 'img'
+	elif obj_type == '4':
+		my_server = redis.Redis(connection_pool=POOL)
+		redis_json_blob = my_server.hget('img:'+str(obj_id),'blob')
+		if redis_json_blob:
+			# the obj is cached in redis
+			data = json.loads(redis_json_blob)
+			final_data = {'iu':data['iu'],'d':data['d'],'ooid':data['si'] if with_owner_id else ''}
+		else:
+			# the object is not available in redis - fall back to postgresql
+			via_db = True
+			if with_owner_id:
+				final_data = Photo.objects.values('image_file','caption','owner_id').filter(id=obj_id)[0]
+			else:
+				final_data = Photo.objects.values('image_file','caption').filter(id=obj_id)[0]
+		return final_data, via_db
+	
+	# unidentified obj_type
+	else:
+		return {}, via_db
 
 
 ################################## export_website_feedback.py ##############################################

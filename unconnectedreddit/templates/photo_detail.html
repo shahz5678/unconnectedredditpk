@@ -48,7 +48,7 @@
     {% check_invite_count as invite_count %}
     {% load count_group_invites %}
     {% check_group_invite_count as group_invite_count %}
-    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox{% if reply_count %}<span style="color:mediumblue"> ({{ reply_count }})</span>{% endif %}</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li>{% if reply_count %}<a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox<span style="color:mediumblue"> ({{ reply_count }})</span></a>{% else %}<a class="sharing" href="{% url 'retrieve_direct_response_activity' %}#section0">Inbox</a>{% endif %}</li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}&nbsp;<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 {% else %}
     <li itemprop="name"><a href="{% url 'unauth_home_new' %}" itemprop="url">Home</a></li><li itemprop="name"><a itemprop="url" href="{% url 'photo' 'best-list' %}">Photos</a></li><li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>New Account</b></a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Existing Account</a></li>
 {% endif %}
@@ -102,10 +102,10 @@
 		<a href="{% url 'cull_content_loc' photo.id 'img' %}"><button type="submit" class="btn bcgy bm mbl mtl"><b>wapis</b></button></a><br>
 	{% else %}
 
-	<article style="display:block">
+	<article style="display:block;background:white">
 
 		<section itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" style="display:block">
-			{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin='5' vsc=photo.vote_score upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=oun av_url=av_url|s3:'thumb' static_url=STATIC_URL is_star=is_star exclude_detail_url='1' %}
+			{% photo_object pid=photo.id ooid=photo.owner_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.caption|emoticons raw_caption=photo.caption origin='5' vsc=photo.vote_score is_fbs=on_fbs upload_time=photo.upload_time|naturaltime machine_time=photo.upload_time oun=oun av_url=av_url|s3:'thumb' static_url=STATIC_URL is_star=is_star exclude_detail_url='1' lazyload_idx=1 ratio=ratio %}
 		</section>
 
 		<section class="mbs">

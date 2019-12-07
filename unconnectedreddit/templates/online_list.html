@@ -21,7 +21,6 @@
 	{% endif %}
 	<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0;padding:5px 7px 0 7px;">
 		<div class="mts" style="word-break: break-all">
-			{% load get_big_group_button %}
 			{% load cache %}
 			{% if on_fbs %}
 				{% cache 60 fbs_online_page own_id %}
@@ -36,13 +35,12 @@
 								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_fotos_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_text_button.html" with username=username static_url=STATIC_URL %}
-								{% big_group_button own_id=own_id target_id=user_id parent_object_id='' object_type='online' origin='23' %}
 							</div>
 
 						</li>
 					{% endfor %}
 				{% empty %}
-				<div class="mtl cs sp cgy">- list empty hai -</div>
+				<div class="mtl cs sp cgy">- Ye list empty hai -</div>
 				{% endfor %}
 				{% endcache %}
 			{% else %}
@@ -58,7 +56,6 @@
 								{% include "big_buttons/big_about_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_fotos_button.html" with username=username static_url=STATIC_URL %}
 								{% include "big_buttons/big_text_button.html" with username=username static_url=STATIC_URL %}
-								{% big_group_button own_id=own_id target_id=user_id parent_object_id='' object_type='online' origin='23' %}
 							</div>
 
 						</li>

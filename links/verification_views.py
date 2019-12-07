@@ -10,7 +10,7 @@ twiliolog_reverification_pin_sms_sent, twiliolog_user_reverified, log_fbs_please
 retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id, log_ak_entered, log_ak_user_verification_outcome
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points, log_user_activity
-from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME, SEGMENT_STARTING_USER_ID
+from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME#, SEGMENT_STARTING_USER_ID
 from views import convert_to_epoch
 from redis4 import retrieve_uname
 from redis8 import retrieve_var
@@ -155,10 +155,10 @@ def account_kit_verification_processing(request):
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					log_ak_user_verification_outcome("verified")
 					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						activity_dict = {'m':'GET','act':'Z','t':time_now}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					# if user_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	activity_dict = {'m':'GET','act':'Z','t':time_now}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					request.session["account_kit_verification_succeeded"] = '1'
 					request.session.modified = True
@@ -281,11 +281,11 @@ def verify_user_mobile_unpaid(request):
 		return redirect("missing_page")
 	else:
 		################### Retention activity logging ###################
-		user_id = request.user.id
-		if user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'GET','act':'Z.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# user_id = request.user.id
+		# if user_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'GET','act':'Z.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		return render(request,'verification/user_mobile_verification.html',{'form':MobileVerificationForm()})	
 

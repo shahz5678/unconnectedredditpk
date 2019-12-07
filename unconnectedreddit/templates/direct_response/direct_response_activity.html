@@ -1,0 +1,126 @@
+{% extends "base_noindex.html" %}
+{% load emoticons_tags %}
+{% load human_time %}
+{% load count %}
+{% load s3 %}
+{% block content %}
+<head><title>Activity | Damadam</title></head>
+
+<style>body{background:#f0f3f4}p{display:none}input:checked~p{display:block}input[type=checkbox]{position:absolute;left:-1000px}</style>
+
+	{% check_reply_count as reply_count %}
+	{% include "inbox_navbar.html" with username=user.username section='activity' num_rep=reply_count %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Recent activity:</h1>
+
+	{% if activity_removed %}
+		<div style="text-align:center;background: rgb(195,195,195);background: -moz-linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);background: -webkit-linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);background: linear-gradient(135deg, rgba(195,195,195,1) 0%, rgba(176,176,176,1) 88%);color:white;border:3px solid #ececec;border-radius:12px;max-width:750px;width:98%;margin-left:auto;margin-right:auto;padding:10px;box-sizing:border-box" class="nos sp lsp cl">Removed recent activity</div>
+	{% endif %}
+
+	{% for data in object_list %}
+	<div class="mbl mtl" style="color:black;border:2px solid #1cc8e3;border-radius:12px;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;width:98%;box-sizing:border-box">
+		{% if data.ot == '3' %}
+			<div style="background:#f9f9f9">
+				<a href="{% url 'publicreply_view' data.poid %}">
+					<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+						<div class="fx fxjscn fxaicn">
+							<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+							<div class="sp cm nos" style="text-align:left"><span class="ct"><b><bdi>{{ data.wu}}</bdi>:</b> {% emoticons %}{{ data.label|truncatechars:'50' }}{% endemoticons %}</span></div>
+						</div>
+					</button>
+				</a>
+			</div>
+		{% elif data.ot == '4' %}
+			<div style="background:#f9f9f9;">
+				<a href="{% url 'comment' data.poid '24' %}">
+					<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+						<div class="fx fxjscn fxaicn">
+							<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
+							<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
+							<div class="fx fxjscn fxaicn">
+								<img src="{{ data.iu|s3:'thumb' }}" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="38" alt="pic">
+								<div class="cm sp mls nos" style="text-align:left" style="word-break: break-all;"><span class="ct"><b><bdi>{{ data.wu}}</bdi>:</b> {% emoticons %}{{ data.label|truncatechars:'50' }}{% endemoticons %}</span></div>
+							</div>
+						</div>
+					</button>
+				</a>
+			</div>
+		{% elif data.ot == '5' %}
+			<form method="GET" style="background:#f9f9f9" action="{% url 'public_group' data.poid %}">
+				<button type="submit" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+					<div class="fx fxjscn fxaicn">
+						<div class="sp cs mrs" style="text-align:center"><span class="cp">MEHFIL</span></div>
+						<div class="sp cxs mrs" style="text-align:center"><span class="cp">►</div>
+						<div class="cm sp" style="text-align:left"><span class="cp">{% emoticons %}{{ data.label }}{% endemoticons %}</span></div>
+					</div>
+				</button>
+			</form>
+		{% elif data.ot == '6' %}
+			<form method="POST" style="background:#f9f9f9" action="{% url 'priv_group' %}">
+				{% csrf_token %}
+				<button name="private_uuid" type="submit" value="{{ data.poid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+					<div class="fx fxjscn fxaicn">
+						<div class="sp cs mrs" style="text-align:center"><span style="color:#11ae59">MEHFIL</span></div>
+						<div class="sp cxs mrs" style="text-align:center"><span style="color:#11ae59">►</div>
+						<div class="cm sp" style="text-align:left;color:#11ae59">{% emoticons %}{{ data.label }}{% endemoticons %}</div>
+					</div>
+				</button>
+			</form>
+		{% elif data.ot == '7' %}
+			<form method="POST" style="background:#f9f9f9" action="{% url 'enter_personal_group_from_single_notif' %}">
+				{% csrf_token %}
+				<button type="submit" name="tid" value="{{ data.ooid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
+					<div class="fx fxjscn fxaicn">
+						<div class="sp cs mrs" style="text-align:center"><span style="color:#3b7af7">1&nbsp;ON&nbsp;1</span></div>
+						<div class="sp cxs mrs" style="text-align:center"><span style="color:#3b7af7">►</div>
+						<div class="cm sp" style="text-align:left;color:#3b7af7">{{ data.label }}</div>
+					</div>
+				</button>
+			</form>
+		{% endif %}
+
+		<div style="background:white;text-align:center">
+			<div style="padding:8px 6px;border-top:1px solid #dbdbdb;" class="sp lsp nos">
+				{% if data.ot == '3' %}
+					You replied {% if data.tunames %}to <b>{% for tuname in data.tunames %}{% if forloop.last %}{{ tuname }}{% else %}{{ tuname }}, {% endif %} {% endfor %}</b> {% if data.nu > 3 %}(<a href="{% url 'render_uname_list' data.ot data.poid %}" class="cb cs sp">.. see more</a>){% endif %}{% endif %} on this post
+				{% elif data.ot == '4' %}
+					You replied {% if data.tunames %}to <b>{% for tuname in data.tunames %}{% if forloop.last %}{{ tuname }}{% else %}{{ tuname }}, {% endif %} {% endfor %}</b> {% if data.nu > 3 %}(<a href="{% url 'render_uname_list' data.ot data.poid %}" class="cb cs sp">.. see more</a>){% endif %}{% endif %} on this post
+				{% elif data.ot == '5' %}
+					You replied {% if data.tunames %}to <b>{% for tuname in data.tunames %}{% if forloop.last %}{{ tuname }}{% else %}{{ tuname }}, {% endif %} {% endfor %}</b> {% if data.nu > 3 %}(<a href="{% url 'render_uname_list' data.ot data.poid %}" class="cb cs sp">.. see more</a>){% endif %}{% endif %} in this mehfil
+				{% elif data.ot == '6' %}
+					You replied {% if data.tunames %}to <b>{% for tuname in data.tunames %}{% if forloop.last %}{{ tuname }}{% else %}{{ tuname }}, {% endif %} {% endfor %}</b> {% if data.nu > 3 %}(<a href="{% url 'render_uname_list' data.ot data.poid %}" class="cb cs sp">.. see more</a>){% endif %}{% endif %} in this mehfil
+				{% elif data.ot == '7' %}
+					You replied to <b>{{ data.wu }}</b> in this 1 on 1
+				{% endif %}
+			</div>
+			<div class="sp fx fxjssb fxaicn nos" style="padding:0 6px 4px 6px">
+				<form method="POST" action="{% url 'remove_direct_response_activity_log' %}">{% csrf_token %}<input type="hidden" name="pg" value="{{ page_num }}"><button type="submit" name="pl" class="cxs vt" style="border:none;margin:0;padding:0 4px;height:20px" value="{{ data.ot }}:{{ data.poid }}:{{ data.ooid }}"><span class="cgy">REMOVE</span></button></form>
+				<div style="text-align:right" class="cxs"><span class="cgy">&nbsp;last reply - {{ data.time|human_time }}</span></div>
+			</div>
+		</div>
+
+	</div>
+	{% empty %}
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:98%;margin-right:auto;margin-left:auto;text-align:center">
+		<div class="cxl lsp clb mts mbs" style="text-align:center;padding:0 6px">Sorry! Ye khali hai kyun ke ap ne koi replies send nahi kiye</div>
+		<hr size=1 COLOR="#f4f4f4" style="margin:0">
+		<div class="clb cl sp lsp" style="text-align:center;background:white;padding:10px">Yahan woh posts show hoti hain jin pe ap ne pichley 2 weeks mein reply kia ho<br><a href="{% url 'home' %}"><button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:28px">Home</button></a></div>
+	</div>
+	{% endfor %}
+
+	<div class="fx fxjscn fxaicn">
+		{% if page.has_previous %}
+		    <div style="padding:0 10px">
+		    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+		    </div>
+	    {% endif %}
+	    {% if page.has_next %}
+		    <div style="padding:0 10px">
+		    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+		    </div>
+	    {% endif %}
+	</div>
+
+<br>
+{% endblock %}

@@ -4,26 +4,26 @@ from django.db.models import F
 from django.http import Http404
 from django.core.urlresolvers import reverse_lazy
 from django.shortcuts import render, redirect
-from score import DELETION_THRESHOLD
 from redis3 import is_already_banned
 from page_controls import ITEMS_PER_PAGE
 from templatetags.s3 import get_s3_object
 from topic_views import isolate_topic_data
+from models import Publicreply, PhotoComment
 from redirection_views import return_to_content
 from group_views import personal_group_sanitization
 from direct_response_forms import DirectResponseForm
 from django.views.decorators.csrf import csrf_protect
-from models import Publicreply, Link, PhotoComment, Photo
+from score import DELETION_THRESHOLD, NUM_ACTIVITY_ITEMS_PER_PAGE
 from redis4 import retrieve_uname, retrieve_bulk_unames, retrieve_avurl
 from views import get_indices, break_text_into_prefix_and_postfix, convert_to_epoch
-from redis7 import check_content_and_voting_ban, invalidate_cached_public_replies, store_inline_reply
-from tasks import publicreply_notification_tasks, trim_group_submissions, set_input_rate_and_history, direct_response_tasks
-from redis9 import retrieve_direct_response_list, delete_single_direct_response, bulk_delete_selective_dir_reps_of_single_user, \
-submit_direct_response
-from redis6 import retrieve_single_group_submission, save_group_submission, invalidate_cached_mehfil_replies, invalidate_presence,\
-retrieve_group_uuid, populate_reply_mapping
+from tasks import publicreply_notification_tasks, trim_group_submissions, set_input_rate_and_history, direct_response_tasks#,log_reply_rate
+from redis7 import check_content_and_voting_ban, invalidate_cached_public_replies, store_inline_reply, retrieve_shared_obj_meta_data
 from redis5 import add_content_to_personal_group, get_personal_group_anon_state, mark_personal_group_attendance, update_personal_group_last_seen,\
 set_uri_metadata_in_personal_group
+from redis6 import retrieve_single_group_submission, save_group_submission, invalidate_cached_mehfil_replies, invalidate_presence,\
+retrieve_group_uuid, populate_reply_mapping
+from redis9 import retrieve_direct_response_list, delete_single_direct_response, bulk_delete_selective_dir_reps_of_single_user, \
+submit_direct_response, display_recent_reply_locations, retrieve_interacted_unames, remove_direct_response_activity
 
 
 ################################################# Utilities #################################################
@@ -36,18 +36,14 @@ def retrieve_target_text(obj_id, submitter_id, parent_obj_id, obj_type, is_main_
 	###################################################################
 	# reply from text box under the post (img or text)
 	if is_main_reply:
-		if obj_type == '3':
-			# return text post description
-			link = Link.objects.values('url','description').filter(id=parent_obj_id)[0]
-			return link['description'], link['url']
-		elif obj_type == '4':
-			# return img post caption and url
-			photo = Photo.objects.values('image_file','caption').filter(id=parent_obj_id)[0]
-			return photo['caption'], photo['image_file']
+		
+		meta_data, retrieved_via_db = retrieve_shared_obj_meta_data(obj_type=obj_type,obj_id=parent_obj_id)
+		return meta_data, retrieved_via_db
 	
 	###################################################################
 	# 'reply to reply' under comments of various posts 
 	else:
+		
 		if obj_type == '3':
 			# text post: return target of "reply to reply", or simple reply
 			try:
@@ -64,8 +60,9 @@ def retrieve_target_text(obj_id, submitter_id, parent_obj_id, obj_type, is_main_
 			return target_text
 		elif obj_type in ('5','6'):
 			# public/private mehfil
-			target_text, target_img_url, group_uuid, group_topic  = retrieve_single_group_submission(parent_obj_id, obj_id, text_img_tp_uuid=True)
-			return target_text, target_img_url, group_topic, group_uuid
+			target_text, target_img_url, group_uuid, group_topic, group_owner_id  = retrieve_single_group_submission(group_id=parent_obj_id, \
+				submission_id=obj_id, text_img_tp_uuid_ooid=True)
+			return target_text, target_img_url, group_topic, group_uuid, group_owner_id
 
 
 def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_id, is_main_reply, own_id, own_uname):
@@ -78,71 +75,118 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 	###################################################################
 	# reply from text box under the post (img or text)
 	if is_main_reply:
+
+		# reply under text post
 		if obj_type == '3':
-			# reply under text post
-			parent_text, topic_data = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
-				obj_type=obj_type, is_main_reply=is_main_reply)
-			if topic_data:
-				theme, topic_name, c1, c2, topic_url = isolate_topic_data(topic_data)
+			
+			meta_data, retrieved_via_db = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
+				obj_type=obj_type, is_main_reply=True)
+			if retrieved_via_db:
+				# data not found in redis - retrieved via DB lookup
+				parent_text, topic_data = meta_data['description'], meta_data['url']
+				if topic_data:
+					theme, topic_name, c1, c2, topic_url = isolate_topic_data(topic_data)
+				else:
+					theme, topic_name, c1, c2, topic_url = None, '', '', '', ''
 			else:
-				theme, topic_name, c1, c2, topic_url = None, '', '', '', ''
+				#retrieved via cached redis data - lesser processing required for 'topic' retrieval here
+				parent_text, theme, topic_name, topic_url = meta_data['d'] ,meta_data['th'], meta_data['tn'], meta_data['turl']
+				if theme:
+					c1, c2 = isolate_topic_data(theme,colors_only=True)
+				else:
+					c1, c2 = '', ''
+
 			parent_user_id = target_user_id
 			parent_uname = retrieve_uname(target_user_id,decode=True)
 			obj_exists = True
+		
+		# reply under img post
 		elif obj_type == '4':
-			# reply under img post
-			parent_text, image_url = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
-				obj_type=obj_type, is_main_reply=is_main_reply)
+			
+			meta_data, retrieved_via_db = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, \
+				obj_type=obj_type, is_main_reply=True)
+			if retrieved_via_db:
+				# data not found in redis - retrieved via DB lookup
+				parent_text, image_url = meta_data['caption'], meta_data['image_file']
+			else:
+				#retrieved via cached redis data
+				parent_text, image_url = meta_data['d'], meta_data['iu']
+
 			parent_user_id = target_user_id
 			parent_uname = retrieve_uname(target_user_id,decode=True)
 			obj_exists = True
+		
+		# reply in 1on1 (even 'reply to reply' is deemed as a 'main_reply' for the purposes of a 1on1)
 		elif obj_type == '7':
-			# reply in 1on1 (even 'reply to reply' is deemed as a 'main_reply' for the purposes of a 1on1)
+			
 			own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(own_id, target_user_id)
+			
+			# performing a double check
 			if group_id == parent_obj_id:
-				# performing a double check
-				obj_exists = True
+				obj_exists, parent_user_id = True, target_user_id
 				parent_uname = retrieve_uname(target_user_id,decode=True)
-				parent_text = '1 on 1 with {}'.format(own_uname.decode('utf-8')[:1].upper()) \
-				if their_anon_status else '1 on 1 with {}'.format(own_uname)# group topic
+				parent_uname = parent_uname[:1].upper() if their_anon_status else parent_uname
+				own_uname = own_uname[:1].upper() if own_anon_status else own_uname
+				parent_text = '1 on 1 with {}'.format(own_uname.encode('utf-8')) # group label
 			else:
 				obj_exists = False
 	
 	###################################################################
 	# 'reply to reply' under comments of various posts 
 	else:
+
+		# 'reply to reply' under a text post
 		if obj_type == '3':
-			# 'reply to reply' under a text post
+			
 			target_text = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, obj_type=obj_type,\
-				is_main_reply=is_main_reply)
+				is_main_reply=False)
 			if target_text:
 				obj_exists = True
-				data = Link.objects.values('url','description','submitter').filter(id=parent_obj_id)[0]
-				if data:
-					topic_data, parent_text, parent_user_id = data['url'], data['description'], data['submitter']
-					parent_uname = retrieve_uname(parent_user_id,decode=True)
+				meta_data, retrieved_via_db = retrieve_shared_obj_meta_data(obj_type='3',obj_id=parent_obj_id,with_owner_id=True)
+				if retrieved_via_db:
+					# data not found in redis - retrieved via DB lookup
+					topic_data, parent_text, parent_user_id = meta_data['url'], meta_data['description'], meta_data['submitter_id']
 					if topic_data:
 						theme, topic_name, c1, c2, topic_url = isolate_topic_data(topic_data)
 					else:
 						theme, topic_name, c1, c2, topic_url = None, '', '', '', ''
+				else:
+					#retrieved via cached redis data
+					parent_text, parent_user_id = meta_data['d'], meta_data['ooid']
+					theme, topic_name, topic_url = meta_data['th'], meta_data['tn'], meta_data['turl']
+					if theme:
+						c1, c2 = isolate_topic_data(theme,colors_only=True)
+					else:
+						c1, c2 = '', ''
+				parent_uname = retrieve_uname(parent_user_id,decode=True)	
+
+		# 'reply to reply' under an img post
 		elif obj_type == '4':
-			# 'reply to reply' under an img post
+			
 			target_text = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, parent_obj_id=parent_obj_id, obj_type=obj_type,\
-				is_main_reply=is_main_reply)
+				is_main_reply=False)
 			if target_text:
 				obj_exists = True
-				data = Photo.objects.values('image_file','caption','owner').filter(id=parent_obj_id)[0]
-				if data:
-					parent_text, parent_user_id, image_url = data['caption'], data['owner'], data['image_file']
-					parent_uname = retrieve_uname(parent_user_id,decode=True)
+				meta_data, retrieved_via_db = retrieve_shared_obj_meta_data(obj_type='4',obj_id=parent_obj_id,with_owner_id=True)
+				
+				if retrieved_via_db:
+					# data not found in redis - retrieved via DB lookup
+					parent_text, parent_user_id, image_url = meta_data['caption'], meta_data['owner_id'], meta_data['image_file']
+				else:
+					#retrieved via cached redis data
+					parent_text, parent_user_id, image_url = meta_data['d'], meta_data['ooid'], meta_data['iu']
+				parent_uname = retrieve_uname(parent_user_id,decode=True)
+		
+		# reply to chat in public/private mehfil
 		elif obj_type in ('5','6'):
-			# reply to chat in public/private mehfil
-			target_text, image_url, group_topic, group_uuid = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, \
-				parent_obj_id=parent_obj_id, obj_type=obj_type, is_main_reply=is_main_reply)
+			
+			target_text, image_url, group_topic, group_uuid, parent_user_id = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, \
+				parent_obj_id=parent_obj_id, obj_type=obj_type, is_main_reply=False)
 			if group_uuid:
 				obj_exists = True
+
 	return obj_exists, target_text, parent_uname, parent_text, parent_user_id, topic_name, theme, c1, c2, topic_url, image_url, group_topic, \
-	group_uuid
+	group_uuid, own_uname
 
 
 ################################################# Direct response functionality #################################################
@@ -181,7 +225,7 @@ def post_direct_response(request):
 	"""
 	Processes a direct reply, a.k.a direct response (send, skip or block)
 	
-	A direct response is broadly originate from two places: 'main reply' (i.e. replied from text box under post), or 'reply of reply' (i.e. replied to a reply under a post)
+	A direct response broadly originates from two contexts: 'main reply' (i.e. replied from text box under post), or 'reply of reply' (i.e. replied to a reply under a post)
 
 	A direct response can be of various types (called ob_type), including:
 	'3' reply to reply under text post, OR reply under text post
@@ -200,9 +244,11 @@ def post_direct_response(request):
 			target_id = request.POST.get("tuid",None)
 			parent_obj_id = request.POST.get("poid",None)
 			own_id = request.user.id
+			
 			username_dictionary = retrieve_bulk_unames([own_id,target_id],decode=True)
 			own_username, target_uname = username_dictionary[own_id], username_dictionary[int(target_id)]
 			banned, time_remaining, ban_detail = check_content_and_voting_ban(own_id, with_details=True)
+
 			if banned:
 				# display template announcing that the user is banned from doing this
 				return render(request,"direct_response/direct_response_errors.html",{'content_ban':True,'org':origin,'uname':own_username,\
@@ -240,16 +286,15 @@ def post_direct_response(request):
 							return render(request,"direct_response/direct_response_errors.html",{'resp_to_self':True,'org':origin,\
 								'obid':parent_obj_id})
 					else:
+						# is own_id banned by target_id? In that case, don't let them reply here anyway
 						banned_by, ban_time = is_already_banned(own_id=own_id,target_id=target_id, return_banner=True)
 						if banned_by:
-							# origins checked: inbox, home, best photos, fresh photos
-							#############################################################
 							# there's a block that exists between you and the target - disallowed from proceeding
 							if origin in ('15','16'):
 								# these are public and private groups
 								parent_obj_id = retrieve_group_uuid(parent_obj_id)
 							return render(request,"direct_response/direct_response_errors.html",{'blocked':True,'org':origin,\
-								'obid':parent_obj_id})
+								'obid':parent_obj_id,'tgt_uname':target_uname})
 					############################################################
 					"""
 					Data we need:
@@ -259,16 +304,15 @@ def post_direct_response(request):
 					- target_id
 					- target_obj_tp
 					- text (submitted by replier)
-
-					Data we still need:
 					- topic_name
 					- topic_theme
 					"""
 					obj_id = request.POST.get("obid",None)
 					own_avurl = retrieve_avurl(own_id)
 					if target_uname:
+						time_now = time.time()# useful for a host of operations below, but over-ridden below in some cases too
 						form = DirectResponseForm(request.POST,obj_type=obj_type,parent_obj_id=parent_obj_id,sender_id=target_id,\
-							receiver_id=own_id)
+							receiver_id=own_id, time_now=time_now)
 						if form.is_valid():
 								
 							#'3' reply on text, or reply to reply on text, '4' reply on photo, or reply on reply on photo, '5' comment on public mehfil text, '6' comment on private mehfil text
@@ -276,19 +320,30 @@ def post_direct_response(request):
 							is_main_reply = '1' if obj_type == '7' else is_main_reply# i.e. always a main_reply if obj_type is '7'
 							
 							obj_exists, target_text, parent_uname, parent_text, parent_user_id, topic_name, theme, c1, c2, \
-							topic_url, image_url, group_topic, group_uuid = retrieve_direct_response_data(obj_type=obj_type,\
+							topic_url, image_url, group_topic, group_uuid, own_username = retrieve_direct_response_data(obj_type=obj_type,\
 								target_user_id=target_id, obj_id=obj_id, parent_obj_id=parent_obj_id,is_main_reply=is_main_reply,\
 								own_id=own_id, own_uname=own_username)
-						
+
+							# is own_id banned by post owner? In that case, don't let them reply here anyway
+							banned_by, ban_time = is_already_banned(own_id=own_id,target_id=parent_user_id, return_banner=True)
+							if banned_by:
+								# there's a block that exists between you and the post owner - disallowed from proceeding
+								# if origin in ('15','16'):
+								# 	# these are public and private groups
+								# 	parent_obj_id = retrieve_group_uuid(parent_obj_id)
+								return render(request,"direct_response/direct_response_errors.html",{'op_blocked':True,'org':origin,\
+									'obid':parent_obj_id,'op_uname':parent_uname})
+
 							###########################################################################
-							if obj_exists:
+							elif obj_exists:
 								# process the direct response
 								if target_text:
 									target_text_prefix, target_text_postfix = break_text_into_prefix_and_postfix(target_text)
 								else:
 									target_text_prefix, target_text_postfix = '', ''
+
 								text, tgt_is_hidden = form.cleaned_data['direct_response']# what the submitter wrote							
-								lid, db_obj_id, created_obj_type, idx = None, None, None, None
+								lid, db_obj_id, created_obj_type, idx, text_len = None, None, None, None, -1
 
 								# this is a 'reply' from a text box under a post (img or txt)
 								if is_main_reply:
@@ -321,7 +376,6 @@ def post_direct_response(request):
 									elif obj_type == '7':
 										# '7' replying to chat in 1on1 (always considered a 'main_reply')
 										type_ = 'text'# the reply is a vanilla 'text' reply
-										time_now = time.time()
 										obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text,\
 											type_=type_, writer_id=own_id, group_id=parent_obj_id)
 										personal_group_sanitization(obj_count, obj_ceiling, gid)
@@ -365,7 +419,6 @@ def post_direct_response(request):
 									elif obj_type in ('5','6'):
 										# '5' reply to chat in public mehfil, '6' is reply to chat in private mehfil
 										# note: 'target_image' is an image url from the targeted (parent) text
-										time_now = time.time()
 										db_obj_id, num_submissions = save_group_submission(writer_id=own_id, \
 											group_id=parent_obj_id, text=text, target_image=image_url, posting_time=time_now, \
 											writer_avurl=get_s3_object(own_avurl,category='thumb'), category='11', \
@@ -430,7 +483,7 @@ def post_direct_response(request):
 										# add the following if groups (mehfils) are involved
 										if group_topic and group_uuid:
 											payload['gtp'] = group_topic
-											payload['guid'] = group_uuid
+											payload['guid'] = str(group_uuid)
 
 										if idx:
 											payload['idx'] = idx
@@ -449,6 +502,9 @@ def post_direct_response(request):
 									# updating said reply in the 'hash object' of the parent object (accessed by feeds, or mehfils, etc)
 									if obj_type in ('3','4'):
 
+										# useful for rate-limit logging (anti-flooding measures)
+										text_len = len(text)
+										
 										# a 'main' reply doesn't need to appear with any addendum
 										if is_main_reply:
 											if replying_on_own_post:
@@ -469,19 +525,31 @@ def post_direct_response(request):
 												time_now=time_now, reference_id=obj_id, reply_target=target_uname, \
 												target_text_prefix=target_text_prefix,target_text_postfix=target_text_postfix)
 
+										################################
+										# TODO: remove this once the analysis is complete
+										# log_reply_rate.delay(replier_id=own_id, text=text, time_now=time_now, reply_target=target_uname)
+										################################
+
 									elif obj_type in ('5','6'):
 										parent_obj_id = group_uuid# this is needed for return_to_content() below
 									
 									###############################################################
-									if from_direct_response_list:
-										request.session["dir_rep_sent"+str(own_id)] = target_uname
+									# helps in showing a 'reply sent' notification in dir rep list, or single dir rep
+									tuname = target_uname
+									if from_direct_response_list or request.POST.get('sdr',False):
 										request.session["dir_rep_tgt_obj_type"+str(own_id)] = obj_type
-										request.session["dir_rep_tgt_obj_id"+str(own_id)] = target_id if obj_type == '7' else parent_obj_id
+										if obj_type == '7':
+											tuname = parent_uname
+											request.session["dir_rep_tgt_obj_id"+str(own_id)] = target_id
+										else:
+											request.session["dir_rep_tgt_obj_id"+str(own_id)] = parent_obj_id
+										request.session["dir_rep_sent"+str(own_id)] = tuname
 
 									# log direct response metrics, and some other stuff
 									direct_response_tasks.delay(action_status=is_reply_to_reply, action_type='1', \
 										parent_obj_id=parent_obj_id, obj_owner_id=parent_user_id,obj_hash_name=lid, \
-										obj_type=obj_type, commenter_id=own_id, time_now=time_now)
+										obj_type=obj_type, commenter_id=own_id, time_now=time_now, log_location=True, \
+										target_uname=tuname, target_id=target_id,text_len=text_len)
 
 									return return_to_content(request=request,origin=origin,obj_id=parent_obj_id,link_id=lid,\
 										target_uname=request.POST.get('rorigin',None))#using target_uname as a 'placeholder' for some extra data
@@ -650,3 +718,53 @@ def skip_direct_responses(request):
 		##################################
 		request.session["page_skipped"+str(own_id)] = '1'
 	return redirect(reverse_lazy("retrieve_direct_responses"))
+
+
+def retrieve_direct_response_activity(request):
+	"""
+	Renders the 'reply history' of a given user
+	"""
+	page_num = request.GET.get('page', '1')
+	start_index, end_index = get_indices(page_num, NUM_ACTIVITY_ITEMS_PER_PAGE)
+	own_id = request.user.id
+
+	final_data, next_page_available = display_recent_reply_locations(replier_id=own_id, page_num=page_num, \
+		start_idx=start_index, end_idx=end_index)
+
+	context = {'object_list':final_data,'page_num':page_num,'activity_removed':request.session.pop('activity_removed','')}
+
+	################ Pagination ################
+	page_num = int(page_num)
+
+	context["page"] = {'has_previous':True if page_num>1 else False,'has_next':next_page_available,\
+	'previous_page_number':page_num-1,'next_page_number':page_num+1}
+	############################################
+
+	return render(request,"direct_response/direct_response_activity.html",context)
+
+
+def render_uname_list(request, obj_type, parent_obj_id):
+	"""
+	Renders a list of usernames a user has interacted with on a post
+	"""
+	return render(request,"direct_response/uname_list.html",{'unames':retrieve_interacted_unames(request.user.id, obj_type, parent_obj_id)})
+
+
+@csrf_protect
+def remove_direct_response_activity_log(request):
+	"""
+	Remove an entry from the 'reply activity'
+	"""
+	if request.method == "POST":
+		visited_location = request.POST.get("pl",None)
+		page_num = request.POST.get("pg",'1')
+		removed = False
+		if visited_location:
+			# remove the activity
+			removed = remove_direct_response_activity(request.user.id, visited_location, page_num)
+		if removed:
+			request.session['activity_removed'] = '1'
+		url = reverse_lazy("retrieve_direct_response_activity")+'?page={}#section0'.format(page_num)
+		return redirect(url)
+	else:
+		raise Http404("Can't remove via a GET request")

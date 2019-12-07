@@ -4,7 +4,6 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from django.views.generic.base import TemplateView
 from urls_unauth import urlpatterns as urlpatterns_unauth
-from urls_ecomm import urlpatterns as urlpatterns_ecomm
 from urls_maint import urlpatterns as urlpatterns_maint
 from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_retention import urlpatterns as urlpatterns_retention
@@ -22,15 +21,14 @@ from urls_direct_response import urlpatterns as urlpatterns_direct_response
 from urls_topics import urlpatterns as urlpatterns_topics
 from links.installment_calculator import calculator
 from links.webhooks import webhook_event
-from links.views import cross_notif, cross_comment_notif, user_profile_photo, welcome_reply, fan, comment_pk, reply_to_photo, \
-link_create_pk, welcome_pk, unfan, show_online_users,perm_redirect_to_home, star_list, cross_salat_notif, best_home_page, \
+from links.views import user_profile_photo, welcome_reply, reauth, comment_pk, reply_to_photo, public_reply_view,\
+link_create_pk, welcome_pk, sitemap, show_online_users,perm_redirect_to_home, logout_rules, best_home_page, \
 home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
-unseen_comment, submit_text_post, videocomment_pk, profile_pk, faces_pages, error, share_content, sharing_help, unseen_group, \
-unseen_fans, unseen_help, make_ad, ad_finalize, click_ad, cross_group_notif,suspend, top_photo_help, reauth, reset_password, \
-fan_list,manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
-first_time_unseen_refresh, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules, photo_sitemap,\
-public_reply_view, display_image_comments, redirect_to_profile_photos,public_photo_upload_denied, hide_comment, logout_rules,\
-unseen_reply, sitemap, photo_sitemap_of_sitemaps, user_profile_photos_redirect, user_profile_photos
+submit_text_post, display_image_comments, profile_pk, faces_pages, error, share_content, sharing_help, photo_sitemap, \
+hide_comment, photo_sitemap_of_sitemaps, make_ad, ad_finalize, click_ad,suspend, top_photo_help, reset_password, \
+manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
+user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules,\
+redirect_to_profile_photos,public_photo_upload_denied, user_profile_photos_redirect
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import FacesHelpView, PhotoTimeView, PhotostreamView, DeviceHelpView,AdCallPrefView, AdAddressView,\
@@ -39,10 +37,9 @@ PicPasswordView, EmoticonsHelpView, UserSMSView, LogoutHelpView, DeletePicView, 
 PicsChatUploadView, VerifiedView, WelcomeView, WelcomeMessageView, UserPhoneNumberView, LogoutPenaltyView, SmsReinviteView,\
 AdTitleView,TestAdsView, AdAddressYesNoView,SmsInviteView, UserSettingsEditView, UserProfileDetailView, UserProfileEditView,\
 CaptionView, LinkDeleteView, HelpView, AdMobileNumView, RegisterHelpView, VerifyHelpView, UserActivityView, HistoryHelpView,\
-AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, VideoCommentView, AdTitleYesNoView, AdImageYesNoView#, UserProfilePhotosView
+AdDescriptionView, PhotoShareView, PhotoDetailView, AdGenderChoiceView, AdTitleYesNoView, AdImageYesNoView
 from links.voting_views import user_vote_history
 from links.announcement_views import export_survey_results, coming_soon#, survey
-# from links.group_views import show_shared_photo_metrics
 
 admin.autodiscover()
 
@@ -57,8 +54,6 @@ urlpatterns = patterns('',
 	url(r'^redirect/home/$', auth(home_redirect), name='redirect_to_home'),
 	url(r'^redirect/home/(?P<pk>\d+)/$', auth(home_redirect), name='redirect_to_home'),
 	url(r'^redirect-to-content/$', auth(redirect_to_content), name='redirect_to_content'),
-	# url(r'^homerep/(?P<pk>\d+)/$', auth(home_reply), name='home_reply'),
-	# url(r'^fotocom/(?P<pk>\d+)/$', auth(photo_comment), name='photo_comment'),
 	url(r'^$', auth(home_page), name='home'),
 	url(r'^best_home_test/$', best_home_page, name='best_home_test'),
 	url(r'^vun/$',verify_user_number, name="verify_user_number"),
@@ -71,7 +66,6 @@ urlpatterns = patterns('',
 	################################################################################################
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
 	url(r'', include('user_sessions.urls', 'user_sessions')),
-	# url(r'^user/(?P<nick>[\w.@+-]+)/shared-fotos/$', show_shared_photo_metrics, name='show_shared_photo_metrics'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
 	url(r'^user/likes/history/$', auth(user_vote_history), name='user_vote_history'),
 	url(r'^user/(?P<slug>[\w.@+-]+)/(?P<type>[\w.@+-]+)/$', user_profile_photos, name='profile'),
@@ -82,7 +76,6 @@ urlpatterns = patterns('',
 	url(r'^users/(?P<slug>[\w.@+-]+)/$', UserProfileDetailView.as_view(), name='user_profile'),
 	url(r'^edit_settings/$', auth(UserSettingsEditView.as_view()), name='edit_settings'),
 	url(r'^edit_profile/$', auth(UserProfileEditView.as_view()), name='edit_profile'),
-	url(r'^unseen_fans/$', auth(unseen_fans), name='unseen_fans'),
 	url(r'^make_ad/$', make_ad, name='make_ad'),
 	url(r'^ad_finalize/$', ad_finalize, name='ad_finalize'),
 	url(r'^missing/$', missing_page, name='missing_page'),
@@ -102,40 +95,24 @@ urlpatterns = patterns('',
 	url(r'^verified/$', auth(VerifiedView.as_view()), name='verified'),
 	url(r'^reauth/$', auth(reauth), name='reauth'),
 	url(r'^users/(?P<slug>[\w.@+-]+)/activity/$', auth(UserActivityView.as_view()), name='user_activity'),
-	# url(r'^unseen/(?P<slug>[\w.@+-]+)/activity/$', auth(unseen_activity), name='unseen_activity'),
-	url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
+	# url(r'^unseen_help/activity/$', auth(unseen_help), name='unseen_help'),
 	url(r'^comment/(?P<pk>\d+)/$', display_image_comments, name='comment'),
 	url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', display_image_comments, name='comment'),
-	# url(r'^comment/(?P<pk>\d+)/$', CommentView.as_view(), name='comment'),
-	# url(r'^comment/(?P<pk>\d+)/(?P<origin>\d+)/$', CommentView.as_view(), name='comment'),
-	url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
-	url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
+	# url(r'^vidcom/$', VideoCommentView.as_view(), name='video_comment'),
+	# url(r'^videocomment_pk/(?P<pk>\d+)/$', videocomment_pk, name='videocomment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/$', comment_pk, name='comment_pk'),
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/$', comment_pk, name='comment_pk'), #origin is an optional variable
 	url(r'^comment_pk/(?P<pk>\d+)/(?P<origin>\d+)/(?P<ident>\d+)/$', comment_pk, name='comment_pk'), #origin and ident are an optional variable
-	################################################# Home Notifications #######################################################
-	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
-	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
-	url(r'^xcomment/(?P<pk>\d+)/(?P<usr>\d+)/(?P<from_home>\d+)/(?P<object_type>\d+)/$', auth(cross_comment_notif), name='cross_comment_notif'),
-	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
-	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_group_notif), name='x_group_notif'),
-	url(r'^xgroup/(?P<pk>\d+)/(?P<uid>\d+)/(?P<from_home>\d+)/$', auth(cross_group_notif), name='x_group_notif'),
-	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
-	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_notif), name='x_notif'),
-	url(r'^cross_notif/(?P<pk>\d+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_notif), name='x_notif'),
-	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/(?P<sort_by>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
-	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/(?P<lang>[\w.@+-]+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
-	url(r'^cross_salat_notif/(?P<pk>[\w:@+-]+)/(?P<user>\d+)/(?P<from_home>\d+)/$', auth(cross_salat_notif), name='cross_salat_notif'),
 	############################################################################################################################
 	url(r'^photo_jawab/$', auth(PhotoJawabView.as_view()), name='photo_jawab'),
 	url(r'^photo_time/(?P<pk>\d+)/$', auth(PhotoTimeView.as_view()), name='photo_time'),
 	url(r'^photo_detail/(?P<pk>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^photo_detail/(?P<pk>\d+)/(?P<origin>\d+)/$', PhotoDetailView.as_view(), name='photo_detail'),
 	url(r'^text/detail/(?P<link_id>\d+)/$', auth(display_link_detail), name='display_link_detail'),
-	url(r'^fan/$', auth(fan), name='fan'),
-	url(r'^unfan/$', auth(unfan), name='unfan'),
-	url(r'^fanlist/(?P<pk>\d+)/$', auth(fan_list), name='fan_list'),
-	url(r'^starlist/$', auth(star_list), name='star_list'),
+	# url(r'^fan/$', auth(fan), name='fan'),
+	# url(r'^unfan/$', auth(unfan), name='unfan'),
+	# url(r'^fanlist/(?P<pk>\d+)/$', auth(fan_list), name='fan_list'),
+	# url(r'^starlist/$', auth(star_list), name='star_list'),
 	url(r'^photo_reply/(?P<pk>\d+)/(?P<ident>\d+)/$', auth(reply_to_photo), name='reply_to_photo'),
 	###################################################################################
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/(?P<pk>\d+)/$', auth(photo_redirect), name='redirect_to_photo'),
@@ -158,7 +135,7 @@ urlpatterns = patterns('',
 	############################################################################################################################
 	url(r'^photos_help/(?P<slug>[\w.@+-]+)/(?P<pk>\d+)/$', PhotosHelpView.as_view(), name='photos_help'),
 	url(r'^khushamdeed/$', auth(WelcomeView.as_view()), name='welcome'),
-	url(r'^ftur/$', auth(first_time_unseen_refresh), name='first_time_unseen_refresh'),
+	# url(r'^ftur/$', auth(first_time_unseen_refresh), name='first_time_unseen_refresh'),
 	url(r'^welcome/(?P<pk>\d+)/$', auth(welcome_pk), name='welcome_pk'),
 	url(r'^device_help/(?P<pk>\d+)/$', auth(DeviceHelpView.as_view()), name='device_help'),
 	url(r'^damadam_par_khushamdeed/$', auth(welcome_reply), name='welcome_reply'),
@@ -194,11 +171,7 @@ urlpatterns = patterns('',
 	url(r'^auth_pics_display/$', auth(AuthPicsDisplayView.as_view()), name='auth_pics_display'),
 	##################################################Publicreply################################################
 	url(r'^jawab/(?P<parent_id>\d+)/$', auth(public_reply_view), name='publicreply_view'),
-	# url(r'^jawab/sent/$', auth(post_public_reply), name='publicreply_post'),
-	url(r'^unlink/(?P<pk>\d+)/$', auth(unseen_reply), name='unseen_reply'),
 	#############################################################################################################
-	url(r'^ungroup/(?P<pk>\d+)/$', auth(unseen_group), name='unseen_group'),
-	url(r'^unphoto/(?P<pk>\d+)/$', auth(unseen_comment), name='unseen_comment'),
 	url(r'^reply/hide/(?P<publicreply_id>\d+)/(?P<link_id>\d+)/$', auth(hide_jawab), name='hide_jawab'),
 	url(r'^comment/hide/(?P<comment_id>\d+)/(?P<photo_id>\d+)/(?P<origin>\d+)/$', auth(hide_comment), name='hide_comment'),
 	#################################################################################################
@@ -220,7 +193,7 @@ urlpatterns = patterns('',
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/$',perm_redirect_to_home, name='perm_redirect_to_home'),
 	url(r'^izzat_ya_bezati/(?P<pk>\d+)/(?P<origin>\d+)/(?P<slug>[\w.@+-]+)/$',perm_redirect_to_home, name='perm_redirect_to_home'),
 )
-urlpatterns += urlpatterns_ecomm
+
 urlpatterns += urlpatterns_ads
 urlpatterns += urlpatterns_adv
 urlpatterns += urlpatterns_feedback

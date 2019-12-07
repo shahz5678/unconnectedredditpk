@@ -333,13 +333,13 @@ class PrivateGroupReplyForm(forms.Form):
 					text_len = len(text)
 					if text_len < 1:
 						raise forms.ValidationError('Likhna zaruri hai')
-					if text_len < 6:
+					elif text_len < 6:
 						if many_short_messages(user_id,section,section_id):
 							raise forms.ValidationError('Har thori deir baad yahan choti baat nahi likhein')
 						else:
 							log_short_message(user_id,section,section_id)
 					elif text_len > PRIVATE_GROUP_REPLY_LENGTH:
-						raise forms.ValidationError('tip: itni barri baat nahi likh sakte')
+						raise forms.ValidationError('Itni barri baat nahi likh sakte')
 					data["text"] = text
 					return data
 		else:

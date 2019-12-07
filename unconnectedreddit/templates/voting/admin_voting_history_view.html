@@ -8,7 +8,6 @@
 {% load emoticons_tags %}
 {% load get_text_object %}
 {% load get_photo_object %}
-{% load get_big_fan_button %}
 {% load get_big_send_button %}
 {% load get_big_group_button %}
 {% load get_big_points_button %}
@@ -28,7 +27,6 @@
 			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 				{% big_points_button obj_id=datum.obid owner_id=datum.ooid is_pht=0 origin='25' net_votes=datum.nv base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
 				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='link' origin='25' target_username=datum.ou home_hash='' %}
-				{% big_fan_button own_user_id=own_id target_user_id=datum.ooid object_id=datum.obid origin='25' home_hash='' fan_list=fanned static_url=STATIC_URL %}
 				{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL always_show=True %}
 			</div>
 
@@ -37,12 +35,11 @@
 		{% else %}
 
 		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
-			{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs='' home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr %}
+			{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter %}
 
 			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 				{% big_points_button obj_id=datum.obid owner_id=datum.ooid is_pht=1 origin='25' net_votes=datum.nv base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
 				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
-				{% big_fan_button own_user_id=own_id target_user_id=datum.ooid object_id=datum.obid origin='25' home_hash='' fan_list=fanned static_url=STATIC_URL %}
 				{% big_photo_comment_button photo_id=datum.obid origin='25' comm_count=datum.cc static_url=STATIC_URL star_id=datum.ooid %}
 				{% big_send_button photo_owner_username=datum.ou photo_id=datum.obid photo_owner_id=datum.ooid photo_caption=datum.cp origin='25' home_hash='' img_url=datum.i static_url=STATIC_URL %}
 				{% big_external_share_button owner_username=datum.ou on_opera=on_opera photo_id=datum.obid origin='25' static_url=STATIC_URL %}	
@@ -67,15 +64,15 @@
 	{% endfor %}
 
 
-<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
+<div class="mbl fx fxjscn fxaicn">
 	{% if page.has_previous %}
     <div style="padding:0 10px">
-    	<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+    	<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
     </div>
     {% endif %}
     {% if page.has_next %}
     <div style="padding:0 10px">
-    	<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    	<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
     </div>
     {% endif %}
 </div>

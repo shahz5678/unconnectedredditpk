@@ -1,0 +1,20 @@
+{% extends "base_noindex.html" %}
+{% load human_time %}
+{% block content %}
+<head><title>List of users | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+
+<h1 class="cxl clb lsp" style="text-align:center">Users you replied to:</h1>
+	<div class="mbl mtl lsp" style="border:2px solid #1cc8e3;border-radius:12px;overflow:hidden;max-width:550px;margin-left:auto;margin-right:auto;width:98%;box-sizing:border-box;background:white;text-align:center;">
+	<div class="cxl mbs" style="padding:10px 6px;border-bottom:1px solid lightgray">Ap ne recently in users ko yahan pe reply kia:</div>
+		
+		<ul style="display:inline-block;padding: 0;list-style:none;margin:0">
+		{% for uname, time in unames %}
+			<li style="text-align:left" class="mbl"><a href="{% url 'user_profile' uname %}" target="_blank" class="cb"><div class="mbs cxl"><span class="clb">◦</span>&nbsp;<span style="border-bottom:1px dotted dodgerblue">{{ uname }}</span>&nbsp;&nbsp;<span class="cxs cgy">{{ time|human_time }}</span></div></a></li>
+		{% endfor %}
+		</ul>
+		<br>
+		<a href="{% url 'retrieve_direct_response_activity' %}"><button class="cl sp pg_ok_res mt" style="width:100%;color:white;background:#1cc8e3;height:38px;border:none;border-radius:0;overflow:hidden">back</button></a>
+	</div>
+<br>
+{% endblock %}

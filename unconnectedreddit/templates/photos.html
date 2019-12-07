@@ -2,13 +2,11 @@
 {% load get_photo_object %}
 {% load show_error %}
 {% load emoticons_tags %}
-{% load get_big_fan_button %}
 {% load get_big_send_button %}
 {% load get_transparent_buttons_js %}
 {% load get_big_vote_button %}
 {% load get_big_external_share_button %}
 {% load get_big_group_button %}
-{% load get_notification_bar %}
 {% load get_big_photo_comment_button %}
 {% block content %}
 
@@ -26,8 +24,6 @@
 {% endif %}
 	
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
-
-	{% notification_bar notification=process_notification origin='20' notif_form=notif_form user=user user_id=ident females=girls static_url=STATIC_URL random=0 newest_user='None' salat_timings=salat_timings lang=lang sort_by=sort_by is_home=False sk=sk %}
 
 	{% include "photos_navbar.html" with section='fresh' static_url=STATIC_URL %}
 
@@ -60,7 +56,6 @@
 	<div class="mls">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 	{% big_vote_button vote_type='photo_vote' obid=photo.i origin=1 net_votes=photo.nv base_color='rgb(24, 180, 136)' ooid=photo.si static_url=STATIC_URL %}
-	{% big_fan_button own_user_id=ident target_user_id=photo.si object_id=photo.i origin='1' fan_list=fanned static_url=STATIC_URL %}
 	{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin='1' target_username=photo.su %}
 	{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin='1' img_url=photo.iu static_url=STATIC_URL %}
 	{% big_external_share_button owner_username=photo.su is_mobile=is_mob photo_id=photo.i origin='1' static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}

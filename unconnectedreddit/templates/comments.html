@@ -56,12 +56,14 @@
         
         <form method="POST" style="overflow:hidden;text-align:center" action="{% url 'redirect_to_content' %}">
         {% csrf_token %}<input type="hidden" name="obid" value="{{ photo_id }}"><input type="hidden" name="orig" value="{{ origin }}"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="oun" value="{{ target_username }}">
-        <button type="submit" style="background:0 0;padding:0;border:none;font-size:100%">
+        <button type="submit" class="cm" style="background:0 0;padding:0;border:none">
             {% if photo.vote_score < VDC %}
                 <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="photo" style="border-radius:4px" width="38" height="38">
             {% else %}
-                <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt ibb" style="border:1px solid dodgerblue;width:auto;border-radius:5px">
-                <div style="text-align:center;color:black" class="cs sp lsp">"{% emoticons %}{{ photo.caption }}{% endemoticons %}"</div>
+                <div class="fx fxjscn fxaicn">
+                    <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt mrs ibb" style="border:1px solid dodgerblue;width:auto;border-radius:5px">
+                    <div style="text-align:left;color:black" class="cs sp lsp">{% emoticons %}{{ photo.caption }}{% endemoticons %}</div>
+                </div>
             {% endif %}
         </button>
         </form>
@@ -138,7 +140,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 
@@ -163,7 +165,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 
@@ -190,7 +192,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 
@@ -205,7 +207,7 @@
 
                             {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' target_username=comment.submitted_by__username %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' %}
 
                             {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
 

@@ -10,7 +10,6 @@ from django.http import HttpResponse, Http404
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from redis2 import skip_private_chat_notif
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
 from redis7 import check_content_and_voting_ban, is_pair_image_stars, get_all_image_star_ids
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\
@@ -30,19 +29,18 @@ get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rat
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, log_user_activity, cache_personal_group,\
-update_notif_object_anon, hide_associated_direct_responses, private_chat_seen, photo_sharing_metrics_and_rate_limit
+hide_associated_direct_responses, private_chat_seen, photo_sharing_metrics_and_rate_limit#, update_notif_object_anon
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
 PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT, PERSONAL_GROUP_REJOIN_RATELIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
-from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT, SEGMENT_STARTING_USER_ID
+from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT#, SEGMENT_STARTING_USER_ID
 from push_notification_api import send_single_push_notification
 from views import get_indices, retrieve_user_env
 from image_processing import process_group_image
 from redirection_views import return_to_content
 from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
-from forms import UnseenActivityForm
 from models import Photo
 
 ONE_DAY = 60*60*24
@@ -440,10 +438,10 @@ def enter_personal_group(request):
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		################### Retention activity logging ###################
-		from_redirect = request.session.pop("rd",None)
-		if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-			activity_dict = {'m':'GET','act':'Y.v','t':own_refresh_time,'tuid':target_id}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=own_refresh_time)
+		# from_redirect = request.session.pop("rd",None)
+		# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+		# 	activity_dict = {'m':'GET','act':'Y.v','t':own_refresh_time,'tuid':target_id}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=own_refresh_time)
 		###################################################################
 		return render(request,"personal_group/main/personal_group.html",{'form_errors':personal_group_form_error,'personal_group_form':PersonalGroupPostForm(),\
 			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_notif':no_notif,\
@@ -486,11 +484,11 @@ def post_to_personal_group(request, *args, **kwargs):
 						if personal_group_image_transfer_not_permitted(target_id, group_id):
 							request.session["personal_group_image_xfer_no_permit"] = True
 							################### Retention activity logging ###################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								request.session['rd'] = '1'
-								activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	request.session['rd'] = '1'
+							# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							###################################################################
 							if personal_group_photo_xfer_invite_allwd(target_id, group_id):
 								#'1' signifies photo permission notification
@@ -515,11 +513,11 @@ def post_to_personal_group(request, *args, **kwargs):
 								uploaded_image_loc = upload_image_to_s3(image_to_upload)
 								content = {'img_url':uploaded_image_loc, 'img_width':img_width, 'img_height':img_height, 'img_caption':reply}
 								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									time_now = time.time()
-									request.session['rd'] = '1'
-									activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+								# if own_id > SEGMENT_STARTING_USER_ID:
+								# 	time_now = time.time()
+								# 	request.session['rd'] = '1'
+								# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
+								# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 								###################################################################
 								if is_direct_response:
 									target_content_type = request.POST.get('tt',None)
@@ -551,11 +549,11 @@ def post_to_personal_group(request, *args, **kwargs):
 								personal_group_sanitization(obj_count, obj_ceiling, gid)
 					elif reply:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'W1','t':time_now,'pc':reply,'tuid':target_id}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'pc':reply,'tuid':target_id}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						if is_direct_response:
 							target_content_type = request.POST.get('tt',None)
@@ -588,11 +586,11 @@ def post_to_personal_group(request, *args, **kwargs):
 						return redirect("enter_personal_group")
 				else:
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('reply',''),'tuid':target_id}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('reply',''),'tuid':target_id}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					if is_direct_response:
 						request.session.modified = True
@@ -1063,19 +1061,19 @@ def post_chat_action_in_personal_group(request):
 			option = request.POST.get('opt',None)
 			if option == '6':
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					activity_dict = {'m':'POST','act':'Y.s','t':time_now,'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	activity_dict = {'m':'POST','act':'Y.s','t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 				their_uname, their_avurl = get_uname_and_avurl(target_id,their_anon_status)
 				return render(request,"personal_group/general_settings/personal_group_all_settings.html",{'their_anon':their_anon_status,\
 					'avatar':their_avurl,'name':their_uname,'own_anon':own_anon_status,'tid':target_id})
 			elif option in ('0','1','2','3','4','5'):
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					request.session['rd'] = '1'
-					activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':PRIV_CHAT_EMOTEXT[option],'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	request.session['rd'] = '1'
+				# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':PRIV_CHAT_EMOTEXT[option],'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=option, type_='action', \
 					writer_id=own_id, group_id=group_id)
@@ -1140,108 +1138,6 @@ def get_user_perms_for_group(request):
 	Get group permissions for a user
 	"""
 	return render(request,"404.html",{})
-
-
-def x_per_grp_notif(request, gid, fid, from_home):
-	"""
-	Used to skip personal group single notification
-	"""
-	own_id = request.user.id
-	group_id, exists = personal_group_already_exists(own_id, fid)
-	if exists and group_id == str(gid):
-		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	################### Retention activity logging ###################
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		request.session['rd'] = '1'
-		act = 'Q4' if request.mobile_verified else 'Q4.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':fid}
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-	###################################################################
-	return return_to_content(request,from_home,group_id,None,None)
-
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def unseen_per_grp(request, gid, fid):
-	"""
-	Processes reply given in personal group straight from a notification or unseen activity
-	"""
-	if not request.mobile_verified:
-		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
-	elif request.method == "POST":
-		own_id = request.user.id
-		time_now = time.time()
-		own_uname = get_target_username(str(own_id))
-		group_id, exists = personal_group_already_exists(own_id, fid)
-		if exists and group_id == str(gid):
-			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-			if banned:
-				# show "user banned" message and redirect them to home
-				return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-					'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
-			else:
-				form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
-				if form.is_valid():
-					text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
-					obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
-						writer_id=own_id, group_id=group_id)
-					private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time_now,text=text,txt_type=type_,\
-						own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
-						successful=True if bid else False, from_unseen=True)
-					personal_group_sanitization(obj_count, obj_ceiling, gid)
-					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						if origin:
-							# this is a single notification
-							activity_dict = {'m':'POST','act':'S5','t':time_now,'tx':text,'tuid':fid}
-						else:
-							# this is within the matka
-							activity_dict = {'m':'POST','act':'M5','t':time_now,'tx':text,'tuid':fid}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
-					if origin:
-						return return_to_content(request,origin,None,None,own_id)
-					else:
-						return redirect("unseen_activity", own_uname)
-				else:
-					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						if origin:
-							# this is a single notification
-							activity_dict = {'m':'POST','act':'S5.i','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-						else:
-							# this is within the matka
-							activity_dict = {'m':'POST','act':'M5.i','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
-					if origin:
-						request.session["notif_form"] = form
-						request.session.modified = True
-						return return_to_content(request,origin,None,None,own_id)
-					else:
-						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
-						return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
-		else:
-			################### Retention activity logging ###################
-			if own_id > SEGMENT_STARTING_USER_ID:
-				request.session['rd'] = '1'
-				if request.POST.get("origin",None):
-					# this is a single notification
-					activity_dict = {'m':'POST','act':'S5.e','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-				else:
-					# this is within the matka
-					activity_dict = {'m':'POST','act':'M5.e','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-			###################################################################
-			return redirect("unseen_activity", own_uname)
-	else:
-		return redirect("unseen_activity", request.user.username)
-
-
 
 ###########################################################################################################
 ######################################### Personal Group Settings #########################################
@@ -1342,14 +1238,14 @@ def personal_group_exit_settings(request):
 						purge_all_saved_chat_of_user(own_id, tid, group_id)
 						delete_all_user_chats_from_personal_group(own_id, group_id) #hides all user chat - not permanent deletion
 						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='exit',txt_type='exited',\
-							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
-							own_avurl='',deleted='undel',hidden='no')
+							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',\
+							own_uname='',own_avurl='',deleted='undel',hidden='no')
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							activity_dict = {'m':'POST','act':'W0','t':time_now,'tuid':tid}
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	activity_dict = {'m':'POST','act':'W0','t':time_now,'tuid':tid}
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'were_sorry':True,\
 							'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status,'tid':tid})
@@ -1505,7 +1401,7 @@ def anonymize_user_in_personal_group(request):
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 				new_value = set_personal_group_anon_state(own_id, tid)
 				if new_value:
-					update_notif_object_anon.delay(value=new_value,which_user=own_id,which_group=group_id)
+					# update_notif_object_anon.delay(value=new_value,which_user=own_id,which_group=group_id)
 					return render(request,"personal_group/anon_settings/personal_group_anonymize.html",{'their_anon':their_anon_status,\
 						'own_anon':False if new_value == '0' else True,'name':their_uname,'avatar':their_avurl,'new_anon_value':new_value,\
 						'own_name':get_target_username(str(own_id)) if new_value == '1' else None,'tid':tid})
@@ -1538,7 +1434,7 @@ def personal_group_photo_settings(request):
 				# photo reception permissions
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phrec_value, ttl, garbage_1, garbage_2 = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
+					new_phrec_value, ttl, garbage_1, garbage_2, garbage_3 = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
 						setting_type=photo_setting, group_id=group_id)
 				else:
 					request.session["personal_group_tid_key"] = tid
@@ -1549,8 +1445,8 @@ def personal_group_photo_settings(request):
 				# photo mass-deletion setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete, top_most_post_affected = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
-						setting_type=photo_setting, group_id=group_id)
+					new_phdel_value, ttl, undelete, top_most_post_affected, top_most_post_hidden = toggle_personal_group_photo_settings(own_id=own_id,\
+						target_id=tid,setting_type=photo_setting, group_id=group_id)
 					
 					if new_phdel_value == '1' and top_most_post_affected:# successfully deleted
 						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
@@ -1568,11 +1464,11 @@ def personal_group_photo_settings(request):
 				# photo mass-restoration setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete, top_most_post_affected = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
-						setting_type=photo_setting, group_id=group_id)
+					new_phdel_value, ttl, undelete, top_most_post_affected, top_most_post_hidden = toggle_personal_group_photo_settings(own_id=own_id,\
+						target_id=tid,setting_type=photo_setting, group_id=group_id)
 					if new_phdel_value == '0' and top_most_post_affected:# successfully undeleted
 						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
-						receiver_id=tid,to_hide=False)# reply_id is not relevant for 1on1s
+						receiver_id=tid,to_hide=top_most_post_hidden)#False)# reply_id is not relevant for 1on1s
 					
 					elif new_phdel_value is None and ttl is not None:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
@@ -1991,15 +1887,15 @@ def show_personal_group_invite_list(request, list_type):
 			creation_time = expiry_time - time_gap
 			invites.append((invite_tokens[0],invite_tokens[1].decode('utf-8'),invite_tokens[3].decode('utf-8'),creation_time))
 		################### Retention activity logging ###################
-		from_redirect = request.session.pop('rd',None)
-		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			if list_type == 'received':
-				act = 'Y3' if request.mobile_verified else 'Y3.u'
-			else:
-				act = 'Y4' if request.mobile_verified else 'Y4.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# from_redirect = request.session.pop('rd',None)
+		# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	if list_type == 'received':
+		# 		act = 'Y3' if request.mobile_verified else 'Y3.u'
+		# 	else:
+		# 		act = 'Y4' if request.mobile_verified else 'Y4.u'
+		# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"personal_group/invites/personal_group_invite_list.html",{'invites':invites,'own_id':str(user_id),'invite_accepted':invite_accepted,\
 			't_username':t_username,'tid':tid,'t_av_url':t_av_url,'is_anon':is_anon,'current_page':page_num,'pages':page_list,'num_pages':len(page_list),\
@@ -2017,10 +1913,10 @@ def render_personal_group_invite(request):
 	own_id = request.user.id
 	if not request.mobile_verified:
 		################### Retention activity logging ###################
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'POST','act':'Y1.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'POST','act':'Y1.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	elif request.method == "POST":
@@ -2046,10 +1942,10 @@ def render_personal_group_invite(request):
 				return redirect("enter_personal_group")
 			else:
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					activity_dict = {'m':'POST','act':'Y1','t':time_now,'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	activity_dict = {'m':'POST','act':'Y1','t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 				target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
 				state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, get_target_username(str(own_id)), \
@@ -2109,11 +2005,11 @@ def accept_personal_group_invite(request):
 					own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
@@ -2145,10 +2041,10 @@ def send_personal_group_invite(request):
 	"""
 	if not request.mobile_verified:
 		################### Retention activity logging ###################
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'POST','act':'Y2.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'POST','act':'Y2.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	elif request.method == "POST":
@@ -2215,11 +2111,11 @@ def change_personal_group_invite_privacy(request):
 						own_anon, target_anon = '1' if decision == '0' else '0', '1' if state == '3' else '0'
 						group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						if not already_existed:
 							reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
@@ -2243,10 +2139,10 @@ def change_personal_group_invite_privacy(request):
 							return render(request,"personal_group/invites/personal_group_status.html",context)
 						else:
 							################### Retention activity logging ###################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								activity_dict = {'m':'POST','act':'Y','t':time_now,'tuid':target_id}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	activity_dict = {'m':'POST','act':'Y','t':time_now,'tuid':target_id}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							###################################################################
 							reset_invite_count(target_id)# resetting invite count shown in navbar for target_id
 							if decision == '0':
@@ -2289,11 +2185,11 @@ def process_personal_group_invite(request):
 					own_anon, target_anon = '0', '1' if state == '3' else '0'
 					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
@@ -2309,11 +2205,11 @@ def process_personal_group_invite(request):
 					request.session.modified = True
 			else:
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					request.session['rd'] = '1'
-					activity_dict = {'m':'POST','act':'Y.d','t':time_now,'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	request.session['rd'] = '1'
+				# 	activity_dict = {'m':'POST','act':'Y.d','t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 				ignore_invite(own_id, own_username, target_id, target_username)
 				reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
@@ -2363,11 +2259,11 @@ def post_js_reply_to_personal_group(request):
 							if personal_group_image_transfer_not_permitted(target_id, group_id):
 								request.session["personal_group_image_xfer_no_permit"] = True
 								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									time_now = time.time()
-									request.session['rd'] = '1'
-									activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+								# if own_id > SEGMENT_STARTING_USER_ID:
+								# 	time_now = time.time()
+								# 	request.session['rd'] = '1'
+								# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
+								# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 								###################################################################
 								if personal_group_photo_xfer_invite_allwd(target_id, group_id):
 									#'1' signifies photo permission notification
@@ -2392,11 +2288,11 @@ def post_js_reply_to_personal_group(request):
 									uploaded_image_loc = upload_image_to_s3(image_to_upload)
 									content = {'img_url':uploaded_image_loc, 'img_width':img_width, 'img_height':img_height, 'img_caption':reply}
 									################### Retention activity logging ###################
-									if own_id > SEGMENT_STARTING_USER_ID:
-										time_now = time.time()
-										request.session['rd'] = '1'
-										activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
-										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									# if own_id > SEGMENT_STARTING_USER_ID:
+									# 	time_now = time.time()
+									# 	request.session['rd'] = '1'
+									# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
+									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									###################################################################
 									# add as a 'response' blob
 									res_blob = {'target_blob_id':target_blob_id,'target_index':target_index,'target_content_type':target_content_type}
@@ -2409,11 +2305,11 @@ def post_js_reply_to_personal_group(request):
 									personal_group_sanitization(obj_count, obj_ceiling, gid)
 						elif reply:
 							################### Retention activity logging ###################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								request.session['rd'] = '1'
-								activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':reply,'tuid':target_id}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	request.session['rd'] = '1'
+							# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':reply,'tuid':target_id}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							###################################################################
 							# add as a 'response' blob
 							res_blob = {'target_blob_id':target_blob_id,'target_index':target_index,'target_content_type':target_content_type}
@@ -2432,11 +2328,11 @@ def post_js_reply_to_personal_group(request):
 							return redirect("enter_personal_group")
 					else:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('rep_reply',''),'tuid':target_id}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('rep_reply',''),'tuid':target_id}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						try:
 							request.session["personal_group_form_error"] = form.errors.as_text().split("*")[2]
@@ -2482,10 +2378,10 @@ def personal_group_user_listing(request):
 	own_id = request.user.id
 	if not request.mobile_verified:
 		################### Retention activity logging ###################
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'GET','act':'Y5.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'GET','act':'Y5.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	else:
@@ -2503,10 +2399,10 @@ def personal_group_user_listing(request):
 			payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
 			page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
 			################### Retention activity logging ###################
-			if own_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				activity_dict = {'m':'GET','act':'Y5','t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			# if own_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	activity_dict = {'m':'GET','act':'Y5','t':time_now}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			###################################################################
 			return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
 				'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
@@ -2728,12 +2624,12 @@ def share_photo_in_personal_group(request):
 							request.session.modified = True
 							# successfully shared (with a different caption)
 							################### Retention activity logging ###################
-							if user_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								num_1on1s_img_can_be_shared_in = len(allwd_friends)
-								act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
-								activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':new_photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
-								log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+							# if user_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	num_1on1s_img_can_be_shared_in = len(allwd_friends)
+							# 	act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
+							# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':new_photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 							##################################################################
 							return redirect("photo_shared")
 						else:
@@ -2764,12 +2660,12 @@ def share_photo_in_personal_group(request):
 						request.session.modified = True
 						# successfully shared
 						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							num_1on1s_img_can_be_shared_in = len(allwd_friends)
-							act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
-							activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+						# if user_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	num_1on1s_img_can_be_shared_in = len(allwd_friends)
+						# 	act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
+						# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						return redirect("photo_shared")
 					else:
@@ -2814,11 +2710,11 @@ def share_photo_in_personal_group(request):
 				else:
 					context["friend_data"] = group_and_friend
 				################### Retention activity logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					act = 'E.i' if request.mobile_verified else 'E.i'
-					activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':len(group_and_friend)}# defines what activity just took place
-					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+				# if user_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	act = 'E.i' if request.mobile_verified else 'E.i'
+				# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':len(group_and_friend)}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
 				return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 		else:
@@ -2846,11 +2742,11 @@ def share_photo_in_personal_group(request):
 				context["no_friends"] = True
 				num_friends = 0
 			################### Retention activity logging ###################
-			if user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				act = 'E1' if request.mobile_verified else 'E1.u'
-				activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'tuid':owner_id,'pc':photo_caption,'nf':num_friends}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# if user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	act = 'E1' if request.mobile_verified else 'E1.u'
+			# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'tuid':owner_id,'pc':photo_caption,'nf':num_friends}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 			return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 	else:

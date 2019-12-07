@@ -9,8 +9,6 @@ from topic_forms import SubmitInTopicForm, CreateTopicform
 from page_controls import ITEMS_PER_PAGE
 from verified import FEMALES
 from models import Link
-from redis2 import bulk_is_fan
-# from forms import PublicreplyMiniForm
 from redis3 import log_text_submissions
 from direct_response_forms import DirectResponseForm
 from tasks import set_input_history, log_user_activity
@@ -23,7 +21,7 @@ retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_c
 retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes,\
 is_image_star
 ###############
-from score import SEGMENT_STARTING_USER_ID, NUM_SUBMISSION_ALLWD_PER_DAY
+from score import NUM_SUBMISSION_ALLWD_PER_DAY#, SEGMENT_STARTING_USER_ID
 
 
 ##########################################################################################################
@@ -252,8 +250,9 @@ def suggest_new_topic_feed(request):
 			if created:
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=topic_owner_id, obj_id='1', obj_type='home', secret_key=secret_key)
-				context = {'c1':primary_color,'c2':secondary_color,'submissions':[],'form':SubmitInTopicForm(),'topic':topic_name,'page':{},\
-				'fanned':[],'sk':str(secret_key),'topic_started':True,'topic_description':description,'topic_url':topic_in_url_form}
+				context = {'c1':primary_color,'c2':secondary_color,'submissions':[],'form':SubmitInTopicForm(),\
+				'topic':topic_name,'sk':str(secret_key),'topic_started':True,'topic_description':description,\
+				'page':{},'topic_url':topic_in_url_form}
 				return render(request, 'topics/topic_home.html', context)
 			else:
 				# it already existed, so redirect to it
@@ -358,8 +357,7 @@ def topic_page(request,topic_url):
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 
 				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,\
-				'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),'sk':str(secret_key),\
-				'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
+				'sk':str(secret_key),'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
 				'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 				'ident':own_id, 'validation_error':request.session.pop("validation_error",''),'topic_url':topic_url,\
 				'is_subscribed':is_subscribed, 'new_subscriber':request.session.pop("subscribed"+str(own_id),None),\
@@ -367,12 +365,12 @@ def topic_page(request,topic_url):
 				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True)}
 				
 				################### Retention activity logging ###################
-				from_redirect = request.session.pop('rd',None)
-				if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					act = 'T' if request.mobile_verified else 'T.u'
-					activity_dict = {'m':'GET','act':act,'url':topic_url,'t':time_now,'pg':page_num}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# from_redirect = request.session.pop('rd',None)
+				# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	act = 'T' if request.mobile_verified else 'T.u'
+				# 	activity_dict = {'m':'GET','act':act,'url':topic_url,'t':time_now,'pg':page_num}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 
 				return render(request, 'topics/topic_home.html', context)
@@ -437,13 +435,13 @@ def topic_listing(request):
 	Displays all topics currently available in Damadam
 	"""
 	################### Retention activity logging ###################
-	own_id = request.user.id
-	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-	if not from_redirect and  own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z5' if request.mobile_verified else 'Z5.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# own_id = request.user.id
+	# from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	# if not from_redirect and  own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z5' if request.mobile_verified else 'Z5.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
 	context = {}
 	newbie_flag = request.session.get("newbie_flag",None)
@@ -488,9 +486,9 @@ def submit_topic_post(request,topic_url):
 					mobile_verified = request.mobile_verified
 					if not mobile_verified:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							activity_dict = {'m':'POST','act':'W4.u','t':time_now}
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	activity_dict = {'m':'POST','act':'W4.u','t':time_now}
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
 					elif request.user_banned:
@@ -527,17 +525,17 @@ def submit_topic_post(request,topic_url):
 									rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
 									set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
 									################### Retention activity logging ###################
-									if own_id > SEGMENT_STARTING_USER_ID:
-										activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
-										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									# if own_id > SEGMENT_STARTING_USER_ID:
+									# 	activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
+									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									###################################################################
 									return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
 								else:
 									################### Retention activity logging ###################
-									if own_id > SEGMENT_STARTING_USER_ID:
-										request.session['rd'] = '1'
-										activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
-										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									# if own_id > SEGMENT_STARTING_USER_ID:
+									# 	request.session['rd'] = '1'
+									# 	activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
+									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									###################################################################
 									error_string = form.errors.as_text().split("*")[2]
 									if error_string:
@@ -579,10 +577,10 @@ def subscribe_to_topic(request, topic_url):
 					response = redirect("topic_page",topic_url=topic_url)
 					response['Location'] += '?subscribed=True#section0'# added 'subscribe' parameter so that the act of subscription is measured separately in GA
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'W4.s','t':time_now,'url':topic_url}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'W4.s','t':time_now,'url':topic_url}
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					return response
 				else:
@@ -596,11 +594,11 @@ def subscribe_to_topic(request, topic_url):
 			return redirect("topic_page",topic_url=topic_url)
 	else:
 		################### Retention activity logging ###################
-		own_id = request.user.id
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'POST','act':'W4.u','t':time_now}
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# own_id = request.user.id
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'POST','act':'W4.u','t':time_now}
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'subscribe_to_topic':True})
 
@@ -632,14 +630,18 @@ def unsubscribe_topics(request):
 ##########################################################################################################
 
 
-def isolate_topic_data(topic_data):
+def isolate_topic_data(topic_data, colors_only=False):
 	"""
 	Isolate topic data from composite payload of type "theme:topic_name:topic_url"
 
 	Used by retrieve_direct_response_data() in direct_response_views.py
 	"""
-	data = topic_data.split(":")
-	theme, topic_name, topic_url = data[0], data[1], data[2]
-	color_grads = COLOR_GRADIENTS[theme]
-	c1, c2 = color_grads[0], color_grads[1]
-	return theme, topic_name, c1, c2, topic_url
+	if colors_only:
+		color_grads = COLOR_GRADIENTS[topic_data]
+		return color_grads[0], color_grads[1]
+	else:
+		data = topic_data.split(":")
+		theme, topic_name, topic_url = data[0], data[1], data[2]
+		color_grads = COLOR_GRADIENTS[theme]
+		c1, c2 = color_grads[0], color_grads[1]
+		return theme, topic_name, c1, c2, topic_url

@@ -79,27 +79,22 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 			return redirect("home")
 	elif origin == '9':
 		# originated from a publicreply
-		# request.session["link_pk"] = obj_id
-		# request.modified = True
 		return redirect("publicreply_view",obj_id)
 	elif origin == '10':
 		# originated from user profile (About page)
 		return redirect("user_profile", target_uname)
 	elif origin == '11':
 		# originated from the comments page
-		if target_uname:
-			return redirect("comment_pk", pk=obj_id, origin=target_uname)
-		else:
-			return redirect("comment_pk", pk=obj_id)
+		return redirect("comment_pk", pk=obj_id)
 	elif origin == '12':
-		# originated from user's own fan list
-		return redirect("fan_list", obj_id)
+		# UNUSED, previously: originated from user's own fan list
+		return redirect("home")
 	elif origin == '13':
-		# originated from user's own star list
-		return redirect("star_list")
+		# UNUSED, previously: originated from user's own star list
+		return redirect("home")
 	elif origin == '14':
-		# originated from user's own unseen activity
-		return redirect("unseen_activity", target_uname)
+		# UNUSED, previously: originated from user's own unseen activity
+		return redirect("home")
 	elif origin == '15':
 		# originated from a private group
 		request.session["unique_id"] = obj_id#obj_id contains group_uuid, otherwise it won't work
@@ -130,6 +125,9 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 	elif origin == '25':
 		# originated from 'upvoting' history page
 		return redirect('user_vote_history')
+	elif origin == '35':
+		# originated from 'reply' history page
+		return redirect('retrieve_direct_response_activity')
 	else:
 		# take the voter to best photos by default
 		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))

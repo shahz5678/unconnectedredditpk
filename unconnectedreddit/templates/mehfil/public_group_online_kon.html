@@ -76,15 +76,15 @@
 
 <br>
 {% if is_paginated %}
-	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+	<div class="fx fxjscn fxaicn">
 		{% if page_obj.has_previous %}
 	    <div style="padding:0 10px">
-	    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+	    <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
 	    </div>
 	    {% endif %}
 	    {% if page_obj.has_next %}
 	    <div style="padding:0 10px">
-	    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+	    <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
 	    </div>
 	    {% endif %}
 	</div>

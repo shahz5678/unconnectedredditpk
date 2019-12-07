@@ -8,6 +8,8 @@ MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
 POST_HISTORY_TTL = 259200# 3 days - time length a user's post visitors are logged for
 PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH = 40# text-length below which a public text post is considered 'low quality'
+PREFIX_TEXT_LENGTH = 43# useful when splitting a sentence into prefix and postfix parts (for 'reference' display)
+NUM_ACTIVITY_ITEMS_PER_PAGE = 10# num items to be shown in reply history
 ###############################################################################################################
 VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 2419200# i.e. 28 days. This is the amount of time closed-voting objs are kept around for 'like_prob' or 'handpicked_prob' analysis
 ###############################################################################################################
@@ -56,6 +58,7 @@ VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jha
 ###############################################################################################################
 THUMB_HEIGHT = 38
 MIN_PUBLIC_IMG_WIDTH = 315# this number must belong to this interval: [450, 405, 360, 315, 270, 225, 180, 135, 90] (equal to resize_ranges in image_processing.py)
+MAX_PUBLIC_IMG_WIDTH = 450
 ###############################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 900#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT
@@ -286,7 +289,7 @@ MERCH = {
 ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
-SEGMENT_STARTING_USER_ID = 2004144# starting user ID of user segment analysis
+# SEGMENT_STARTING_USER_ID = 2004144# starting user ID of user segment analysis
 PROJ_ZUCK_STARTING_USER_ID = 1975000
 
 """

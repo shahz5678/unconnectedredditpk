@@ -1,9 +1,10 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Emoji keyboard | Damadam.pk</title></head>
+<head><title>Emoji keyboard | Damadam</title></head>
+
 <div class="margin" style="overflow-x:auto;">
-<span style="font-size:95%;color:dimgrey;"><b>Face banane ke liye uske sath likhe harf likho:</b></span><br>
+<span style="font-size:95%;color:dimgrey;"><b>Emoji banane ke liye uske sath likhe letters likhein:</b></span><br>
  <span style="font-size:85%;color:dimgrey;">nuqta <b style="font-size:120%;">"."</b> zarur likhna</span>
 <br><br>
 <table style="border-collapse: collapse;">
@@ -15,16 +16,18 @@
 </table>
 <br>
 
-
-<br><div class="pagination" style="text-align: center;">
-		{% if page.has_previous %}
-	    &nbsp;&nbsp;&nbsp;<a href="?page={{ page.previous_page_number }}#section0"><button style="color:white;border-color: #cc0000;background: #FF1A1A;width:4.5em;white-space:nowrap;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>wapis</bdi></button></a>
-	    {% endif %}
-	    &nbsp;&nbsp;
-	    {% if page.has_next %}
-	    <a href="?page={{ page.next_page_number }}#section0"><button style="color:white;background-color:#1CB841;border-color:green;width:4.5em;white-space:nowrap;border-radius: 4px;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);"><bdi>aagey</bdi></button></a>
-	    {% endif %}
-	</div>
+<div class="mbl fx fxjscn fxaicn">
+	{% if page.has_previous %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+	    </div>
+    {% endif %}
+    {% if page.has_next %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+	    </div>
+    {% endif %}
+</div>
 
 <br>
 </div>

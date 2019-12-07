@@ -10,19 +10,18 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, Http404
 from django.middleware import csrf
 from models import Link, Photo
-from redis2 import bulk_is_fan
 from colors import COLOR_GRADIENTS
 from judgement_views import get_usernames
 from redis3 import tutorial_unseen, exact_date
 from redirection_views import return_to_content
 from page_controls import VOTE_HISTORY_ITEMS_PER_PAGE
-from redis4 import retrieve_uname, retrieve_credentials
 from tasks import vote_tasks, cache_voting_history, log_user_activity
+from redis4 import retrieve_uname, retrieve_credentials, retrieve_replier_rate
 from views import secs_to_mins, get_indices, beautiful_date, retrieve_user_env, convert_to_epoch
 from redis7 import get_obj_owner, voted_for_single_photo, voted_for_link, can_vote_on_obj, get_voting_details,retrieve_voting_records,\
 in_defenders, get_votes, check_content_and_voting_ban, is_obj_trending, retrieve_handpicked_photos_count, retrieve_global_voting_records,\
 retrieve_users_voting_relationships, retrieve_detailed_voting_data, log_section_wise_voting_liquidity, is_image_star
-from score import SEGMENT_STARTING_USER_ID
+# from score import SEGMENT_STARTING_USER_ID
 
 
 def vote_result(request):
@@ -145,14 +144,14 @@ def cast_vote(request,*args,**kwargs):
 			mob_verified = request.mobile_verified
 			if not mob_verified:
 				###################### Retention activity logging ######################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					if is_pht == '1':
-						photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-						activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
-					else:
-						description = Link.objects.only('description').get(id=obj_id).description
-						activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	if is_pht == '1':
+				# 		photo = Photo.objects.only('image_file','caption').get(id=obj_id)
+				# 		activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+				# 	else:
+				# 		description = Link.objects.only('description').get(id=obj_id).description
+				# 		activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				request.session["vote_result"] = '1'
 				request.session.modified = True
@@ -192,14 +191,14 @@ def cast_vote(request,*args,**kwargs):
 						
 						if can_vote:
 							###################### Retention activity logging ######################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								if is_pht == '1':
-									photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-									activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
-								else:
-									description = Link.objects.only('description').get(id=obj_id).description
-									activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	if is_pht == '1':
+							# 		photo = Photo.objects.only('image_file','caption').get(id=obj_id)
+							# 		activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+							# 	else:
+							# 		description = Link.objects.only('description').get(id=obj_id).description
+							# 		activity_dict = {'m':'POST','act':'V','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
 							# votes cast in fresh lists are considered 'editorial' votes - handpickers build their reputation by voting here
 							# votes cast in best lists are considered 'audience' votes - voters vote on curated stuff and validate curators' choice
@@ -246,14 +245,14 @@ def cast_vote(request,*args,**kwargs):
 								return return_to_content(request,origin,obj_id,'img:'+obj_id if is_pht=='1' else 'tx:'+obj_id)
 						elif time_remaining:
 							###################### Retention activity logging ######################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								if is_pht == '1':
-									photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-									activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
-								else:
-									description = Link.objects.only('description').get(id=obj_id).description
-									activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	if is_pht == '1':
+							# 		photo = Photo.objects.only('image_file','caption').get(id=obj_id)
+							# 		activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+							# 	else:
+							# 		description = Link.objects.only('description').get(id=obj_id).description
+							# 		activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
 							request.session["vote_topic"] = request.POST.get("tp",None)
 							request.session["vote_origin"] = origin
@@ -415,20 +414,40 @@ def export_voting_records(request):
 	own_id = request.user.id
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
-		data_to_write_to_csv = retrieve_global_voting_records()# list of lists (where each list is a list of dictionaries)
+		# data_to_write_to_csv = retrieve_global_voting_records()# list of lists (where each list is a list of dictionaries)
+		# if data_to_write_to_csv:
+		# 	import csv
+		# 	filename = 'voting_data.csv'
+		# 	with open(filename,'wb') as f:
+		# 		wtr = csv.writer(f)
+		# 		columns = ["Voting time (human)","voter ID","target user ID","vote value","target obj type","target obj ID"]
+		# 		wtr.writerow(columns)
+		# 		for vote_data, voting_time in data_to_write_to_csv:
+		# 			# vote_data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
+		# 			data_list = vote_data.split(":")
+		# 			voter_id, target_user_id, vote_value, target_obj_tp, target_obj_id = data_list[0],data_list[1],data_list[2],\
+		# 			data_list[3], data_list[4]
+		# 			to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
+		# 			wtr.writerows([to_write])
+		#####################################################
+		data_to_write_to_csv = retrieve_replier_rate()
 		if data_to_write_to_csv:
 			import csv
-			filename = 'voting_data.csv'
+
+			filename = 'reply_rate.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["Voting time (human)","voter ID","target user ID","vote value","target obj type","target obj ID"]
+				columns = ["Reply time (epoch)","Target ID","Replier ID","Marked fast","Text"]
 				wtr.writerow(columns)
-				for vote_data, voting_time in data_to_write_to_csv:
-					# vote_data contains voter_id+":"+str(target_user_id)+":"+vote_value+":"+target_obj_tp+":"+target_obj_id
-					data_list = vote_data.split(":")
-					voter_id, target_user_id, vote_value, target_obj_tp, target_obj_id = data_list[0],data_list[1],data_list[2],\
-					data_list[3], data_list[4]
-					to_write = [exact_date(voting_time),voter_id,target_user_id,vote_value,target_obj_tp,target_obj_id]
+				for reply_data, replier_id in data_to_write_to_csv:
+					data_1 = reply_data.partition(":")
+					reply_time = data_1[0]
+					data_2 = data_1[-1].rpartition(":")
+					marked_fast = data_2[-1]
+					data_3 = data_2[0].rpartition(":")
+					text = data_3[0]
+					target_id = data_3[-1]
+					to_write = [reply_time,target_id,replier_id,marked_fast,text]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 
@@ -463,7 +482,7 @@ def export_voting_reputation_records(request):
 				wtr = csv.writer(f)
 				# columns = ["posting time (human)","posting time (epoch)","uploader_id","username","is_fbs","is_opera_mini","img_width","img_height"]
 				columns = ["posting time (human)","trending time (human)","posting time (epoch)","trending time (epoch)","user_id","username","is_fbs",\
-				"is_urdu","upvotes","text_length","text"]
+				"is_urdu","upvotes","text_length","ascii_len","eng_len","urdu_len","digit_len","text"]
 				wtr.writerow(columns)
 				for json_data, submitter_id in data_to_write_to_csv:
 					try:
@@ -477,8 +496,8 @@ def export_voting_reputation_records(request):
 					trending_human_time = exact_date(float(trending_epoch_time))
 					
 					to_write = [posting_human_time,trending_human_time,posting_epoch_time,trending_epoch_time,submitter_id,\
-					data['username'].encode('utf-8'),data.get('on_fbs',''),data['is_urdu'], data['uv'],data['text_length'],\
-					data['text'].encode('utf-8')]
+					data['username'].encode('utf-8'),data.get('on_fbs',''),data['is_urdu'], data['uv'],data['total_length'],\
+					data['ascii_len'],data['readable_eng_len'],data['readable_urdu_len'],data['digit_len'],data['text'].encode('utf-8')]
 
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
@@ -577,7 +596,7 @@ def vote_history_admin_view(request,user_id):
 		return render(request,"voting/admin_voting_history_view.html",{'data':final_data,'slug':retrieve_uname(own_id,decode=True), \
 			'own_profile':False,'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 			'previous_page_number':page_num-1,'next_page_number':page_num+1},'own_id':own_id,'on_opera':on_opera,'defender_id':defender_id,\
-			'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id)})
+			'on_fbs':on_fbs})
 	else:
 		raise Http404("Not authorized to view user voting histories")
 
@@ -669,16 +688,16 @@ def user_vote_history(request):
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 	on_opera = True if (not on_fbs and not is_js_env) else False
 	###################### Retention activity logging ######################
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'M8' if request.mobile_verified else 'M8.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# if own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'M8' if request.mobile_verified else 'M8.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
 	return render(request,"voting/voting_history.html",{'slug':retrieve_uname(own_id,decode=True), 'own_profile':True,\
 		'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 		'previous_page_number':page_num-1,'next_page_number':page_num+1},'own_id':own_id,'on_opera':on_opera,'data':final_data,\
-		'fanned':bulk_is_fan(star_id_list=all_submitters, fan_id=own_id)})
+		'on_fbs':on_fbs})
 
 
 def user_sybil_history(request, user_id, hist_type):

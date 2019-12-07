@@ -42,8 +42,15 @@ def prescribe_direct_response_rate_limit(typing_speed_1, text_1_len, typing_spee
 			# rate-limit this person
 			is_rate_limited = True
 
-	# elif typing_speed_1:
-	# 	pass
+	elif typing_speed_1:
+		if text_1_len < 4:
+			if typing_speed_1 > 0.75:
+				# rate-limit this person
+				is_rate_limited = True
+		##################################
+		elif typing_speed_1 > 8:
+			# rate-limit this person
+			is_rate_limited = True
 
 	return is_rate_limited
 
@@ -61,10 +68,10 @@ def determine_direct_response_rate(reply_len, replier_id, time_now):
 		# provide validation error if reply rates have exceeded acceptable thresholds
 		len_data = len(recent_reply_lens_and_times)
 
-		# if len_data == 1:
-		# 	text_2_time = float(recent_reply_lens_and_times[0].partition(":")[-1])
-		# 	latest_typing_speed = (1.0*reply_len/(time_now-text_2_time))
-		# 	is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed, text_1_len=reply_len)
+		if len_data == 1:
+			text_2_time = float(recent_reply_lens_and_times[0].partition(":")[-1])
+			latest_typing_speed = (1.0*reply_len/(time_now-text_2_time))
+			is_rate_limited = prescribe_direct_response_rate_limit(typing_speed_1=latest_typing_speed, text_1_len=reply_len)
 		
 		if len_data == 2:
 			data_2 = recent_reply_lens_and_times[0].partition(":")

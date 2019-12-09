@@ -889,8 +889,6 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	if is_star:
 		immutable_data['s']='1'
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
-	
-
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)

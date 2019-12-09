@@ -24,7 +24,7 @@ def prescribe_direct_response_rate_limit(typing_speed_1, text_1_len, typing_spee
 				# rate-limit this person
 				is_rate_limited = True
 		##################################
-		elif avg_typing_speed > 5.5:
+		elif typing_speed_1 > 5 and avg_typing_speed > 5.5:
 			# rate-limit this person
 			is_rate_limited = True
 
@@ -38,7 +38,7 @@ def prescribe_direct_response_rate_limit(typing_speed_1, text_1_len, typing_spee
 				# rate-limit this person
 				is_rate_limited = True
 		##################################
-		elif avg_typing_speed > 7.5:
+		elif typing_speed_1 > 5 and avg_typing_speed > 6.5:
 			# rate-limit this person
 			is_rate_limited = True
 

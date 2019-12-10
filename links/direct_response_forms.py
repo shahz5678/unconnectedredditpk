@@ -44,7 +44,7 @@ def prescribe_direct_response_rate_limit(typing_speed_1, text_1_len, typing_spee
 
 	elif typing_speed_1:
 		if text_1_len < 4:
-			if typing_speed_1 > 0.75:
+			if typing_speed_1 > 4:
 				# rate-limit this person
 				is_rate_limited = True
 		##################################

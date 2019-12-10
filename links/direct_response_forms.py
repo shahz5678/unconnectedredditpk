@@ -20,7 +20,7 @@ def prescribe_direct_response_rate_limit(typing_speed_1, text_1_len, typing_spee
 		##################################
 		# this user is writing short stuff - take that into account when judging the rate limit
 		if text_1_len < 4 and text_2_len < 4 and text_3_len < 4:
-			if avg_typing_speed > 0.58:
+			if avg_typing_speed > 2.58:
 				# rate-limit this person
 				is_rate_limited = True
 		##################################
@@ -34,7 +34,7 @@ def prescribe_direct_response_rate_limit(typing_speed_1, text_1_len, typing_spee
 		##################################
 		# this user is writing short stuff - take that into account when judging the rate limit
 		if text_1_len < 4 and text_2_len < 4:
-			if avg_typing_speed > 0.68:
+			if avg_typing_speed > 3.68:
 				# rate-limit this person
 				is_rate_limited = True
 		##################################

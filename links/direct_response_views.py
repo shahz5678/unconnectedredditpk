@@ -158,7 +158,7 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 						c1, c2 = isolate_topic_data(theme,colors_only=True)
 					else:
 						c1, c2 = '', ''
-				parent_uname = retrieve_uname(parent_user_id,decode=True)	
+				parent_uname = retrieve_uname(parent_user_id,decode=True)
 
 		# 'reply to reply' under an img post
 		elif obj_type == '4':

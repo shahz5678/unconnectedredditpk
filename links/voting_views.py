@@ -437,17 +437,20 @@ def export_voting_records(request):
 			filename = 'reply_rate.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ["Reply time (epoch)","Target ID","Replier ID","Marked fast","Text"]
+				columns = ["Reply time (epoch)","Target ID","Replier ID","Marked fast","Rate limited","Text"]
 				wtr.writerow(columns)
 				for reply_data, replier_id in data_to_write_to_csv:
 					data_1 = reply_data.partition(":")
 					reply_time = data_1[0]
 					data_2 = data_1[-1].rpartition(":")
-					marked_fast = data_2[-1]
+					rate_limited = data_2[-1]
 					data_3 = data_2[0].rpartition(":")
-					text = data_3[0]
-					target_id = data_3[-1]
-					to_write = [reply_time,target_id,replier_id,marked_fast,text]
+					marked_fast = data_3[-1]
+					data_4 = data_3[0].rpartition(":")
+					target_id = data_4[-1]
+					text = data_4[0]
+
+					to_write = [reply_time,target_id,replier_id,marked_fast,rate_limited,text]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

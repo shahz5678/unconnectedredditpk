@@ -185,8 +185,8 @@ class DirectResponseForm(forms.Form):
 					time_now=self.time_now)
 
 				if is_over_speeding:
-					is_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
-					if is_limited:
+					rate_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
+					if rate_limited:
 						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
 							marked_fast='1' if is_over_speeding else '0', rate_limited='1')
 					else:
@@ -204,8 +204,8 @@ class DirectResponseForm(forms.Form):
 				
 				# # check whether this person ought to be rate limited
 				# elif is_over_speeding:
-				# 	is_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
-				# 	if is_limited:
+				# 	rate_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
+				# 	if rate_limited:
 				# 		raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.format(future_time.future_time(time_length)))
 
 			##########################################################

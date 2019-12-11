@@ -525,11 +525,11 @@ def log_user_activity(user_id, activity_dict, time_now, which_var=None):
 
 
 @celery_app1.task(name='tasks.log_reply_rate')
-def log_reply_rate(replier_id, text, time_now, reply_target, marked_fast):
+def log_reply_rate(replier_id, text, time_now, reply_target, marked_fast, rate_limited):
 	"""
 	TODO: temp logger that should be removed
 	"""
-	log_replier_reply_rate(replier_id, text, time_now, reply_target, marked_fast)
+	log_replier_reply_rate(replier_id, text, time_now, reply_target, marked_fast, rate_limited)
 
 
 # @celery_app1.task(name='tasks.set_section_retention')

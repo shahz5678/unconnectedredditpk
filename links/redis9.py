@@ -935,10 +935,12 @@ def set_comment_history(obj_hash_name, obj_owner_id, commenter_id, time_now):
 
 ######################################### Log direct repsonse rate ############################################
 
-FLOOD_COUNTER = 'fc:'# counts how many times a given user has flooded in the recent seconds
-RATE_LIMIT_KEY = 'rlk:'# rate limit key set for users who are flooding numerous times in a short time window
-LONG_TERM_RATE_LIMIT_KEY = 'ltrlk:'# freqent rate-limiters are rate limited for ever increasing times via this key
-REPLY_RATE = 'rr:'# temp key that holds recent replies to determine speed of replying (useful for imposing rate limits for flooders)
+
+FLOOD_COUNTER = 'fcn:'# counts how many times a given user has flooded in the recent seconds
+RATE_LIMIT_KEY = 'rk:'# rate limit key set for users who are flooding numerous times in a short time window
+LONG_TERM_RATE_LIMIT_KEY = 'ltrk:'# freqent rate-limiters are rate limited for ever increasing times via this key
+REPLY_RATE = 'rt:'# temp key that holds recent replies to determine speed of replying (useful for imposing rate limits for flooders)
+
 
 def log_rate_of_reply(replier_id, text_len, time_now):
 	"""
@@ -949,7 +951,7 @@ def log_rate_of_reply(replier_id, text_len, time_now):
 	reply_rate_key = REPLY_RATE+str(replier_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush(reply_rate_key,str(text_len)+":"+str(time_now))
-	my_server.expire(reply_rate_key,15)#expire the data after 15 secs of inactivity
+	my_server.expire(reply_rate_key,14)#expire the data after 14 secs of inactivity
 
 
 def retrieve_prev_replier_rate(replier_id):

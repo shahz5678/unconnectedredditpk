@@ -185,13 +185,17 @@ class DirectResponseForm(forms.Form):
 					time_now=self.time_now)
 
 				if is_over_speeding:
-					rate_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
-					if rate_limited:
+					if rate_limited_for:
 						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
 							marked_fast='1' if is_over_speeding else '0', rate_limited='1')
 					else:
-						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
-							marked_fast='1' if is_over_speeding else '0', rate_limited='0')
+						rate_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
+						if rate_limited:
+							log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
+								marked_fast='1' if is_over_speeding else '0', rate_limited='1')
+						else:
+							log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
+								marked_fast='1' if is_over_speeding else '0', rate_limited='0')
 				else:
 					log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
 							marked_fast='1' if is_over_speeding else '0', rate_limited='0')

@@ -66,6 +66,7 @@ def determine_direct_response_rate(reply_len, replier_id, time_now):
 	rate_limited, time_length = is_rate_limited(replier_id)
 	if rate_limited:
 		return rate_limited, time_length
+
 	# since no rate-limited, now check if user ought to be rate-limited
 	else:
 		is_over_speeding = False
@@ -181,36 +182,36 @@ class DirectResponseForm(forms.Form):
 			# only applicable to replies under posts
 			if obj_type in ('3','4'):
 
+				time_now = self.time_now
+
 				is_over_speeding, rate_limited_for = determine_direct_response_rate(reply_len=len_reply, replier_id=receiver_id, \
-					time_now=self.time_now)
+					time_now=time_now)
 
-				if is_over_speeding:
-					if rate_limited_for:
-						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
-							marked_fast='1' if is_over_speeding else '0', rate_limited='1')
-					else:
-						rate_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
-						if rate_limited:
-							log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
-								marked_fast='1' if is_over_speeding else '0', rate_limited='1')
-						else:
-							log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
-								marked_fast='1' if is_over_speeding else '0', rate_limited='0')
-				else:
-					log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=self.time_now, reply_target=sender_id, \
-							marked_fast='1' if is_over_speeding else '0', rate_limited='0')
-
-
-
-				# # this person is already rate limited
-				# if rate_limited_for:
-				# 	raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.format(future_time.future_time(rate_limited_for)))		
+				# this person is already rate limited - show them an error
+				if rate_limited_for:
+					log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
+						marked_fast='0', rate_limited='1')# attempted to write something while rate limited
+					raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.format(future_time.future_time(rate_limited_for)))		
 				
-				# # check whether this person ought to be rate limited
-				# elif is_over_speeding:
-				# 	rate_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
-				# 	if rate_limited:
-				# 		raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.format(future_time.future_time(time_length)))
+				# check whether this person ought to be rate limited
+				elif is_over_speeding:
+					rate_limited, time_length = impose_reply_rate_limit(replier_id=receiver_id)
+					
+					# this user has been rate-limited due to frequent over-speeding
+					if rate_limited:
+						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
+							marked_fast='1', rate_limited='1')# got rate-limited
+						raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.format(future_time.future_time(time_length)))
+					
+					# this user is not rate-limited (the over-speeding hasn't reached the required threshold yet)
+					else:
+						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
+							marked_fast='1', rate_limited='0')# didn't get rate-limited
+
+				# no rate limit imposed on this user (they aren't over-speeding at all)
+				else:
+					log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
+						marked_fast='0', rate_limited='0')
 
 			##########################################################
 			# only applicable to mehfils

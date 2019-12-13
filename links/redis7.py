@@ -190,8 +190,8 @@ def insert_hash(photo_id, photo_hash,categ=None):
 		if size < (limit+1):
 			my_server.zadd(set_name, photo_hash, photo_id)
 		else:
-		   my_server.zremrangebyrank(set_name, 0, 10)
-		   my_server.zadd(set_name, photo_hash, photo_id)
+			my_server.zremrangebyrank(set_name, 0, 10)
+			my_server.zadd(set_name, photo_hash, photo_id)
 	except:
 		my_server.zadd(set_name, photo_hash, photo_id)
 
@@ -268,8 +268,6 @@ def retrieve_text_quality(text,lower_text,text_lang,is_being_reposted):
 
 	# post doesn't suffer from any obvious quality defects
 	return '0'
-	
-	
 
 
 
@@ -975,35 +973,6 @@ def hide_inline_direct_response(obj_type, parent_obj_id, reply_id):
 		if changed:
 			# saving altered data
 			my_server.hset(obj_hash_name,'rb',json.dumps(reply_data))
-
-
-
-def add_photo_comment(photo_id,latest_comm_text,latest_comm_writer_id,comment_id,latest_comm_writer_uname,time,\
-	comment_target=None, target_text_prefix=None,target_text_postfix=None):
-	"""
-	Adds comment to photo object (only if it exists in redis)
-	"""
-	hash_name = "img:"+str(photo_id)
-	my_server = redis.Redis(connection_pool=POOL)
-	if my_server.exists(hash_name):
-		#################################Saving latest photo comment################################
-		comment_blob = my_server.hget(hash_name,'cb')
-		comment_blob = truncate_payload(json.loads(comment_blob)) if comment_blob else []
-		payload = {'comment_id':comment_id,'writer_uname':latest_comm_writer_uname,'text':latest_comm_text,'epoch_time':time,\
-		'commenter_id':latest_comm_writer_id,'photo_id':photo_id}
-		if is_image_star(latest_comm_writer_id, my_server=my_server):
-			payload['s'] = '1'
-		if comment_target:
-			payload['ct'] = comment_target
-			payload['ttxpre'] = target_text_prefix
-		if target_text_postfix:
-			payload['ttxpos'] = target_text_postfix
-		comment_blob.append(payload)
-		my_server.hset(hash_name,'cb',json.dumps(comment_blob))
-		amnt = my_server.hincrby(hash_name, "cc", amount=1) #updating comment count in home link
-		return amnt
-	else:
-		return 0
 
 
 def get_obj_owner(obj_id, obj_type):

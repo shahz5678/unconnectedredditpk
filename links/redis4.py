@@ -377,11 +377,11 @@ def cache_image_count(num_images,list_type):
 
 REPLY_RATE = 'reply_rate'
 
-def log_replier_reply_rate(replier_id, text, time_now, target_id, marked_fast):
+def log_replier_reply_rate(replier_id, text, time_now, target_id, marked_fast, rate_limited):
 	"""
 	Temporarily logging who all is illegally flooding
 	"""
-	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+marked_fast,replier_id)
+	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+marked_fast+":"+rate_limited,replier_id)
 
 
 def retrieve_replier_rate():

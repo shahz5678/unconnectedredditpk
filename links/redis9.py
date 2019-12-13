@@ -935,7 +935,12 @@ def set_comment_history(obj_hash_name, obj_owner_id, commenter_id, time_now):
 
 ######################################### Log direct repsonse rate ############################################
 
-REPLY_RATE = 'rr:'
+
+FLOOD_COUNTER = 'fcn:'# counts how many times a given user has flooded in the recent seconds
+RATE_LIMIT_KEY = 'rk:'# rate limit key set for users who are flooding numerous times in a short time window
+LONG_TERM_RATE_LIMIT_KEY = 'ltrk:'# freqent rate-limiters are rate limited for ever increasing times via this key
+REPLY_RATE = 'rt:'# temp key that holds recent replies to determine speed of replying (useful for imposing rate limits for flooders)
+
 
 def log_rate_of_reply(replier_id, text_len, time_now):
 	"""
@@ -946,7 +951,7 @@ def log_rate_of_reply(replier_id, text_len, time_now):
 	reply_rate_key = REPLY_RATE+str(replier_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush(reply_rate_key,str(text_len)+":"+str(time_now))
-	my_server.expire(reply_rate_key,20)#expire the data after 20 secs of inactivity
+	my_server.expire(reply_rate_key,14)#expire the data after 14 secs of inactivity
 
 
 def retrieve_prev_replier_rate(replier_id):
@@ -954,3 +959,49 @@ def retrieve_prev_replier_rate(replier_id):
 	Retrieves the rate of last 3 replies (if key hasn't expired yet)
 	"""
 	return redis.Redis(connection_pool=POOL).lrange(REPLY_RATE+str(replier_id),0,2)
+
+
+def impose_reply_rate_limit(replier_id):
+	"""
+	Impose rate limit on 'flooders' (if warranted)
+	"""
+	replier_id = str(replier_id)
+	flood_key_name = FLOOD_COUNTER+replier_id
+
+	my_server = redis.Redis(connection_pool=POOL)
+	new_value = my_server.incr(flood_key_name)
+	
+	# caught flooding thrice - rate-limit them!
+	if new_value >= 3:
+		rate_limit_key = RATE_LIMIT_KEY+replier_id
+		long_term_rate_limit_key = LONG_TERM_RATE_LIMIT_KEY+replier_id
+		
+		# Step 1: determine how long to rate limit the replier, given how many times they've been rate limited previously
+		num_times_recently_limited = my_server.get(long_term_rate_limit_key)
+		limit_length = 600*(int(num_times_recently_limited)+1) if num_times_recently_limited is not None else 600
+		
+		# Step 2: 
+		pipeline1 = my_server.pipeline()
+		pipeline1.incr(rate_limit_key)
+		pipeline1.expire(rate_limit_key,limit_length)# rate limited for multiples of 10 mins
+		pipeline1.incr(long_term_rate_limit_key)
+		pipeline1.expire(long_term_rate_limit_key,302400)# long term key's expiry is set for 3.5 days
+		pipeline1.execute()
+		
+		return True, limit_length
+	
+	# don't ban
+	else:
+		my_server.expire(flood_key_name,22)
+		return False, None
+
+
+def is_rate_limited(replier_id):
+	"""
+	Checks if user is rate-limited
+	"""
+	time_remaining = redis.Redis(connection_pool=POOL).ttl(RATE_LIMIT_KEY+str(replier_id))
+	if time_remaining > 1:
+		return True, time_remaining
+	else:
+		return False, None

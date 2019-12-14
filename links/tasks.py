@@ -28,7 +28,8 @@ personal_group_hard_deletion, exited_personal_group_hard_deletion, update_person
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_share, logging_sharing_metrics, cache_photo_share_data, \
-retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,sanitize_unused_subscriptions,log_1on1_chat, log_replier_reply_rate
+retrieve_bulk_unames, save_most_recent_online_users, rate_limit_unfanned_user,sanitize_unused_subscriptions,log_1on1_chat, \
+log_mehfil_replier_reply_rate, log_replier_reply_rate# TODO: remove both these loggers
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group
@@ -530,6 +531,14 @@ def log_reply_rate(replier_id, text, time_now, reply_target, marked_fast, rate_l
 	TODO: temp logger that should be removed
 	"""
 	log_replier_reply_rate(replier_id, text, time_now, reply_target, marked_fast, rate_limited)
+
+
+@celery_app1.task(name='tasks.log_mehfil_reply')
+def log_mehfil_reply(replier_id, text, mehfil_type, time_now, reply_target):
+	"""
+	TODO: temp logger that should be removed
+	"""
+	log_mehfil_replier_reply_rate(replier_id=replier_id, text=text, time_now=time_now, target_id=reply_target, mehfil_type=mehfil_type)
 
 
 # @celery_app1.task(name='tasks.set_section_retention')

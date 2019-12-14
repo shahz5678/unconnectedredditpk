@@ -6,7 +6,6 @@ from redis9 import direct_response_exists, retrieve_prev_replier_rate, impose_re
 from links.templatetags import future_time
 from redis6 import human_readable_time
 from score import MAX_HOME_REPLY_SIZE
-from tasks import log_reply_rate, log_mehfil_reply#TODO: remove these loggers
 from redis4 import is_limited
 
 
@@ -165,8 +164,8 @@ class DirectResponseForm(forms.Form):
 		"""
 		Ensure the direct reply is valid
 		"""
-		direct_response, obj_type, parent_obj_id, sender_id, receiver_id, time_now = self.cleaned_data["direct_response"].strip(), self.obj_type, \
-		self.parent_obj_id, self.sender_id, self.receiver_id, self.time_now
+		direct_response, obj_type, parent_obj_id, sender_id, receiver_id = self.cleaned_data["direct_response"].strip(), self.obj_type, \
+		self.parent_obj_id, self.sender_id, self.receiver_id
 		
 		# NOTE: receiver_id is own_id, sender_id is target_id (for the purposes of this function)
 
@@ -183,13 +182,12 @@ class DirectResponseForm(forms.Form):
 			if obj_type in ('3','4'):
 
 				is_over_speeding, rate_limited_for = determine_direct_response_rate(reply_len=len_reply, replier_id=receiver_id, \
-					time_now=time_now)
+					time_now=self.time_now)
 
 				# this person is already rate limited - show them an error
 				if rate_limited_for:
-					log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
-						marked_fast='0', rate_limited='1')# attempted to write something while rate limited
-					raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.format(future_time.future_time(rate_limited_for)))		
+					raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.\
+						format(future_time.future_time(rate_limited_for)))		
 				
 				# check whether this person ought to be rate limited
 				elif is_over_speeding:
@@ -197,25 +195,13 @@ class DirectResponseForm(forms.Form):
 					
 					# this user has been rate-limited due to frequent over-speeding
 					if rate_limited:
-						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
-							marked_fast='1', rate_limited='1')# got rate-limited
-						raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.format(future_time.future_time(time_length)))
-					
-					# this user is not rate-limited (the over-speeding hasn't reached the required threshold yet)
-					else:
-						log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
-							marked_fast='1', rate_limited='0')# didn't get rate-limited
-
-				# no rate limit imposed on this user (they aren't over-speeding at all)
-				else:
-					log_reply_rate.delay(replier_id=receiver_id, text=direct_response, time_now=time_now, reply_target=sender_id, \
-						marked_fast='0', rate_limited='0')
+						raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.\
+							format(future_time.future_time(time_length)))
 
 			##########################################################
 			# only applicable to mehfils
 			elif obj_type in ('5','6'):
-				log_mehfil_reply.delay(replier_id=receiver_id, text=direct_response, mehfil_type=obj_type, time_now=time_now, \
-					reply_target=sender_id)
+
 				section = 'pub_grp' if obj_type == '5' else 'prv_grp'
  				if repetition_found(section=section,section_id=parent_obj_id,user_id=receiver_id, target_text=direct_response):
 					raise forms.ValidationError('Milti julti baatien nahi likhein')

@@ -889,13 +889,13 @@ def log_direct_response_metrics(action_status, action_type, num_skips, obj_type)
 		elif obj_type == '5':
 			# this is a public mehfil
 			if action_status:
-				my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_rep_to_rep',amount=1)
-			my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_total_reps',amount=1)
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_total_reps',amount=1)
 		elif obj_type == '6':
 			# this is a private mehfil
 			if action_status:
-				my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_rep_to_rep',amount=1)
-			my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_total_reps',amount=1)
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_total_reps',amount=1)
 		else:
 			# these are posts
 			pass

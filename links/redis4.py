@@ -376,12 +376,20 @@ def cache_image_count(num_images,list_type):
 #TODO: temp logger - needs to be removed
 
 REPLY_RATE = 'reply_rate'
+MEHFIL_REPLY_RATE = 'meh_reply_rate'
 
 def log_replier_reply_rate(replier_id, text, time_now, target_id, marked_fast, rate_limited):
 	"""
-	Temporarily logging who all is illegally flooding
+	Temporarily logging messges under posts
 	"""
 	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+marked_fast+":"+rate_limited,replier_id)
+
+
+def log_mehfil_replier_reply_rate(replier_id, text, time_now, target_id, mehfil_type):
+	"""
+	Temporarily logging messges in mehfils
+	"""
+	redis.Redis(connection_pool=POOL).zadd(MEHFIL_REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+mehfil_type,replier_id)
 
 
 def retrieve_replier_rate():
@@ -389,6 +397,13 @@ def retrieve_replier_rate():
 	Retrieves logged data
 	"""
 	return redis.Redis(connection_pool=POOL).zrange(REPLY_RATE,0,-1,withscores=True)
+
+
+def retrieve_mehfil_replier_rate():
+	"""
+	Retrieves logged data
+	"""
+	return redis.Redis(connection_pool=POOL).zrange(MEHFIL_REPLY_RATE,0,-1,withscores=True)
 
 
 ######################## Rate limiting content sharing on feeds ########################

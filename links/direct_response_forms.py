@@ -6,7 +6,7 @@ from redis9 import direct_response_exists, retrieve_prev_replier_rate, impose_re
 from links.templatetags import future_time
 from redis6 import human_readable_time
 from score import MAX_HOME_REPLY_SIZE
-from tasks import log_reply_rate
+from tasks import log_reply_rate, log_mehfil_reply#TODO: remove these loggers
 from redis4 import is_limited
 
 
@@ -165,8 +165,8 @@ class DirectResponseForm(forms.Form):
 		"""
 		Ensure the direct reply is valid
 		"""
-		direct_response, obj_type, parent_obj_id, sender_id, receiver_id = self.cleaned_data["direct_response"].strip(), self.obj_type, \
-		self.parent_obj_id, self.sender_id, self.receiver_id
+		direct_response, obj_type, parent_obj_id, sender_id, receiver_id, time_now = self.cleaned_data["direct_response"].strip(), self.obj_type, \
+		self.parent_obj_id, self.sender_id, self.receiver_id, self.time_now
 		
 		# NOTE: receiver_id is own_id, sender_id is target_id (for the purposes of this function)
 
@@ -181,8 +181,6 @@ class DirectResponseForm(forms.Form):
 			##########################################################
 			# only applicable to replies under posts
 			if obj_type in ('3','4'):
-
-				time_now = self.time_now
 
 				is_over_speeding, rate_limited_for = determine_direct_response_rate(reply_len=len_reply, replier_id=receiver_id, \
 					time_now=time_now)
@@ -216,6 +214,8 @@ class DirectResponseForm(forms.Form):
 			##########################################################
 			# only applicable to mehfils
 			elif obj_type in ('5','6'):
+				log_mehfil_reply.delay(replier_id=receiver_id, text=direct_response, mehfil_type=obj_type, time_now=time_now, \
+					reply_target=sender_id)
 				section = 'pub_grp' if obj_type == '5' else 'prv_grp'
  				if repetition_found(section=section,section_id=parent_obj_id,user_id=receiver_id, target_text=direct_response):
 					raise forms.ValidationError('Milti julti baatien nahi likhein')

@@ -68,9 +68,7 @@
         {% include "mehfil/public_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
 
         {% for reply,status in replies %}
-            {% if user.id == 1 %}
-                {{ reply.category }} - {{ reply.pre }}
-            {% endif %}
+
         {% if reply.category == '2' %}
             <div class="lsp sp cs" style="overflow:hidden;color:#999"><bdi><b>{{ reply.text }}</b></bdi> ko mehfil se kick kar dia gya</div>
         {% elif reply.category == '3' or reply.category == '1' %}
@@ -251,6 +249,10 @@
     </div>
 
     {% for reply,status in replies %}
+
+         {% if user.id == 1 %}
+            {{ reply.category }} - {{ reply.pre }}
+        {% endif %}
 
         {% if reply.category == '2' %}
             <div class="lsp sp cs" style="color:#999"><bdi><b>{{ reply.text }}</b></bdi> ko mehfil se kick kar dia gya</div>

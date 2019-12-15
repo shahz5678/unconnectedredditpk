@@ -28,7 +28,7 @@
 {% for link in object_list %}
 	<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<section itemscope itemtype="http://schema.org/SocialMediaPosting">
-	{% text_object obid=link.id ooid=submitter_id text=link.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on machine_time=link.machine_time oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes static_url=STATIC_URL is_star=is_star alignment=link.cagtegory block_time_remaining=time_remaining topic=link.topic_name topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
+	{% text_object obid=link.id ooid=submitter_id text=link.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.description origin=8 upload_time=link.submitted_on machine_time=link.machine_time oun=uname av_url=submitter_av_url|s3:'thumb' vsc=link.net_votes is_fbs=on_fbs static_url=STATIC_URL is_star=is_star alignment=link.cagtegory block_time_remaining=time_remaining topic=link.topic_name topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
 	</section>
 
 	<section style="display:block">

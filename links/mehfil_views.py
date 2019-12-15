@@ -2509,9 +2509,15 @@ def group_hide_submission(request, *args, **kwargs):
 				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				writer_id, target_user_id, action_successful, ttl = hide_group_submission(gid,own_id,pk,unhide=True)
-				if ttl:
+				if ttl > 0:
 					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide':True,'unique':data['u'],'is_public':True,\
 						'ttl':ttl})
+
+				elif action_successful is None:
+					# this case is that of trying to unhide the reply of a user who has been kicked out of the group - 'unhide' is disallowed
+					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide_kicked_user_reply':True,'unique':data['u'],\
+						'is_public':True})
+
 				elif action_successful:
 					################################################
 					hide_associated_direct_responses.delay(obj_type='5',parent_obj_id=gid,reply_id=pk,sender_id=writer_id,\

@@ -2982,6 +2982,7 @@ class UserActivityView(ListView):
 			context["is_star"] = is_image_star(user_id=target_id)
 			context["verified"] = True if username in FEMALES else False
 			context["is_profile_banned"] = False
+			context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
 			if self.request.user.is_authenticated():
 				own_id = self.request.user.id
 				is_defender, is_own_profile, ban_detail = in_defenders(own_id), str(own_id) == target_id, None

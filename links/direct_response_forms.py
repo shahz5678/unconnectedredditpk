@@ -186,7 +186,7 @@ class DirectResponseForm(forms.Form):
 
 				# this person is already rate limited - show them an error
 				if rate_limited_for:
-					raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.\
+					raise forms.ValidationError('Andha dhund nahi likhein! Ap dubara reply kar sakein ge {}'.\
 						format(future_time.future_time(rate_limited_for)))		
 				
 				# check whether this person ought to be rate limited
@@ -195,7 +195,7 @@ class DirectResponseForm(forms.Form):
 					
 					# this user has been rate-limited due to frequent over-speeding
 					if rate_limited:
-						raise forms.ValidationError('Andha dhund replies likhney ki wajah se ap dubara reply kar sakein ge {}'.\
+						raise forms.ValidationError('Andha dhund nahi likhein! Ap dubara reply kar sakein ge {}'.\
 							format(future_time.future_time(time_length)))
 
 			##########################################################

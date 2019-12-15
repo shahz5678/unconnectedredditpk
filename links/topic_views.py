@@ -252,7 +252,7 @@ def suggest_new_topic_feed(request):
 				set_text_input_key(user_id=topic_owner_id, obj_id='1', obj_type='home', secret_key=secret_key)
 				context = {'c1':primary_color,'c2':secondary_color,'submissions':[],'form':SubmitInTopicForm(),\
 				'topic':topic_name,'sk':str(secret_key),'topic_started':True,'topic_description':description,\
-				'page':{},'topic_url':topic_in_url_form}
+				'page':{},'topic_url':topic_in_url_form,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 				return render(request, 'topics/topic_home.html', context)
 			else:
 				# it already existed, so redirect to it
@@ -362,7 +362,8 @@ def topic_page(request,topic_url):
 				'ident':own_id, 'validation_error':request.session.pop("validation_error",''),'topic_url':topic_url,\
 				'is_subscribed':is_subscribed, 'new_subscriber':request.session.pop("subscribed"+str(own_id),None),\
 				'cannot_recreate':request.session.pop("cannot_recreate"+str(own_id),None), 'page':page,\
-				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True)}
+				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True),\
+				'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 				
 				################### Retention activity logging ###################
 				# from_redirect = request.session.pop('rd',None)
@@ -400,7 +401,7 @@ def topic_page(request,topic_url):
 				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,'page':page,\
 				'sk':'','topic_description':description,'c1':color_grads[0],'c2':color_grads[1], 'is_subscribed':False,\
 				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True),\
-				'topic_url':topic_url,'ident':None}
+				'topic_url':topic_url,'ident':None,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 				
 				return render(request, 'topics/unauth_topic_home.html', context)
 			else:

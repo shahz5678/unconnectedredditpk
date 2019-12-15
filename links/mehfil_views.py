@@ -3591,8 +3591,11 @@ class PublicGroupView(FormView):
 						latest_replies = []
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
-								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi']})
+								'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None),'pre':data.get('pre',''),\
+								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None),\
+								'rt':data.get('rt',None),'nht':data.get('nht',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
+
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
 					presence_dict[str(user_id)] = 'green'#ensures own status is 'green'
 					context["replies"] = [(reply,presence_dict.get(reply["wid"],'gone')) for reply in latest_replies]

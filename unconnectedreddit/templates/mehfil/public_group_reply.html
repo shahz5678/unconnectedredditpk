@@ -104,7 +104,7 @@
             {% if reply.hd == '1' %}
 
                 <!-- reference hidden -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -120,7 +120,7 @@
             {% elif reply.tgt_image %}
 
                 <!-- image reference -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -136,7 +136,7 @@
             {% elif reply.pre %}
 
                 <!-- text reference -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -152,7 +152,7 @@
             {% else %}
 
                 <!-- no reference -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -189,7 +189,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             <div id="disc_btns{{ reply.id }}" style="display:inline-block">
             <div class="fx fxjsfs" style="max-width:300px">
@@ -272,7 +272,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             {% if reply.tgt_image %}
                 {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons static_url=STATIC_URL img=reply.tgt_image|s3 state=reply.hd %}
@@ -294,7 +294,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             </div>
            

@@ -889,13 +889,13 @@ def log_direct_response_metrics(action_status, action_type, num_skips, obj_type)
 		elif obj_type == '5':
 			# this is a public mehfil
 			if action_status:
-				my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_rep_to_rep',amount=1)
-			my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_total_reps',amount=1)
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_total_reps',amount=1)
 		elif obj_type == '6':
 			# this is a private mehfil
 			if action_status:
-				my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_rep_to_rep',amount=1)
-			my_server.zincrby(DIRECT_RESPONSE_METRICS,'pub_mef_total_reps',amount=1)
+				my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_rep_to_rep',amount=1)
+			my_server.zincrby(DIRECT_RESPONSE_METRICS,'prv_mef_total_reps',amount=1)
 		else:
 			# these are posts
 			pass
@@ -978,21 +978,21 @@ def impose_reply_rate_limit(replier_id):
 		
 		# Step 1: determine how long to rate limit the replier, given how many times they've been rate limited previously
 		num_times_recently_limited = my_server.get(long_term_rate_limit_key)
-		limit_length = 600*(int(num_times_recently_limited)+1) if num_times_recently_limited is not None else 600
+		limit_length = 900*(int(num_times_recently_limited)+2) if num_times_recently_limited is not None else 900
 		
 		# Step 2: 
 		pipeline1 = my_server.pipeline()
 		pipeline1.incr(rate_limit_key)
-		pipeline1.expire(rate_limit_key,limit_length)# rate limited for multiples of 10 mins
+		pipeline1.expire(rate_limit_key,limit_length)# rate limited for multiples of 15 mins
 		pipeline1.incr(long_term_rate_limit_key)
-		pipeline1.expire(long_term_rate_limit_key,302400)# long term key's expiry is set for 3.5 days
+		pipeline1.expire(long_term_rate_limit_key,864000)# long term key's expiry is set for 10 days
 		pipeline1.execute()
 		
 		return True, limit_length
 	
 	# don't ban
 	else:
-		my_server.expire(flood_key_name,22)
+		my_server.expire(flood_key_name,26)
 		return False, None
 
 

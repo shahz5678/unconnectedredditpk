@@ -554,12 +554,16 @@ def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
 		return redis.Redis(connection_pool=POOL).zrevrange(HOME_SORTED_FEED, start_idx, end_idx)
 
 
-def get_best_home_feed(start_idx=0,end_idx=-1, trending_home=True):
+def get_best_home_feed(start_idx=0,end_idx=-1, trending_home=True, with_feed_size=False):
 	"""
 	Retrieve list of best home feed objects
 	"""
 	if trending_home:
-		return redis.Redis(connection_pool=POOL).zrevrange(TRENDING_HOME_FEED, start_idx, end_idx)
+		if with_feed_size:
+			my_server = redis.Redis(connection_pool=POOL)
+			return my_server.zrevrange(TRENDING_HOME_FEED, start_idx, end_idx), my_server.zcard(TRENDING_HOME_FEED)
+		else:
+			return redis.Redis(connection_pool=POOL).zrevrange(TRENDING_HOME_FEED, start_idx, end_idx)
 	else:
 		return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
 
@@ -1261,10 +1265,8 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 	if is_star:
 		immutable_data['s']='1'
 	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
-	time_now = time.time()
-	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
-	my_server = redis.Redis(connection_pool=POOL)
 
+	my_server = redis.Redis(connection_pool=POOL)
 	######################################################
 	# flagging low quality posts based on certain text criteria
 	lower_text = text.lower()
@@ -1272,7 +1274,9 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 		is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
 
 	######################################################
-
+	time_now = time.time()
+	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
+	
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(obj_hash,mapping)# creating the obj hash
 	pipeline1.expireat(obj_hash,expire_at)# setting a TTL of one week on this obj hash

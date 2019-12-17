@@ -41,7 +41,7 @@
 
 </head>
 <body style="background:#f0f3f4">
-
+<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 {% include "header.html" %}
 
 <nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
@@ -86,7 +86,7 @@
 						<a name="section{{ forloop.counter }}"></a>
 						
 						<section style="display:block">
-						{% text_object obid=submission.i ooid=submission.si text=submission.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv home_hash=submission.h static_url=STATIC_URL is_star=submission.s alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
+						{% text_object obid=submission.i ooid=submission.si text=submission.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv  is_fbs=on_fbs home_hash=submission.h static_url=STATIC_URL is_star=submission.s alignment=submission.c topic=topic topic_url=topic_url show_topic='1' %}
 						</section>
 
 						<section style="display:block" class="mls mrs mbl">

@@ -988,35 +988,62 @@ def best_home_page(request):
 	"""
 	Displays the 'best' home page
 	"""
-	# if request.user.is_authenticated():
-	context = {}
-	context["authenticated"] = True
 	own_id, page_num = request.user.id, request.GET.get('page', '1')
 	start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
-	############
-	obj_list = get_best_home_feed(start_idx=start_index, end_idx=end_index)# has to be written
-	############
+	obj_list, list_total_size = get_best_home_feed(start_idx=start_index, end_idx=end_index, with_feed_size=True)
+	num_pages = list_total_size/ITEMS_PER_PAGE
+	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
+	page_num = int(page_num)
 	list_of_dictionaries = retrieve_obj_feed(obj_list)
+	#######################
+	# must be done in this line, since the 't' information is lost subsequently
+	try:
+		oldest_post_time = list_of_dictionaries[-1]['t']
+	except:
+		oldest_post_time = 0.0
+	#######################
 	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
-	context["link_list"] = list_of_dictionaries
-	# context["fanned"] = []#bulk_is_fan(set(str(obj['si']) for obj in list_of_dictionaries),own_id)
 	#######################
-	replyforms = {}
-	for obj in list_of_dictionaries:
-		replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
-	context["replyforms"] = replyforms
-	#######################
-	context["on_fbs"] = request.META.get('HTTP_X_IORG_FBS',False)
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+	on_opera = True if (not on_fbs and not is_js_env) else False
 	num = random.randint(1,4)
-	context["random"] = num #determines which message to show at header
-	context["newest_user"] = User.objects.latest('id') if num > 2 else None
-	# context["score"] = request.user.userprofile.score #own score
 	secret_key = str(uuid.uuid4())
-	# context["sk"] = secret_key
-	# set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
-	context["can_vote"] = True #allowing user to vote
-	context["process_notification"] = False
-	context["ident"] = own_id
+	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
+	#######################
+	# enrich objs with information that 'own_id' liked them or not
+	recent_user_voted_obj_hashes = check_votes_on_objs(obj_list, own_id)
+	for obj in list_of_dictionaries:
+		if obj['h'] in recent_user_voted_obj_hashes:
+			obj['v'] = True# user 'liked' this particular object, so mark it
+	#######################
+	is_mob_verified = request.mobile_verified
+	context = {'link_list':list_of_dictionaries,'is_auth':True, 'on_fbs':on_fbs,'ident':own_id,'on_opera':on_opera,\
+	'mobile_verified':is_mob_verified,'random':num, 'sk':secret_key,'newbie_lang':request.session.get("newbie_lang",None),\
+	'dir_rep_form':DirectResponseForm(with_id=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
+	'single_notif_dir_rep_form':DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
+	'uname_rep_sent_to':request.session.pop("dir_rep_sent"+str(own_id),None),'thin_rep_form':DirectResponseForm(thin_strip=True),\
+	'obj_type_rep_sent_to':request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None),'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
+	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None)}
+
+	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+	'previous_page_number':page_num-1,'next_page_number':page_num+1}
+	
+	newbie_flag = request.session.get("newbie_flag",None)
+	if newbie_flag:
+		context["newbie_flag"] = newbie_flag
+		if newbie_flag in ('1','2','3','5','6','7'):
+			if newbie_flag == '5':
+				context["newbie_tutorial_page"] = 'tutorial5b.html'
+			elif newbie_flag == '6':
+				context["newbie_tutorial_page"] = 'tutorial6b.html'
+			elif newbie_flag == '7':
+				context["newbie_tutorial_page"] = 'tutorial7c.html'
+			else:
+				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
+		else:
+			context["newbie_tutorial_page"] = 'newbie_rules.html'
+
 	return render(request, 'link_list.html', context)
 
 
@@ -2982,6 +3009,7 @@ class UserActivityView(ListView):
 			context["is_star"] = is_image_star(user_id=target_id)
 			context["verified"] = True if username in FEMALES else False
 			context["is_profile_banned"] = False
+			context["on_fbs"] = self.request.META.get('HTTP_X_IORG_FBS',False)
 			if self.request.user.is_authenticated():
 				own_id = self.request.user.id
 				is_defender, is_own_profile, ban_detail = in_defenders(own_id), str(own_id) == target_id, None

@@ -3,7 +3,7 @@
 {% block content %}
 
 {% if deleted %}
-	<head><title>Completed deletion action | Damadam.pk</title></head>
+	<head><title>Completed deletion action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil deleted!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -16,7 +16,7 @@
 	</div>
 	<br>
 {% elif cannot_target_self %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -29,7 +29,7 @@
 	</div>
 	<br>
 {% elif img_too_big %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -44,7 +44,7 @@
 	</div>
 	<br>
 {% elif member_overflow %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot send invite!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -55,7 +55,7 @@
 	</div>
 	<br>
 {% elif action_frozen %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -70,7 +70,7 @@
 	</div>
 	<br>
 {% elif uninvited %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -81,7 +81,7 @@
 	</div>
 	<br>
 {% elif cant_unhide %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -93,8 +93,23 @@
 	{% endif %}
 	</div>
 	<br>
+{% elif cant_unhide_kicked_user_reply %}
+	<head><title>Unable to complete action | Damadam</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ye reply unhide nahi ho sakta</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Sirf un users ke replies unhide hotay hain jo members hon</div>
+	{% if is_public %}
+	<a href="{% url 'public_group' unique %}#section0"><button class="btn bcp bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
+	{% else %}
+	<form method="POST" class="mbl mtl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button class="btn bcg bm pg_ok_res sp" style="height:26px">wapis</button></form>
+	{% endif %}
+	</div>
+	<br>
 {% elif invite_overflow %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot send invite!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -107,7 +122,7 @@
 	</div>
 	<br>
 {% elif member_limit_reached %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -124,7 +139,7 @@
 	</div>
 	<br>
 {% elif cannot_join %}
-	<head><title>Unable to join | Damadam.pk</title></head>
+	<head><title>Unable to join | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -136,7 +151,7 @@
 	</div>
 	<br>
 {% elif too_young_to_give_feedback %}
-	<head><title>Unable to exit | Damadam.pk</title></head>
+	<head><title>Unable to exit | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -148,7 +163,7 @@
 	<br>
 {% elif read_rules %}
 	{% load emoticons_tags %}
-	<head><title>Read mehfil rules | Damadam.pk</title></head>
+	<head><title>Read mehfil rules | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl cp" style="text-align:center;overflow:hidden">{% emoticons %}{{ topic }}{% endemoticons %}</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -158,7 +173,7 @@
 	</div>
 	<br>
 {% elif recently_quit %}
-	<head><title>Unable to join | Damadam.pk</title></head>
+	<head><title>Unable to join | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -169,7 +184,7 @@
 	</div>
 	<br>
 {% elif cannot_exit %}
-	<head><title>Unable to exit | Damadam.pk</title></head>
+	<head><title>Unable to exit | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot exit mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -184,7 +199,7 @@
 	</div>
 	<br>
 {% elif kick_rate_limited %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -197,7 +212,7 @@
 	</div>
 	<br>
 {% elif feedback_thanks %}
-	<head><title>Feedback submitted | Damadam.pk</title></head>
+	<head><title>Feedback submitted | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Thank you!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -206,7 +221,7 @@
 	</div>
 	<br>
 {% elif feedback_rate_limited %}
-	<head><title>Feedback not submitted | Damadam.pk</title></head>
+	<head><title>Feedback not submitted | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -215,7 +230,7 @@
 	</div>
 	<br>
 {% elif cannot_target_owner %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -224,7 +239,7 @@
 	</div>
 	<br>
 {% elif cannot_hide_or_unhide %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -233,7 +248,7 @@
 	</div>
 	<br>
 {% elif cannot_afford %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -242,7 +257,7 @@
 	</div>
 	<br>
 {% elif offer_does_not_exist %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -255,7 +270,7 @@
 	</div>
 	<br>
 {% elif ratify_ownership_transfer %}
-	<head><title>Ratify this action | Damadam.pk</title></head>
+	<head><title>Ratify this action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Are you sure?</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -270,7 +285,7 @@
 	</div>
 	<br>
 {% elif ownership_request_successful %}
-	<head><title>Ownership request submitted | Damadam.pk</title></head>
+	<head><title>Ownership request submitted | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Thank you!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -287,7 +302,7 @@
 	</div>
 	<br>	
 {% elif sent_ownership_request_recently %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -302,7 +317,7 @@
 	</div>
 	<br>
 {% elif only_pinkstar_can_be_owner %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -311,7 +326,7 @@
 	</div>
 	<br>
 {% elif group_too_young_to_be_transferred %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -324,7 +339,7 @@
 	</div>
 	<br>
 {% elif member_too_young_to_become_owner %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -337,7 +352,7 @@
 	</div>
 	<br>
 {% elif offerer_is_hellbanned %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -350,7 +365,7 @@
 	</div>
 	<br>
 {% elif topic_or_rules_rl_cannot_transfer %}
-	<head><title>Unable to join | Damadam.pk</title></head>
+	<head><title>Unable to join | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -366,7 +381,7 @@
 	</div>
 	<br>
 {% elif too_young_to_become_owner %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -375,7 +390,7 @@
 	</div>
 	<br>
 {% elif too_much_price_offered %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -384,7 +399,7 @@
 	</div>
 	<br>
 {% elif not_enough_price_offered %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -393,7 +408,7 @@
 	</div>
 	<br>
 {% elif offerer_not_a_member %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -406,7 +421,7 @@
 	</div>
 	<br>
 {% elif only_verified_can_be_owner %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -419,7 +434,7 @@
 	</div>
 	<br>
 {% elif owner_rl_due_to_prev_transaction %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -440,7 +455,7 @@
 	</div>
 	<br>
 {% elif officer_app_rate_limited %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit application!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -457,7 +472,7 @@
 	</div>
 	<br>
 {% elif too_young_for_officer %}
-	<head><title>Cannot submit officer request | Damadam.pk</title></head>
+	<head><title>Cannot submit officer request | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit application!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -474,7 +489,7 @@
 	</div>
 	<br>
 {% elif officer_app_submitted %}
-	<head><title>Officer request submitted | Damadam.pk</title></head>
+	<head><title>Officer request submitted | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Answers submitted!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -485,7 +500,7 @@
 	</div>
 	<br>
 {% elif cannot_target_officers %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -494,7 +509,7 @@
 	</div>
 	<br>
 {% elif wrong_input_by_owner %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -507,7 +522,7 @@
 	</div>
 	<br>
 {% else %}
-	<head><title>Unable to complete action | Damadam.pk</title></head>
+	<head><title>Unable to complete action | Damadam</title></head>
 	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">

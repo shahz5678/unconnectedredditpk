@@ -22,7 +22,7 @@
 		{% if datum.tp == 'tx' %}
 
 		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
-			{% text_object obid=datum.obid ooid=datum.ooid text=datum.d|emoticons|linebreaksbr raw_text=datum.d origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv home_hash='' static_url=STATIC_URL is_star=datum.s alignment=datum.c topic=datum.tn topic_url=datum.url show_topic='1' c1=datum.c1 c2=datum.c2 %}
+			{% text_object obid=datum.obid ooid=datum.ooid text=datum.d|emoticons|linebreaksbr raw_text=datum.d origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s alignment=datum.c topic=datum.tn topic_url=datum.url show_topic='1' c1=datum.c1 c2=datum.c2 %}
 		
 			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 				{% big_points_button obj_id=datum.obid owner_id=datum.ooid is_pht=0 origin='25' net_votes=datum.nv base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}

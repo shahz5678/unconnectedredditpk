@@ -2509,9 +2509,15 @@ def group_hide_submission(request, *args, **kwargs):
 				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				writer_id, target_user_id, action_successful, ttl = hide_group_submission(gid,own_id,pk,unhide=True)
-				if ttl:
+				if ttl > 0:
 					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide':True,'unique':data['u'],'is_public':True,\
 						'ttl':ttl})
+
+				elif action_successful is None:
+					# this case is that of trying to unhide the reply of a user who has been kicked out of the group - 'unhide' is disallowed
+					return render(request,"mehfil/notify_and_redirect.html",{'cant_unhide_kicked_user_reply':True,'unique':data['u'],\
+						'is_public':True})
+
 				elif action_successful:
 					################################################
 					hide_associated_direct_responses.delay(obj_type='5',parent_obj_id=gid,reply_id=pk,sender_id=writer_id,\
@@ -3585,8 +3591,11 @@ class PublicGroupView(FormView):
 						latest_replies = []
 						for data in latest_data:
 							latest_replies.append({'category':data['c'],'submitted_on':data['t'],'text':data['tx'],'wid':data['wi'],'writer_uname':data['wu'],\
-								'image':data.get('iu',None),'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi']})
+								'writer_avurl':data.get('wa',None),'id':data['si'],'gid':data['gi'],'tu':data.get('tu',None),'pre':data.get('pre',''),\
+								'post':data.get('post',''),'chat_image':data.get('ciu',None),'tgt_image':data.get('tiu',None),'hd':data.get('hidden',None),\
+								'rt':data.get('rt',None),'nht':data.get('nht',None)})
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
+
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
 					presence_dict[str(user_id)] = 'green'#ensures own status is 'green'
 					context["replies"] = [(reply,presence_dict.get(reply["wid"],'gone')) for reply in latest_replies]

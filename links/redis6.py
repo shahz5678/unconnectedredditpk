@@ -1159,20 +1159,31 @@ def hide_group_submission(group_id, officer_id,submission_id,unhide=False):
 	group_id, offcer_id = str(group_id), str(officer_id)
 	key = GROUP_SUBMISSION_HASH+group_id+":"+str(submission_id)
 	my_server = redis.Redis(connection_pool=POOL)
+	writer_id, target_user_id = my_server.hmget(key,'wi','tid')
+	
+
 	# public group hiding
 	current_val = my_server.hget(key,'c')
 	if unhide:
-		ttl = my_server.ttl(UNHIDE_RATELIMITED+group_id+":"+offcer_id)
-		if ttl > 0:
-			pass
+		# only unhide if the writer is still a member of the group
+		writer_is_mem = my_server.zscore(GROUP_MEMBERS+group_id,writer_id)
+		
+		if writer_is_mem:
+			# writer is still a group member
+			ttl = my_server.ttl(UNHIDE_RATELIMITED+group_id+":"+offcer_id)
+			if ttl > 0:
+				pass
+			else:
+				if current_val == '3':
+					my_server.hset(key,'c','0')
+					action_successful = True
+				elif current_val == '1':
+					my_server.hset(key,'c','11')
+					action_successful = True
 		else:
-			if current_val == '3':
-				my_server.hset(key,'c','0')
-				action_successful = True
-			elif current_val == '1':
-				my_server.hset(key,'c','11')
-				action_successful = True
-	
+			# writer is not a member any more (e.g. has been kicked out)
+			action_successful, ttl = None, 0
+
 	# 'hide' the chat
 	else:
 		my_server.setex(UNHIDE_RATELIMITED+group_id+":"+offcer_id,'1',6)
@@ -1183,7 +1194,7 @@ def hide_group_submission(group_id, officer_id,submission_id,unhide=False):
 		elif current_val == '11':
 			my_server.hset(key,'c','1')#setting category to '1' in order to hide
 			action_successful = True
-	writer_id, target_user_id = my_server.hmget(key,'wi','tid')
+	
 	return writer_id, target_user_id, action_successful, ttl
 
 

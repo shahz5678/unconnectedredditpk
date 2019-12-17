@@ -554,12 +554,16 @@ def get_home_feed(start_idx=0,end_idx=-1, with_feed_size=False):
 		return redis.Redis(connection_pool=POOL).zrevrange(HOME_SORTED_FEED, start_idx, end_idx)
 
 
-def get_best_home_feed(start_idx=0,end_idx=-1, trending_home=True):
+def get_best_home_feed(start_idx=0,end_idx=-1, trending_home=True, with_feed_size=False):
 	"""
 	Retrieve list of best home feed objects
 	"""
 	if trending_home:
-		return redis.Redis(connection_pool=POOL).zrevrange(TRENDING_HOME_FEED, start_idx, end_idx)
+		if with_feed_size:
+			my_server = redis.Redis(connection_pool=POOL)
+			return my_server.zrevrange(TRENDING_HOME_FEED, start_idx, end_idx), my_server.zcard(TRENDING_HOME_FEED)
+		else:
+			return redis.Redis(connection_pool=POOL).zrevrange(TRENDING_HOME_FEED, start_idx, end_idx)
 	else:
 		return redis.Redis(connection_pool=POOL).zrevrange(BEST_HOME_FEED, start_idx, end_idx)
 

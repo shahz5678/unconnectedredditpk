@@ -1,0 +1,156 @@
+{% extends "base_noindex.html" %}
+{% block content %}
+<head><title>Select Followers | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+<a name="top"></a>
+<h1 class="clb cxl lsp" style="text-align:center">Select followers:</h1>
+	{% if err_type %}
+		<div style="background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);text-align:center;color:white;padding:5px;border-radius:8px;max-width:450px;margin-left:auto;margin-right:auto;box-sizing:border-box;border:3px solid #ececec" class="cxl lsp mbs">
+		{% if err_type == 'selected_all'%}
+			You can't select all followers
+		{% elif err_type == 'selected_none' %}
+			You have to select at least one follower
+		{% else %}
+			You have to select at least one real follower	
+		{% endif %}
+		</div>
+	{% endif %}	
+
+{% if previously_selected_list %}
+	
+
+	<main class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:450px;margin-left:auto;margin-right:auto;text-align:center;display:block;box-sizing:border-box;width:97%;">
+
+			<form method="POST" action="{% url 'finalize_audience' %}">
+				{% if num_followers > 5 %}<button class="btn bl cl bct sp pg_ok_res" type="submit" style="width:100%;height:44px;border-bottom-left-radius:0;border-bottom-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)">SHARE</button>
+					{% if not on_fbs %}
+						<div style="background:#ecf0f9;padding:7px 0">
+							<div style="border-bottom:1px solid #f0f3f4">
+								<a class="sp" style="color:orange;font-size:14px" href="#section{{bottom}}" class="vt" style="border-radius:0;height:42px;width:100%;border:none;border-bottom:1px solid #f0f3f4;color:orange;border"><span style="border-bottom:1px dotted orange">bottom</span></a>
+								<div class="mtl">
+									{% for header, users in all_followers %}
+										<a href="#section{{ forloop.counter }}" style="color:#ffa707"><span class="cm sp lsp mls mrs">{{ header }}</span></a>
+									{% endfor %}
+								</div>
+							</div>
+						</div>
+					{% endif %}
+				{% endif %}
+
+				<ul style="display:block;list-style:none;padding: 0;margin:0;">
+				
+					<!-- with prev followers -->
+					<main class="mbl mtl" style="border:1px solid #e2e7e9;border-radius:6px;overflow:hidden;background:white;max-width:400px;width:96%;text-align:center;display:block;padding:0 14px;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+					
+						<div class="mts">
+						
+							<h2 class"cxl lsp" style="color:#c0ceeb;margin:10px 0 20px 0">Previously Selected Followers</h2>
+
+							{% for header, followers in previously_selected_followers %}
+								{% for follower_id, follower_username, username_lower, world_age in followers %}
+									
+									<li class="mbs mts cl sp" style="text-align:left;padding-bottom:10px;word-break: break-all">
+										<input type="checkbox" style="vertical-align:middle" name="fids" id="{{ follower_id }}" value="{{ follower_id }}" class="mrl"><label for="{{ follower_id }}"><b><bdi>{{ follower_username }}</bdi></b></label>
+									</li>
+								
+								{% endfor %}
+							{% endfor %}
+
+						</div>
+
+					</main>
+
+
+					<main class="mbl" style="border:1px solid #e2e7e9;border-radius:6px;overflow:hidden;background:white;max-width:400px;width:96%;text-align:center;display:block;padding:0 14px;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+						<div class="mts">
+
+						<h2 class"cxl lsp" style="color:#c0ceeb;margin:10px 0">Remaining Followers</h2>
+						
+						{% csrf_token %}
+						{% for header, followers in all_followers %}
+							<a name="section{{ forloop.counter }}"></a>
+							<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{% if not forloop.first %}<a class="mrs sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:-1 }}">prev</a>{%else%}&nbsp;&nbsp;{% endif %}{{ header }}{% if not forloop.last %}<a class="mls sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:1 }}">next</a>{% else %}&nbsp;&nbsp;{% endif %}</h2>
+							{% for follower_id, follower_username, username_lower, world_age in followers %}
+								{% if forloop.last and forloop.parentloop.last %}
+								<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;word-break: break-all">
+								{% else %}
+								<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f0f3f4;word-break: break-all">
+								{% endif %}
+									<input type="checkbox" style="vertical-align:middle" name="fids" id="{{ follower_id }}" value="{{ follower_id }}" class="mrl"><label for="{{ follower_id }}"><b><bdi>{{ follower_username }}</bdi></b></label>
+								</li>
+							{% endfor %}
+							{% empty %}
+								{% if previously_selected_list %}
+									<div class="mtl cs sp cgy">- apkey aur koi followers nahi -</div>
+								{% else %}
+									<div class="mtl cs sp cgy">- apkey followers nahi hain -</div>
+								{% endif %}
+						{% endfor %}
+						</div>
+
+					</main>
+
+				</ul>
+
+				<button class="btn bl cl bct mts sp pg_ok_res" type="submit" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)">SHARE</button>
+			</form>
+	</main>
+{% else %}
+
+	<!-- no prev followers -->
+	<main class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:450px;margin-left:auto;margin-right:auto;text-align:center;display:block;box-sizing:border-box;width:97%;">
+		<form method="POST" action="{% url 'finalize_audience' %}">
+			{% if num_followers > 5 %}<button class="btn bl cl bct sp pg_ok_res" type="submit" style="width:100%;height:44px;border-bottom-left-radius:0;border-bottom-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)">SHARE</button>
+			{% if not on_fbs %}
+				<div style="background:#ecf0f9;padding:7px 0">
+					<div style="border-bottom:1px solid #f0f3f4">
+						<a class="sp" style="color:orange;font-size:14px" href="#section{{bottom}}" class="vt" style="border-radius:0;height:42px;width:100%;border:none;border-bottom:1px solid #f0f3f4;color:orange;border"><span style="border-bottom:1px dotted orange">bottom</span></a>
+						<div class="mtl">
+							{% for header, users in all_followers %}
+
+								<a href="#section{{ forloop.counter }}" style="color:#ffa707"><span class="cm sp lsp mls mrs">{{ header }}</span></a>
+							{% endfor %}
+						</div>
+					</div>
+				</div>
+			{% endif %}
+			{% endif %}
+			<ul style="display:inline-block;padding: 0;list-style:none;margin-top:0;padding:5px 7px 0 7px;">
+				<div class="mts" style="word-break: break-all">
+
+				{% csrf_token %}
+				{% for header, followers in all_followers %}
+					<a name="section{{ forloop.counter }}"></a>
+					<h2 style="font-size:60px;color:#c0ceeb;margin:10px 0">{% if not forloop.first %}<a class="mrs sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:-1 }}">prev</a>{%else%}&nbsp;&nbsp;{% endif %}{{ header }}{% if not forloop.last %}<a class="mls sp" style="color:orange;font-size:14px;font-weight:lighter;border-bottom:1px dotted orange" href="#section{{ forloop.counter|add:1 }}">next</a>{%else%}&nbsp;&nbsp;{% endif %}</h2>
+					{% for follower_id, follower_username, username_lower, world_age in followers %}
+						{% if forloop.last and forloop.parentloop.last %}
+						<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;word-break: break-all">
+						{% else %}
+						<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f0f3f4;word-break: break-all">
+						{% endif %}
+							<input type="checkbox" style="vertical-align:middle" name="fids" id="{{ follower_id }}" value="{{ follower_id }}" class="mrl"><label for="{{ follower_id }}"><b><bdi>{{ follower_username }}</bdi></b></label>
+						</li>
+					{% endfor %}
+					{% empty %}
+						{% if previously_selected_list %}
+							<div class="mtl cs sp cgy">- apkey aur koi followers nahi -</div>
+						{% else %}
+							<div class="mtl cs sp cgy">- apkey followers nahi hain -</div>
+						{% endif %}
+				{% endfor %}
+				</div>
+			</ul>
+
+			{% if not on_fbs %}
+				<div><a class="sp vt" style="color:orange;font-size:14px" href="#top" style="border-radius:0;height:42px;width:100%;border:none;border-top:1px solid #f0f3f4;color:orange;border"><span style="border-bottom:1px dotted orange">top</span></a></div>
+			{% endif %}
+
+			<button class="btn bl cl bct mts sp pg_ok_res" type="submit" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)">SHARE</button>
+		</form>
+	</main>
+
+{% endif %}
+<br><br>
+{% endblock %}

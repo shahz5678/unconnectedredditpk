@@ -12,37 +12,15 @@
 <h1 class="cxl clb lsp" style="text-align:center">Total likes:</h1>
 <div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 8px;max-width:450px;width:97%;text-align:center;margin-left:auto;margin-right:auto">
 
-<div class="mbs">
-	{% if pht == '1' %}
 
-		{% if orig == '1' %}
-			<a href="{% url 'redirect_to_photo' 'fresh-list' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '2' %}
-			<a href="{% url 'redirect_to_photo' 'best-list' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '3' %}
-			<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '4' %}
-			<a href="{% url 'user_profile_photo' obj.owner obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '5' %}
-			<a href="{% url 'photo_detail' obj_id %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '22' %}
-			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '25' %}
-			<a href="{% url 'user_vote_history' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% else %}
-		{% endif %}
-	wapis</a>
-	{% else %}
-		{% if orig == '3' %}
-			<a href="{% url 'redirect_to_home' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '8' %}
-			<a href="{% url 'user_activity' oun %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '22' %}
-			<a href="{% url 'topic_redirect' origin_topic lid %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% elif orig == '25' %}
-			<a href="{% url 'user_vote_history' %}" style="border-bottom:1px dotted dodgerblue" class="cb cm sp">
-		{% endif %}wapis</a>
-	{% endif %}
+<div class="mbs">
+
+	<form method="POST" action="{% url 'redirect_to_content' %}">
+	{% csrf_token %}<input type="hidden" name="orig" value="{{ orig }}"><input type="hidden" name="obid" value="{{ obj_id }}">
+	<input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="topic" value="{{ origin_topic }}"><input type="hidden" name="oun" value="{{ oun }}">
+	<button type="submit" class="cb cl sp pg_ok_res" style="padding:0;border:none;height:30px;border-bottom:1px dotted dodgerblue;border-radius:0;background:transparent">wapis</button>
+	</form>
+
 </div>
 	
 	{% if defender and voter_id_names_status_and_votes %}
@@ -57,9 +35,9 @@
 
 		<div class="mtl">
 		{% if pht == '1' %}
-			<div class="cs sp">"{% emoticons %}{{ obj.caption|truncatechars:'45' }}{% endemoticons %}"</div>
-			<img class="mts cxs sp" src="{{ purl|s3:'thumb' }}" alt="{{ obj.caption }}" height="38" style="border-radius:5px;overflow:hidden;background-color:#E9EBEE">
-			<div class="cs mts sp cgy">photo by {% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" height="14" width="14" alt="*" style="color:gold">&nbsp;{% endif %}<b class="clb">{{ obj.owner }}</b></div>
+			<div class="cs sp">"{% emoticons %}{{ obj.description|truncatechars:'45' }}{% endemoticons %}"</div>
+			<img class="mts cxs sp" src="{{ purl|s3:'thumb' }}" alt="{{ obj.description }}" height="38" style="border-radius:5px;overflow:hidden;background-color:#E9EBEE">
+			<div class="cs mts sp cgy">photo by {% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" height="14" width="14" alt="*" style="color:gold">&nbsp;{% endif %}<b class="clb">{{ obj.submitter }}</b></div>
 		{% else %}
 			<div class="cl">"{% emoticons %}{{ obj.description|truncatechars:'45' }}{% endemoticons %}"</div>
 			<div class="cs mts sp cgy">submitted by {% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" height="14" width="14" alt="*" style="color:gold">&nbsp;{% endif %}<b class="clb">{{ obj.submitter }}</b></div>
@@ -81,7 +59,7 @@
 				{% else %}
 					
 					<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-						<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} like{% else %}{{ obj.vote_score }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
+						<div><b class="cxl">{% if pht == '1' %}{% if obj.net_votes == 1 %}{{ obj.netvotes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
 						<div class="cxs sp cgy mtl">- liking is closed -</div>
 					</div>
 
@@ -98,7 +76,7 @@
 				</div>
 				{% else %}
 				<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-					<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} like{% else %}{{ obj.vote_score }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
+					<div><b class="cxl">{% if pht == '1' %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
 					<div class="cxs sp cgy mtl">- liking is closed -</div>
 				</div>
 				{% endif %}
@@ -117,7 +95,7 @@
 			</div>
 			{% else %}
 			<div class="mtl cl mbs bizcard" style="background-color:#f8f9f9;border:1px solid #e5e7e9;text-align:center;display:inline-block;padding:10px 10px 5px 10px;border-radius:8px">
-				<div><b class="cxl">{% if pht == '1' %}{% if obj.vote_score == 1 %}{{ obj.vote_score }} like{% else %}{{ obj.vote_score }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
+				<div><b class="cxl">{% if pht == '1' %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% else %}{% if obj.net_votes == 1 %}{{ obj.net_votes }} like{% else %}{{ obj.net_votes }} likes{% endif %}{% endif %}</b></div>
 				<div class="cxs sp cgy mtl">- liking is closed -</div>
 			</div>
 			{% endif %}

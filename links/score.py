@@ -12,14 +12,22 @@ PREFIX_TEXT_LENGTH = 43# useful when splitting a sentence into prefix and postfi
 NUM_ACTIVITY_ITEMS_PER_PAGE = 10# num items to be shown in reply history
 ###############################################################################################################
 VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 2419200# i.e. 28 days. This is the amount of time closed-voting objs are kept around for 'like_prob' or 'handpicked_prob' analysis
+################################################ Follow Feature Related Variables ##################################
+REMOVAL_RATE_LIMIT_TIME = 300# 5 mins in seconds
+RATELIMIT_REMOVED_FOLLOWER = 172800
+SHORT_RATELIMIT_UNFOLLOWER = 180#2 mins
+LONG_LIVED_POST_TIME = 86400 # 1 day in seconds
+SHORT_LIVED_POST_TIME = 900#15 mins in seconds TO DO:
+TTL_FOLLOWER_LIST = 691200# 8 days, in seconds - must be > PUBLIC_SUBMISSION_TTL. This is TTL for 'Follower List' (a list of user's followers, saved in redis)
+TTL_FOLLOWER_STRING = 777600# 9 days, in seconds - must be > TTL_FOLLOWER_LIST. This is TTL for 'Follower String' (a string obj of user's followers, concatenated with ":", saved in redis)
 ###############################################################################################################
-PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
+PUBLIC_SUBMISSION_TTL = 604800#7 days set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
 PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
 NUM_SUBMISSION_ALLWD_PER_DAY = 150#num of home and photo posts allowed in one day
 CONTENT_SHARING_SHORT_RATELIMIT = 45#amount of time to wait between sharing posts (time pooled between home and photos) 
-CONTENT_SHARING_LONG_RATELIMIT = 86400# 
+CONTENT_SHARING_LONG_RATELIMIT = 86400# 1 day in seconds
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
 RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it

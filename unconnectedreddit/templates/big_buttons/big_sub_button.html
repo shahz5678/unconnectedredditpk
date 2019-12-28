@@ -1,0 +1,5 @@
+{% if is_subbed %}
+	<div style="margin-bottom:4px;margin-right:4px"><form style="display:inline" method="POST" action="{% url 'unfollow' %}">{% csrf_token %}<button class="{{ tid }} fbtn vt" style="padding:0;height:42px;width:74px;border:1px solid lightgray" name="pl" value="{{ topic }}*{{ obid }}*{{ obh }}*{{ origin }}*{{ tid }}*{{ username }}*{{ page_num }}*"><div><img src="{{ static_url }}img/unfan.svg" class="mt" width="15" height="15"></div><div class="mt sp" style="font-size:8.2px;color:darkgray">UNFOLLOW</div></button></form></div>
+{% else %}
+	<div style="margin-bottom:4px;margin-right:4px"><form style="display:inline" method="POST" action="{% url 'follow' %}">{% csrf_token %}<button class="{{ tid }} fbtn vt" style="padding:0;height:42px;width:74px;border:1px solid #74d5f2" name="pl" value="{{ topic }}*{{ obid }}*{{ obh }}*{{ origin }}*{{ tid }}*{{ username }}*"><div><img src="{{ static_url }}img/ying-yang.svg" class="mt" width="15" height="15"></div><div class="mt sp" style="font-size:8.2px;color:#ed85c5">FOLLOW</div></button></form></div>
+{% endif %}

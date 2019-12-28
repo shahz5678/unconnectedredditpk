@@ -13,7 +13,7 @@
 
 	<div class="mbs fx fxjscn fxaibl">
 		<form action="{% url 'retrieve_direct_responses' %}" method="GET" enctype="multipart/form-data" style="display:inline-block"><button class="rf" style="vertical-align:text-bottom;height:24px;width:44px;background:0 0" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></form>
-		<h1 class="mls cxl clb lsp" style="margin:0;display:inline-block">Replies for you:</h1>
+		<h1 class="mls cxl clb lsp" style="margin:0;display:inline-block">Replies for me:</h1>
 	</div>
 
 		<!-- notifs on top -->
@@ -88,12 +88,18 @@
 			{% if data.ot == '3' %}
 				<!-- reply on text post, or reply to reply on text post -->
 				<div style="background:#f9f9f9">
-					<a href="{% url 'publicreply_view' data.poid %}">
+					<a href="{% url 'publicreply_view' data.poid '24' %}">
 						<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 							<div class="fx fxjscn fxaicn">
 								<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
-								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
-								<div class="sp cm nos" style="text-align:left"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</span></div>
+								{% if data.et and data.et < time_now %}
+									<div class="sp cm nos" style="text-align:left"><span class="cgy"><b>{{ data.ptun}}:</b> post expired</span></div>
+								{% elif data.ds == '1' %}
+									<div class="sp cm nos" style="text-align:left"><span class="cgy"><b>{{ data.ptun}}:</b> post hidden</span></div>
+								{% else %}
+									<div class="sp cm nos" style="text-align:left"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+								{% endif %}
 							</div>
 						</button>
 					</a>
@@ -105,11 +111,23 @@
 						<button class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 							<div class="fx fxjscn fxaicn">
 								<div class="sp cs mrs" style="text-align:center"><span class="ct">POST</span></div>
-								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</div>
-								<div class="fx fxjscn fxaicn">
-									<img src="{{ data.piu|s3:'thumb' }}" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="38" alt="pic">
-									<div class="cm sp mls nos" style="text-align:left" style="word-break: break-all;"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
-								</div>
+								<div class="sp cxs mrs" style="text-align:center"><span class="ct">►</span></div>
+								{% if data.et and data.et < time_now %}
+									<div class="fx fxjscn fxaicn">
+										<img src="{{ STATIC_URL }}img/broken.svg" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="30" alt="pic">
+										<div class="cm sp mls nos" style="text-align:left;word-break: break-all"><span class="cgy"><b>{{ data.ptun}}:</b> post expired</span></div>
+									</div>
+								{% elif data.ds == '1' %}
+									<div class="fx fxjscn fxaicn">
+										<img src="{{ STATIC_URL }}img/broken.svg" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="30" alt="pic">
+										<div class="cm sp mls nos" style="text-align:left;word-break: break-all"><span class="cgy"><b>{{ data.ptun}}:</b> post hidden</span></div>
+									</div>
+								{% else %}
+									<div class="fx fxjscn fxaicn">
+										<img src="{{ data.piu|s3:'thumb' }}" class="cxs mrs" style="border-radius:4px;border:1px solid lightgray" height="38" alt="pic">
+										<div class="cm sp mls nos" style="text-align:left;word-break: break-all"><span class="ct"><b>{{ data.ptun}}:</b> {% emoticons %}{{ data.ptx|truncatechars:'50' }}{% endemoticons %}</span></div>
+									</div>
+								{% endif %}
 							</div>
 						</button>
 					</a>
@@ -120,7 +138,7 @@
 					<button type="submit" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
 							<div class="sp cs mrs" style="text-align:center"><span class="cp">MEHFIL</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span class="cp">►</div>
+							<div class="sp cxs mrs" style="text-align:center"><span class="cp">►</span></div>
 							<div class="cm sp" style="text-align:left"><span class="cp">{% emoticons %}{{ data.gtp }}{% endemoticons %}</span></div>
 						</div>
 					</button>
@@ -132,7 +150,7 @@
 					<button name="private_uuid" type="submit" value="{{ data.guid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
 							<div class="sp cs mrs" style="text-align:center"><span style="color:#11ae59">MEHFIL</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span style="color:#11ae59">►</div>
+							<div class="sp cxs mrs" style="text-align:center"><span style="color:#11ae59">►</span></div>
 							<div class="cm sp" style="text-align:left;color:#11ae59">{% emoticons %}{{ data.gtp }}{% endemoticons %}</div>
 						</div>
 					</button>
@@ -144,7 +162,7 @@
 					<button type="submit" name="tid" value="{{ data.sid }}" class="vt lsp pg_ok_res" style="width:100%;border:none;border-radius:0;overflow:hidden;padding:8px;">
 						<div class="fx fxjscn fxaicn">
 							<div class="sp cs mrs" style="text-align:center"><span style="color:#3b7af7">1&nbsp;ON&nbsp;1</span></div>
-							<div class="sp cxs mrs" style="text-align:center"><span style="color:#3b7af7">►</div>
+							<div class="sp cxs mrs" style="text-align:center"><span style="color:#3b7af7">►</span></div>
 							<div class="cm sp" style="text-align:left;color:#3b7af7">{{ data.ptx }}</div>
 						</div>
 					</button>

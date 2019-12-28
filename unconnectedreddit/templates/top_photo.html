@@ -1,6 +1,8 @@
 {% extends "base.html" %}
 {% load s3 %}
+{% load get_transparent_buttons_js %}
 {% block content %}
+
 <head><title>Trending posters | Damadam</title></head>
  
 <style>body{background:#f0f3f4}</style>
@@ -19,14 +21,18 @@
         <div class="mtl cs cr sp lsp">Users with most trending posts (last 7 days)</div>
         <ul style="display:inline-block;padding: 0;list-style:none;margin-top:0px">
        
-       {% for user_id, num_trending_pics, rank, username, aurl, rank_to_display in object_list %}
+       {% for is_follower, user_id, num_trending_pics, rank, username, aurl, rank_to_display in object_list %}
         {% if rank_to_display %}
         {% if forloop.counter != 1 %}<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px solid #f4f4f4"></li>{% endif %}
 
         <h2 class="sp" style="text-align:left;font-size:20px;color:#9aa3b8;margin:10px 0"><img src="{{ STATIC_URL }}img/gstar.svg" width="16" height="16" class="mrs" alt="*" >{{ rank_to_display }}{% if rank_to_display == 1 %}st{% elif rank_to_display == 2 %}nd{% elif rank_to_display == 3 %}rd{% else %}th{% endif %} Position</h2>
         {% endif %}
         <div class="lsp" style="text-align:left;padding-bottom:10px;border-bottom:2px">       
-            <img src="{{ aurl|s3:'thumb' }}" alt="pic" style="border-radius:50%;" width="22" height="22">&nbsp;<a href="{% url 'user_profile' username %}#section0" class="cb"><bdi style="font-size:20px">{{ username }}</bdi></a>:&nbsp;<span class="sp"><b>{{ num_trending_pics }}</b> trending posts <a href="{% url 'profile' username 'trending-fotos' %}#section0" class="cxs cb">(see posts)</a></span>
+            <img src="{{ aurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">&nbsp;<b class='sp cl'><bdi >{{ username }}</bdi></b>:&nbsp;<span class="sp cgy">{{ num_trending_pics }} trending posts</span>
+            <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+                <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=username static_url=STATIC_URL %}</div>
+                {% if ident != user_id %}{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=username tid=user_id origin='37' obid='' obh='' static_url=STATIC_URL %}{% endif %}
+            </div>
         </div>
        {% endfor %}
         </ul>
@@ -34,4 +40,5 @@
 </div>
 
 <br><br>
+{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 {% endblock %}

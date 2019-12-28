@@ -24,12 +24,12 @@
 
 	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-	{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin='19' %}
+	{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin='19' time_now=time_now %}
 
 {% endif %}
 
 {% include "topics/topics_navbar.html" with section='home' %}
-<a name="shared"></a>
+
 <div class="mbl fx fxjscn fxaibl">
 	<a href="{% url 'home' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">Home posts <span class="cs">(page {{ page.number }})</span>:</h1>
@@ -79,55 +79,91 @@
 
 {% endif %}
 
-{% if link.c == '6' %}
+{% if link.ot == 'g' %}
 	
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s lazyload_idx=forloop.counter ratio=link.rt %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s show_trending=link.tr lazyload_idx=forloop.counter ratio=link.rt ot='g' %}
 
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
-		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
-		{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
-		{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='3' static_url=STATIC_URL %}
-		{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
+		{% if ident|stringformat:"s" == link.si|stringformat:"s" %}
+			{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+			{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='3' static_url=STATIC_URL %}
+			{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
+		{% else %}
+			{% include "big_buttons/big_sub_button.html" with is_subbed=link.f username=link.su tid=link.si origin='3' obid=link.i obh=link.h static_url=STATIC_URL %}
+			{% big_vote_button is_pht='1' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+			{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='3' target_username=link.su home_hash=link.h %}
+			{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='3' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+			{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='3' static_url=STATIC_URL %}
+			{% big_photo_comment_button photo_id=link.i origin='3' comm_count=link.cc static_url=STATIC_URL %}
+			{% include "big_buttons/big_report_button.html" with origin='3' pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
+		{% endif %}
 	</div>
 	</section>
 
-	<section style="display:block" class="mls mrs mbl">
-		{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin='3' form=thin_rep_form btn_color='bct' %}
-	</section>
+	{% if link.com == '0' %}
 
-	<section style="display:block" class="mls mbl"> 
-		{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='3' obj_owner_id=link.si obj_type='img' %}
-	</section>
+		<div size=1 style='border-top: dashed 1px #f2f2f2;'>
+			<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+ 				- Replies Disabled -
+ 			</div>
+ 		</div>
+
+	{% else %}
+
+		<section style="display:block" class="mls mrs mbl">
+			{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin='3' form=thin_rep_form btn_color='bct' %}
+		</section>
+
+		<section style="display:block" class="mls mbl"> 
+			{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='3' obj_owner_id=link.si obj_type='img' %}
+		</section>
+
+	{% endif %}
 
 </article>
 	
-{% elif link.c == '1' or link.c == '2' %}
+{% elif link.ot == 't' %}
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
-	<a name="section{{ forloop.counter  }}"></a>
+	<a name="section{{ forloop.counter }}"></a>
 		<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
 		{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=3 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 %}
 		</section>
 		<section class="mbl" style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 
-		{% if ident|stringformat:"s" != link.si|stringformat:"s" %}{% big_vote_button is_pht='0' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}{% endif %}
-		{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
-		{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL %}
+		{% if ident|stringformat:"s" == link.si|stringformat:"s" %}
+			{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='3' %}
+		{% else %}
+			{% include "big_buttons/big_sub_button.html" with is_subbed=link.f username=link.su tid=link.si origin='3' obid=link.i obh=link.h static_url=STATIC_URL %}
+			{% big_vote_button is_pht='0' obid=link.i origin='3' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+			{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='3' target_username=link.su home_hash=link.h %}
+			{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='3' %}
+			{% include "big_buttons/big_report_button.html" with origin='3' pid=link.i oun=link.su ooid=link.si img_thumb='' raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
+		{% endif %}
 		</div>
 		</section>
 
-		<section style="display:block" class="mls mrs mbl">
-		{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin='3' form=thin_rep_form btn_color='bct' %}
-		</section>
+		{% if link.com == '0' %}
+		<div size=1 style='border-top: dashed 1px #f2f2f2;'>
+			<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+ 				- Replies Disabled -
+ 			</div>
+ 		</div>
+		{% else %}
 
-		<section style="display:block" class="mts mls mbl">
-		{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='3' obj_owner_id=link.si obj_type='tx' %}
-		</section>
+			<section style="display:block" class="mls mrs mbl">
+			{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin='3' form=thin_rep_form btn_color='bct' %}
+			</section>
+
+			<section style="display:block" class="mts mls mbl">
+			{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='3' obj_owner_id=link.si obj_type='tx' %}
+			</section>
+
+		{% endif %}
 
 </article>
 {% else %}
@@ -140,7 +176,7 @@
 {% endfor %}
 
 </main>
-	
+
 <div class="mbl fx fxjscn">
 	{% if page.has_previous %}
     <div style="padding:0 10px">

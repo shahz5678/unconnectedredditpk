@@ -187,6 +187,10 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	} else if (type === 'public_img') {
 		// originating from upload_public_photo
 		form_data.append("sk",document.getElementById('pub_img_sk').value);
+		form_data.append("aud",retrieve_audience());
+		form_data.append("exp",retrieve_expiry());
+		form_data.append("com",retrieve_comments());
+		
 	} else if (type === 'pg_reply') {
 		// uploading from private chat (direct response)
 		form_data.append("tt",rep_tt);
@@ -990,6 +994,72 @@ function public_photo_submit(e) {
 		}
 	}
 };
+
+
+function retrieve_audience(){
+
+	var aud_first = document.getElementById('aud-first');
+	var aud_second = document.getElementById('aud-second');
+	var aud_third = document.getElementById('aud-third');
+	var aud_default = document.getElementById('aud-default');
+	if (aud_first.checked || aud_second.checked || aud_third.checked){
+		if (aud_first.checked) {
+			return aud_first.value;
+		} else if (aud_second.checked) {
+			return aud_second.value;
+		} else if (aud_third.checked) {
+			return aud_third.value;
+		} else {
+			return aud_first.value;
+		}
+	}
+	else {
+			return 'p';
+	}
+}
+
+function retrieve_expiry(){
+
+	var exp_first = document.getElementById('exp-first');
+	var exp_second = document.getElementById('exp-second');
+	var exp_third = document.getElementById('exp-third');
+	var exp_default = document.getElementById('exp-default');
+	if (exp_first.checked || exp_second.checked || exp_third.checked ){
+		if (exp_first.checked) {
+			return exp_first.value;
+		} else if (exp_second.checked) {
+			return exp_second.value;
+		} else if (exp_third.checked) {
+			return exp_third.value;
+		} else {
+			return exp_first.value;
+		}
+	}
+	else {
+			return 'i';
+	}
+}
+
+function retrieve_comments(){
+
+	var com_on = document.getElementById('com-on');
+	var com_off = document.getElementById('com-off');
+	var com_default = document.getElementById('com-default');
+	
+	// console.log(com_default.value)
+	if (com_on.checked || com_off.checked){
+		if (com_on.checked) {
+			return com_on.value;
+		} else {
+			return com_off.value;
+		}
+	}
+	else {
+			return '1'
+	}
+}
+
+
 /////////////////////////////////////////////////////////
 // Uploading Photos in Mehfils (JS functionality)
 var is_grp_img = false;

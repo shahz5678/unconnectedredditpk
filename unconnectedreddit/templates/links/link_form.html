@@ -4,7 +4,9 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Share text | Damadam</title></head>
-<style>body{background: #f0f3f4}</style>
+<style>
+body{background:#f0f3f4}.expiry-off{display:block}.expiry-on{display:none}#aud-second:checked~.expiry-off,#aud-third:checked~.expiry-off{display:none}#aud-second:checked~.expiry-on,#aud-third:checked~.expiry-on{display:block}#aud-second:checked~.expiry>label,#aud-third:checked~.expiry>label{border:1px solid #3cb7dd}.checkbox{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.label{background:#fff;padding:7px 10px;height:46px;width:260px;border:1px solid #93d7ec;margin:0 auto -1px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.crsr{cursor:pointer}input+label:hover{background-color:#eee}.checkbox:checked+label{background-color:#3cb7dd;color:#fff}li,ul{list-style:none;margin:0;padding:0}.onoffswitch{position:relative;width:90px}.onoffswitch-checkbox{display:none}.onoffswitch-label{display:block;overflow:hidden;cursor:pointer;border:2px solid #999;border-radius:20px}.onoffswitch-inner{display:block;width:200%;margin-left:-100%}.onoffswitch-inner:after,.onoffswitch-inner:before{display:block;float:left;width:50%;height:30px;padding:0;line-height:30px;font-size:14px;color:#fff;font-family:Trebuchet,Arial,sans-serif;font-weight:700;box-sizing:border-box}.onoffswitch-inner:before{content:"ON";padding-left:11px;background-color:#34a7c1;color:#fff}.onoffswitch-inner:after{content:"OFF";padding-right:11px;background-color:#eee;color:#999;text-align:right}.onoffswitch-switch{display:block;width:18px;margin:6px;background:#fff;position:absolute;top:0;bottom:0;right:56px;border:2px solid #999;border-radius:20px}.onoffswitch-checkbox:checked+.onoffswitch-label .onoffswitch-inner{margin-left:0}.onoffswitch-checkbox:checked+.onoffswitch-label .onoffswitch-switch{right:0}
+</style>
 
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='text' %}
 
@@ -14,7 +16,7 @@
 
 	{% if show_instructions %}
 		<div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px;text-align:center">
-			<div class="cxl lsp">Welcome! Damadam pe apney khayalaat share kar ke pooray Pakistan tak pohonchain</div>
+			<div class="cxl lsp">Welcome! Damadam pe dilchusp cheezain share kar ke dher sarey followers banain!</div>
 			<hr size=1 COLOR="#E9EBEE">
 			<div class="mts sp lsp">Vulgarity, abuse, mazhabi fasaad aur spamming ke khilaf action lia jata hai. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
 		</div>
@@ -28,43 +30,152 @@
 		</div>
 
 	{% else %}
-		<div class="mts" style="text-align:center">
-		{% if form.errors %}<div class="cr cl">{{ form.errors|show_error }}</div>{% endif %}
-		<form method="post" class="mbs" action="" enctype="multipart/form-data">
+		{% if form.errors %}<div style="text-align:center;color:white;background:tomato;padding:10px" class="sp lsp cr cl">{{ form.errors|show_error }}</div>{% endif %}
+		<form method="POST" style="text-align:center" action="" enctype="multipart/form-data">
 		  {% csrf_token %}
 		  <input type="hidden" name="sk" value="{{ sk }}">
 
-		  {% if subscribed_topics %}
+		   <div class="mts cxl lsp"><b style="color:#3cb7dd">1.</b> Select Topic:</div>
 
-		  	 <select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mts mbl" name="turl">
-		  	 	<option selected disabled hidden>Select Topic</option>
-		  	 	<option value="">- no topic -</option>
+		  {% if subscribed_topics %}
+		  	 <select style="width:95%;padding:6px 0;border:1px solid #93d7ec;border-radius:5px;text-align:center;background:white" class="cm clb sp mts mbl" name="turl">
+		  	 	<option selected value="">- no topic selected -</option>
 		  	 	{% for topic in subscribed_topics %}
 		  	 		<option value="{{ topic.url }}">{{ topic.name }}</option>
 		  	 	{% endfor %}
 			</select> 
 		  {% else %}
-		  	<select style="width:95%;padding:6px 0;border:1px solid #3cb7dd;border-radius:5px;text-align:center;color:#1f8cad" class="cm sp mts mbl" name="turl">
-		  	 	<option selected disabled hidden>Select Topic</option>
-		  	 	<option value="" disabled>No subscribed topics</option>
+		  	<select style="width:95%;padding:6px 0;border:1px solid #93d7ec;border-radius:5px;text-align:center;background:#f5f7fa" class="cm cgy sp mts mbl" name="turl">
+		  	 	<option selected disabled value="">- no subscribed topics -</option>
 			</select> 
 		  {% endif %}
 
+
+		  <div class="mt cxl lsp"><b style="color:#3cb7dd">2.</b> Write Post:</div>
+
 		  <div style="padding:5px 10px 0 10px">{{ form.description }}</div>
 
-		  <button class="btn bl bct mtl mbs sp pg_ok_res" style="width:95%;height:38px" name="btn" value="1" type="submit"><b>SHARE</b></button>
+		
+		  {% if num_fans %}
+		  	<div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">3.</b> Select Audience:</div>
+			
+			<div style="margin-left: auto;margin-right:auto">
+
+				<input type="radio" name="aud" class="checkbox" id="aud-first" value="p">
+				<label class="label crsr"  for="aud-first" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
+					<div class="fx fxjscn fxaicn">
+						<img src="{{ STATIC_URL }}img/screens-optimised.svg" width="30" height="30" style="padding:0 10px">
+						<div class="sp lsp" style="padding:0 10px;text-align:left">Post to all followers and on home</div>
+					</div>
+				</label>
+
+				<input type="radio" name="aud" class="checkbox" id="aud-second" value="a">
+				<label class="label crsr" for="aud-second" style="display: flex;align-items: center;">
+					<div class="fx fxjscn fxaicn">
+						<img src="{{ STATIC_URL }}img/followers.svg" width="30" height="30" style="padding:0 10px">
+						<div class="sp lsp" style="padding:0 10px;text-align:left">Post to all followers only</div>
+					</div>
+				</label>
+
+				<input type="radio" name="aud" class="checkbox" id="aud-third" value="s">
+				<label class="label crsr" for="aud-third" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center">
+					<div class="fx fxjscn fxaicn">
+						<img src="{{ STATIC_URL }}img/selective.svg" width="30" height="30" style="padding:0 10px">
+						<div class="sp lsp" style="padding:0 10px;text-align:left">Post to some followers only</div>
+					</div>
+				</label>
+
+				<div class="mbl mtl expiry-off">
+
+					<div class="cxl lsp mbs" style="color:darkgray"><b>4.</b> Select Expiry:</div>
+				
+					<div class="label" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;border-color:lightgray">
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ STATIC_URL }}img/noexpire-cgy.svg" width="30" height="30" style="padding:0 10px">
+							<div class="sp lsp" style="padding:0 10px;color:darkgray;text-align:left">Never expire post at all</div>
+						</div>
+					</div>
+
+					<div class="label" style="display: flex;align-items: center;border-color:lightgray">
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ STATIC_URL }}img/1day-cgy.svg" width="30" height="30" style="padding:0 10px">
+							<div class="sp lsp" style="padding:0 10px;color:darkgray;text-align:left">Expire post after 1 day</div>
+						</div>
+					</div>
+
+					<div class="label" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center;border-color:lightgray">
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ STATIC_URL }}img/15mins-cgy.svg" width="30" height="30" style="padding:0 10px">
+							<div class="sp lsp" style="padding:0 10px;color:darkgray;text-align:left">Expire post after 15 minutes</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="mbl mtl expiry-on">
+					<div class="cxl lsp mbs"><b style="color:#3cb7dd">4.</b>&nbsp;Select Expiry:</div>
+
+					<input type="radio" name="exp" class="checkbox" id="exp-first" value="i">
+					<label style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;" class="label crsr" for="exp-first">
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ STATIC_URL }}img/noexpire.svg" width="30" height="30" style="padding:0 10px">
+							<div class="sp lsp" style="padding:0 10px;text-align:left">Never expire post at all</div>
+						</div>
+					</label>
+
+					<input type="radio" name="exp" class="checkbox" id="exp-second" value="m1">
+					<label class="label crsr" for="exp-second" style="display: flex;align-items: center;">
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ STATIC_URL }}img/1day.svg" width="30" height="30" style="padding:0 10px">
+							<div class="sp lsp" style="padding:0 10px;text-align:left">Expire post after 1 day</div>
+						</div>
+					</label>
+
+					<input type="radio" name="exp" class="checkbox" id="exp-third" value="m2">
+					<label style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center;" class="label crsr" for="exp-third">
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ STATIC_URL }}img/15mins.svg" width="30" height="30" style="padding:0 10px">
+							<div class="sp lsp" style="padding:0 10px;text-align:left">Expire post after 15 minutes</div>
+						</div>
+					</label>
+
+				</div>
+
+			</div>
+		  {% endif %}
+
+
+		  <div style="margin-left: auto;margin-right:auto">
+		  	<div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">{% if num_fans %}5.{% else %}3.{% endif %}</b>&nbsp;Turn Off Replies:</div>
+				
+                <input type="radio" name="com" class="checkbox" id="com-on" value="1">
+                <label class="label crsr"  for="com-on" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
+                    <div class="fx fxjscn fxaicn">
+                        <img src="{{ STATIC_URL }}img/comment.svg" width="30" height="30" style="padding:0 10px">
+                        <div class="sp lsp" style="padding:0 10px;text-align:left">No</div>
+                    </div>
+                </label>
+
+                <input type="radio" name="com" class="checkbox" id="com-off" value="0">
+                <label class="label crsr" for="com-off" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center">
+                    <div class="fx fxjscn fxaicn">
+                        <img src="{{ STATIC_URL }}img/comment-off.svg" width="30" height="30" style="padding:0 10px">
+                        <div class="sp lsp" style="padding:0 10px;text-align:left">Yes</div>
+                    </div>
+                </label>
+
+		  </div>
+
+		  <button class="btn bl cl bct mtl sp pg_ok_res" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
 			
 		</form>
 		</div>
-		</div>
 
 		{% if not show_instructions %}
-		<h2 class="cxl clb" style="text-align:center">Post sharing help:</h2>
+		<h2 class="cxl clb nos" style="text-align:center">Post sharing help:</h2>
 
 		<div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%">
-
-		<div class="cgy sp cm lsp mbs" style="padding:0 10px;text-align:left">
-			<div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Text post ke zariye pooray Pakistan tak apney khayalaat forun pohonchain</div>
+		<div class="cgy sp cm lsp mbs nos" style="padding:0 10px;text-align:left">
+			<div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Apney followers tak apney khayalaat forun pohonchain</div>
 			<div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Vulgarity, abuse, mazhabi fasaad aur spamming ke khilaf action lia jata hai. Aik dafa <a href="{% url 'website_rules' %}#section0" target="_blank" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
 			<div class="mts" style="text-align:left"><span class="cgy cs">3)</span> One day mein {{ sharing_limit }} se ziyada posts share nahi hoti</div>
 			<div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Agr post likhtey huay <img src="{{ STATIC_URL }}img/enter_key.svg" width="14" height="14" style="vertical-align:text-bottom"> dabain tou post mein new paragraph shuru ho jaye ga</div>

@@ -7,10 +7,10 @@ from location import REDLOC3
 from datetime import datetime
 from operator import itemgetter
 from templatetags.s3 import get_s3_object
-from redis4 import retrieve_bulk_unames, retrieve_user_id
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
 from html_injector import image_thumb_formatting#, contacter_string
+from redis4 import retrieve_bulk_unames, retrieve_user_id, retrieve_avurl
 from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT, THRESHOLD_WORLD_AGE
 
 '''
@@ -57,8 +57,7 @@ punishment_text = "pt:"+str(user_id)
 ###########
 '''
 
-USER_THUMBS = "ut:"#key holding a blob of user's most recent fotos
-SEARCH_HISTORY = "sch:"#set holding IDs of users a user has search via the search functionality
+SEARCH_HISTORY = "sh:"#set holding IDs of users a user has search via the search functionality
 
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC3, db=0)
@@ -254,8 +253,10 @@ def bulk_nicks_exist(nickname_list):
 		return nicks
 
 
-#inserting nickname at the time of registration
 def insert_nick(nickname):
+	"""
+	Inserting nickname at the time of registration
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	generic_nick, specific_nick = process_nick(nickname)
 	my_server.zadd("nicknames",generic_nick,0,specific_nick,0)
@@ -263,36 +264,31 @@ def insert_nick(nickname):
 
 def find_nickname(target_nick, searcher_id):
 	"""
-	Main function resposible for yielding search results
+	Responsible for retrieving search results
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	generic_nick, specific_nick = process_nick(target_nick)
 	rank = my_server.zrank("nicknames",generic_nick)
-	exact_with_pics = []
+	exact_with_avurl, similar_with_avurl = [], []
+
+	# no match found
 	if rank is None:
-		# no match found
 		nick_found = False
 		my_server.zadd("nicknames",generic_nick,0)
 		rank = my_server.zrank("nicknames",generic_nick)
 		my_server.zrem("nicknames",generic_nick)
 		raw_nicknames = my_server.zrange("nicknames",max(rank-5,0),(rank+5))
 		similar_nicknames = get_nicknames(raw_nicknames)
-		result1 = []
 		for uname in similar_nicknames:
 			user_id = retrieve_user_id(uname)
 			if user_id:
-				result1.append(my_server.get(USER_THUMBS+user_id))
+				similar_with_avurl.append((uname,retrieve_avurl(user_id)))# retrieve av_url from redis4
 			else:
-				result1.append(None)
-		similar_with_pics = []
-		counter = 0
-		for uname in similar_nicknames:
-			similar_with_pics.append((uname,result1[counter]))
-			counter += 1
+				similar_with_avurl.append((uname,None))
+
+	# match(es) found
 	else:
-		# match(es) found
-		exact = []
-		nick_found = True
+		nick_found, exact = True, []
 		raw_nicknames = my_server.zrange("nicknames",max(rank-5,0),(rank+5))
 		similar_nicknames = get_nicknames(raw_nicknames)
 		list_copy = list(similar_nicknames)
@@ -300,40 +296,41 @@ def find_nickname(target_nick, searcher_id):
 			if nick.lower() == target_nick.encode('utf-8').lower():
 				exact.append(nick)
 				similar_nicknames.remove(nick)
-		search_history = SEARCH_HISTORY+str(searcher_id)
-		pipeline1 = my_server.pipeline()
-		for entry in exact:
-			user_id = retrieve_user_id(entry)
-			pipeline1.zincrby(search_history,user_id,amount=1)
-		pipeline1.execute()
-		pipeline2 = my_server.pipeline()
+		
+		# 'similar_nicknames' is a list of similar nicknames
 		for uname in similar_nicknames:
 			user_id = retrieve_user_id(uname)
-			pipeline2.get(USER_THUMBS+user_id)
-		result2 = pipeline2.execute()
-		similar_with_pics = []
-		counter = 0
-		for uname in similar_nicknames:
-			similar_with_pics.append((uname,result2[counter]))
-			counter += 1
-		pipeline3 = my_server.pipeline()
+			if user_id:
+				similar_with_avurl.append((uname,retrieve_avurl(user_id)))# retrieve av_url from redis4
+			else:
+				similar_with_avurl.append((uname,None))
+
+		# 'exact' is a list of exactly matched nickname(s)
 		for uname in exact:
 			user_id = retrieve_user_id(uname)
-			pipeline3.get(USER_THUMBS+user_id)
-		result3 = pipeline3.execute()
-		counter = 0
-		for uname in exact:
-			exact_with_pics.append((uname,result3[counter]))
-			counter += 1
-	return nick_found, exact_with_pics, similar_with_pics
+			if user_id:
+				exact_with_avurl.append((uname,retrieve_avurl(user_id)))# retrieve av_url from redis4
+			else:
+				exact_with_avurl.append((uname,None))
+
+		# manipulating order of search history
+		# search_history = SEARCH_HISTORY+str(searcher_id)
+		# pipeline1 = my_server.pipeline()
+		# for entry in exact:
+		# 	user_id = retrieve_user_id(entry)
+		# 	pipeline1.zincrby(search_history,user_id,amount=1)
+		# pipeline1.execute()
+
+	return nick_found, exact_with_avurl, similar_with_avurl
 
 
-def select_nick(nickname, selector_id):
+def bump_up_selected_nick_in_search_history(nickname, selector_id):
 	"""
 	Used to bump up scores when user clicks the nick after searching it
 	"""
 	nick_id = retrieve_user_id(nickname)
 	if nick_id:
+		# bump up the score of the nickname that was selected
 		redis.Redis(connection_pool=POOL).zincrby(SEARCH_HISTORY+str(selector_id),nick_id,amount=1)
 
 
@@ -357,88 +354,6 @@ def del_search_history(searcher_id, nickname):
 	nick_id = retrieve_user_id(nickname)
 	if nick_id:
 		redis.Redis(connection_pool=POOL).zrem(SEARCH_HISTORY+str(searcher_id),nick_id)
-
-
-def retrieve_history_with_pics(user_id_list):
-	"""
-	Enriches user history with their uploaded photo thumbnails
-	"""
-	if user_id_list:
-		pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-		for user_id in user_id_list:
-			pipeline1.get(USER_THUMBS+str(user_id))
-		result1 = pipeline1.execute()
-		username_dictionary = retrieve_bulk_unames(user_id_list,decode=True)
-		history, counter = [], 0
-		for user_id in user_id_list:
-			history.append((username_dictionary[int(user_id)], result1[counter]))
-			counter += 1
-		return history
-
-
-def retrieve_thumbs(obj_list):
-	"""
-	Retrieves saved user thumbs in bulk
-	"""
-	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-	for obj in obj_list:
-		user_thumbs = USER_THUMBS+str(obj['id'])
-		pipeline1.get(user_thumbs)
-	result1, counter = pipeline1.execute(), 0
-	for obj in obj_list:
-		obj['thumbs'] = result1[counter]
-		counter += 1
-	return obj_list
-
-
-def retrieve_single_thumbs(user_id):
-	"""
-	Retrieves a given user's thumbnail photos (in case they have any)
-	"""
-	return redis.Redis(connection_pool=POOL).get(USER_THUMBS+str(user_id))
-
-
-def search_thumbs_missing(user_id):
-	"""
-	Useful for checking the existence of given user's thumbs
-	"""
-	if redis.Redis(connection_pool=POOL).exists(USER_THUMBS+str(user_id)):
-		return False
-	else:
-		return True
-
-
-def add_search_photo(img_url,photo_id,user_id):
-	"""
-	Add latest photo entry to a payload trimmed at 5 most recent photo-thumbs max
-	"""
-	user_thumbs = USER_THUMBS+str(user_id)
-	new_payload = image_thumb_formatting(img_url=get_s3_object(img_url,category='thumb'),pid=photo_id)
-	my_server = redis.Redis(connection_pool=POOL)
-	existing_payload = my_server.get(user_thumbs)
-	payload = new_payload+'&nbsp;'+existing_payload if existing_payload else new_payload
-	num_breaks = payload.count('&nbsp;')
-	if num_breaks > (PHOTOS_WITH_SEARCHED_NICKNAMES-1):
-		# trim from 5th &nbsp; onward
-		groups = payload.split('&nbsp;')
-		payload = '&nbsp;'.join(groups[:PHOTOS_WITH_SEARCHED_NICKNAMES])
-	my_server.setex(user_thumbs,payload, TWO_WEEKS)
-
-
-def bulk_add_search_photos(target_id, ids_with_urls):
-	"""
-	Populates the target's thumbnails for preview
-
-	The thumbs appear as a series of 5 photos in certain parts of the website
-	This function is kicked off when a user's profile is visited
-	"""
-	user_thumbs = USER_THUMBS+str(target_id)
-	ids_with_thumbs = [(item[0],get_s3_object(item[1],category='thumb')) for item in ids_with_urls]
-	payload = []
-	for photo_id, photo_url in ids_with_thumbs:
-		payload.append(image_thumb_formatting(photo_url,photo_id))
-	final_payload = '&nbsp;'.join(payload)
-	redis.Redis(connection_pool=POOL).setex(user_thumbs,final_payload,TWO_WEEKS)
 
 
 def insert_nick_list(nickname_list):
@@ -871,7 +786,7 @@ def is_mobile_verified(user_id):
 	"""
 	return True if user has any number on file
 	"""
-	return True if redis.Redis(connection_pool=POOL).exists("um:"+str(user_id)) else False
+	return redis.Redis(connection_pool=POOL).exists("um:"+str(user_id))
 
 def someone_elses_number(national_number, user_id):
 	my_server = redis.Redis(connection_pool=POOL)

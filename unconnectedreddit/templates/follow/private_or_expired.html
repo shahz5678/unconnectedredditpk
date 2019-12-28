@@ -1,0 +1,20 @@
+{% extends "base_noindex.html" %}
+{% block content %}
+
+	<head><title>Does not exist | Damadam</title></head>
+    <style>body{background:#f0f3f4}</style>
+    <h1 class="cxl clb lsp" style="text-align:center">Sorry! Ye exist nahi karta</h1>
+    <div class="bizcard clb" style="background-color:white;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+        <div class="cxl lsp">Ap jo dhoond rehay hain woh exist nahi karta</div>
+        <hr size=1 COLOR="#e5e7e9">
+        <div class="sp lsp mts cgy">Mumqin hai woh remove ya expire ho chuka hai. Ab ap Damadam mein kahan jana chahtey hain?</div>
+
+        <div class="mtl" style="text-align:center">
+	        <a href="{% url 'my_home' %}"><button class="btn bct mrl bl cl mbs pg_ok_res" style="border:none;height:30px;">Home</button></a>
+	        <a href="{% url 'home' %}"><button class="btn bco bl mrl cl mts mbs pg_ok_res" style="border:none;height:30px;">Discover</button></a>
+        </div>
+
+    </div>
+    <br><br>
+{% endblock %}

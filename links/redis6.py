@@ -199,9 +199,6 @@ RULES_CHANGE_RATE_LIMITED = 'rcrl:'#key that rate limits topic changes in mehfil
 
 ######################################### Utilities #########################################
 
-def convert_to_epoch(time):
-	#time = pytz.utc.localize(time)
-	return (time-datetime(1970,1,1)).total_seconds()
 
 def nickname_strings(culprit_ids, with_list=False):
 	"""

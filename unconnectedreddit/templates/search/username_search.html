@@ -1,76 +1,55 @@
 {% extends "base.html" %}
+{% load s3 %}
 {% block content %}
-<head><title>Search users | Damadam.pk</title></head>
+<head><title>Search users | Damadam</title></head>
 
 <style type="text/css">body{background: #E9EBEE}</style>
 
 {% include 'search/search_navbar.html' with section='search' static_url=STATIC_URL %}
 
-<h1 class="clb cxl lsp" style="text-align:center">Search nickname:</h1>
+<h1 class="clb cxl lsp" style="text-align:center">Search nicknames:</h1>
 <div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 
 {% if found_flag != None %}
 {% if found_flag %}
 	
-	<div class="bizcard" style="background-color:ivory;padding:8px">
+	<div class="bizcard" style="background-color:#fffff2;padding:8px">
 
-		<div class="mbs" style="overflow:hidden;text-align:center;border-bottom:1px dashed lightgray;padding-bottom:10px">
-			<div class="cxl" style="text-align:center"><b>Nickname mil gya!</b></div>
+		<div class="mbs" style="overflow:hidden;text-align:center;border-bottom:1px solid lightgray;padding-bottom:10px">
+			<div class="cxl" style="text-align:center"><b>Nickname found!</b></div>
 		</div>
 
-		{% for match in exact_matches %}
-			{% if forloop.counter != 1 %}<hr size=1 COLOR="#cccccc">{% endif %}
-			<div style="font-weight:bold" class="cl ct sp">{{ match.0 }}:</div>
-			<form method="POST" action="{% url 'go_to_username' match.0 %}" class="mts mbs sp">
-				{% csrf_token %}
-				<button class="btn bco bm mbs cs mrs pg_ok_res" name="dec" value="1" style="height:25px" type="submit">photos</button><button class="btn bct bm mrs mls mbs cs pg_ok_res" name="dec" value="2" style="height:25px" type="submit">history</button><button class="btn mls bcg mbs bm cs pg_ok_res" name="dec" value="3" style="height:25px" type="submit">profile</button>
-			</form>
-			{% if match.1 != None %}
-			<form method="POST" class="mtl" action="{% url 'go_to_user_photo' match.0 1 %}">
-				{% csrf_token %}
-				{{ match.1|safe }}
-			</form>
-			{% endif %}
+		{% for nickname, av_url in exact_matches %}
+			{% if forloop.counter != 1 %}<hr size=1 COLOR="#f0f3f4">{% endif %}
+			<div style="font-weight:bold" class="cl ct sp">{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}{{ nickname }}:</div>
+
+			<div class="mts">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
 		{% endfor %}
 
 	</div>	
 
-	<div class="cl clb sp mtl mbl mls" style="font-weight:bold">Is jaise aur nicknames ye hain:</div>
-	{% for nick in similar %}
-		<div class="mls mts cl cgy sp">{{ nick.0 }}:</div>
-		<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mtl mbl sp">
-		{% csrf_token %}
-			<button style="height:25px" class="mls btn bco mbs bm cs mrl pg_ok_res" name="dec" value="1" type="submit">photos</button><button class="btn bct mbs bm cs mrl pg_ok_res" name="dec" value="2" style="height:25px" type="submit">history</button><button class="btn bcg bm mbs cs pg_ok_res" name="dec" value="3" style="height:25px" type="submit">profile</button>
-		</form>
-		{% if nick.1 != None %}
-		<form method="POST" action="{% url 'go_to_user_photo' nick.0 1 %}">
-			{% csrf_token %}
-			{{ nick.1|safe }}
-		</form>
-		{% endif %}
-		<hr size=1 COLOR="#cccccc">
+	<div class="cl clb sp mtl mbl" style="font-weight:bold">Is jaise aur nicknames ye hain:</div>
+	{% for nickname, av_url in similar %}
+		{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="display:inline;vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="display:inline;vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}<div class="mts cl cgy sp" style="display:inline">{{ nickname }}:</div>
+
+		<div class="mts">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
+
+		<hr size=1 COLOR="#f0f3f4">
 	{% endfor %}
 
 {% else %}
 
-	<div class="mbl" style="overflow:hidden;text-align:center;border-bottom:1px dashed darkgray;padding-bottom:10px">
+	<div class="mbl" style="overflow:hidden;text-align:center;border-bottom:1px solid darkgray;padding-bottom:10px">
 		<div class="cxl mbs" style="font-weight:bold">Sorry! <span class="ct bw">{{ orig_search }}</span> nahi mila</div>
 		<span class="cgy sp">Is se milte julte nicknames ye hain:</span>
 	</div>
 
-	{% for nick in similar %}
-	<div style="font-weight:bold" class="sp mls mts cl ct bw">{{ nick.0 }}:</div>
-	<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mts mbs sp">
-		{% csrf_token %}
-		<button style="height:25px" class="mls btn bco bm cs mbs mrs" name="dec" value="1" type="submit">photos</button><button class="btn bct bm cs mbs mls mrs" name="dec" value="2" style="height:25px" type="submit">history</button><button class="btn bcg bm cs mls mbs" name="dec" value="3" style="height:25px" type="submit">profile</button><br>
-	</form>
-	{% if nick.1 != None %}
-	<form method="POST" class="mtl" action="{% url 'go_to_user_photo' nick.0 1 %}">
-		{% csrf_token %}
-		{{ nick.1|safe }}
-	</form>
-	{% endif %}
-	<hr size=1 COLOR="#cccccc">
+	{% for nickname, av_url in similar %}
+	{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="display:inline;vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="display:inline;vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}<div style="font-weight:bold;display:inline" class="sp mts cl ct bw">{{ nickname }}:</div>
+	
+	<div class="mts">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
+
+	<hr size=1 COLOR="#f0f3f4">
 	{% endfor %}
 
 {% endif %}
@@ -90,7 +69,7 @@
 {% csrf_token %}
 <div style="text-align:center">
 {{ form.nickname }}
-<div class="mtl mbl"><button type="submit" style="height:28px" class="btn bl bct pg_ok_res sp">Search</button></div>
+<div class="mtl mbl"><button type="submit" style="height:32px" class="btn bl bct pg_ok_res sp">SEARCH</button></div>
 </div>
 </form>
 
@@ -100,26 +79,19 @@
 
 <div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
 
-	<div class="mbl cl sp lsp cgy" style="text-align:center;border-bottom:1px dashed lightgray;padding-bottom:10px">Your search history:</div>
-	{% for nick in search_history %}
+	<div class="mbl cl sp lsp cgy" style="text-align:center;border-bottom:1px solid lightgray;padding-bottom:10px">My search history:</div>
+	{% for nickname, av_url in search_history %}
 	
 		{% if forloop.counter != 1 %}<hr size=1 COLOR="#e9ebee">{% endif %}
 		
-		<form method="POST" action="{% url 'remove_searched_username' nick.0 %}" style="display:inline;">
+		<form method="POST" action="{% url 'remove_searched_username' nickname %}" style="display:inline;">
 			{% csrf_token %}
 			<input type="hidden" name="uid" value="{{ user.id }}">
 			<button type="submit" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/x_gy.svg" width="15" height="15"></button>
 		</form>
-		<div class="cl ct mls sp bw" style="display:inline;font-weight:bold">{{ nick.0 }}:</div>
+		<div class="cl ct mls sp bw" style="display:inline;font-weight:bold">{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}{{ nickname }}:</div>
 
-		<form method="POST" action="{% url 'go_to_username' nick.0 %}" class="mtl mbs sp">{% csrf_token %}
-			<button class="btn bm cs mbs mls vt" style="color:#ff8000;border:1px solid #B8B8B8;height:25px" name="dec" value="1" type="submit">fotos</button>&nbsp;<button class="btn bm cs mbs mls vt" style="color:#229ec3;border:1px solid #B8B8B8;height:25px" name="dec" value="2" type="submit">text</button>&nbsp;<button class="btn bcg bm cs mbs mls vt" style="color:#179b36;border:1px solid #B8B8B8;height:25px" name="dec" value="3" type="submit">about</button><br>
-		</form>
-		{% if nick.1 != None %}
-			<form method="POST" class="mtl" action="{% url 'go_to_user_photo' nick.0 1 %}">{% csrf_token %}
-			{{ nick.1|safe }}
-			</form>
-		{% endif %}
+		<div class="mtl">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
 	
 	{% endfor %}
 </div>
@@ -127,14 +99,14 @@
 
 	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
 		{% if page.has_previous %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
-	    </div>
+		    <div style="padding:0 10px">
+		    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+		    </div>
 	    {% endif %}
 	    {% if page.has_next %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
-	    </div>
+		    <div style="padding:0 10px">
+		    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+		    </div>
 	    {% endif %}
 	</div>
 

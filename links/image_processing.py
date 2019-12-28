@@ -134,7 +134,7 @@ def prep_image(img,quality,max_width=None, already_resized=None):
 
 def clean_image_file(image,quality=None,already_reoriented=None, already_resized=None):
 	"""
-	Used in PhotoReplyView (unreleased), PicsChatUploadView, AdImageView (unreleased)
+	Used in PhotoReplyView (unreleased), PicsChatUploadView	
 	"""
 	image = Image.open(image)
 	if float(image.height)/image.width > 7.0:

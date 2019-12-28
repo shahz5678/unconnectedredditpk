@@ -1,0 +1,488 @@
+{% extends noindex|yesno:"base_noindex.html,base.html" %}
+{% load s3 %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_text_object %}
+{% load get_photo_object %}
+{% load get_big_send_button %}
+{% load get_big_group_button %}
+{% load get_big_points_button %}
+{% load get_user_profile_navbar %}
+{% load get_big_home_reply_button %}
+{% load get_transparent_buttons_js %}
+{% load get_big_photo_comment_button %}
+{% load get_big_external_share_button %}
+{% block content %}
+<head><title>{{ target_uname }}'s post history | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
+
+{% include "user_profile_navbar.html" with static_url=STATIC_URL section=section uname=target_uname is_own_profile=is_own_profile %}
+{% if section == 'public' %}
+	<h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}{% if is_own_profile %}My{% else %}{{ target_uname }}'s{% endif %} public posts:</h1>
+
+	{% if is_profile_banned %}
+    	{% load get_display_ban_msg %}
+    	<div class="bx mbl" style="max-width:750px;margin-left:auto;margin-right:auto;border">{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=is_own_profile time_remaining=time_remaining uname=target_uname ban_detail=ban_detail %}</div>
+    {% endif %}
+
+	{% if show_post_removed_prompt %}
+		<div style="background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);text-align:center;color:white;padding:5px;border-radius:8px;max-width:750px;margin-left:auto;margin-right:auto;box-sizing:border-box;border:3px solid #ececec" class="cxl lsp mbs">
+			Post apki history se hide ho gyi
+		</div>
+	{% endif %}
+
+	{% if post_count == 0 %}
+
+		<div class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;text-align:center;box-sizing:border-box">
+			<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
+			<hr size=1 COLOR="#f2f2f2">
+				{% if is_own_profile %}
+				<div class="mts lsp cl sp cgy">Aap ne public ke liye posts share nahi ki huin</div>
+				{% else%}
+				<div class="mts lsp cl sp cgy">{{ target_uname }} ne public ke liye posts share nahi ki huin</div>
+				{% endif %}
+			<div class="mtl mbl"><a href="{% url 'home' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">home</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">photos</button></a></div>
+		</div>
+
+	{% else %}
+
+		<!-- all public posts -->
+		{% for obj in object_list %}
+
+			{% if obj.type_of_content == 't' %}	
+				<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+					{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes home_hash='' block_time_remaining=time_remaining static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+				
+					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+						{% if is_own_profile %}
+						
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+							{% endif %}
+
+							{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=0 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+							{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+						
+						{% else %}
+
+							{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid=obj.id obh='' page_num=page.number static_url=STATIC_URL %}
+							{% big_group_button own_id=own_id target_id=obj.submitter_id parent_object_id=obj.id object_type='link' origin=origin target_username=target_uname home_hash='' %}
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+							{% endif %}
+							{% include "big_buttons/big_report_button.html" with origin='29' pid=obj.id oun=target_uname ooid=obj.submitter_id img_thumb='' raw_caption=obj.description av_url=target_avurl|s3:'thumb' home_hash='' static_url=STATIC_URL type='tx' %}
+
+						{% endif %}
+
+					</div>
+
+				</article>
+			
+			{% elif obj.type_of_content == 'g' %}
+				
+				<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+					{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter ratio=obj.rt show_trending=obj.trending_status ot='g' %}
+					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+						
+						{% if is_own_profile %}
+							
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %} {% endif %}
+								{% big_send_button photo_owner_username=target_uname photo_id=obj.id photo_owner_id=obj.submitter_id photo_caption=obj.description origin=origin home_hash='' img_url=obj.image_file static_url=STATIC_URL %}
+								{% big_external_share_button owner_username=target_uname on_opera=on_opera photo_id=obj.id origin=origin static_url=STATIC_URL %}
+							{% endif %}
+							{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=1 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+							{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+
+						{% else %}
+
+							{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid=obj.id obh='' static_url=STATIC_URL %}
+							{% big_group_button own_id=own_id target_id=obj.submitter_id parent_object_id=obj.id object_type='photo' origin=origin target_username=target_uname home_hash='' %}
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %}{% endif %}
+								{% big_send_button photo_owner_username=target_uname photo_id=obj.id photo_owner_id=obj.submitter_id photo_caption=obj.description origin=origin home_hash='' img_url=obj.image_file static_url=STATIC_URL %}
+								{% big_external_share_button owner_username=target_uname on_opera=on_opera photo_id=obj.id origin=origin static_url=STATIC_URL %}
+							{% endif %}
+							{% include "big_buttons/big_report_button.html" with origin='29' pid=obj.id oun=target_uname ooid=obj.submitter_id img_thumb=obj.image_file|s3:'thumb' raw_caption=obj.description av_url=target_avurl|s3:'thumb' home_hash='' static_url=STATIC_URL type='img' %}
+
+						{% endif %}
+
+					</div>
+
+				</article>
+
+
+			{% endif %}
+			
+		{% endfor %}
+		{% transparent_buttons_js ident=own_id static_url=STATIC_URL %}
+
+	{% endif %}
+
+{% elif section == 'limited' %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}{% if is_own_profile %}Posts for my followers:{% else %}Posts for {{ target_uname }}'s followers:{% endif %}</h1>
+
+	{% if is_profile_banned %}
+    	{% load get_display_ban_msg %}
+    	<div class="bx mbl" style="max-width:750px;margin-left:auto;margin-right:auto;border">{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=is_own_profile time_remaining=time_remaining uname=target_uname ban_detail=ban_detail %}</div>
+    {% endif %}
+
+	{% if show_post_removed_prompt %}
+		<div style="background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);text-align:center;color:white;padding:5px;border-radius:8px;max-width:750px;margin-left:auto;margin-right:auto;box-sizing:border-box;border:3px solid #ececec" class="cxl lsp mbs">
+			Post apki history se hide ho gyi
+		</div>
+	{% endif %}
+
+	{% if post_count == 0 and not is_follower and not is_own_profile %}
+
+		<div class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;text-align:center;box-sizing:border-box">
+
+			{% if ephemeral_posts_exist %}
+				<div class="cxl lsp clb mts">Sorry! {{ target_uname }} ki posts expire ho chuki hain ...</div>
+			{% else %}
+				<div class="cxl lsp clb mts">Sorry! {{ target_uname }} ne followers ke liye posts share nahi ki huin ...</div>
+			{% endif %}
+			<hr size=1 COLOR="#f2f2f2">
+				
+				<div class="mts lsp cl sp cgy">Agr ap ne {{ target_uname }} ko follow karna hai tou ye dabain</div>
+			{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid='' obh='' static_url=STATIC_URL %}<br>
+		</div>
+	{% elif post_count == 0 and is_own_profile %}
+
+		<div class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;text-align:center;box-sizing:border-box">
+				<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
+				<hr size=1 COLOR="#f2f2f2">
+					<div class="mts lsp cl sp cgy">Apki posts exist nahi kartein ya expire ho chuki hain</div>
+				<div class="mtl mbl"><a href="{% url 'home' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">home</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">photos</button></a></div>
+		</div>	
+	{% elif post_count > 0 and is_own_profile %}
+		<!-- all posts for followers, viewed by own_profile -->
+		{% for obj in object_list %}
+			
+			{% if obj.type_of_content == 't' %}	
+				{% if obj.expire_at %}
+					{% if obj.expire_at > time_now %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+							
+							{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+						
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+								{% if not time_remaining %}
+									{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+								{% endif %}
+								{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=0 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+								{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+							</div>
+
+						</article>
+					{% else %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">						
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+							 - E X P I R E D {{ obj.expire_at|human_time}} -
+							</div>
+						</article>	
+					{% endif %}
+				{% else %}
+					<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+						{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+					
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+							
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+							{% endif %}
+							{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=0 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+							{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+						
+						</div>
+
+					</article>
+				{% endif %}
+			
+			{% elif obj.type_of_content == 'g' %}
+				{% if obj.expire_at %}
+
+					{% if obj.expire_at > time_now %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+							{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' block_time_remaining=time_remaining vsc=obj.net_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter ratio=obj.rt ot='g' %}
+
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+								
+								{% if not time_remaining %}
+									{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %}{% endif %}
+								{% endif %}
+								{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=1 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+								{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+
+							</div>
+
+						</article>
+					{% else %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">							
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+							 - E X P I R E D {{ obj.expire_at|human_time }} -
+							</div>
+						</article>	
+					{% endif %}
+
+				{% else %}
+					<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+						{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter ratio=obj.rt ot='g' %}
+
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %}{% endif %}
+								{% big_send_button photo_owner_username=target_uname photo_id=obj.id photo_owner_id=obj.submitter_id photo_caption=obj.description origin=origin home_hash='' img_url=obj.image_file static_url=STATIC_URL %}
+								{% big_external_share_button owner_username=target_uname on_opera=on_opera photo_id=obj.id origin=origin static_url=STATIC_URL %}
+							{% endif %}
+							{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=1 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+							{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+						</div>
+
+					</article>
+				{% endif %}	
+			{% endif %}
+			
+		{% endfor %}	
+	{% elif post_count > 0 and not is_follower  %}
+		<div class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;text-align:center;box-sizing:border-box">
+			<div class="cxl lsp clb mts">Sorry! Follow kiye beghair ap {{ target_uname }} ki {%if post_count > 1 %} <b>{{ post_count }}</b> posts {%else%} <b>1</b> post {% endif %}nahi dekh saktey ...</div>
+			<hr size=1 COLOR="#f2f2f2">
+				<div class="mts lsp cl sp cgy">Posts dekhney ke liye {{ target_uname }} ko follow karein</div>
+			{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid='' obh='' static_url=STATIC_URL %}<br>
+		</div>
+
+	{% elif post_count == 0 and is_follower %}
+
+		<div class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;text-align:center;box-sizing:border-box">
+			{% if ephemeral_posts_exist %}
+				<div class="cxl lsp clb mts">Sorry! {{ target_uname }} ki posts expire ho chuki hain ...</div><br>
+			{% else %}
+				<div class="cxl lsp clb mts">Sorry! {{ target_uname }} ne followers ke liye posts share nahi ki huin ...</div><br>
+			{% endif %}
+		</div>
+
+	{% elif post_count > 0 and is_follower %}
+		<!-- all posts for followers, viewed by follower -->
+		{% for obj in object_list %}
+			{% if obj.type_of_content == 't' %}	
+				{% if obj.expire_at %}
+					{% if obj.expire_at > time_now %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+							
+							{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+						
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+								{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid=obj.id obh='' page_num=page.number static_url=STATIC_URL %}
+								{% big_group_button own_id=own_id target_id=obj.submitter_id parent_object_id=obj.id object_type='link' origin=origin target_username=target_uname home_hash='' %}
+								{% if not time_remaining %}
+									{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+								{% endif %}
+								{% include "big_buttons/big_report_button.html" with origin='30' pid=obj.id oun=target_uname ooid=obj.submitter_id img_thumb='' raw_caption=obj.description av_url=target_avurl|s3:'thumb' home_hash='' static_url=STATIC_URL type='tx' %}
+							</div>
+
+						</article>
+					{% else %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">						
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+							 - E X P I R E D {{ obj.expire_at|human_time}} -
+							</div>
+						</article>	
+					{% endif %}
+				
+				{% else %}
+				
+					<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+						{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+					
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+							{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid=obj.id obh='' page_num=page.number static_url=STATIC_URL %}
+							{% big_group_button own_id=own_id target_id=obj.submitter_id parent_object_id=obj.id object_type='link' origin=origin target_username=target_uname home_hash='' %}
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+							{% endif %}
+							{% include "big_buttons/big_report_button.html" with origin='30' pid=obj.id oun=target_uname ooid=obj.submitter_id img_thumb='' raw_caption=obj.description av_url=target_avurl|s3:'thumb' home_hash='' static_url=STATIC_URL type='tx' %}
+						</div>
+					</article>
+				{% endif %}
+
+			{% elif obj.type_of_content == 'g' %}
+				{% if obj.expire_at %}
+					{% if obj.expire_at > time_now %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+							{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' block_time_remaining=time_remaining  vsc=obj.net_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter ratio=obj.rt ot='g' %}
+
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+								{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid=obj.id obh='' static_url=STATIC_URL %}
+								{% big_group_button own_id=own_id target_id=obj.submitter_id parent_object_id=obj.id object_type='photo' origin=origin target_username=target_uname home_hash='' %}
+								{% if not time_remaining %}
+									{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %}{% endif %}
+								{% endif %}
+								{% include "big_buttons/big_report_button.html" with origin='30' pid=obj.id oun=target_uname ooid=obj.submitter_id img_thumb=obj.image_file|s3:'thumb' raw_caption=obj.description av_url=target_avurl|s3:'thumb' home_hash='' static_url=STATIC_URL type='img' %}
+							</div>
+
+						</article>
+					{% else %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">							
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+							 - E X P I R E D {{ obj.expire_at|human_time }} -
+							</div>
+						</article>	
+					{% endif %}
+
+				{% else %}
+					<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+						{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' block_time_remaining=time_remaining vsc=obj.net_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter ratio=obj.rt ot='g' %}
+
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+							{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=target_uname tid=target_user_id origin=origin obid=obj.id obh='' static_url=STATIC_URL %}
+							{% big_group_button own_id=own_id target_id=obj.submitter_id parent_object_id=obj.id object_type='photo' origin=origin target_username=target_uname home_hash='' %}
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %}{% endif %}
+								{% big_external_share_button owner_username=target_uname on_opera=on_opera photo_id=obj.id origin=origin static_url=STATIC_URL %}
+							{% endif %}
+							{% include "big_buttons/big_report_button.html" with origin='30' pid=obj.id oun=target_uname ooid=obj.submitter_id img_thumb=obj.image_file|s3:'thumb' raw_caption=obj.description av_url=target_avurl|s3:'thumb' home_hash='' static_url=STATIC_URL type='img' %}
+						</div>
+					</article>
+				{% endif %}	
+			{% endif %}
+		{% endfor %}
+
+	{% endif %}
+
+{% elif section == 'private' %}
+	<h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}My private posts:</h1>
+
+	{% if is_profile_banned %}
+    	{% load get_display_ban_msg %}
+    	<div class="bx mbl" style="max-width:750px;margin-left:auto;margin-right:auto;border">{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=defender is_own_profile=is_own_profile time_remaining=time_remaining uname=target_uname ban_detail=ban_detail %}</div>
+    {% endif %}
+
+	{% if show_post_removed_prompt %}
+		<div style="background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);text-align:center;color:white;padding:5px;border-radius:8px;max-width:750px;margin-left:auto;margin-right:auto;box-sizing:border-box;border:3px solid #ececec;" class="cxl lsp mbs">
+			Post apki history se hide ho gyi
+		</div>
+	{% endif %}
+
+	{% if post_count == 0 %}
+
+			<div class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;text-align:center;box-sizing:border-box">
+				<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
+				<hr size=1 COLOR="#f2f2f2">
+					<div class="mts lsp cl sp cgy">Aap ne koi private posts share nahi ki huin</div>
+				<div class="mtl mbl"><a href="{% url 'home' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">home</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">photos</button></a></div>
+			</div>
+
+	{% else %}
+
+		<!-- all private posts -->
+		{% for obj in object_list %}
+			
+			{% if obj.type_of_content == 't' %}	
+				{% if obj.expire_at %}
+					{% if obj.expire_at > time_now %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+							
+							{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' block_time_remaining=time_remaining vsc=obj.net_votes home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+						
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+								{% if not time_remaining %}
+									{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+								{% endif %}
+								{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=0 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+								{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+							</div>
+
+						</article>
+					{% else %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">						
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+							 - E X P I R E D {{ obj.expire_at|human_time}} -
+							</div>
+						</article>	
+					{% endif %}
+				{% else %}
+					<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+						
+						{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' block_time_remaining=time_remaining vsc=obj.net_votes home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+					
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+							{% if not time_remaining %}
+								{% if obj.comment_status = '1' %}{% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin=origin always_show=True %}{% endif %}
+							{% endif %}
+							{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=0 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+							{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+						</div>
+
+					</article>	
+				{% endif %}
+			
+			{% elif obj.type_of_content == 'g' %}
+				
+				{% if obj.expire_at %}
+					{% if obj.expire_at > time_now %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+							{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb='' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' block_time_remaining=time_remaining vsc=obj.net_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter ratio=obj.rt ot='g' %}
+
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+								{% if not time_remaining %}
+									{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %} {% endif %}
+								{% endif %}
+								{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=1 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+								{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+							</div>
+
+						</article>
+					{% else %}
+						<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">							
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+							 - E X P I R E D {{ obj.expire_at|human_time }} -
+							</div>
+						</article>	
+					{% endif %}
+
+				{% else %}
+					<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
+
+							{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb='' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' block_time_remaining=time_remaining vsc=obj.vnet_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter ratio=obj.rt ot='g' %}
+
+							<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+								{% if not time_remaining %}
+									{% if obj.comment_status = '1' %}{% big_photo_comment_button photo_id=obj.id origin=origin comm_count=obj.reply_count static_url=STATIC_URL star_id=obj.submitter_id %}{% endif %}
+								{% endif %}
+								{% big_points_button obj_id=obj.id owner_id=obj.submitter_id is_pht=1 origin=origin net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
+								{% include "big_buttons/big_delete_button.html" with own_id=own_id obj_hash=obj.obj_hash static_url=STATIC_URL %}
+							</div>
+
+						</article>					
+				{% endif %}
+
+			{% endif %}
+			
+		{% endfor %}	
+
+	{% endif %}
+
+{% endif %}
+
+  <div class="mbl fx fxjscn">
+    {% if page.has_previous %}
+      <div style="padding:0 10px">
+      <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+      </div>
+    {% endif %}
+    {% if page.has_next %}
+      <div style="padding:0 10px">
+      <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+      </div>
+    {% endif %}
+   </div>
+
+{% endblock %}

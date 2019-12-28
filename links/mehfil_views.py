@@ -18,12 +18,12 @@ from django.utils import timezone
 from django.http import Http404
 from django.db.models import F
 from verified import FEMALES
+from utilities import convert_to_epoch
 from templatetags.s3 import get_s3_object
 from imagestorage import upload_image_to_s3
+from models import HellBanList, UserProfile
 from judgement_views import ordered_list_of_tup
 from image_processing import process_group_image
-
-from models import HellBanList, UserProfile
 
 from direct_response_forms import DirectResponseForm
 
@@ -31,8 +31,7 @@ from redis7 import check_content_and_voting_ban, get_all_image_star_ids
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
-from views import condemned, valid_uuid, convert_to_epoch, get_page_obj, get_price, get_indices, create_sorted_invitee_list,\
-retrieve_user_env
+from views import condemned, valid_uuid, get_page_obj, get_price, get_indices, create_sorted_invitee_list, retrieve_user_env
 
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users
@@ -79,7 +78,7 @@ retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_m
 get_ranked_mehfils, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
 retrieve_officer_stats, invalidate_cached_ranked_groups, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites,\
 filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, retrieve_user_group_invites, group_invite_exists,\
-get_group_id, retrieve_user_group_data, retrieve_cached_mehfil_pages, cache_mehfil_pages, invalidate_cached_mehfil_pages, remove_group_chat_submissions
+get_group_id, retrieve_user_group_data, retrieve_cached_mehfil_pages, cache_mehfil_pages, invalidate_cached_mehfil_pages
 
 
 ################################### Mehfil info #####################################
@@ -1990,14 +1989,14 @@ def kick_out(request, slug):
 
 						# hide all messages of kicked culprits
 						hide_writers_group_messages(group_id,culprit_ids,group_type=grp_type)# works for public, private both
-						
+
 						# deleting direct responses from culprit IDs' 'direct response lists'
 						delete_direct_responses_linked_to_obj(obj_type=grp_type, parent_obj_id=group_id, target_user_ids=culprit_ids)
 
 						# removing meh from culprits' 'activities'
 						cleanse_replier_data_from_location(obj_type=grp_type, parent_obj_id=guid, obj_owner_id=group_owner_id, \
 							replier_ids=culprit_ids)# note this requires 'guid', not 'group_id'
-						
+
 						# produce group message (of kicking out user)
 						save_group_submission(writer_id=own_id, group_id=group_id, text=kicked_nicknames,posting_time=time_now,\
 							category='2',writer_uname=own_uname, writer_avurl=get_s3_object(own_avurl,category='thumb'))
@@ -2048,7 +2047,7 @@ def kick_out(request, slug):
 
 						# hide all messages of kicked culprits
 						hide_writers_group_messages(group_id,culprit_ids,group_type=grp_type)
-						
+
 						# deleting direct responses from culprint IDs' 'direct response lists'
 						delete_direct_responses_linked_to_obj(obj_type=grp_type, parent_obj_id=group_id, target_user_ids=culprit_ids)
 
@@ -2994,10 +2993,6 @@ def del_public_group(request, pk=None, unique=None, *args, **kwargs):
 						# mehfil reported - thus deletion is frozen for now
 						return render(request,"mehfil/notify_and_redirect.html",{'action_frozen':True,'unique':unique,'is_public':True})
 					else:
-						# removing group related notifications seen by owner of group (redis 2):
-						# remove_group_notification(user_id=own_id,group_id=group_id)
-						# removing group notification parent object (redis 2)
-						# remove_group_object(group_id) (redis2)
 
 						# purging cached group invites before deleting own group
 						invalidate_cached_mehfil_invites(own_id, group_id, all_invites=True)
@@ -3406,7 +3401,7 @@ class PrivateGroupView(FormView):
 							else:
 								return redirect('private_group_request_denied')
 						else:
-							uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
+							uploaded_img_loc = upload_image_to_s3(image_file,prefix='group/')
 					else: 
 						uploaded_img_loc = None
 					time_now = time.time()
@@ -3418,7 +3413,7 @@ class PrivateGroupView(FormView):
 					# 	activity_dict = {'m':'POST','act':act,'t':time_now,'url':data['tp'],'tx':text,'pi':uploaded_img_loc}# defines what activity just took place
 					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					########################################################################
-					
+
 					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
 					submission_id, num_submissions = save_group_submission(writer_id=user_id, group_id=group_id, text=text, chat_image=uploaded_img_loc, \
 						posting_time=time_now,writer_avurl=get_s3_object(own_avurl,category='thumb'),category='0',writer_uname=own_uname,\
@@ -3684,7 +3679,7 @@ class PublicGroupView(FormView):
 						else:
 							return redirect('public_group_request_denied')
 					else:
-						uploaded_img_loc = upload_image_to_s3(image_file,prefix='mehfil/')
+						uploaded_img_loc = upload_image_to_s3(image_file,prefix='group/')
 				else: 
 					uploaded_img_loc = None
 				# UserProfile.objects.filter(user_id=user_id).update(score=F('score')+PUBLIC_GROUP_MESSAGE)
@@ -5030,7 +5025,7 @@ def get_ranked_groups(request):
 			context["newbie_flag"] = True
 			context["newbie_tutorial_page"] = 'tutorial5.html'
 			context['newbie_lang'] = request.session.get("newbie_lang",None)
-			context['origin'] = '26'
+			context['origin'] = '36'
 		return render(request,"mehfil/group_ranking.html",context)
 
 

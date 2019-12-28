@@ -13,8 +13,8 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
 from redis7 import check_content_and_voting_ban, is_pair_image_stars, get_all_image_star_ids
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\
-get_cached_photo_dim, cache_photo_dim, retrieve_user_id, retrieve_photo_data, retrieve_fresh_photo_shares_or_cached_data, \
-push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, track_notif_allow_behavior
+get_cached_photo_dim, cache_photo_dim, retrieve_user_id, push_subscription_exists, retrieve_fresh_photo_shares_or_cached_data, \
+retrieve_subscription_info,unsubscribe_target_from_notifications, track_notif_allow_behavior
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -41,15 +41,10 @@ from image_processing import process_group_image
 from redirection_views import return_to_content
 from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
-from models import Photo
+from models import Photo, Link
 
 ONE_DAY = 60*60*24
 ONE_WEEK = 7*60*60*24
-
-# def deletion_test(request):
-# 	"""
-# 	"""
-# 	exited_personal_group_hard_deletion(['5','6'])
 
 #######################################################################################################################
 ########################################### Personal Group Helper Functions ###########################################
@@ -1139,6 +1134,8 @@ def get_user_perms_for_group(request):
 	"""
 	return render(request,"404.html",{})
 
+
+
 ###########################################################################################################
 ######################################### Personal Group Settings #########################################
 ###########################################################################################################
@@ -1468,7 +1465,7 @@ def personal_group_photo_settings(request):
 						target_id=tid,setting_type=photo_setting, group_id=group_id)
 					if new_phdel_value == '0' and top_most_post_affected:# successfully undeleted
 						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
-						receiver_id=tid,to_hide=top_most_post_hidden)#False)# reply_id is not relevant for 1on1s
+						receiver_id=tid,to_hide=top_most_post_hidden)# reply_id is not relevant for 1on1s
 					
 					elif new_phdel_value is None and ttl is not None:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
@@ -1929,7 +1926,8 @@ def render_personal_group_invite(request):
 		if banned:
 			# show "user banned" message and redirect them to home
 			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':origin,\
+				'lid':request.POST.get('hh',None),'photo_owner_username':retrieve_uname(target_id,decode=True)})
 		elif str(own_id) == target_id:
 			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
 				'lid':request.POST.get('hh',None)})
@@ -2471,43 +2469,6 @@ def private_chat_help_ad(request):
 ######################################### Sharing Photos in Personal Groups #########################################
 #####################################################################################################################
 
-# def show_shared_photo_metrics(request,nick):
-# 	"""
-# 	Shows shared photos metrics to users
-# 	"""
-# 	their_id = retrieve_user_id(nick)
-# 	if their_id:
-# 		own_id = str(request.user.id) if request.user.is_authenticated() else None
-# 		photo_content, is_cached = retrieve_fresh_photo_shares_or_cached_data(their_id)
-# 		if is_cached:
-# 			final_photo_data = photo_content
-# 		else:
-# 			epoch_time_one_week_ago = time.time()-ONE_WEEK
-# 			#############################
-# 			last_week_shared_by_others = defaultdict(int)
-# 			for content in photo_content:
-# 				data = content.split(":")
-# 				photo_id, num_shares, sharer_id, sharing_time = data[0], data[1], data[2], data[3]
-# 				if float(sharing_time) > epoch_time_one_week_ago:
-# 					if sharer_id != their_id:
-# 						last_week_shared_by_others[photo_id] += int(num_shares)
-# 			photos = sorted(last_week_shared_by_others.iteritems(),key=lambda (k,v):v,reverse=True)
-# 			photo_ids = [i[0] for i in photos][0:5]
-# 			photo_data = retrieve_photo_data(photo_ids, their_id)
-# 			final_photo_data = []
-# 			for photo_id in photo_ids:
-# 				photo_data[photo_id]['num_shares'] = last_week_shared_by_others[photo_id]
-# 				final_photo_data.append(photo_data[photo_id])
-# 			cache_photo_shares.delay(json.dumps(final_photo_data), their_id)
-# 		if own_id and tutorial_unseen(user_id=own_id, which_tut='4', renew_lease=True):
-# 			first_time = True
-# 		else:
-# 			first_time = False
-# 		return render(request,"personal_group/sharing/photo_sharing_metrics.html",{'final_photo_data':final_photo_data,'num_photos':len(final_photo_data),\
-# 			'own_profile': their_id == own_id,'username':nick,'photo_owner_id':their_id,'first_time':first_time})
-# 	else:
-# 		return redirect('user_profile',nick)
-
 
 def cant_share_photo(request, ttl=None,*args, **kwargs):
 	"""
@@ -2552,8 +2513,14 @@ def post_shared_photo_to_personal_groups(group_ids,photo_url,photo_caption,photo
 	if photo_allwd:
 		img_height, img_width = get_cached_photo_dim(photo_id)
 		if not img_height:
-			img_obj = Photo.objects.get(id=photo_id) # reaffirm url at this point too
-			img_height, img_width = img_obj.image_file.height, img_obj.image_file.width
+			img_obj = Link.objects.get(id=photo_id)
+			if img_obj.type_of_content == 'g':
+				img_height, img_width = img_obj.image_file.height, img_obj.image_file.width
+				
+			else:
+				img_obj = Photo.objects.get(id=photo_id) # reaffirm url at this point too
+				img_height, img_width = img_obj.image_file.height, img_obj.image_file.width
+
 			cache_photo_dim(photo_id,img_height,img_width)
 		sharing_time = time.time()
 		for group_id in photo_allwd:

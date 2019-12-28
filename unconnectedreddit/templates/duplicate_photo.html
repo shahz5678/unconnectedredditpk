@@ -7,9 +7,9 @@
 <h1 class="cxl clb" style="text-align:center">Duplicate photo!</h1>
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 <div class="cxl lsp mbs">Is jesi photo kuch waqt pehle upload ho chuki</div>
-{% if photo.vote_score < -2 %}
+{% if photo.net_votes < -2 %}
     <img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" style="border-radius:5px" height="38"></img>
-{% elif photo.vote_score < -1 %}
+{% elif photo.net_votes < -1 %}
     {% if photo.image_file %}
         <img src="{{ photo.image_file|s3:"thumb" }}" alt="no pic" style="border-radius:5px;filter:brightness(50%);width:auto;"></img>
     {% else %}
@@ -22,7 +22,7 @@
     	<img src="{{ STATIC_URL }}img/broken_pic.png" alt="no pic" style="border-radius:5px;" height="38"></img>
     {% endif %}
 {% endif %}
-<div class="mts mbs cgy mrs sp cs"><a href="{% url 'user_profile' photo.owner.username %}" class="cb sp">{{ photo.owner.username|truncatechars:'13' }}</a>{% if is_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" height="10" width="10">{% endif %}&nbsp;ne&nbsp;upload ki, {{ photo.upload_time|naturaltime }}</div>
+<div class="mts mbs cgy mrs sp cs"><a href="{% url 'user_profile' photo.submitter.username %}" class="cb sp">{{ photo.submitter.username|truncatechars:'13' }}</a>{% if is_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" height="10" width="10">{% endif %}&nbsp;ne&nbsp;upload ki, {{ photo.submitted_on|naturaltime }}</div>
 <hr size=1 COLOR="#E9EBEE">
 <div class="cl sp lsp" style="font-weight:bold">Kuch neya upload karein!</div>
 <a href="{% url 'upload_public_photo' %}"><button class="btn bco bm mtl mbs pg_ok_res sp" style="height:28px">wapis</button></a>

@@ -43,8 +43,8 @@ body{background: #E9EBEE}
 
 {% else %}
 	<img src="{{ purl }}" alt="pic" style="border: 1px solid #A9A9A9;border-radius:5px">
-	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apki kaunsi foto copy ki geyi hai?{% else %}Isne apni kaunsi foto dubara lagai hai?{% endif %}</div>
-	<div class="cgy mt sp mbs cl lsp">Sirf recent fotos mein se pick karein:</div>
+	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apki kaunsi photo copy ki geyi hai?{% else %}Isne apni kaunsi photo dubara lagai hai?{% endif %}</div>
+	<div class="cgy mt sp mbs cl lsp">Sirf recent photos mein se pick karein:</div>
 
 	<form method="post" action="{% url 'report_content' %}" class="mts lsp sp">
 	{% csrf_token %}
@@ -61,11 +61,11 @@ body{background: #E9EBEE}
 		<hr size=1 COLOR="#e6e6e6">
 		<div style="text-align:left" class="fx fxjsfs">
 			<input style="vertical-align:sub" id="{{ obj.2 }}" class="mrs" type="radio" name="oobid" value="{{ obj.2 }}">
-			<label for="{{ obj.2 }}"><img src="{{ obj.0|s3 }}" style="border-radius:12px" alt='foto'></label>
+			<label for="{{ obj.2 }}"><img src="{{ obj.0|s3 }}" style="border-radius:12px" alt='photo'></label>
 		</div>
 		<div style="text-align:right;color:darkgray" class="mts cxs sp">{{ obj.1|naturaltime }}</div>
 	{% empty %}
-		<div class="cr">Recent fotos mojood nahi!</div>
+		<div class="cxl lsp cr">Recent photos mojood nahi!</div>
 	{% endfor %}
 	<button class="btn bm bcr mbs mrs mtl pg_ok_res" name="dec" style="height:26px" value="{{ dec }}" type="submit">Submit</button>
 	<button class="mbs cgy mtl mls cl pg_ok_res" name="dec" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray" value="0" type="submit">Cancel</button>

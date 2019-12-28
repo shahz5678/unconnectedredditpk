@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>People followed by {{ own_name }} | Damadam</title></head>
+<style>body{background: #E9EBEE}</style>
+
+    <h1 class="cxl clb" style="text-align:center;overflow:hidden">People you follow:</span></h1>
+
+    <div class="clb bx" style="border:3px solid #ececec;border-radius:12px;background-color:white;padding:10px;max-width:560px;width:98%;margin:0 auto;overflow: hidden;text-align:center">
+        {% if not followers %}
+            
+            <div class="clb cxl lsp">{% load emoticons_tags %}{% emoticons %}Abhi aap kissi ko follow nahi ker rahey {% endemoticons %}</div>
+            <a href="{% url 'user_profile' own_name %}#section0"><button class="btn bcg mtl mbs sp pg_ok_res bm" style="height:26px">wapis</button></a>
+
+
+        {% else %}
+
+            {% load s3 %}
+            {% load get_unfollow_button %}
+            {% load get_big_block_button %}
+            
+            <div class="mt mbl"><a href="{% url 'user_profile' own_name %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>
+
+            <div class="cxl lsp" style="border-top:1px solid lightgray;padding-top:10px">
+            {% if count == 1 %}Ap sirf 1 user ko follow ker rahey hain:{% else %}Ap <b>{{ count }}</b> logon ko follow ker rahey hein:{% endif %}
+            </div>
+            
+            <ul style="display:inline-block;padding: 0;list-style:none;margin-top:5px">
+            {% for following_id,uname,avurl in followers %}
+                <li style="text-align:left;border-bottom:1px solid #f4f4f4;padding:12px 0 6px 0" class="sp">
+                    <div style="word-break: break-all;">
+                      {% if on_fbs %}<img src="{{ avurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" class="mrs" alt="pic">{% else %}<img data-src="{{ avurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" class="lazyload mrs" alt="pic">{% endif %}<b>{{ uname }}</b>
+
+                      <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+                        <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=uname tid=following_id static_url=STATIC_URL %}</div>
+                        {% include "big_buttons/big_sub_button.html" with is_subbed=True username=uname origin='28' obid=None obh=None page_num=page_obj.number static_url=STATIC_URL %}
+                        {% big_block_button static_url=STATIC_URL target_user_id=following_id origin='28' page_num=page_obj.number %}
+                      </div>
+                    </div>
+                </li>
+            {% endfor %}
+            </ul>
+
+    
+        {% endif %}
+    <br>
+
+    </div>
+    <br>
+
+      <div class="mbl fx fxjscn">
+        {% if page_obj.has_previous %}
+          <div style="padding:0 10px">
+          <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+          </div>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <div style="padding:0 10px">
+          <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+          </div>
+        {% endif %}
+      </div>
+  
+{% endblock %}

@@ -18,34 +18,74 @@
 {% load get_big_home_reply_button %}
 {% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
-{% load get_big_external_share_button %}
-<h1 class="cxl clb lsp" style="text-align:center">Your likes:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">My likes:</h1>
 
 	{% for datum in data %}
 
 		{% if datum.tp == 'tx' %}
 
-		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
-			{% text_object obid=datum.obid ooid=datum.ooid text=datum.d|emoticons|linebreaksbr raw_text=datum.d origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s alignment=datum.c topic=datum.tn topic_url=datum.url show_topic='1' c1=datum.c1 c2=datum.c2 %}
+			<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
 		
-			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
-				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='link' origin='25' target_username=datum.ou home_hash='' %}
-				{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL always_show=True %}
-			</div>
 
-		</article>
+				{% if datum.ex %}
+
+					{% if datum.ex > time_now %}
+						{% text_object obid=datum.obid ooid=datum.ooid text=datum.d|emoticons|linebreaksbr raw_text=datum.d origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s alignment=datum.c topic=datum.tn topic_url=datum.url show_topic='1' c1=datum.c1 c2=datum.c2 %}
+					
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+							{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='link' origin='25' target_username=datum.ou home_hash='' %}
+							{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL origin='25' always_show=True %}
+						</div>
+					{% else %}
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+						 - E X P I R E D {{ datum.ex|human_time}} -
+						</div>
+					{% endif %}
+				{% else %}
+					{% text_object obid=datum.obid ooid=datum.ooid text=datum.d|emoticons|linebreaksbr raw_text=datum.d origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s alignment=datum.c topic=datum.tn topic_url=datum.url show_topic='1' c1=datum.c1 c2=datum.c2 %}
+				
+					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+						{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='link' origin='25' target_username=datum.ou home_hash='' %}
+						{% big_home_reply_button link_id=datum.obid comm_count=datum.cc static_url=STATIC_URL origin='25' always_show=True %}
+					</div>
+				{% endif %}
+			</article>
 
 		{% else %}
 
 		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
-			{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter %}
+			
+			{% if datum.ex %}
 
-			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
-				{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
-				{% big_photo_comment_button photo_id=datum.obid origin='25' comm_count=datum.cc static_url=STATIC_URL star_id=datum.ooid %}
-				{% big_send_button photo_owner_username=datum.ou photo_id=datum.obid photo_owner_id=datum.ooid photo_caption=datum.cp origin='25' home_hash='' img_url=datum.i static_url=STATIC_URL %}
-				{% big_external_share_button owner_username=datum.ou on_opera=on_opera photo_id=datum.obid origin='25' static_url=STATIC_URL %}	
-			</div>
+				{% if datum.ex > time_now %}
+					<!-- can be shown -->
+					{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter ot='g' %}
+
+					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+						{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
+						{% big_photo_comment_button photo_id=datum.obid origin='25' comm_count=datum.cc static_url=STATIC_URL star_id=datum.ooid %}
+						{% big_send_button photo_owner_username=datum.ou photo_id=datum.obid photo_owner_id=datum.ooid photo_caption=datum.cp origin='25' home_hash='' img_url=datum.i static_url=STATIC_URL %}
+					</div>
+
+				{% else %}
+					<!-- cannot be shown -->
+					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl"><br>
+					 - E X P I R E D {{ datum.ex|human_time}} -
+					</div>
+
+				{% endif %}
+
+			{% else %}
+				<!-- can be shown -->
+				{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter ot='g' %}
+
+				<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
+					{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
+					{% big_photo_comment_button photo_id=datum.obid origin='25' comm_count=datum.cc static_url=STATIC_URL star_id=datum.ooid %}
+					{% big_send_button photo_owner_username=datum.ou photo_id=datum.obid photo_owner_id=datum.ooid photo_caption=datum.cp origin='25' home_hash='' img_url=datum.i static_url=STATIC_URL %}
+				</div>
+
+			{% endif %}
 
 		</article>
 
@@ -55,7 +95,7 @@
 		
 	{% empty %}
 
-	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:98%;margin-right:auto;margin-left:auto;text-align:center;background:snow">
+	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:97%;margin-right:auto;margin-left:auto;text-align:center;background:snow">
 
 		<div class="cxl lsp clb mts mbs" style="text-align:center">Sorry! Ye khali hai ...</div>
 		<hr size=1 COLOR="#f4f4f4" style="margin:0">

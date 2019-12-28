@@ -29,7 +29,7 @@
 
 {% else %}
 
-    <head><title>Comments on photo titled {{ photo.caption }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam</title></head>
+    <head><title>Comments on photo titled {{ photo.description }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam</title></head>
     <style>body{background:#f0f3f4}</style>
 
     <script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
@@ -51,36 +51,30 @@
 
     {% if authorized %}
 
-    <h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ target_username|truncatechars:'13' }}'s photo:</h1>
-    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="bizcard">
-        
-        <form method="POST" style="overflow:hidden;text-align:center" action="{% url 'redirect_to_content' %}">
-        {% csrf_token %}<input type="hidden" name="obid" value="{{ photo_id }}"><input type="hidden" name="orig" value="{{ origin }}"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="oun" value="{{ target_username }}">
-        <button type="submit" class="cm" style="background:0 0;padding:0;border:none">
-            {% if photo.vote_score < VDC %}
-                <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="photo" style="border-radius:4px" width="38" height="38">
-            {% else %}
-                <div class="fx fxjscn fxaicn">
-                    <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt mrs ibb" style="border:1px solid dodgerblue;width:auto;border-radius:5px">
-                    <div style="text-align:left;color:black" class="cs sp lsp">{% emoticons %}{{ photo.caption }}{% endemoticons %}</div>
-                </div>
-            {% endif %}
-        </button>
-        </form>
+    <h1 class="cxl clb lsp" style="text-align:center">{% if not origin or origin == '0' %}{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ target_username|truncatechars:'13' }}'s photo:{% else %}<div class="mbs">{% include "source_origin.html" with source_origin=origin obj_id=photo_id lid=lid oun=target_username %}</div>{% endif %}</h1>
 
-    </div>
-    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
-
-        {% if banned %}
-            <br><hr size=1 class="co">
-            <span class="clb">Ap reply kar sakein ge <b>{{ time_remaining }}</b> ke baad</span>
-            <br>
-            <span class="cs co">Aesa reply na likhein jo mahol khrab krey. Photo pasand nahi toh 'bekaar' dabana kafi hai</span>
-            <hr size=1 class="co">
-            <br>
-        {% else %}
+    <main class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;display:block">
+    {% if viewable_status == '3' %}
+        {% load get_photo_object %}
+        {% load humanize %}
+        {% photo_object pid=photo_id ooid=photo_owner_id img_url=photo.image_file|s3 img_thumb=photo.image_file|s3:'thumb' caption=photo.description|emoticons raw_caption=photo.description origin='11' vsc=photo.net_votes upload_time=photo.submitted_on|naturaltime machine_time=photo.submitted_on oun=target_username av_url=av_url|s3:'thumb' static_url=STATIC_URL is_star=is_star exclude_detail_url='1' %}
+    {% elif viewable_status == '2' %}
+        <div class="mtl mbl" style="text-align:center"><span class="cgy">- P O S T&nbsp;&nbsp;&nbsp;E X P I R E D -</span></div>
+    {% elif viewable_status == '1' %}
+        <div class="mtl mbl" style="text-align:center"><span class="cgy">- P O S T&nbsp;&nbsp;&nbsp;H I D D E N -</span></div>
+    {% endif %}
+        <a name="reply"></a>
+    </main>
+    
+    <div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background-color:white;padding:10px 7px;margin-bottom:15px" class="clb">
         <a name="error"></a>
         {% if dir_rep_invalid %}<div class="cr sp cxl lsp" style="text-align:center;color:white;background:tomato">{{ dir_rep_invalid }}</div>{% endif %}
+        
+        {% if photo.comment_status == '0' %}
+        <div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+            - Replies Disabled -
+        </div>
+        {% elif viewable_status == '3' %}
         <form class="mt" action="{% url 'post_direct_response' %}" method="POST" style="display:inline">
             <!-- main reply -->
             {% csrf_token %}<input type="hidden" name="tuid" value="{{ photo_owner_id }}"><input type="hidden" name="obtp" value="4"><input type="hidden" name="obid" value="{{ photo.id }}"><input type="hidden" name="poid" value="{{ photo.id }}"><input type="hidden" name="origin" value="11"><input type="hidden" name="mr" value="1"><input type="hidden" name="rorigin" value="{{ origin }}">
@@ -91,7 +85,6 @@
         </form>
         &nbsp;
         <a href="{% url 'comment' photo_id origin %}" rel="nofollow"><button class="rf" style="background:0 0;vertical-align:baseline;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px;margin-bottom:-8px" width="24" height="24"></button></a>
-
         {% endif %}
 
         <div class="mts">
@@ -129,7 +122,7 @@
             {% if comment.direct_reply_tgt_uname and comment.direct_reply_tgt_text_prefix %}
 
                 <!-- reference visible -->
-                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.description }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
             
                 {% if authenticated %}
 
@@ -138,11 +131,11 @@
 
                             {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
 
-                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.id '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
 
-                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
 
                         </div>
                     </div>
@@ -154,7 +147,7 @@
             {% elif comment.direct_reply_tgt_uname and comment.direct_reply_id %}
 
                 <!-- reference hidden -->
-                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.description }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
             
                 {% if authenticated %}
 
@@ -163,11 +156,11 @@
 
                             {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
 
-                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.id '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
 
-                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
 
                         </div>
                     </div>
@@ -179,7 +172,7 @@
             {% else %}
                 
                 <!-- no reference -->
-                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.description }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
 
                 {% if authenticated %}
 
@@ -190,11 +183,11 @@
 
                             {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
 
-                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.id '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
 
-                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
 
                             </div>
                         </div>
@@ -205,11 +198,11 @@
 
                             {% if user_is_owner %}{% include "hide_comment.html" with comment_id=comment.id photo_id=photo.id origin=origin photo_owner_id=photo_owner_id %}{% endif %}
 
-                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.pk '11' STATIC_URL %}
+                            {% block_button comment.submitted_by comment.submitted_by__username user_id photo.id '11' STATIC_URL %}
 
-                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.pk object_type='photos' origin='11' %}
+                            {% group_button own_id=user_id target_id=comment.submitted_by parent_object_id=photo.id object_type='photos' origin='11' target_username=comment.submitted_by__username %}
 
-                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                            {% if comment.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='11' obtp='4' poid=photo.id obid=comment.id wid=comment.submitted_by tx=comment.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
 
                             </div>
                         </div>
@@ -225,22 +218,6 @@
         
         {% endfor %}
         </div>
-
-    {% if thumbs %}
-
-    <hr size=1 COLOR="#ffd7b3">
-    <p style="margin-top:-0.9em;"></p>
-    <hr size=1 COLOR="#ffd7b3">
-
-    <div style="text-align:center" class="cgy sp">See trending photos by <a href="{% url 'profile' photo.owner 'fotos' %}" class="cb"><b>{{ target_username }}</b></a>:</div>
-        <div class="fx fxjscn fxaicn" style="flex-wrap:wrap">
-        {% for image in thumbs %}
-            <span itemscope itemtype="https://schema.org/ViewAction">
-            <a class="mrs mls" href="{% url 'user_profile_photo' photo.owner image.id %}" itemprop="target"><img src="{{ image.image_file|s3:'thumb' }}" class="mts cxs sp" style="overflow:hidden;border:1px solid #d9e7f2;border-radius:4px" alt="pic"></a>
-            </span>
-        {% endfor %}
-        </div>
-    {% endif %}
 
     </div>
 

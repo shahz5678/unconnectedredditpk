@@ -15,6 +15,12 @@
 		{% elif blocked %}
 			<div style="border-bottom:1px solid lightgray;padding:8px" class="cxl lsp">Sorry! Ap {{ tgt_uname }} ko reply nahi kar saktey</div>
 			<div style="padding:5px" class="cl sp lsp">Wapis ja ke beshak kisi aur user ko reply karein</div>
+		{% elif removed_by_op %}
+			<div style="border-bottom:1px solid lightgray;padding:8px" class="cxl lsp">Sorry! Post laganey waley ne apni taraf se ye post remove kar di</div>
+			<div style="padding:5px" class="cl sp lsp">Ap is post pe reply nahi kar saktey</div>
+		{% elif expired_post %}
+			<div style="border-bottom:1px solid lightgray;padding:8px" class="cxl lsp">Sorry! Ye post expire ho chuki hai</div>
+			<div style="padding:5px" class="cl sp lsp">Ap is post pe reply nahi kar saktey</div>
 		{% elif op_blocked %}
 			<div style="border-bottom:1px solid lightgray;padding:8px" class="cxl lsp">Sorry! Ap {{ op_uname }} ke items pe reply nahi kar saktey</div>
 			<div style="padding:5px" class="cl sp lsp">Wapis ja ke beshak kahein aur reply kar lein</div>

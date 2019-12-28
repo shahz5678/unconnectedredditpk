@@ -4,11 +4,12 @@ import json as json_backup
 import ujson as json
 import redis, time, random
 from datetime import datetime
+from utilities import convert_to_epoch
 from django.contrib.auth.models import User
 from location import REDLOC4
+from models import UserProfile, Link, Photo
 from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD, \
 SHARED_PHOTOS_CEILING, PHOTO_DELETION_BUFFER, NUM_SUBMISSION_ALLWD_PER_DAY, CONTENT_SHARING_SHORT_RATELIMIT, CONTENT_SHARING_LONG_RATELIMIT
-from models import UserProfile, Link, Photo
 
 '''
 ##########Redis Namespace##########
@@ -102,10 +103,6 @@ THREE_MINS = 3*60
 ONE_MIN = 60
 
 
-def convert_to_epoch(time):
-	return (time-datetime(1970,1,1)).total_seconds()
-
-
 def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 	my_server = redis.Redis(connection_pool=POOL)
 	final_list = []
@@ -115,49 +112,8 @@ def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 		final_list.append(photo_id)
 	my_server.zadd("deprecated_photos",*final_list)
 
-
-# def log_pic_uploader_status(user_id, is_verified):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	verified = '1' if is_verified else '0'
-# 	my_server.lpush('uploaded_pics',verified+":"+str(user_id))
-
-# def save_user_choice(user_id, choice):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush("new_user_choice",{'user_id':user_id,'user_choice':choice})
-
-# def log_referrer(referrer, loc, user_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush("referrer",{'referrer':referrer,'origin':loc, 'user_id':user_id, 'time_stamp':time.time()})
-
 def return_referrer_logs(log_name):
 	return redis.Redis(connection_pool=POOL).lrange(log_name,0,-1)
-
-
-# def error_logger(obj_creator_reported_id, object_creator_actual_id,actual_object_attributes, reported_link_attributes, from_loc, is_post_request,referrer):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush("block_error",{'obj_creator_reported_id':obj_creator_reported_id,'object_creator_actual_id':object_creator_actual_id,\
-# 		'actual_object_attributes':actual_object_attributes, 'reported_link_attributes':reported_link_attributes,'where_from':from_loc, \
-# 		'is_post_request':is_post_request,'referrer':referrer})
-
-
-# def log_html_error(obj_list, forms, page, nickname, referrer):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush("matka_error",{'obj_list':obj_list,'forms':forms, 'page':page, 'username':nickname,'referrer':referrer ,'time':time.time()})
-
-# def log_button_error(target_user_id, id_type,target_username,own_id, object_id,referrer):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.lpush("button_error",{'target_user_id':target_user_id,'id_type':id_type, 'target_username':target_username,'own_id':own_id, \
-# 		'object_id':object_id,'referrer':referrer,'time':time.time()})
-
-
-# def save_number_verification_error_data(user_id, err_data, err_type=None, on_fbs=None, is_auth=None, which_flow=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	if which_flow == 'consumer':
-# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-# 		my_server.lpush("consumer_number_errors",err_data)
-# 	else:
-# 		err_data["user_id"], err_data["err_type"], err_data["on_fbs"], err_data["is_auth"] = user_id, err_type, on_fbs, is_auth
-# 		my_server.lpush("seller_number_errors",err_data)
 
 #######################Ecomm Metrics######################
 
@@ -262,7 +218,7 @@ def retrieve_post_details_in_bulk(txt_post_ids, img_post_ids):
 
 	parent_text_data = {}
 	if txt_post_ids:
-		cached_text_objs = my_server.mget(*('txc:'+txt_post_id for txt_post_id in txt_post_ids))
+		cached_text_objs = my_server.mget(*('tch:'+txt_post_id for txt_post_id in txt_post_ids))
 		remainder_text_objs, counter = [], 0
 		for json_text_obj in cached_text_objs:
 			post_id = txt_post_ids[counter]
@@ -278,7 +234,7 @@ def retrieve_post_details_in_bulk(txt_post_ids, img_post_ids):
 		if remainder_text_objs:
 			
 			# falling back to DB
-			text_objs = Link.objects.values('id','submitter','description').filter(id__in=remainder_text_objs)
+			text_objs = Link.objects.values('id','submitter','description','delete_status','expire_at').filter(id__in=remainder_text_objs)
 			
 			# enrich the data with usernames
 			submitter_ids = [data['submitter'] for data in text_objs]
@@ -303,8 +259,8 @@ def retrieve_post_details_in_bulk(txt_post_ids, img_post_ids):
 	######################################################################
 	parent_img_data = {}
 	if img_post_ids:
-		# change name of this cache key when "Follow" is introduced
-		cached_img_objs = my_server.mget(*('imc:'+img_post_id for img_post_id in img_post_ids))
+
+		cached_img_objs = my_server.mget(*('gch:'+img_post_id for img_post_id in img_post_ids))
 		remainder_img_objs, counter = [], 0
 		for json_img_obj in cached_img_objs:
 			post_id = img_post_ids[counter]
@@ -317,25 +273,46 @@ def retrieve_post_details_in_bulk(txt_post_ids, img_post_ids):
 			else:
 				remainder_img_objs.append(post_id)
 			counter += 1
-		if remainder_img_objs:
+		
+		# falling back to the DB
+		if remainder_img_objs:	
 			
-			########################## Uncomment for "Follow" feature ##########################
-			# falling back to DB
-			# img_objs = Link.objects.values('id','submitter','description','image_file').filter(id__in=remainder_img_objs)
+			new_img_objs, legacy_img_obj_ids, legacy_img_objs = [], [], []
+
+			raw_img_objs = Link.objects.values('id','submitter','description','image_file','type_of_content','delete_status','expire_at').\
+			filter(id__in=remainder_img_objs)
 			
-			# enrich the data with usernames
-			# submitter_ids = [data['submitter'] for data in img_objs]
-			# username_dictionary = retrieve_bulk_unames(user_ids=submitter_ids,decode=True)
-			# for dictionary in img_objs:
-			# 	dictionary['submitter_uname'] = username_dictionary[dictionary['submitter']]
+			for img_obj in raw_img_objs:
+				if img_obj['type_of_content']:
+					new_img_objs.append(img_obj)
+				else:
+					legacy_img_obj_ids.append(img_obj['id'])
+
+			if new_img_objs:
+				# enrich the data with usernames
+				submitter_ids = [data['submitter'] for data in new_img_objs]
+				username_dictionary = retrieve_bulk_unames(user_ids=submitter_ids,decode=True)
+				for dictionary in new_img_objs:
+					dictionary['submitter_uname'] = username_dictionary[dictionary['submitter']]
+
+			if legacy_img_obj_ids:
+
+				# retrieve the required legacy objs
+				legacy_img_objs = Photo.objects.values('id','owner','caption','image_file').filter(id__in=legacy_img_obj_ids)
+
+				# enrich the data with usernames
+				submitter_ids = [data['owner'] for data in legacy_img_objs]
+				username_dictionary = retrieve_bulk_unames(user_ids=submitter_ids,decode=True)
+				for dictionary in legacy_img_objs:
+					dictionary['submitter_uname'] = username_dictionary[dictionary['owner']]
+				legacy_img_objs = list(legacy_img_objs)
+				for legacy_img_obj in legacy_img_objs:
+					legacy_img_obj['description'] = legacy_img_obj.pop('caption')
+					legacy_img_obj['submitter'] = legacy_img_obj.pop('owner')
+					legacy_img_obj['delete_status'], legacy_img_obj['expire_at'] = '0', None
 			####################################################################################
 
-			img_objs = Photo.objects.values('id','owner','caption','image_file').filter(id__in=remainder_img_objs)
-
-			submitter_ids = [data['owner'] for data in img_objs]
-			username_dictionary = retrieve_bulk_unames(user_ids=submitter_ids,decode=True)
-			for dictionary in img_objs:
-				dictionary['submitter_uname'] = username_dictionary[dictionary['owner']]
+			img_objs = new_img_objs+legacy_img_objs#concatenating the retrieved data lists
 
 			# cache the retrieved img_objs
 			if len(img_objs) > 1:
@@ -343,15 +320,16 @@ def retrieve_post_details_in_bulk(txt_post_ids, img_post_ids):
 				for img_obj in img_objs:
 					obj_id = str(img_obj['id'])
 					parent_img_data[obj_id] = img_obj
-					pipeline1.setex('imc:'+obj_id,json.dumps(img_obj),THREE_DAYS)
+					pipeline1.setex('imgc:'+obj_id,json.dumps(img_obj),THREE_DAYS)
 				pipeline1.execute()
 			else:
 				for img_obj in img_objs:
 					obj_id = str(img_obj['id'])
 					parent_img_data[obj_id] = img_obj
-					my_server.setex('imc:'+obj_id,json.dumps(img_obj),THREE_DAYS)
+					my_server.setex('imgc:'+obj_id,json.dumps(img_obj),THREE_DAYS)
 		
 	return parent_text_data, parent_img_data
+
 
 
 ################ Caching number of images circulating in Photos section ################
@@ -369,7 +347,6 @@ def cache_image_count(num_images,list_type):
 	Saving number of images in circulation in best and fresh lists of the Photo section
 	"""
 	redis.Redis(connection_pool=POOL).setex("cic:"+list_type,num_images,TWENTY_MINS)
-
 
 
 ######################################### Log direct repsonse rate ############################################
@@ -404,10 +381,11 @@ def cache_image_count(num_images,list_type):
 # 	return redis.Redis(connection_pool=POOL).zrange('meh_reply_rate',0,-1,withscores=True)
 
 
+
 ######################## Rate limiting content sharing on feeds ########################
 
 
-def rate_limit_content_sharing(user_id):
+def rate_limit_content_sharing(user_id, set_long_ratelimit=False):
 	"""
 	Rate limits users from sharing content too fast
 	"""
@@ -416,21 +394,25 @@ def rate_limit_content_sharing(user_id):
 	long_rate_limit_key = 'lcsrl:'+user_id
 	short_rate_limit_key = 'scsrl:'+user_id
 	my_server = redis.Redis(connection_pool=POOL)
+	
+	#############################################
 	# SETTING SHORT RATE LIMIT KEY
 	my_server.setex(short_rate_limit_key,'1',CONTENT_SHARING_SHORT_RATELIMIT)
+	#############################################
 	# SETTING LONG RATE LIMIT KEY
-	# first set attempts for the day
-	is_set = my_server.setnx(content_submission_attempts,1)
-	if is_set:
-		# key didn't hitherto exist, now set its ttl
-		my_server.expire(content_submission_attempts,CONTENT_SHARING_LONG_RATELIMIT)
-	else:
-		# key already exists, log attempt
-		total_attempts = my_server.incr(content_submission_attempts)
-		if total_attempts > (NUM_SUBMISSION_ALLWD_PER_DAY-1):
-			# this person has submitted content 20 times in ONE_DAY and is trying to submit a 21st piece, rate limit them
-			remaining_time_in_one_day = my_server.ttl(content_submission_attempts)
-			my_server.setex(long_rate_limit_key,total_attempts,remaining_time_in_one_day)
+	if set_long_ratelimit:
+		# first set attempts for the day
+		is_set = my_server.setnx(content_submission_attempts,1)
+		if is_set:
+			# key didn't hitherto exist, now set its ttl
+			my_server.expire(content_submission_attempts,CONTENT_SHARING_LONG_RATELIMIT)
+		else:
+			# key already exists, log attempt
+			total_attempts = my_server.incr(content_submission_attempts)
+			if total_attempts > (NUM_SUBMISSION_ALLWD_PER_DAY-1):
+				# this person has submitted content 20 times in ONE_DAY and is trying to submit a 21st piece, rate limit them
+				remaining_time_in_one_day = my_server.ttl(content_submission_attempts)
+				my_server.setex(long_rate_limit_key,total_attempts,remaining_time_in_one_day)
 
 
 def content_sharing_rate_limited(user_id):
@@ -500,48 +482,28 @@ def cache_photo_dim(photo_id,img_height,img_width):
 	my_server.expire(key,TWO_WEEKS)
 
 
-def retrieve_photo_data(photo_ids, owner_id):
-	"""
-	Retrieves photo data (caption and url)
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	photo_data, missing_photos = {}, []
-	for photo_id in photo_ids:
-		caption, image_url, upload_time = my_server.hmget('pht:'+photo_id,'caption','image_url','upload_time')
-		if caption and image_url and upload_time:
-			photo_data[photo_id] = {'caption':caption.decode('utf-8'),'image_url':image_url,'id':photo_id,'upload_time':upload_time}
-		else:
-			missing_photos.append(photo_id)
-	if missing_photos:
-		missing_data = Photo.objects.filter(id__in=missing_photos).values('id','image_file','caption','upload_time')
-		for data in missing_data:
-			photo_id = str(data['id'])
-			key = 'pht:'+photo_id
-			upload_time = str(convert_to_epoch(data['upload_time']))
-			photo_data[photo_id] = {'caption':data['caption'],'image_url':data['image_file'],'id':photo_id,'upload_time':upload_time}
-			my_server.hmset(key,{'caption':data['caption'],'image_url':data['image_file'],'upload_time':upload_time})
-			my_server.expire(key,THREE_DAYS)
-	return photo_data
-
-
-######################## Rate limiting unfanned user ########################
-
-
-def rate_limit_unfanned_user(own_id,target_id):
-	"""
-	Rate limit to ensure unfanned user doesn't refan the star immediately after
-	"""
-	redis.Redis(connection_pool=POOL).setex('rlf:'+str(own_id)+":"+str(target_id),'1',TWO_WEEKS)
-
-
-def is_potential_fan_rate_limited(star_id,own_id):
-	"""
-	Checking if allowed to fan the star, or is rate-limited due to a previous unfanning event
-	"""
-	if redis.Redis(connection_pool=POOL).ttl('rlf:'+str(star_id)+":"+str(own_id)) > 0:
-		return True
-	else:
-		return False
+# def retrieve_photo_data(photo_ids, owner_id):
+# 	"""
+# 	Retrieves photo data (caption and url)
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	photo_data, missing_photos = {}, []
+# 	for photo_id in photo_ids:
+# 		caption, image_url, upload_time = my_server.hmget('pht:'+photo_id,'caption','image_url','upload_time')
+# 		if caption and image_url and upload_time:
+# 			photo_data[photo_id] = {'caption':caption.decode('utf-8'),'image_url':image_url,'id':photo_id,'upload_time':upload_time}
+# 		else:
+# 			missing_photos.append(photo_id)
+# 	if missing_photos:
+# 		missing_data = Photo.objects.filter(id__in=missing_photos).values('id','image_file','caption','upload_time')
+# 		for data in missing_data:
+# 			photo_id = str(data['id'])
+# 			key = 'pht:'+photo_id
+# 			upload_time = str(convert_to_epoch(data['upload_time']))
+# 			photo_data[photo_id] = {'caption':data['caption'],'image_url':data['image_file'],'id':photo_id,'upload_time':upload_time}
+# 			my_server.hmset(key,{'caption':data['caption'],'image_url':data['image_file'],'upload_time':upload_time})
+# 			my_server.expire(key,THREE_DAYS)
+# 	return photo_data
 
 
 ###################### User credentials caching ######################
@@ -676,7 +638,6 @@ def retrieve_bulk_unames(user_ids, decode=False):
 			pipeline2.expire(hash_name,ONE_DAY)
 		pipeline2.execute()
 	return usernames
-
 
 def retrieve_uname(user_id,decode=False):
 	"""

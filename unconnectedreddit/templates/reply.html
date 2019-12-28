@@ -1,8 +1,7 @@
-{% extends "base.html" %}
+{% extends noindex|yesno:"base_noindex.html,base.html" %}
 {% load s3 %}
 {% load human_time %}
 {% load emoticons_tags %}
-{% load get_text_object %}
 {% load get_block_button %}
 {% load url_target_blank %}
 {% load get_group_button %}
@@ -17,7 +16,7 @@
     {% csrf_token %}
     <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
     <div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
-    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input type="hidden" name="origin" value="9"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="srep" value="1">
+    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input type="hidden" name="origin" value="9"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="srep" value="1"><input type="hidden" name="rorigin" value="{{ origin }}">
 
     <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
 
@@ -28,12 +27,20 @@
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
-<h1 class="cxl clb" style="text-align:center">{% if is_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ parent_submitter_username|truncatechars:'13' }}'s post:</h1>
+<h1 class="cxl clb" style="text-align:center">{% if not origin or origin == '0' %}{% if is_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ parent_submitter_username|truncatechars:'13' }}'s post:{% else %}<div class="mbs">{% include "source_origin.html" with source_origin=origin obj_id=parent_submitter_id lid=lid oun=parent_submitter_username %}</div>{% endif %}</h1>
 
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 
 <section style="display:block" itemscope itemtype="https://schema.org/SocialMediaPosting">
-{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score is_fbs=on_fbs static_url=STATIC_URL is_star=is_star alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
+{% if viewable_status == '3' %}
+    {% load get_text_object %}
+    {% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score is_fbs=on_fbs static_url=STATIC_URL is_star=is_star alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
+{% elif viewable_status == '2' %}
+    <div class="mbl mtl" style="text-align:center"><span class="cgy">- P O S T&nbsp;&nbsp;&nbsp;E X P I R E D -</span></div>
+{% elif viewable_status == '1' %}
+    <div class="mbl mtl" style="text-align:center"><span class="cgy">- P O S T&nbsp;&nbsp;&nbsp;H I D D E N -</span></div>
+{% endif %}
+<a name="reply"></a>
 </section>
 
 </article>
@@ -42,15 +49,21 @@
 
     <a name="error"></a>
     {% if dir_rep_invalid %}<div class="cr sp cxl lsp" style="text-align:center;color:white;background:tomato">{{ dir_rep_invalid }}</div>{% endif %}
+    
+    {% if com == '0' %}
+    <div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+        - Replies Disabled -
+    </div>
+    {% elif viewable_status == '3' %}
     <form action="{% url 'post_direct_response' %}" method="POST" style="display:inline">
         <!-- main reply -->
-        {% csrf_token %}<input type="hidden" name="tuid" value="{{ parent_submitter_id }}"><input type="hidden" name="obtp" value="3"><input type="hidden" name="obid" value="{{ parent.id }}"><input type="hidden" name="poid" value="{{ parent.id }}"><input type="hidden" name="origin" value="9"><input type="hidden" name="mr" value="1">
+        {% csrf_token %}<input type="hidden" name="tuid" value="{{ parent_submitter_id }}"><input type="hidden" name="obtp" value="3"><input type="hidden" name="obid" value="{{ parent.id }}"><input type="hidden" name="poid" value="{{ parent.id }}"><input type="hidden" name="origin" value="9"><input type="hidden" name="mr" value="1"><input type="hidden" name="rorigin" value="{{ origin }}">
         <div style="border:1px solid #e0e0e0;border-radius:5px;overflow:hidden;background:#ecfffb">{{ main_rep_form.direct_response }}</div>
         <button class="btn bct sp bm mts mbl mrl pg_ok_res" name="dec" value="1" type="submit" style="height:26px">send</button>
     </form>
     &nbsp;
-    <form action="{% url 'publicreply_view' parent.id %}" method="GET" style="display:inline"><button class="rf" name="from_rfrsh" value="1" style="vertical-align:text-bottom;width:44px;height:24px;background:0 0" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px;margin-bottom:-10px" width="24" height="24"></button></form>
-
+    <form action="{% url 'publicreply_view' parent.id origin %}" method="GET" style="display:inline"><button class="rf" name="from_rfrsh" value="1" style="vertical-align:text-bottom;width:44px;height:24px;background:0 0" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px;margin-bottom:-10px" width="24" height="24"></button></form>
+    {% endif %}
 
     <div class="mts">
     {% for reply in replies %}
@@ -94,13 +107,13 @@
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
-                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id origin=origin %}{% endif %}
 
                         {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
 
                         {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
 
-                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
                     </div>
                 </div>
 
@@ -113,13 +126,13 @@
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
-                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id origin=origin %}{% endif %}
 
                         {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
 
                         {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
 
-                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
                     </div>
                 </div>
 
@@ -135,26 +148,26 @@
                     <!-- op's reply -->
                     <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
-                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id origin=origin %}{% endif %}
 
                         {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
 
                         {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
 
-                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
                    </div>
                    </div>
                 {% else %}
                     <!-- reply by someone else -->
                     <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
-                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id %}{% endif %}
+                        {% if user_is_owner %}{% include "hide_reply.html" with publicreply_id=reply.id link_id=parent.id origin=origin %}{% endif %}
 
                         {% block_button reply.submitted_by reply.submitted_by__username user_id parent.id '9' STATIC_URL %}
 
                         {% group_button user_id reply.submitted_by parent.id 'home' '9' reply.submitted_by__username %}
 
-                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                        {% if reply.submitted_by != user_id %}{% include "direct_response/dr_button.html" with origin='9' obtp='3' poid=parent.id obid=reply.id wid=reply.submitted_by tx=reply.description|truncatechars:'60' static_url=STATIC_URL rorigin=origin %}{% endif %}
                    </div>
                    </div>
                    {% include "direct_response/reference_snippet.html" with tgt_uname=reply.direct_reply_tgt_uname state='2' %}

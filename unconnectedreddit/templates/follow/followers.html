@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block content %}
+<head><title>People following {{ own_name }} | Damadam</title></head>
+<style>body{background: #E9EBEE}</style>
+
+      {% if new_follower_list %}
+          <h1 class="cxl clb" style="text-align:center;overflow:hidden">Your new followers:</span></h1>
+          <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">  
+           
+              {% load s3 %}
+              {% load get_big_remove_follower_button %}
+              {% load get_big_block_button %}
+
+              <div class="mt mbl"><a href="{% url 'my_home' %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to home</a></div>
+
+
+              <div class="cxl lsp" style="border-top:1px solid lightgray;padding-top:10px">
+              {% if count == 1 %}Aap ka 1 new follower hai:{% else %}Ap ke <b>{{ count }}</b> new followers hein:{% endif %}
+              </div>
+              
+              <ul style="display:inline-block;padding: 0;list-style:none;margin-top:5px">
+              {% for follower_id,following_time,uname,avurl,new in followers %}
+                <li style="text-align:left;border-bottom:1px solid #f4f4f4;padding:12px 0 6px 0" class="sp">
+                  <div style="word-break: break-all;">
+                        <img src="{{ avurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">
+                        <b class="clb cm sp">{{ uname }}</b>                
+                        <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+                          <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=uname static_url=STATIC_URL %}</div>
+                          {% big_remove_follower_button static_url=STATIC_URL uname=uname target_user_id=follower_id origin=origin page_num=page_obj.number %}                         
+                          {% big_block_button static_url=STATIC_URL target_user_id=follower_id origin=origin page_num=page_obj.number %}
+                        </div>
+                  </div>
+                </li>
+              {% endfor %}
+              </ul>
+
+          </div>
+         <br>
+      {% else %}
+       <h1 class="cxl clb" style="text-align:center;overflow:hidden">People following you:</span></h1>
+        <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+          {% if not followers %}
+         
+         
+              <div class="clb cxl lsp">{% load emoticons_tags %}{% emoticons %}Abhi aap ke koi followers nahi hain{% endemoticons %}</div><br>
+              <div class="clb cs lsp cgy">Note: Followers bananey ke liay interesting posts share kerien</div><br>
+
+              <a href="{% url 'user_profile' own_name %}#section0"><button class="btn bcg mtl mbs sp pg_ok_res bm" style="height:26px">wapis</button></a>
+          </div>
+
+          {% else %}
+
+              {% load s3 %}
+              {% load get_big_remove_follower_button %}
+              {% load get_big_block_button %}
+
+              <div class="mt mbl"><a href="{% url 'user_profile' own_name %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>
+
+              <div class="cxl lsp" style="border-top:1px solid lightgray;padding-top:10px">
+              {% if count == 1 %}Aap ka 1 follower hai:{% else %}Ap ko total <b>{{ count }}</b> log follow ker rahey hein:{% endif %}
+              </div>
+              
+              <ul style="display:inline-block;padding: 0;list-style:none;margin-top:5px">
+              {% for follower_id,following_time,uname,avurl,new in followers %}
+                <li style="text-align:left;border-bottom:1px solid #f4f4f4;padding:12px 0 6px 0" class="sp">
+                  <div style="word-break: break-all;">
+
+                        <img src="{{ avurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">
+                        <b class="clb cm sp">{{ uname }} </b>                
+                        <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
+                          <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=uname static_url=STATIC_URL %}</div>
+                          {% big_remove_follower_button static_url=STATIC_URL uname=uname target_user_id=follower_id origin=origin page_num=page_obj.number %}
+                          {% big_block_button static_url=STATIC_URL target_user_id=follower_id origin=origin page_num=page_obj.number %}
+                        </div>
+                  </div>
+                </li>
+              {% endfor %}
+              </ul>
+
+      </div>
+          {% endif %}
+      <br>
+
+      <div class="mbl fx fxjscn">
+        {% if page_obj.has_previous %}
+          <div style="padding:0 10px">
+          <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+          </div>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <div style="padding:0 10px">
+          <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+          </div>
+        {% endif %}
+      </div>
+      
+      {% endif %}
+  
+{% endblock %}

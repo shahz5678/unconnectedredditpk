@@ -86,7 +86,7 @@
 
 			{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-			{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin=single_notif_origin %}
+			{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin=single_notif_origin time_now=time_now %}
 
 			{% include "photos_navbar.html" with section=navbar_type static_url=STATIC_URL %}
 
@@ -173,30 +173,50 @@
 				<a name="section{{ forloop.counter }}"></a>
 
 				<section style="display:block">
-				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=fbs static_url=STATIC_URL is_star=photo.s lazyload_idx=forloop.counter ratio=photo.rt %}
+				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=fbs static_url=STATIC_URL is_star=photo.s lazyload_idx=forloop.counter ratio=photo.rt ot='g' %}
 				</section>
-
+				
 				<div class="mls">
 
 					<section class="mbl" style="display:block">
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% if ident|stringformat:"s" != photo.si|stringformat:"s" %}{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted=photo.v static_url=STATIC_URL %}{% endif %}
-						{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
-						{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
-						{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
-						{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
-						{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+						{% if ident|stringformat:"s" == photo.si|stringformat:"s" %}
+							<!-- own content -->
+							{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
+							{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+							{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
+							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+						
+						{% else %}
+							<!-- others content -->
+							{% include "big_buttons/big_sub_button.html" with is_subbed=photo.f username=photo.su tid=photo.si origin=page_origin obid=photo.i obh=photo.h static_url=STATIC_URL %}
+							{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted=photo.v static_url=STATIC_URL %}
+							{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
+							{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
+							{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+							{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
+							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+							{% include "big_buttons/big_report_button.html" with origin=page_origin pid=photo.i oun=photo.su ooid=photo.si img_thumb=photo.it raw_caption=photo.d av_url=photo.sa home_hash=photo.h static_url=STATIC_URL type='img' %}
+
+						{% endif %}
+
 					</div>
 					</section>
+					{% if photo.com == '0' %}
+						<div size=1 style='border-top: dashed 1px #f2f2f2;'>
+							<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+				 				- Replies Disabled -
+				 			</div>
+				 		</div>
+					{% else %}
+						<section style="display:block" class="mrs mbl">
+							{% include "reply_bar.html" with target_user_id=photo.si target_obj_type='4' obj_id=photo.i origin=page_origin form=thin_rep_form btn_color='bct' %}
+						</section>
 
-					<section style="display:block" class="mrs mbl">
-						{% include "reply_bar.html" with target_user_id=photo.si target_obj_type='4' obj_id=photo.i origin=page_origin form=thin_rep_form btn_color='bct' %}
-					</section>
-
-					<section style="display:block">
-						{% inline_replies_section raw_replies=photo.rb static_url=STATIC_URL self_user_id=ident origin=page_origin obj_owner_id=photo.si obj_type='img' %}
-					</section>
-
+						<section style="display:block">
+							{% inline_replies_section raw_replies=photo.rb static_url=STATIC_URL self_user_id=ident origin=page_origin obj_owner_id=photo.si obj_type='img' %}
+						</section>
+					{% endif %}
 				</div>
 
 			</article>

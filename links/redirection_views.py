@@ -18,10 +18,10 @@ def redirect_to_content(request):
 	lid = request.POST.get("lid",None)
 	if topic:
 		request.session["origin_topic"] = topic
-	return return_to_content(request,orig,obid,lid,oun)
+	return return_to_content(request=request,origin=orig,obj_id=obid,link_id=lid,target_uname=oun)
 
 
-def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None):
+def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,source_origin=None):
 	"""
 	Decides where to redirect user to
 
@@ -79,13 +79,21 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 			return redirect("home")
 	elif origin == '9':
 		# originated from a publicreply
-		return redirect("publicreply_view",obj_id)
+		if source_origin:
+			url = reverse_lazy("publicreply_view",kwargs={'parent_id':obj_id, 'origin':source_origin})+"#reply"	
+		else:
+			url = reverse_lazy("publicreply_view",kwargs={'parent_id':obj_id})+"#reply"
+		return redirect(url)
 	elif origin == '10':
 		# originated from user profile (About page)
 		return redirect("user_profile", target_uname)
 	elif origin == '11':
 		# originated from the comments page
-		return redirect("comment_pk", pk=obj_id)
+		if source_origin:
+			url = reverse_lazy("comment",kwargs={'pk':obj_id, 'origin':source_origin})+"#reply"	
+		else:
+			url = reverse_lazy("comment",kwargs={'pk':obj_id})+"#reply"
+		return redirect(url)
 	elif origin == '12':
 		# UNUSED, previously: originated from user's own fan list
 		return redirect("home")
@@ -125,9 +133,77 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None)
 	elif origin == '25':
 		# originated from 'upvoting' history page
 		return redirect('user_vote_history')
+	elif origin == '26':
+		# originated from 'my home'
+		if link_id:
+			return redirect(reverse_lazy("custom_feed_redirect",kwargs={'obj_hash':link_id}))
+		else:
+			return redirect("custom_feed_redirect")
+	elif origin == '27':
+		# originated from 'followers list'
+		var = request.session.pop('page_num',None)		
+		if var:
+			url = reverse_lazy("show_follower_list",kwargs={})+"?page="+var
+		else:
+			url = reverse_lazy("show_follower_list",kwargs={})
+		return redirect(url)
+	elif origin == '28':
+		# originated from 'followers list'
+		var = request.session.pop('page_num',None)		
+		if var:
+			url = reverse_lazy("show_following_list",kwargs={})+"?page="+str(var)
+		else:
+			url = reverse_lazy("show_following_list",kwargs={})
+		return redirect(url)
+	elif origin == '29':
+		# originated from 'publicly shared item history'
+		var = request.session.pop('page_num',None)	
+		if var:
+			url = reverse_lazy("display_user_public_feed_history",kwargs={'target_uname':target_uname})+"?page="+str(var)
+		else:
+			url = reverse_lazy("display_user_public_feed_history",kwargs={'target_uname':target_uname})
+		# return redirect("display_user_public_feed_history", target_uname)
+		return redirect(url)
+	elif origin == '30':
+		# originated from 'publicly shared follower history'
+		var = request.session.pop('page_num',None)	
+		if var:
+			url = reverse_lazy("display_user_follower_feed_history",kwargs={'target_uname':target_uname})+"?page="+str(var)
+		else:
+			url = reverse_lazy("display_user_follower_feed_history",kwargs={'target_uname':target_uname})
+		# return redirect("display_user_public_feed_history", target_uname)
+		return redirect(url)
+	elif origin == '31':
+		# originated from 'privately shared follower history'
+		var = request.session.pop('page_num',None)	
+		if var:
+			url = reverse_lazy("display_user_private_feed_history",kwargs={'target_uname':target_uname})+"?page="+str(var)
+		else:
+			url = reverse_lazy("display_user_private_feed_history",kwargs={'target_uname':target_uname})
+		# return redirect("display_user_public_feed_history", target_uname)
+		return redirect(url)
+	elif origin == '32':
+		# originated from 'new followers list'
+		url = reverse_lazy("show_new_followers",kwargs={})
+		return redirect(url)
+	elif origin == '33':
+		# originated from 'upvoting' history page (admin view)
+		return redirect('vote_history_admin_view', user_id=obj_id)
+	elif origin == '34':
+		# originated from content detail (specifically - an image, i.e. obj_type is 'g')
+		return redirect("content_detail_view", pk=obj_id, obj_type='g')
 	elif origin == '35':
 		# originated from 'reply' history page
 		return redirect('retrieve_direct_response_activity')
+	elif origin == '36':
+		# originated from 'popular mehfil' list 
+		return redirect('get_ranked_groups')
+	elif origin == '37':
+		# originated from 'Red Stars' list 
+		return redirect('top_photo')		
 	else:
-		# take the voter to best photos by default
-		return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list'}))
+		# when no origin, redirent to 'my home'
+		if link_id:
+			return redirect(reverse_lazy("custom_feed_redirect",kwargs={'obj_hash':link_id}))
+		else:
+			return redirect("custom_feed_redirect")

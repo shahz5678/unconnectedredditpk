@@ -1,0 +1,110 @@
+{% extends "base_noindex.html" %}
+{% load s3 %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_text_object %}
+{% load get_block_button %}
+{% load url_target_blank %}
+{% load get_group_button %}
+{% load get_transparent_buttons_js %}
+{% block content %}
+<head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
+<style>body{background:#f0f3f4}</style>
+
+<main style="display: block;margin: 0 auto;max-width:750px;width:97%" class="clb">
+
+{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
+
+<h1 class="cxl clb" style="text-align:center">{% if is_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ parent_submitter_username|truncatechars:'13' }}'s post:</h1>
+
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+
+<section style="display:block" itemscope itemtype="https://schema.org/SocialMediaPosting">
+{% text_object obid=parent.id ooid=parent_submitter_id text=parent.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=parent.description origin=9 upload_time=parent.submitted_on machine_time=parent.machine_time oun=parent_submitter_username av_url=parent_av_url|s3:'thumb' vsc=vote_score is_fbs=on_fbs static_url=STATIC_URL is_star=is_star alignment=parent.cagtegory topic=topic_name topic_url=topic_url show_topic='1' c1=c1 c2=c2 %}
+</section>
+
+</article>
+
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 7px;">
+
+    <div class="mts">
+    {% for reply in replies %}
+
+    {% if forloop.counter != 1 %}<hr size=1 COLOR="#E9EBEE">{% endif %}
+
+    {% if not on_fbs and forloop.counter == 3 %}
+
+        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+        <div class="mbs" style="text-align:center;background:snow">
+        <ins class="adsbygoogle"
+             style="display:inline-block;width:320px;height:100px"
+             data-ad-client="ca-pub-2568547635306983"
+             data-ad-slot="1436750697"></ins>
+        <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+        </script>
+        </div>
+        <hr size=1 COLOR="#E9EBEE">
+
+    {% endif %}
+
+    {% if user_id == reply.submitted_by %}
+        <div style="overflow:hidden;background-color:ivory">
+    {% else %}
+        <div style="overflow:hidden">
+    {% endif %}
+
+        {% if reply.abuse %}
+            <span class="cs sp" style="color:#999"><b><a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:#999"><bdi>{{ reply.submitted_by__username }}</bdi></a></b>&nbsp;ka reply hide ho gya</span>
+        {% else %}
+
+            {% if reply.direct_reply_tgt_uname and reply.direct_reply_tgt_text_prefix %}
+                
+                <!-- reference visible -->
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.direct_reply_tgt_uname reply_prefix=reply.direct_reply_tgt_text_prefix|emoticons reply_postfix=reply.direct_reply_tgt_text_postfix|emoticons %}
+
+            {% elif reply.direct_reply_tgt_uname and reply.direct_reply_id %}
+                
+                <!-- reference hidden -->
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.direct_reply_tgt_uname state='1' %}
+
+            {% else %}
+
+                <!-- no reference -->
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+
+                {% if reply.submitted_by == parent_submitter_id %}
+                    <!-- op's reply -->
+                {% else %}
+                    <!-- reply by someone else -->
+                   {% include "direct_response/reference_snippet.html" with tgt_uname=reply.direct_reply_tgt_uname state='2' %}
+                {% endif %}
+
+            {% endif %}
+
+        {% endif %}
+        </div>
+    {% empty %}
+    <div class="cgy sp" style="text-align:center">Replies exist nahi kartey</div>
+    {% endfor %}
+    </div>
+</article>    
+
+    
+<span class="cs cgy"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></span><br>
+{% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs sp">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}emoji full list</a>
+{% emoticons_index as emoticons_list %}
+{% for emoticons in emoticons_list %}
+    {% if forloop.counter in random %}
+    <div class="mts">{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></div>
+    {% endif %}
+{% endfor %}
+
+</main><br>
+{% transparent_buttons_js ident=user_id static_url=STATIC_URL %}
+{% endblock %}
+

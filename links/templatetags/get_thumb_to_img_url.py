@@ -1,5 +1,5 @@
 from django import template
-from unconnectedreddit.env import BUCKET_ADDR
+from unconnectedreddit.env import NEW_BUCKET_ADDR, BUCKET_ADDR
 
 register = template.Library()
 
@@ -13,7 +13,9 @@ def thumb_to_img(filename):
 	else:
 		filename = str(filename)
 		name = filename[-40:]
-		if "thumb/public/" in filename:
+		if "thumbnail/follower/" in filename:
+			return NEW_BUCKET_ADDR+"follower/"+name
+		elif "thumb/public/" in filename:
 			return BUCKET_ADDR+"public/"+name
 		############################################
 		################# Legacy ###################

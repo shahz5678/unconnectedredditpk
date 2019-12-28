@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="225 225 50 50">
   <path fill="#FFF" d="M250 226.45l-23.15 45.2h46.3z"/>
   <linearGradient id="a" x1="225" x2="275" y1="250" y2="250" gradientUnits="userSpaceOnUse">
-    <stop offset="0" stop-color="#20FDC2"/>
-    <stop offset="1" stop-color="#88D1FF"/>
+    <stop offset="0" stop-color="orange"/>
+    <stop offset="1" stop-color="darkorange"/>
   </linearGradient>
   <path fill="url(#a)" d="M269.94 275h-39.86a5.04 5.04 0 0 1-4.53-7.32l19.93-39.88a5.05 5.05 0 0 1 9.05 0l19.94 39.88a5.04 5.04 0 0 1-4.53 7.32zM250 228.91c-.21 0-.74.06-1.03.64l-19.93 39.88c-.26.52-.05.96.05 1.12s.4.55.99.55h39.87a1.16 1.16 0 0 0 1.04-1.67l-19.94-39.88c-.3-.58-.83-.64-1.05-.64zm1.96 27.95v-12.31c0-1.07-.88-1.95-1.95-1.95s-1.95.88-1.95 1.95v12.31c0 1.07.88 1.95 1.95 1.95s1.95-.88 1.95-1.95zm-1.96 4.2a2.64 2.64 0 1 0 0 5.29 2.64 2.64 0 0 0 0-5.29z"/>
 </svg>

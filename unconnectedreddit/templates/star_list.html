@@ -34,9 +34,7 @@
                     <button name="sid_btn" type="submit" style="background:0 0;padding:0;border:none;border-bottom:1px dashed blue;border-radius:0" class="cb cs" value="{{ star.id }}">remove fan</button>
                     </form>
                     {% if star.thumbs != None %}
-                    <form method="POST" action="{% url 'go_to_user_photo' star.username 0 %}" class="mtl">{% csrf_token %}
-                    {{ star.thumbs|safe }}
-                    </form>
+                        {{ star.thumbs|safe }}
                     {% endif %}
                     </div>
                 </li>

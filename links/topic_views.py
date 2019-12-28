@@ -1,4 +1,5 @@
 import time, uuid
+import ujson as json
 from operator import itemgetter
 from django.shortcuts import redirect, render
 from django.core.urlresolvers import reverse_lazy
@@ -7,20 +8,19 @@ from django.views.decorators.cache import cache_control
 from django.http import Http404, HttpResponsePermanentRedirect
 from topic_forms import SubmitInTopicForm, CreateTopicform
 from page_controls import ITEMS_PER_PAGE
-from verified import FEMALES
 from models import Link
 from redis3 import log_text_submissions
 from direct_response_forms import DirectResponseForm
 from tasks import set_input_history, log_user_activity
-from views import get_indices, get_addendum, beautiful_date, format_post_times, retrieve_user_env
+from views import get_indices, get_addendum, format_post_times, retrieve_user_env
 from redis4 import retrieve_credentials, set_text_input_key, content_sharing_rate_limited, rate_limit_content_sharing
 from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_COLOR_DISTANCE, SECONDARY_COLOR_DISTANCE, \
 PRIMARY_COLOR_GRADIENT_MAPPING
 from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post, create_topic_feed, retrieve_topic_feed_data, \
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
 retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes,\
-is_image_star
-###############
+is_image_star, set_temp_post_data
+from redis9 import filter_following, fan_out_to_followers#todo: call relevant function from tasks instead of fan_out_to_followers
 from score import NUM_SUBMISSION_ALLWD_PER_DAY#, SEGMENT_STARTING_USER_ID
 
 
@@ -341,8 +341,16 @@ def topic_page(request,topic_url):
 				#######################
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
-				
-				#######################
+				####################### Filter followers ####################	
+				submitter_ids = set()
+				for obj in list_of_dictionaries:
+					 submitter_ids.add(str(obj['si']))
+
+				ids_already_fanned = filter_following(submitter_ids,own_id)
+				for obj in list_of_dictionaries:
+					if str(obj['si']) in ids_already_fanned:
+						obj['f'] = True
+				#############################################################
 				# enrich objs with information that 'own_id' liked them or not
 				if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
 					recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
@@ -514,23 +522,15 @@ def submit_topic_post(request,topic_url):
 									alignment = form.cleaned_data['alignment']
 									submitter_name, av_url = retrieve_credentials(own_id,decode_uname=True)
 									# parking bg_theme, topic url and name in 'url'
-									obj = Link.objects.create(description=text, submitter_id=own_id, cagtegory=alignment, \
-										url=bg_theme+":"+topic_name+":"+topic_url)
-									obj_id = obj.id
-									obj_hash = "tx:"+str(obj_id)
-									add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
-										submitter_av_url=av_url, is_star=is_image_star(user_id=own_id), submission_time=time_now,\
-										text=text, from_fbs=on_fbs, topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme,\
-										add_to_public_feed=True, submitter_username=submitter_name)
-									log_text_submissions('topic')
-									rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
-									set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
-									################### Retention activity logging ###################
-									# if own_id > SEGMENT_STARTING_USER_ID:
-									# 	activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
-									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-									###################################################################
-									return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
+									url = bg_theme+":"+topic_name+":"+topic_url
+
+									post_data = {'ct':'t','aud':'p','exp':'i','ein':-1,'d':text,'a':alignment,\
+									'tp':url,'turl':topic_url,'tn':topic_name,'tbg':bg_theme,'origin':'from_topic_page',\
+									'com':'1'}
+									
+									set_temp_post_data(user_id=own_id,data=json.dumps(post_data),post_type='tx',obj_id=None)
+									
+									return redirect("publish_post")
 								else:
 									################### Retention activity logging ###################
 									# if own_id > SEGMENT_STARTING_USER_ID:

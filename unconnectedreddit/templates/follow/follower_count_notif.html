@@ -1,0 +1,9 @@
+<!-- new followers notification -->
+{% if new_count > 0 %}
+	
+<div style="text-align:center;background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);color:white;border:3px solid #ececec;border-radius:12px;margin-left:auto;margin-right:auto;padding:2px;box-sizing:border-box" class="fx fxjscn sp lsp cl">
+	<div style="background:white;color:black;width:90%;padding:10px;border-radius:8px;border-top-right-radius:0;border-bottom-right-radius:0">You have <a href="{% url 'show_new_followers' %}" class="clb" style="color:#00bfff"><b><span>{{new_count}}</span> new followers </b></a> since <span style="font-weight: 500;">{{ last_seen }}</span> </div>
+	<button style="background:whitesmoke;color:white;width:10%;padding:10px;border:none;border-radius:8px;border-top-left-radius:0;border-bottom-left-radius:0"><a href="{% url 'skip_notif' %}"><img src="{{STATIC_URL}}img/x_b.svg" width="11" height="11"></a></button>
+</div>
+		
+{% endif %}

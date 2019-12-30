@@ -1573,7 +1573,7 @@ def log_user_submission(submitter_id, submitted_obj, expire_at=None, feeds_to_ad
 
 
 def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1', already_deleted_objs=None,\
-	target_obj_hash_name=None):
+	target_obj_hash_name=None, time_now=None):
 	"""
 	Trims user submissions' set for expired entries
 
@@ -1657,7 +1657,6 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1', already_
 		#########################################################################
 		# takes care of expired user submissions
 		else:
-			time_now = int(time.time())
 			expired_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_EXPIRES,'-inf',time_now)
 			if expired_submissions:
 				# delete them all - without needing to delete vote stores (they've self deleted)
@@ -1672,10 +1671,10 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1', already_
 						my_server.zrem(which_feed, obj_hash_name)# no need to expire vote stores of these objects, since they've already self-deleted
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES, *expired_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS, *expired_submissions)
-				trim_trenders_data(my_server=my_server)
+				trim_trenders_data(my_server=my_server, time_now=time_now)
 
 
-def trim_trenders_data(target_user_id=None, my_server=None):
+def trim_trenders_data(target_user_id=None, my_server=None, time_now=None):
 	"""
 	Removes trending items
 
@@ -1688,7 +1687,7 @@ def trim_trenders_data(target_user_id=None, my_server=None):
 			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*target_obj_ids)
 			my_server.zrem(TRENDING_FOTOS_AND_USERS,*target_obj_ids)
 	else:
-		one_week_ago = time.time() - CONTEST_LENGTH
+		one_week_ago = (time_now - CONTEST_LENGTH) if time_now else (time.time() - CONTEST_LENGTH)
 		obj_ids_to_delete = my_server.zrangebyscore(TRENDING_FOTOS_AND_TIMES,'-inf',one_week_ago)
 		if obj_ids_to_delete:
 			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*obj_ids_to_delete)
@@ -2191,6 +2190,13 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 	else:
 		pushed = False
 	return pushed, obj_id
+
+
+def get_obj_data(obj_hash_name):
+	"""
+	used for loggers
+	"""
+	return redis.Redis(connection_pool=POOL).hgetall(obj_hash_name)
 
 
 def queue_obj_into_trending(prefix, obj_owner_id, obj_id, picked_by_id):

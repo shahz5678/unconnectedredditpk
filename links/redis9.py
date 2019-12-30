@@ -443,7 +443,7 @@ def log_follower_fanout(follower_string, obj_hash, submitter_id, time_now):
 		my_server.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS, payload, submitter_id)
 
 
-def trim_expired_fanouts(submitter_id=None):
+def trim_expired_fanouts(submitter_id=None, time_now=None):
 	"""
 	Scheduled task that trims user feeds so that redis memory is released
 
@@ -474,7 +474,7 @@ def trim_expired_fanouts(submitter_id=None):
 		return fanned_out_objs
 
 	else:
-		expired_fanouts = my_server.zrangebyscore(FOLLOWER_FANOUTS_AND_EXPIRES,'-inf',time.time())
+		expired_fanouts = my_server.zrangebyscore(FOLLOWER_FANOUTS_AND_EXPIRES,'-inf',time_now)
 		if expired_fanouts:
 			pipeline1 = my_server.pipeline()
 			for expired_fanout in expired_fanouts:
@@ -1012,6 +1012,7 @@ def invalidate_cached_user_feed_history(user_id, hist_type):
 
 POST_DATA_LOGGER = 'pdl'
 POST_FOLLOW_LOGGER = 'pfl'
+POST_REMOVE_LOGGER = 'prl'
 
 def logging_post_data(data):
 	"""
@@ -1026,28 +1027,12 @@ def logging_follow_data(data):
 	redis.Redis(connection_pool=POOL).zadd(POST_FOLLOW_LOGGER,json.dumps(data),time.time())
 
 
-def log_remove_data():
+def log_remove_data(data):
 	"""
 	Log where exactly the user pressed the remove button, 
 	Log what kind of post is removed
-	Log which users are getting most removed and what kind of posts 
 	"""
-	pass
-
-def avg_number_of_posts_to_get_followers():
-	"""
-	Log number of posts per user and also log how many posts per user 
-	Can we measure where users are getting most followers
-	"""
-	pass
-
-def log_users_and_number_of_followers():
-	"""
-	Log number of posts per user and also log how many posts per user 
-	Can we measure where users are getting most followers
-	"""
-	pass
-
+	redis.Redis(connection_pool=POOL).zadd(POST_REMOVE_LOGGER,json.dumps(data),time.time())
 
 
 #####################################################################################################################################################################

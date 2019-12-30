@@ -584,11 +584,13 @@ def trim_top_group_rankings():
 
 	Mislabeled for legacy reasons
 	"""
+	time_now = time.time()
+
 	# Step 1) taking care of user feeds in redis 9
-	trim_expired_fanouts()# trims expired fan outs
+	trim_expired_fanouts(time_now=time_now)# trims expired fan outs
 
 	# Step 2) taking care of global feeds in redis 7
-	trim_expired_user_submissions()# trims content submitted to public feeds (e.g. home, photos)
+	trim_expired_user_submissions(time_now=time_now)# trims content submitted to public feeds (e.g. home, photos)
 
 
 @celery_app1.task(name='tasks.remove_target_users_posts_from_all_feeds')

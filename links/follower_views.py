@@ -20,6 +20,7 @@ from views import get_indices, format_post_times, retrieve_user_env, get_addendu
 from redis4 import retrieve_uname, retrieve_user_id, set_text_input_key, retrieve_avurl
 from redis7 import check_content_and_voting_ban, retrieve_obj_feed, retrieve_last_vote_time, retrieve_recent_votes,get_all_image_star_ids,\
 is_image_star, in_defenders
+from redis7 import get_obj_data
 from redis9 import check_if_follower, add_follower, remove_follower, get_custom_feed, retrieve_custom_feed_index, retrieve_follower_data, \
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, retrieve_latest_direct_reply,remove_single_post_from_custom_feed, invalidate_cached_user_feed_history
@@ -417,15 +418,6 @@ def remove_single_post(request):
 			# for deletion of post from history
 			own_name = retrieve_uname(own_id, decode=True)
 			removed, ttl, action_by_op = remove_single_post_from_custom_feed(obj_hash=obj_hash, own_id=own_id)
-			###########################################################################
-			############################### Unfollow Logger #############################
-			###########################################################################
-			# from 
-			# data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,'numf':num_fans,'num_vf':num_vfans,'type':'unfollow'}
-			# logging_follow_data(data)
-			###########################################################################
-			###########################################################################	
-			###########################################################################
 			if removed:
 				if action_by_op:
 					if origin == '29':
@@ -435,8 +427,24 @@ def remove_single_post(request):
 					else:
 						invalidate_cached_user_feed_history(own_id,'private')
 				request.session["history_post_removed"+str(own_id)] = '1'
-				return return_to_content(request=request,origin=origin,link_id=None,target_uname=own_name)
+				###########################################################################
+				############################### Post Removal Logger #######################
+				###########################################################################				
+				post_data = Link.objects.values('type_of_content', 'description', 'url', \
+					'image_file', 'reply_count', 'net_votes', 'trending_status').filter(id=which_link)
 			
+				data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from history',\
+				'type_of_content':post_data[0]['type_of_content'],'trending_status':post_data[0]['trending_status'],'url':post_data[0]['url'],\
+				'image_file':post_data[0]['image_file'],'reply_count':post_data[0]['reply_count'],'net_votes':post_data[0]['net_votes'],\
+				'description':post_data[0]['description']}
+				# print data
+				log_remove_data(data)
+				###########################################################################
+				###########################################################################	
+				###########################################################################
+				
+				return return_to_content(request=request,origin=origin,link_id=None,target_uname=own_name)
+				
 			elif ttl:
 				# user is rate limited from removing the post
 				return render(request,"follow/notify_and_redirect.html",{'removal_rate_limited':True,\
@@ -449,6 +457,19 @@ def remove_single_post(request):
 		else:
 			# for removal of post from own feed
 			removed, ttl, action_by_op = remove_single_post_from_custom_feed(obj_hash=obj_hash, own_id=own_id)
+			own_name = retrieve_uname(own_id, decode=True)
+			###########################################################################
+			############################### Post Removal Logger #######################
+			###########################################################################				
+			post_data = get_obj_data(obj_hash)#Link.objects.values('type_of_content', 'description', 'url', \#'image_file', 'reply_count', 'net_votes', 'trending_status').filter(id=which_link)
+			if post_data:
+				data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from my home',\
+				'post_details':post_data}
+				log_remove_data(data)
+			###########################################################################
+			###########################################################################	
+			###########################################################################
+
 			if removed:
 				if action_by_op:
 					invalidate_cached_user_feed_history(own_id,'public')
@@ -460,7 +481,7 @@ def remove_single_post(request):
 
 			elif ttl:
 				# user is rate limited from removing the post
-				own_name = retrieve_uname(own_id, decode=True)
+				
 				return render(request,"follow/notify_and_redirect.html",{'removal_rate_limited':True,\
 					'orig':origin,'lid':obj_hash,'obid':obj_hash.partition(':')[-1],'ttl':ttl,\
 					'human_readable_rate_limit':human_readable_time(REMOVAL_RATE_LIMIT_TIME),\

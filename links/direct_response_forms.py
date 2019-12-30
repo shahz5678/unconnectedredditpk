@@ -118,6 +118,7 @@ def determine_direct_response_rate(reply_len, replier_id, time_now):
 
 #################################################
 
+
 class DirectResponseForm(forms.Form):
 	"""
 	Handles 'direct response' functionality for reply objs of type '3' (text post), '4' (image post), '5' (pub meh), '6' (prv meh), '7' (1-on-1)
@@ -163,12 +164,19 @@ class DirectResponseForm(forms.Form):
 	def clean_direct_response(self):
 		"""
 		Ensure the direct reply is valid
+
+		Obj types include:
+		'3' - text post
+		'4' - img post
+		'5' - public mef
+		'6' - private mef
+		'7' - 1on1
 		"""
 		direct_response, obj_type, parent_obj_id, sender_id, receiver_id = self.cleaned_data["direct_response"].strip(), self.obj_type, \
 		self.parent_obj_id, self.sender_id, self.receiver_id
-		
-		# NOTE: receiver_id is own_id, sender_id is target_id (for the purposes of this function)
 
+		# NOTE: receiver_id is own_id, sender_id is target_id (for the purposes of this function)
+		
 		##########################################################
 		if parent_obj_id and sender_id and receiver_id and obj_type in ('3','4','5','6','7'):
 			direct_response = strip_zero_width_characters(direct_response)
@@ -177,6 +185,7 @@ class DirectResponseForm(forms.Form):
 			len_reply = len(direct_response)
 			if len_reply > MAX_HOME_REPLY_SIZE:
 				raise forms.ValidationError('Reply {} chars se lamba nahi likhein, ap ne {} chars likhe'.format(MAX_HOME_REPLY_SIZE, len_reply))
+			
 			##########################################################
 			# only applicable to replies under posts
 			if obj_type in ('3','4'):
@@ -201,7 +210,7 @@ class DirectResponseForm(forms.Form):
 			##########################################################
 			# only applicable to mehfils
 			elif obj_type in ('5','6'):
-
+			
 				section = 'pub_grp' if obj_type == '5' else 'prv_grp'
  				if repetition_found(section=section,section_id=parent_obj_id,user_id=receiver_id, target_text=direct_response):
 					raise forms.ValidationError('Milti julti baatien nahi likhein')
@@ -210,8 +219,8 @@ class DirectResponseForm(forms.Form):
 					if rate_limited > 0:
 						raise forms.ValidationError('Ap mehfil mein likhne se {0} tak banned ho. Reason: {1}'.\
 							format(human_readable_time(rate_limited),reason))
+			
 			##########################################################
-
 			exists, hide_status = direct_response_exists(obj_type=obj_type, parent_obj_id=parent_obj_id, sender_id=sender_id, \
 				receiver_id=receiver_id, with_hide_status=True)
 			if exists:

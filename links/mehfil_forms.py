@@ -3,7 +3,7 @@ from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from verified import FEMALES
-from views import convert_to_epoch
+from utilities import convert_to_epoch
 from redis3 import invalid_topic_logger, invalid_rules_logger
 from forms import repetition_found, uniform_string, clear_zalgo_text
 from abuse import BANNED_MEHFIL_TOPIC_WORDS, BANNED_MEHFIL_RULES_WORDS

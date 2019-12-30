@@ -9,14 +9,14 @@ from templatetags.s3 import get_s3_object
 from score import PUBLIC_SUBMISSION_TTL, VOTE_SPREE_ALWD, FBS_PUBLIC_PHOTO_UPLOAD_RL, NUM_TRENDING_PHOTOS, CONTEST_LENGTH, TRENDER_RANKS_TO_COUNT,\
 UPPER_RELATIONSHIP_UVOTE_CUTOFF, UPPER_RELATIONSHIP_DVOTE_CUTOFF, MEANINGFUL_VOTING_SAMPLE_SIZE, NUM_VOTES_TO_TGT, BAYESIAN_PROB_THRESHOLD_FOR_VOTE_NERFING,\
 TOPIC_UNSUB_LOCKING_TIME, TOPIC_SUBMISSION_TTL, TOPIC_LIFELINE, VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME, PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH, \
-MAX_PUBLIC_IMG_WIDTH
+MAX_PUBLIC_IMG_WIDTH, REMOVAL_RATE_LIMIT_TIME
 from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE, GLOBAL_ADMIN_LEDGERS_SIZE
 from redis3 import retrieve_user_world_age, exact_date
 from abuse import FLAGGED_PUBLIC_TEXT_POSTING_WORDS
 from redis4 import retrieve_bulk_credentials
 from collections import defaultdict
 from colors import COLOR_GRADIENTS
-from models import Photo, Link
+from models import Link, Photo
 from location import REDLOC7
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
@@ -129,6 +129,7 @@ TOP_TRENDERS_REP = 'ttr'# a sorted set containing how many times a top trender h
 TOP_TRENDERS_REP_TRUNCATOR = 'ttrt'# sorted set used to truncate TOP_TRENDERS_REP for those who become inactive (i.e. don't show up for 3 months)
 
 CACHED_UPVOTING_DATA = 'cud:'# a key holding a json object containing the detailed voting history of a voter
+CACHED_OLD_UPVOTING_DATA = 'coud:'# a key holding a json object containing the detailed voting history of a voter (only 'old objs')
 
 VOTER_HANDPICKED_PROBS = 'vhp'# sorted set containing voter_ids and the prob their editorially picked content will be handpicked
 VOTER_AUD_LIKE_PROBS = 'valp'# sorted set containing various voter_ids and the prob their editorially picked content will see audience likes (called 'like_prob')
@@ -160,6 +161,10 @@ GLOBAL_TXT_SUBMITTER_HIGH_REP_HANDPICKER_BASED_REP = 'gtshrhbr' # global sorted 
 LOCKED_TXT = 'lt:'# set that contains sybil 'likes' given to a text obj - these lock the text from entering trending
 GLOBAL_RECENT_PUBLIC_TEXTS = 'grpt'# sorted set containing previous ~800 posts - useful for catching dups
 
+TEMP_POST_DATA = 'tpd:' # temporary data store for share functionality
+
+REMOVAL_RATE_LIMIT = 'rrl:'# rate limit key to limit rate of 'remove' commands a user can issue on their posted objs
+
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
 ##################################################################################################################
@@ -170,39 +175,35 @@ def already_exists(photo_hash,categ=None):
 	if categ == 'ecomm':
 		exists = my_server.zscore("perceptual_hash_used_item_set", photo_hash)
 	else:
-		exists = my_server.zscore("perceptual_hash_set", photo_hash)
+		exists = my_server.zscore("img_perceptual_hash", photo_hash)
 	return exists
 
 
 def insert_hash(photo_id, photo_hash,categ=None):
-	my_server = redis.Redis(connection_pool=POOL)
-	if categ == 'ecomm':
-		set_name = "perceptual_hash_used_item_set"
-	else:
-		set_name = "perceptual_hash_set"
+	"""
+	Saves a 'thumb-print' of uploaded images in order to detect duplicate uploads
+	"""
+	set_name = "perceptual_hash_used_item_set" if categ == 'ecomm' else "img_perceptual_hash"# old name: remove it - "perceptual_hash_set"
 	##########################
+	my_server = redis.Redis(connection_pool=POOL)
 	try:
+		limit = 500 if categ == 'ecomm' else 50000
 		size = my_server.zcard(set_name)
-		if categ == 'ecomm':
-			limit = 500
-		else:
-			limit = 50000
-		if size < (limit+1):
-			my_server.zadd(set_name, photo_hash, photo_id)
-		else:
-			my_server.zremrangebyrank(set_name, 0, 10)
-			my_server.zadd(set_name, photo_hash, photo_id)
+		my_server.zadd(set_name, photo_hash, photo_id)
+		if size >= (limit+1):
+			my_server.zremrangebyrank(set_name, 0, 10)# removing the oldest 10 hashes
 	except:
 		my_server.zadd(set_name, photo_hash, photo_id)
 
 
-def delete_avg_hash(hash_list, categ=None):
-	my_server = redis.Redis(connection_pool=POOL)
-	if hash_list:
-		if categ == 'ecomm':
-			my_server.zrem("perceptual_hash_used_item_set", *hash_list)
-		else:
-			my_server.zrem("perceptual_hash_set", *hash_list)
+# def delete_avg_hash(hash_list, categ=None):
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	if hash_list:
+# 		if categ == 'ecomm':
+# 			my_server.zrem("perceptual_hash_used_item_set", *hash_list)
+# 		else:
+# 			my_server.zrem("perceptual_hash_set", *hash_list)
+# 			my_server.zrem("img_perceptual_hash", *hash_list)
 
 
 ##################################################################################################################
@@ -270,29 +271,37 @@ def retrieve_text_quality(text,lower_text,text_lang,is_being_reposted):
 	return '0'
 
 
-
 def add_text_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, text, submission_time, \
-	from_fbs, add_to_feed=False):
+	from_fbs, type_of_object, comments, add_to_feed=False, poster_defined_expiry_time=None):
 	"""
 	Creating text object (used in home feed, etc)
 	"""
 	obj_id = str(obj_id)
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
-	hash_name = "tx:"+obj_id
+	hash_name, audience_type = "tx:"+obj_id, type_of_object[1]
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'si':submitter_id,'su':submitter_username, 't':submission_time,\
-	'd':text,'h':hash_name}
+	'd':text,'h':hash_name,'com':comments, 'ot':type_of_object[0], 'aud':audience_type}
+
+	expiry = type_of_object[2]
+	if expiry:
+		immutable_data['exp'] = expiry
 	if from_fbs:
-		immutable_data["fbs"]='1'
+		immutable_data["fbs"] = '1'
 	if is_star:
-		immutable_data['s']='1'
-	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
+		immutable_data['s'] = '1'
+	if poster_defined_expiry_time:
+		immutable_data['et'] = poster_defined_expiry_time
+	
+	mapping = {'nv':'0','uv':'0','dv':'0','blob':json.dumps(immutable_data)}
+	
 	my_server = redis.Redis(connection_pool=POOL)
 
 	######################################################
 	# flagging low quality posts based on certain text criteria
-	lower_text = text.lower()
-	mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
-		is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
+	if audience_type == 'p':
+		lower_text = text.lower()
+		mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
+			is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
 
 	######################################################
 	
@@ -407,6 +416,25 @@ def retrieve_obj_feed(obj_list, with_colors=False):
 	return unpack_json_blob(filter(None, pipeline1.execute()),with_colors=with_colors)
 
 
+def change_delete_status_of_obj_hash(obj_hash_name):
+	"""
+	Changes 'delete_status' flag in obj_hash to '1'
+
+	Useful when a user removes an obj from their history
+	Returns a boolean flag used later
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	json_data = my_server.hget(obj_hash_name,'blob')
+	if json_data:
+		data = json.loads(json_data)
+		current_delete_status = data.get('ds','')
+		if current_delete_status != '1':
+			data['ds'] = '1'
+			my_server.hset(obj_hash_name,'blob',json.dumps(data))
+			return True
+	return False
+
+
 def retrieve_text_obj_scores(obj_list):
 	"""
 	Retrieves text obj vote scores - useful for calculating trending text posts
@@ -459,6 +487,7 @@ def retrieve_text_obj_scores(obj_list):
 		counter += 2
 
 	################################################################
+
 	return final_result
 
 
@@ -713,6 +742,20 @@ def retrieve_detailed_voting_data(page_num, user_id):
 	return redis.Redis(connection_pool=POOL).get(CACHED_UPVOTING_DATA+str(user_id)+":"+str(page_num))
 
 
+def cache_old_detailed_voting_data(json_data, page_num, user_id):
+	"""
+	Micro-caches a particular page of upvoting history
+	"""
+	redis.Redis(connection_pool=POOL).setex(CACHED_OLD_UPVOTING_DATA+str(user_id)+":"+str(page_num),json_data,ONE_MIN)
+
+
+def retrieve_old_detailed_voting_data(page_num, user_id):
+	"""
+	Retrieves micro-cached detailed upvoting data
+	"""
+	return redis.Redis(connection_pool=POOL).get(CACHED_OLD_UPVOTING_DATA+str(user_id)+":"+str(page_num))
+
+
 ####################################################
 ############# Measuring Voting Metrics #############
 ####################################################
@@ -789,14 +832,14 @@ def get_recent_photos(user_id):
 
 	This list self-deletes if user doesn't upload a photo for more than 4 days
 	"""
-	return redis.Redis(connection_pool=POOL).lrange("phts:"+str(user_id), 0, -1)
+	return redis.Redis(connection_pool=POOL).lrange("imgs:"+str(user_id), 0, -1)
 
 
 def save_recent_photo(user_id, photo_id):
 	"""
 	Save last 5 photos uploaded by a user
 	"""
-	key_name = "phts:"+str(user_id)
+	key_name = "imgs:"+str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush(key_name, photo_id)
 	my_server.ltrim(key_name, 0, 4) # save the most recent 5 photos'
@@ -835,7 +878,7 @@ def get_recent_trending_photos(user_id):
 	"""
 	Returns last 5 trending photo ids
 	"""
-	return redis.Redis(connection_pool=POOL).zrange("tphts:"+str(user_id), 0, -1)
+	return redis.Redis(connection_pool=POOL).zrange("timgs:"+str(user_id), 0, -1)
 
 
 def save_recent_trending_photo(user_id, photo_id, time_of_selection, my_server=None):
@@ -843,7 +886,7 @@ def save_recent_trending_photo(user_id, photo_id, time_of_selection, my_server=N
 	Saves latest 5 trending photos of a given user
 	"""
 	estimated_trending_expiry_time = time_of_selection+561600# roughly 1 week (precisely 6 days, 12 hours - a little below full 7 days to ensure we don't run into any errors)
-	key_name = "tphts:"+str(user_id)
+	key_name = "timgs:"+str(user_id)
 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 	my_server.zadd(key_name, photo_id, estimated_trending_expiry_time)
 	my_server.zremrangebyrank(key_name, 0, -6)# to keep top 5 items in the sorted set
@@ -875,8 +918,10 @@ def add_obj_to_photo_feed(submitter_id, time_now, hash_name, my_server=None):
 		feeds_to_add=[PHOTO_SORTED_FEED], my_server=my_server)
 
 
-def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, submitter_score, is_star,\
-	img_url, img_caption, submission_time, from_fbs, img_height, img_width, add_to_home_feed=False, add_to_photo_feed=True):
+def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, img_url, img_caption, \
+	submission_time, from_fbs, type_of_object, comments, img_height, img_width, add_to_home_feed=False, \
+	add_to_photo_feed=True, poster_defined_expiry_time=None):
+
 	"""
 	Creating image object (used in home and photo feed, etc)
 	"""
@@ -886,13 +931,21 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	hash_name = "img:"+obj_id
 	img_hw_ratio = (1.0*img_width/img_height)
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
-	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width,'rt':round((100.0/img_hw_ratio),2),\
-	'nht':round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)}
+	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width,'com':comments, 'ot':type_of_object[0], \
+	'aud':type_of_object[1],'rt':round((100.0/img_hw_ratio),2),'nht':round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)}
+
+	expiry = type_of_object[2]
+	if expiry:
+		immutable_data['exp'] = expiry
 	if from_fbs:
 		immutable_data['fbs']='1'
 	if is_star:
 		immutable_data['s']='1'
-	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
+	if poster_defined_expiry_time:
+		immutable_data['et'] = poster_defined_expiry_time
+
+	mapping = {'nv':'0','uv':'0','dv':'0','blob':json.dumps(immutable_data)}
+	
 	time_now = time.time()
 	expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 	my_server = redis.Redis(connection_pool=POOL)
@@ -1253,30 +1306,38 @@ def bulk_unsubscribe_topic(subscriber_id, topic_urls, my_server=None):
 
 
 def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, submitter_username, is_star,text, submission_time, \
-	from_fbs, topic_url, topic_name, bg_theme, add_to_public_feed=False):
+	from_fbs, topic_url, topic_name, bg_theme, type_of_object, comments, add_to_public_feed=False, poster_defined_expiry_time=None):
 	"""
 	Creating and submitting text object (used in topic feed and public feed)
 	"""
 	submitter_av_url = get_s3_object(submitter_av_url,category='thumb')#pre-convert avatar url for the feed so that we don't have to do it again and again
+	audience_type = type_of_object[1]
 	immutable_data = {'i':obj_id,'c':categ,'si':submitter_id,'sa':submitter_av_url,'su':submitter_username,'t':submission_time,\
-	'd':text,'h':obj_hash,'url':topic_url, 'th':bg_theme, 'tn':topic_name}
+	'd':text,'h':obj_hash,'url':topic_url, 'th':bg_theme, 'tn':topic_name,'com':comments, 'ot':type_of_object[0], 'aud':audience_type}
+	
+	expiry = type_of_object[2]
+	if expiry:
+		immutable_data['exp'] = expiry
 	if from_fbs:
 		immutable_data['fbs']='1'
 	if is_star:
 		immutable_data['s']='1'
-	mapping = {'nv':'0','uv':'0','dv':'0','pv':'0','blob':json.dumps(immutable_data)}
+	if poster_defined_expiry_time:
+		immutable_data['et'] = poster_defined_expiry_time
+	
+	mapping = {'nv':'0','uv':'0','dv':'0','blob':json.dumps(immutable_data)}
 
-	my_server = redis.Redis(connection_pool=POOL)
+	my_server = redis.Redis(connection_pool=POOL)	
 	######################################################
 	# flagging low quality posts based on certain text criteria
-	lower_text = text.lower()
-	mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
-		is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
-
+	if audience_type == 'p':
+		lower_text = text.lower()
+		mapping['lq'] = retrieve_text_quality(text=text,lower_text=lower_text,text_lang=categ,\
+			is_being_reposted=my_server.zscore(GLOBAL_RECENT_PUBLIC_TEXTS,lower_text))
 	######################################################
 	time_now = time.time()
 	expire_at, obj_id = int(time_now+TOPIC_SUBMISSION_TTL), str(obj_id)
-	
+
 	pipeline1 = my_server.pipeline()
 	pipeline1.hmset(obj_hash,mapping)# creating the obj hash
 	pipeline1.expireat(obj_hash,expire_at)# setting a TTL of one week on this obj hash
@@ -1511,15 +1572,54 @@ def log_user_submission(submitter_id, submitted_obj, expire_at=None, feeds_to_ad
 		my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,obj)
 
 
-def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
+def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1', already_deleted_objs=None,\
+	target_obj_hash_name=None, time_now=None):
 	"""
 	Trims user submissions' set for expired entries
 
 	Called via a scheduled task, or when banning a certain user and his/her submissions need to be taken out of circulation
+	Also used to remove singular post when a user 'removes' it
 	"""
 	if cleanse_feeds == '1':
 		my_server = redis.Redis(connection_pool=POOL)
-		if submitter_id:
+		if submitter_id and target_obj_hash_name:
+			rate_limit_key = REMOVAL_RATE_LIMIT+submitter_id 
+			ttl = my_server.ttl(rate_limit_key)
+			if ttl:
+				# the user is rate-limited from removing the object for 'ttl' seconds
+				return False, ttl
+			else:
+				submitter_id = float(submitter_id)
+				user_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_SUBMITTERS,submitter_id,submitter_id)
+				if user_submissions:
+					rows_to_remove = []
+					for submission in user_submissions:
+						obj_hash_name = submission.rpartition("*")[-1]
+						if obj_hash_name == target_obj_hash_name:
+							rows_to_remove.append(submission)
+
+					if rows_to_remove:
+						# only remove obj from global feeds, don't delete the object or its vote_stores, since our policy is to continue displaying the obj in user feeds
+						for submission in rows_to_remove:
+							data = submission.split('*')
+							which_feed, obj_hash_name = data[0], data[1]
+							my_server.zrem(which_feed, obj_hash_name)
+							
+						my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*rows_to_remove)
+						my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,*rows_to_remove)
+						my_server.setex(rate_limit_key,'1',REMOVAL_RATE_LIMIT_TIME)
+
+					# the targeted obj has been removed
+					return True, None
+				else:
+					# there was nothing to remove
+					return False, None
+				################################################
+
+		####################################################################
+		# removes a specific user's footprint from all feeds
+		elif submitter_id:
+			objs_to_delete = set()
 			submitter_id = float(submitter_id)
 			user_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_SUBMITTERS,submitter_id,submitter_id)
 			if user_submissions:
@@ -1528,6 +1628,7 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 					data = submission.split('*')
 					which_feed, obj_hash_name = data[0], data[1]
 					if which_feed == TRENDING_PHOTO_DETAILS:
+						# TODO: remove this 'if' since TRENDING_PHOTO_DETAILS is defunct
 						obj_id = int(obj_hash_name.split(":")[1])
 						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
 					else:
@@ -1536,12 +1637,26 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 							my_server.expire(VOTE_ON_TXT+obj_hash_name[3:],TEN_MINS)
 						else:
 							my_server.expire(VOTE_ON_IMG+obj_hash_name[4:],TEN_MINS)
-						my_server.delete(obj_hash_name)# removing the object itself
+						my_server.execute_command('UNLINK', obj_hash_name)# removing the object itself
+						objs_to_delete.add(obj_hash_name)
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,*user_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*user_submissions)
 				trim_trenders_data(target_user_id=submitter_id, my_server=my_server)
+			if already_deleted_objs:
+				private_objs = already_deleted_objs - objs_to_delete
+				# these are objs which were part of 'private' feeds, and thus still have their vote stores intact
+				# these are also objs that were 'removed' by the OP, and so didn't exist in USER_SUBMISSIONS_AND_SUBMITTERS
+				if private_objs:
+					for obj_hash_name in private_objs:
+						my_server.execute_command('UNLINK', obj_hash_name)
+						if obj_hash_name[:2] == 'tx':# removing vote stores (but after a lag of 10 mins)
+							my_server.expire(VOTE_ON_TXT+obj_hash_name[3:],TEN_MINS)
+						else:
+							my_server.expire(VOTE_ON_IMG+obj_hash_name[4:],TEN_MINS)
+
+		#########################################################################
+		# takes care of expired user submissions
 		else:
-			time_now = int(time.time())
 			expired_submissions = my_server.zrangebyscore(USER_SUBMISSIONS_AND_EXPIRES,'-inf',time_now)
 			if expired_submissions:
 				# delete them all - without needing to delete vote stores (they've self deleted)
@@ -1549,16 +1664,17 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1'):
 					data = submission.split('*')
 					which_feed, obj_hash_name = data[0], data[1]
 					if which_feed == TRENDING_PHOTO_DETAILS:
+						# TODO: remove this 'if' since TRENDING_PHOTO_DETAILS is defunct
 						obj_id = int(obj_hash_name.split(":")[1])
 						my_server.zremrangebyscore(which_feed,obj_id,obj_id)
 					else:
 						my_server.zrem(which_feed, obj_hash_name)# no need to expire vote stores of these objects, since they've already self-deleted
 				my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES, *expired_submissions)
 				my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS, *expired_submissions)
-				trim_trenders_data(my_server=my_server)
+				trim_trenders_data(my_server=my_server, time_now=time_now)
 
 
-def trim_trenders_data(target_user_id=None, my_server=None):
+def trim_trenders_data(target_user_id=None, my_server=None, time_now=None):
 	"""
 	Removes trending items
 
@@ -1571,7 +1687,7 @@ def trim_trenders_data(target_user_id=None, my_server=None):
 			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*target_obj_ids)
 			my_server.zrem(TRENDING_FOTOS_AND_USERS,*target_obj_ids)
 	else:
-		one_week_ago = time.time() - CONTEST_LENGTH
+		one_week_ago = (time_now - CONTEST_LENGTH) if time_now else (time.time() - CONTEST_LENGTH)
 		obj_ids_to_delete = my_server.zrangebyscore(TRENDING_FOTOS_AND_TIMES,'-inf',one_week_ago)
 		if obj_ids_to_delete:
 			my_server.zrem(TRENDING_FOTOS_AND_TIMES,*obj_ids_to_delete)
@@ -1691,8 +1807,9 @@ def process_top_trenders_rep(top_trending_ids_and_scores):
 
 	# Step 1) Retrieve previous trending IDs (ones that are about to be over-written)
 	prev_trending_ids_and_scores = my_server.zrevrange(TOP_TRENDER_IDS,0,-1,withscores=True)# best to worst sorting, format: [('11',5), ('2',3), ...]
-	
+
 	if prev_trending_ids_and_scores:
+		
 		prev_trending_ids = [int(trending_id) for trending_id, score in prev_trending_ids_and_scores]
 		prev_trending_ids_and_scores_dict = dict(prev_trending_ids_and_scores)
 		new_trending_ids_and_scores_dict = dict(top_trending_ids_and_scores)
@@ -1789,6 +1906,26 @@ def process_top_trenders_rep(top_trending_ids_and_scores):
 				my_server.zrem(TOP_TRENDERS_REP,*trending_ids_to_expire)
 				my_server.zrem(TOP_TRENDERS_REP_TRUNCATOR,*trending_ids_to_expire)
 
+	# no previous trending ids found
+	else:
+
+		# Step 2) Sort top_trending_ids_and_scores (descending order, sorted by score)
+		sorted_top_trenders = sorted(top_trending_ids_and_scores,key=lambda x: x[1], reverse=True)
+
+		# Step 3) Retrieve all top trending ids
+		top_trending_ids = [trending_id for trending_id, score in sorted_top_trenders]# best to worst sorting
+
+		# Step 4) Update the top trenders list
+		my_server.delete(TOP_TRENDER_IDS)
+		my_server.zadd(TOP_TRENDER_IDS,*list(sum(top_trending_ids_and_scores, ())))# flattening top_trending_ids_and_scores and passing to zadd
+	
+		# Step 5) Update the truncator set
+		time_now = time.time()
+		trending_ids_and_times = []
+		for trending_id in top_trending_ids:
+			trending_ids_and_times.append(trending_id)
+			trending_ids_and_times.append(time_now)
+		my_server.zadd(TOP_TRENDERS_REP_TRUNCATOR,*trending_ids_and_times)
 
 
 def trim_trending_list(feed_type='best_photos'):
@@ -1803,8 +1940,8 @@ def trim_trending_list(feed_type='best_photos'):
 			photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
 			pipeline1 = my_server.pipeline()
 			pipeline1.zrem(TRENDING_PHOTO_FEED, *photo_hashes_to_be_removed)
-			for photo_id in photo_ids_to_be_removed:
-				pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
+			# for photo_id in photo_ids_to_be_removed:
+			# 	pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
 			pipeline1.execute()
 	else:
 		pass
@@ -1861,6 +1998,39 @@ def retrieve_top_trenders():
 			return []
 
 
+def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
+	"""
+	Just a quick way to add trending objs in a feed
+
+	TODO: Use the sophisticated add_single_trending_object() later, sunset this
+	"""
+	if feed_type == 'home':
+		feed_name = TRENDING_HOME_FEED
+	elif feed_type == 'photos':
+		feed_name = ALT_TRENDING_HOME_FEED
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.zadd(feed_name,obj_hash, time_now)
+	if random() < 0.1:
+		my_server.zremrangebyrank(feed_name, 0, -201)# to keep top 200 in the sorted set
+	#############################
+	# ensuring the 'feed cleaning' functionality can tract this object for effective cleansing of related redis sets/objs etc.
+	json_obj = my_server.hget(obj_hash,'blob')
+	if json_obj:
+		obj = json.loads(json_obj)
+		feeds_to_subtract = []#Change this to [HOME_SORTED_FEED] when best text posts are shown to users
+		log_user_submission(submitter_id=obj['si'], submitted_obj=obj_hash, feeds_to_add=[feed_name], \
+			feeds_to_subtract=feeds_to_subtract, my_server=my_server)
+	#############################
+	#  Logging trending posts for analysis (can remove)
+	# json_data_blob, editorial_upvotes = my_server.hmget(obj_hash,'blob','uv')
+	# try:
+	# 	data = json.loads(json_data_blob)
+	# except:
+	# 	data = json_backup.loads(json_data_blob)
+	# from redis4 import log_home_post
+	# log_home_post(user_id=data['si'], username=data['su'], text=data['d'], on_fbs=data.get('fbs',''),is_urdu=data['c'], \
+	# 	editorial_upvotes=editorial_upvotes, trending_time=time_now, posting_time=data['t'])
+
 
 def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_hand_picked=False):
 	"""
@@ -1875,18 +2045,27 @@ def add_single_trending_object(prefix, obj_id, obj_hash, my_server=None, from_ha
 		float_time_of_selection = float(time_of_selection)
 		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
 		pipeline1 = my_server.pipeline()
-		pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))
-		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float_time_of_selection)
+		# pipeline1.zadd(TRENDING_PHOTO_DETAILS, obj_hash, int(obj_id))# TODO: Remove, this looks expendible
+		pipeline1.zadd(TRENDING_PHOTO_FEED, composite_id, float_time_of_selection)# used to populate the trending section
 		pipeline1.zrem(PHOTO_SORTED_FEED,composite_id)# since photo has already moved to trending, remove entry from 'latest'
 		pipeline1.zadd(TRENDING_FOTOS_AND_TIMES,obj_id,float_time_of_selection)
 		pipeline1.zadd(TRENDING_FOTOS_AND_USERS,obj_id,float(submitter_id))
 		pipeline1.execute()
-		Photo.objects.filter(id=obj_id).update(device='6')
+		############################
+		# setting the 'is_trending flag'
+		json_obj_data = my_server.hget(composite_id,'blob')
+		if json_obj_data:
+			obj_data = json.loads(json_obj_data)
+			obj_data['tr'] = '1'
+			my_server.hset(composite_id,'blob',json.dumps(obj_data))
+		############################
+		# Photo.objects.filter(id=obj_id).update(device='6')
+		Link.objects.filter(id=obj_id).update(trending_status='1')
 		save_recent_trending_photo(user_id=submitter_id, photo_id=obj_id, time_of_selection=float_time_of_selection, my_server=my_server)
 		if random() < 0.05:
 			# sometimes trim the trending sorted set for size
 			trim_trending_list()
-		feeds_to_add = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS]
+		feeds_to_add = [TRENDING_PHOTO_FEED]#,TRENDING_PHOTO_DETAILS]
 		feeds_to_subtract = [PHOTO_SORTED_FEED,HAND_PICKED_TRENDING_PHOTOS] if from_hand_picked else [PHOTO_SORTED_FEED]
 		log_user_submission(submitter_id=submitter_id, submitted_obj=composite_id, feeds_to_add=feeds_to_add, \
 			feeds_to_subtract=feeds_to_subtract, my_server=my_server)
@@ -1948,6 +2127,7 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 					obj_hash = unpack_json_blob([obj_hash])[0]
 					obj_id = obj_hash['i']
 					########################
+					# related to 'rep'
 					my_server.setex(HANDPICKED_TRENDING_IMG+obj_hash_name,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
 					my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,obj_hash_name+":"+str(obj_hash['si']),obj_hash['si'])
 					########################
@@ -2012,6 +2192,13 @@ def push_hand_picked_obj_into_trending(feed_type='best_photos'):
 	return pushed, obj_id
 
 
+def get_obj_data(obj_hash_name):
+	"""
+	used for loggers
+	"""
+	return redis.Redis(connection_pool=POOL).hgetall(obj_hash_name)
+
+
 def queue_obj_into_trending(prefix, obj_owner_id, obj_id, picked_by_id):
 	"""
 	Used by super defenders to just move an object straight into trending
@@ -2042,8 +2229,8 @@ def queue_obj_into_trending(prefix, obj_owner_id, obj_id, picked_by_id):
 					pipeline1 = my_server.pipeline()
 					pipeline1.zadd(HAND_PICKED_TRENDING_PHOTOS,composite_id,time_now)
 					pipeline1.hset(composite_id,'pbid',picked_by_id)# records the ID of the super-defender who ordered this movement
-					pipeline1.expireat(composite_id,expire_at)#re-setting TTL to one day
-					pipeline1.expireat(VOTE_ON_IMG+obj_id,expire_at)#re-setting TTL to one day
+					pipeline1.expireat(composite_id,expire_at)#re-setting TTL to 7 days
+					pipeline1.expireat(VOTE_ON_IMG+obj_id,expire_at)#re-setting TTL to 7 days
 					pipeline1.execute()
 					log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, expire_at=expire_at, \
 						feeds_to_add=[HAND_PICKED_TRENDING_PHOTOS], my_server=my_server)
@@ -2071,12 +2258,13 @@ def remove_obj_from_trending(prefix,obj_id):
 			# remove it from trending
 			pipeline1 = my_server.pipeline()
 			pipeline1.zrem(TRENDING_PHOTO_FEED,composite_id)
-			pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
+			# pipeline1.zremrangebyscore(TRENDING_PHOTO_DETAILS,obj_id,obj_id)
 			pipeline1.zrem(TRENDING_FOTOS_AND_TIMES,obj_id)
 			pipeline1.zrem(TRENDING_FOTOS_AND_USERS,obj_id)
 			pipeline1.execute()
-			Photo.objects.filter(id=obj_id).update(device='1')
-			feeds_to_subtract = [TRENDING_PHOTO_FEED,TRENDING_PHOTO_DETAILS]#,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
+			# Photo.objects.filter(id=obj_id).update(device='1')
+			Link.objects.filter(id=obj_id).update(trending_status='0')
+			feeds_to_subtract = [TRENDING_PHOTO_FEED]#,TRENDING_PHOTO_DETAILS]#,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
 			log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, feeds_to_subtract=feeds_to_subtract, \
 				my_server=my_server)
 			#####################################
@@ -2090,34 +2278,6 @@ def remove_obj_from_trending(prefix,obj_id):
 				my_server=my_server)
 	else:
 		pass
-
-
-def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
-	"""
-	Just a quick way to add trending objs in a feed
-
-	TODO: Use the sophisticated add_single_trending_object() later, sunset this
-	"""
-	if feed_type == 'home':
-		feed_name = TRENDING_HOME_FEED
-	elif feed_type == 'photos':
-		feed_name = ALT_TRENDING_HOME_FEED
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.zadd(feed_name,obj_hash, time_now)
-	if random() < 0.2:
-		my_server.zremrangebyrank(feed_name, 0, -201)# to keep top 200 in the sorted set
-	#############################
-	#############################
-	#  Logging trending posts for analysis (can remove)
-	# json_data_blob, editorial_upvotes = my_server.hmget(obj_hash,'blob','uv')
-	# try:
-	# 	data = json.loads(json_data_blob)
-	# except:
-	# 	data = json_backup.loads(json_data_blob)
-	# from redis4 import log_home_post
-	# log_home_post(user_id=data['si'], username=data['su'], text=data['d'], on_fbs=data.get('fbs',''),is_urdu=data['c'], \
-	# 	editorial_upvotes=editorial_upvotes, trending_time=time_now, posting_time=data['t'])
-
 
 
 def is_obj_trending(prefix, obj_id, with_trending_time=False):
@@ -2680,236 +2840,251 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 		obj_type = 'tx'
 	my_server = redis.Redis(connection_pool=POOL)
 
-	#if redis obj exists, voting is still open/ongoing (otherwise consider it closed)
-	voting_is_open = my_server.exists(hash_name)
-	if voting_is_open and is_editorial_vote:
-		
-		# is an editorial vote (from an uncurated list, e.g. fresh)
-		if my_server.exists(rate_limit_key):
-			# rate limited from completing action
-			return -1
-		elif revert_prev:
-			# Reverting a previously cast like
-
-			###############################################
-			
-			# Step 1) Revert from the content's object hash
-			pipeline1 = my_server.pipeline()
-			pipeline1.hincrby(hash_name,'nv',amount=-1)#atomic
-			pipeline1.hincrby(hash_name,'uv',amount=-1)#atomic
-			pipeline1.zrem(vote_store,own_id)#atomic
-			if is_pht == '1':
-				pipeline1.srem(LOCKED_IMG+hash_name,own_id)
-			else:
-				pipeline1.srem(LOCKED_TXT+hash_name,own_id)
-			new_net_votes = pipeline1.execute()[0]
-
-			###############################################	
-
-			# Step 2) Revert relevent postgresql fields 
-			if is_pht == '1':
-				Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')-1)#atomic
-			else:
-				Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')-1)#atomic
-
-			###############################################
-
-			# Step 3) Revert Bayesian logging of the 'like' for unearthing sybils
-			add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
-				voting_time=time_of_vote, is_reversion=True, my_server=my_server)
-
-			###############################################	
-
-			# Step 4) Revert logging for 'handpicked_prob' and 'like_prob'
-			if is_pht == '1':
-				# if img vote
-				my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1")
-
-			else:
-				# if text vote
-				key_name = hash_name+":"+str(target_user_id)
-				score = my_server.zscore(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS, key_name)
-				if score > 0:
-					my_server.zincrby(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,hash_name+":"+str(target_user_id), amount=-1)
-
-			return new_net_votes
-
-		else:
-			# processing an editorial 'like'
-
-			###############################################
-
-			# Step 1) Determine 'handpicked_prob', i.e. the prob this item could be picked by a super defender, given it was 'liked' by own_id!
-			handpicked_prob, is_sybil = determine_vote_score(is_editorial_vote=True, voter_id=own_id, target_user_id=target_user_id, \
-				my_server=my_server, world_age_discount=world_age_discount, is_pht=is_pht)
-
-			###############################################
-
-			# Step 2) Record the 'handpicked_prob' in vote_store, and the act of liking in 'nv' and 'uv'
-			pipeline1 = my_server.pipeline()
-			pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
-			pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
-			pipeline1.zadd(vote_store,own_id, 0 if handpicked_prob is None else handpicked_prob)#atomic
-			if is_sybil:
-				if is_pht == '1':
-					pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
-					pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
-				else:
-					pipeline1.sadd(LOCKED_TXT+hash_name,own_id)
-					pipeline1.expire(LOCKED_TXT+hash_name,ONE_MONTH)
-			new_net_votes = pipeline1.execute()[0]
-
-			###############################################	
-
-			# Step 3) Update postgresql fields 
-			if is_pht == '1':
-				Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')+1)#atomic
-				vote_count_key = 'fpv:'+own_id
-			else:
-				Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')+1)#atomic
-				vote_count_key = 'fv:'+own_id
-
-			###############################################
-
-			# Step 4) setting rate limits for those liking "too fast" (i.e. 3 times within 10 secs)
-			is_set = my_server.setnx(vote_count_key,1)
-			if is_set:
-				# key didn't hitherto exist, now set its ttl
-				my_server.expire(vote_count_key,10)
-			else:
-				# key already exists'
-				new_value = my_server.incr(vote_count_key)
-				if new_value > 2:
-					# this person has liked 3 times in 10 seconds, rate limit them for 9 seconds
-					my_server.setex(rate_limit_key,'1',NINE_SECS)
-					my_server.execute_command('UNLINK', vote_count_key)
-
-			###############################################
-
-			# Step 5) log like for Bayesian filter that unearths 'sybils'
-			add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
-				voting_time=time_of_vote, is_reversion=False, my_server=my_server)
-
-			###############################################
-
-			# Step 6) log like in a global set, for 'like_prob' and 'handpicked_prob' calculation later
-			# if handpicked_prob is not None (i.e. the voter is not a specific or a general sybil)
-			if handpicked_prob is not None and is_pht == '1':
-				# only if img vote (for now)
-				my_server.zadd(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1", time_of_vote)# '1' at the end signifies editorial vote
-
-			# EXPERIMENTAL - using img 'handpicked' voting rep to impart content rep to text posters!
-			elif handpicked_prob >= 0.28 and is_pht != '1':
-				# text vote
-				my_server.zincrby(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,hash_name+":"+str(target_user_id), amount=1)#, time_of_vote)
-
-			return new_net_votes
-
-	#############################################################################################################################
-	elif voting_is_open:
-		# is an audience vote (from a curated list, e.g. best, or only subs, etc)
-		if my_server.exists(rate_limit_key):
-			# rate limited from completing action
-			return -1
-		elif revert_prev:
-			# reverting a previously cast audience 'like'
-
-			###############################################
-			
-			# Step 1) Revert from the content's object hash
-			pipeline1 = my_server.pipeline()
-			pipeline1.hincrby(hash_name,'nv',amount=-1)#atomic
-			pipeline1.hincrby(hash_name,'uv',amount=-1)#atomic
-			pipeline1.zrem(vote_store,own_id)#atomic
-			new_net_votes = pipeline1.execute()[0]
-
-			###############################################	
-
-			# Step 2) Revert relevent postgresql fields 
-			if is_pht == '1':
-				Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')-1)#atomic
-			else:
-				Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')-1)#atomic
-
-			###############################################
-
-			# Step 3) Revert Bayesian logging of the 'like' for unearthing sybils
-			add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
-				voting_time=time_of_vote, is_reversion=True, my_server=my_server)
-
-			###############################################		
-			
-			# Step 4) Revert logging for 'handpicked_prob','like_prob'
-			if is_pht == '1':
-				# only if img vote (for now)
-				removed = my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-0")
-				#################################################################
-				if removed:
-					my_server.zincrby(GLOBAL_AUD_LIKED_IMG_OBJS,hash_name+":"+str(target_user_id), amount=-1)
-
-			return new_net_votes
-		else:
-			# processing an audience 'like'
-
-			###############################################
-
-			# Step 1) check if this vote is to be counted or ignored
-			is_vote_counted, is_sybil = determine_vote_score(is_editorial_vote=False, voter_id=own_id, target_user_id=target_user_id, \
-				my_server=my_server, world_age_discount=world_age_discount, is_pht=is_pht)
-
-			###############################################
-
-			# Step 2) Record the audience vote
-			pipeline1 = my_server.pipeline()
-			pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
-			pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
-			pipeline1.zadd(vote_store,own_id,0)#atomic
-			new_net_votes = pipeline1.execute()[0]
-			
-			###############################################	
-
-			# Step 3) Update postgresql fields 
-			if is_pht == '1':
-				Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')+1)#atomic
-				vote_count_key = 'fpv:'+own_id
-			else:
-				Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')+1)#atomic
-				vote_count_key = 'fv:'+own_id
-
-			###############################################
-
-			# Step 4) setting rate limits for those liking "too fast" (i.e. 3 times within 10 secs)
-			is_set = my_server.setnx(vote_count_key,1)
-			if is_set:
-				# key didn't hitherto exist, now set its ttl
-				my_server.expire(vote_count_key,10)
-			else:
-				# key already exists'
-				new_value = my_server.incr(vote_count_key)
-				if new_value > 2:
-					# this person has liked 3 times in 10 seconds, rate limit them for 9 seconds
-					my_server.setex(rate_limit_key,'1',NINE_SECS)
-					my_server.execute_command('UNLINK', vote_count_key)
-
-			###############################################
-
-			# Step 5) log like for Bayesian filter that unearths 'sybils'
-			add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
-				voting_time=time_of_vote, is_reversion=False, my_server=my_server)
-
-			###############################################
-
-			# Step 6) log like in a global set for 'like_prob', 'handpicked_prob' calculation later
-			if is_vote_counted and is_pht == '1':
-				# only if img vote (for now)
-				my_server.zadd(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-0", time_of_vote)# '0' at the end signifies audience vote
-				#####################################
-				my_server.zincrby(GLOBAL_AUD_LIKED_IMG_OBJS,hash_name+":"+str(target_user_id), amount=1)#, time_of_vote)
-
-			return new_net_votes
-	else:
-		# voting is closed
+	if my_server.exists(rate_limit_key):
+		# rate limited from completing action
 		return -1
+	else:
+		#retrieve json obj data; voting is still open/ongoing if this data exists (otherwise consider it closed)
+		json_obj_data = my_server.hget(hash_name,'blob')
+		if json_obj_data: 
+			if is_editorial_vote:
+				
+				# is an editorial vote (from an uncurated list, e.g. fresh)
+				if revert_prev:
+					# Reverting a previously cast like
+
+					###############################################
+					
+					# Step 1) Revert from the content's object hash
+					pipeline1 = my_server.pipeline()
+					pipeline1.hincrby(hash_name,'nv',amount=-1)#atomic
+					pipeline1.hincrby(hash_name,'uv',amount=-1)#atomic
+					pipeline1.zrem(vote_store,own_id)#atomic
+					if is_pht == '1':
+						pipeline1.srem(LOCKED_IMG+hash_name,own_id)
+					else:
+						pipeline1.srem(LOCKED_TXT+hash_name,own_id)
+					new_net_votes = pipeline1.execute()[0]
+
+					###############################################	
+
+					# Step 2) Revert relevent postgresql fields 
+					# if is_pht == '1':
+					# 	Link.objects.filter(id=obj_id).update(net_score=F('net_votes')-1)#atomic
+					# else:
+					Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')-1)#atomic
+
+					###############################################
+
+					# Step 3) Revert Bayesian logging of the 'like' for unearthing sybils
+					add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
+						voting_time=time_of_vote, is_reversion=True, my_server=my_server)
+
+					###############################################	
+
+					# Only do this for 'public' objs:
+					if json.loads(json_obj_data).get('aud','') == 'p':
+						
+						# Step 4) Revert logging for 'handpicked_prob' and 'like_prob'
+						if is_pht == '1':
+							# if img vote
+							my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1")
+
+						# else:
+						# 	# if text vote
+						# 	key_name = hash_name+":"+str(target_user_id)
+						# 	score = my_server.zscore(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS, key_name)
+						# 	if score > 0:
+						# 		my_server.zincrby(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,hash_name+":"+str(target_user_id), amount=-1)
+
+					return new_net_votes
+
+				else:
+					# processing an editorial 'like'
+
+					###############################################
+
+					# Step 1) Determine 'handpicked_prob', i.e. the prob this item could be picked by a super defender, given it was 'liked' by own_id!
+					handpicked_prob, is_sybil = determine_vote_score(is_editorial_vote=True, voter_id=own_id, target_user_id=target_user_id, \
+						my_server=my_server, world_age_discount=world_age_discount, is_pht=is_pht)
+
+					###############################################
+
+					# Step 2) Record the 'handpicked_prob' in vote_store, and the act of liking in 'nv' and 'uv'
+					pipeline1 = my_server.pipeline()
+					pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
+					pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
+					pipeline1.zadd(vote_store,own_id, 0 if handpicked_prob is None else handpicked_prob)#atomic
+					if is_sybil:
+						if is_pht == '1':
+							pipeline1.sadd(LOCKED_IMG+hash_name,own_id)
+							pipeline1.expire(LOCKED_IMG+hash_name,ONE_MONTH)
+						else:
+							pipeline1.sadd(LOCKED_TXT+hash_name,own_id)
+							pipeline1.expire(LOCKED_TXT+hash_name,ONE_MONTH)
+					new_net_votes = pipeline1.execute()[0]
+
+					###############################################	
+
+					# Step 3) Update postgresql fields 
+					if is_pht == '1':
+						# Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')+1)#atomic
+						vote_count_key = 'fpv:'+own_id
+					else:
+						# Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')+1)#atomic
+						vote_count_key = 'fv:'+own_id
+					Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')+1)#atomic
+
+					###############################################
+
+					# Step 4) setting rate limits for those liking "too fast" (i.e. 3 times within 10 secs)
+					is_set = my_server.setnx(vote_count_key,1)
+					if is_set:
+						# key didn't hitherto exist, now set its ttl
+						my_server.expire(vote_count_key,10)
+					else:
+						# key already exists'
+						new_value = my_server.incr(vote_count_key)
+						if new_value > 2:
+							# this person has liked 3 times in 10 seconds, rate limit them for 9 seconds
+							my_server.setex(rate_limit_key,'1',NINE_SECS)
+							my_server.execute_command('UNLINK', vote_count_key)
+
+					###############################################
+
+					# Step 5) log like for Bayesian filter that unearths 'sybils'
+					add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
+						voting_time=time_of_vote, is_reversion=False, my_server=my_server)
+
+					###############################################
+
+					# Only do this for 'public' objs:
+					if json.loads(json_obj_data).get('aud','') == 'p':
+
+						# Step 6) log like in a global set, for 'like_prob' and 'handpicked_prob' calculation later
+						# if handpicked_prob is not None (i.e. the voter is not a specific or a general sybil)
+						if handpicked_prob is not None and is_pht == '1':
+							# only if img vote (for now)
+							my_server.zadd(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-1", time_of_vote)# '1' at the end signifies editorial vote
+
+						# EXPERIMENTAL - using img 'handpicked' voting rep to impart content rep to text posters!
+						# elif handpicked_prob >= 0.28 and is_pht != '1':
+						# 	# text vote
+						# 	my_server.zincrby(GLOBAL_HIGH_REP_HANDPICKED_TXT_OBJS,hash_name+":"+str(target_user_id), amount=1)#, time_of_vote)
+
+					return new_net_votes
+			#############################################################################################################################
+			# is an audience vote (from a curated list, e.g. best, or only subs, etc)
+			else:
+				
+				if revert_prev:
+					# reverting a previously cast audience 'like'
+
+					###############################################
+					
+					# Step 1) Revert from the content's object hash
+					pipeline1 = my_server.pipeline()
+					pipeline1.hincrby(hash_name,'nv',amount=-1)#atomic
+					pipeline1.hincrby(hash_name,'uv',amount=-1)#atomic
+					pipeline1.zrem(vote_store,own_id)#atomic
+					new_net_votes = pipeline1.execute()[0]
+
+					###############################################	
+
+					# Step 2) Revert relevent postgresql fields 
+					# if is_pht == '1':
+					# 	Photo.objects.filter(id=obj_id).update(vote_score=F('vote_score')-1)#atomic
+					# else:
+					Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')-1)#atomic
+
+					###############################################
+
+					# Step 3) Revert Bayesian logging of the 'like' for unearthing sybils
+					add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
+						voting_time=time_of_vote, is_reversion=True, my_server=my_server)
+
+					###############################################		
+					
+					# Only do this for 'public' objs:
+					# if json.loads(json_obj_data)['aud'] == 'p':
+					if json.loads(json_obj_data).get('aud','') == 'p':
+
+						# Step 4) Revert logging for 'handpicked_prob','like_prob'
+						if is_pht == '1':
+							# only if img vote (for now)
+							removed = my_server.zrem(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-0")
+							#################################################################
+							if removed:
+								my_server.zincrby(GLOBAL_AUD_LIKED_IMG_OBJS,hash_name+":"+str(target_user_id), amount=-1)
+
+					return new_net_votes
+				else:
+					# processing an audience 'like'
+
+					###############################################
+
+					# Step 1) check if this vote is to be counted or ignored
+					is_vote_counted, is_sybil = determine_vote_score(is_editorial_vote=False, voter_id=own_id, target_user_id=target_user_id, \
+						my_server=my_server, world_age_discount=world_age_discount, is_pht=is_pht)
+
+					###############################################
+
+					# Step 2) Record the audience vote
+					pipeline1 = my_server.pipeline()
+					pipeline1.hincrby(hash_name,'nv',amount=1)#atomic
+					pipeline1.hincrby(hash_name,'uv',amount=1)#atomic
+					pipeline1.zadd(vote_store,own_id,0)#atomic
+					new_net_votes = pipeline1.execute()[0]
+					
+					###############################################	
+
+					# Step 3) Update postgresql fields 
+					if is_pht == '1':
+					# Photo.	objects.filter(id=obj_id).update(vote_score=F('vote_score')+1)#atomic
+						vote_count_key = 'fpv:'+own_id
+					else:
+						vote_count_key = 'fv:'+own_id
+					Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')+1)#atomic
+
+					###############################################
+
+					# Step 4) setting rate limits for those liking "too fast" (i.e. 3 times within 10 secs)
+					is_set = my_server.setnx(vote_count_key,1)
+					if is_set:
+						# key didn't hitherto exist, now set its ttl
+						my_server.expire(vote_count_key,10)
+					else:
+						# key already exists'
+						new_value = my_server.incr(vote_count_key)
+						if new_value > 2:
+							# this person has liked 3 times in 10 seconds, rate limit them for 9 seconds
+							my_server.setex(rate_limit_key,'1',NINE_SECS)
+							my_server.execute_command('UNLINK', vote_count_key)
+
+					###############################################
+
+					# Step 5) log like for Bayesian filter that unearths 'sybils'
+					add_user_vote(voter_id=own_id, target_user_id=target_user_id, target_obj_id=obj_id, obj_type=obj_type, \
+						voting_time=time_of_vote, is_reversion=False, my_server=my_server)
+
+					###############################################
+
+					# Only do this for 'public' objs:
+					# if json.loads(json_obj_data)['aud'] == 'p':
+					if json.loads(json_obj_data).get('aud','') == 'p':
+
+						# Step 6) log like in a global set for 'like_prob', 'handpicked_prob' calculation later
+						if is_vote_counted and is_pht == '1':
+							# only if img vote (for now)
+							my_server.zadd(GLOBAL_IMG_LIKES, hash_name+"-"+own_id+"-0", time_of_vote)# '0' at the end signifies audience vote
+							#####################################
+							# helpful in calculating 'content upload rep' for the image uploader
+							my_server.zincrby(GLOBAL_AUD_LIKED_IMG_OBJS,hash_name+":"+str(target_user_id), amount=1)#, time_of_vote)
+
+					return new_net_votes
+		else:
+			# voting is closed
+			return -1
 
 
 def archive_closed_objs_and_votes():
@@ -3861,103 +4036,101 @@ def log_banning(target_uname,reason_of_ban,action, dur_of_ban,time_of_ban,banned
 	my_server.ltrim(GLOBAL_ADMINS_LEDGER, 0, (GLOBAL_ADMIN_LEDGERS_SIZE-1))# keeps most recent 3000 blocks/unblocks
 
 
-####################### Cleanse feed of content posted by punished user #######################
 
+# def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='1'):
+# 	"""
+# 	Ensures no content of target_user_id is part of current feeds
 
-def cleanse_all_feeds_of_user_content(target_user_id, post_type, cleanse_feeds='1'):
-	"""
-	Ensures no content of target_user_id is part of current feeds
-
-	Called when a defender bans a user's content
-	Removes textual and image content both
-	Suggested edit: IF CONTENT TYPE IS 'TX', ONLY CLEANSE FROM HOMEFEED
-	"""
-	if post_type not in ('img','tx'):
-		pass
-	elif cleanse_feeds != '1':
-		pass
-	else:
-		target_user_id = str(target_user_id)
-		my_server = redis.Redis(connection_pool=POOL)
-		# retrieve all feeds
-		pipeline1 = my_server.pipeline()
-		pipeline1.zrange(PHOTO_SORTED_FEED,0,-1)
-		pipeline1.zrange(TRENDING_PHOTO_FEED,0,-1)
-		pipeline1.zrange(HOME_SORTED_FEED,0,-1)
-		result1 = pipeline1.execute()
-		fresh_image_objs, best_image_objs, home_objs = result1[0], result1[1], result1[2]
+# 	Called when a defender bans a user's content
+# 	Removes textual and image content both
+# 	Suggested edit: IF CONTENT TYPE IS 'TX', ONLY CLEANSE FROM HOMEFEED
+# 	"""
+# 	if post_type not in ('img','tx'):
+# 		pass
+# 	elif cleanse_feeds != '1':
+# 		pass
+# 	else:
+# 		target_user_id = str(target_user_id)
+# 		my_server = redis.Redis(connection_pool=POOL)
+# 		# retrieve all feeds
+# 		pipeline1 = my_server.pipeline()
+# 		pipeline1.zrange(PHOTO_SORTED_FEED,0,-1)
+# 		pipeline1.zrange(TRENDING_PHOTO_FEED,0,-1)
+# 		pipeline1.zrange(HOME_SORTED_FEED,0,-1)
+# 		result1 = pipeline1.execute()
+# 		fresh_image_objs, best_image_objs, home_objs = result1[0], result1[1], result1[2]
 		
 		
-		# isolating target user's fresh photos
-		pipeline2 = my_server.pipeline()
-		for hash_name in fresh_image_objs:#contains img:4312341 type objs
-			pipeline2.hget(hash_name,'si')
-		result2, counter = pipeline2.execute(), 0
-		target_fresh_photo_hashes = []
-		for hash_name in fresh_image_objs:
-			if result2[counter] == target_user_id:
-				target_fresh_photo_hashes.append(hash_name)# i.e. all objs target user uploaded in photofeed:1000
-			counter += 1
+# 		# isolating target user's fresh photos
+# 		pipeline2 = my_server.pipeline()
+# 		for hash_name in fresh_image_objs:#contains img:4312341 type objs
+# 			pipeline2.hget(hash_name,'si')
+# 		result2, counter = pipeline2.execute(), 0
+# 		target_fresh_photo_hashes = []
+# 		for hash_name in fresh_image_objs:
+# 			if result2[counter] == target_user_id:
+# 				target_fresh_photo_hashes.append(hash_name)# i.e. all objs target user uploaded in photofeed:1000
+# 			counter += 1
 
-		#isolating target user's best photos
-		pipeline3 = my_server.pipeline()
-		for hash_name in best_image_objs:#contains img:4312341 type objs
-			pipeline3.hget(hash_name,'si')
-		result3, counter = pipeline3.execute(), 0
-		target_best_photo_hashes = []
-		for hash_name in best_image_objs:
-			if result3[counter] == target_user_id:
-				target_best_photo_hashes.append(hash_name)# i.e. all objs target user uploaded in bestphotofeed:1000
-			counter += 1
+# 		#isolating target user's best photos
+# 		pipeline3 = my_server.pipeline()
+# 		for hash_name in best_image_objs:#contains img:4312341 type objs
+# 			pipeline3.hget(hash_name,'si')
+# 		result3, counter = pipeline3.execute(), 0
+# 		target_best_photo_hashes = []
+# 		for hash_name in best_image_objs:
+# 			if result3[counter] == target_user_id:
+# 				target_best_photo_hashes.append(hash_name)# i.e. all objs target user uploaded in bestphotofeed:1000
+# 			counter += 1
 		
-		#isolating target user's home posts (text and photos both)
-		pipeline4 = my_server.pipeline()
-		for hash_name in home_objs:#contains tx:1231 or img:4312341 type objs
-			pipeline4.hget(hash_name,'si')
-		result4, counter = pipeline4.execute(), 0
-		target_home_hashes = []
-		for hash_name in home_objs:
-			if result4[counter] == target_user_id:
-				target_home_hashes.append(hash_name)# i.e. all objs target user uploaded in homefeed:1000
-			counter += 1
+# 		#isolating target user's home posts (text and photos both)
+# 		pipeline4 = my_server.pipeline()
+# 		for hash_name in home_objs:#contains tx:1231 or img:4312341 type objs
+# 			pipeline4.hget(hash_name,'si')
+# 		result4, counter = pipeline4.execute(), 0
+# 		target_home_hashes = []
+# 		for hash_name in home_objs:
+# 			if result4[counter] == target_user_id:
+# 				target_home_hashes.append(hash_name)# i.e. all objs target user uploaded in homefeed:1000
+# 			counter += 1
 
-		# 1) delete isolated hash, 2) expire voting objects so voting is 'closed' after ten more mins, 3) cleanse the feeds
+# 		# 1) delete isolated hash, 2) expire voting objects so voting is 'closed' after ten more mins, 3) cleanse the feeds
 
-		# removing target users' photofeed hashes, and expiring voting objs
-		pipeline5 = my_server.pipeline()
-		for hash_name in target_fresh_photo_hashes:
-			pipeline5.delete(hash_name)
-			pipeline5.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)#expire - don't delete - so that a defender can ban voters if need be in the next 10 min window!
-			pipeline5.zrem(PHOTO_SORTED_FEED,hash_name)
-		pipeline5.execute()
+# 		# removing target users' photofeed hashes, and expiring voting objs
+# 		pipeline5 = my_server.pipeline()
+# 		for hash_name in target_fresh_photo_hashes:
+# 			pipeline5.delete(hash_name)
+# 			pipeline5.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)#expire - don't delete - so that a defender can ban voters if need be in the next 10 min window!
+# 			pipeline5.zrem(PHOTO_SORTED_FEED,hash_name)
+# 		pipeline5.execute()
 
-		# removing target users' bestphotofeed hashes, and expiring voting objs
-		pipeline6 = my_server.pipeline()
-		for hash_name in target_best_photo_hashes:
-			pipeline6.delete(hash_name)#might have been deleted in the previous loop, but we need to catch cases where a hash may not have been in the previous list
-			pipeline6.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline6.zrem(TRENDING_PHOTO_FEED,hash_name)
-		pipeline6.execute()
+# 		# removing target users' bestphotofeed hashes, and expiring voting objs
+# 		pipeline6 = my_server.pipeline()
+# 		for hash_name in target_best_photo_hashes:
+# 			pipeline6.delete(hash_name)#might have been deleted in the previous loop, but we need to catch cases where a hash may not have been in the previous list
+# 			pipeline6.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
+# 			pipeline6.zrem(TRENDING_PHOTO_FEED,hash_name)
+# 		pipeline6.execute()
 
-		# removing target users' hashes from TRENDING_PHOTO_DETAILS
-		photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in target_best_photo_hashes]
-		photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
-		pipeline7 = my_server.pipeline()
-		for photo_id in photo_ids_to_be_removed:
-			pipeline7.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
-		pipeline7.execute()
+# 		# removing target users' hashes from TRENDING_PHOTO_DETAILS
+# 		# photo_ids_to_be_removed = [hash_obj.split(":")[1] for hash_obj in target_best_photo_hashes]
+# 		# photo_ids_to_be_removed = map(float,photo_ids_to_be_removed)
+# 		# pipeline7 = my_server.pipeline()
+# 		# for photo_id in photo_ids_to_be_removed:
+# 		# 	pipeline7.zremrangebyscore(TRENDING_PHOTO_DETAILS,photo_id,photo_id)
+# 		# pipeline7.execute()
 
-		# removing target users' homefeed hashes, and expiring voting objs
-		pipeline8 = my_server.pipeline()
-		for hash_name in target_home_hashes:
-			pipeline8.delete(hash_name)
-			if hash_name[:2] == 'tx':
-				pipeline8.expire(VOTE_ON_TXT+hash_name[3:],TEN_MINS)
-			else:
-				pipeline8.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
-			pipeline8.zrem(HOME_SORTED_FEED,hash_name)
-		pipeline8.execute()
-		# this approach has a lot of duplication of effort, but is comprehensive
+# 		# removing target users' homefeed hashes, and expiring voting objs
+# 		pipeline8 = my_server.pipeline()
+# 		for hash_name in target_home_hashes:
+# 			pipeline8.delete(hash_name)
+# 			if hash_name[:2] == 'tx':
+# 				pipeline8.expire(VOTE_ON_TXT+hash_name[3:],TEN_MINS)
+# 			else:
+# 				pipeline8.expire(VOTE_ON_IMG+hash_name[4:],TEN_MINS)
+# 			pipeline8.zrem(HOME_SORTED_FEED,hash_name)
+# 		pipeline8.execute()
+# 		# this approach has a lot of duplication of effort, but is comprehensive
 
 ##################### Adding or removing defenders ######################
 
@@ -4142,11 +4315,11 @@ def delete_temporarily_saved_content_details(banner_id):
 
 def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_paid, reporter_id, time_now, feedback_text=None, img_caption=None, \
 	obj_url=None, obj_txt=None, orig_obid=None,orig_url=None, orig_txt=None, mehfil_topic=None, mehfil_rules=None, mehfil_report_tp=None, \
-	reported_item_ct=None, orig_item_ct=None):
+	reported_item_ct=None, orig_item_ct=None, new_obj_type=None):
 	"""
 	Enter a complaint in the list displayed to our defenders
 
-	Handles both object type 'tx' and type 'img'
+	Handles both obj_types 'tx' and type 'img' (and new_obj_types 'g' and 't')
 	If 'mf', save obj_id, obj_type, mehfil topic and rules
 	If 'pf', save obj_id, obj_type, image_url and nickname
 	If 'tx', save obj_id and obj_txt
@@ -4187,6 +4360,8 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 					new_payload.append(report)
 					mapping = {'pl':json.dumps(new_payload),'obid':obj_id, 'ooid':obj_owner_id, 'n':num_reports,'tp':obj_type,'c':mehfil_topic,\
 					'r':mehfil_rules,'ct':reported_item_ct}
+					if new_obj_type:
+						mapping['ot'] = new_obj_type
 					my_server.hmset(mehfil_report,mapping)
 				
 				# payables sorted set - contains all amounts owed to all reporter ids - recalled when complaint's fate is decided
@@ -4230,6 +4405,8 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 					new_payload.append(report)
 					mapping = {'pl':json.dumps(new_payload),'obid':obj_id,'ooid':obj_owner_id,'nick':img_caption,'av_img':obj_url,'n':num_reports,\
 					'tp':obj_type,'ct':reported_item_ct}
+					if new_obj_type:
+						mapping['ot'] = new_obj_type
 					my_server.hmset(profile_report,mapping)
 				# payables sorted set - contains all amounts owed to all reporter ids - recalled when content's fate is decided
 				payables = PAYABLES+complaint_id
@@ -4279,6 +4456,8 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 					'tp':obj_type,'ct':reported_item_ct}
 					if rep_type in ('9','10'):
 						mapping['oict'] = orig_item_ct
+					if new_obj_type:
+						mapping['ot'] = new_obj_type
 					my_server.hmset(public_image_report,mapping)
 				# payables sorted set - contains all amounts owed to all reporter ids - recalled when content's fate is decided
 				payables = PAYABLES+complaint_id
@@ -4326,6 +4505,8 @@ def set_complaint(report_desc, rep_type, obj_id, obj_owner_id, obj_type, price_p
 					mapping = {'pl':json.dumps(new_payload),'obid':obj_id,'ooid':obj_owner_id,'c':obj_txt,'n':num_reports,'tp':obj_type,'ct':reported_item_ct}
 					if rep_type in ('9','10'):
 						mapping['oict'] = orig_item_ct
+					if new_obj_type:
+						mapping['ot'] = new_obj_type
 					my_server.hmset(public_text_report,mapping)
 				# payables sorted set - contains all amounts owed to all reporter ids - recalled when content's fate is decided
 				payables = PAYABLES+complaint_id
@@ -4858,8 +5039,9 @@ def retrieve_shared_obj_meta_data(obj_type,obj_id, with_owner_id=False):
 
 	Optimization function: this looks into redis, before falling back into Postgresql data
 	"""
+	final_data, via_db, is_legacy_obj = {}, False, False
+	
 	# it's a post of type 'tx'
-	via_db = False
 	if obj_type == '3':
 		my_server = redis.Redis(connection_pool=POOL)
 		redis_json_blob = my_server.hget('tx:'+str(obj_id),'blob')
@@ -4867,36 +5049,46 @@ def retrieve_shared_obj_meta_data(obj_type,obj_id, with_owner_id=False):
 			# the obj is cached in redis
 			data = json.loads(redis_json_blob)
 			final_data = {'turl':data.get('url',''),'tn':data.get('tn',''),'th':data.get('th',None),'ooid':data['si'] if with_owner_id else '',\
-			'd':data['d']}
+			'd':data['d'],'ds':data.get('ds','0'),'et':data.get('et',None)}
 		else:
 			# the object is not available in redis - fall back to postgresql
 			via_db = True
 			if with_owner_id:
-				final_data = Link.objects.values('url','description','submitter_id').filter(id=obj_id)[0]
+				final_data = Link.objects.values('url','description','submitter','delete_status','expire_at').filter(id=obj_id)[0]
 			else:
-				final_data = Link.objects.values('url','description').filter(id=obj_id)[0]
-		return final_data, via_db
+				final_data = Link.objects.values('url','description','delete_status','expire_at').filter(id=obj_id)[0]
 
 	# it's a post of type 'img'
 	elif obj_type == '4':
 		my_server = redis.Redis(connection_pool=POOL)
 		redis_json_blob = my_server.hget('img:'+str(obj_id),'blob')
+		
 		if redis_json_blob:
 			# the obj is cached in redis
 			data = json.loads(redis_json_blob)
-			final_data = {'iu':data['iu'],'d':data['d'],'ooid':data['si'] if with_owner_id else ''}
+			final_data = {'iu':data['iu'],'d':data['d'],'ooid':data['si'] if with_owner_id else '','ds':data.get('ds','0'),\
+			'et':data.get('et',None)}
+			is_legacy_obj = False if data.get('ot','') == 'g' else True# 'legacy' type objs don't have the 'ot' flag (TODO: remove this line)
+		
 		else:
 			# the object is not available in redis - fall back to postgresql
 			via_db = True
 			if with_owner_id:
-				final_data = Photo.objects.values('image_file','caption','owner_id').filter(id=obj_id)[0]
+				final_data = Link.objects.values('image_file','description','submitter','delete_status','type_of_content','expire_at').\
+				filter(id=obj_id)[0]
+				if not final_data['type_of_content']:
+					#legacy object - residing in 'Photo' model (so the prior lookup in 'Link' was erroneous - redo the lookup!)
+					final_data = Photo.objects.values('image_file','caption','owner').filter(id=obj_id)[0]
+					is_legacy_obj = True
 			else:
-				final_data = Photo.objects.values('image_file','caption').filter(id=obj_id)[0]
-		return final_data, via_db
-	
-	# unidentified obj_type
-	else:
-		return {}, via_db
+				final_data = Link.objects.values('image_file','description','delete_status','type_of_content','expire_at').\
+				filter(id=obj_id)[0]
+				if not final_data['type_of_content']:
+					#legacy object - residing in 'Photo' model (so the prior lookup in 'Link' was erroneous - redo the lookup!)
+					final_data = Photo.objects.values('image_file','caption').filter(id=obj_id)[0]
+					is_legacy_obj = True
+
+	return final_data, via_db, is_legacy_obj
 
 
 ################################## export_website_feedback.py ##############################################
@@ -4928,3 +5120,23 @@ def set_best_photo_for_fb_fan_page(photo_id):
 	Sets a lock on posting new content for our fan page
 	"""
 	redis.Redis(connection_pool=POOL).setex("bp",photo_id,THREE_HOURS)
+
+
+################################## Save temporary post data ##################################
+
+
+def set_temp_post_data(user_id,data,post_type,obj_id):
+	"""
+	Save data to be posted for a while
+	"""
+	redis.Redis(connection_pool=POOL).setex(TEMP_POST_DATA+str(user_id),data,TWENTY_MINS)
+
+
+def get_temp_post_data(user_id):
+	"""
+	get data from share for a while
+	"""
+	return redis.Redis(connection_pool=POOL).get(TEMP_POST_DATA+str(user_id))
+
+
+

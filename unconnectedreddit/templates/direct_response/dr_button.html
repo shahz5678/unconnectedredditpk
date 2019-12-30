@@ -1,3 +1,3 @@
 <form method="POST" action="{% url 'render_direct_response_form' %}">
-{% csrf_token %}<input type="hidden" name="topic_url" value="{{ topic_url }}"><button type="submit" value="{{ origin }}:{{ obtp }}:{{ poid }}:{{ obid }}:{{ wid }}:{{ tx }}" class="dir_rep vt cxs sp" style="border:1px solid #d8dde2;padding:2px 0;width:52px;color:#4fb2e3" name="dr_pl">REPLY</button>
+{% csrf_token %}<input type="hidden" name="topic_url" value="{{ topic_url }}"><input type="hidden" name="rorigin" value="{{ rorigin }}"><button type="submit" value="{{ origin }}:{{ obtp }}:{{ poid }}:{{ obid }}:{{ wid }}:{{ tx }}" class="dir_rep vt cxs sp" style="border:1px solid #d8dde2;padding:2px 0;width:52px;color:#4fb2e3" name="dr_pl">REPLY</button>
 </form>

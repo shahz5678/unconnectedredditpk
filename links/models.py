@@ -138,12 +138,23 @@ class Link(models.Model):
 	net_votes = models.IntegerField(default=0) #only counts votes, for censorship purposes
 	url = models.URLField("website (agr hai):", max_length=250, blank=True)
 	cagtegory = models.CharField("Category", choices=CATEGS, default=1, max_length=25)
-	image_file = models.ImageField("Photo charhao:",upload_to=upload_to_links, null=True, blank=True )
+	image_file = models.ImageField(null=True, blank=True,upload_to=upload_to_links)#models.ImageField("Photo charhao:",upload_to=upload_to_links, null=True, blank=True )
 	latest_reply = models.ForeignKey('links.Publicreply', blank=True, null=True, db_index=True, on_delete=models.CASCADE)#models.SET_NULL)
 	
+	# new fields
+	web_link = models.TextField(validators=[MaxLengthValidator(120)])# saves link (e.g. video, audio)
+	trending_status = models.CharField(max_length=5,default='0')# is the content hot, trending, not-trending
+	comment_status = models.CharField(max_length=5)# is commenting allowed ('0' means disallowed, '1' means allowed)
+	delete_status = models.CharField(max_length=5)# is the content deleted ('0' or '1')
+	type_of_content = models.CharField(max_length=5)# what type of content is it ('t' - 'text', 'g' - 'img', 'v' - 'video', 'd'- 'audio')
+	audience = models.CharField(max_length=5)# what type of audience ('p' - 'public', 'a' - 'all followers', 's' - 'selective followers')
+	mortality = models.CharField(max_length=5)# does it expire ('i'- 'immortal', 'm' - 'mortal')
+	expire_at = models.IntegerField()# when does it expire (in Integer)
+
+	# outdated
 	with_votes = LinkVoteCountManager() #change this to set_rank()
 	objects = models.Manager() #default, in-built manager
-	
+
 	def __unicode__(self): # built-in function
 		return self.description
 		#return self.upvote+self.downvote
@@ -343,6 +354,28 @@ class UserFan (models.Model):
 	star = models.ForeignKey(User, related_name='star')
 	fan = models.ForeignKey(User, related_name='fan')
 	fanning_time = models.DateTimeField(db_index=True)
+	fan_verification_status = models.CharField(max_length = 10)# is the fan verified or not
+	mute_status = models.CharField(max_length = 10) #Dont send fanout the fan if muted status 
+	fan_relationship_status = models.CharField(max_length = 10)	# Create finite lists of followers
+	
+	"""
+	fan verification status: 
+	'0' if fan is not-verified
+	'1' if fan is verified
+
+	mute_status = models.CharField(max_length = 10)
+	mute_status:
+	- star ID has muted the follower, follower ID has muted the star
+	- star ID has not muted the follower, follower ID has not muted the star
+	- star ID has not muted the follower, follower ID has muted the star
+	- star ID has muted the follower, follower ID has not muted the star
+
+	fan_relationship_status = models.CharField(max_length = 10)
+	fan_relationship_status:
+	- the follower ID is part of an 'inner circle'
+	- the follower ID is not part of any 'inner circle'
+
+	"""
 
 	def __unicode__(self):
 		return u"%s became a fan of %s" % (self.fan, self.star)
@@ -391,15 +424,22 @@ class Reply(models.Model):
 		return u"%s replied %s in group %s" % (self.writer, self.text, self.which_group.topic)
 
 class PhotoObjectSubscription(models.Model):
+	"""
+	viewer is the object submitter
+	updated_at is time of submission
+	type_of_object is ('tp','gp','tai','tam','gai','gam','tsi','gsi','tsm','gsm')
+	expire_at contains when an object expires
+	seen is used for deletion
+	"""
 	viewer = models.ForeignKey(User)
-	updated_at = models.DateTimeField(db_index=True)
+	updated_at = models.DateTimeField(db_index=True,auto_now_add=True)
 	seen = models.BooleanField(default=True, db_index=True)
 	type_of_object = models.CharField(choices=OBJECTS, default='0', max_length=15)
+	expire_at = models.IntegerField(default=None)
 	which_photo = models.ForeignKey(Photo, null=True, blank=True)
 	which_link = models.ForeignKey(Link, null=True, blank=True)
 	which_group = models.ForeignKey(Group, null=True, blank=True)
 	which_salat = models.ForeignKey(SalatInvite, null=True, blank=True)
-
 
 class GroupSeen(models.Model):
 	seen_user = models.ForeignKey(User)
@@ -410,17 +450,20 @@ class GroupSeen(models.Model):
 		return u"%s saw %s" % (self.seen_user, self.which_reply)
 
 class Vote(models.Model):
-	voter = models.ForeignKey(User) #what user.id voted
-	link = models.ForeignKey(Link) #which link did the user vote on
+	voter = models.ForeignKey(User) #what follower has permission to view this obj
+	link = models.ForeignKey(Link) #which link obj was shared
 	value = models.IntegerField(null=True, blank=True, default=0)
 
 	def __unicode__(self):
 		return u"%s gave %s to %s" % (self.voter.username, self.value, self.link.description)
 
 class Cooldown(models.Model):
-	voter = models.ForeignKey(User)
-	time_of_casting = models.DateTimeField() #Max 10 votes, regenerate a vote after 30 mins.
-	hot_score = models.IntegerField(default=0, validators=[MaxValueValidator(12)])
+	"""
+	Model saves trending content information - useful for populating a sitemap (SEO purposes)
+	"""
+	content = models.ForeignKey(Link)
+	time_of_casting = models.DateTimeField(auto_now_add=True) #Max 10 votes, regenerate a vote after 30 mins.
+	hot_score = models.IntegerField(default=0)
 
 class LatestSalat(models.Model):
 	salatee = models.ForeignKey(User)
@@ -457,14 +500,21 @@ class UserProfile(models.Model):
 		return u'/users/%s' % self.user
 
 class Report(models.Model):
-	reporter = models.ForeignKey(User, related_name='reporter')
-	target = models.ForeignKey(User, related_name ='target')
+	"""
+	Saves permission of targeted posts that fan-out to selctive users
+
+	Mislabeled due to legacy reasons
+	Should be called 'PostAccessPermission'
+	"""
+	reporter = models.ForeignKey(User, related_name='reporter')# poster ID
+	target = models.ForeignKey(User, related_name ='target')# follower ID
+	which_link = models.ForeignKey(Link, null=True, blank=True)# content ID this permission instance refers to
+	which_photo = models.ForeignKey(Photo, null=True, blank=True)# content ID this permission instance refers to
+	reported_at = models.DateTimeField(db_index=True, auto_now_add=True)# time of granting access permission
+	###############################
 	report_origin = models.CharField(db_index=True, choices=ORIGINS, default=1, max_length=20)
 	report_reason = models.TextField(blank=True, validators=[MaxLengthValidator(500)])
-	reported_at = models.DateTimeField(db_index=True, auto_now_add=True)
-	which_link = models.ForeignKey(Link, null=True, blank=True)
 	which_publicreply = models.ForeignKey('links.Publicreply', null=True, blank=True)
-	which_photo = models.ForeignKey(Photo, null=True, blank=True)
 	which_photocomment = models.ForeignKey(PhotoComment, null=True, blank=True)
 	which_group = models.ForeignKey(Group, null=True, blank=True)
 	which_reply = models.ForeignKey(Reply, null=True, blank=True)

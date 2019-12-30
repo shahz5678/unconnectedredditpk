@@ -11,7 +11,8 @@ retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id, log_ak
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points, log_user_activity
 from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME#, SEGMENT_STARTING_USER_ID
-from views import convert_to_epoch
+from redis9 import change_verification_status
+from utilities import convert_to_epoch
 from redis4 import retrieve_uname
 from redis8 import retrieve_var
 from models import UserProfile
@@ -40,6 +41,7 @@ def verify_user_artificially(request):
 					mobile_data = {'national_number':random_string,'number':random_string,'country_prefix':'92'}
 					with_points = request.POST.get("wth_pts",None)
 					save_consumer_number(account_kid_id,mobile_data,valid_user_id)
+					change_verification_status(valid_user_id,'verified')
 					if with_points == '1':
 						UserProfile.objects.filter(user_id=valid_user_id).update(score=F('score')+500)
 					
@@ -68,6 +70,7 @@ def unverify_user(request):
 			if processed_form.is_valid():
 				target_id = processed_form.cleaned_data['user_id']
 				numbers_released = unverify_user_id(target_id)
+				change_verification_status(target_id,'unverified')
 				return render(request,"verification/unverify_user.html",{'form':UnverifyUserIDForm(),\
 					'unverified_id':target_id,'numbers_released':numbers_released})
 			else:
@@ -398,6 +401,7 @@ def pin_verification(request):
 							number ='+92'+national_number	
 							mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
 							save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
+							change_verification_status(user_id,'verified')
 							set_personal_group_mobile_num_cooloff(user_id)
 							if their_anon_status is None:
 								return redirect("home")
@@ -435,6 +439,7 @@ def pin_verification(request):
 					number ='+92'+national_number	
 					mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
 					save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
+					change_verification_status(user_id,'verified')
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					twiliolog_user_verified()
 					log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())

@@ -1,0 +1,168 @@
+{% extends "base_noindex.html" %}
+{% load human_time %}
+{% load get_block_button %}
+{% load get_group_button %}
+{% load emoticons_tags %}
+{% load s3 %}
+{% block content %}
+
+{% if obj_deleted %}
+
+    <head><title>Does not exist | Damadam</title></head>
+    <style>body{background: #E9EBEE}</style>
+    <h1 class="cxl clb lsp" style="text-align:center">Sorry! Ye exist nahi karta</h1>
+    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+
+        <div class="cxl lsp">Ap jo dhoond rehay hain woh exist nahi karta</div>
+        <hr size=1 COLOR="#e5e7e9">
+        <div class="sp lsp mts cgy">Mumqin hai woh delete ho chuka ho. Ab ap Damadam mein kahan jana chahtey hain?</div>
+
+        <div class="mtl" style="text-align:center">
+        <a href="{% url 'home' %}"><button class="btn bct mrl bl cl mbs pg_ok_res" style="border:none;height:30px;">Home</button></a>
+        <a href="{% url 'photo' 'best-list' %}"><button class="btn bco bl mrl cl mts mbs pg_ok_res" style="border:none;height:30px;">Photos</button></a>
+        <a href="{% url 'group_page' %}"><button class="btn bcg mrl bl cl mts mbs pg_ok_res" style="border:none;height:30px;">Mehfil</button></a>
+        <a href="{% url 'retrieve_direct_responses' %}"><button class="btn bcp mrl bl cl mts pg_ok_res" style="border:none;height:30px;">Inbox</button></a>
+        </div>
+
+    </div>
+    <br><br>
+
+{% else %}
+
+    <head><title>Comments on photo titled {{ photo.caption }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam</title></head>
+    <style>body{background:#f0f3f4}</style>
+
+    <div style="margin: 0 auto;max-width:750px;width:98%">
+
+    {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
+
+    {% if authorized %}
+
+    <h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ target_username|truncatechars:'13' }}'s photo:</h1>
+    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="bizcard">
+        
+        <form method="POST" style="overflow:hidden;text-align:center" action="{% url 'redirect_to_content' %}">
+        {% csrf_token %}<input type="hidden" name="obid" value="{{ photo_id }}"><input type="hidden" name="orig" value="{{ origin }}"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="oun" value="{{ target_username }}">
+        <button type="submit" class="cm" style="background:0 0;padding:0;border:none">
+            {% if photo.vote_score < VDC %}
+                <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="photo" style="border-radius:4px" width="38" height="38">
+            {% else %}
+                <div class="fx fxjscn fxaicn">
+                    <img src="{{ photo.image_file|s3:"thumb" }}" alt="photo" height="38" class="mt mrs ibb" style="border:1px solid dodgerblue;width:auto;border-radius:5px">
+                    <div style="text-align:left;color:black" class="cs sp lsp">{% emoticons %}{{ photo.caption }}{% endemoticons %}</div>
+                </div>
+            {% endif %}
+        </button>
+        </form>
+
+    </div>
+    <div style="background-color:white;padding:10px 7px;margin-bottom:15px" class="clb bizcard">
+
+        <div class="mts">
+        {% for comment in comments %}
+        
+        {% if forloop.counter != 1 %}<hr size=1 COLOR="#E9EBEE">{% endif %}
+            
+        {% if not on_fbs and forloop.counter == 3 %}
+
+            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+            <div style="background:snow;text-align:center;padding-bottom:5px">
+                <ins class="adsbygoogle"
+                     style="display:inline-block;width:320px;height:50px"
+                     data-ad-client="ca-pub-2568547635306983"
+                     data-ad-slot="5048924461"></ins>
+                <script>
+                (adsbygoogle = window.adsbygoogle || []).push({});
+                </script>
+            </div>
+
+        {% endif %}
+
+        {% if comment.abuse %}
+            
+            <span class="cs sp" style="color:#999"><b><a href="{% url 'user_profile' comment.submitted_by__username %}" style="color:#999"><bdi>{{ comment.submitted_by__username }}</bdi></a></b>&nbsp;ka reply hide ho gya</span>
+        
+        {% else %}
+
+        {% if user_id == comment.submitted_by %}<div style="overflow:hidden;background-color:ivory">{% else %}<div style="overflow:hidden">{% endif %}
+            
+            {% if comment.direct_reply_tgt_uname and comment.direct_reply_tgt_text_prefix %}
+
+                <!-- reference visible -->
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+            
+                {% if authenticated %}
+
+                    {% include "direct_response/reference_snippet.html" with tgt_uname=comment.direct_reply_tgt_uname reply_prefix=comment.direct_reply_tgt_text_prefix|emoticons reply_postfix=comment.direct_reply_tgt_text_postfix|emoticons %}
+
+                {% endif %}
+            
+            {% elif comment.direct_reply_tgt_uname and comment.direct_reply_id %}
+
+                <!-- reference hidden -->
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+            
+                {% if authenticated %}
+
+                    {% include "direct_response/reference_snippet.html" with tgt_uname=comment.direct_reply_tgt_uname state='1' %}
+
+                {% endif %}
+
+            {% else %}
+                
+                <!-- no reference -->
+                <a href="{% url 'user_profile' comment.submitted_by__username %}" class="cm" style="color:black"><b>{{ comment.submitted_by__username }}</b></a>{% if comment.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ comment.text }}{% endemoticons %}</bdi></span><span class="cxs sp cgy mls mrl"><bdi>{{ comment.submitted_on|human_time }}</bdi></span>
+
+                {% if authenticated %}
+
+                    {% if comment.submitted_by == photo_owner_id %}
+                        <!-- op's reply -->
+                    {% else %}
+                        <!-- someone else's reply -->
+                        {% include "direct_response/reference_snippet.html" with tgt_uname=comment.direct_reply_tgt_uname state='2' %}
+                    {% endif %}
+
+                {% endif %}
+
+            {% endif %}
+
+            </div>
+        {% endif %}
+        
+        {% empty %}
+        <div class="cgy sp" style="text-align:center">Replies exist nahi kartey</div>
+        
+        {% endfor %}
+        </div>
+
+    </div>
+
+       <div class="mls mbl">
+        <div class="cs cgy mtl mbs"><b>Emojis banane ke liye unke sath likha '.' aur harf likhein:</b></div>
+        {% if feature_phone %}<a href="{% url 'faces_pages' %}" class="cxs">{% else %}<a href="{% url 'faces' %}" class="cxs sp">{% endif %}emojis full list</a>
+
+        {% emoticons_index as emoticons_list %}
+
+        {% for emoticons in emoticons_list %}
+        {% if forloop.counter in random %}
+        <p>{{ emoticons.0|emoticons }}&nbsp;&nbsp;<b class="clb">{{ emoticons.0 }}</b></p>
+        {% endif %}
+        {% endfor %}
+        </div>
+
+    {% else %}
+
+    <h1 style="text-align:center" class="clb cxl lsp">Ye available nahi hai!</h1>
+
+    <div style="background-color:white;padding:10px 7px;max-width:400px;margin:0 auto;text-align:center" class="clb bizcard">
+
+        <div class="mt lsp mbs">Damadam ke home page pe janey ke liye ye button dabain:</div>
+        <a href="{% url 'home' %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:30px;width:90%">HOME</button></a>
+
+    </div>
+    <br>
+    {% endif %}
+
+    </div>
+{% endif %}
+{% endblock %}

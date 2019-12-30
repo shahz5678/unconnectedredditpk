@@ -16,7 +16,7 @@
 	{% endif %}
 
 	<form action="{% url 'post_direct_response' %}" class="mts" method="POST" style="display:inline">
-	    {% csrf_token %}<input type="hidden" name="srep" value="1"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="poid" value="{{ poid }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="tuid" value="{{ tuid }}"><input type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="top_url" value="{{ topic_url }}">
+	    {% csrf_token %}<input type="hidden" name="srep" value="1"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="poid" value="{{ poid }}"><input type="hidden" name="obid" value="{{ obid }}"><input type="hidden" name="tuid" value="{{ tuid }}"><input type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="{{ origin }}"><input type="hidden" name="top_url" value="{{ topic_url }}"><input type="hidden" name="rorigin" value="{{ rorigin }}">
 
 	    <div style="border-top:1px solid #ececec;background:#ecfffb">{{ form.direct_response }}</div>
 

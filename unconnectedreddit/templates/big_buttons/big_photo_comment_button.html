@@ -1,13 +1,13 @@
 {% if star_id %}
-<a itemprop="discussionUrl" href="{% url 'comment_pk' photo_id origin star_id %}" style="margin-bottom:4px;margin-right:4px">
+<a itemprop="discussionUrl" href="{% url 'comment' photo_id origin %}" style="margin-bottom:4px;margin-right:4px">
 <button class="vt" style="padding:0;border:1px solid #3CB7DD;width:50px;height:42px;color:#3CB7DD;font-size:12px;text-align:center"><div class="mt mbs" itemprop="commentCount">{% if comm_count > 999 %}999+{% else %}{{ comm_count }}{% endif %}</div><div style="font-size:8.2px;color:#3CB7DD" class="mt">{% if comm_count == 1 %}REPLY{% else %}REPLIES{% endif %}</div></button>
 </a>
 {% elif comm_count > 0 %}
-<a itemprop="discussionUrl" href="{% url 'comment_pk' photo_id origin %}" style="margin-bottom:4px;margin-right:4px">
+<a itemprop="discussionUrl" href="{% url 'comment' photo_id origin %}" style="margin-bottom:4px;margin-right:4px">
 <button class="vt" style="padding:0;border:1px solid #3CB7DD;width:50px;height:42px;color:#3CB7DD;font-size:12px;text-align:center"><div class="mt mbs" itemprop="commentCount">{% if comm_count > 999 %}999+{% else %}{{ comm_count }}{% endif %}</div><div style="font-size:8.2px;color:#3CB7DD" class="mt">{% if comm_count == 1 %}REPLY{% else %}REPLIES{% endif %}</div></button>
 </a>
-{% elif origin == '5' or from_single_notif %}
-<a itemprop="discussionUrl" href="{% url 'comment_pk' photo_id origin %}" style="margin-bottom:4px;margin-right:4px">
+{% elif origin == '5' or origin == '34' %}
+<a itemprop="discussionUrl" href="{% url 'comment' photo_id origin %}" style="margin-bottom:4px;margin-right:4px">
 <button class="vt" style="padding:0;border:1px solid #3CB7DD;width:50px;height:42px;color:#3CB7DD;font-size:12px;text-align:center"><div class="mbs mt" itemprop="commentCount">{% if comm_count > 999 %}999+{% else %}{{ comm_count }}{% endif %}</div><div style="font-size:8.2px;color:#3CB7DD" class="mt">{% if comm_count == 1 %}REPLY{% else %}REPLIES{% endif %}</div></button>
 </a>
 {% endif %}

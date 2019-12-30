@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if target_not_verified %}
+
+	<head><title>Cannot complete action | Damadam</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! <b>{{ target_uname }}</b> ne account verify nahi karwaya hua</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="sp lsp mts">Agr {{ target_uname }} account verify karwa lein tou ap inko follow kar sakein ge</div>
+
+{% elif target_user_banned %}
+
+	<head><title>Cannot complete action | Damadam</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap <b>{{ target_uname }}</b> ko follow nahi kar saktey kyun ke <b>{{ target_uname }}</b> banned hain</div>
+	<hr size=1 COLOR="#e5e7e9">
+
+{% elif user_banned %}
+
+	<head><title>Cannot complete action | Damadam</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap <b>{{ target_uname }}</b> ko kuch time ke liay follow nahi ker sakte</div>
+	<hr size=1 COLOR="#e5e7e9">
+
+{% elif user_rate_limited %}
+
+	<head><title>Cannot complete action | Damadam</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap kuch time tak <b>{{ target_uname }}</b> ko follow nahi kar sakte</div>
+	<hr size=1 COLOR="#e5e7e9">	
+
+{% elif removal_rate_limited %}
+	
+	{% load future_time %}
+	<head><title>Cannot complete action | Damadam</title></head>
+	<style>body{background: #E9EBEE}</style>
+	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Remove Post!</span></h1>
+
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="cxl lsp">Sorry! Ap dubara post remove kar sakein ge {{ ttl|future_time }}</div>
+	<hr size=1 COLOR="#e5e7e9">
+	<div class="cgy">
+		<b class="cl sp lsp">Removal help:</b><br>
+		<div class="sp cs lsp" style="text-align:left">
+		<div class="mt">1) Followers ke paas se post remove nahi hoti</div>
+		<div class="mts">2) Sirf apki history aur home (ya topics) se post remove hoti hai</div>
+		<div class="mts">3) Public posts remove karney ke baad dubara post remove karney ke liye {{ human_readable_rate_limit }} intezar karna parta hai</div>
+		</div>
+	</div>
+	<hr size=1 COLOR="#e5e7e9">
+
+{% endif %}
+
+	<form method="POST" class="mtl mbl" action="{% url 'redirect_to_content' %}">
+		{% csrf_token %}
+		<input type="hidden" name="obid" value="{{ obid }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="orig" value="{{ orig }}">
+		<input type="hidden" name="oun" value="{{ target_uname }}">
+		<button type="submit" class="btn bm bcb pg_ok_res" style="height:28px">OK</button>
+	</form>
+
+</div>
+<br>
+{% endblock %}

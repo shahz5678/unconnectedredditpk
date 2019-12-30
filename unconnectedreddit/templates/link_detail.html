@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+{% extends noindex|yesno:"base_noindex.html,base.html" %}
 {% load humanize %}
 {% block content %}
-<head><title>Post detail | Damadam.pk</title></head>
+<head><title>Post detail | Damadam</title></head>
 
 <style>body{background: #E9EBEE}</style>
 
 <div class="cxl clb mbl mtl" style="font-weight:bold;text-align:center">{{ obj.submitter }}'s post:</div>
 <div class="clb" style="margin: 0 auto;max-width:600px;width:93%">
   <div class="bizcard" style="background-color:white;padding:10px">
-    <div style="text-align:left" class="cl lsp mbl">{{ obj.description|linebreaksbr }}</div>
+    <div style="text-align:left;overflow:hidden;word-wrap:break-word;" class="cl lsp mbl">{{ obj.description|linebreaksbr }}</div>
     <div style="text-align:right" class="cs sp mbs"><span class="cgy">posted {{ obj.submitted_on|naturaltime }}</span></div>
   </div>
 </div>

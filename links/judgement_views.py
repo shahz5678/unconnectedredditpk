@@ -2,7 +2,7 @@ import time
 import ujson as json
 from datetime import datetime, timedelta
 from operator import itemgetter
-from django.db.models import F
+from django.db.models import F, Q
 from django.http import Http404
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render
@@ -14,7 +14,8 @@ from django.utils import timezone
 from templatetags.s3 import get_s3_object
 from models import Photo, UserProfile, Link
 from page_controls import ITEMS_PER_PAGE, ITEMS_PER_PAGE_IN_ADMINS_LEDGER
-from views import get_price, get_addendum, get_page_obj, convert_to_epoch
+from views import get_price, get_addendum, get_page_obj
+from utilities import convert_to_epoch
 from redirection_views import return_to_content
 from judgement_forms import PhotoReportForm, DefenderBlockingReasonForm, AddDefenderIDForm, RemDefenderIDForm
 from tasks import process_reporter_payables, sanitize_expired_bans, post_banning_tasks, remove_target_users_posts_from_all_feeds,\
@@ -35,7 +36,7 @@ from redis6 import retrieve_group_reqd_data, freeze_reported_group_functionality
 retrieve_group_rules, get_reported_group_info
 from redis4 import return_referrer_logs, retrieve_uname, retrieve_bulk_unames, freeze_critical_profile_functionality, retrieve_credentials
 from verified import FEMALES
-
+from redis9 import invalidate_cached_user_feed_history
 
 SEVEN_MINS = 7*60
 TWENTY_MINS = 20*60
@@ -584,8 +585,6 @@ def content_culling_instructions(request):
 def cull_content_loc(request,obj_id,obj_type):
 	"""
 	Helps in landing back at exact spot when defender checks out object details in cull list (e.g. to see what the pixellated image actually is)
-	
-	TODO: change page_obj calc (from get_page_obj()) to something else so that it's JSON serializable
 	"""
 	complaints = get_content_complaints()
 	try:
@@ -597,9 +596,9 @@ def cull_content_loc(request,obj_id,obj_type):
 	detailed_complaints = get_complaint_details(page_obj.object_list)
 	object_list = sorted(detailed_complaints,key=itemgetter('n'),reverse=True) #sorting by the number of complaints
 	url = reverse_lazy("cull_content")+addendum
-	request.session['page_object'] = page_obj
-	request.session['oblst'] = object_list
-	request.session['total'] = len(complaints)
+	# request.session['page_object'] = page_obj
+	# request.session['oblst'] = object_list
+	# request.session['total'] = len(complaints)
 	return redirect(url)
 
 
@@ -645,15 +644,19 @@ def cull_content(request,*args,**kwargs):
 				# type is 'image' (by default)
 				img_url, text = request.POST.get("purl",None), request.POST.get("txt",None)
 				topic, rules, tgt_uname, tgt_avurl = None, None, None, None
-				ooid = str(Photo.objects.only('owner').get(id=obid).owner_id)# obj owner id
-
-			#################
+				obj = Link.objects.only('submitter','type_of_content').get(id=obid)
+				if obj.type_of_content:
+					ooid = str(obj.submitter_id) #obj owner id
+				else:
+					# this is a legacy obj
+					ooid = str(Photo.objects.only('owner').get(id=obid).owner_id)
+			##################################
 			already_banned, time_remaining, ban_detail = check_content_and_voting_ban(ooid, with_details=True)
 			if already_banned:
 				can_edit, reason = can_edit_ban(own_id, ban_detail['did'], ooid)
 			else:
 				can_edit, reason = True, None
-			#################
+			##################################
 			if reason == 'not_defender':
 				raise Http404("You are not an authorized defender")
 			elif ooid == str(own_id):
@@ -763,7 +766,12 @@ def cull_content(request,*args,**kwargs):
 						payload = Link.objects.only('description').get(id=obid).description
 					elif tp == 'img':
 						# type is 'image'
-						payload = Photo.objects.only('image_file').get(id=obid).image_file.url
+						obj = Link.objects.only('image_file','type_of_content').get(id=obid)
+						if obj.type_of_content:
+							payload = obj.image_file.url
+						else:
+							# handling legacy object
+							payload = Photo.objects.only('image_file').get(id=obid).image_file.url
 					log_case_closure(defender_id=own_id, defender_uname=retrieve_uname(own_id,decode=True), obj_id=obid, obj_type=tp,\
 						owner_uname=retrieve_uname(ooid,decode=True), reporter_data=reporter_uname_report_type_and_result, obj_data=payload, \
 						time_now=time.time())
@@ -936,7 +944,12 @@ def judge_content_voters(request):
 								raise Http404("Object does not exist")
 						else:
 							try:
-								obj_owner_id = Photo.objects.only('owner').get(id=obj_id).owner_id
+								obj = Link.objects.only('submitter','type_of_content').get(id=obj_id)
+								if obj.type_of_content:
+									obj_owner_id = obj.submitter_id
+								else:
+									# handling legacy object
+									obj_owner_id = Photo.objects.only('owner').get(id=obj_id).owner_id
 								reference = data['purl']
 							except Photo.DoesNotExist:
 								# cannot ban item that doesnt exist
@@ -986,6 +999,14 @@ def judge_content_voters(request):
 								ban_time = impose_content_and_voting_ban(target_user_ids=unbanned_ids, target_usernames=target_usernames,ban_duration=voting_ban_dur, \
 									current_time=time.time(), banner_uname=retrieve_uname(own_id, decode=True), obj_type=tp, obj_id=obj_id, obj_owner_uname=oun, \
 									obj_owner_id=obj_owner_id, ban_reason=reason, reference=reference, banner_id=own_id, sin=saved_sin)
+								####### Invalidating cached profile history of perp #############
+								#################################################################
+								for unbanned_id in unbanned_ids:
+									invalidate_cached_user_feed_history(unbanned_id,'public')
+									invalidate_cached_user_feed_history(unbanned_id,'limited')
+									invalidate_cached_user_feed_history(unbanned_id,'private')
+								#################################################################
+								#################################################################
 								if ban_time:
 									if from_cull == '1':
 										request.session["report_judged"] = '1'
@@ -1024,6 +1045,14 @@ def judge_content_voters(request):
 								ban_time = impose_content_and_voting_ban(target_user_ids=unbanned_ids, target_usernames=target_usernames,ban_duration=voting_ban_dur, \
 									current_time=time.time(), banner_uname=retrieve_uname(own_id, decode=True), obj_type=tp, obj_id=obj_id, obj_owner_uname=oun, \
 									obj_owner_id=obj_owner_id, ban_reason=reason, reference=reference, banner_id=own_id, sin=saved_sin)
+								####### Invalidating cached profile history of perp #############
+								#################################################################
+								for unbanned_id in unbanned_ids:
+									invalidate_cached_user_feed_history(unbanned_id,'public')
+									invalidate_cached_user_feed_history(unbanned_id,'limited')
+									invalidate_cached_user_feed_history(unbanned_id,'private')
+								#################################################################
+								#################################################################
 								if ban_time:
 									if from_cull == '1':
 										request.session["report_judged"] = '1'
@@ -1226,7 +1255,12 @@ def judge_content_submitters(request):
 								raise Http404("Object does not exist")
 						else:
 							try:
-								obj_owner_id = Photo.objects.only('owner').get(id=obj_id).owner_id
+								obj = Link.objects.only('submitter','type_of_content').get(id=obj_id)
+								if obj.type_of_content:
+									obj_owner_id = obj.submitter_id
+								else:
+									# handling legacy objects
+									obj_owner_id = Photo.objects.only('owner').get(id=obj_id).owner_id
 								reference = data['purl']
 							except Photo.DoesNotExist:
 								# cannot ban item that doesnt exist
@@ -1289,6 +1323,13 @@ def judge_content_submitters(request):
 								ban_time = impose_content_and_voting_ban(target_user_ids=[obj_owner_id], target_usernames=[oun],ban_duration=data['dur'], \
 									current_time=time.time(), banner_uname=retrieve_uname(own_id, decode=True), obj_type=tp, obj_id=obj_id, obj_owner_uname=oun, \
 									obj_owner_id=obj_owner_id, ban_reason=reason, reference=reference, banner_id=own_id, sin=saved_sin)
+								####### Invalidating cached profile history of perp #############
+								#################################################################
+								invalidate_cached_user_feed_history(obj_owner_id,'public')
+								invalidate_cached_user_feed_history(obj_owner_id,'limited')
+								invalidate_cached_user_feed_history(obj_owner_id,'private')
+								#################################################################
+								#################################################################
 								if ban_time:
 									# since it's a bad content submission sin, cut votes from the target submission as well
 									if tp  == 'tx':
@@ -1296,7 +1337,11 @@ def judge_content_submitters(request):
 										Link.objects.filter(id=obj_id).update(net_votes=-100)
 									else:
 										is_pht = '1'
-										Photo.objects.filter(id=obj_id).update(vote_score=-100)#ensuring the photo object will remain censored even after unbanning
+										if Link.objects.filter(id=obj_id,type_of_content='g').exists():
+											Link.objects.filter(id=obj_id).update(net_votes=-100)#ensuring the photo object will remain censored even after unbanning
+										else:
+											# handling legacy objects
+											Photo.objects.filter(id=obj_id).update(vote_score=-100)
 									if from_cull == '1':
 										# Do not cleanse_feeds when report category is '9' or '10' (and defender originates from cull_list)
 										remove_target_users_posts_from_all_feeds.delay(target_user_id=obj_owner_id,\
@@ -1960,12 +2005,27 @@ def report_content(request,*args,**kwargs):
 							orig_time = orig_link.submitted_on
 							dup_time = dup_link.submitted_on
 						elif tp == 'img':
-							orig_img = Photo.objects.only('upload_time','owner').get(id=orig_obid)
-							dup_img = Photo.objects.only('upload_time','owner').get(id=dup_obid)
-							orig_submitter_id = orig_img.owner_id
-							dup_submitter_id = dup_img.owner_id
-							orig_time = orig_img.upload_time
-							dup_time = dup_img.upload_time
+							#########################################################
+							orig_img = Link.objects.only('submitted_on','submitter','type_of_content').get(id=orig_obid)
+							if orig_img.type_of_content:
+								orig_submitter_id = orig_img.submitter_id
+								orig_time = orig_img.submitted_on
+							else:
+								# 'type_of_content' doesn't exist - meaning it's a legacy object
+								orig_img = Photo.objects.only('upload_time','owner').get(id=orig_obid)
+								orig_submitter_id = orig_img.owner_id
+								orig_time = orig_img.upload_time
+							#########################################################
+							dup_img = Link.objects.only('submitted_on','submitter','type_of_content').get(id=dup_obid)
+							if dup_img.type_of_content:
+								dup_submitter_id = dup_img.submitter_id
+								dup_time = dup_img.submitted_on
+							else:
+								# 'type_of_content' doesn't exist - meaning it's a legacy object
+								dup_img = Photo.objects.only('upload_time','owner').get(id=dup_obid)
+								dup_submitter_id = dup_img.owner_id
+								dup_time = dup_img.upload_time
+							#########################################################
 						else:
 							return return_to_content(request,orig,dup_obid,lid,oun)
 						if orig_time > dup_time:
@@ -1997,21 +2057,32 @@ def report_content(request,*args,**kwargs):
 							return redirect("judge_not_and_red")#judgement module's notify_and_redirect function
 						elif dec in ('9','10'):
 							# file report - our required data is complete (and sane)
-							# prc = get_price(request.user.userprofile.score)#don't rely on price POST parameter - get it again
 							if tp == 'tx':
 								orig_description = Link.objects.only('description').get(id=orig_obid).description
-								dup_description = Link.objects.only('description').get(id=dup_obid).description
+								dup = Link.objects.only('description','type_of_content').get(id=dup_obid)
 								ttl = set_complaint(report_desc=TEXT_REPORT_PROMPT[dec], rep_type=dec, obj_id=dup_obid, obj_owner_id=dup_submitter_id, \
-									obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(), obj_txt=dup_description, orig_obid=orig_obid, \
-									orig_txt=orig_description,reported_item_ct=convert_to_epoch(dup_time), orig_item_ct=convert_to_epoch(orig_time))
+									obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(), obj_txt=dup.description, orig_obid=orig_obid, \
+									orig_txt=orig_description,reported_item_ct=convert_to_epoch(dup_time), orig_item_ct=convert_to_epoch(orig_time),\
+									new_obj_type=dup.type_of_content)
 							else:
-								orig_image = get_s3_object(Photo.objects.only('image_file').get(id=orig_obid).image_file)#full fledged image file, not thumb
-								data = Photo.objects.filter(id=dup_obid).values_list('image_file','caption')[0]#do not rely on 'purl' and 'cap' POST variables
-								dup_image = get_s3_object(data[0],category="thumb")
-								ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=dup_obid, obj_owner_id=dup_submitter_id, \
-									obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(), img_caption=data[1], obj_url=dup_image, \
-									orig_obid=orig_obid, orig_url=orig_image, reported_item_ct=convert_to_epoch(dup_time), \
-									orig_item_ct=convert_to_epoch(orig_time))
+								orig_obj = Link.objects.only('image_file','type_of_content').get(id=orig_obid)
+								if orig_obj.type_of_content:
+									orig_image = get_s3_object(orig_obj.image_file)#full fledged image file, not thumb
+									data = Link.objects.filter(id=dup_obid).values_list('image_file','description')[0]#do not rely on 'purl' and 'cap' POST variables
+									dup_image = get_s3_object(data[0],category="thumb")
+									ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=dup_obid, obj_owner_id=dup_submitter_id, \
+										obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(), img_caption=data[1], obj_url=dup_image, \
+										orig_obid=orig_obid, orig_url=orig_image, reported_item_ct=convert_to_epoch(dup_time), \
+										orig_item_ct=convert_to_epoch(orig_time),new_obj_type='g')
+								else:
+									# this is a legacy object
+									orig_image = get_s3_object(Photo.objects.only('image_file').get(id=orig_obid).image_file)
+									data = Photo.objects.filter(id=dup_obid).values_list('image_file','caption')[0]
+									dup_image = get_s3_object(data[0],category="thumb")
+									ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=dup_obid, obj_owner_id=dup_submitter_id, \
+										obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(), img_caption=data[1], obj_url=dup_image, \
+										orig_obid=orig_obid, orig_url=orig_image, reported_item_ct=convert_to_epoch(dup_time), \
+										orig_item_ct=convert_to_epoch(orig_time))
 							if ttl:
 								# the person is either rate limited from reporting, or is reporting the same item again
 								own_id = str(own_id)
@@ -2054,17 +2125,25 @@ def report_content(request,*args,**kwargs):
 							feedback_text = form.cleaned_data.get("description")
 							try:
 								if tp == 'tx':
-									data = Link.objects.only('submitted_on','description','submitter').get(id=obid)#do not rely on 'cap' POST variable
-									creation_time, description, submitter_id = convert_to_epoch(data.submitted_on), data.description, data.submitter_id
-									ttl = set_complaint(report_desc=TEXT_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=submitter_id, obj_type=tp, \
-										price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, obj_txt=description, \
-										reported_item_ct=creation_time)
+									data = Link.objects.only('submitted_on','description','submitter','type_of_content').get(id=obid)#do not rely on 'cap' POST variable
+									creation_time = convert_to_epoch(data.submitted_on)
+									ttl = set_complaint(report_desc=TEXT_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=data.submitter_id, \
+										obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, obj_txt=data.description, \
+										reported_item_ct=creation_time,new_obj_type=data.type_of_content)
 								elif tp == 'img':
-									data = Photo.objects.only('image_file','caption','upload_time','owner').get(id=obid)#do not rely on 'purl' and 'cap' POST variables
-									img_thumb = get_s3_object(data.image_file,category="thumb")
-									ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=data.owner_id, obj_type=tp, \
-										price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, img_caption=data.caption, \
-										obj_url=img_thumb, reported_item_ct=convert_to_epoch(data.upload_time))
+									data = Link.objects.only('image_file','description','submitted_on','submitter','type_of_content').get(id=obid)#do not rely on 'purl' and 'cap' POST variables
+									if data.type_of_content:
+										img_thumb = get_s3_object(data.image_file,category="thumb")
+										ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=data.submitter_id, \
+											obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, img_caption=data.description, \
+											obj_url=img_thumb, reported_item_ct=convert_to_epoch(data.submitted_on),new_obj_type='g')
+									else:
+										data = Photo.objects.only('image_file','caption','upload_time','owner').get(id=obid)#do not rely on 'purl' and 'cap' POST variables
+										img_thumb = get_s3_object(data.image_file,category="thumb")
+										ttl = set_complaint(report_desc=PHOTO_REPORT_PROMPT[dec], rep_type=dec, obj_id=obid, obj_owner_id=data.owner_id, \
+											obj_type=tp, price_paid=0, reporter_id=own_id, time_now=time.time(),feedback_text=feedback_text, img_caption=data.caption, \
+											obj_url=img_thumb, reported_item_ct=convert_to_epoch(data.upload_time))
+
 								elif tp == 'pf':
 									# reported profile
 									data = User.objects.filter(id=obid).values_list('date_joined','username')[0]
@@ -2098,7 +2177,7 @@ def report_content(request,*args,**kwargs):
 									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									##################################################################
 									return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':obid,'oun':oun,'tp':tp,\
-										'payload':description if tp == 'tx' else purl,'lid':lid})
+										'payload':data.description if tp == 'tx' else purl,'lid':lid})
 							except (TypeError,AttributeError):
 								return return_to_content(request,orig,obid,lid,oun)
 						else:
@@ -2184,7 +2263,12 @@ def report_content(request,*args,**kwargs):
 								content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
 								report_options = TEXT_REPORT_PROMPT
 							elif type_of_content == 'img':
-								content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
+								obj = Link.objects.only('net_votes','type_of_content').get(id=obj_id)
+								if obj.type_of_content:
+									content_points = obj.net_votes
+								else:
+									# handling legacy obj
+									content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
 								report_options = PHOTO_REPORT_PROMPT
 							else:
 								# if profile being reported - currently there is no way to stop double reporting
@@ -2295,18 +2379,24 @@ def get_content_history(target_id,type_of_content,decision):
 	Return content history for target_id
 
 	Useful when spotting duplicated content in report_content()
-	Decision '10' implies own content was copied
-	Decision '11' implies user is duplicating their content again and again
+	Decision '9' implies own content was copied
+	Decision '10' implies user is duplicating their content again and again
 	"""
-	days_ago = datetime.utcnow()-timedelta(hours=HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES)# currently set to 50 hours ago
+	time_now = datetime.utcnow()
+	days_ago = time_now-timedelta(hours=HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES)# currently set to 50 hours ago
 	if decision == '9':
-		# target_id is own id
+		# target_id is own_id
 		if type_of_content == 'tx':
 			# get own links of past 2 days ordered by time (max: 40 objects)
-			qset = Link.objects.filter(submitter_id=target_id,submitted_on__gte=days_ago).order_by('-id').values_list('description','submitted_on','id')
+			qset = Link.objects.filter(Q(submitter_id=target_id,submitted_on__gte=days_ago,type_of_content='t',audience__in=('p','a'),mortality='i')|\
+				Q(submitter_id=target_id,submitted_on__gte=days_ago,type_of_content='t',audience__in=('p','a'),mortality='m',expire_at__gte=convert_to_epoch(time_now))).\
+			order_by('-id').values_list('description','submitted_on','id')
 		else:
 			# get photos of past 2 days (max: 40 objects)
-			qset = Photo.objects.filter(owner_id=target_id,upload_time__gte=days_ago).order_by('-id').values_list('image_file','upload_time','id')
+			# qset = Photo.objects.filter(owner_id=target_id,upload_time__gte=days_ago).order_by('-id').values_list('image_file','upload_time','id')
+			qset = Link.objects.filter(Q(submitter_id=target_id,submitted_on__gte=days_ago,type_of_content='g',audience__in=('p','a'),mortality='i')|\
+				Q(submitter_id=target_id,submitted_on__gte=days_ago,type_of_content='g',audience__in=('p','a'),mortality='m',expire_at__gte=convert_to_epoch(time_now))).\
+			order_by('-id').values_list('image_file','submitted_on','id')
 	else:
 		# target_id is their object's id, use it to retrieve owner id
 		if type_of_content == 'tx':
@@ -2314,15 +2404,21 @@ def get_content_history(target_id,type_of_content,decision):
 			submitter_id = Link.objects.only('submitter').get(id=target_id).submitter_id
 			# get this user's links of past 2 days (max: 40 objects)
 			# exclude the link obh itself that's being reported
-			qset = Link.objects.filter(submitter_id=submitter_id,submitted_on__gte=days_ago).exclude(id=target_id).order_by('-id')\
-			.values_list('description','submitted_on','id')
+			qset = Link.objects.filter(Q(submitter_id=submitter_id,submitted_on__gte=days_ago,type_of_content='t',audience='p',mortality='i')|\
+				Q(submitter_id=submitter_id,submitted_on__gte=days_ago,type_of_content='t',audience='p',mortality='m',expire_at__gte=convert_to_epoch(time_now))).\
+			exclude(id=target_id).order_by('-id').values_list('description','submitted_on','id')
 		else:
 			# first get owner id
-			submitter_id = Photo.objects.only('owner').get(id=target_id).owner_id
-			# get this user's photos of past 2 days (max: 40 objects)
-			# exclude the foto obj itself that's being reported
-			qset = Photo.objects.filter(owner_id=submitter_id,upload_time__gte=days_ago).exclude(id=target_id).order_by('-id')\
-			.values_list('image_file','upload_time','id')
+			if Link.objects.filter(id=target_id,type_of_content='g').exists():
+				submitter_id = Link.objects.only('submitter').get(id=target_id).submitter_id
+			else:
+				submitter_id = Photo.objects.only('owner').get(id=target_id).owner_id
+
+			# get this user's photos of past 2 days (max: 40 objects, only non-legacy objs)
+			# p.s. exclude the photo obj itself that's being reported
+			qset = Link.objects.filter(Q(submitter_id=submitter_id,submitted_on__gte=days_ago,type_of_content='g',audience='p',mortality='i')|\
+				Q(submitter_id=submitter_id,submitted_on__gte=days_ago,type_of_content='g',audience='p',mortality='m',expire_at__gte=convert_to_epoch(time_now))).\
+			exclude(id=target_id).order_by('-id').values_list('image_file','submitted_on','id')
 	return qset
 
 

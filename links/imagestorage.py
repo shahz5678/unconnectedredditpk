@@ -5,7 +5,7 @@ from PIL import Image
 import uuid, StringIO, string, os, mimetypes
 from storages.backends.s3boto import S3BotoStorage
 from django.core.files.uploadedfile import InMemoryUploadedFile
-from unconnectedreddit.env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_S3_LOCATION#, AWS_STORAGE_BUCKET
+from unconnectedreddit.env import AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, NEW_AWS_S3_LOCATION
 from score import THUMB_HEIGHT
 
 
@@ -13,13 +13,27 @@ os.environ['S3_USE_SIGV4'] = 'True'
 
 
 
-def upload_image_to_s3(image, prefix='1on1/'):
+def upload_image_to_s3(image, prefix='1-on-1/', with_thumb=False):
 	"""
 	Used by views for 1on1 and mehfil photos
+
+	TODO: Can we store two objects together in one S3 POST request (e.g. a 'bulk_save' functionality)
 	"""
-	image_name_with_path = os.path.join(prefix, "%s.jpg" % uuid.uuid4())
-	s3_object = S3Storage()
-	return s3_object._save(name=image_name_with_path, content=image)
+	if with_thumb:
+		image_name_with_path = os.path.join(prefix, "%s.jpg" % uuid.uuid4())
+		###########################################################
+		s3_object = S3Storage()
+		image_loc = s3_object._save(name=image_name_with_path, content=image)
+		###########################################################
+		thumb_name, thumb = get_thumb(image_name_with_path, image, prefix[:-1])
+		s3_thumb = S3Storage()
+		s3_thumb._save(name=thumb_name, content=thumb)
+		###########################################################
+		return image_loc
+	else:
+		image_name_with_path = os.path.join(prefix, "%s.jpg" % uuid.uuid4())
+		s3_object = S3Storage()
+		return s3_object._save(name=image_name_with_path, content=image)
 
 
 ##########################################################
@@ -57,7 +71,7 @@ def upload_to_avatars(instance, filename):
 		ext = blocks[-1] #whether jpg or png
 		filename = "%s.%s" % (uuid.uuid4(), ext) #giving a uuid name to the image
 		instance.title = blocks[0]
-		return os.path.join('avatar/', filename)
+		return os.path.join('dp/', filename)
 	except Exception as e:
 		# print '%s (%s)' % (e.message, type(e))
 		return 0
@@ -68,22 +82,23 @@ def upload_to_photos(instance, filename):
 		ext = blocks[-1]
 		filename = "%s.%s" % (uuid.uuid4(), ext)
 		instance.title = blocks[0]
-		return os.path.join('public/', filename)
+		return os.path.join('shared/', filename)
 	except Exception as e:
 		# print '%s (%s)' % (e.message, type(e))
 		return 0
 
 
 def upload_to_links(instance, filename):
-	try:
-		blocks = filename.split('.') 
-		ext = blocks[-1]
-		filename = "%s.%s" % (uuid.uuid4(), ext)
-		instance.title = blocks[0]
-		return os.path.join('links/', filename)
-	except Exception as e:
-		# print '%s (%s)' % (e.message, type(e))
-		return 0
+	pass
+	# try:
+	# 	blocks = filename.split('.') 
+	# 	ext = blocks[-1]
+	# 	filename = "%s.%s" % (uuid.uuid4(), ext)
+	# 	instance.title = blocks[0]
+	# 	return os.path.join('images/', filename)
+	# except Exception as e:
+	# 	# print '%s (%s)' % (e.message, type(e))
+	# 	return 0
 
 
 def upload_to_photocomments(instance, filename):
@@ -103,12 +118,12 @@ def get_thumb(filename, content, folder_name):
 	"""
 	Creates thumbs out of images passed into it
 	"""
-	thumb_name = string.replace(filename, folder_name, "thumb/"+folder_name)
+	thumb_name = string.replace(filename, folder_name, "thumbnail/"+folder_name)
 	image = content.file		
 	image = Image.open(image)
-	if folder_name == 'avatar':
+	if folder_name == 'dp':
 		size = 22, 22
-	elif folder_name == 'public' or folder_name == '1on1':
+	elif folder_name in ('shared','1-on-1','images','follower'):
 		height = THUMB_HEIGHT
 		image = content.file		
 		image = Image.open(image)
@@ -134,7 +149,7 @@ class S3Storage(S3BotoStorage):
 		if self._connection is None:
 			self._connection = self.connection_class(
 				self.acc_key, self.sec_key,
-				calling_format=self.calling_format, host=AWS_S3_LOCATION)
+				calling_format=self.calling_format, host=NEW_AWS_S3_LOCATION)
 		return self._connection
 
 
@@ -160,18 +175,34 @@ class S3Storage(S3BotoStorage):
 			self._entries[encoded_name] = key
 		key.set_metadata('Content-Type', content_type)
 		self._save_content(key, content, headers=headers)
-		if 'public' in encoded_name:
-			thumb_name, thumb_content = get_thumb(encoded_name, content, 'public')
+		##############################################################
+		# if 'public' in encoded_name:
+		# 	thumb_name, thumb_content = get_thumb(encoded_name, content, 'public')
+		# 	thumb_key = self.bucket.get_key(thumb_name)
+		# 	if not thumb_key:
+		# 		thumb_key = self.bucket.new_key(thumb_name)
+		# elif 'avatar' in encoded_name:
+		# 	thumb_name, thumb_content = get_thumb(encoded_name, content, 'avatar')
+		# 	thumb_key = self.bucket.get_key(thumb_name)
+		# 	if not thumb_key:
+		# 		thumb_key = self.bucket.new_key(thumb_name)
+		# elif '1on1' in encoded_name:
+		# 	thumb_name, thumb_content = get_thumb(encoded_name, content, '1on1')
+		# 	thumb_key = self.bucket.get_key(thumb_name)
+		# 	if not thumb_key:
+		# 		thumb_key = self.bucket.new_key(thumb_name)
+		if 'shared' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, 'shared')
 			thumb_key = self.bucket.get_key(thumb_name)
 			if not thumb_key:
 				thumb_key = self.bucket.new_key(thumb_name)
-		elif 'avatar' in encoded_name:
-			thumb_name, thumb_content = get_thumb(encoded_name, content, 'avatar')
+		elif 'dp' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, 'dp')
 			thumb_key = self.bucket.get_key(thumb_name)
 			if not thumb_key:
 				thumb_key = self.bucket.new_key(thumb_name)
-		elif '1on1' in encoded_name:
-			thumb_name, thumb_content = get_thumb(encoded_name, content, '1on1')
+		elif '1-on-1' in encoded_name:
+			thumb_name, thumb_content = get_thumb(encoded_name, content, '1-on-1')
 			thumb_key = self.bucket.get_key(thumb_name)
 			if not thumb_key:
 				thumb_key = self.bucket.new_key(thumb_name)

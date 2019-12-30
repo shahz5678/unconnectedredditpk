@@ -11,38 +11,38 @@ from forms import strip_zero_width_characters
 from redis4 import log_superhuman_survey_answers, has_already_answered_superhuman_survey, retrieve_uname, retrieve_survey_records
 from redis7 import in_defenders, get_num_topics
 from redis3 import get_world_age, exact_date
-from views import convert_to_epoch
+from utilities import convert_to_epoch
 from redis6 import get_num_groups
 from redis5 import get_num_grps
 from models import Link, Photo
 
-def get_latest_post(user_id, post_type,only_time):
-	"""
-	Useful in impregnating survey results with data about user's public posting habits
+# def get_latest_post(user_id, post_type,only_time):
+# 	"""
+# 	Useful in enriching survey results with data about user's public posting habits
 
-	post_type can either be 'tx' or 'img'
-	"""
-	if only_time:
-		if post_type == 'tx':
-			try:
-				return Link.objects.only('submitted_on').filter(submitter_id=user_id).latest('submitted_on').submitted_on
-			except Link.DoesNotExist:
-				return None
-		elif post_type == 'img':
-			try:
-				return Photo.objects.only('upload_time').filter(owner_id=user_id).latest('upload_time').upload_time
-			except Photo.DoesNotExist:
-				return None
-		else:
-			return None
-	else:
-		###### Write if needed ######
-		if post_type == 'tx':
-			return None
-		elif post_type == 'img':
-			return None
-		else:
-			return None
+# 	post_type can either be 'tx' or 'img'
+# 	"""
+# 	if only_time:
+# 		if post_type == 'tx':
+# 			try:
+# 				return Link.objects.only('submitted_on').filter(submitter_id=user_id).latest('submitted_on').submitted_on
+# 			except Link.DoesNotExist:
+# 				return None
+# 		elif post_type == 'img':
+# 			try:
+# 				return Photo.objects.only('upload_time').filter(owner_id=user_id).latest('upload_time').upload_time
+# 			except Photo.DoesNotExist:
+# 				return None
+# 		else:
+# 			return None
+# 	else:
+# 		###### Write if needed ######
+# 		if post_type == 'tx':
+# 			return None
+# 		elif post_type == 'img':
+# 			return None
+# 		else:
+# 			return None
 
 ####################################
 
@@ -106,8 +106,8 @@ def survey(request):
 			answers['username'] = retrieve_uname(user_id,decode=True)
 			answers['num_1on1s'] = get_num_grps(user_id)
 			answers['submission_time'] = time_now
-			latest_public_txt_post_time = get_latest_post(user_id=user_id, post_type='tx',only_time=True)
-			latest_public_pht_post_time = get_latest_post(user_id=user_id, post_type='img',only_time=True)
+			latest_public_txt_post_time = []#get_latest_post(user_id=user_id, post_type='tx',only_time=True)
+			latest_public_pht_post_time = []#get_latest_post(user_id=user_id, post_type='img',only_time=True)
 			answers['last_public_txt_post_time'] = latest_public_txt_post_time if latest_public_txt_post_time else ''
 			answers['last_public_pht_post_time'] = latest_public_pht_post_time if latest_public_pht_post_time else ''
 			answers['ans1'] = ''
@@ -209,8 +209,8 @@ def survey(request):
 					answers['username'] = retrieve_uname(user_id,decode=True)
 					answers['num_1on1s'] = get_num_grps(user_id)
 					answers['submission_time'] = time_now
-					latest_public_txt_post_time = get_latest_post(user_id=user_id, post_type='tx',only_time=True)
-					latest_public_pht_post_time = get_latest_post(user_id=user_id, post_type='img',only_time=True)
+					latest_public_txt_post_time = []#get_latest_post(user_id=user_id, post_type='tx',only_time=True)
+					latest_public_pht_post_time = []#get_latest_post(user_id=user_id, post_type='img',only_time=True)
 					answers['last_public_txt_post_time'] = latest_public_txt_post_time if latest_public_txt_post_time else ''
 					answers['last_public_pht_post_time'] = latest_public_pht_post_time if latest_public_pht_post_time else ''
 					log_superhuman_survey_answers(user_id=user_id, answers_dict=answers, time_now=time_now)

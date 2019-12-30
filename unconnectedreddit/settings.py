@@ -1,7 +1,7 @@
 # Django settings for unconnectedreddit project.
 import os
 from datetime import datetime, timedelta
-from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN, AWS_STORAGE_BUCKET
+from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN, NEW_AWS_STORAGE_BUCKET
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
@@ -15,7 +15,7 @@ expires = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 S3_STORAGE_CLASS = 'links.imagestorage.S3Storage'
 AWS_HEADERS = {'Expires': expires,'Cache-Control': 'max-age=31536000'}
-AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET
+AWS_STORAGE_BUCKET_NAME = NEW_AWS_STORAGE_BUCKET
 AWS_QUERYSTRING_AUTH = False
 
 
@@ -180,10 +180,10 @@ INSTALLED_APPS = (
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
 	'django.contrib.admin',
-	'django.contrib.comments',
+	# 'django.contrib.comments',
 	'links',
 	'unconnectedreddit',
-	'south',
+	# 'south',
 	#'registration', #found at has@has-VirtualBox:~/.virtualenvs/unconnectedreddit/local/lib/python2.7/site-packages/registration/backends/simple$
 	'bootstrap_pagination',
 	'djcelery',
@@ -386,7 +386,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.expire_classifieds': {
 		'task': 'tasks.expire_classifieds',
-		'schedule': timedelta(seconds=55*60), # execute every 55 mins, processes ad_expiry of ecomm ads
+		'schedule': timedelta(seconds=100000), # Unused task
 	},
 	'tasks.delete_expired_classifieds': {
 		'task': 'tasks.delete_expired_classifieds',

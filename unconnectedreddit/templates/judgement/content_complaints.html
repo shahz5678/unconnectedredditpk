@@ -78,6 +78,7 @@
 <br>
 
 {% for complaint in complaints %}
+
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
 <a name="section{{ forloop.counter }}"></a>
 {% if complaint.tp == 'mf' %}
@@ -96,7 +97,7 @@
 		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px;text-align:center"><span class="cgy">Profile reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
 		<div class="cl sp mts" style="font-weight:bold">Nickname:</div>
 		<div class="cl sp mt lsp">{% emoticons %}{{ complaint.nick }}{% endemoticons %}</div>
-		<div class="cl sp mts" style="font-weight:bold">Profile foto:</div>
+		<div class="cl sp mts" style="font-weight:bold">Profile photo:</div>
 		<img src="{{ complaint.av_img }}" alt="pic" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
 		<a href="{% url 'user_profile' complaint.nick %}" target="_blank"><button class="mts cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see profile</button></a><br>
 		<div class="cxs mts sp cgy" style="text-align:right">profile created {{ complaint.ct|human_time }}</div>
@@ -109,14 +110,14 @@
 	</div>
 {% else %}
 	<div class="bizcard" style="background-color:ivory;padding:10px;text-align:center">
-		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Foto reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Photo reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
 		{% if complaint.pl.0.rt == '10' or complaint.pl.0.rt == '9' %}<!-- this just looks at the first complaint -->
 			<img src="{{ complaint.url }}" alt="{{ complaint.c }}" class="mtl cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
-			<a href="{% url 'photo_detail' complaint.obid 6 %}" target="_blank"><button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see foto details</button></a><br>
+			{% if complaint.ot == 'g' %}<a href="{% url 'content_detail_view' pk=complaint.obid origin=6 obj_type='g' %}" target="_blank">{% else %}<a href="{% url 'photo_detail' pk=complaint.obid origin=6 %}" target="_blank">{% endif %}<button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see photo details</button></a><br>
 		{% else %}
 			<div class="cl mts" style="font-weight:bold">{% emoticons %}{{ complaint.c }}{% endemoticons %}</div>
 			<img src="{{ complaint.url }}" alt="{{ complaint.c }}" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
-			<a href="{% url 'photo_detail' complaint.obid 6 %}" target="_blank"><button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see foto details</button></a><br>
+			{% if complaint.ot == 'g' %}<a href="{% url 'content_detail_view' pk=complaint.obid origin=6 obj_type='g' %}" target="_blank">{% else %}<a href="{% url 'photo_detail' pk=complaint.obid origin=6 %}" target="_blank">{% endif %}<button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see photo details</button></a><br>
 		{% endif %}
 		<div class="cxs mts sp cgy" style="text-align:right">uploaded {{ complaint.ct|human_time }}</div>
 	</div>
@@ -142,8 +143,8 @@
 					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Meri ye wali post copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Is ne apni recent post copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
 					<div style="padding:8px;background-color:ivory" class="bizcard mt cm mbs sp lsp">{{ dict.otxt }}</div>
 				{% else %}
-					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Ye dekhain meri foto copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Ye dekhain is ne apni recent foto dubara lagai hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
-					<img src="{{ dict.ourl }}" style="border-radius:12px" class="pht mt" alt="foto">
+					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Meri photo copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Is ne apni recent photo dubara lagai hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
+					<img src="{{ dict.ourl }}" style="border-radius:12px" class="pht mt" alt="photo">
 				{% endif %}
 			{% else %}
 				<div class="mbs">
@@ -169,16 +170,15 @@
 
 {% empty %}
 	
-	<div class="bizcard clb sp cl mts mbs" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">Ye list khali hai... abhi rest karein</div>
+	<div class="bizcard clb sp cl mts mbs" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">Ye list khali hai...</div>
 
 {% endfor %}
 
-	
-<div class="fx fxjscn fxaicn">
+<div class="mbl fx fxjscn">
 	
 	{% if page.has_previous %}
       <div style="padding:0 10px">
-      <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+	  <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
       </div>
     {% endif %}
     {% if page.has_next %}

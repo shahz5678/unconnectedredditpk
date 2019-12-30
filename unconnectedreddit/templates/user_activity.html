@@ -3,8 +3,6 @@
 {% load get_text_object %}
 {% load url_target_blank %}
 {% load get_big_group_button %}
-{% load get_big_points_button %}
-{% load get_user_profile_navbar %}
 {% load get_transparent_buttons_js %}
 {% load get_big_home_reply_button %}
 {% load get_display_ban_msg %}
@@ -13,7 +11,6 @@
 <head><title>{{ uname }}'s home posts | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
 
-{% user_profile_navbar static_url=STATIC_URL section='posts' uname=uname is_own_profile=is_own_profile %}
 
 {% if is_own_profile %}
 <h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}Your shared posts:</h1>
@@ -23,7 +20,7 @@
 
 <div style="max-width:750px;margin:0 auto;width:97%;position:relative;">
 
-{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=uname ban_detail=ban_detail %}
+{% if is_profile_banned %}<div class="mbl">{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=uname ban_detail=ban_detail %}</div>{% endif %}
 
 {% for link in object_list %}
 	<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
@@ -34,11 +31,14 @@
 	<section style="display:block">
 	<div style="flex-wrap:wrap" class="mbl fx fxjscn fxaicn cxs sp cgy">
 	{% big_group_button own_id=ident target_id=submitter_id parent_object_id=link.id object_type='link' origin='8' target_username=uname %}
-	{% big_home_reply_button link_id=link.id comm_count=link.reply_count static_url=STATIC_URL always_show=True %}
-	{% if submitter_id == ident|slugify %}{% big_points_button obj_id=link.id owner_id=submitter_id is_pht=0 origin='8' net_votes=link.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}{% endif %}
+	<div style="display:block;margin-bottom:4px;margin-right:4px"><a href="{% url 'old_publicreply_view' link.id %}"><button itemprop="discussionUrl" class="vt" style="border:1px solid #3CB7DD;width:50px;height:42px;color:#3CB7DD;font-size:12px;padding:0;text-align:center"><div class="mbs">{% if link.reply_count > 999 %}999+{% else %}{{ link.reply_count }}{% endif %}</div><div style="font-size:8.2px;color:#3CB7DD" itemprop="commentCount">{% if link.reply_count == 1 %}REPLY{% else %}REPLIES{% endif %}</div></button></a></div>
+	
+	{% include "big_buttons/big_report_button.html" with origin='8' pid=link.id oun=uname ooid=submitter_id img_thumb='' raw_caption=link.description av_url=submitter_av_url|s3:'thumb' home_hash='' static_url=STATIC_URL type='tx' %}
+
+	
 	</div>
 	</section>
-
+	
 	</article>
 
 	{% empty %}

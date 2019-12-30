@@ -2,9 +2,254 @@
 // Compress via https://jscompress.com/ and press "download"
 // Or use http://esprima.org/demo/minify.html in case above gives an error
 
+var fbtns = document.getElementsByClassName('fbtn');
+for (var i=0, len=fbtns.length; i < len; i++) fbtns[i].onclick = process_follow;
+
+function process_follow(e){
+
+	var fb = e.currentTarget;//follow_button
+	var name = fb.name;
+	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !fb.value || !name) return;
+	e.preventDefault();
+	
+	var payload = fb.value.split("*");
+	var topic = payload[0];
+	var obid = payload[1];
+	var obj_hash = payload[2];
+	var origin = payload[3];
+	var target_user_id = payload[4];
+	var target_username = payload[5];
+	var page_num = payload[6];
+
+	///////////////////////////
+	var all_tgt_fbtns = document.getElementsByClassName(target_user_id);
+
+	for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+
+		all_tgt_fbtns[i].disabled = true;//disable the button so that it can't be double clicked
+
+		var follow_btn = all_tgt_fbtns[i].form.getElementsByTagName("button")[0];
+		var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+		var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+		var label_div = follow_btn_contents[1];// 'FOLLOW' label
+		var label = label_div.innerHTML;
+
+		toggle_follow_btn(follow_btn, svg_img, label_div, label);
+
+	}
+
+	///////////////////////////
+
+	// var follow_btn = fb.form.getElementsByTagName("button")[0];
+	// var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+	// var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+	// var label_div = follow_btn_contents[1];// 'FOLLOW' label
+	// var label = label_div.innerHTML;
+
+	// toggle_follow_btn(follow_btn, svg_img, label_div, label);
+
+	if (typeof target_user_id !== 'undefined') {
+		var form_data = new FormData();
+		form_data.append(name, fb.value);
+		var xhr = new XMLHttpRequest();
+		
+		if (label === 'FOLLOW') {
+			xhr.open('POST', '/follow/add/');
+		} else if (label === 'UNFOLLOW'){
+			xhr.open('POST', '/follow/remove/');
+		} else {
+			xhr.open('POST', '/follow/add/');
+		}
+		
+		xhr.timeout = 15000; //15 seconds
+		xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
+  		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+
+  		// XMLHttpRequest went through - and the server either responded with a 'success' message or a 'failure' one
+  		xhr.onload = function () {
+  			// fb.disabled = false;
+  			if (this.status == 200) {
+  				
+  				var resp = JSON.parse(this.responseText);//supported, because xhr.responseType is text, which is coverted to JSON upon receipt
+  				
+  				if (resp.success) {
+  					// process the action
+		      		if (resp.message === 'followed') {
+						// followed successfully
+						for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+		      				all_tgt_fbtns[i].disabled = false;//enable the button(s)
+		      			}
+						var prompt_string = 'You followed '.concat(target_username)
+						display_and_fade_out(prompt_string,determine_pause_length(prompt_string),'notif');//pass message and pause time
+		      		} else if (resp.message === 'unfollowed') {
+		      			// unfollowed successfully
+		      			for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+		      				all_tgt_fbtns[i].disabled = false;//enable the button(s)
+		      			}
+		      			var prompt_string = 'You unfollowed '.concat(target_username)
+		      			display_and_fade_out(prompt_string,determine_pause_length(prompt_string),'notif');//pass message and pause time
+		      		} else {
+		      			// do nothing (since the action is unrecognized as follow or unfollow), reverse the actions visually
+		      			
+		      			for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+
+		      				var follow_btn = all_tgt_fbtns[i].form.getElementsByTagName("button")[0];
+							var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+							var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+							var label_div = follow_btn_contents[1];// 'FOLLOW' label
+							toggle_follow_btn(follow_btn, svg_img, label_div, 'default');
+
+		      			}
+		      		}
+  				} else {
+  					// e.g. if message.success was False
+		      		if (resp.type === 'text') {
+
+		      			for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+
+		      				all_tgt_fbtns[i].disabled = false;//enable the button
+
+		      				var follow_btn = all_tgt_fbtns[i].form.getElementsByTagName("button")[0];
+							var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+							var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+							var label_div = follow_btn_contents[1];// 'FOLLOW' label
+							toggle_follow_btn(follow_btn, svg_img, label_div, 'default');
+
+		      			}
+		      			// display disappearing popup with resp.message
+						display_and_fade_out(resp.message,determine_pause_length(resp.message),'err');//pass message and pause time
+
+		      		} else if (resp.type === 'redirect') {
+		      			// redirect to provided url
+		      			// alert(resp);
+		      			window.location.replace(resp.message);
+		      		} else {
+		      			// do nothing and reverse the action visually
+		      			for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+
+		      				all_tgt_fbtns[i].disabled = false;//enable the button
+
+		      				var follow_btn = all_tgt_fbtns[i].form.getElementsByTagName("button")[0];
+							var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+							var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+							var label_div = follow_btn_contents[1];// 'FOLLOW' label
+							toggle_follow_btn(follow_btn, svg_img, label_div, 'default');
+
+		      			}
+		      		}
+  				}
+
+  			} else {
+  				// e.g. if status == 404 or 403 or 500 (this is an error at the application level, not network level - where there are no error codes)
+  				// reverse the action visually
+  				for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+
+      				all_tgt_fbtns[i].disabled = false;//enable the button
+
+      				var follow_btn = all_tgt_fbtns[i].form.getElementsByTagName("button")[0];
+					var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+					var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+					var label_div = follow_btn_contents[1];// 'FOLLOW' label
+					toggle_follow_btn(follow_btn, svg_img, label_div, 'default');
+
+      			}
+  			}
+  		}
+
+  		// when there is a failure on the network level, no response is received (e.g. a denied cross-domain request, or internet off)
+  		xhr.onerror = function () {
+
+  			// reverse the action visually
+  			for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+
+  				all_tgt_fbtns[i].disabled = false;//enable the button
+
+  				var follow_btn = all_tgt_fbtns[i].form.getElementsByTagName("button")[0];
+				var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+				var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+				var label_div = follow_btn_contents[1];// 'FOLLOW' label
+				toggle_follow_btn(follow_btn, svg_img, label_div, 'default');
+
+  			}
+  			var err_msg = 'Kuch kharab ho gaya, dubara try karein';
+			display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
+  		}
+
+  		xhr.onprogress = function () {
+  			// do nothing
+  		}
+
+  		// XMLHttpRequest timed out
+  		xhr.ontimeout = function (e) {
+  			// reverse the action visually
+  			for (var i=0, len=all_tgt_fbtns.length; i < len; i++) {
+
+  				all_tgt_fbtns[i].disabled = false;//enable the button
+
+  				var follow_btn = all_tgt_fbtns[i].form.getElementsByTagName("button")[0];
+				var follow_btn_contents = follow_btn.childNodes;// follow button's divs
+				var svg_img = follow_btn_contents[0].childNodes[0];// the follow svg
+				var label_div = follow_btn_contents[1];// 'FOLLOW' label
+				toggle_follow_btn(follow_btn, svg_img, label_div, 'default');
+
+  			}
+		   	var err_msg = 'Internet slow hai, baad mein try karein';
+			display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
+  		}
+
+  		xhr.send(form_data);
+	
+	} else {
+		// do nothing
+	}
+
+}
+
+function toggle_follow_btn(follow_btn, svg_img, btn_label_div, force_state){
+
+	if (force_state === 'FOLLOW') {
+		// it is a 'follow' action
+		follow_btn.style.border = '1px solid #d3d3d3';// changing follow button's border color
+		svg_img.src = '/static/img/unfan.svg';// changing the icon
+		btn_label_div.style.color = '#808080'// changing color of 'FOLLOW' label
+		btn_label_div.innerHTML = 'UNFOLLOW';// changing 'FOLLOW' label to 'UNFOLLOW'
+		return true;// forced to toggle
+	
+	} else if (force_state === 'UNFOLLOW') {
+		// 'follow' action is reversed
+		follow_btn.style.border = '1px solid #74d5f2';// changing unfollow button's border color
+		svg_img.src = '/static/img/ying-yang.svg';// changing the icon
+		btn_label_div.style.color = '#ed85c5'// changing color of 'UNFOLLOW' label
+		btn_label_div.innerHTML = 'FOLLOW';// changing 'UNFOLLOW label to 'FOLLOW'
+		return true;// forced to state toggle
+	
+	} else {
+		// just toggle the state depending on what the current label is
+		var current_state = btn_label_div.innerHTML;
+
+		if (current_state === 'FOLLOW') {
+			follow_btn.style.border = '1px solid #d3d3d3';// changing follow button's border color
+			svg_img.src = '/static/img/unfan.svg';// changing the icon
+			btn_label_div.style.color = '#808080'// changing color of 'FOLLOW' label
+			btn_label_div.innerHTML = 'UNFOLLOW';// changing 'FOLLOW' label to 'UNFOLLOW'
+			return false;
+
+		} else {
+			follow_btn.style.border = '1px solid #74d5f2';// changing unfollow button's border color
+			svg_img.src = '/static/img/ying-yang.svg';// changing the icon
+			btn_label_div.style.color = '#ed85c5'// changing color of 'UNFOLLOW' label
+			btn_label_div.innerHTML = 'FOLLOW';// changing 'UNFOLLOW label to 'FOLLOW'
+			return false;
+		}
+		
+	}
+
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+
+
 var sv = false; // self_voting
-// var lk_cids = {}; // liked content IDs
-// var dv_cids = {}; // unliked content IDs
 var vbtns = document.getElementsByClassName('vbtn');
 for (var i=0, len=vbtns.length; i < len; i++) vbtns[i].onclick = cast_vote;
 
@@ -18,46 +263,18 @@ function cast_vote(e) {
 	e.preventDefault();
 
 	vb.disabled = true;//disable the button so that it can't be double clicked
+	
 	var payload = vb.value.split(":");
-	// var val = payload[0]; // vote value
 	var lid = payload[0]; // link_id
 	var ooid = payload[1]; // link_writer_id
 	var is_pht = payload[2]; // is_pht == '1' if object is a photo
 	var origin = payload[3]; // voting origin
-	
-	// if (is_pht === '1') {
-	// 	var lid_key = 'img:'.concat(lid).toString()
-	// } else {
-	// 	var lid_key = 'tx:'.concat(lid).toString()
-	// }
-	// var lid_key = lid.toString(); // used to check double voting (convert to img: or tx: so that IDs don't collide)
-
 
 	var ident = document.getElementById("uident");
 	if (typeof ident !== 'undefined') {
 		if (ident.value === ooid) sv = true;
 	}
 
-	// if (val === '1' && lid_key in lk_cids) {
-	// 	// check if it's a double like (e.g. from two windows)
-	// 	var err_msg = 'Ap isko dubara like nahi kar saktey';
-	// 	display_and_fade_out(err_msg,determine_pause_length(err_msg));//pass message and pause time
-	// 	sv = false;
-	// 	vb.disabled = false;
-
-	// } else if (val === '0' && lid_key in unlk_cids) {
-	// 	// check if it's a double unlike (e.g. from two windows)
-	// 	var err_msg = 'Ap isko dubara unlike nahi kar saktey';
-	// 	display_and_fade_out(err_msg,determine_pause_length(err_msg));//pass message and pause time
-	// 	sv = false;
-	// 	vb.disabled = false;
-
-	// } else if (val !== '1' && val !== '0') {
-	// 	// vote value is not recognized
-	// 	var err_msg = 'Like nahi kia ja saka';
-	// 	display_and_fade_out(err_msg,determine_pause_length(err_msg));//pass message and pause time
-	// 	sv = false;
-	// 	vb.disabled = false;
 	if (sv === true) {
 		// trying to like own content!
 		var err_msg = 'Apni post ko like nahi kar saktey';
@@ -78,7 +295,7 @@ function cast_vote(e) {
 			form_data.append(name, vb.value);
 			var xhr = new XMLHttpRequest();
 			xhr.open('POST', '/cast_vote/');
-			xhr.timeout = 10000; //10 seconds
+			xhr.timeout = 15000; //15 seconds
 			xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
 	  		xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 	  		xhr.onload = function () {
@@ -86,17 +303,15 @@ function cast_vote(e) {
 	  			if (this.status == 200) {
 			      	var resp = JSON.parse(this.responseText);//supported, because xhr.responseType is text, which is coverted to JSON upon receipt
 			      	if (resp.success) {
-			      		// do nothing visually, but enter the vote in relevant dictionary
+			      		// process the vote
 			      		if (resp.message === 'new') {
 							// fresh like
-							// lk_cids[lid_key] = '1';
 							var forced_to_toggle = toggle_like_btn(like_btn, svg_img, label_div, 'unlike');
 							if (!forced_to_toggle) {
 								display_and_fade_out('Liked & Saved!',determine_pause_length('Liked & Saved!'),'notif');//pass message and pause time
 							}
 			      		} else if (resp.message === 'old') {
 			      			// reverting prev like
-			      			// delete lk_cids[lid_key];
 			      			var forced_to_toggle = toggle_like_btn(like_btn, svg_img, label_div, 'like');
 			      			if (!forced_to_toggle) {
 			      				display_and_fade_out('Removed Like & Save!',determine_pause_length('Removed Like & Save!'),'notif');//pass message and pause time
@@ -105,49 +320,14 @@ function cast_vote(e) {
 			      			// do nothing since the vote is unrecognized as like or unlike
 			      		}
 
-			      		// if (val === '1') {
-			      		// 	// it's a like
-			      		// 	if (resp.message === 'new') {
-			      		// 		// fresh like
-			      		// 		lk_cids[lid_key] = '1';
-			      		// 		display_and_fade_out('Liked & Saved!',determine_pause_length('Liked & Saved!'));//pass message and pause time
-			      		// 	// } else if (resp.message == 'old') {
-			      		// 	// 	// reverting prev downvote
-			      		// 	// 	delete dv_cids[lid_key];
-			      		// 	} else {
-			      		// 		// do nothing
-			      		// 	}
-			      		// } else if (val === '0'){
-			      		// 	// it's an unlike
-			      		// 	// if (resp.message === 'new') {
-			      		// 	// 	// fresh downvote
-			      		// 	// 	dv_cids[lid_key] = '0';
-			      		// 	if (resp.message == 'old') {
-			      		// 		// reverting prev like
-			      		// 		delete lk_cids[lid_key];
-			      		// 	} else {
-			      		// 		// do nothing
-			      		// 	}
-			      		// } else {
-			      		// 	// do nothing since the vote is unrecognized as like or unlike
-			      		// }
-
 			      	} else {
 			      		// e.g. if message.success was False
 			      		if (resp.type === 'text') {
+			      			// reverse the vote visually
+							toggle_like_btn(like_btn, svg_img, label_div);
 			      			// display disappearing popup with resp.message
 							display_and_fade_out(resp.message,determine_pause_length(resp.message),'err');//pass message and pause time
-							// reverse the vote visually
-							toggle_like_btn(like_btn, svg_img, label_div);
-							// if (val === '1') {
-							// 	if (resp.offence === '3') lk_cids[lid_key] = '1';// document it in lk_cids since server says it is a double like
-							// 	// update_btn_content('0',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);
-							// 	toggle_like_btn('0', like_btn, svg_img, label_div);
-							// } else {
-							// 	if (resp.offence === '3') delete lk_cids[lid_key];// delete it from lk_cids since server says it is a double unlike
-							// 	// update_btn_content('1',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);
-							// 	toggle_like_btn('1', like_btn, svg_img, label_div);
-							// }
+							
 			      		} else if (resp.type === 'redirect') {
 			      			// redirect to provided url
 			      			// alert(resp);
@@ -159,32 +339,20 @@ function cast_vote(e) {
 			    } else {
 			      	// e.g. if status == 404 or 403 or 500 (this is an error at the application level, not network level - where there are no error codes)
 			      	var err_msg = 'Kuch ghalat ho gaya, dubara try karein';
-					display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
 			      	// reverse the vote visually
 			      	toggle_like_btn(like_btn, svg_img, label_div);
-			  //     	if (val === '1') {
-			  //     		toggle_like_btn('0', like_btn, svg_img, label_div);
-					// 	// update_btn_content('0',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);
-					// } else {
-					// 	toggle_like_btn('1', like_btn, svg_img, label_div);
-					// 	// update_btn_content('1',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);	
-					// }
+					display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
+			  
 			    }
 	  		};
 	  		xhr.onerror = function () {
 	  			// onerror fires when there is a failure on the network level, no response is received (e.g. a denied cross-domain request, or internet off)
 	  			vb.disabled = false;
+	  			// reverse the vote visually
 			   	var err_msg = 'Kuch kharab ho gaya, dubara try karein';
 				display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
-				// reverse the vote visually
 				toggle_like_btn(like_btn, svg_img, label_div);
-		  //     	if (val === '1') {
-		  //     		toggle_like_btn('0', like_btn, svg_img, label_div);
-				// 	// update_btn_content('0',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);
-				// } else {
-				// 	toggle_like_btn('1', like_btn, svg_img, label_div);
-				// 	// update_btn_content('1',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);	
-				// }
+		  
 	  		};
 	  		xhr.onprogress = function () {
 	  			// do nothing
@@ -192,19 +360,11 @@ function cast_vote(e) {
 	  		xhr.ontimeout = function (e) {
 	  			// XMLHttpRequest timed out
 	  			vb.disabled = false;
-	  			// fail_url = '/home/';
-			   	//  window.location.replace(fail_url);
+	  			// reverse the vote visually
 			   	var err_msg = 'Internet slow hai, baad mein try karein';
 				display_and_fade_out(err_msg,determine_pause_length(err_msg),'err');//pass message and pause time
-				// reverse the vote visually
 				toggle_like_btn(like_btn, svg_img, label_div);
-		  //     	if (val === '1') {
-		  //     		toggle_like_btn('0', like_btn, svg_img, label_div);
-				// 	// update_btn_content('0',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);
-				// } else {
-				// 	toggle_like_btn('1', like_btn, svg_img, label_div);
-				// 	// update_btn_content('1',score_div,label_div,pts_btn,pts_btn.style.color,label_div.innerHTML);	
-				// }
+		  
 	  		};
 	  		xhr.send(form_data);
 
@@ -591,7 +751,7 @@ for (var i=0, len=link_btns.length; i < len; i++) link_btns[i].onclick = copy_ur
 function copy_url(e) {// this is iOS friendly
 	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.currentTarget.value) return;
  	e.preventDefault();
- 	var target_url = 'https://damadam.pk/photo_detail/'+e.currentTarget.value;
+ 	var target_url = 'https://damadam.pk/content/'+e.currentTarget.value+'/g/';
  	var dummy_element = document.createElement('textarea');// Create a dummy textarea to copy the url inside it
  	dummy_element.setAttribute('readonly', true);// Set to readonly
     dummy_element.setAttribute('contenteditable', true);// Set to contenteditable

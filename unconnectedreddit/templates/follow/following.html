@@ -31,7 +31,7 @@
 
                       <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
                         <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=uname tid=following_id static_url=STATIC_URL %}</div>
-                        {% include "big_buttons/big_sub_button.html" with is_subbed=True username=uname origin='28' obid=None obh=None page_num=page_obj.number static_url=STATIC_URL %}
+                        {% include "big_buttons/big_sub_button.html" with is_subbed=True tid=following_id origin='28' obid=None obh=None page_num=page_obj.number static_url=STATIC_URL %}
                         {% big_block_button static_url=STATIC_URL target_user_id=following_id origin='28' page_num=page_obj.number %}
                       </div>
                     </div>

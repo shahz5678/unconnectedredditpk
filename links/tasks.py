@@ -43,7 +43,7 @@ from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct
 delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics, log_location_for_sender,\
 delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, cleanse_replier_history_when_pvp_blocked, remove_1on1_direct_responses,\
 log_rate_of_reply
-from redis9 import trim_expired_fanouts, fan_out_to_followers,remove_follower, sanitize_posts_after_pvp_ban
+from redis2 import trim_expired_fanouts, fan_out_to_followers,remove_follower, sanitize_posts_after_pvp_ban
 from ecomm_tracking import insert_latest_metrics
 from links.azurevids.azurevids import uploadvid
 from django.contrib.auth.models import User

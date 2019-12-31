@@ -935,19 +935,17 @@ class UploadPhotoForm(forms.Form):
 				return caption
 
 	def clean_aud(self):
-		audience = self.cleaned_data.get('aud',None)
-		if audience is None:
-			return 'p'
+		audience = self.cleaned_data.get('aud','p')
 		if audience not in ('p','a','s'):
-			raise forms.ValidationError('Dubara koshish karein')	
+			return 'p'
+			# raise forms.ValidationError('Dubara koshish karein')	
 		return audience
 			
 	def clean_exp(self):			
-		expiry = self.cleaned_data.get('exp',None)
-		if not expiry:
-			return 'i'
+		expiry = self.cleaned_data.get('exp','i')
 		if expiry not in ('i','m1','m2'):
-			raise forms.ValidationError('Dubara koshish karein')	
+			return 'i'
+			# raise forms.ValidationError('Dubara koshish karein')	
 		return expiry
 
 	def clean_com(self):			

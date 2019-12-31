@@ -1,4 +1,4 @@
-// feeder for helper_funcs.v1.16.js
+// feeder for helper_funcs.v1.17.js
 // Compress via https://jscompress.com/ and press "download"
 var valid_img = false;
 var max_img_width = 450;
@@ -36,7 +36,7 @@ function personal_group_preloader(action) {
 			var caption = document.createElement('div');
 			caption.id = "preloader_message";
 			caption.className = "cap sp cs cgy mbl";//
-			caption.insertAdjacentText('afterbegin','- resizing foto -');
+			caption.insertAdjacentText('afterbegin','- resizing photo -');
 			document.body.appendChild(overlay);
 			document.body.appendChild(parent);
 			parent.insertAdjacentElement('afterbegin',loader);
@@ -54,7 +54,7 @@ function personal_group_preloader(action) {
 			// var caption = document.createElement('div');
 			// caption.id = "preloader_message";
 			// caption.className = "cap sp cs cgy mbl";//
-			// caption.innerHTML = '- resizing foto -';
+			// caption.innerHTML = '- resizing photo -';
 			// document.body.appendChild(overlay);
 			// document.body.appendChild(parent);
 			// parent.insertAdjacentElement('afterbegin',loader);
@@ -63,7 +63,7 @@ function personal_group_preloader(action) {
 			break;
 		case "update":
 			var caption = document.getElementById("preloader_message");
-			if (caption) {caption.innerHTML = '- posting foto -';}
+			if (caption) {caption.innerHTML = '- posting photo -';}
 			break;
 		case "finishing":
 			var caption = document.getElementById("preloader_message");

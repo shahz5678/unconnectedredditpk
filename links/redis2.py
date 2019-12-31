@@ -2,8 +2,8 @@ import threading
 import redis, time
 import ujson as json
 from location import REDLOC2
-from models import UserFan, Report, Link
 from redis4 import retrieve_bulk_credentials
+from models import UserFan, Report, Link, Cooldown
 from utilities import beautiful_date, convert_to_epoch
 from redis7 import get_obj_owner, change_delete_status_of_obj_hash, trim_expired_user_submissions
 from score import PUBLIC_SUBMISSION_TTL, TTL_FOLLOWER_LIST, TTL_FOLLOWER_STRING, RATELIMIT_REMOVED_FOLLOWER, SHORT_RATELIMIT_UNFOLLOWER
@@ -835,10 +835,12 @@ def remove_single_post_from_custom_feed(obj_hash, own_id):
 
 			if removed:
 				Link.objects.filter(id=obj_id).update(delete_status='1')
+				# in case the object trended and was part of the sitemap, remove it from the sitemap model
+				if Cooldown.objects.filter(content_id=obj_id).exists():
+					Cooldown.objects.filter(content_id=obj_id).delete()
 				changed = change_delete_status_of_obj_hash(obj_hash_name=obj_hash)# called in redis7
 				if changed:
 					change_delete_status_of_direct_responses(obj_type='3' if obj_prefix == 'tx' else '4', obj_id=obj_id)# called in redis9
-			
 				my_server = redis.Redis(connection_pool=POOL)
 				my_server.zrem(USER_FEED+own_id,obj_hash)# remove post from own feed
 				my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash)# remove post from list of limited items

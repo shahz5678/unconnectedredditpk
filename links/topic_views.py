@@ -20,7 +20,7 @@ from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post,
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
 retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes,\
 is_image_star, set_temp_post_data
-from redis9 import filter_following, fan_out_to_followers#todo: call relevant function from tasks instead of fan_out_to_followers
+from redis2 import filter_following, fan_out_to_followers#TODO: call relevant function from tasks instead of fan_out_to_followers
 from score import NUM_SUBMISSION_ALLWD_PER_DAY#, SEGMENT_STARTING_USER_ID
 
 

@@ -893,7 +893,7 @@ class UploadPhotoReplyForm(forms.ModelForm):
 
 class UploadPhotoForm(forms.Form):
 	image_file = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua','invalid':'Selected photo upload nahi ho sakti'})
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'spellcheck':'false','maxlength':MAX_PHOTO_CAPTION_SIZE}),\
+	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'spellcheck':'false','maxlength':MAX_HOME_SUBMISSION_SIZE}),\
 		error_messages={'required': 'Photo ke barey mien likhna zaroori hai'})
 	aud = forms.CharField(required=False)
 	exp = forms.CharField(required=False)
@@ -919,8 +919,8 @@ class UploadPhotoForm(forms.Form):
 				raise forms.ValidationError('Photo ke barey mien likhna zaroori hai')
 			if caption_len < 8:
 				raise forms.ValidationError('Zyada tafseel likhein ke photo mein kya hai')
-			elif caption_len > MAX_PHOTO_CAPTION_SIZE:
-				raise forms.ValidationError('{} chars se zyada nahi likhein, ap ne {} chars likhey'.format(MAX_PHOTO_CAPTION_SIZE,caption_len))
+			elif caption_len > MAX_HOME_SUBMISSION_SIZE:
+				raise forms.ValidationError('{} chars se zyada nahi likhein, ap ne {} chars likhey'.format(MAX_HOME_SUBMISSION_SIZE,caption_len))
 			elif caption.isdigit():
 				raise forms.ValidationError('Sirf numbers nahi likhein, tafseel se likhein photo mein kya hai')
 			elif '#' in caption:

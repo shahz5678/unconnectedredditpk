@@ -69,8 +69,8 @@ from redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_searc
 log_text_submissions, del_search_history, tutorial_unseen, is_mobile_verified, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, is_already_banned, \
 log_pagination_button_click # log_erroneous_passwords
-from .redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
-from .website_feedback_form import AdvertiseWithUsForm
+from redisads import get_user_loc, get_ad, store_click, get_user_ads, suspend_ad
+from website_feedback_form import AdvertiseWithUsForm
 from redirection_views import return_to_content
 from redis6 import invalidate_cached_mehfil_replies, save_group_submission, retrieve_latest_user_owned_mehfils, group_member_exists, \
 retrieve_group_reqd_data# invalidate_cached_mehfil_pages
@@ -81,10 +81,10 @@ invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_r
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
 is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text,set_temp_post_data, get_temp_post_data
+from redis2 import filter_following, check_if_follower, get_verified_follower_count, followers_exist, get_following_count, retrieve_follower_data, \
+fan_out_to_followers, can_follower_view_post, invalidate_cached_user_feed_history, get_last_post_selected_followers, get_all_follower_count, \
+logging_post_data
 from redis9 import retrieve_latest_direct_reply, get_last_comment_time
-from redis9 import filter_following, check_if_follower, get_verified_follower_count, followers_exist, get_following_count, retrieve_follower_data, \
-fan_out_to_followers, can_follower_view_post, invalidate_cached_user_feed_history, get_last_post_selected_followers 
-from redis9 import get_all_follower_count,logging_post_data # used for logger
 from utilities import beautiful_date, convert_to_epoch
 from redis8 import retrieve_variation_subset, set_tutorial_seen
 from direct_response_forms import DirectResponseForm

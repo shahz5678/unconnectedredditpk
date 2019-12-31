@@ -11,7 +11,7 @@ retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id, log_ak
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points, log_user_activity
 from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME#, SEGMENT_STARTING_USER_ID
-from redis9 import change_verification_status
+from redis2 import change_verification_status
 from utilities import convert_to_epoch
 from redis4 import retrieve_uname
 from redis8 import retrieve_var

@@ -5079,19 +5079,33 @@ def retrieve_shared_obj_meta_data(obj_type,obj_id, with_owner_id=False):
 			# the object is not available in redis - fall back to postgresql
 			via_db = True
 			if with_owner_id:
-				final_data = Link.objects.values('image_file','description','submitter','delete_status','type_of_content','expire_at').\
-				filter(id=obj_id)[0]
-				if not final_data['type_of_content']:
-					#legacy object - residing in 'Photo' model (so the prior lookup in 'Link' was erroneous - redo the lookup!)
+				data_list = Link.objects.values('image_file','description','submitter','delete_status','type_of_content','expire_at').\
+				filter(id=obj_id)
+				if data_list:
+					final_data = data_list[0]
+					if not final_data['type_of_content']:
+						#legacy object - residing in 'Photo' model (so the prior lookup in 'Link' was erroneous - redo the lookup!)
+						final_data = Photo.objects.values('image_file','caption','owner').filter(id=obj_id)[0]
+						is_legacy_obj = True
+				else:
+					#retrieved data is empty - try a lookup in the Photo() table
 					final_data = Photo.objects.values('image_file','caption','owner').filter(id=obj_id)[0]
 					is_legacy_obj = True
+
 			else:
-				final_data = Link.objects.values('image_file','description','delete_status','type_of_content','expire_at').\
-				filter(id=obj_id)[0]
-				if not final_data['type_of_content']:
-					#legacy object - residing in 'Photo' model (so the prior lookup in 'Link' was erroneous - redo the lookup!)
+				data_list = Link.objects.values('image_file','description','delete_status','type_of_content','expire_at').\
+				filter(id=obj_id)
+				if data_list:
+					final_data = data_list[0]
+					if not final_data['type_of_content']:
+						#legacy object - residing in 'Photo' model (so the prior lookup in 'Link' was erroneous - redo the lookup!)
+						final_data = Photo.objects.values('image_file','caption').filter(id=obj_id)[0]
+						is_legacy_obj = True
+				else:
+					#retrieved data is empty - try a lookup in the Photo() table
 					final_data = Photo.objects.values('image_file','caption').filter(id=obj_id)[0]
 					is_legacy_obj = True
+
 
 	return final_data, via_db, is_legacy_obj
 

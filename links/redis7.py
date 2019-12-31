@@ -1582,6 +1582,8 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1', already_
 	"""
 	if cleanse_feeds == '1':
 		my_server = redis.Redis(connection_pool=POOL)
+
+		# Remove singular post when a user 'removes' it
 		if submitter_id and target_obj_hash_name:
 			rate_limit_key = REMOVAL_RATE_LIMIT+submitter_id 
 			ttl = my_server.ttl(rate_limit_key)
@@ -2013,7 +2015,7 @@ def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
 	if random() < 0.1:
 		my_server.zremrangebyrank(feed_name, 0, -201)# to keep top 200 in the sorted set
 	#############################
-	# ensuring the 'feed cleaning' functionality can tract this object for effective cleansing of related redis sets/objs etc.
+	# ensuring the 'feed cleaning' functionality can track this object (for effective cleansing of related redis sets/objs etc.)
 	json_obj = my_server.hget(obj_hash,'blob')
 	if json_obj:
 		obj = json.loads(json_obj)
@@ -2974,7 +2976,7 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 
 					return new_net_votes
 			#############################################################################################################################
-			# is an audience vote (from a curated list, e.g. best, or only subs, etc)
+			# is an audience vote (from a curated list, e.g. best, or my-home, etc)
 			else:
 				
 				if revert_prev:
@@ -3039,11 +3041,7 @@ def log_like(obj_id, own_id, revert_prev, is_pht, target_user_id, time_of_vote, 
 					###############################################	
 
 					# Step 3) Update postgresql fields 
-					if is_pht == '1':
-					# Photo.	objects.filter(id=obj_id).update(vote_score=F('vote_score')+1)#atomic
-						vote_count_key = 'fpv:'+own_id
-					else:
-						vote_count_key = 'fv:'+own_id
+					vote_count_key = 'fpv:'+own_id if is_pht == '1' else 'fv:'+own_id
 					Link.objects.filter(id=obj_id).update(net_votes=F('net_votes')+1)#atomic
 
 					###############################################

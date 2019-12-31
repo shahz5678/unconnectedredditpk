@@ -12,7 +12,7 @@
 {% load get_big_home_reply_button %}
 {% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
-<h1 class="cxl clb lsp" style="text-align:center">Liked and Saved:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Your old likes:</h1>
 
 	{% for datum in data %}
 
@@ -55,15 +55,15 @@
 	{% endfor %}
 
 
-<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
+<div class="mbl fx fxjscn">
 	{% if page.has_previous %}
     <div style="padding:0 10px">
-    	<a href="?page={{ page.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+    	<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
     </div>
     {% endif %}
     {% if page.has_next %}
     <div style="padding:0 10px">
-    	<a href="?page={{ page.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    	<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
     </div>
     {% endif %}
 </div>

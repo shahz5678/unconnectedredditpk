@@ -1602,20 +1602,27 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1', already_
 
 					if rows_to_remove:
 						# only remove obj from global feeds, don't delete the object or its vote_stores, since our policy is to continue displaying the obj in user feeds
+						pipeline1 = my_server.pipeline()
 						for submission in rows_to_remove:
 							data = submission.split('*')
 							which_feed, obj_hash_name = data[0], data[1]
-							my_server.zrem(which_feed, obj_hash_name)
+							pipeline1.zrem(which_feed, obj_hash_name)
+							############## In case the obj was a trending image, remove it from sets that calculate total trending images separately ##############
+							# this functionality is carried out by trim_trenders_data() in the 'elif' below
+							obj_data = obj_hash_name.partition(":")
+							if obj_data[0] == 'img':
+								obj_id = obj_data[1]
+								pipeline1.zrem(TRENDING_FOTOS_AND_USERS,obj_id)
+								pipeline1.zrem(TRENDING_FOTOS_AND_TIMES,obj_id)
 							
-						my_server.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*rows_to_remove)
-						my_server.zrem(USER_SUBMISSIONS_AND_EXPIRES,*rows_to_remove)
-						my_server.setex(rate_limit_key,'1',REMOVAL_RATE_LIMIT_TIME)
+						pipeline1.zrem(USER_SUBMISSIONS_AND_SUBMITTERS,*rows_to_remove)
+						pipeline1.zrem(USER_SUBMISSIONS_AND_EXPIRES,*rows_to_remove)
+						pipeline1.setex(rate_limit_key,'1',REMOVAL_RATE_LIMIT_TIME)
+						pipeline1.execute()
 
-					# the targeted obj has been removed
-					return True, None
-				else:
-					# there was nothing to remove
-					return False, None
+				# the targeted obj has been removed
+				return True, None
+
 				################################################
 
 		####################################################################

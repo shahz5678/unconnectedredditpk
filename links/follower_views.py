@@ -520,6 +520,8 @@ def show_new_followers(request):
 	# can we use use and uss here?
 	own_id = request.user.id
 	last_seen_time = get_user_activity_event_time(own_id)
+	if last_seen_time == None:
+		last_seen_time = time.time()
 	followers, num_followers = retrieve_follower_data(own_id,start_idx=0, end_idx=-1, with_follower_count_since_last_seen=last_seen_time)
 	
 	own_name = retrieve_uname(own_id, decode=True)

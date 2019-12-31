@@ -1,1181 +1,1025 @@
-# import redis, time
-# from location import REDLOC2
-# # from lua_scripts import storelogin, getlatestlogins, cleanselogins, retrieveclones
+import threading
+import redis, time
+import ujson as json
+from location import REDLOC2
+from models import UserFan, Report, Link
+from redis4 import retrieve_bulk_credentials
+from utilities import beautiful_date, convert_to_epoch
+from redis7 import get_obj_owner, change_delete_status_of_obj_hash, trim_expired_user_submissions
+from score import PUBLIC_SUBMISSION_TTL, TTL_FOLLOWER_LIST, TTL_FOLLOWER_STRING, RATELIMIT_REMOVED_FOLLOWER, SHORT_RATELIMIT_UNFOLLOWER
 
-# '''
-# ##########Redis Namespace##########
+POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC2, db=0)
 
-# fans = "f:"+str(photo_owner_id) // a sorted set
-# group_attendance = "ga:"+str(group_id)
-# latest_user_ip = "lip:"+str(user_id) #latest ip of user with 'user_id'
-# hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id) #'np' is notification payload, contains notification data
-# hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
-# photos_benchmark = "photos_benchmark"
-# sorted_set = "public_group_rankings"
-# recent_fans = "rf:"+photo_owner_id
-# user_score_hash = "us:"+str(user_id)
-# sorted_set = "si:"+str(viewer_id) #salat invites sent to viewer_id
-# sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-# single_key = 't:'+str(viewer_id) #'t' stores time of last visit to unseen activity by viewer_id
-# sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-# sorted_set = "uar:"+str(viewer_id) #unseen activity resorted (by whether notifs are seen or not)
-# user_ban = "ub:"+str(user_id)
-# user_presence = "up:"+str(user_id)+str(group_id)
-# user_presence = "up:"+str(user_id)+":"+str(group_id)
-# sorted_set = "whose_online_new"
+TEN_MINS = 600# 10 minutes in seconds
+ONE_DAY = 86400# 1 day in seconds
+ONE_WEEK = 604800# 1 week in seconds
+TWO_WEEKS = 172800# 2 weeks in seconds
+THREE_MONTHS = 60*60*24*90
 
-# ###################################
-# '''
-# # changed connection from TCP port to UNIX socket
-# POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC2, db=0)
+######################## TO DO ############################
+# FOLLOWING_LIST = "fgl:"#a sorted set of all the user_ids that a given user follows, sorted by the time of subscription
 
-# # 6,000,000,000 is most important priority wise
-# #PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':4000000000,'photo_tabsra':3000000000,'public_mehfil':2000000000,'photo_fan':2000000000,'namaz_invite':1000000000}
-# PRIORITY={'personal_group':6000000000,'priv_mehfil':5000000000,'home_jawab':5000000000,'photo_tabsra':5000000000,'public_mehfil':5000000000,'photo_fan':5000000000,'namaz_invite':1000000000}
-# # Weightage of 'seen' status, used to find notification count for each user
-# SEEN={True:2000000000,False:4000000000}
+FOLLOWERS_LIST = "fsl:"#a sorted set containing all subscriber ids of a given target user id, sorted by time of subscription
+FOLLOWER_STRING = "fs:"#a key that contains a concatenated list of a given user's fans
+NUM_VERIFIED_FOLLOWERS = "nvf:" #a key that stores the number of verified followers a given user has
+NUM_ALL_FOLLOWERS = "naf:" #a key that stores the number of followers a given user has
+NO_FOLLOWERS = "nof:" # a key that is set for a user who has zero followers (verified and unverified)
+USER_FEED = "uf:" # a key that keeps all the posts by all the people you follow
+SHORT_LIVED_CONTENT_EXPIRE_TIMES = "slcet:" # a key that keeps short-lived posts from all the people you follow sorted by expiry times, useful for culling expired items in a user's feed
 
-# FUTURE_EPOCH = 1609406042 #Human time (GMT): Thu, 31 Dec 2020 09:14:02 GMT
+RATE_LIMIT_FOLLOWER = "rlf:" #a key that stores ratelimit ttl of a target_id user after removing target as a follower or when a user unfollowes another user
+FOLLOWER_FANOUTS_AND_EXPIRES = 'ffe'# global sorted set containing all fan-outs and their fan-out times (useful for data expiry)
+FOLLOWER_FANOUTS_AND_SUBMITTERS = 'ffu'# global sorted set containing all fan-outs and their submitter IDs (useful for data expiry)
+TEMP_ALL_FOLLOWERS = 'taf:' # a set containing all IDs that a post was shared with
+FOLLOWING_COUNT = 'fgc:' # a key that stores the count of people a user is following 
+CACHED_PRIVATE_FEED_HISTORY = 'cprvfh:'
+CACHED_LIMITED_FEED_HISTORY = 'climfh:'
+CACHED_PUBLIC_FEED_HISTORY = 'cpubfh:'
 
-# TEN_MINS = 10*60
-# ONE_HOUR = 60*60
-# ONE_DAY = 1*24*60*60
-# THREE_DAYS = 3*24*60*60
-# HALF_LIFE = THREE_DAYS #used in ranking public groups
+LAST_SELECTED_FOLLOWERS = 'lsf:' # contains a list of followers selected for a private fanout
 
-# # unseen_activity size limit (per user)
-# UA_LIMIT = 70
-# UA_TO_TRIM = 20
+LAST_ACTIVE_ON_HOME = 'laoh:'
+NEW_FOLLOWERS_NOTIF = 'nfn:'
+NO_NEW_FOLLOWERS = 'nnf:'
 
-# #######################Notifications#######################
-
-# '''
-# OBJECT types:
-# 	personal groups = '5'
-# 	link publicreply = '2'
-# 	photo comment = '0'
-# 	group chat = '3'
-# 	salat invites = '4'
-# 	photo upload = '1' #for fans only
-# '''
-
-# def retrieve_object_data(obj_id,obj_type):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	obj_name = "o:"+obj_type+":"+str(obj_id)
-# 	return my_server.hgetall(obj_name)
+############################# Retrieving data shown in a user's follower feed #############################
 
 
-# # populates the single notification on the screen
-# def retrieve_latest_notification(viewer_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sorted_set = "sn:"+str(viewer_id) # this contains the 'single notifications' of the user
-# 	notif = my_server.zrange(sorted_set,-1,-1)
-# 	if notif:
-# 		notification = my_server.hgetall(notif[0])
-# 		try:
-# 			parent_object = my_server.hgetall(notification['c'])
-# 		except KeyError:
-# 			remove_erroneous_notif(notif[0],viewer_id) #this notif was not associated to any object, as in group, photo etc
-# 			return None, None, None
-# 		if not parent_object:
-# 			remove_erroneous_notif(notif[0],viewer_id) #this notif was not associated to an existing object
-# 			return None, None, None
-# 		else:
-# 			combined = dict(notification,**parent_object)
-# 			return notif[0],notification['c'],combined
-# 	else:
-# 		return None, None, None
+def retrieve_custom_feed_index(user_id, obj_hash):
+	"""
+	Returns exact index an object is stored at in USER_FEED+user_id
+
+	Useful when needing to redirect to precise object after interacting with a post
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrank(USER_FEED+str(user_id),obj_hash)
 
 
-# def retrieve_unseen_notifications(viewer_id, start_idx=0, end_idx=-1, with_feed_size=False):
-# 	"""
-# 	Retrieves notifications to be shown in matka
-# 	"""
-# 	if with_feed_size:
-# 		key = "ua:"+str(viewer_id)
-# 		my_server = redis.Redis(connection_pool=POOL)
-# 		return my_server.zrevrange(key, start_idx, end_idx), my_server.zcard(key)
-# 	else:
-# 		return redis.Redis(connection_pool=POOL).zrevrange("ua:"+str(viewer_id), start_idx, end_idx)
+def get_custom_feed(user_id, start_idx=0,end_idx=-1, with_feed_size=False):
+	"""
+	Retrieve given user's feed populated by people user follows
+	"""
+	user_id=str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if with_feed_size:
+		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time.time())
+		if expired_items:
+			my_server.zrem(USER_FEED+user_id,*expired_items)
+			my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,*expired_items)
+		obj_list = my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx), my_server.zcard(USER_FEED+user_id)
+		return obj_list
+
+	else:
+		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time.time())
+		if expired_items:
+			my_server.zrem(USER_FEED+user_id,*expired_items)
+			my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,*expired_items)
+		obj_list = my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx)
+		return obj_list
 
 
-# def retrieve_unseen_activity(notifications):
-# 	"""
-# 	Retrieves all information contained within notifications+objects, rendering the final form of the matka
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	list_of_dictionaries = []
-# 	pipeline1 = my_server.pipeline()
-# 	for notification in notifications:
-# 		notif = pipeline1.hgetall(notification)
-# 		associated_obj = pipeline1.hgetall("o:"+notification.split(":",2)[2])
-# 	result = pipeline1.execute()
-# 	i = 0
-# 	while i < len(result):
-# 		if 'c' in result[i] and 'ot' in result[i+1]:
-# 			combined = dict(result[i],**result[i+1])
-# 			if "lrsn" in combined:
-# 				combined["lrsn"] = combined["lrsn"].decode('utf-8')
-# 			if "uname1" in combined:
-# 				combined["uname1"] = combined["uname1"].decode('utf-8')
-# 			if "uname2" in combined:
-# 				combined["uname2"] = combined["uname2"].decode('utf-8')
-# 			list_of_dictionaries.append(combined)
-# 		i += 2
-# 	return list_of_dictionaries
-
-# ################################################## Namaz Notifications ########################################################
+############################# Fan button state helper funcs #############################
 
 
-# def delete_salat_notification(notif_name, hash_name, viewer_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.zrem("sn:"+str(viewer_id),notif_name)
-# 	my_server.delete(hash_name)
-# 	my_server.delete(notif_name)
+def filter_following(user_list,own_id):
+	"""
+	This returns IDs of 'stars' who may have posted in a given time window
 
-# def bulk_update_salat_notifications(viewer_id=None, starting_time=None, seen=None, updated_at=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	salat_invites_to_update = my_server.zrangebyscore("si:"+str(viewer_id),starting_time,'+inf')
-# 	my_server.zremrangebyscore("si:"+str(viewer_id),starting_time,'+inf')
-# 	for salat_invite in salat_invites_to_update:
-# 		hash_name = "np:"+str(viewer_id)+":4:"+str(salat_invite)
-# 		my_server.hmset(hash_name,{"s":seen,"u":updated_at})
-# 		my_server.zrem("sn:"+str(viewer_id),hash_name)
+	Useful for displaying toggle-able fan buttons under posts in all global feeds (e.g. Home, Topics, Fotos, etc)
+	"""
+	# Method1:
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
 
-# def viewer_salat_notifications(viewer_id=None, object_id=None, time=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sorted_set = "si:"+str(viewer_id) #salat invites sent to viewer_id
-# 	my_server.zadd(sorted_set,object_id,time)
+	for user_id in user_list:
+		pipeline1.zscore(FOLLOWERS_LIST+user_id,own_id)
+	result1 = pipeline1.execute()
+
+	counter, ids_you_are_following = 0, set()
+	for user_id in user_list:
+		if result1[counter]:
+			ids_you_are_following.add(user_id)
+		else:
+			if my_server.exists(NO_FOLLOWERS+user_id):
+				pass
+			elif UserFan.objects.filter(star_id=user_id, fan_id=own_id).exists():
+				ids_you_are_following.add(user_id)
+		counter += 1
+	return ids_you_are_following
 
 
-# ###############################################################################################################################
+def check_if_follower(user_id, target_user_id, with_db_lookup=False):
+	"""
+	Checks if 'user_id' is subscribed to 'target_user_id'
 
-# def update_group_topic_in_obj(group_id, topic):
-# 	"""
-# 	Updates the topic field in a mehfil related object
-# 	"""
-# 	redis.Redis(connection_pool=POOL).hset("o:3:"+str(group_id), 'od', topic)
+	Useful in showing the correct state of the 'follow' button when visiting profiles
+	Does not check whether user_id and target_user_id are one and the same person
+	"""
+	if user_id:
+		if with_db_lookup:
+			if redis.Redis(connection_pool=POOL).zscore(FOLLOWERS_LIST+str(target_user_id),user_id):
+				return True
+			else:
+				# if time_of_following is None, it might be that the keys have expired from redis - fall back to the DB
+				return UserFan.objects.filter(star_id=target_user_id, fan_id=user_id).exists()
+		else:
+			if redis.Redis(connection_pool=POOL).zscore(FOLLOWERS_LIST+str(target_user_id),user_id):
+				return True
+			else:
+				return False
+	return False
+
+############################# Add/Remove fans #############################
+
+
+def recreate_fan_signature_in_redis(target_user_id, my_server):
+	"""
+	This function pulls follower Ids and fanning times from postgres and creates a redis object for it
+	"""
+	fan_payload, fan_ids = [], []
+	target_fan_ids_and_fanning_times = UserFan.objects.filter(star_id=target_user_id).values_list('fan_id','fanning_time')
+	target_user_id = str(target_user_id)
+	for target_fan_id, fanning_time in target_fan_ids_and_fanning_times:
+		###################################
+		fan_ids.append(target_fan_id)
+		###################################
+		fan_payload.append(target_fan_id)
+		fan_payload.append(convert_to_epoch(fanning_time))
+	if fan_payload:
+		my_server.zadd(FOLLOWERS_LIST+target_user_id,*fan_payload)
+		my_server.expire(FOLLOWERS_LIST+target_user_id,TTL_FOLLOWER_LIST)
+		###################################
+		follower_string = ":"
+		for target_fan_id in fan_ids:
+			follower_string += str(target_fan_id)+":"
+		my_server.setex(FOLLOWER_STRING+target_user_id,follower_string,TTL_FOLLOWER_STRING)
+		my_server.execute_command('UNLINK', NO_FOLLOWERS+target_user_id)
+	else:
+		# no followers exist - hence setting the requisite key
+		my_server.setex(NO_FOLLOWERS+target_user_id,'1',ONE_DAY)	
+
+
+def add_to_follower_string(lock, my_server, user_id,target_user_id):
+	"""
+	Helper function of add_follower()
+	"""
+	follower_string = FOLLOWER_STRING+target_user_id
+	lock.acquire()
+	string = my_server.get(follower_string)
+	if string:
+		string = string + user_id + ":"
+		my_server.setex(follower_string,string,TTL_FOLLOWER_STRING)
+	else: 
+		# 'string' does not exist - maybe something went wrong - don't take a chance, just attempt to recreate everything via the DB
+		recreate_fan_signature_in_redis(target_user_id,my_server)
+	lock.release()
+
+
+
+def add_follower(user_id, target_user_id, verification_status, time_now):
+	"""
+	Add user_id as a subscriber to target_user_id
+	"""
+	user_id, target_user_id = str(user_id), str(target_user_id)
+	followers_list = FOLLOWERS_LIST+target_user_id
+	delete_new_follower_notif(target_user_id)
+	# adding follower to relevant postgresql table
+	UserFan.objects.create(star_id=target_user_id, fan_id=user_id, fan_verification_status=verification_status, fanning_time=beautiful_date(time_now, format_type='4'))
+
+	my_server = redis.Redis(connection_pool=POOL)
+
+	# invalidate cached follower count since follower count just changed
+	if verification_status == '1':
+		invalidate_verif_follower_count(target_user_id)
+	
+	invalidate_following_count(user_id)# invalidate following count (star count) whether verified or not		
+
+	if my_server.exists(followers_list):
+		# adding to the relevant sorted sets
+		my_server.zadd(followers_list, user_id, time_now)
+		# update expiry of the list
+		my_server.expire(followers_list,TTL_FOLLOWER_LIST)
+		# adding the new addition to the target's 'follower string' (a mechanism that makes fan-outs faster) 
+		lock = threading.Lock()
+		t = threading.Thread(target = add_to_follower_string, args = (lock,my_server,user_id,target_user_id))
+		t.start()
+		t.join()
+
+	elif my_server.exists(FOLLOWER_STRING+target_user_id):		
+		# just adding the new addition to the target's 'follower string' (a mechanism that makes fan-outs faster) 
+		lock = threading.Lock()
+		u = threading.Thread(target = add_to_follower_string, args = (lock,my_server,user_id,target_user_id))
+		u.start()
+		u.join()
+
+	else:
+		# this person has 0 fans for sure. Set the key (but no need to add anything else to redis)
+		my_server.delete(NO_FOLLOWERS+target_user_id)
+
+
+def change_verification_status(user_id,type_of_operation):
+	if type_of_operation == 'verified':
+		UserFan.objects.filter(fan_id=user_id).update(fan_verification_status='1')
+	
+	else:
+		UserFan.objects.filter(fan_id=user_id).update(fan_verification_status='0')
 
 	
-# def update_object(object_id=None, object_type=None, lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,\
-# 	res_count=None, vote_score=None,reply_photourl=None, object_desc=None, just_vote=None, lt_res_wid=None, slug=None):
-# 	"""
-# 	Updating already created notification object
-# 	"""
-# 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc.
-# 	if object_type == '2':
-# 		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'r':res_count, 'lrwi':lt_res_wid}
-# 	elif object_type == '3':
-# 		mapping={'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'lrwi':lt_res_wid}
-# 	elif object_type == '0':
-# 		mapping={'v':vote_score} if just_vote else {'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,\
-# 		'r':res_count,'v':vote_score, 'lrwi':lt_res_wid}
-# 	redis.Redis(connection_pool=POOL).hmset(hash_name, mapping)
+def remove_from_follower_string(lock, my_server, user_id,target_user_id):
+	"""
+	Helper function of remove_follower()
+	"""
+	follower_string_key = FOLLOWER_STRING+target_user_id
+	lock.acquire()
+	follower_string_payload = my_server.get(follower_string_key)
+	if follower_string_payload:
+		split_follower_string = follower_string_payload.split(":"+user_id+":")# divides the string into two parts, at the point where user_id existed in the string
+		if split_follower_string[0] or split_follower_string[1]:
+			follower_string_payload = ":".join(split_follower_string)
+			my_server.setex(follower_string_key,follower_string_payload,TTL_FOLLOWER_STRING)
+		else:
+			# this target_user_id doesn't have any fans anymore - user_id was the last fan and just got removed
+			
+			my_server.setex(NO_FOLLOWERS+target_user_id,'1',ONE_DAY)
+			# just remove the follower string
+			my_server.execute_command('UNLINK', follower_string_key)
+	lock.release()	
 
 
-# def create_object(object_id=None, object_type=None, object_owner_avurl=None,object_owner_id=None,object_owner_name=None,\
-# 	object_desc=None,lt_res_time=None,lt_res_avurl=None,lt_res_sub_name=None,lt_res_text=None,is_welc=None,res_count=None,\
-# 	is_thnks=None, photourl=None, reply_photourl=None, group_privacy=None,vote_score=None, slug=None, lt_res_wid=None):
-# 	"""
-# 	Creating a notification object that saves an element's latest state (e.g. a group object would be created, and it would contain its latest msgs)
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hash_name = "o:"+str(object_type)+":"+str(object_id) #'o' is object, this contains link, photo, group, salat invite, video, etc
-# 	if my_server.exists(hash_name):
-# 		return False
-# 	else:
-# 		if object_type == '2':
-# 			#creating link object, with latest_response
-# 			mapping={'oi':object_id,'ot':object_type,'ooa':object_owner_avurl,'ooi':object_owner_id,'oon':object_owner_name,\
-# 			'od':object_desc,'lrti':lt_res_time,'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'w':is_welc,\
-# 			'r':res_count,'lrwi':lt_res_wid}
-# 		elif object_type == '3':
-# 			#creating group chat object, with latest_response
-# 			mapping = {'oi':object_id, 'ot':object_type,'ooi':object_owner_id,'od':object_desc,'lrti':lt_res_time,\
-# 			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'rp':reply_photourl,'g':group_privacy,'l':slug,\
-# 			'lrwi':lt_res_wid}
-# 		elif object_type == '0':
-# 			#creating photo object, with latest_response
-# 			mapping = {'oi':object_id, 'ot':object_type, 'p':photourl, 'od':object_desc, 'ooa':object_owner_avurl,\
-# 			'ooi':object_owner_id,'oon':object_owner_name,'v':vote_score, 'r':res_count,'lrti':lt_res_time, \
-# 			'lrau':lt_res_avurl,'lrsn':lt_res_sub_name,'lrtx':lt_res_text,'lrwi':lt_res_wid}
-# 		elif object_type == '4':
-# 			#creating salat_invite object
-# 			mapping = {'oi':object_id,'ot':object_type,'oon':object_owner_name,'ooa':object_owner_avurl,'od':object_desc,\
-# 			'ooi':object_owner_id}
-# 		elif object_type == '1':
-# 			#photo uploaded for fans. Fed from tasks.bulk_create_notifications()
-# 			mapping = {'oi':object_id,'ot':object_type,'ooi':object_owner_id,'p':photourl,'v':vote_score,'l':slug,'t':is_thnks,\
-# 			'r':res_count,'oon':object_owner_name, 'od':object_desc}
-# 		elif object_type == '5':
-# 			#new private chat object, functionality moved to update_private_chat_notif_object()
-# 			mapping = {}
-# 		my_server.hmset(hash_name, mapping)
-# 		return True
 
-# # find whether a reply is seen or unseen (used in groups page)
-# def get_replies_with_seen(group_replies=None,viewer_id=None, object_type=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	replies_list = []
-# 	pipeline1 = my_server.pipeline()
-# 	for reply in group_replies:
-# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(reply["which_group"])
-# 		pipeline1.hget(hash_name,'s')
-# 	result1 = pipeline1.execute()
-# 	count = 0
-# 	for is_seen in result1:
-# 		replies_list.append((group_replies[count],is_seen))
-# 		count += 1
-# 	return replies_list
-
-
-# ###########################################################################################################################	
-
-# def bulk_create_photo_notifications_for_fans(viewer_id_list=None,object_id=None,seen=None,updated_at=None,unseen_activity=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	increment = 0
-# 	parent_object = "o:0:"+str(object_id) #points to the parent object each notification is related to
-# 	pipeline1 = my_server.pipeline()
-# 	for viewer_id in viewer_id_list:
-# 		notification = "np:"+str(viewer_id)+":0:"+str(object_id)
-# 		mapping = { 's':seen,'u':updated_at,'c':parent_object,'f':True,'nc':True }#'f' means for_fans, 'nc' means no_comment
-# 		pipeline1.hmset(notification, mapping)
-# 		#updating single_notif sorted set
-# 		sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-# 		score = PRIORITY['photo_fan']+int(updated_at)
-# 		pipeline1.zadd(sorted_set, notification, score) #where updated_at is the score
-# 		#updating unseen_acitivity sorted set, if warranted
-# 		if unseen_activity:
-# 			increment += 1
-# 			sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-# 			pipeline1.zadd(sorted_set, notification, updated_at) #where updated_at is the score
-# 			sorted_set2 = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# 			pipeline1.zadd(sorted_set2,notification,updated_at+SEEN[seen])
-# 	pipeline1.hincrby(parent_object, 'n', amount=increment)
-# 	pipeline1.execute()
-
-
-# # this does not update notifications for users whose notification object was deleted (or wasn't created in the first place)
-# def bulk_update_notifications(viewer_id_list=None, object_id=None, object_type=None, seen=None, updated_at=None, single_notif=None, \
-# 	unseen_activity=None, priority=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	pipeline1 = my_server.pipeline()
-# 	for viewer_id in viewer_id_list:
-# 		hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
-# 		pipeline1.exists(hash_name)	#list of all hashes that exist
-# 	result1, count = pipeline1.execute(), 0
-# 	pipeline2 = my_server.pipeline()
-# 	for exist in result1:
-# 		if exist:
-# 			hash_name = "np:"+str(viewer_id_list[count])+":"+str(object_type)+":"+str(object_id)
-# 			pipeline2.hset(hash_name, "s", seen) #updating 'seen'
-# 			if updated_at:
-# 				pipeline2.hset(hash_name, "u", updated_at)
-# 			if single_notif is not None:
-# 				sorted_set = "sn:"+str(viewer_id_list[count]) #'sn' is single notification, for user with viewer_id
-# 				if single_notif:
-# 					score = PRIORITY[priority]+int(time.time())
-# 					pipeline2.zadd(sorted_set, hash_name, score)
-# 				else:
-# 					pipeline2.zrem(sorted_set, hash_name)
-# 			if unseen_activity is not None:
-# 				sorted_set = "ua:"+str(viewer_id_list[count]) #'ua' is unseen activity, for user with viewer_id
-# 				sorted_set2 = "uar:"+str(viewer_id_list[count]) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# 				if unseen_activity:
-# 					#all updates will be bumped in ua: anyway, so no need for 'bump_ua' flag here
-# 					epochtime = time.time()
-# 					pipeline2.zadd(sorted_set, hash_name, epochtime)
-# 					pipeline2.zadd(sorted_set2,hash_name,epochtime+SEEN[seen])
-# 				else:
-# 					pipeline2.zrem(sorted_set, hash_name)
-# 					pipeline2.zrem(sorted_set2, hash_name)
-# 		count += 1
-# 	pipeline2.execute()
-
-
-# # this does not update a notification whose notification object was deleted
-# def update_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
-# 	single_notif=None, priority=None, bump_ua=None, no_comment=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)
-# 	if my_server.exists(hash_name):
-# 		my_server.hset(hash_name,"s", seen) #updating 'seen'
-# 		if no_comment is not True:
-# 			my_server.hset(hash_name,"nc",no_comment)
-# 		if updated_at:
-# 			my_server.hset(hash_name, "u", updated_at) #updating 'updated_at' only if value is available
-# 		if single_notif is not None:
-# 			sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-# 			if single_notif:
-# 				score = PRIORITY[priority]+int(time.time())
-# 				my_server.zadd(sorted_set, hash_name, score)
-# 			else:
-# 				my_server.zrem(sorted_set, hash_name)
-# 		if unseen_activity is not None:
-# 			sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-# 			sorted_set2 = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# 			epochtime = time.time()
-# 			if bump_ua and unseen_activity:
-# 				my_server.zadd(sorted_set, hash_name, epochtime)
-# 				my_server.zadd(sorted_set2, hash_name, epochtime+SEEN[seen])
-# 			elif unseen_activity:
-# 				# only zadd if the member doesn't exist
-# 				if my_server.zscore(sorted_set,hash_name) is None:
-# 					my_server.zadd(sorted_set,hash_name, epochtime)
-# 					my_server.zadd(sorted_set2, hash_name, epochtime+SEEN[seen])
-# 				else:
-# 					#i.e. don't bump up in unseen_activity by just 'viewing', but adjust notification counter
-# 					my_server.zadd(sorted_set2, hash_name, epochtime+SEEN[seen])
-# 					# pass
-# 			else:	
-# 				my_server.zrem(sorted_set, hash_name)
-# 				my_server.zrem(sorted_set2, hash_name)
-# 		return True
-# 	else:
-# 		return False
-
-
-# def create_notification(viewer_id=None, object_id=None, object_type=None, seen=None, updated_at=None, unseen_activity=None, \
-# 	single_notif=None, priority=None, no_comment=None, check_parent_obj=False):
-# 	"""
-# 	Notifications are generated so that users' matka can be populated
-
-# 	Each social action causes notifications to be generated for all concerned users
-# 	Notifications can be 'seen', or 'unseen'
-# 	The user whose actions generated the notification always gets a 'seen' notifcation, others get an 'unseen' notification
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	hash_name = "np:"+str(viewer_id)+":"+str(object_type)+":"+str(object_id)#viewer_id is the user whose matka will receive the notification
-# 	composite_id = "o:"+str(object_type)+":"+str(object_id) #points to the parent object this notification is related to
-# 	notif_already_exists = my_server.exists(hash_name)
-# 	if check_parent_obj:
-# 		parent_exists = my_server.exists(composite_id)
-# 		if notif_already_exists or not parent_exists:
-# 			return False
-# 	else:
-# 		if notif_already_exists:
-# 			return False
-# 	mapping = { 's':seen,'u':updated_at,'c':composite_id,'nc':no_comment }
-# 	my_server.hmset(hash_name, mapping)
-# 	#updating unseen_acitivity sorted set
-# 	if unseen_activity:
-# 		sorted_set = "ua:"+str(viewer_id) #'ua' is unseen activity, for user with viewer_id
-# 		sorted_set2 = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# 		my_server.zadd(sorted_set, hash_name, updated_at) #where updated_at is the score
-# 		my_server.zadd(sorted_set2, hash_name, updated_at+SEEN[seen])
-# 		my_server.hincrby(composite_id, 'n', amount=1) #increment number_of_subscribers in parent_object. This is equivalent to number of unseen_activities the reply shows up in!
-# 	#updating single_notif sorted set
-# 	if single_notif:
-# 		sorted_set = "sn:"+str(viewer_id) #'sn' is single notification, for user with viewer_id
-# 		score = PRIORITY[priority]+int(updated_at)
-# 		my_server.zadd(sorted_set, hash_name, score) #where updated_at is the score
-# 	if my_server.zcard("ua:"+str(viewer_id)) > UA_LIMIT:
-# 		from tasks import delete_notifications
-# 		delete_notifications.delay(viewer_id)
-# 	return True
+def remove_follower(follower_id, star_id, follower_verification_status):
+	"""
+	Remove follower_id as a follower from star_id
 	
-# ############################# Personal Group related notification functionality #############################
+	Useful when:
+	(i) Follower unfollows the star
+	(ii) Star forcibly removes the follower
+	(iii) Once pvp banning is enforced, we remove the follower automatically
+	"""
+	follower_id, star_id = str(follower_id), str(star_id)
+	followers_list_key = FOLLOWERS_LIST+star_id
 
-# def get_latest_notif_obj_pgh(group_id,my_server=None,send_status=False):
-# 	"""
-# 	Retrieves pgh value parked in notif object, along with some other supporting values
-# 	"""
-# 	if not my_server:
-# 		my_server = redis.Redis(connection_pool=POOL)
-# 	if send_status:
-# 		return my_server.hmget('o:5:{}'.format(group_id),'pgh','idx','type','d')
-# 	else:
-# 		return my_server.hmget('o:5:{}'.format(group_id),'pgh','idx','type')
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(followers_list_key):
+		if my_server.zscore(followers_list_key, follower_id):
+			# remove this subscriber/follower
+			delete_new_follower_notif(star_id)
 
+			# remove from POSTGRESQL table
+			UserFan.objects.filter(star_id=star_id, fan_id=follower_id).delete()
 
-# def update_pg_obj_anon(value,object_id,user_id):
-# 	"""
-# 	Special function created to update personal group object's anon status
+			# invalidate cached follower count since follower count just changed
+			if follower_verification_status == '1':
+				invalidate_verif_follower_count(star_id)
+			
+			# invalidate following count (star count) whether verified or not
+			invalidate_following_count(follower_id)
 
-# 	This is triggered each time a user updates their anon status in a personal group
-# 	This makes sure the anon status is correctly displayed in single and matka notifiations
-# 	"""
-# 	my_server, group_hash = redis.Redis(connection_pool=POOL), "o:5:{}".format(object_id)
-# 	if my_server.exists(group_hash):
-# 		# anon1 and anon2 contains user_ids that are experiencing anonymity in this personal group
-# 		anon1, anon2 = my_server.hmget(group_hash,'anon1','anon2')
-# 		user_id = str(user_id)
-# 		if value == '0':
-# 			# remove anon status
-# 			if user_id == anon1:
-# 				my_server.hset(group_hash,'anon1','')
-# 			elif user_id == anon2:
-# 				my_server.hset(group_hash,'anon2','')
-# 			else:
-# 				pass
-# 		elif value == '1':
-# 			# add anon status
-# 			if user_id in (anon1,anon2):
-# 				# already anonimyzed, do nothing (ensures one can't 'double add' anon status)
-# 				pass
-# 			else:
-# 				if not anon1:
-# 					# slot is empty, use it
-# 					my_server.hset(group_hash,'anon1',user_id)
-# 				elif not anon2:
-# 					# anon1 was taken by the other user
-# 					my_server.hset(group_hash,'anon2',user_id)
-# 				else:
-# 					# all slots are filled, error
-# 					pass
+			# remove the follower from redis (follower-list)
+			my_server.zrem(followers_list_key, follower_id)
 
+			# update expiry of the list
+			my_server.expire(followers_list_key, TTL_FOLLOWER_LIST)
 
-# def update_pg_obj_del(action,blob_id,blob_idx,group_id):
-# 	"""
-# 	Updates del status of personal group object (upon user deleting or undeleting object from their chat)
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	curr_latest_pgh, idx, type_ = get_latest_notif_obj_pgh(group_id, my_server)
-# 	if type_ in ('text','img'):
-# 		group_hash, deleted_blob = "o:5:{}".format(group_id), "pgh:{}:{}".format(group_id,blob_id)
-# 		# index matters, since this is a 'normal' blob
-# 		if deleted_blob == curr_latest_pgh and blob_idx == idx:
-# 			# update its status (action contain 'del' or 'undel')
-# 			my_server.hset(group_hash,'d',action)
-# 	else:
-# 		group_hash, deleted_blob = "o:5:{}".format(group_id), "pgh:{}:{}".format(group_id,blob_id)
-# 		# index doesn't matter, just compare pgh
-# 		if deleted_blob == curr_latest_pgh:
-# 			# update its status (action contain 'del' or 'undel')
-# 			my_server.hset(group_hash,'d',action)
+			# remove the follower from redis (follower-string), but in a way that avoids race conditions (i.e. atomic operation)
+			lock = threading.Lock()
+			u = threading.Thread(target = remove_from_follower_string, args = (lock,my_server,follower_id,star_id))
+			u.start()
+			u.join()
 
-# def update_pg_obj_hide(action,blob_id,blob_idx,group_id):
-# 	"""
-# 	Updates hide status of personal group object (upon user hiding or unhiding a photo from their chat)
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	curr_latest_pgh, idx, type_ = get_latest_notif_obj_pgh(group_id, my_server)
-# 	group_hash, hidden_blob = "o:5:{}".format(group_id), "pgh:{}:{}".format(group_id,blob_id) # good for readability, not faster than concatenation
-# 	# only images can be hidden
-# 	if type_ == 'img' and curr_latest_pgh == hidden_blob and blob_idx == idx:
-# 		my_server.hset(group_hash,'h','yes' if action == 'hide' else 'no')
-# 	elif type_ == 'img_res' and curr_latest_pgh == hidden_blob:
-# 		my_server.hset(group_hash,'h','yes' if action == 'hide' else 'no')
-
-
-# def update_private_chat_notif_object(group_id,lt_res_wid,lt_res_sub_name,lt_res_avurl,lt_res_time,lt_res_text,reply_photourl,res_count,\
-# 	object_desc,lt_pgh,deleted=None,hidden=None,anon1=None,anon2=None,target_uname=None, target_avurl=None,target_id=None,update=None):
-# 	"""
-# 	Updates (or creates) personal group's notification object
-# 	"""
-# 	group_obj = "o:5:"+group_id
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	already_exists = my_server.exists(group_obj)
-# 	if already_exists:
-# 		if update:
-# 			# update object
-# 			# 1) res_count contains index number, used to identify exact location of content in case it's a 'normal' blob
-# 			# 2) type (object_desc) can be 'notif','img','img_res','text','text_res','action','reentry','exited','creation'
-# 			mapping = {'lrwi':lt_res_wid,'lrsn':lt_res_sub_name,'lrau':lt_res_avurl,'lrti':lt_res_time,'lrtx':lt_res_text,'rp':reply_photourl,\
-# 			'idx':res_count,'type':object_desc,'pgh':lt_pgh,'d':deleted,'h':hidden}
-# 			my_server.hmset(group_obj,mapping)
-# 			# now queue notifications
-# 		else:
-# 			# cannot create if already exists
-# 			return None
-# 	else:
-# 		if update:
-# 			# cannot update if it doesn't exist
-# 			return None
-# 		else:
-# 			# create object
-# 			# 1) adding anon statuses and uname-avurl pairs as 'one offs' during creation time (do not repeat adding these when 'updating')
-# 			mapping = {'lrwi':lt_res_wid,'lrsn':lt_res_sub_name,'lrau':lt_res_avurl,'lrti':lt_res_time,'lrtx':lt_res_text,'rp':reply_photourl,\
-# 			'idx':res_count,'type':object_desc,'pgh':lt_pgh,'d':deleted,'h':hidden,'anon1':anon1,'anon2':anon2,'uname1':lt_res_sub_name,\
-# 			'avurl1':lt_res_avurl,'id1':lt_res_wid,'uname2':target_uname,'avurl2':target_avurl,'id2':target_id,'n':'2','ot':'5','oi':group_id}
-# 			my_server.hmset(group_obj,mapping)
-# 			# now queue notifications
-
-
-# def update_private_chat_notifications(sender_id, receiver_id, group_id, sender_seen, receiver_seen, updated_at, sender_ua, receiver_ua,\
-# 	sender_sn, receiver_sn, sender_bump_ua, receiver_bump_ua):
-# 	"""
-# 	Updates notifications associated to personal group objects for both sender and receiver
-# 	"""
-# 	object_hash, sender_id = "o:5:"+group_id, str(sender_id)
-# 	sender_notif = "np:"+sender_id+":5:"+group_id
-# 	receiver_notif = "np:"+receiver_id+":5:"+group_id
-# 	sender_mapping, receiver_mapping = {'s':sender_seen,'u':updated_at,'c':object_hash}, {'s':receiver_seen,'u':updated_at,'c':object_hash}
-# 	ua_sender, ua_receiver = "ua:"+sender_id, "ua:"+receiver_id
-# 	uar_sender, uar_receiver = "uar:"+sender_id, "uar:"+receiver_id
-# 	sn_sender, sn_receiver = "sn:"+sender_id, "sn:"+receiver_id
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sender_notif_exists = my_server.zscore(ua_sender,sender_notif)
-# 	receiver_notif_exists= my_server.zscore(ua_receiver,receiver_notif)
-# 	######################################################
-# 	pipeline1 = my_server.pipeline()
-# 	pipeline1.hmset(sender_notif,sender_mapping)
-# 	pipeline1.hmset(receiver_notif,receiver_mapping)
-# 	if sender_ua:
-# 		if sender_bump_ua:
-# 			pipeline1.zadd(ua_sender,sender_notif,updated_at)
-# 			pipeline1.zadd(uar_sender,sender_notif,updated_at+SEEN[sender_seen]) #in uar, notifs are sorted according to whether they are seen or unseen
-# 		else:
-# 			if sender_notif_exists is None:
-# 				pipeline1.zadd(ua_sender,sender_notif, updated_at)#adding to unseen activity (matka)
-# 				pipeline1.zadd(uar_sender, sender_notif, updated_at+SEEN[sender_seen])#ensuring that added matka entry was seen
-# 			else:
-# 				#i.e. don't bump up in unseen_activity by just 'viewing', but do adjust notification counter (i.e. uar)
-# 				pipeline1.zadd(uar_sender, sender_notif, updated_at+SEEN[sender_seen])
-# 	if receiver_ua:
-# 		if receiver_bump_ua:
-# 			pipeline1.zadd(ua_receiver,receiver_notif,updated_at)
-# 			pipeline1.zadd(uar_receiver,receiver_notif,updated_at+SEEN[receiver_seen]) #in uar, notifs are sorted according to whether they are seen or unseen
-# 		else:
-# 			if receiver_notif_exists is None:
-# 				pipeline1.zadd(ua_receiver,receiver_notif, updated_at)
-# 				pipeline1.zadd(uar_receiver, receiver_notif, updated_at+SEEN[receiver_seen])
-# 			else:
-# 				#i.e. don't bump up in unseen_activity by just 'viewing', but do adjust notification counter (i.e. uar)
-# 				pipeline1.zadd(uar_receiver, receiver_notif, updated_at+SEEN[receiver_seen])
-# 	if sender_sn:
-# 		score = PRIORITY['personal_group']+int(updated_at)
-# 		pipeline1.zadd(sn_sender, sender_notif, score) #where updated_at is the score
-# 	else:
-# 		pipeline1.zrem(sn_sender,sender_notif) # removing from single notification
-# 	if receiver_sn:
-# 		score = PRIORITY['personal_group']+int(updated_at)
-# 		pipeline1.zadd(sn_receiver, receiver_notif, score) #where updated_at is the score
-# 	else:
-# 		pipeline1.zrem(sn_receiver,receiver_notif) # removing from single notification
-# 	pipeline1.execute()
-# 	######################################################
-# 	sender_limit = my_server.zcard(ua_sender)
-# 	receiver_limit = my_server.zcard(ua_receiver)
-# 	if sender_limit > UA_LIMIT and receiver_limit > UA_LIMIT:
-# 		from tasks import delete_notifications
-# 		delete_notifications.delay(sender_id)
-# 		delete_notifications.delay(receiver_id)
-# 	elif sender_limit > UA_LIMIT:
-# 		from tasks import delete_notifications
-# 		delete_notifications.delay(sender_id)
-# 	elif receiver_limit > UA_LIMIT:
-# 		from tasks import delete_notifications
-# 		delete_notifications.delay(receiver_id)
-# 	else:
-# 		pass
-
-
-
-# def skip_private_chat_notif(own_id, group_id,curr_time, seen=False):
-# 	"""
-# 	Removes notification from skipper's single_notif table and ensure it's 'seen' in matka
-# 	"""
-# 	own_id = str(own_id)
-# 	own_notif, sn, uar = "np:"+own_id+":5:"+group_id, "sn:"+own_id, 'uar:'+own_id
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	if my_server.hget(own_notif,'s') != 'True':
-# 		pipeline1 = my_server.pipeline()
-# 		pipeline1.hmset(own_notif,{'s':True,'u':curr_time,'c':"o:5:"+group_id}) #seen set to True, updated at set to current time
-# 		pipeline1.zrem(sn,own_notif) #notification removed from single_notif sorted set
-# 		pipeline1.zadd(uar,own_notif,curr_time+SEEN[seen]) #notification in matka is set to seen
-# 		pipeline1.execute()
-
-
-# ######################################## Sanitization functions ########################################
-
-# def remove_erroneous_notif(notif_name, user_id):
-# 	"""
-# 	Removes notification that does have associated object
-
-# 	This way the notification feed of users is not blocked
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	user_id = str(user_id)
-# 	sorted_set = "sn:"+user_id
-# 	unseen_activity = "ua:"+user_id
-# 	unseen_activity_resorted = "uar:"+user_id #'uar' is unseen activity resorted (by whether notifs are seen or not). Used to show 'digit' next to Matka in navbar
-# 	pipeline1 = my_server.pipeline()
-# 	pipeline1.zrem(sorted_set, notif_name)
-# 	pipeline1.zrem(unseen_activity, notif_name)
-# 	pipeline1.zrem(unseen_activity_resorted, notif_name)
-# 	pipeline1.execute()
-# 	my_server.delete(notif_name)
-
-
-# def sanitize_eachothers_unseen_activities(user1_id, user2_id):
-# 	"""
-# 	This ensures all posts of eachothers are deleted from the respective matkas
-
-# 	It's called in the event of a user-initiated block
-# 	Associated objects are deleted too if they fall below a certain subscriber limit
-# 	"""
-# 	user1_id, user2_id = str(user1_id),str(user2_id)
-# 	ua1, ua2 = "ua:"+user1_id, "ua:"+user2_id
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	notif_list1 = my_server.zrange(ua1,0,-1) # list of user1's notifications
-# 	notif_list2 = my_server.zrange(ua2,0,-1) # list of user2's notifications
-# 	ob_list1, only_fives1 = [], []
-# 	for notif in notif_list1:
-# 		data = notif.split(":")
-# 		obj_type = data[2]
-# 		if obj_type == '5':
-# 			only_fives1.append({'ob':"o:5:"+data[3],'np':notif})
-# 		else:
-# 			# all others go here    
-# 			ob_list1.append({'ob':"o:"+obj_type+":"+data[3],'np':notif})
-# 	ob_list2, only_fives2 = [], []
-# 	for notif in notif_list2:
-# 		data = notif.split(":")
-# 		obj_type = data[2]
-# 		if obj_type == '5':
-# 			only_fives2.append({'ob':"o:5:"+data[3],'np':notif})
-# 		else:
-# 			# all others go here    
-# 			ob_list2.append({'ob':"o:"+obj_type+":"+data[3],'np':notif})
-
-# 	######## get IDs of all original posters of notif objects ########
-# 	pipeline1 = my_server.pipeline()
-# 	for obj in ob_list1:
-# 		pipeline1.hget(obj['ob'],'ooi')
-# 	result1 = pipeline1.execute()
-# 	counter1,notifs1_to_del = 0, []
-# 	for obj in ob_list1:
-# 		if result1[counter1] == user2_id:
-# 			notifs1_to_del.append(obj['np'])
-# 		counter1 += 1
-
-# 	pipeline2 = my_server.pipeline()
-# 	for obj in only_fives1:
-# 		pipeline2.hmget(obj['ob'],'id1','id2')
-# 	result2 = pipeline2.execute()
-# 	counter2 = 0
-# 	for obj in only_fives1:
-# 		if user2_id in result2[counter2]:
-# 			notifs1_to_del.append(obj['np'])
-# 		counter2 += 1
-
-
-# 	pipeline3 = my_server.pipeline()
-# 	for obj in ob_list2:
-# 		pipeline3.hget(obj['ob'],'ooi')
-# 	result3 = pipeline3.execute()
-# 	counter3,notifs2_to_del = 0, []
-# 	for obj in ob_list2:
-# 		if result3[counter3] == user1_id:
-# 			notifs2_to_del.append(obj['np'])
-# 		counter3 += 1
-
-# 	pipeline4 = my_server.pipeline()
-# 	for obj in only_fives2:
-# 		pipeline4.hmget(obj['ob'],'id1','id2')
-# 	result4 = pipeline4.execute()
-# 	counter4 = 0
-# 	for obj in only_fives2:
-# 		if user1_id in result4[counter4]:
-# 			notifs2_to_del.append(obj['np'])
-# 		counter4 += 1
-
-# 	# notifs1_to_del contains all matka notifications of user1_id that belong to user2_id
-# 	# notifs2_to_del contains all matka notifications of user2_id that belong to user1_id
-# 	# these can now be deleted without prejudice
-# 	uar1, uar2 = "uar:"+user1_id, "uar:"+user2_id
-# 	sn1, sn2 = 'sn:'+user1_id, 'sn:'+user2_id
-	
-# 	if notifs1_to_del:
-# 		# clean out ua, uar and sn for respective users
-# 		my_server.zrem(ua1,*notifs1_to_del)
-# 		my_server.zrem(uar1,*notifs1_to_del)
-# 		my_server.zrem(sn1,*notifs1_to_del)
-
-# 	if notifs2_to_del:
-# 		# clean out ua, uar and sn for respective users
-# 		my_server.zrem(ua2,*notifs2_to_del)
-# 		my_server.zrem(uar2,*notifs2_to_del)
-# 		my_server.zrem(sn2,*notifs2_to_del)
-
-# 	all_notifs_to_delete = notifs1_to_del+notifs2_to_del
-
-# 	if all_notifs_to_delete:
-# 		# get rid of all notification objects themselves
-# 		pipeline5 = my_server.pipeline()
-# 		for notif in all_notifs_to_delete:
-# 			pipeline5.delete(notif)
-# 		pipeline5.execute()
-
-# 		# decrement all related objects
-# 		pipeline6 = my_server.pipeline()
-# 		for notif in all_notifs_to_delete:
-# 			object_hash = "o:"+notif.split(":",2)[2]
-# 			pipeline6.hincrby(object_hash,"n",amount=-1)
-# 		pipeline6.execute()
+		else:
+			# do nothing, since the user is not following star_id
+			pass
+	elif my_server.exists(FOLLOWER_STRING+star_id):
 		
-# 		# delete all objects with no subscribers
-# 		objects_to_review = []
-# 		for notif in all_notifs_to_delete:
-# 			object_hash = "o:"+notif.split(":",2)[2]
-# 			objects_to_review.append(object_hash)
-# 		objects_to_review = list(set(objects_to_review))
-# 		pipeline7 = my_server.pipeline()
-# 		for obj in objects_to_review:
-# 			pipeline7.hget(obj,'n')
-# 		subscribers = pipeline7.execute()
-# 		count8 = 0
-# 		pipeline8 = my_server.pipeline()
-# 		for obj in objects_to_review:
-# 			if subscribers[count8] and int(subscribers[count8]) < 1:
-# 				pipeline8.delete(obj)
-# 			count8 += 1
-# 		pipeline8.execute()
+		# remove from POSTGRESQL table
+		UserFan.objects.filter(star_id=star_id, fan_id=follower_id).delete()
+		delete_new_follower_notif(star_id)
+		
+		# invalidate cached follower count since follower count just changed
+		if follower_verification_status == '1':
+			invalidate_verif_follower_count(star_id)
 
-# # def remove_notification_of_banned_user(target_id, object_id, object_type):
-# # 	my_server = redis.Redis(connection_pool=POOL)
-# # 	target_id = str(target_id)
-# # 	notification = "np:"+target_id+":"+object_type+":"+object_id
-# # 	################################################################################
-# # 	sorted_set = "sn:"+target_id
-# # 	unseen_activity = "ua:"+target_id
-# # 	unseen_activity_resorted = "uar:"+target_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# # 	pipeline1 = my_server.pipeline()
-# # 	pipeline1.zrem(sorted_set, notification)
-# # 	pipeline1.zrem(unseen_activity, notification)
-# # 	pipeline1.zrem(unseen_activity_resorted, notification)
-# # 	pipeline1.execute()
-# # 	my_server.delete(notification)
+		# invalidate following count (star count) whether verified or not
+		invalidate_following_count(follower_id)
+		
+		# remove the follower_id from the follower_string without race condition
+		lock = threading.Lock()
+		u = threading.Thread(target = remove_from_follower_string, args = (lock,my_server,follower_id,star_id))
+		u.start()
+		u.join()
+
+	else:
+		# look up the target's postgres follower table, and simply remove from that (no need to manipulate redis lists since they've expired already)
+		UserFan.objects.filter(star_id=star_id, fan_id=follower_id).delete()
+		delete_new_follower_notif(star_id)
+		
+		# invalidate cached follower count since follower count just changed
+		if follower_verification_status == '1':
+			invalidate_verif_follower_count(star_id)
+
+		# invalidate following count (star count) whether verified or not
+		invalidate_following_count(follower_id)
 
 
-# def remove_group_object(group_id, my_server=None):
-# 	"""
-# 	Deletes the group parent object
-# 	"""
-# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-# 	my_server.delete("o:3:"+str(group_id))
+################################## Fan out to followers ##################################
+
+def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_list=None): #modify to take fan_ids
+	"""
+	Fans out to a user's followers
+
+	Can potentially include 'reach count' in obj_hash before zadding it to various followers' lists
+	Called by tasks.py
+	"""
+	user_id = str(user_id)
+	
+	# redis hash obj of the content will exist for at least 1 week (only if it's not limited by time)
+	add_to_short_lived_item_expireat_feed = True
+	if expire_at is None:# case of no-expiry - can potentially live forever
+		add_to_short_lived_item_expireat_feed = False
+		expire_at = time_now+PUBLIC_SUBMISSION_TTL#setting ttl of 'forever' content to 1 week for memory optimization reasons
+
+	################################################
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	
+	# CASE 1) This case caters to fanning out to a subset of followers (input via 'follower_list')
+	if follower_list:
+		save_last_post_selected_followers(followers=follower_list,poster_id=user_id)
+		follower_list.append(int(user_id))# appending own self to populate own feed as well
+		set_temp_post_selected_followers(obj_hash_name=obj_hash,followers=follower_list,expire_at=expire_at)# temporarily save user_ids for a time-limited post (including poster ID)
+		
+		follower_string = ':'
+
+		list_of_db_objs = []
+
+		for follower_id in follower_list:
+			############ if follower_id not in muted_follower_ids: # if we choose to add a mute status ############
+			
+			# concatenating user_id with obj hash to support toggle-able fan buttons
+			pipeline1.zadd(USER_FEED+str(follower_id),obj_hash,time_now)# fanning out to the selected follower
+			if add_to_short_lived_item_expireat_feed:
+				pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+str(follower_id),obj_hash,expire_at)
+			follower_string = follower_string+str(follower_id)+':'# constructing a custom follower string for this 'selective' case
+			######################
+			# Create list of Postgresql entries for selected followers
+			data = obj_hash.partition(":")
+			obj_type, obj_id = data[0], data[-1]
+			# if obj_type == 'tx':
+			list_of_db_objs.append(Report(reporter_id=user_id,which_link_id=obj_id,target_id=follower_id))
+			# else:
+			# 	list_of_db_objs.append(Report(reporter_id=user_id,which_photo_id=obj_id,target_id=follower_id))
+
+		# Create Postgresql DB entries in bulk
+		if list_of_db_objs:
+			Report.objects.bulk_create(list_of_db_objs)
+	else:
+		
+		# CASE 2) this case caters to fanning out to only oneself (because no followers exist)
+		if my_server.exists(NO_FOLLOWERS+user_id):
+			# this person has no fan - short-circuit fanning out (but do add to poster's feed)
+			pipeline1.zadd(USER_FEED+user_id,obj_hash,time_now)# no fans, just add to poster's feed
+			if add_to_short_lived_item_expireat_feed:
+				pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,obj_hash,expire_at)
+			follower_string = ":"+user_id+":"# follower string is solely poster's ID 
+
+		else:
+			# CASE 3) this case caters to fanning out to all followers	
+			follower_string = my_server.get(FOLLOWER_STRING+user_id)# overriding follower_string via redis (preset in the first line of the func)
+			if follower_string:
+				# fan out to followers
+				follower_list = follower_string[1:-1].split(":")	
+				follower_list.append(user_id)# appending poster ID, to populate poster feed as well			
+				for follower_id in follower_list:
+					# concatenating user_id with obj hash to support toggle-able fan buttons
+					pipeline1.zadd(USER_FEED+str(follower_id),obj_hash,time_now)
+					if add_to_short_lived_item_expireat_feed:
+						pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+str(follower_id),obj_hash,expire_at)
+				follower_string = follower_string+user_id+":"# concatenating poster ID into follower string
+
+			else:
+				# follower_string does not exist; reconstruct fan-string and then fan-out to followers
+				recreate_fan_signature_in_redis(user_id, my_server)
+				follower_string = my_server.get(FOLLOWER_STRING+user_id)
+
+				if follower_string:	
+					# fan out to followers
+					follower_list = follower_string[1:-1].split(":")
+					follower_list.append(user_id)# appending poster ID, to populate poster feed as well	
+					for follower_id in follower_list:
+						# concatenating user_id with obj hash to support toggle-able fan buttons
+						pipeline1.zadd(USER_FEED+str(follower_id),obj_hash,time_now)
+						if add_to_short_lived_item_expireat_feed:
+							pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+str(follower_id),obj_hash,expire_at)
+					follower_string = follower_string+user_id+":"# concatenating poster ID into follower string
+				
+				else:
+					# probably never happens - but nevertheless, fan-out to poster ID (since no followers found)
+					pipeline1.zadd(USER_FEED+user_id,obj_hash,time_now)# no fans, just add to poster feed
+					if add_to_short_lived_item_expireat_feed:
+						pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,obj_hash,expire_at)
+					follower_string = ":"+user_id+":"# follower string is solely poster's ID 
+
+	pipeline1.execute()
+	log_follower_fanout(follower_string=follower_string, obj_hash=obj_hash, submitter_id=user_id, time_now=time_now)	
+						
+
+######################################### Logging Subscriber Fanouts ####################################
 
 
-# def bulk_remove_multiple_group_notifications(grp_ids_and_members):
-# 	"""
-# 	Given a list of groups, it removes all their redis 2 related content
+def log_follower_fanout(follower_string, obj_hash, submitter_id, time_now):
+	"""
+	Logs the targeted feeds and the submitted object in a global sorted set
 
-# 	It's called when a groups have already been deleted from redis 6
-# 	Useful when groups undergo 'full deletion' after becoming ghosts (i.e. idle > 30 days)
-# 	grp_ids_and_members is a dictionary of the sort { group_id:[member_ids] }
-# 	"""
-# 	if grp_ids_and_members:
-# 		my_server = redis.Redis(connection_pool=POOL)
-# 		for group_id, member_ids in grp_ids_and_members.iteritems():
-# 			bulk_remove_group_notification(member_ids, group_id, my_server=my_server)
-# 			remove_group_object(group_id, my_server=my_server)
-
-
-# def bulk_remove_group_notification(user_ids, group_id, my_server=None):
-# 	"""
-# 	Bulk removes the a group's notifications from matka (when users leave or get kicked out)
-# 	"""
-# 	group_id = str(group_id)
-# 	my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
-# 	for user_id in user_ids:
-# 		parent_obj = "o:3:"+group_id
-# 		notification = "np:"+str(user_id)+":3:"+group_id
-# 		my_server.zrem("ua:"+str(user_id),notification)
-# 		my_server.zrem("uar:"+str(user_id),notification)
-# 		my_server.zrem("sn:"+str(user_id),notification)
-# 		my_server.delete(notification)
-# 		if my_server.exists(parent_obj):
-# 			# decrementing number of subscribers of the object by 1
-# 			my_server.hincrby(parent_obj, 'n', amount=-1)
-
-# def remove_group_notification(user_id,group_id):
-# 	"""
-# 	Removes the group's notification from matka (when a user leaves the group)
-# 	"""
-# 	group_id, user_id = str(group_id), str(user_id)
-# 	unseen_activity = "ua:"+user_id
-# 	unseen_activity_resorted = "uar:"+user_id #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# 	single_notif = "sn:"+user_id
-# 	notification = "np:"+user_id+":3:"+group_id
-# 	parent_object = "o:3:"+group_id
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.zrem(unseen_activity, notification)
-# 	my_server.zrem(unseen_activity_resorted, notification)
-# 	my_server.zrem(single_notif, notification)
-# 	my_server.delete(notification)        
-# 	if my_server.exists(parent_object):
-# 		# decrementing number of subscribers of the object by 1
-# 		my_server.hincrby(parent_object, 'n', amount=-1)
+	This is useful for periodic truncation of expired items and/or handling banned users whose feeds are to be eliminated
+	"""
+	if follower_string:
+		payload = follower_string+"*"+obj_hash
+		expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.zadd(FOLLOWER_FANOUTS_AND_EXPIRES, payload, expire_at)
+		my_server.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS, payload, submitter_id)
 
 
-# def bulk_delete_pergrp_notif(groups_and_participants, obj_type='5'):
-# 	"""
-# 	Removes o:5:<obj_id> type objects, and also associated notifications np:<user_id>:5:<obj_id> 
+def trim_expired_fanouts(submitter_id=None, time_now=None):
+	"""
+	Scheduled task that trims user feeds so that redis memory is released
 
-# 	groups_and_participants is a list of tuples of the type [(group_id1, user1, user2),(group_id2, user2, user3),(group_id3, user1, user3), ...]
-# 	"""
-# 	if groups_and_participants:
-# 		pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
-# 		for group_id,user1_id,user2_id in groups_and_participants:
-# 			hash_id = "5:"+group_id
-# 			# object to be deleted
-# 			object_hash = "o:"+hash_id
-# 			notif1_hash = "np:"+user1_id+":"+hash_id
-# 			notif2_hash = "np:"+user2_id+":"+hash_id
-# 			pipeline1.delete(object_hash)
-# 			pipeline1.delete(notif1_hash)
-# 			pipeline1.delete(notif2_hash)
-# 			#user 1
-# 			single1_notif = "sn:"+user1_id
-# 			unseen1_activity = "ua:"+user1_id
-# 			unseen1_activity_resorted = "uar:"+user1_id
-# 			pipeline1.zrem(single1_notif,notif1_hash)
-# 			pipeline1.zrem(unseen1_activity,notif1_hash)
-# 			pipeline1.zrem(unseen1_activity_resorted,notif1_hash)
-# 			#user 2
-# 			single2_notif = "sn:"+user2_id
-# 			unseen2_activity = "ua:"+user2_id
-# 			unseen2_activity_resorted = "uar:"+user2_id
-# 			pipeline1.zrem(single2_notif,notif2_hash)
-# 			pipeline1.zrem(unseen2_activity,notif2_hash)
-# 			pipeline1.zrem(unseen2_activity_resorted,notif2_hash)
-# 		pipeline1.execute()
+	The policy is to keep objects around that are younger than 1 week (trim everything else)
+	Called every 6 hours from tasks.py
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if submitter_id:
+		fanned_out_objs = set()
+		submitter_id = float(submitter_id)
+		user_fanouts = my_server.zrangebyscore(FOLLOWER_FANOUTS_AND_SUBMITTERS,submitter_id,submitter_id)
+		if user_fanouts:
+			pipeline1 = my_server.pipeline()
+			for submission in user_fanouts:
+				data = submission.rpartition("*")
+				obj_hash, follower_string = data[2], data[0]
+				follower_ids = follower_string[1:-1].split(":")
 
-# def clean_expired_notifications(viewer_id):
-# 	"""
-# 	Cleans a user's matka once it grows beyond a certain size
-# 	"""
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	unseen_activity = "ua:"+str(viewer_id)
-# 	unseen_activity_resorted = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# 	single_notif = "sn:"+str(viewer_id)
-# 	notif_to_del = my_server.zrevrange(unseen_activity,(UA_LIMIT-UA_TO_TRIM),-1)
-# 	if notif_to_del:
-# 		# sanitize the ua: sorted set, and uar: sorted set
-# 		my_server.zrem(unseen_activity,*notif_to_del)
-# 		my_server.zrem(unseen_activity_resorted,*notif_to_del)
-# 		#sanitize the sn: sorted set
-# 		my_server.zrem(single_notif,*notif_to_del)
-# 		# deleting actual notification objects
-# 		pipeline1 = my_server.pipeline()
-# 		for notif in notif_to_del:
-# 			pipeline1.delete(notif)							
-# 		pipeline1.execute()
-# 		# decrementing subscriber counts
-# 		pipeline2 = my_server.pipeline()
-# 		for notif in notif_to_del:
-# 			object_hash="o:"+notif.split(":",2)[2]
-# 			num_of_subscribers = pipeline2.hincrby(object_hash,"n",amount=-1)
-# 		result2 = pipeline2.execute()
-# 		count = 0
-# 		# deleting objects with no subscriptions
-# 		pipeline3 = my_server.pipeline()
-# 		for result in result2:
-# 			if result < 1:
-# 				#delete the object hash
-# 				object_hash = "o:"+notif_to_del[count].split(":",2)[2]
-# 				pipeline3.delete(object_hash)
-# 			count += 1
-# 		result3 = pipeline3.execute()
+				for follower_id in follower_ids:
+					pipeline1.zrem(USER_FEED+follower_id,obj_hash)
+					pipeline1.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+follower_id,obj_hash)
+				# run the following statement in redis7 since obj_hash exists there
+				# my_server.execute_command('UNLINK', obj_hash)
+				fanned_out_objs.add(obj_hash)
+			pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES,*user_fanouts)
+			pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS,*user_fanouts)
+			pipeline1.execute()
+		return fanned_out_objs
 
+	else:
+		expired_fanouts = my_server.zrangebyscore(FOLLOWER_FANOUTS_AND_EXPIRES,'-inf',time_now)
+		if expired_fanouts:
+			pipeline1 = my_server.pipeline()
+			for expired_fanout in expired_fanouts:
+				data = expired_fanout.rpartition("*")
+				obj_hash, follower_string = data[2], data[0]
+				follower_ids = follower_string[1:-1].split(":")
 
-# def bulk_sanitize_notifications(inactive_user_ids):
-# 	"""Sanitize all notification activity of inactive users to free up space taken by redis2
+				for follower_id in follower_ids:
+					pipeline1.zrem(USER_FEED+follower_id,obj_hash)
+					pipeline1.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+follower_id,obj_hash)
 
-# 	This is a helper function for remove_inactives_notification_activity()
-# 	We will be removing the following for each inactive user:
-# 	1) sn:<user_id> --- a sorted set containing home screen 'single notifications',
-# 	2) ua:<user_id> --- a sorted set containing notifications for 'matka',
-# 	3) uar:<user_id> --- a sorted set containing resorted notifications,
-# 	4) np:<user_id>:*:* --- all notification objects associated to the user,
-# 	5) o:*:* --- any objects that remain with < 1 subscribers,
-# 	We will do everything in chunks of 10K, so that no server timeouts are encountered.
-# 	"""
-# 	if inactive_user_ids:
-# 		from itertools import chain
-# 		my_server = redis.Redis(connection_pool=POOL)
-# 		#####################################################
-# 		ids_to_process = []
-# 		for user_id in inactive_user_ids:
-# 			try:
-# 				ids_to_process.append(str(int(user_id)))
-# 			except:
-# 				pass
-# 		#####################################################
-# 		# get all notification objects to delete
-# 		pipeline1 = my_server.pipeline()
-# 		for user_id in ids_to_process:
-# 			pipeline1.zrange("sn:"+user_id, 0, -1)
-# 			pipeline1.zrange("ua:"+user_id, 0, -1)#ua and uar have similar notifcations
-# 		all_notifications_to_delete = list(set(chain.from_iterable(pipeline1.execute())))
-# 		#####################################################
-# 		# get all sorted sets to delete
-# 		all_sorted_sets_to_delete = []
-# 		for user_id in ids_to_process:
-# 			all_sorted_sets_to_delete.append("sn:"+user_id)
-# 			all_sorted_sets_to_delete.append("ua:"+user_id)
-# 			all_sorted_sets_to_delete.append("uar:"+user_id)
-# 		#####################################################
-# 		# delete all notification objects and sorted sets
-# 		pipeline2 = my_server.pipeline()
-# 		for key_name in all_notifications_to_delete+all_sorted_sets_to_delete:
-# 			pipeline2.delete(key_name)
-# 		pipeline2.execute()
-# 		#####################################################
-# 		# decrement all related objects
-# 		if all_notifications_to_delete:
-# 			pipeline3 = my_server.pipeline()
-# 			for notif in all_notifications_to_delete:
-# 				object_hash="o:"+notif.split(":",2)[2]
-# 				pipeline3.hincrby(object_hash,"n",amount=-1)
-# 			pipeline3.execute()
-# 			#####################################################
-# 			# delete all objects with no subscribers
-# 			objects_to_review = []
-# 			for notif in all_notifications_to_delete:
-# 				object_hash="o:"+notif.split(":",2)[2]
-# 				objects_to_review.append(object_hash)
-# 			objects_to_review = list(set(objects_to_review))
-# 			pipeline4 = my_server.pipeline()
-# 			for obj in objects_to_review:
-# 				pipeline4.hget(obj,'n')
-# 			subscribers = pipeline4.execute()
-# 			count, objects_deleted= 0, 0
-# 			pipeline5 = my_server.pipeline()
-# 			for obj in objects_to_review:
-# 				if subscribers[count] and int(subscribers[count]) < 1:
-# 					objects_deleted += 1
-# 					pipeline5.delete(obj)
-# 				count += 1
-# 			pipeline5.execute()
-# 			return len(all_notifications_to_delete), len(all_sorted_sets_to_delete), objects_deleted
-# 		else:
-# 			return 0, len(all_sorted_sets_to_delete), 0
-# 	else:
-# 		return 0, 0, 0
+			pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES, *expired_fanouts)
+			pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS, *expired_fanouts)
+			pipeline1.execute()
+		return []
+
+################################## Displaying follower counts or IDs ##################################
+
+def get_verified_follower_count(user_id):
+	"""
+	Returns how many followers user_id has
+
+	Useful when number of followers are to be shown in the user's profile (About page, etc)
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(NO_FOLLOWERS+user_id):
+		return 0
+	else:
+		follower_count = my_server.get(NUM_VERIFIED_FOLLOWERS+user_id)#retrieve follower count from redis if it exists
+		# retrieve follower count from DB and cache it
+		if follower_count:
+			return follower_count
+		else:
+			follower_count = UserFan.objects.filter(star_id=user_id,fan_verification_status='1').count()
+			my_server.setex(NUM_VERIFIED_FOLLOWERS+user_id,follower_count,ONE_DAY)#delete this at fan removal or addition
+			return follower_count
 
 
-# def prev_unseen_activity_visit(viewer_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	last_visit = 't:'+str(viewer_id)
-# 	now = time.time()+SEEN[False]
-# 	prev_time = my_server.getset(last_visit,now)
-# 	if prev_time:
-# 		return prev_time
-# 	else:
-# 		return now
+def get_all_follower_count(user_id):
+	"""
+	Returns how many followers user_id has
 
-# def get_notif_count(viewer_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	sorted_set = "uar:"+str(viewer_id) #'uar' is unseen activity resorted (by whether notifs are seen or not)
-# 	last_visit = 't:'+str(viewer_id)
-# 	last_visit_time = my_server.get(last_visit) #O(1)
-# 	count = my_server.zcount(sorted_set,'('+str(last_visit_time),'+inf') if last_visit_time else 0
-# 	return count
+	ONLY USER FOR LOGGERS
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if my_server.exists(NO_FOLLOWERS+str(user_id)):
+		return 0
+	else:
+		return UserFan.objects.filter(star_id=user_id,fan_verification_status='1').count()
 
-# #####################Public Group Rankings#####################
+		
+def followers_exist(user_id):
+	"""
+	Returns whether followers exist
+	"""
+	return UserFan.objects.filter(star_id=user_id).exists()
+	
 
-# # #get public group's last 15 mins attendance
-
-# # def get_attendance(group_id):
-# # 	my_server = redis.Redis(connection_pool=POOL)
-# # 	group_attendance = "ga:"+str(group_id)
-# # 	fifteen_mins_ago = time.time() - (15*60)
-# # 	return my_server.zrangebyscore(group_attendance, fifteen_mins_ago, '+inf')
-
-# #del public group's attendance register
-
-# def del_attendance(group_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	group_attendance = "ga:"+str(group_id)
-# 	my_server.delete(group_attendance)
+def invalidate_verif_follower_count(user_id):
+	"""
+	Deletes the cached 'follower count' attributed to a given user_id
+	"""
+	redis.Redis(connection_pool=POOL).execute_command('UNLINK', NUM_VERIFIED_FOLLOWERS+str(user_id))
 
 
-# # sanitize group from rankings if group owner wants to delete it
+def retrieve_follower_data(user_id, start_idx=0, end_idx=-1, with_follower_count=False, with_follower_count_since_last_seen=None):
+	"""
+	Returns list of follower_IDs, following_times, follower_unames, follower_avurls, new status (following the given user_id)
 
-# # def del_from_rankings(group_id):
-# # 	my_server = redis.Redis(connection_pool=POOL)
-# # 	my_server.zrem("public_group_rankings", group_id)
+	Can optionally also return:
+	'Total follower' counts (e.g. when showing the total count in the user's follower listing)
+	'New follower' counts (e.g. when showing a 'new followers' notification on custom home)
+	"""
+	user_id = str(user_id)
+	follower_key = FOLLOWERS_LIST+user_id
 
-# #expire bottom feeders among top public groups
+	###########################
+	# Step 1) Determine the most recent time a user viewed their fans - this enables us to attach a 'new' status alongwith new fan data (useful in a bunch of scenarios)
+	if with_follower_count_since_last_seen:
+		only_count_recent_followers = True# user has viewed the 'custom home' page, which is responsible for generating a 'new followers' notification
+		most_recent_skip_time = with_follower_count_since_last_seen# this flag contains the most recent time of viewing 'custom home' by user_id
+	else:
+		only_count_recent_followers = False# user has never viewed the 'custom home' page
+		most_recent_skip_time = get_user_activity_event_time(user_id)# no need to convert to float, a float value is returned by the function anyway
+	############################
+	# Step 2) Retreive follower ids and times of either all the fans to be shown in a fan page, or just new fans (to be shown in a new fan notification)
+	my_server = redis.Redis(connection_pool=POOL)
+	
+	if with_follower_count_since_last_seen:	
+		# only retrieve recent followers that lie within the given time window
+		follower_ids_and_times = my_server.zrevrangebyscore(follower_key,'+inf', most_recent_skip_time, withscores=True)
+	else:
+		# retrieve all followers to be shown on the page
+		follower_ids_and_times = my_server.zrevrange(follower_key, start_idx, end_idx, withscores=True)
 
-# # def expire_top_groups():
-# # 	my_server = redis.Redis(connection_pool=POOL)
-# # 	limit = 1000
-# # 	size = my_server.zcard("public_group_rankings")
-# # 	if size > limit:
-# # 		my_server.zremrangebyrank("public_group_rankings", 0, (size-limit-1))
+	################################################################
+	# Step 3)
+	if not follower_ids_and_times:
+		# use the DB to populate followers
+		recreate_fan_signature_in_redis(user_id, my_server)
+		if my_server.exists(NO_FOLLOWERS+user_id):
+			if with_follower_count or with_follower_count_since_last_seen:
+				return [], 0# sending empty [] at this point
+			else:
+				return []# sending empty [] at this point
+		else:
+			if with_follower_count_since_last_seen:
+				# only retrieve recent followers that lie within the given time window
+				follower_ids_and_times = my_server.zrevrangebyscore(follower_key, '+inf', most_recent_skip_time, withscores=True)
+			
+			else:
+				# retrieve all followers that lie within the gives indices (for a paginated view)
+				follower_ids_and_times = my_server.zrevrange(follower_key, start_idx, end_idx, withscores=True)
 
-# #get public group rankings
+	################################################################
+	# Step 4)
+	follower_unames_and_avurls = retrieve_bulk_credentials([follower_id for follower_id, following_time in follower_ids_and_times])
+	
+	num_recent_followers, final_result = 0, []
+	for follower_id, following_time in follower_ids_and_times:
+		follower_id = int(follower_id)
+		
+		if following_time > most_recent_skip_time:
+			final_result.append((follower_id, following_time, follower_unames_and_avurls[follower_id]['uname'], \
+				follower_unames_and_avurls[follower_id]['avurl'],1))
+			num_recent_followers += 1
+		else:
+			if not only_count_recent_followers:
+				final_result.append((follower_id, following_time, follower_unames_and_avurls[follower_id]['uname'], \
+					follower_unames_and_avurls[follower_id]['avurl'],0))
 
-# # def public_group_ranking():
-# # 	my_server = redis.Redis(connection_pool=POOL)
-# # 	sorted_set = "public_group_rankings"
-# # 	return my_server.zrevrange(sorted_set,0,100,withscores=True) # returning highest 100 groups
-
-# #each reply or refresh in a group means the group is voted up!
-
-# # def public_group_vote_incr(group_id,priority):
-# # 	my_server = redis.Redis(connection_pool=POOL)
-# # 	sorted_set = "public_group_rankings"
-# # 	increment_amount = 2**((time.time()-FUTURE_EPOCH)/HALF_LIFE) # <---- replace in 4 years from 10th Dec, 2016!
-# # 	increment_amount = increment_amount * priority #differentiate between refresh and reply, etc.
-# # 	my_server.zincrby(name=sorted_set, value=group_id,amount=increment_amount)
-
-# #####################Private Group Presence#####################
-
-# #saves the user's latest presence, to be used to show green, orange or grey blob
-# def save_user_presence(user_id,group_id,epochtime):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	my_server.setex("up:"+str(user_id)+":"+str(group_id),epochtime,100)
-
-# #gets the latest presence for all users participating in the most recent 25 replies
-# def get_latest_presence(group_id, user_id_list):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	pres_dict={}
-# 	pipeline1 = my_server.pipeline()
-# 	try:
-# 		for user_id in user_id_list:
-# 			user_presence = "up:"+str(user_id)+":"+str(group_id)
-# 			time_since_last_viewing = pipeline1.get(user_presence) #time since last viewing
-# 		result1 = pipeline1.execute()
-# 		time_now, count = time.time(), 0
-# 		for user_id in user_id_list:
-# 			try:
-# 				pres_dict[user_id] = time_now - float(result1[count])
-# 			except:
-# 				pres_dict[user_id] = 100.0
-# 			count += 1
-# 	except:
-# 		pass
-# 	return pres_dict
-
-# #######################Photo Fans#######################
-
-# def remove_from_photo_owner_activity(photo_owner_id,fan_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	photo_owner_id = str(photo_owner_id)
-# 	pipeline1 = my_server.pipeline()
-# 	pipeline1.zrem("f:"+photo_owner_id,fan_id)
-# 	pipeline1.zrem("rf:"+photo_owner_id,fan_id)
-# 	pipeline1.execute()
-
-# def add_to_photo_owner_activity(photo_owner_id,fan_id,new=None):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	photo_owner_id = str(photo_owner_id)
-# 	fans = "f:"+photo_owner_id # after 30 days, remove .exists() query from tasks.py's photo_tasks function
-# 	time_now = time.time()
-# 	my_server.zadd(fans,fan_id,time_now)
-# 	if new:
-# 		my_server.zadd("rf:"+photo_owner_id,fan_id, time_now)
-
-# def get_active_fans(photo_owner_id, num_of_fans_to_notify):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	fans = "f:"+str(photo_owner_id)
-# 	if num_of_fans_to_notify:
-# 		return my_server.zrevrange(fans,0,(num_of_fans_to_notify-1))
-# 	else:
-# 		return None
-
-# def is_fan(photo_owner_id, fan_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	fans = "f:"+str(photo_owner_id)
-# 	if my_server.zscore(fans,fan_id):
-# 		return True
-# 	else:
-# 		return False
+	################################################################
+	if with_follower_count_since_last_seen:
+		return final_result, num_recent_followers
+	elif with_follower_count:
+		return final_result, my_server.zcard(follower_key)
+	else:
+		return final_result
 
 
-# def bulk_is_fan(star_id_list, fan_id):
-# 	"""
-# 	Determines all the ids a user is a fan of (from a given list of stars)
-
-# 	Answers the question: Is fan_id actually a fan of anyone among the star_id_list?
-# 	"""
-# 	my_server, stars = redis.Redis(connection_pool=POOL), []
-# 	##################################
-# 	if len(star_id_list) > 0:
-# 		pipeline1 = my_server.pipeline()
-# 		for star_id in star_id_list:
-# 			key = "f:"+star_id
-# 			pipeline1.zscore(key,fan_id)
-# 		result1, counter = pipeline1.execute(), 0
-# 		for star_id in star_id_list:
-# 			if result1[counter]:
-# 				stars.append(star_id)
-# 			counter += 1
-# 	##################################
-# 	elif star_id_list:
-# 		for star_id in star_id_list:
-# 			key = "f:"+star_id
-# 			if my_server.zscore(key,fan_id):
-# 				stars.append(star_id)
-# 	return stars
+def retrieve_following_ids(user_id, start_idx, end_idx, with_follower_count=False):
+	"""
+	Returns list of IDs that a user is following, followingID_unames and followingID_avurls
+	"""
+	following_ids = UserFan.objects.filter(fan_id=user_id).values_list('star_id',flat=True).order_by('-fanning_time')
+	count = len(following_ids)
+	following_ids = following_ids[start_idx:end_idx+1]
+	follower_unames_and_avurls = retrieve_bulk_credentials(following_ids)
+	final_result = []
+	for follower_id in following_ids:
+		follower_id = int(follower_id)
+		final_result.append([follower_id, follower_unames_and_avurls[follower_id]['uname'], \
+			follower_unames_and_avurls[follower_id]['avurl']])
+	if with_follower_count:
+		return final_result, count
+	else:
+		return final_result
 
 
-# def get_all_fans(photo_owner_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	fans = "f:"+str(photo_owner_id)
-# 	return my_server.zrevrange(fans,0,-1), my_server.zcard(fans), get_recent_fans(photo_owner_id,server=my_server)
-
-# def get_recent_fans(photo_owner_id, server=None):
-# 	if not server:
-# 		server = redis.Redis(connection_pool=POOL)
-# 	photo_owner_id = str(photo_owner_id)
-# 	recent_fans = "rf:"+photo_owner_id
-# 	server.zremrangebyscore(recent_fans,'-inf',time.time()-ONE_DAY)
-# 	return server.zrange(recent_fans,0,-1), server.zcard(recent_fans)
-
-# def get_photo_fan_count(photo_owner_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	photo_owner_id = str(photo_owner_id)
-# 	fans = "f:"+photo_owner_id
-# 	return my_server.zcard(fans), get_recent_photo_fan_count(photo_owner_id,my_server)
-
-# def get_recent_photo_fan_count(photo_owner_id,server=None):
-# 	if not server:
-# 		server = redis.Redis(connection_pool=POOL)
-# 	server.zremrangebyscore("rf:"+photo_owner_id,'-inf',time.time()-ONE_DAY)
-# 	return server.zcard("rf:"+photo_owner_id)
-
-# def get_fan_counts_in_bulk(user_ids):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	pipeline1 = my_server.pipeline()
-# 	for user_id in user_ids:
-# 		pipeline1.zcard("f:"+user_id)
-# 	result = pipeline1.execute()
-# 	fan_counts = {}
-# 	counter = 0
-# 	for user_id in user_ids:
-# 		fan_counts[user_id] = result[counter]
-# 		counter += 1
-# 	return fan_counts 
-
-# #######################Photos Benchmarking#######################
-
-# def set_benchmark(benchmark):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	photos_benchmark = "photos_benchmark"
-# 	my_server.delete(photos_benchmark)
-# 	my_server.zadd(photos_benchmark,*benchmark)
+def get_following_count(user_id):
+	"""
+	Returns how many followers user_id has
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	count = my_server.get(FOLLOWING_COUNT+user_id)
+	if not count:
+		following_ids = UserFan.objects.filter(fan_id=user_id).values_list('star_id',flat=True).order_by('-fanning_time')
+		count = len(following_ids)
+		my_server.setex(FOLLOWING_COUNT+user_id,count,ONE_WEEK)
+	return count
 
 
-# def set_uploader_score(user_id,benchmark_score):
-# 	"""
-# 	Sets avg vote score of the user's prev 5 photos
-# 	"""
-# 	redis.Redis(connection_pool=POOL).hset("us:"+str(user_id),'b',benchmark_score)
+def invalidate_following_count(user_id):
+	"""
+	Deletes the cached 'following count' (star count) attributed to a given user_id
+	"""
+	redis.Redis(connection_pool=POOL).execute_command('UNLINK', FOLLOWING_COUNT+str(user_id))
 
 
-# def get_uploader_percentile(user_id):
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	user_score_hash = "us:"+str(user_id) 
-# 	user_score = my_server.hget(user_score_hash,'b')# 1.0
-# 	try:
-# 		value = my_server.zrevrangebyscore('photos_benchmark','('+str(user_score), '-inf', start=0, num=1)
-# 		if value:
-# 			rank = my_server.zrank('photos_benchmark',value[0])+1 #added 1 because rank is 0 based
-# 			cardinality = my_server.zcard('photos_benchmark')
-# 			# the uploader beat the following percentage of users:
-# 			percentile = rank/(cardinality*1.0)
-# 		else:
-# 			percentile = 0
-# 	except:
-# 		percentile = 0
-# 	return percentile
 
-# def get_top_100():
-# 	my_server = redis.Redis(connection_pool=POOL)
-# 	photos_benchmark = "photos_benchmark"
-# 	return my_server.zrevrange(photos_benchmark,0,99)
+def set_user_last_seen(user_id):
+	"""
+	"""
+	redis.Redis(connection_pool=POOL).setex(LAST_ACTIVE_ON_HOME+str(user_id),time.time(),300)
+
+
+def get_user_activity_event_time(user_id):
+	"""
+	When was the last time user was seen on 'custom home'
+
+	Useful for deciding whether to show a 'new followers' notification to the said user
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	last_seen_time = my_server.get(LAST_ACTIVE_ON_HOME+str(user_id))
+	if last_seen_time is None:
+		# setting the time to 1 week ago for a brand new user (or resurrected user)
+		one_week_ago = time.time()#-ONE_WEEK
+		my_server.setex(LAST_ACTIVE_ON_HOME+str(user_id),one_week_ago,THREE_MONTHS)
+		return one_week_ago
+	else:
+		return float(last_seen_time)
+
+
+def update_user_activity_event_time(user_id):
+	"""
+	Recording the very moment a user viewed their custom home
+
+	Useful for displaying a "new followers" message
+	"""
+	redis.Redis(connection_pool=POOL).setex(LAST_ACTIVE_ON_HOME+str(user_id),time.time(),THREE_MONTHS)
+	delete_new_follower_notif(user_id)
+
+
+def delete_new_follower_notif(user_id):
+	"""
+	Remove the new follower notif from redis
+	"""
+	redis.Redis(connection_pool=POOL).delete(NEW_FOLLOWERS_NOTIF+str(user_id))
+
+
+def retrieve_cached_new_follower_notif(user_id):
+	"""
+	Retrieves the cached 'new follower' string for a particular user_id
+
+	Useful when displaying a 'new followers' notification to the user on their home page
+	"""
+	return redis.Redis(connection_pool=POOL).get(NEW_FOLLOWERS_NOTIF+str(user_id))
+
+
+def retrieve_and_cache_new_followers_notif(user_id):
+	"""
+	This retrieves 'new follower' data for a given user_id, caches it and returns the values for populating a notification on the user's home
+	"""
+
+	# Step 1) When was the last time user viewed their home? That determines the cut-off time for counting 'new followers'
+	last_seen = get_user_activity_event_time(user_id)
+	# Step 2) Retreive the data and count of new followers (since 'last_seen' time)
+	followers, recent_followers_count = retrieve_follower_data(user_id=user_id, start_idx=0, end_idx=-1, with_follower_count_since_last_seen=last_seen)
+	# Step 3) Cache and return the results
+	if recent_followers_count:
+		notif = str(recent_followers_count)+":"+str(last_seen)
+
+		redis.Redis(connection_pool=POOL).setex(NEW_FOLLOWERS_NOTIF+str(user_id),notif,180)
+		return recent_followers_count, last_seen
+	else:
+		redis.Redis(connection_pool=POOL).setex(NO_NEW_FOLLOWERS+str(user_id),'1',180)
+		return None, None
+
+
+#Start with implementing this
+# how_many_users_im_a_follower_of = UserFan.objects.filter(fan_id=user_id).count()
+# how_many_users_are_following_me = UserFan.objects.filter(star_id=user_id).count()
+
+################################## Ratelimit user followers ##################################
+
+def rate_limit_removed_follower(follower_id,star_id):
+	"""
+	Rate limit to ensure unfanned user doesn't refan the star immediately after
+	"""
+	redis.Redis(connection_pool=POOL).setex(RATE_LIMIT_FOLLOWER+str(follower_id)+":"+str(star_id),'1',RATELIMIT_REMOVED_FOLLOWER)
+
+def rate_limit_unfollower(follower_id,star_id):
+	"""
+	Rate limit to ensure unfanned user doesn't refan the star immediately after
+	"""
+	redis.Redis(connection_pool=POOL).setex(RATE_LIMIT_FOLLOWER+str(follower_id)+":"+str(star_id),'1',SHORT_RATELIMIT_UNFOLLOWER)	
+
+
+def is_potential_follower_rate_limited(follower_id, star_id,):
+	"""
+	Checking if allowed to fan the star, or is rate-limited due to a previous unfanning event
+	"""
+	return redis.Redis(connection_pool=POOL).exists('rlf:'+str(follower_id)+":"+str(star_id))
+
+#################################################################################################
+
+def set_temp_post_selected_followers(obj_hash_name,followers,expire_at):
+	"""
+	Temporarily save user_ids for a limited post, includes poster ID
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.sadd(TEMP_ALL_FOLLOWERS+obj_hash_name,*followers)
+	my_server.expireat(TEMP_ALL_FOLLOWERS+obj_hash_name,int(expire_at))
+
+
+def save_last_post_selected_followers(followers,poster_id):
+	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+	pipeline1.delete(LAST_SELECTED_FOLLOWERS+poster_id)
+	pipeline1.sadd(LAST_SELECTED_FOLLOWERS+poster_id,*followers)
+	pipeline1.expire(LAST_SELECTED_FOLLOWERS+poster_id,TWO_WEEKS)
+	pipeline1.execute()	
+
+
+def get_last_post_selected_followers(poster_id):
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).smembers(LAST_SELECTED_FOLLOWERS+str(poster_id))	
+
+
+def can_follower_view_post(user_id,obj_hash_name):
+	"""
+	Temporarily save user_ids for a limited post
+	"""
+	can_view_post = redis.Redis(connection_pool=POOL).sismember(TEMP_ALL_FOLLOWERS+obj_hash_name,user_id)
+	if can_view_post:
+		return can_view_post
+	else:
+		# try a DB look up in case permission list has expired
+		permission_list = retrieve_permitted_ids(obj_hash_name)
+		if permission_list:
+			set_temp_post_selected_followers(obj_hash_name=obj_hash_name, followers=permission_list, expire_at=time.time()+ONE_DAY)
+		return redis.Redis(connection_pool=POOL).sismember(TEMP_ALL_FOLLOWERS+obj_hash_name,user_id)
+		
+###################################### selective removal of posts #########################################
+
+
+def remove_single_post_from_custom_feed(obj_hash, own_id):
+	"""
+	Used to remove a single post from own feed (for consumers)
+	Also used to delete a post from OP's history 
+	"""
+	if obj_hash:
+		own_id=str(own_id)
+		link_data = obj_hash.partition(':')
+		obj_id, obj_prefix = link_data[2], link_data[0]
+
+		##############################
+		# is own_id OP of the post?
+		owner_id = get_obj_owner(obj_id,obj_prefix)
+		if owner_id == '':
+			is_op = Link.objects.filter(id=obj_id, submitter_id=own_id).exists()
+		else:
+			is_op = str(owner_id) == own_id
+
+		############################################################
+		if is_op:
+			# remover is OP
+
+			if Link.objects.only('audience').get(id=obj_id).audience == 'p':
+				# only remove post from global feeds in redis7 if it's audience type was 'public' (i.e. 'p')
+				removed, ttl = trim_expired_user_submissions(submitter_id=own_id, target_obj_hash_name=obj_hash)
+			else:
+				# for all other audience types, only remove post from user history and OP's feed
+				removed, ttl = True, None
+
+			if removed:
+				Link.objects.filter(id=obj_id).update(delete_status='1')
+				changed = change_delete_status_of_obj_hash(obj_hash_name=obj_hash)# called in redis7
+				if changed:
+					change_delete_status_of_direct_responses(obj_type='3' if obj_prefix == 'tx' else '4', obj_id=obj_id)# called in redis9
+			
+				my_server = redis.Redis(connection_pool=POOL)
+				my_server.zrem(USER_FEED+own_id,obj_hash)# remove post from own feed
+				my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash)# remove post from list of limited items
+
+		############################################################
+		else:
+			# remover is not OP
+
+			my_server = redis.Redis(connection_pool=POOL)
+			my_server.zrem(USER_FEED+own_id,obj_hash)# remove post from own feed
+			my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash)# remove post from list of limited items
+			removed, ttl = True, None
+
+		return removed, ttl, is_op
+	
+	else:
+		return False, None, None
+
+
+def sanitize_posts_after_pvp_ban(follower_id, user_id):
+	"""
+	Remove all posts of user_id from follower_id's custom feed
+	
+	Used in pvp banning (i.e. when one users bans another)
+	"""
+	fanout_list = []
+	my_server = redis.Redis(connection_pool=POOL)
+	if user_id:
+		user_id = float(user_id)
+		user_fanouts = my_server.zrangebyscore(FOLLOWER_FANOUTS_AND_SUBMITTERS,user_id,user_id)
+		if user_fanouts:
+			for fanout in user_fanouts:
+				data = fanout.rpartition("*")# data = [follower_string, '*', obj_hash]
+				fanout_list.append(data[2])
+			follower_id = str(follower_id)
+			if fanout_list:
+				pipeline1 = my_server.pipeline()
+				pipeline1.zrem(USER_FEED+follower_id,*fanout_list)
+				pipeline1.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+follower_id,*fanout_list)
+				pipeline1.execute()
+		remove_permission_of_single_follower(poster_id=user_id,follower_id=follower_id,with_redis_cleansing=True)	
+
+
+######################################### Postgresql helper funcs #########################################
+
+
+def invalidate_permission_string(obj_hash_names):
+	"""
+	"""
+	if obj_hash_names:
+		final_keys_to_delete = []
+		for obj_hash_name in obj_hash_names:
+			final_keys_to_delete.append(TEMP_ALL_FOLLOWERS+obj_hash_name)
+		if final_keys_to_delete:
+			redis.Redis(connection_pool=POOL).execute_command('UNLINK', *final_keys_to_delete)
+
+
+def retrieve_permitted_ids(obj_hash_name):
+	"""
+	Helps in recreating the 'permission string' of audience limited posts (useful in cases where the post lives 'forever')
+	"""
+	if obj_hash_name:
+		data = obj_hash_name.partition(":")
+		obj_type, obj_id = data[0], data[-1]
+		if obj_type in ('tx','img'):
+			# text or img type obj
+			return Report.objects.filter(which_link_id=obj_id).values_list('target',flat=True)
+		else:
+			# obj type is unknown
+			return []
+
+
+def remove_permission_of_single_follower_on_specific_object(obj_hash_name, follower_id):
+	"""
+	Helps in removing a single follower's access permission on an object
+
+	Useful when follower 'removes' object from feed	
+	"""
+	if obj_hash_name:
+		data = obj_hash_name.partition(":")
+		obj_type, obj_id = data[0], data[-1]
+		if obj_type in ('tx','img'):
+			Report.objects.filter(which_link_id=obj_id,target_id=follower_id).delete()
+			invalidate_permission_string([obj_hash_name])# invalidate the currently existing permission string in redis
+		else:
+			pass
+
+def remove_permission_of_single_follower(poster_id, follower_id, with_redis_cleansing=False):
+	"""
+	Revokes all permissions granted to a follower on any 'limited' object posted by the poster
+
+	Useful in pvp banning
+	"""
+	if with_redis_cleansing:
+		obj_hash_names = []
+		objs = Report.objects.only('which_link','which_link__type_of_content').filter(reporter_id=poster_id, target_id=follower_id).\
+		values('which_link_id','which_link__type_of_content')
+		if objs:
+			for obj in objs:
+
+				if obj['which_link__type_of_content'] == 't':
+					obj_hash_names.append("tx:"+str(obj['which_link_id']))
+				elif obj['which_link__type_of_content'] == 'g':
+					obj_hash_names.append("img:"+str(obj['which_link_id']))
+			invalidate_permission_string(obj_hash_names)# removing redis 'permission strings' related to removed objs
+			Report.objects.filter(reporter_id=poster_id, target_id=follower_id).delete()
+		
+	else:
+		# solely get rid of DB perms
+		Report.objects.filter(reporter_id=poster_id, target_id=follower_id).delete()
+
+
+def remove_permission_of_bulk_followers(poster_id):
+	"""
+	Useful when a poster is banned "forever" etc
+	"""
+	Report.objects.filter(reporter_id=poster_id).delete()
+
+
+######################################### Caching feed history in redis #########################################
+
+
+def cache_user_feed_history(user_id, json_payload,page_num, hist_type):
+	"""
+	Caching user feed history pages (one page at a time)
+	"""
+	if hist_type == 'private':
+		key_name = CACHED_PRIVATE_FEED_HISTORY+str(user_id)
+	elif hist_type == 'limited':
+		key_name = CACHED_LIMITED_FEED_HISTORY+str(user_id)
+	elif hist_type == 'public':
+		key_name = CACHED_PUBLIC_FEED_HISTORY+str(user_id)
+	else:
+		key_name = ''
+	if key_name:
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.hset(key_name,page_num,json_payload)
+		my_server.expire(key_name,TEN_MINS)
+
+
+def retrieve_cached_user_feed_history(user_id, page_num, hist_type):
+	"""
+	Retrieve cached user feed history (in case of multiple quick visits occur in user history)
+	"""
+	if hist_type == 'private':
+		key_name = CACHED_PRIVATE_FEED_HISTORY+str(user_id)
+	elif hist_type == 'limited':
+		key_name = CACHED_LIMITED_FEED_HISTORY+str(user_id)
+	elif hist_type == 'public':
+		key_name = CACHED_PUBLIC_FEED_HISTORY+str(user_id)
+	else:
+		key_name = ''
+	if key_name:
+		return redis.Redis(connection_pool=POOL).hget(key_name,str(page_num))
+
+
+def invalidate_cached_user_feed_history(user_id, hist_type):
+	"""
+	Invalidate cached feed history (e.g. when poster submits new post)
+	"""
+	if hist_type == 'private':
+		key_name = CACHED_PRIVATE_FEED_HISTORY+str(user_id)
+	elif hist_type == 'limited':
+		key_name = CACHED_LIMITED_FEED_HISTORY+str(user_id)
+	elif hist_type == 'public':
+		key_name = CACHED_PUBLIC_FEED_HISTORY+str(user_id)
+	else:
+		key_name = ''
+	if key_name:
+		redis.Redis(connection_pool=POOL).execute_command('UNLINK', key_name)
+
+
+##################### Loggers for follow feature ####################
+#####################################################################
+
+POST_DATA_LOGGER = 'pdl'
+POST_FOLLOW_LOGGER = 'pfl'
+POST_REMOVE_LOGGER = 'prl'
+
+def logging_post_data(data):
+	"""
+	used to log post related data
+	"""
+	redis.Redis(connection_pool=POOL).zadd(POST_DATA_LOGGER,json.dumps(data),time.time())
+
+def logging_follow_data(data):
+	"""
+	Check where the user pressed follow or unfollow button
+	"""
+	redis.Redis(connection_pool=POOL).zadd(POST_FOLLOW_LOGGER,json.dumps(data),time.time())
+
+
+def log_remove_data(data):
+	"""
+	Log where exactly the user pressed the remove button, 
+	Log what kind of post is removed
+	"""
+	redis.Redis(connection_pool=POOL).zadd(POST_REMOVE_LOGGER,json.dumps(data),time.time())

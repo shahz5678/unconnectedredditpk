@@ -20,15 +20,17 @@ from views import get_indices, format_post_times, retrieve_user_env, get_addendu
 from redis4 import retrieve_uname, retrieve_user_id, set_text_input_key, retrieve_avurl
 from redis7 import check_content_and_voting_ban, retrieve_obj_feed, retrieve_last_vote_time, retrieve_recent_votes,get_all_image_star_ids,\
 is_image_star, in_defenders
-from redis7 import get_obj_data
-from redis9 import check_if_follower, add_follower, remove_follower, get_custom_feed, retrieve_custom_feed_index, retrieve_follower_data, \
+from redis2 import check_if_follower, add_follower, remove_follower, get_custom_feed, retrieve_custom_feed_index, retrieve_follower_data, \
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
-retrieve_cached_user_feed_history, retrieve_latest_direct_reply,remove_single_post_from_custom_feed, invalidate_cached_user_feed_history
-from redis9 import get_all_follower_count,get_verified_follower_count, logging_follow_data, log_remove_data # for loggers
+retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
+get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
+log_remove_data, retrieve_and_cache_new_followers_notif # for loggers
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
+from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
 from utilities import convert_to_epoch
 from colors import COLOR_GRADIENTS
+from redis7 import get_obj_data
 
 
 ONE_MONTH = 2592000# seconds in 1 month
@@ -50,14 +52,6 @@ def custom_feed_redirect(request, obj_hash=None):
 		url = reverse_lazy("my_home")+addendum
 	return redirect(url)
 
-
-# pseudo code
-
-# 1) add folllower triggers a flag
-# 2) There is a last viewed flag that tells when a user visited the feed
-
-from redis9 import get_user_activity_event_time, retrieve_cached_new_follower_notif, retrieve_and_cache_new_followers_notif#, set_last_seen, 
-ONE_WEEK = 604800# 1 week in seconds
 
 def custom_feed_page(request):
 	"""
@@ -492,7 +486,6 @@ def remove_single_post(request):
 	else:
 		raise Http404("Not a post request")
 
-from redis9 import update_user_activity_event_time
 
 def show_follower_list(request):
 	"""
@@ -755,8 +748,8 @@ def display_user_follower_feed_history(request, target_uname):
 				start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
 
 				dict_data = Link.objects.values('id','submitter_id','submitted_on','type_of_content','description','url',\
-					'image_file','reply_count','net_votes','trending_status','cagtegory','expire_at','comment_status').filter(\
-					Q(submitter_id=target_user_id,audience='a',delete_status='0',mortality='i')|\
+					'image_file','reply_count','net_votes','trending_status','cagtegory','expire_at','comment_status',\
+					'mortality').filter(Q(submitter_id=target_user_id,audience='a',delete_status='0',mortality='i')|\
 					Q(submitter_id=target_user_id,audience='a',delete_status='0',mortality='m',expire_at__gte=time_now)).\
 					order_by('-id')[start_index:end_index+1]
 
@@ -871,8 +864,8 @@ def display_user_private_feed_history(request, target_uname):
 			if total_objs > 0:
 
 				dict_data = Link.objects.values('id','submitter_id','submitted_on','type_of_content','expire_at','description',\
-					'url','image_file','reply_count','net_votes','trending_status','cagtegory','comment_status').filter(\
-					Q(submitter_id=target_user_id,audience='s',delete_status='0',mortality='m',expire_at__gte=time_now)|\
+					'url','image_file','reply_count','net_votes','trending_status','cagtegory','comment_status','mortality'\
+					).filter(Q(submitter_id=target_user_id,audience='s',delete_status='0',mortality='m',expire_at__gte=time_now)|\
 					Q(submitter_id=target_user_id,audience='s',delete_status='0',mortality='i')).\
 					order_by('-id')[start_index:end_index+1]
 

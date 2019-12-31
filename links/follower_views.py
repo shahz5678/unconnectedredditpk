@@ -6,7 +6,7 @@ from django.http import Http404
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
-from django.core.urlresolvers import reverse_lazy
+from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, render
 from django.contrib.auth.models import User
 from models import UserFan, Link

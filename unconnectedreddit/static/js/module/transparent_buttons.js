@@ -209,17 +209,17 @@ function toggle_follow_btn(follow_btn, svg_img, btn_label_div, force_state){
 
 	if (force_state === 'FOLLOW') {
 		// it is a 'follow' action
-		follow_btn.style.border = '1px solid #d3d3d3';// changing follow button's border color
-		svg_img.src = '/static/img/unfan.svg';// changing the icon
-		btn_label_div.style.color = '#808080'// changing color of 'FOLLOW' label
+		follow_btn.style.border = '1px solid #a9a9a9';// changing follow button's border color
+		svg_img.src = '/static/img/unfollow.svg';// changing the icon
+		btn_label_div.style.color = '#a6a6a6'// changing color of 'FOLLOW' label
 		btn_label_div.innerHTML = 'UNFOLLOW';// changing 'FOLLOW' label to 'UNFOLLOW'
 		return true;// forced to toggle
 	
 	} else if (force_state === 'UNFOLLOW') {
 		// 'follow' action is reversed
-		follow_btn.style.border = '1px solid #74d5f2';// changing unfollow button's border color
-		svg_img.src = '/static/img/ying-yang.svg';// changing the icon
-		btn_label_div.style.color = '#ed85c5'// changing color of 'UNFOLLOW' label
+		follow_btn.style.border = '1px solid #7f68fd';// changing unfollow button's border color
+		svg_img.src = '/static/img/follow.svg';// changing the icon
+		btn_label_div.style.color = '#7f68fd'// changing color of 'UNFOLLOW' label
 		btn_label_div.innerHTML = 'FOLLOW';// changing 'UNFOLLOW label to 'FOLLOW'
 		return true;// forced to state toggle
 	
@@ -228,16 +228,16 @@ function toggle_follow_btn(follow_btn, svg_img, btn_label_div, force_state){
 		var current_state = btn_label_div.innerHTML;
 
 		if (current_state === 'FOLLOW') {
-			follow_btn.style.border = '1px solid #d3d3d3';// changing follow button's border color
-			svg_img.src = '/static/img/unfan.svg';// changing the icon
-			btn_label_div.style.color = '#808080'// changing color of 'FOLLOW' label
+			follow_btn.style.border = '1px solid #a9a9a9';// changing follow button's border color
+			svg_img.src = '/static/img/unfollow.svg';// changing the icon
+			btn_label_div.style.color = '#a6a6a6'// changing color of 'FOLLOW' label
 			btn_label_div.innerHTML = 'UNFOLLOW';// changing 'FOLLOW' label to 'UNFOLLOW'
 			return false;
 
 		} else {
-			follow_btn.style.border = '1px solid #74d5f2';// changing unfollow button's border color
-			svg_img.src = '/static/img/ying-yang.svg';// changing the icon
-			btn_label_div.style.color = '#ed85c5'// changing color of 'UNFOLLOW' label
+			follow_btn.style.border = '1px solid #7f68fd';// changing unfollow button's border color
+			svg_img.src = '/static/img/follow.svg';// changing the icon
+			btn_label_div.style.color = '#7f68fd'// changing color of 'UNFOLLOW' label
 			btn_label_div.innerHTML = 'FOLLOW';// changing 'UNFOLLOW label to 'FOLLOW'
 			return false;
 		}

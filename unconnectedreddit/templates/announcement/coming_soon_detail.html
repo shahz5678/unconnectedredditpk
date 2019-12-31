@@ -1,35 +1,36 @@
 {% extends "base.html" %}
 {% block content %}
 {% load cache %}
-{% cache 1000 followers %}
+{% cache 10000 follow %}
 <head><title>New feature</title></head>
 
 <style>body{background: #E9EBEE}</style>
 
-<h1 class="cxl lsp" style="text-align:center">'Follower' option is coming soon!</h1>
+<h1 class="cxl lsp" style="text-align:center">'Follow' option is here!</h1>
 
 <div class="bizcard cxl lsp bx" style="background-color:#FEFCFC;max-width:750px;width:98%;margin:0 auto;overflow: hidden;text-align:center;padding:10px 6px">
-Follower option ki kuch zaruri malumat note kar lein:
+<button class="vt mts" style="padding:0;height:114px;width:200px;border:2px solid #7f68fd;border-radius:8px"><div><img src="{{ STATIC_URL }}img/follow.svg" class="mt" width="100" height="60"></div><div class="mt" style="font-size:18px;color:#7f68fd;letter-spacing:3px">FOLLOW</div></button>
+<div class="mts mbs">Follow option ki zaruri malumat samajh lein:</div>
 </div>
 <br>
 <div class="bizcard bx" style="background-color:#FEFCFC;max-width:750px;width:98%;margin:0 auto;overflow: hidden">
 
 	<div style="text-align:justify;padding:0 8px;color:black" class="cxl mbs lsp mts">
-	Post kartey huay ap select kar sakein ge ke post kaun kaun dekh sakta hai. Ye selection is terah show ho gi:
+	Agar followers 0 se zyada hain tou post kartey huay ap select kar sakte hain ke post kaun kaun dekh sakta hai. Ye selection is terah show hoti hai:
 	<div style="text-align:center" class="mts"><img src="{{ STATIC_URL }}img/screen4.png" style="width:96%;max-width:500px"></div>
-	Is mein apkey pas 3 choices hon gi:<br>
+	Is mein apkey pas 3 choices hain:<br>
 	1) Post tamam followers dekh sakein aur home ke users bhi (aur agar photo post hai tou 'fresh photos' ke users bhi)<br>
-	2) Ya phir post sirf followers dekh sakein (home ke users nahi dekh sakein ge aisi post)<br>
-	3) Ya phir post sirf khaas followers dekh sakein jinko aap ne khud chunna ho (chunao ke liye aik separate screen aye gi)	
+	2) Ya phir post sirf followers dekh sakein (home ke users nahi dekh sakte aisi posts)<br>
+	3) Ya phir post sirf khaas followers dekh sakein jinko aap ne khud chunna ho (chunao ke liye aik separate screen ati hai)	
 	</div>
 </div>
 <br>
 <div class="bizcard bx" style="background-color:#FEFCFC;max-width:750px;width:98%;margin:0 auto;overflow: hidden">
 	<div style="text-align:justify;padding:0 8px;color:black" class="cxl mbs lsp mts">
-	Ap yeh bhi select kar sakein ge ke kya post khud bakhud expire ho jaye:
+	Ap yeh bhi select kar saktey hain ke kya post khud bakhud expire ho jaye:
 	<div class="mts" style="text-align:center"><img src="{{ STATIC_URL }}img/screen1.png" style="width:96%;max-width:500px"></div>
-	Is mein apkey pas 3 choices hon gi:<br>
-	1) Post expire nah ho<br>
+	Is mein apkey pas 3 choices hain:<br>
+	1) Post expire nahi ho<br>
 	2) Post 1 day baad expire ho<br>
 	3) Post 15 minutes baad expire ho
 	</div>
@@ -37,9 +38,9 @@ Follower option ki kuch zaruri malumat note kar lein:
 <br>
 <div class="bizcard bx" style="background-color:#FEFCFC;max-width:750px;width:98%;margin:0 auto;overflow: hidden">
 	<div style="text-align:justify;padding:0 8px;color:black" class="cxl mbs lsp mts">
-	Ap post kartey huay ye bhi decide kar sakein ge ke users post pe replies kar sakein ya nahi:
+	Ap post kartey huay ye bhi decide kar saktey hain ke users post pe replies kar sakein ya nahi:
 	<div class="mts" style="text-align:center"><img src="{{ STATIC_URL }}img/screen3.png" style="width:96%;max-width:500px"></div>
-	Is mein apkey pas 2 choices hon gi:<br>
+	Is mein apkey pas 2 choices hain:<br>
 	1) No - yani replies off nahi karein<br>
 	2) Yes - yani replies off kar dein
 </div>

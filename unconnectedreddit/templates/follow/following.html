@@ -8,14 +8,13 @@
     <div class="clb bx" style="border:3px solid #ececec;border-radius:12px;background-color:white;padding:10px;max-width:560px;width:98%;margin:0 auto;overflow: hidden;text-align:center">
         {% if not followers %}
             
-            <div class="clb cxl lsp">{% load emoticons_tags %}{% emoticons %}Abhi aap kissi ko follow nahi ker rahey {% endemoticons %}</div>
-            <a href="{% url 'user_profile' own_name %}#section0"><button class="btn bcg mtl mbs sp pg_ok_res bm" style="height:26px">wapis</button></a>
+            <div class="clb cxl lsp">{% load emoticons_tags %}{% emoticons %}Abhi ap kisi ko follow nahi ker rahey {% endemoticons %}</div>
+            <a href="{% url 'user_profile' own_name %}#section0"><button class="btn bcb mtl mbs sp pg_ok_res bl" style="height:28px">wapis</button></a>
 
 
         {% else %}
 
             {% load s3 %}
-            {% load get_unfollow_button %}
             {% load get_big_block_button %}
             
             <div class="mt mbl"><a href="{% url 'user_profile' own_name %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>

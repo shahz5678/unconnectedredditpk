@@ -206,16 +206,16 @@ def cast_vote(request,*args,**kwargs):
 							# votes cast in best lists are considered 'audience' votes - voters vote on curated stuff and validate curators' choice
 							if origin == '1':
 								# vote_type = 'fresh'
-								editorial_vote = True
+								editorial_vote = True# this is an 'editorial vote'
 							elif origin == '2':
 								# vote_type = 'trending'
 								editorial_vote = False# this is an 'audience vote'
 							elif origin == '3':
 								# vote_type = 'home'
-								editorial_vote = True
+								editorial_vote = True# this is an 'editorial vote'
 							elif origin == '22':
 								# vote_type = 'topic'
-								editorial_vote = True
+								editorial_vote = True# this is an 'editorial vote'
 							elif origin == '26':
 								# vote_type = 'custom_feed'
 								editorial_vote = False# this is an 'audience vote'
@@ -438,7 +438,7 @@ def export_voting_records(request):
 		if data_to_write_to_csv:
 			import csv
 
-			filename = 'reply_rate.csv'
+			filename = 'mehfil_replies.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
 				columns = ["Reply time (epoch)","Target ID","Replier ID","Mehfil type","Text"]
@@ -811,13 +811,13 @@ def user_old_vote_history(request):
 		##############################################################
 		final_text_objs = {}
 		text_objs = Link.objects.only('id','description','submitted_on','net_votes','url','cagtegory','reply_count','submitter').\
-		filter(id__in=text_ids,is_visible=False).values('id','description','submitted_on','net_votes','url','cagtegory','reply_count','submitter') if text_ids else []
+		filter(id__in=text_ids,is_visible=True).values('id','description','submitted_on','net_votes','url','cagtegory','reply_count','submitter') if text_ids else []
 		for text_obj in text_objs:
 			final_text_objs[str(text_obj['id'])] = text_obj
 		##############################################################
 		final_img_objs = {}
 		img_objs = Photo.objects.only('id','image_file','upload_time','comment_count','vote_score','device','caption','owner').\
-		filter(id__in=img_ids,is_public=False).values('id','image_file','upload_time','comment_count','vote_score','caption','device','owner') if img_ids else []
+		filter(id__in=img_ids,is_public=True).values('id','image_file','upload_time','comment_count','vote_score','caption','device','owner') if img_ids else []
 		
 		for img_obj in img_objs:
 			final_img_objs[str(img_obj['id'])] = img_obj

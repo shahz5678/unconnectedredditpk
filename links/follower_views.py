@@ -24,7 +24,7 @@ from redis2 import check_if_follower, add_follower, remove_follower, get_custom_
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
 get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
-log_remove_data, retrieve_and_cache_new_followers_notif # for loggers
+log_remove_data, retrieve_and_cache_new_followers_notif,set_user_last_seen # for loggers
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
@@ -70,9 +70,7 @@ def custom_feed_page(request):
 		new_count, last_seen = str(data[0]), float(data[2])
 	# Step 3) the cached notif doesn't exist, check if there are new followers at this point that can be shown in a notif
 	else:
-
 		new_count, last_seen = retrieve_and_cache_new_followers_notif(own_id)
-
 	#############################################################################
 	page_num = request.GET.get('page', '1')
 	own_name = retrieve_uname(own_id, decode=True)
@@ -276,7 +274,9 @@ def follow(request):
 				if topic:
 					request.session["origin_topic"] = topic
 				verification_status = '1' if request.mobile_verified else '0'
-				add_follower(user_id=own_id, target_user_id=target_user_id, verification_status=verification_status, time_now=time.time())
+				time_now=time.time()
+				set_user_last_seen(target_user_id,time_now)
+				add_follower(user_id=own_id, target_user_id=target_user_id, verification_status=verification_status, time_now=time_now+1)
 				
 				###########################################################################
 				############################### Follow Logger #############################
@@ -314,6 +314,7 @@ def unfollow(request):
 		#########################################################
 		payload = request.POST.get('pl',[])
 		data = payload.split("*")
+		
 		topic, obj_id, obj_hash, origin, target_user_id, garbage, page_num = data[0], data[1], data[2], data[3], data[4],\
 		data[5], data[6]
 		target_username = retrieve_uname(target_user_id,decode=True)

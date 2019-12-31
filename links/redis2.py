@@ -7,6 +7,7 @@ from redis4 import retrieve_bulk_credentials
 from utilities import beautiful_date, convert_to_epoch
 from redis7 import get_obj_owner, change_delete_status_of_obj_hash, trim_expired_user_submissions
 from score import PUBLIC_SUBMISSION_TTL, TTL_FOLLOWER_LIST, TTL_FOLLOWER_STRING, RATELIMIT_REMOVED_FOLLOWER, SHORT_RATELIMIT_UNFOLLOWER
+from redis9 import change_delete_status_of_direct_responses
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC2, db=0)
 
@@ -155,7 +156,9 @@ def recreate_fan_signature_in_redis(target_user_id, my_server):
 		my_server.execute_command('UNLINK', NO_FOLLOWERS+target_user_id)
 	else:
 		# no followers exist - hence setting the requisite key
-		my_server.setex(NO_FOLLOWERS+target_user_id,'1',ONE_DAY)	
+		my_server.setex(NO_FOLLOWERS+target_user_id,'1',ONE_DAY)
+		invalidate_user_last_seen(target_user_id)
+
 
 
 def add_to_follower_string(lock, my_server, user_id,target_user_id):
@@ -240,6 +243,7 @@ def remove_from_follower_string(lock, my_server, user_id,target_user_id):
 			# this target_user_id doesn't have any fans anymore - user_id was the last fan and just got removed
 			
 			my_server.setex(NO_FOLLOWERS+target_user_id,'1',ONE_DAY)
+			invalidate_user_last_seen(target_user_id)
 			# just remove the follower string
 			my_server.execute_command('UNLINK', follower_string_key)
 	lock.release()	
@@ -652,12 +656,21 @@ def invalidate_following_count(user_id):
 	"""
 	redis.Redis(connection_pool=POOL).execute_command('UNLINK', FOLLOWING_COUNT+str(user_id))
 
+######################################### new follower notif ###########################################
 
-
-def set_user_last_seen(user_id):
+def set_user_last_seen(user_id,time_now):
 	"""
 	"""
-	redis.Redis(connection_pool=POOL).setex(LAST_ACTIVE_ON_HOME+str(user_id),time.time(),300)
+	if redis.Redis(connection_pool=POOL).exists(LAST_ACTIVE_ON_HOME+str(user_id)):
+		pass
+	else:	
+		redis.Redis(connection_pool=POOL).setex(LAST_ACTIVE_ON_HOME+str(user_id),time.time(),THREE_MONTHS)
+
+
+def invalidate_user_last_seen(user_id):
+	"""
+	"""
+	redis.Redis(connection_pool=POOL).execute_command('UNLINK',LAST_ACTIVE_ON_HOME+str(user_id))
 
 
 def get_user_activity_event_time(user_id):
@@ -668,14 +681,9 @@ def get_user_activity_event_time(user_id):
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	last_seen_time = my_server.get(LAST_ACTIVE_ON_HOME+str(user_id))
-	if last_seen_time is None:
-		# setting the time to 1 week ago for a brand new user (or resurrected user)
-		one_week_ago = time.time()#-ONE_WEEK
-		my_server.setex(LAST_ACTIVE_ON_HOME+str(user_id),one_week_ago,THREE_MONTHS)
-		return one_week_ago
-	else:
+	if last_seen_time:
 		return float(last_seen_time)
-
+	
 
 def update_user_activity_event_time(user_id):
 	"""
@@ -710,16 +718,22 @@ def retrieve_and_cache_new_followers_notif(user_id):
 
 	# Step 1) When was the last time user viewed their home? That determines the cut-off time for counting 'new followers'
 	last_seen = get_user_activity_event_time(user_id)
+	
 	# Step 2) Retreive the data and count of new followers (since 'last_seen' time)
-	followers, recent_followers_count = retrieve_follower_data(user_id=user_id, start_idx=0, end_idx=-1, with_follower_count_since_last_seen=last_seen)
-	# Step 3) Cache and return the results
-	if recent_followers_count:
-		notif = str(recent_followers_count)+":"+str(last_seen)
+	if last_seen:
+		followers, recent_followers_count = retrieve_follower_data(user_id=user_id, start_idx=0, end_idx=-1, with_follower_count_since_last_seen=last_seen)
+		
+		# Step 3) Cache and return the results
+		if recent_followers_count:
+			notif = str(recent_followers_count)+":"+str(last_seen)
 
-		redis.Redis(connection_pool=POOL).setex(NEW_FOLLOWERS_NOTIF+str(user_id),notif,180)
-		return recent_followers_count, last_seen
+			redis.Redis(connection_pool=POOL).setex(NEW_FOLLOWERS_NOTIF+str(user_id),notif,180)
+			return recent_followers_count, last_seen
+		else:
+		# redis.Redis(connection_pool=POOL).setex(NO_NEW_FOLLOWERS+str(user_id),'1',180)
+			return None, None	
 	else:
-		redis.Redis(connection_pool=POOL).setex(NO_NEW_FOLLOWERS+str(user_id),'1',180)
+		# redis.Redis(connection_pool=POOL).setex(NO_NEW_FOLLOWERS+str(user_id),'1',180)
 		return None, None
 
 

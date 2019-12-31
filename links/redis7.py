@@ -1611,7 +1611,7 @@ def trim_expired_user_submissions(submitter_id=None, cleanse_feeds='1', already_
 							# this functionality is carried out by trim_trenders_data() in the 'elif' below
 							obj_data = obj_hash_name.partition(":")
 							if obj_data[0] == 'img':
-								obj_id = obj_data[1]
+								obj_id = obj_data[-1]
 								pipeline1.zrem(TRENDING_FOTOS_AND_USERS,obj_id)
 								pipeline1.zrem(TRENDING_FOTOS_AND_TIMES,obj_id)
 							

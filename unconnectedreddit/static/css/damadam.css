@@ -2144,3 +2144,28 @@ background-color:#ccffee;
     border-width: 1px;
     padding: 1px 7px 2px;
 }
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 120px;
+  background: black;
+  color: #fff;
+  text-align: center;
+  border-radius: 4px;
+  padding: 5px 0;
+  
+  /* Position the tooltip */
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -120px;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+}

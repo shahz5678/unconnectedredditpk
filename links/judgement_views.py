@@ -2262,10 +2262,14 @@ def report_content(request,*args,**kwargs):
 								content_points = Link.objects.only('net_votes').get(id=obj_id).net_votes
 								report_options = TEXT_REPORT_PROMPT
 							elif type_of_content == 'img':
-								obj = Link.objects.only('net_votes','type_of_content').get(id=obj_id)
-								if obj.type_of_content:
-									content_points = obj.net_votes
-								else:
+								try:
+									obj = Link.objects.only('net_votes','type_of_content').get(id=obj_id)
+									if obj.type_of_content:
+										content_points = obj.net_votes
+									else:
+										# handling legacy obj
+										content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
+								except Link.DoesNotExist:
 									# handling legacy obj
 									content_points = Photo.objects.only('vote_score').get(id=obj_id).vote_score
 								report_options = PHOTO_REPORT_PROMPT

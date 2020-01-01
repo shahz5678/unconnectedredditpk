@@ -165,6 +165,8 @@ TEMP_POST_DATA = 'tpd:' # temporary data store for share functionality
 
 REMOVAL_RATE_LIMIT = 'rrl:'# rate limit key to limit rate of 'remove' commands a user can issue on their posted objs
 
+GLOBAL_UPLOADED_IMGS = 'gui'
+
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
 ##################################################################################################################
@@ -839,14 +841,22 @@ def save_recent_photo(user_id, photo_id):
 	"""
 	Save last 5 photos uploaded by a user
 	"""
+	time_now = time.time()
 	key_name = "imgs:"+str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.lpush(key_name, photo_id)
 	my_server.ltrim(key_name, 0, 4) # save the most recent 5 photos'
 	my_server.expire(key_name,FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
 	############################################
-	my_server.setex(MOST_RECENT_IMG_UPLOAD_TIME+str(user_id),time.time(),ONE_MONTH)
+	my_server.setex(MOST_RECENT_IMG_UPLOAD_TIME+str(user_id),time_now,ONE_MONTH)
 	my_server.zincrby(GLOBAL_UPLOADED_IMG_VOLUME,user_id,amount=1)
+	############################################
+	# useful for display a 'counter' in our 'fresh' page page
+	my_server.zadd(GLOBAL_UPLOADED_IMGS,photo_id,time_now)
+	if random() < 0.01:
+		# run clean up after 100 attempts (on avg)
+		my_server.zremrangebyscore(GLOBAL_UPLOADED_IMGS,'-inf',time_now-ONE_DAY)
+
 
 
 def log_recent_text(user_id, description):

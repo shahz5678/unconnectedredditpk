@@ -1954,7 +1954,7 @@ def photo_page(request,list_type='best-list'):
 				num_in_last_1_day = cached_image_count
 			else:
 				one_day_ago = datetime.utcnow()-timedelta(hours=24)
-				num_in_last_1_day = Logout.objects.filter(logout_time__gte=one_day_ago).count()
+				num_in_last_1_day = Cooldown.objects.filter(logout_time__gte=one_day_ago).count()
 				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		else:
 			type_, page_origin, char = 'fresh_photos', '1', 'F'# 'char' is used in retention activity logging - can be removed

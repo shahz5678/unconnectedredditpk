@@ -858,6 +858,13 @@ def save_recent_photo(user_id, photo_id):
 		my_server.zremrangebyscore(GLOBAL_UPLOADED_IMGS,'-inf',time_now-ONE_DAY)
 
 
+def retrieve_fresh_image_count():
+	"""
+	Returns num 'fresh' public imgs uploaded in the last 24 hours
+	"""
+	return redis.Redis(connection_pool=POOL).zcount(GLOBAL_UPLOADED_IMGS,time.time()-ONE_DAY,'+inf')
+
+
 
 def log_recent_text(user_id, description):
 	"""

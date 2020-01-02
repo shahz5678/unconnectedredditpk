@@ -80,7 +80,7 @@ rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent
 invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
-is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text,set_temp_post_data, get_temp_post_data
+is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text,set_temp_post_data, get_temp_post_data, retrieve_fresh_image_count
 from redis2 import filter_following, check_if_follower, get_verified_follower_count, followers_exist, get_following_count, retrieve_follower_data, \
 fan_out_to_followers, can_follower_view_post, invalidate_cached_user_feed_history, get_last_post_selected_followers, get_all_follower_count, \
 logging_post_data
@@ -1962,8 +1962,7 @@ def photo_page(request,list_type='best-list'):
 			if cached_image_count:
 				num_in_last_1_day = cached_image_count
 			else:
-				one_day_ago = datetime.utcnow()-timedelta(hours=24)
-				num_in_last_1_day = Link.objects.filter(type_of_content='g',submitted_on__gte=one_day_ago,audience='p').count()#Photo.objects.filter(upload_time__gte=one_day_ago).count()
+				num_in_last_1_day = retrieve_fresh_image_count()
 				cache_image_count(num_images=num_in_last_1_day,list_type=list_type)
 		obj_list, list_total_size = get_photo_feed(start_idx=start_index, end_idx=end_index, feed_type=type_, with_feed_size=True)
 		num_pages = list_total_size/photos_per_page

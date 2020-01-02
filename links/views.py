@@ -1148,10 +1148,12 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 		# new 4-pronged onboarding funnel
 		choice = request.POST.get("choice",None)
 		if choice in ('1','2','3','4'):
-			if choice in ('2','3','4'):
-				# these particular variations have subsets too
-				choice = retrieve_variation_subset(user_id, choice)
+			# if choice in ('2','3','4'):
+			# 	# these particular variations have subsets too
+			# 	choice = retrieve_variation_subset(user_id, choice)
 			request.session["newbie_flag"] = choice
+			############################################
+			############################################
 			# if user_id > SEGMENT_STARTING_USER_ID:
 			# 	time_now = time.time()
 			# 	request.session['rd'] = '1'
@@ -1159,14 +1161,15 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var'+choice)
 			############################################
 			############################################
-			if choice == '5':
-				return redirect("get_ranked_groups")
-			elif choice == '6':
-				return redirect("topic_listing")
-			elif choice == '7':
-				return redirect(reverse_lazy("photo", args=['best-list']))
-			else:
-				return redirect("home")
+			return redirect("home")
+			# if choice == '5':
+			# 	return redirect("get_ranked_groups")
+			# elif choice == '6':
+			# 	return redirect("topic_listing")
+			# elif choice == '7':
+			# 	return redirect(reverse_lazy("photo", args=['best-list']))
+			# else:
+			# 	return redirect("home")
 		else:
 			request.session["redo_tut_selection"+str(user_id)] = '1'
 			return redirect("first_time_choice",lang)

@@ -3659,7 +3659,8 @@ def publish_post(request):
 			###########################################################################
 			num_fans = get_all_follower_count(own_id)
 			num_vfans = get_verified_follower_count(own_id)
-			data = {'aud':audience,'exp':expiry,'coms':coms, 'desc':description,'align':alignment,'uid':own_id, 'top':topic_name, 'orig':origin, 'Lid':obj_id,'expt':expire_at,'numf':num_fans,'num_vf':num_vfans,'image':get_s3_object(img_url)}
+			data = {'aud':audience,'exp':expiry,'coms':coms, 'desc':description,'align':alignment,'uid':own_id, 'top':topic_name, \
+			'orig':origin, 'Lid':obj_id,'expt':expire_at,'numf':num_fans,'num_vf':num_vfans,'image':get_s3_object(img_url)}
 			logging_post_data(data)
 			###########################################################################
 			###########################################################################	

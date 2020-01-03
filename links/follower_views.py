@@ -24,7 +24,7 @@ from redis2 import check_if_follower, add_follower, remove_follower, get_custom_
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
 get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
-log_remove_data, retrieve_and_cache_new_followers_notif,set_user_last_seen # for loggers
+logging_remove_data, retrieve_and_cache_new_followers_notif,set_user_last_seen # for loggers
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
@@ -283,7 +283,8 @@ def follow(request):
 				###########################################################################
 				num_fans = get_all_follower_count(own_id)
 				num_vfans = get_verified_follower_count(own_id)
-				data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,'numf':num_fans,'num_vf':num_vfans,'type':'follow'}
+				data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
+				'numf':num_fans,'num_vf':num_vfans,'type':'follow'}
 				logging_follow_data(data)
 				###########################################################################
 				###########################################################################	
@@ -328,7 +329,8 @@ def unfollow(request):
 			###########################################################################
 			num_fans = get_all_follower_count(own_id)
 			num_vfans = get_verified_follower_count(own_id)
-			data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,'numf':num_fans,'num_vf':num_vfans,'type':'unfollow'}
+			data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
+			'numf':num_fans,'num_vf':num_vfans,'type':'unfollow'}
 			logging_follow_data(data)
 			###########################################################################
 			###########################################################################	
@@ -432,8 +434,7 @@ def remove_single_post(request):
 				'type_of_content':post_data[0]['type_of_content'],'trending_status':post_data[0]['trending_status'],'url':post_data[0]['url'],\
 				'image_file':post_data[0]['image_file'],'reply_count':post_data[0]['reply_count'],'net_votes':post_data[0]['net_votes'],\
 				'description':post_data[0]['description']}
-				# print data
-				log_remove_data(data)
+				logging_remove_data(data)
 				###########################################################################
 				###########################################################################	
 				###########################################################################
@@ -460,7 +461,7 @@ def remove_single_post(request):
 			if post_data:
 				data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from my home',\
 				'post_details':post_data}
-				log_remove_data(data)
+				logging_remove_data(data)
 			###########################################################################
 			###########################################################################	
 			###########################################################################

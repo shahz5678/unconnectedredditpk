@@ -24,7 +24,7 @@ from redis2 import check_if_follower, add_follower, remove_follower, get_custom_
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
 get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
-log_remove_data, retrieve_and_cache_new_followers_notif,set_user_last_seen # for loggers
+logging_remove_data, retrieve_and_cache_new_followers_notif,set_user_last_seen # for loggers
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
@@ -283,7 +283,8 @@ def follow(request):
 				###########################################################################
 				num_fans = get_all_follower_count(own_id)
 				num_vfans = get_verified_follower_count(own_id)
-				data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,'numf':num_fans,'num_vf':num_vfans,'type':'follow'}
+				data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
+				'numf':num_fans,'num_vf':num_vfans,'type':'follow'}
 				logging_follow_data(data)
 				###########################################################################
 				###########################################################################	
@@ -328,7 +329,8 @@ def unfollow(request):
 			###########################################################################
 			num_fans = get_all_follower_count(own_id)
 			num_vfans = get_verified_follower_count(own_id)
-			data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,'numf':num_fans,'num_vf':num_vfans,'type':'unfollow'}
+			data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
+			'numf':num_fans,'num_vf':num_vfans,'type':'unfollow'}
 			logging_follow_data(data)
 			###########################################################################
 			###########################################################################	
@@ -432,8 +434,7 @@ def remove_single_post(request):
 				'type_of_content':post_data[0]['type_of_content'],'trending_status':post_data[0]['trending_status'],'url':post_data[0]['url'],\
 				'image_file':post_data[0]['image_file'],'reply_count':post_data[0]['reply_count'],'net_votes':post_data[0]['net_votes'],\
 				'description':post_data[0]['description']}
-				# print data
-				log_remove_data(data)
+				logging_remove_data(data)
 				###########################################################################
 				###########################################################################	
 				###########################################################################
@@ -460,7 +461,7 @@ def remove_single_post(request):
 			if post_data:
 				data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from my home',\
 				'post_details':post_data}
-				log_remove_data(data)
+				logging_remove_data(data)
 			###########################################################################
 			###########################################################################	
 			###########################################################################
@@ -914,3 +915,72 @@ def display_user_private_feed_history(request, target_uname):
 		raise Http404("This user's private feed is not available")
 
 ####################################################		
+
+
+def export_post_data(request,post_type):
+	"""
+	Exports all 'follow' logging results into a CSV file for analysis
+
+	Useful for analysis such as:
+	- Various types of posts shared (i.e. segmented by audience, mortality, comment-status)
+	- Content differences (if any) between different segments found above
+	- Avg/Median number of followers selected for 'some follower' posting
+	- Do users prefer permanent posts or posts with expiry? i.e. should ephemerality be the default?
+	- Are users sharing 'authentic' images of selves?
+	- Are 'some follower' posts usually targeting 'friends', or are they impersonal as the rest of them?
+	- Are '15 minute' posts different (content-wise) from their '1-day' counterparts?
+	Etcetra
+	"""
+	from redis3 import exact_date#, get_world_age
+	from redis2 import retrieve_post_data
+	
+	own_id = request.user.id
+	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
+	if is_super_defender:
+		list_data = retrieve_post_data(post_type=post_type)
+		if list_data:
+			import csv
+			
+			###################################################################################
+			# Exporting posting data
+			if post_type == 'dl':
+				filename = 'post_data.csv'
+				with open(filename,'wb') as f:
+					wtr = csv.writer(f)
+					columns = ['User ID', 'Audience','Expiry','Comments', 'Alignment','Topic name', \
+					'Origin', 'Link ID','Expiry_Time','Total Followers','Verified Followers','Description',\
+					'Image_URL']
+					wtr.writerow(columns)
+					for json_row in list_data:
+						data = json.loads(json_row)
+						to_write = [data['uid'],data['aud'],data['exp'],data['coms'],data['align'],data['top'],data['orig'], \
+						data['Lid'],exact_date(data['expt']),data['numf'],data['num_vf'],data['desc'].encode('utf-8'),\
+						data.get('image',None)]
+						wtr.writerows([to_write])
+			
+			###################################################################################
+			# Exporting follow data
+			elif post_type == 'fl':
+				filename = 'follow_data.csv'
+				with open(filename,'wb') as f:
+					wtr = csv.writer(f)
+					columns = []# TODO: create column  names
+					wtr.writerow(columns)
+					for json_row in list_data:
+						data = json.loads(json_row)
+						to_write = []# TODO: add relevant column data
+						wtr.writerows([to_write])
+			
+			###################################################################################
+			# Exporting post removal data
+			elif post_type == 'rl':
+				filename = 'post_removal_data.csv'
+				with open(filename,'wb') as f:
+					wtr = csv.writer(f)
+					columns = []# TODO: create column  names
+					wtr.writerow(columns)
+					for json_row in list_data:
+						data = json.loads(json_row)
+						to_write = []# TODO: add relevant column data
+						wtr.writerows([to_write])
+	raise Http404("Completed ;)")

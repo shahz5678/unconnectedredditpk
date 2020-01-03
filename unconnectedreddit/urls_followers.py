@@ -3,7 +3,7 @@ from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required as auth
 from links.follower_views import follow, unfollow, custom_feed_page, custom_feed_redirect, show_follower_list, remove_my_follower,\
 show_following_list, remove_single_post, display_user_public_feed_history, display_user_follower_feed_history,skip_notif,\
-display_user_private_feed_history, show_new_followers
+display_user_private_feed_history, show_new_followers, export_post_data
 from links.views import finalize_audience, publish_post
 admin.autodiscover()
 
@@ -32,4 +32,6 @@ urlpatterns = patterns('',
 	####################### Select followers #######################
 	url(r'^share/select-followers/$', auth(finalize_audience), name='finalize_audience'),
 	url(r'^share/publish/$', auth(publish_post), name='publish_post'),
+	########################## Export data #########################
+	url(r'^post/export/(?P<post_type>[\w.@+-]+)/$', auth(export_post_data), name='export_post_data'),
 )

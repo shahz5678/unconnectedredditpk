@@ -1016,9 +1016,9 @@ def invalidate_cached_user_feed_history(user_id, hist_type):
 ##################### Loggers for follow feature ####################
 #####################################################################
 
-POST_DATA_LOGGER = 'pdl'
-POST_FOLLOW_LOGGER = 'pfl'
-POST_REMOVE_LOGGER = 'prl'
+POST_DATA_LOGGER = 'dl'
+POST_FOLLOW_LOGGER = 'fl'
+POST_REMOVE_LOGGER = 'rl'
 
 def logging_post_data(data):
 	"""
@@ -1033,7 +1033,7 @@ def logging_follow_data(data):
 	redis.Redis(connection_pool=POOL).zadd(POST_FOLLOW_LOGGER,json.dumps(data),time.time())
 
 
-def log_remove_data(data):
+def logging_remove_data(data):
 	"""
 	Log where exactly the user pressed the remove button, 
 	Log what kind of post is removed
@@ -1041,35 +1041,15 @@ def log_remove_data(data):
 	redis.Redis(connection_pool=POOL).zadd(POST_REMOVE_LOGGER,json.dumps(data),time.time())
 
 
-def export_post_data(request):
+def retrieve_post_data(post_type='dl'):
 	"""
-	Exports all survey results into a CSV file for analysis
+	Retrieves the data for exporting into a CSV
 	"""
-	own_id = request.user.id
-	from redis7 import in_defenders
-	from redis3 import get_world_age, exact_date
-	from django.http import Http404
-	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
-	if is_super_defender:
-		json_data = redis.Redis(connection_pool=POOL).zrange(POST_DATA_LOGGER,0,-1)
-		if json_data:			
-			# # print data_to_write_to_csv
-			# for data in json_data:
-			# 	data_list = json.loads(data) 
-			import csv
-			filename = 'post_data.csv'
-			with open(filename,'wb') as f:
-				wtr = csv.writer(f)
-				columns = ['User ID', 'audience','expiry','comments', 'description','alignment','Topic name', \
-				'Origin', 'Link ID','Expiry_Time','Total Followers','Verified Followers','Image_URL']
-				wtr.writerow(columns)
-				for row in json_data:
-					data = json.loads(row)
-					to_write = [data['uid'],data['aud'],data['exp'],data['coms'],data['desc'].encode('utf-8'),data['align'],\
-					data['top'],data['orig'], data['Lid'],exact_date(data['expt']),data['numf'],data['num_vf'],data.get('image',None)]
-					wtr.writerows([to_write])
-	raise Http404("Completed ;)")
-
-	# {'aud':audience,'exp':expiry,'coms':coms, 'desc':description,'align':alignment,'uid':own_id, 'top':topic_name, \
-	# 'orig':origin, 'Lid':obj_id,'expt':expire_at,'numf':num_fans,'num_vf':num_vfans}
-
+	if post_type == 'dl':
+		return redis.Redis(connection_pool=POOL).zrange(POST_DATA_LOGGER,0,-1)
+	elif post_type == 'fl':
+		return redis.Redis(connection_pool=POOL).zrange(POST_FOLLOW_LOGGER,0,-1)
+	elif post_type == 'rl':
+		return redis.Redis(connection_pool=POOL).zrange(POST_REMOVE_LOGGER,0,-1)
+	else:
+		return []

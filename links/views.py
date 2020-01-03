@@ -979,7 +979,7 @@ def best_home_page(request):
 	'single_notif_dir_rep_form':DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 	'uname_rep_sent_to':request.session.pop("dir_rep_sent"+str(own_id),None),'thin_rep_form':DirectResponseForm(thin_strip=True),\
 	'obj_type_rep_sent_to':request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None),'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None)}
+	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'feed_type':'best_text'}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
@@ -1086,7 +1086,7 @@ def home_page(request, lang=None):
 	'single_notif_dir_rep_form':DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 	'uname_rep_sent_to':request.session.pop("dir_rep_sent"+str(own_id),None),'thin_rep_form':DirectResponseForm(thin_strip=True),\
 	'obj_type_rep_sent_to':request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None),'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'time_now':time_now}
+	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'time_now':time_now,'feed_type':'fresh_text'}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
@@ -3659,7 +3659,8 @@ def publish_post(request):
 			###########################################################################
 			num_fans = get_all_follower_count(own_id)
 			num_vfans = get_verified_follower_count(own_id)
-			data = {'aud':audience,'exp':expiry,'coms':coms, 'desc':description,'align':alignment,'uid':own_id, 'top':topic_name, 'orig':origin, 'Lid':obj_id,'expt':expire_at,'numf':num_fans,'num_vf':num_vfans,'image':get_s3_object(img_url)}
+			data = {'aud':audience,'exp':expiry,'coms':coms, 'desc':description,'align':alignment,'uid':own_id, 'top':topic_name, \
+			'orig':origin, 'Lid':obj_id,'expt':expire_at,'numf':num_fans,'num_vf':num_vfans,'image':get_s3_object(img_url)}
 			logging_post_data(data)
 			###########################################################################
 			###########################################################################	

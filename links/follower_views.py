@@ -215,6 +215,8 @@ def follow(request):
 				return HttpResponse(json.dumps({'success':False,'message':message,'type':'text'}),\
 					content_type='application/json',)
 			else:
+				if topic:
+					request.session["origin_topic"] = topic
 				return render(request,"follow/notify_and_redirect.html",{'user_rate_limited':True,\
 					'target_uname':target_username,'orig':origin,'lid':obj_hash,'obid':obj_id})	
 		
@@ -224,6 +226,8 @@ def follow(request):
 				return HttpResponse(json.dumps({'success':True,'message':'followed','type':'text'}),\
 					content_type='application/json',)
 			else:
+				if topic:
+					request.session["origin_topic"] = topic
 				return return_to_content(request=request,origin=origin,obj_id=obj_id,link_id=obj_hash,\
 					target_uname=target_username)
 

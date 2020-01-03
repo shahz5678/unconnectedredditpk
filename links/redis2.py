@@ -1016,9 +1016,9 @@ def invalidate_cached_user_feed_history(user_id, hist_type):
 ##################### Loggers for follow feature ####################
 #####################################################################
 
-POST_DATA_LOGGER = 'pdl'
-POST_FOLLOW_LOGGER = 'pfl'
-POST_REMOVE_LOGGER = 'prl'
+POST_DATA_LOGGER = 'dl'
+POST_FOLLOW_LOGGER = 'fl'
+POST_REMOVE_LOGGER = 'rl'
 
 def logging_post_data(data):
 	"""
@@ -1033,7 +1033,7 @@ def logging_follow_data(data):
 	redis.Redis(connection_pool=POOL).zadd(POST_FOLLOW_LOGGER,json.dumps(data),time.time())
 
 
-def log_remove_data(data):
+def logging_remove_data(data):
 	"""
 	Log where exactly the user pressed the remove button, 
 	Log what kind of post is removed
@@ -1047,7 +1047,7 @@ def export_post_data(request):
 	"""
 	own_id = request.user.id
 	from redis7 import in_defenders
-	from redis3 import get_world_age, exact_date
+	from redis3 import exact_date#, get_world_age
 	from django.http import Http404
 	is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 	if is_super_defender:
@@ -1060,16 +1060,15 @@ def export_post_data(request):
 			filename = 'post_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ['User ID', 'audience','expiry','comments', 'description','alignment','Topic name', \
-				'Origin', 'Link ID','Expiry_Time','Total Followers','Verified Followers','Image_URL']
+				columns = ['User ID', 'Audience','Expiry','Comments', 'Alignment','Topic name', \
+				'Origin', 'Link ID','Expiry_Time','Total Followers','Verified Followers','Description',\
+				'Image_URL']
 				wtr.writerow(columns)
 				for row in json_data:
 					data = json.loads(row)
-					to_write = [data['uid'],data['aud'],data['exp'],data['coms'],data['desc'].encode('utf-8'),data['align'],\
-					data['top'],data['orig'], data['Lid'],exact_date(data['expt']),data['numf'],data['num_vf'],data.get('image',None)]
+					to_write = [data['uid'],data['aud'],data['exp'],data['coms'],data['align'],data['top'],data['orig'], \
+					data['Lid'],exact_date(data['expt']),data['numf'],data['num_vf'],data['desc'].encode('utf-8'),\
+					data.get('image',None)]
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
-
-	# {'aud':audience,'exp':expiry,'coms':coms, 'desc':description,'align':alignment,'uid':own_id, 'top':topic_name, \
-	# 'orig':origin, 'Lid':obj_id,'expt':expire_at,'numf':num_fans,'num_vf':num_vfans}
 

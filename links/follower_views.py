@@ -96,10 +96,6 @@ def custom_feed_page(request):
 	on_opera = True if (not on_fbs and not is_js_env) else False
 	
 	#######################
-	secret_key = str(uuid.uuid4())
-	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
-	
-	#######################
 	# enrich objs with information that 'own_id' liked them or not
 	if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
 		recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
@@ -113,11 +109,11 @@ def custom_feed_page(request):
 	show_post_removed_prompt = request.session.pop("post_removed"+str(own_id),None)
 	context = {'link_list':list_of_dictionaries,'fanned':None,'is_auth':True,'on_fbs':on_fbs,'stars':get_all_image_star_ids(),\
 	'ident':own_id, 'process_notification':False,'newest_user':None,'newbie_lang':request.session.get("newbie_lang",None),\
-	'sk':secret_key, 'mobile_verified':request.mobile_verified, 'show_post_removed_prompt':show_post_removed_prompt,\
+	'mobile_verified':request.mobile_verified, 'show_post_removed_prompt':show_post_removed_prompt,'time_now':time_now,\
 	'on_opera':on_opera,'own_name':own_name,'new_count':new_count,'dir_rep_form':DirectResponseForm(with_id=True),\
 	'thin_rep_form':DirectResponseForm(thin_strip=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
 	'single_notif_dir_rep_form':DirectResponseForm(),'last_seen':last_seen,'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),'time_now':time_now}
+	'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None)}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
@@ -230,10 +226,8 @@ def follow(request):
 					request.session["origin_topic"] = topic
 				return return_to_content(request=request,origin=origin,obj_id=obj_id,link_id=obj_hash,\
 					target_uname=target_username)
-
 		else:
 			################## SYSTEM BANS ##################
-
 			# is own_id banned by the system?
 			own_user_banned, own_time_remaining, own_ban_details = check_content_and_voting_ban(own_id, with_details=True)
 			if own_user_banned:

@@ -24,7 +24,7 @@ from links.installment_calculator import calculator
 from links.webhooks import webhook_event
 from links.views import user_profile_photo, welcome_reply, reauth, comment_pk, reply_to_photo, public_reply_view,\
 link_create_pk, welcome_pk, sitemap, show_online_users,perm_redirect_to_home, logout_rules, best_home_page, \
-home_page, home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
+home_page, home_redirect,best_home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
 submit_text_post, display_image_comments, profile_pk, faces_pages, error, share_content, sharing_help, photo_sitemap, \
 hide_comment, photo_sitemap_of_sitemaps, top_photo_help, reset_password, content_detail_view, display_text_comments, \
 manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
@@ -64,6 +64,8 @@ urlpatterns = patterns('',
 	url(r'^redirect/home/(?P<pk>\d+)/$', auth(home_redirect), name='redirect_to_home'),
 	url(r'^redirect-to-content/$', auth(redirect_to_content), name='redirect_to_content'),
 	url(r'^$', auth(home_page), name='home'),
+	url(r'^redirect/home/best-list/$', auth(best_home_redirect), name='best_home_redirect'),
+	url(r'^redirect/home/best-list/(?P<pk>\d+)/$', auth(best_home_redirect), name='best_home_redirect'),
 	url(r'^home/best-list/$', auth(best_home_page), name='best_home_page'),
 	url(r'^vun/$',verify_user_number, name="verify_user_number"),
 	url(r'^calculator/$', auth(calculator), name='calculator'),

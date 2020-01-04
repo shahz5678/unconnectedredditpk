@@ -41,7 +41,7 @@ from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHel
 ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ContactForm, AboutForm, \
 PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, \
 PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
-WelcomeMessageForm, WelcomeForm, PublicreplyMiniForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
+WelcomeMessageForm, WelcomeForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, PhotoCommentForm,\
 SearchNicknameForm, UserProfileDetailForm,RegisterLoginForm, AdTitleForm, HistoryHelpForm, BestPhotosListForm, TestAdsForm, \
 UserSettingsForm, HelpForm, ReauthForm, RegisterHelpForm, VerifyHelpForm, ResetPasswordForm, PhotosListForm, TestReportForm, \
 AdImageForm, TopPhotoForm, SalatTutorialForm, SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, \
@@ -77,10 +77,11 @@ retrieve_group_reqd_data# invalidate_cached_mehfil_pages
 from redis7 import add_text_post, get_home_feed, retrieve_obj_feed, get_best_photo_feed, get_photo_feed, retrieve_recent_votes,\
 add_image_post, insert_hash, is_fbs_user_rate_limited_from_photo_upload, in_defenders, retrieve_photo_feed_index,retrieve_top_trenders,\
 rate_limit_fbs_public_photo_uploaders, check_content_and_voting_ban, save_recent_photo, get_recent_photos, get_best_home_feed,\
-invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies, retrieve_top_stars, retrieve_home_feed_index, \
+invalidate_cached_public_replies, retrieve_cached_public_replies, cache_public_replies,retrieve_home_feed_index, retrieve_best_home_feed_index,\
 retrieve_trending_photo_ids, retrieve_num_trending_photos, retrieve_subscribed_topics, retrieve_photo_feed_latest_mod_time, add_topic_post, \
 get_recent_trending_photos, cache_recent_trending_images, get_cached_recent_trending_images, retrieve_last_vote_time, check_votes_on_objs, \
-is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text,set_temp_post_data, get_temp_post_data, retrieve_fresh_image_count
+is_image_star, get_all_image_star_ids, retreive_trending_rep, log_recent_text,set_temp_post_data, get_temp_post_data, retrieve_fresh_image_count,\
+retrieve_top_stars
 from redis2 import filter_following, check_if_follower, get_verified_follower_count, followers_exist, get_following_count, retrieve_follower_data, \
 fan_out_to_followers, can_follower_view_post, invalidate_cached_user_feed_history, get_last_post_selected_followers, get_all_follower_count, \
 logging_post_data
@@ -938,6 +939,27 @@ def photo_detail_view(request, pk, origin=None):
 		##################################################################	
 	return render(request,"photo_detail.html",context)
 
+def best_home_redirect(request, pk=None):
+	"""
+	Used to redirect to specific spot on trending home (e.g. after writing or 'liking' something)
+	"""
+	if pk:
+		index = retrieve_best_home_feed_index(pk)
+	else:
+		pk = request.session.pop('home_hash_id',None)
+		index = retrieve_best_home_feed_index(pk) if pk else 0
+	if index is None:
+		url = reverse_lazy("best_home_page")+'?page=1#section0'
+	else:
+		addendum = get_addendum(index,ITEMS_PER_PAGE, only_addendum=True)
+		url = reverse_lazy("best_home_page")+addendum
+	############################################
+	############################################
+	# request.session['rd'] = '1'#used by retention activity loggers in home_page() - remove whenever
+	############################################
+	############################################
+	return redirect(url)
+
 
 def best_home_page(request):
 	"""
@@ -949,7 +971,7 @@ def best_home_page(request):
 	num_pages = list_total_size/ITEMS_PER_PAGE
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
-	list_of_dictionaries = retrieve_obj_feed(obj_list)
+	list_of_dictionaries = retrieve_obj_feed(obj_list, with_colors=True)
 	#######################
 	# must be done in this line, since the 't' information is lost subsequently
 	try:
@@ -958,28 +980,39 @@ def best_home_page(request):
 		oldest_post_time = 0.0
 	#######################
 	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
-	#######################
+	####################### Filter followers ####################	
+	submitter_ids = set()
+	for obj in list_of_dictionaries:
+		 submitter_ids.add(str(obj['si']))
+	ids_already_fanned = filter_following(submitter_ids,own_id)
+	for obj in list_of_dictionaries:
+		if str(obj['si']) in ids_already_fanned:
+			obj['f'] = True
+	#############################################################
+
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 	on_opera = True if (not on_fbs and not is_js_env) else False
 	num = random.randint(1,4)
-	secret_key = str(uuid.uuid4())
-	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	#######################
 	# enrich objs with information that 'own_id' liked them or not
-	recent_user_voted_obj_hashes = check_votes_on_objs(obj_list, own_id)
-	for obj in list_of_dictionaries:
-		if obj['h'] in recent_user_voted_obj_hashes:
-			obj['v'] = True# user 'liked' this particular object, so mark it
+	if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
+		recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+		# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+		recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+		for obj in list_of_dictionaries:
+			if obj['h'] in recent_user_voted_obj_hashes:
+				obj['v'] = True# user 'liked' this particular object, so mark it
 	#######################
 	is_mob_verified = request.mobile_verified
 	context = {'link_list':list_of_dictionaries,'is_auth':True, 'on_fbs':on_fbs,'ident':own_id,'on_opera':on_opera,\
-	'mobile_verified':is_mob_verified,'random':num, 'sk':secret_key,'newbie_lang':request.session.get("newbie_lang",None),\
+	'mobile_verified':is_mob_verified,'random':num,'newbie_lang':request.session.get("newbie_lang",None),\
 	'dir_rep_form':DirectResponseForm(with_id=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
 	'single_notif_dir_rep_form':DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 	'uname_rep_sent_to':request.session.pop("dir_rep_sent"+str(own_id),None),'thin_rep_form':DirectResponseForm(thin_strip=True),\
 	'obj_type_rep_sent_to':request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None),'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'feed_type':'best_text'}
+	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'feed_type':'best_text',\
+	'origin':'12','sn_origin':'13','rurl':'best_home_page'}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
@@ -1057,8 +1090,6 @@ def home_page(request, lang=None):
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 	on_opera = True if (not on_fbs and not is_js_env) else False
 	num = random.randint(1,4)
-	secret_key = str(uuid.uuid4())
-	set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
 	#######################
 	# enrich objs with information that 'own_id' liked them or not
 	if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
@@ -1081,12 +1112,13 @@ def home_page(request, lang=None):
 	########################################################################
 
 	context = {'link_list':list_of_dictionaries,'is_auth':True,'on_fbs':on_fbs,'ident':own_id,'on_opera':on_opera,\
-	'mobile_verified':is_mob_verified,'random':num,'sk':secret_key,'newbie_lang':request.session.get("newbie_lang",None),\
+	'mobile_verified':is_mob_verified,'random':num,'newbie_lang':request.session.get("newbie_lang",None),\
 	'dir_rep_form':DirectResponseForm(with_id=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
 	'single_notif_dir_rep_form':DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 	'uname_rep_sent_to':request.session.pop("dir_rep_sent"+str(own_id),None),'thin_rep_form':DirectResponseForm(thin_strip=True),\
 	'obj_type_rep_sent_to':request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None),'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'time_now':time_now,'feed_type':'fresh_text'}
+	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'time_now':time_now,'feed_type':'fresh_text',\
+	'origin':'3','sn_origin':'19','rurl':'home'}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}

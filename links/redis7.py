@@ -382,6 +382,14 @@ def retrieve_home_feed_index(obj_hash):
 	"""
 	return redis.Redis(connection_pool=POOL).zrevrank(HOME_SORTED_FEED,obj_hash)
 
+def retrieve_best_home_feed_index(obj_hash):
+	"""
+	Returns exact index an object is stored at in TRENDING_HOME_FEED
+
+	Useful when needing to redirect to precise object after interacting with a post
+	"""
+	rank = redis.Redis(connection_pool=POOL).zrevrank(TRENDING_HOME_FEED,obj_hash)
+	return rank
 
 def unpack_json_blob(hash_list, with_colors=False):
 	"""

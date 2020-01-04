@@ -205,19 +205,19 @@ def cast_vote(request,*args,**kwargs):
 							# votes cast in fresh lists are considered 'editorial' votes - handpickers build their reputation by voting here
 							# votes cast in best lists are considered 'audience' votes - voters vote on curated stuff and validate curators' choice
 							if origin == '1':
-								# vote_type = 'fresh'
+								# vote_type = 'fresh images'
 								editorial_vote = True# this is an 'editorial vote'
 							elif origin == '2':
-								# vote_type = 'trending'
+								# vote_type = 'trending images'
 								editorial_vote = False# this is an 'audience vote'
 							elif origin == '3':
-								# vote_type = 'home'
+								# vote_type = 'fresh text'
 								editorial_vote = True# this is an 'editorial vote'
 							elif origin == '22':
 								# vote_type = 'topic'
 								editorial_vote = True# this is an 'editorial vote'
 							elif origin == '12':
-								# vote_type = 'best_home'
+								# vote_type = 'trending text'
 								editorial_vote = False# this is an 'audience vote'	
 							elif origin == '26':
 								# vote_type = 'custom_feed'

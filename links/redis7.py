@@ -382,14 +382,15 @@ def retrieve_home_feed_index(obj_hash):
 	"""
 	return redis.Redis(connection_pool=POOL).zrevrank(HOME_SORTED_FEED,obj_hash)
 
+
 def retrieve_best_home_feed_index(obj_hash):
 	"""
 	Returns exact index an object is stored at in TRENDING_HOME_FEED
 
 	Useful when needing to redirect to precise object after interacting with a post
 	"""
-	rank = redis.Redis(connection_pool=POOL).zrevrank(TRENDING_HOME_FEED,obj_hash)
-	return rank
+	return redis.Redis(connection_pool=POOL).zrevrank(TRENDING_HOME_FEED,obj_hash)
+
 
 def unpack_json_blob(hash_list, with_colors=False):
 	"""
@@ -2359,6 +2360,7 @@ def check_votes_on_objs(obj_list, voter_id):
 	Retrieves whether voter_id voted on any img obj in obj_list via doing a bulk 'zscore'
 
 	Useful to show state of 'like' button in lists that are not sorted by time (e.g. best-photos)
+	UNUSED at the moment
 	"""
 	pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
 	for vote_store_key in [VOTE_ON_IMG+img_obj.partition(":")[-1] for img_obj in obj_list]:

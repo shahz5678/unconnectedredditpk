@@ -9,7 +9,6 @@ from django.http import Http404, HttpResponsePermanentRedirect
 from topic_forms import SubmitInTopicForm, CreateTopicform
 from page_controls import ITEMS_PER_PAGE
 from models import Link
-from redis3 import log_text_submissions
 from direct_response_forms import DirectResponseForm
 from tasks import set_input_history, log_user_activity
 from views import get_indices, get_addendum, format_post_times, retrieve_user_env

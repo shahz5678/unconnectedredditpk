@@ -94,17 +94,16 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 		else:
 			url = reverse_lazy("comment",kwargs={'pk':obj_id})+"#reply"
 		return redirect(url)
-	elif origin == '12':
-		if origin == '13':
-			# single notification on home
-			return redirect("best_home_page")
-		else:
+	elif origin == '12' or origin == '13':
+		# originated from 'best home'
+		if origin == '12':
+			# best home
 			request.session["home_hash_id"] = link_id
 			request.modified = True
 			return redirect("best_home_redirect")
-	# elif origin == '13':
-	# 	# UNUSED, previously: originated from user's own star list
-	# 	return redirect("home")
+		else:
+			# best home (from "direct-reply" notification)
+			return redirect("best_home_page")
 	elif origin == '14':
 		# UNUSED, previously: originated from user's own unseen activity
 		return redirect("home")

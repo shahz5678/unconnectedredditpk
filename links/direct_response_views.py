@@ -604,7 +604,6 @@ def post_direct_response(request):
 											parent_obj_id=parent_obj_id, obj_owner_id=parent_user_id,obj_hash_name=lid, \
 											obj_type=obj_type, commenter_id=own_id, time_now=time_now, log_location=True, \
 											target_uname=tuname, target_id=target_id,text_len=text_len, is_legacy_obj=is_legacy_obj)
-
 										return return_to_content(request=request,origin=origin,obj_id=parent_obj_id,link_id=lid,\
 											source_origin=request.POST.get('rorigin',None))
 									else:
@@ -648,6 +647,14 @@ def post_direct_response(request):
 									# text comment page
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
 									return redirect(reverse_lazy("comment",kwargs={'pk':parent_obj_id,'origin':request.POST.get('rorigin',None)})+'#error')#redirecting to special error section
+								elif origin == '12':
+									# best home
+									request.session["dir_rep_invalid"+str(own_id)] = error_string
+									return redirect(reverse_lazy("best_home_page")+'?page=1#error')#redirecting to special error section
+								elif origin == '13':
+									# best home notification
+									request.session["dir_rep_invalid"+str(own_id)] = error_string
+									return redirect(reverse_lazy("best_home_page")+'?page=1#error')#redirecting to special error section	
 								elif origin == '16':
 									# public mehfil
 									request.session["dir_rep_invalid"+str(own_id)] = error_string

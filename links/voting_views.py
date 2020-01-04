@@ -112,9 +112,9 @@ def cast_vote(request,*args,**kwargs):
 		except (AttributeError,KeyError,IndexError):
 			obj_id, obj_owner_id, is_pht, origin = None, None, None, None
 		# it's a vote, carry on
-		if (is_pht == '1' and origin in ('1','2','3','22','26')) or (is_pht == '0' and origin in ('3','22','26')):
+		if (is_pht == '1' and origin in ('1','2','3','12','22','26')) or (is_pht == '0' and origin in ('3','12','22','26')):
 			# voted on a photo and from a photo origin OR voted on a textual link and from a textual origin
-			# 1 is fresh photos, 2 is best photos, 3 is home photos, 22 is a certain topic
+			# 1 is fresh photos, 2 is best photos, 3 is home photos, 12 is trending home, 22 is a certain topic
 			# 3 is also home links
 			topic = request.POST.get("tp",None)# in case a 'topic' parameter was passed also
 			request.session["origin_topic"] = topic
@@ -130,7 +130,7 @@ def cast_vote(request,*args,**kwargs):
 		banned_by_defender, time_of_ban = check_content_and_voting_ban(own_id) #was this person banned by a defender? Banned from all voting (text and images both)
 		if banned_by_defender:
 			# not allowed to vote - notify
-			if origin == '3':
+			if origin in ('3','12'):
 				request.session["target_id"] = 'img:'+obj_id if is_pht=='1' else 'tx:'+obj_id
 			request.session["vote_origin"] = origin
 			request.session["vote_obj_id"] = obj_id
@@ -216,6 +216,9 @@ def cast_vote(request,*args,**kwargs):
 							elif origin == '22':
 								# vote_type = 'topic'
 								editorial_vote = True# this is an 'editorial vote'
+							elif origin == '12':
+								# vote_type = 'best_home'
+								editorial_vote = False# this is an 'audience vote'	
 							elif origin == '26':
 								# vote_type = 'custom_feed'
 								editorial_vote = False# this is an 'audience vote'

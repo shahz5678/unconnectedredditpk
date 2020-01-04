@@ -687,23 +687,23 @@ class PublicreplyForm(forms.ModelForm):
 					return description
 
 
-class PublicreplyMiniForm(PublicreplyForm):
-	description = forms.CharField(max_length=MAX_HOME_REPLY_SIZE, \
-		error_messages={'required': 'Pehlay safed patti mein likhein, phir "reply" dabain'})
-	sk = forms.CharField(required=False)
+# class PublicreplyMiniForm(PublicreplyForm):
+# 	description = forms.CharField(max_length=MAX_HOME_REPLY_SIZE, \
+# 		error_messages={'required': 'Pehlay safed patti mein likhein, phir "reply" dabain'})
+# 	sk = forms.CharField(required=False)
 
-	def __init__(self,*args,**kwargs):
-		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
-		self.fields['description'].error_messages = {'required': 'Pehlay safed patti mein likhein, phir "reply" dabain','max_length':'Reply 350 characters se zyada nahi hona chahiye'}
-		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt'
-		self.fields['description'].widget.attrs['style'] = 'max-width:750px;border: 1px solid lightgrey; border-radius:4px; line-height:30px;'
-		self.fields['description'].widget.attrs['autocomplete'] = 'off'
+# 	def __init__(self,*args,**kwargs):
+# 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
+# 		self.fields['description'].error_messages = {'required': 'Pehlay safed patti mein likhein, phir "reply" dabain','max_length':'Reply 350 characters se zyada nahi hona chahiye'}
+# 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt'
+# 		self.fields['description'].widget.attrs['style'] = 'max-width:750px;border: 1px solid lightgrey; border-radius:4px; line-height:30px;'
+# 		self.fields['description'].widget.attrs['autocomplete'] = 'off'
 
-	def clean_sk(self):
-		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')
-		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('Phir se karein, reply send nahi hua')
-		return secret_key_from_form
+# 	def clean_sk(self):
+# 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')
+# 		if secret_key_from_form != secret_key_from_session:
+# 			raise forms.ValidationError('Phir se karein, reply send nahi hua')
+# 		return secret_key_from_form
 
 
 class SearchNicknameForm(forms.Form):

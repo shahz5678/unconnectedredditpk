@@ -1,14 +1,7 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head>
-<title>Share image | Damadam</title>
-{% if num_fans %}
-<script>
-window._fs_debug=!1,window._fs_host="fullstory.com",window._fs_script="edge.fullstory.com/s/fs.js",window._fs_org="QY4VY",window._fs_namespace="FS",function(n,o,e,s,t,c,i,f){e in n?n.console&&n.console.log&&n.console.log('FullStory namespace conflict. Please set window["_fs_namespace"].'):((i=n[e]=function(n,o,e){i.q?i.q.push([n,o,e]):i._api(n,o,e)}).q=[],(c=o.createElement(s)).async=1,c.crossOrigin="anonymous",c.src="https://"+_fs_script,(f=o.getElementsByTagName(s)[0]).parentNode.insertBefore(c,f),i.identify=function(n,o,e){i(t,{uid:n},e),o&&i(t,o,e)},i.setUserVars=function(n,o){i(t,n,o)},i.event=function(n,o,e){i("event",{n:n,p:o},e)},i.shutdown=function(){i("rec",!1)},i.restart=function(){i("rec",!0)},i.log=function(n,o){i("log",[n,o])},i.consent=function(n){i("consent",!arguments.length||n)},i.identifyAccount=function(n,o){c="account",(o=o||{}).acctId=n,i(c,o)},i.clearUserCookie=function(){})}(window,document,window._fs_namespace,"script","user");
-</script>
-{% endif %}
-</head>
+<head><title>Share image | Damadam</title></head>
 <style>body{background:#f0f3f4}.expiry-off{display:block}.expiry-on{display:none}#aud-second:checked~.expiry-off,#aud-third:checked~.expiry-off{display:none}#aud-second:checked~.expiry-on,#aud-third:checked~.expiry-on{display:block}#aud-second:checked~.expiry>label,#aud-third:checked~.expiry>label{border:1px solid #3cb7dd}.checkbox{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.label{background:#fff;padding:7px 10px;height:46px;width:260px;border:1px solid #93d7ec;margin:0 auto -1px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.crsr{cursor:pointer}input+label:hover{background-color:#eee}.checkbox:checked+label{background-color:#3cb7dd;color:#fff}</style>
 
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.17.js"></script>

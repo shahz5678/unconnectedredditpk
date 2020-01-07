@@ -6,6 +6,7 @@ from django.http import Http404
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
+from django.contrib.humanize.templatetags.humanize import naturaltime
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, render
 from django.contrib.auth.models import User
@@ -28,6 +29,7 @@ logging_remove_data, retrieve_and_cache_new_followers_notif,set_user_last_seen #
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
+from templatetags.s3 import get_s3_object
 from utilities import convert_to_epoch
 from colors import COLOR_GRADIENTS
 from redis7 import get_obj_data
@@ -911,6 +913,60 @@ def display_user_private_feed_history(request, target_uname):
 	else:
 		# user does not exist
 		raise Http404("This user's private feed is not available")
+
+
+def display_trending_history(request, target_uname):
+	"""
+	Displays trending posts of a user (text and images both)
+	"""
+	own_id = request.user.id
+	target_id = retrieve_user_id(target_uname)
+	if str(own_id) == target_id:
+		
+		page_num = request.GET.get('page', '1')
+		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
+
+		# get object count
+		total_objs = Link.objects.filter(trending_status='1',delete_status='0',submitter_id=target_id).count()
+
+		# retrieve  objects
+		object_list = Link.objects.values('id','description','image_file','net_votes','submitted_on','reply_count','type_of_content',\
+			'cagtegory','url').filter(trending_status='1',delete_status='0',submitter_id=target_id).order_by('-id')[start_index:end_index+1]
+
+		context = {'target_uname':target_uname,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'is_star':is_image_star(user_id=target_id),\
+		'own_profile':True,'star_id':target_id,'av_url':get_s3_object(retrieve_avurl(target_id),category='thumb'),'total_objs':total_objs,\
+		'object_list':object_list}
+
+		for obj in object_list:
+			obj['machine_time'] = obj['submitted_on']
+			obj['submitted_on'] = naturaltime(obj['submitted_on'])
+			if obj['url']:
+				payload = obj['url'].split(":")
+				try:
+					theme, obj['topic_name'], obj['url'] = payload[0], payload[1], payload[2]
+					color_grads = COLOR_GRADIENTS[theme]
+					obj['c1'], obj['c2'] = color_grads[0], color_grads[1]
+				except:
+					obj['topic_name'], obj['url'] = '', ''
+					obj['c1'], obj['c2'] = '', ''
+
+		########### Enabling pagination ###########
+
+		num_pages = total_objs/ITEMS_PER_PAGE
+		max_pages = num_pages if total_objs % ITEMS_PER_PAGE == 0 else (num_pages+1)
+		page_num = int(page_num)
+
+		next_page_number = page_num+1 if page_num<max_pages else 1
+		previous_page_number = page_num-1 if page_num>1 else max_pages
+
+		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
+		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
+
+		return render(request,"trending_posts.html",context)
+	else:
+		# user does not exist
+		raise Http404("This user's trending data is not available for you (or user is spurious)")
+
 
 ####################################################		
 

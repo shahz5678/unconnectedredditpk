@@ -2045,6 +2045,7 @@ def add_single_trending_object_in_feed(obj_hash, time_now, feed_type='home'):
 		feed_name = ALT_TRENDING_HOME_FEED
 	my_server = redis.Redis(connection_pool=POOL)
 	my_server.zadd(feed_name,obj_hash, time_now)
+	Link.objects.filter(id=obj_hash.partition(":")[-1]).update(trending_status='1')
 	if random() < 0.1:
 		my_server.zremrangebyrank(feed_name, 0, -201)# to keep top 200 in the sorted set
 	#############################

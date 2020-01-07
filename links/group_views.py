@@ -1950,27 +1950,28 @@ def render_personal_group_invite(request):
 				# 	activity_dict = {'m':'POST','act':'Y1','t':time_now,'tuid':target_id}# defines what activity just took place
 				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
-				
-				# if target_id is a 'follower', own_id can send them a 1-on-1 invite
-				if check_if_follower(user_id=target_id,target_user_id=own_id,with_db_lookup=True):
 					
-					target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
-					state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, get_target_username(str(own_id)), \
-						target_id, target_username)
-					if state in ('0','1'):
-						context = {'already_invited':True, 'target_av_url':target_av_url, 'tun':target_username,'it':invite_sending_time,\
-						'poid':parent_object_id, 'org':origin, 'lid':request.POST.get('hh',None)}
-						return render(request,"personal_group/invites/personal_group_status.html",context)
-					elif state in ('2','3'):
-						context ={'show_invite':True,'recently_declined':True if recently_declined else False,'target_av_url':target_av_url,\
-						'tun':target_username,'it':invite_sending_time,'poid':parent_object_id,'org':origin,'is_anon':True if state == '3' else False,\
-						'lid':request.POST.get('hh',None)}
-						request.session["personal_group_invitation_sent_by_username"] = target_username
-						request.session["personal_group_invitation_sent_by_id"] = target_id
-						request.session["personal_group_invitation_sent_by_anon"] = True if state == '3' else False
-						request.session.modified = True
-						return render(request,"personal_group/invites/personal_group_status.html",context)
-					else:
+				target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
+				state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, get_target_username(str(own_id)), \
+					target_id, target_username)
+				if state in ('0','1'):
+					context = {'already_invited':True, 'target_av_url':target_av_url, 'tun':target_username,'it':invite_sending_time,\
+					'poid':parent_object_id, 'org':origin, 'lid':request.POST.get('hh',None)}
+					return render(request,"personal_group/invites/personal_group_status.html",context)
+				elif state in ('2','3'):
+					context ={'show_invite':True,'recently_declined':True if recently_declined else False,'target_av_url':target_av_url,\
+					'tun':target_username,'it':invite_sending_time,'poid':parent_object_id,'org':origin,'is_anon':True if state == '3' else False,\
+					'lid':request.POST.get('hh',None)}
+					request.session["personal_group_invitation_sent_by_username"] = target_username
+					request.session["personal_group_invitation_sent_by_id"] = target_id
+					request.session["personal_group_invitation_sent_by_anon"] = True if state == '3' else False
+					request.session.modified = True
+					return render(request,"personal_group/invites/personal_group_status.html",context)
+				else:
+
+					# if target_id is a 'follower', own_id can send them a 1-on-1 invite
+					if check_if_follower(user_id=target_id,target_user_id=own_id,with_db_lookup=True):
+
 						request.session["personal_group_invite_target_username"], request.session["personal_group_invite_parent_object_id"], \
 						request.session["personal_group_invite_object_type"], request.session["personal_group_invite_origin"], \
 						request.session["personal_group_invite_target_id"], request.session["personal_group_invite_target_av_url"] = \
@@ -1978,12 +1979,12 @@ def render_personal_group_invite(request):
 						request.session.modified = True
 						return render(request,"personal_group/invites/personal_group_status.html",{'invited':True,'tun':target_username,\
 							'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
-				
-				# if target_id is not a 'follower', own_id cannot send them a 1-on-1 invite
-				else:
-					target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
-					return render(request,"personal_group/invites/personal_group_status.html",{'not_follower':True,'tun':target_username,\
-						'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
+			
+					# if target_id is not a 'follower', own_id cannot send them a 1-on-1 invite
+					else:
+						target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
+						return render(request,"personal_group/invites/personal_group_status.html",{'not_follower':True,'tun':target_username,\
+							'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
 
 	raise Http404("Please do not refresh page when inviting users to 1 on 1")
 

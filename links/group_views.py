@@ -1925,33 +1925,35 @@ def render_personal_group_invite(request):
 			request.session["origin_topic"] = topic
 		
 		###################################################################
-		# if target_id is a 'follower', own_id can send them a 1-on-1 invite
-		if check_if_follower(user_id=target_id,target_user_id=own_id,with_db_lookup=True):
 		
-			object_type = request.POST.get('ot',None)
-			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-			if banned:
-				# show "user banned" message and redirect them to home
-				return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-					'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':origin,\
-					'lid':request.POST.get('hh',None),'photo_owner_username':retrieve_uname(target_id,decode=True)})
-			elif str(own_id) == target_id:
-				return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
-					'lid':request.POST.get('hh',None)})
+		object_type = request.POST.get('ot',None)
+		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+		if banned:
+			# show "user banned" message and redirect them to home
+			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':origin,\
+				'lid':request.POST.get('hh',None),'photo_owner_username':retrieve_uname(target_id,decode=True)})
+		elif str(own_id) == target_id:
+			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
+				'lid':request.POST.get('hh',None)})
+		else:
+			group_id, already_exists = personal_group_already_exists(own_id, target_id)
+			if already_exists:
+				request.session["personal_group_tid_key"] = target_id
+				request.session["personal_group_gid_key:"+target_id] = group_id
+				request.session.modified = True
+				return redirect("enter_personal_group")
 			else:
-				group_id, already_exists = personal_group_already_exists(own_id, target_id)
-				if already_exists:
-					request.session["personal_group_tid_key"] = target_id
-					request.session["personal_group_gid_key:"+target_id] = group_id
-					request.session.modified = True
-					return redirect("enter_personal_group")
-				else:
-					################### Retention activity logging ###################
-					# if own_id > SEGMENT_STARTING_USER_ID:
-					# 	time_now = time.time()
-					# 	activity_dict = {'m':'POST','act':'Y1','t':time_now,'tuid':target_id}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
+				################### Retention activity logging ###################
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	activity_dict = {'m':'POST','act':'Y1','t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				###################################################################
+				
+				# if target_id is a 'follower', own_id can send them a 1-on-1 invite
+				if check_if_follower(user_id=target_id,target_user_id=own_id,with_db_lookup=True):
+					
 					target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
 					state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, get_target_username(str(own_id)), \
 						target_id, target_username)
@@ -1976,12 +1978,13 @@ def render_personal_group_invite(request):
 						request.session.modified = True
 						return render(request,"personal_group/invites/personal_group_status.html",{'invited':True,'tun':target_username,\
 							'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
-		
-		# if target_id is not a 'follower', own_id cannot send them a 1-on-1 invite
-		else:
-			target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
-			return render(request,"personal_group/invites/personal_group_status.html",{'not_follower':True,'tun':target_username,\
-				'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
+				
+				# if target_id is not a 'follower', own_id cannot send them a 1-on-1 invite
+				else:
+					target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
+					return render(request,"personal_group/invites/personal_group_status.html",{'not_follower':True,'tun':target_username,\
+						'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
+
 	raise Http404("Please do not refresh page when inviting users to 1 on 1")
 
 

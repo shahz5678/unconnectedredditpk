@@ -3,7 +3,7 @@ from django.conf.urls import patterns, url
 from django.contrib.auth.decorators import login_required as auth
 from links.follower_views import follow, unfollow, custom_feed_page, custom_feed_redirect, show_follower_list, remove_my_follower,\
 show_following_list, remove_single_post, display_user_public_feed_history, display_user_follower_feed_history,skip_notif,\
-display_user_private_feed_history, show_new_followers, export_post_data
+display_user_private_feed_history, show_new_followers, display_trending_history, export_post_data
 from links.views import finalize_audience, publish_post
 admin.autodiscover()
 
@@ -26,6 +26,7 @@ urlpatterns = patterns('',
 	url(r'^profile/public/(?P<target_uname>[\w.@+-]+)/$', display_user_public_feed_history, name='display_user_public_feed_history'),
 	url(r'^profile/followers/(?P<target_uname>[\w.@+-]+)/$', auth(display_user_follower_feed_history), name='display_user_follower_feed_history'),
 	url(r'^profile/private/(?P<target_uname>[\w.@+-]+)/$', auth(display_user_private_feed_history), name='display_user_private_feed_history'),
+	url(r'^profile/trending/(?P<target_uname>[\w.@+-]+)/$', display_trending_history, name='display_trending_history'),
 	####################### Display followers #######################
 	url(r'^profile/follower-list/$', auth(show_follower_list), name='show_follower_list'),
 	url(r'^profile/following-list/$', auth(show_following_list), name='show_following_list'),

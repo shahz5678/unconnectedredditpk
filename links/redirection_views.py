@@ -105,8 +105,8 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 			# best home (from "direct-reply" notification)
 			return redirect("best_home_page")
 	elif origin == '14':
-		# UNUSED, previously: originated from user's own unseen activity
-		return redirect("home")
+		# originated from a user's trending posts list
+		return redirect("display_trending_history",target_uname=target_uname)
 	elif origin == '15':
 		# originated from a private group
 		request.session["unique_id"] = obj_id#obj_id contains group_uuid, otherwise it won't work

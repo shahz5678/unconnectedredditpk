@@ -2386,7 +2386,7 @@ def process_invite_sending(own_id, own_username, target_id, target_username):
 	my_server = redis.Redis(connection_pool=POOL)
 	invites_left = my_server.get(rate_limit_key)
 	if invites_left is None:
-		# proceed with the invite and set the rate_limit_key to have 4 invites
+		# proceed with the invite and set the rate_limit_key to have 20 invites
 		my_server.setex(rate_limit_key,PERSONAL_GROUP_INVITES,PERSONAL_GROUP_INVITES_COOLOFF)
 	elif int(invites_left) > 0:
 		# proceed with the invite and subtract 1 invite from rate_limit_key

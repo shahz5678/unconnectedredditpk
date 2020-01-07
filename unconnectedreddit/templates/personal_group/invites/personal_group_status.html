@@ -5,124 +5,173 @@
 {% load truncap %}
 {% block content %}
 <head><title>Invite for 1 on 1 | Damadam</title></head>
-<style type="text/css">
-	body{background: #E9EBEE}
-</style>
-<div class="bizcard clb" style="border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:300px;width:96%;padding:10px">
-
+<style type="text/css">body{background: #f0f3f4}</style>
 
 {% if own_invite %}
 
-			<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
+	<h1 class="cxl clb lsp" style="text-align:center">Cannot send 1 on 1 invite!</h1>
+	
+	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
 
-			<span class="cxl">Ap apne ap ko 1 on 1 mein invite nahi kar saktey</span><br>
+		<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
 
-			<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
-			{% csrf_token %}
-			<input type="hidden" name="obid" value="{{ poid }}">
-			<input type="hidden" name="orig" value="{{ org }}">
-			<input type="hidden" name="lid" value="{{ lid }}">
-			<input type="hidden" name="oun" value="{{ tun }}">
-			<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
-			</form>
+		<span class="cxl">Ap apne ap ko 1 on 1 mein invite nahi kar saktey</span><br>
 
+		<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
+		{% csrf_token %}
+		<input type="hidden" name="obid" value="{{ poid }}">
+		<input type="hidden" name="orig" value="{{ org }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="oun" value="{{ tun }}">
+		<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
+		</form>
+
+	</div>
 
 {% elif rate_limited %}
-			
-			<span class="lsp cxl">Ap aur invites nahi bhej saktey</span>
-			<hr size=1 COLOR="#ffeb3b">
-			<span class="cgy sp">Apke invites recharge hon ge <b>{{ time_remaining|future_time }}</b></span>
-			<br>
 
-			<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
-			{% csrf_token %}
-			<input type="hidden" name="obid" value="{{ poid }}">
-			<input type="hidden" name="orig" value="{{ org }}">
-			<input type="hidden" name="lid" value="{{ lid }}">
-			<input type="hidden" name="oun" value="{{ tun }}">
-			<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
-			</form>
+	<h1 class="cxl clb lsp" style="text-align:center">Cannot send 1 on 1 invite!</h1>
+
+	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+		
+		<span class="lsp cxl">Ap aur invites nahi bhej saktey</span>
+		<hr size=1 COLOR="#ffeb3b">
+		<span class="cgy sp">Apke invites recharge hon ge <b>{{ time_remaining|future_time }}</b></span>
+		<br>
+
+		<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
+		{% csrf_token %}
+		<input type="hidden" name="obid" value="{{ poid }}">
+		<input type="hidden" name="orig" value="{{ org }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="oun" value="{{ tun }}">
+		<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
+		</form>
+
+	</div>
 
 {% elif already_invited %}
 
-			<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
+	<h1 class="cxl clb lsp" style="text-align:center">Already invited!</h1>
 
-			<span class="cxl">Ap&nbsp;<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 mein invite kar chukay hain<br><span class="cgy">({{ it|human_time }})</span></span><br>
+	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
 
-			<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
-			{% csrf_token %}
-			<input type="hidden" name="obid" value="{{ poid }}">
-			<input type="hidden" name="orig" value="{{ org }}">
-			<input type="hidden" name="lid" value="{{ lid }}">
-			<input type="hidden" name="oun" value="{{ tun }}">
-			<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
+		<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
+
+		<span class="cxl lsp">Ap&nbsp;<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 mein invite kar chukay hain<br><span class="cgy">({{ it|human_time }})</span></span><br>
+
+		<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
+		{% csrf_token %}
+		<input type="hidden" name="obid" value="{{ poid }}">
+		<input type="hidden" name="orig" value="{{ org }}">
+		<input type="hidden" name="lid" value="{{ lid }}">
+		<input type="hidden" name="oun" value="{{ tun }}">
+		<button type="submit" class="btn bcb bm mbs pg_ok_res" style="height:30px">OK</button>
+		</form>
+
+	</div>
+
+{% elif not_follower %}
+
+	<h1 class="cxl clb lsp" style="text-align:center">Cannot start 1 on 1 ...</h1>
+
+	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+
+		<span class="cxl lsp">Sorry! Ap sirf apney followers se 1 on 1 chatting kar saktey hain<div class="cgy mts cs" style="border-top:1px solid #ececec;padding-top:10px"><a href="{% url 'user_profile' tun %}" class="clb"><img src="{{ target_av_url|s3:'thumb' }}" width="20" height="20" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b></a> ne apko follow nahi kia hua</span></div>
+
+
+		<div class="mts mbs fx fxjscn fxaicn">
+
+		<a href="{% url 'show_follower_list' %}#section0"><button class="btn pg_ok_res sp mrl" style="padding-right:10px;padding-left:10px;background: #1edea8;height:30px">see your followers</button></a>
+
+			<form method="POST" class="sp" action="{% url 'redirect_to_content' %}">
+				{% csrf_token %}<input type="hidden" name="obid" value="{{ poid }}"><input type="hidden" name="orig" value="{{ org }}"><input type="hidden" name="lid" value="{{ lid }}"><input type="hidden" name="oun" value="{{ tun }}">
+				<button type="submit" class="btn bcb pg_ok_res" style="padding-right:14px;padding-left:14px;height:30px">back</button>
 			</form>
 
+		</div>
+
+	</div>
 
 {% elif show_invite %}
 
-			<div class="mbl cxl">
-				{% if is_anon %}
-					<a href="{% url 'user_profile' tun %}"><div class="av_btn sbb" style="width:26px;height:26px;line-height: 27px;color:#01579B;">{{ tun|truncap }}</div></a>&nbsp;ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
-				{% else %}
-					<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
-				{% endif %}<br>
-				<hr size=1 COLOR="#ffeb3b">
-			</div>
-			
-			<span class="sp cgy">Kya ap ne <b>{% if is_anon %}{{ tun|truncap }}{% else %}{{ tun|truncatechars:15 }}{% endif %}</b> se 1 on 1 karni hai?</span><br>
-			
-			<form method="POST" action="{% url 'accept_personal_group_invite' %}" class="mtl" style="display:inline">
-			{% csrf_token %}
-				<input type="hidden" name="org" value="{{ org }}">
-		        <input type="hidden" name="poid" value="{{ poid }}">
-		        <input type="hidden" name="lid" value="{{ lid }}">
-		        <input type="hidden" name="nickname" value="{{ tun }}">
-				<button class="btn bm bcb mbs mtl mrl pg_ok_res" name="dec" style="height:30px;" value="1" type="submit">Haan</button>
-				<button class="btn bcgy bm mts pg_ok_res" name="dec" style="height:30px;" value="0">Nahi</button>
-			</form>
+	<h1 class="cxl clb lsp" style="text-align:center">Start 1 on 1:</h1>
+
+	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+
+		<div class="mbl cxl">
+			{% if is_anon %}
+				<a href="{% url 'user_profile' tun %}"><div class="av_btn sbb" style="width:26px;height:26px;line-height: 27px;color:#01579B;">{{ tun|truncap }}</div></a>&nbsp;ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
+			{% else %}
+				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
+			{% endif %}<br>
+			<hr size=1 COLOR="#ffeb3b">
+		</div>
+		
+		<span class="sp cgy">Kya ap ne <b>{% if is_anon %}{{ tun|truncap }}{% else %}{{ tun|truncatechars:15 }}{% endif %}</b> se 1 on 1 karni hai?</span><br>
+		
+		<form method="POST" action="{% url 'accept_personal_group_invite' %}" class="mtl" style="display:inline">
+		{% csrf_token %}
+			<input type="hidden" name="org" value="{{ org }}">
+	        <input type="hidden" name="poid" value="{{ poid }}">
+	        <input type="hidden" name="lid" value="{{ lid }}">
+	        <input type="hidden" name="nickname" value="{{ tun }}">
+			<button class="btn bm bcb mbs mtl mrl pg_ok_res" name="dec" style="height:30px;" value="1" type="submit">Haan</button>
+			<button class="btn bcgy bm mts pg_ok_res" name="dec" style="height:30px;" value="0">Nahi</button>
+		</form>
+
+	</div>
 
 {% elif invited %}
 
-			<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
+	<h1 class="cxl clb lsp" style="text-align:center">Send invite for 1 on 1:</h1>
 
-			<div class="mbl cxl">Kya ap <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 messaging ke liye invite karna chahtey hain?</div>
+	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
 
-			<form action="{% url 'send_personal_group_invite' %}" method="POST" class="mbl" style="display:inline">
-		        {% csrf_token %}
-		        <input type="hidden" name="org" value="{{ org }}">
-		        <input type="hidden" name="poid" value="{{ poid }}">
-		        <input type="hidden" name="nickname" value="{{ tun }}">
-		        <input type="hidden" name="lid" value="{{ lid }}">
-		        <button class="btn bcb bm mrl pg_ok_res" style="height:30px" name="invite_dec" value="1">Haan</button>
-		        <button class="btn bcgy bm mbl pg_ok_res" style="height:30px">Nahi</button>
-		    </form>
+		<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
+
+		<div class="mbl cxl lsp">Kya ap <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 messaging ke liye invite karna chahtey hain?</div>
+
+		<form action="{% url 'send_personal_group_invite' %}" method="POST" class="mbl" style="display:inline">
+	        {% csrf_token %}
+	        <input type="hidden" name="org" value="{{ org }}">
+	        <input type="hidden" name="poid" value="{{ poid }}">
+	        <input type="hidden" name="nickname" value="{{ tun }}">
+	        <input type="hidden" name="lid" value="{{ lid }}">
+	        <button class="btn bcb bm mrl pg_ok_res sp" style="height:30px" name="invite_dec" value="1">Haan</button>
+	        <button class="btn bcgy bm mbl pg_ok_res sp" style="height:30px">Nahi</button>
+	    </form>
+
+	</div>
 
 {% elif set_privacy %}
 
+	<h1 class="cxl clb lsp" style="text-align:center">Invite setting:</h1>
 
-			<div style="text-align:center;" class="mts cl">
-				
-				Jab <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">	<b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 ka invite bheja jai, tou invite mein apka poora nickname dikhaya jai?
-				<form method="POST" action="{% url 'change_personal_group_invite_privacy' %}">
-				{% csrf_token %}
-					<input type="hidden" name="lid" value="{{ lid }}">
-					<div class="radbut" style="margin: 0 auto;width: auto;text-align: left;display: table;">
-						<div class="mt">
-						<input class="mbl mtl" type="radio" name="dec" value="1" id="opt1" checked><label for="opt1"><span class="ct">&nbsp;Haan dikha dou&nbsp;</span></label><br>
-						</div>
-						<div class="mt">
-						<input class="mbl" type="radio" name="dec" value="0" id="opt2"><label for="opt2"><span class="ct">&nbsp;Nahi khufiya rakho&nbsp;</span></label><br>
-						</div>
+	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+
+
+		<div style="text-align:center;" class="mts cl">
+			
+			Jab <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">	<b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 ka invite bheja jai, tou invite mein apka poora nickname dikhaya jai?
+			<form method="POST" action="{% url 'change_personal_group_invite_privacy' %}">
+			{% csrf_token %}
+				<input type="hidden" name="lid" value="{{ lid }}">
+				<div class="radbut" style="margin: 0 auto;width: auto;text-align: left;display: table;">
+					<div class="mt">
+					<input class="mbl mtl" type="radio" name="dec" value="1" id="opt1" checked><label for="opt1"><span class="ct">&nbsp;Haan dikha dou&nbsp;</span></label><br>
 					</div>
-					<button class="btn bm bcb mbs mtl cs pg_ok_res" type="submit" style="height:30px;">OK</button>
-				</form>
-			</div>
+					<div class="mt">
+					<input class="mbl" type="radio" name="dec" value="0" id="opt2"><label for="opt2"><span class="ct">&nbsp;Nahi khufiya rakho&nbsp;</span></label><br>
+					</div>
+				</div>
+				<button class="btn bm bcb mbs mtl cs sp pg_ok_res" type="submit" style="height:30px;">OK</button>
+			</form>
+		</div>
 
+	</div>
 
 {% endif %}
 
-
-</div>
 <br><br>
 {% endblock %}

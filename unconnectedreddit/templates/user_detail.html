@@ -187,10 +187,16 @@
       <hr size=1 COLOR="#f4f4f4">
 	  {% endif %}
 
+	  {% if mobile_verified and not is_profile_banned %}
+	  <b class="cm sp lsp" style="color:darkgray">Trending posts:</b>
+	  <a href="{% url 'display_trending_history' username %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">view</button></a>	
+	  <hr size=1 COLOR="#f4f4f4">
+	  {% endif %}
+
       <b class="cm sp lsp" style="color:darkgray">Followers:</b>
       <a href="{% url 'show_follower_list' %}#section0" class="cs">
       <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ verif_follower_count }}</button>
-       <span class='cxs sp cgy mts'>&nbsp;(counting verified followers only)</span>
+       <span class='cs sp cgy mts'>&nbsp;(counting verified followers only)</span>
       </a>
       <hr size=1 COLOR="#f4f4f4">
       <b class="cm sp lsp" style="color:darkgray">Following:</b>
@@ -212,20 +218,12 @@
 	<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Old post history:</div>
 		
 		<div class="mls mrs">
-		<b class="cm sp lsp" style="color:darkgray">Trending history:</b>
-			<a href="{% url 'profile' username 'trending-fotos' %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">trending</button></a>	
-		<hr size=1 COLOR="#f4f4f4">
-		<b class="cm sp lsp" style="color:darkgray">Photo history:</b>
-			<a href="{% url 'profile' username 'fotos' %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">photos</button></a>
-		<hr size=1 COLOR="#f4f4f4">
-		<b class="cm sp lsp" style="color:darkgray">Text history:</b>
-			<a href="{% url 'user_activity' username %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">text</button></a>
-		{% if is_own_profile %}	
-		<hr size=1 COLOR="#f4f4f4">
-		<b class="cm sp lsp" style="color:darkgray">Likes history:</b>
-			<a href="{% url 'user_old_vote_history' %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">likes</button></a>
-		{% endif %}
-	</div>
+			<b class="cm sp lsp" style="color:darkgray">Photo history:</b>
+				<a href="{% url 'profile' username 'fotos' %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">photos</button></a>
+			<hr size=1 COLOR="#f4f4f4">
+			<b class="cm sp lsp" style="color:darkgray">Text history:</b>
+				<a href="{% url 'user_activity' username %}"><button type="submit" class="btn nw bm sp pg_ok_res" style="height:22px;background-color:#1edea8">text</button></a>
+		</div>
 </div>
 
   {% else %}
@@ -250,9 +248,6 @@
 
 	      <b class="cm sp lsp" style="color:darkgray" >Followers:</b>
 	      <span class="cl sp clb">{{ verif_follower_count }}</span>
-	      <hr size=1 COLOR="#f4f4f4">
-	      <b class="cm sp lsp" style="color:darkgray">Following:</b>
-	      <span class="cl sp clb">{{ following_count }}</span>
 	     
 		</div>
 

@@ -331,11 +331,14 @@ def show_voting_summary(request,pk,orig,pht):
 		try:
 			# obj = Photo.objects.get(id=pk)
 			obj = Link.objects.get(id=pk)
-			purl = obj.image_file.url
-			ooid = obj.submitter_id
-			oun = retrieve_uname(ooid,decode=True)
 		except Link.DoesNotExist:
 			raise Http404("No such photo obj exists in the Link() model")
+		try:
+			purl = obj.image_file.url
+		except ValueError:
+			purl = ''
+		ooid = obj.submitter_id
+		oun = retrieve_uname(ooid,decode=True)
 		if ooid != request.user.id:
 			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 			if not is_super_defender:
@@ -351,10 +354,10 @@ def show_voting_summary(request,pk,orig,pht):
 		# it's a link
 		try:
 			obj = Link.objects.get(id=pk)
-			ooid = obj.submitter_id
-			oun = retrieve_uname(ooid,decode=True)
 		except Link.DoesNotExist:
 			raise Http404("No such text obj exists in the Link() model")
+		ooid = obj.submitter_id
+		oun = retrieve_uname(ooid,decode=True)
 		if ooid != own_id:
 			is_defender, is_super_defender = in_defenders(own_id, return_super_status=True)
 			if not is_super_defender:

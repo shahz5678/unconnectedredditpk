@@ -24,7 +24,7 @@
 			
 			<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
 				<div class="fx fxjsfs" style="max-width:300px">
-				{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+				{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type topic_url=topic_url %}
 				
 				{% if reply.wid|slugify != self_user_id|slugify %}
 
@@ -55,7 +55,7 @@
 			
 			<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
 				<div class="fx fxjsfs" style="max-width:300px">
-				{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+				{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type topic_url=topic_url %}
 				
 				{% if reply.wid|slugify != self_user_id|slugify %}
 
@@ -85,7 +85,7 @@
 				<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
 					<div class="fx fxjsfs" style="max-width:300px">
 					
-					{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+					{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type topic_url=topic_url %}
 					
 					{% if reply.wid|slugify != self_user_id|slugify %}
 
@@ -103,7 +103,7 @@
 				<div id="disc_btns{{ reply.reply_id }}" style="display:inline-block">
 					<div class="fx fxjsfs" style="max-width:300px">
 					
-					{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type %}
+					{% block_button target_user_id=reply.wid target_username=reply.wun self_user_id=self_user_id obj_id=reply.poid origin=origin static_url=static_url obj_type=obj_type topic_url=topic_url %}
 					
 					{% if reply.wid|slugify != self_user_id|slugify %}
 

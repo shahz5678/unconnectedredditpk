@@ -1,6 +1,6 @@
 {% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
 {% block content %}
-<head><title>Could not verify | Damadam.pk</title></head>
+<head><title>Could not verify | Damadam</title></head>
 <div class="margin clb">
 	
 	{% if reason == 'expired' %}
@@ -26,7 +26,7 @@
 	{% endif %}
 
 {% if referrer == 'home' %}
-<a href="{% url 'home' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
+<a href="{% url 'for_me' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
 {% elif referrer == 'personal_group' %}
 <form method="POST" class="mtl" action="{% url 'enter_personal_group' %}">
 	{% csrf_token %}

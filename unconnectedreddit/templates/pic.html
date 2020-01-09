@@ -1,7 +1,7 @@
 {% extends refresh_now|yesno:"shell_with_refresh.html,shell.html" %}
 {% load humanize %}
 {% block content %}
-<head><title>SMS photo | Damadam.pk</title></head>
+<head><title>SMS photo | Damadam</title></head>
 <body bgcolor="#FFFFE0" style="font-family:sans-serif;">
 <div class="margin">
 {% if exists %}
@@ -55,10 +55,10 @@
 	{% endif %}
 	{% if user.is_authenticated %}
 	<a href="{% url 'auth_pics_display' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;margin-top:0.3em;font-size:90%;">muft photo bhejo</button></a><br>
-	<a href="{% url 'home' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft chat kro</button></a>
+	<a href="{% url 'for_me' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft chat kro</button></a>
 	{% else %}
 	<a href="{% url 'pic_upload' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft photo bhejo</button></a><br>
-	<a href="{% url 'home' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft chat kro</button></a>
+	<a href="{% url 'for_me' %}#section0"><button style="color:#1947D1;background-color:gold;border:solid;border-width:1px;border-radius:4px; padding-left:2px;padding-right:2px;border-color:gold;white-space:nowrap;font-size:90%;margin-top:0.3em;">muft chat kro</button></a>
 	{% endif %}
 {% endif %}
 </div>

@@ -3559,15 +3559,20 @@ def publish_post(request):
 			###########################################################################	
 			###########################################################################
 
-
-			# Step 4) redirect to where you want to go
+			# Step 4a) redirect to topic home if from topic
 			if origin =='from_topic_page':
 				#redirect to the original topic page
 				return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
 			else:
-				# url = reverse_lazy("my_home")
-				url = reverse_lazy("my_home")+"#shared"
-				return redirect(url)
+				if audience == 'p':
+			# Step 4b) redirect to the kind of audience the post was targetted at
+					return redirect("display_user_public_feed_history",submitter_name)# redirecting to own profile
+				elif audience == 'a':
+					return redirect("display_user_follower_feed_history",submitter_name)# redirecting to own profile
+				elif audience == 's':
+					return redirect("display_user_private_feed_history",submitter_name)# redirecting to own profile
+				else:
+					return redirect("display_user_public_feed_history",submitter_name)# redirecting to own profile
 
 		#######################################################################
 
@@ -3694,11 +3699,15 @@ def publish_post(request):
 			###########################################################################
 			###########################################################################	
 			###########################################################################
-			
-			# Step 4) redirect to where you want to go
-			url = reverse_lazy("my_home")+"#shared"
-			return redirect(url)
-
+			if audience == 'p':
+			# Step 4) redirect to the kind of audience the post was targetted at
+				return redirect("display_user_public_feed_history",submitter_name)# redirecting to own profile
+			elif audience == 'a':
+				return redirect("display_user_follower_feed_history",submitter_name)# redirecting to own profile
+			elif audience == 's':
+				return redirect("display_user_private_feed_history",submitter_name)# redirecting to own profile
+			else:
+				return redirect("display_user_public_feed_history",submitter_name)# redirecting to own profile			
 		else:
 			raise Http404("Unsupported content type")
 	else:

@@ -3,7 +3,7 @@
 {% load s3 %}
 {% block content %}
 
-<head><title>Blocked users | Damadam.pk</title></head>
+<head><title>Blocked users | Damadam</title></head>
 
 <style>body{background: #E9EBEE}</style>
 <h1 class="cxl clb" style="text-align:center">People blocked by you:</h1>
@@ -38,8 +38,7 @@
 {% endif %}
 {% for banned_user, ttl in banned_users_with_ttl %}
 	<span class="cgy cs"><span class="cxs">{{ forloop.counter }}.</span>
-	<a href="{% url 'user_profile' banned_user.username %}#section0">
-        <img src='{{ banned_user.userprofile.avatar|s3:"thumb" }}' width="22" height="22" alt="pic" style="border-radius:50%">
+	   <a href="{% url 'user_profile' banned_user.username %}#section0">
         <b class="cb cl"><bdi>{{ banned_user.username }}</bdi></b>
         </a></span>&nbsp;<span class="cgy cs mrs">{{ ttl|future_time }}&nbsp;block end ho ga</span>&nbsp; 
         <form action="{% url 'change_ban_time' %}" method="POST" style="display:inline">

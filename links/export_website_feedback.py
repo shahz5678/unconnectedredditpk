@@ -5,7 +5,7 @@ import csv
 
 def export_error_feedback(request,*args,**kwargs):
 	retrieve_erroneous_passwords()
-	return redirect("home")
+	return redirect('for_me')
 
 def export_website_feedback(request,*args,**kwargs):
 	feedback = get_website_feedback()
@@ -17,4 +17,4 @@ def export_website_feedback(request,*args,**kwargs):
 	    dict_writer = csv.DictWriter(output_file, keys)
 	    dict_writer.writeheader()
 	    dict_writer.writerows(feedback)
-	return redirect("home")
+	return redirect('for_me')

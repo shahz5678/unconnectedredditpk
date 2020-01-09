@@ -48,10 +48,10 @@ def custom_feed_redirect(request, obj_hash=None):
 	# 	obj_hash = request.session.pop('home_hash_id',None)
 	# 	index = retrieve_custom_feed_index(user_id, obj_hash) if obj_hash else 0
 	if index is None:
-		url = reverse_lazy("my_home")+'?page=1#section0'
+		url = reverse_lazy('for_me')+'?page=1#section0'
 	else:
 		addendum = get_addendum(index,ITEMS_PER_PAGE, only_addendum=True)
-		url = reverse_lazy("my_home")+addendum
+		url = reverse_lazy('for_me')+addendum
 	return redirect(url)
 
 
@@ -151,7 +151,7 @@ def skip_notif(request):
 	Updates their last_seen time as well to maintain integrity of 'new followers count'
 	"""
 	update_user_activity_event_time(request.user.id)
-	return redirect("my_home")
+	return redirect('for_me')
 
 ###############################################################################################
 ###################################### Follow & Unfollow ######################################
@@ -472,7 +472,7 @@ def remove_single_post(request):
 					invalidate_cached_user_feed_history(own_id,'limited')
 					invalidate_cached_user_feed_history(own_id,'private')
 				request.session["post_removed"+str(own_id)] = '1'
-				url = reverse_lazy("my_home")+'?page=1#error'
+				url = reverse_lazy('for_me')+'?page=1#error'
 				return redirect(url)
 
 			elif ttl:

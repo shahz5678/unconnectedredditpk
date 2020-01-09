@@ -429,7 +429,6 @@ def remove_single_post(request):
 				###########################################################################				
 				post_data = Link.objects.values('type_of_content', 'description', 'url', \
 					'image_file', 'reply_count', 'net_votes', 'trending_status').filter(id=which_link)
-			
 				data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from history',\
 				'type_of_content':post_data[0]['type_of_content'],'trending_status':post_data[0]['trending_status'],'url':post_data[0]['url'],\
 				'image_file':post_data[0]['image_file'],'reply_count':post_data[0]['reply_count'],'net_votes':post_data[0]['net_votes'],\
@@ -1018,23 +1017,45 @@ def export_post_data(request,post_type):
 				filename = 'follow_data.csv'
 				with open(filename,'wb') as f:
 					wtr = csv.writer(f)
-					columns = []# TODO: create column  names
+					columns = ['Star ID', 'Follower ID','Origin','Action','Follower Verif Stat','Link_id', \
+					'Object ID', 'Total Followers','Verified Followers']# TODO: create column  names
 					wtr.writerow(columns)
 					for json_row in list_data:
 						data = json.loads(json_row)
-						to_write = []# TODO: add relevant column data
+						to_write = [data['star_id'],data['follower'],data['orig'],data['type'],data['v_stat'],data['lid'],data['obj_id'],data['numf'],data['num_vf']]# TODO: add relevant column data
 						wtr.writerows([to_write])
-			
 			###################################################################################
 			# Exporting post removal data
 			elif post_type == 'rl':
 				filename = 'post_removal_data.csv'
 				with open(filename,'wb') as f:
 					wtr = csv.writer(f)
-					columns = []# TODO: create column  names
+					columns = ['Link ID','Poster Name','Poster ID','Remover Name','Origin of Removal','Is OP','Post Description', \
+					'Image Link','Post data']# TODO: create column  names
 					wtr.writerow(columns)
+
 					for json_row in list_data:
 						data = json.loads(json_row)
-						to_write = []# TODO: add relevant column data
+						if data['type'] == 'from my home':
+							data2 = json.loads(data['post_details']['blob'])
+			
+						obj_hash_type =  data['lid'].split(':')
+			
+						if obj_hash_type[0] == 'tx':
+							#writing data taken from redis
+							if data['type'] == 'from my home':
+								to_write = [data['lid'],data2['su'],data2['si'],data['remover_name'],data['type'],data['Is_OP'],data2['d'],'NA',data2]# TODO: add relevant column data
+							#writing data taken from Postgresql
+							else:
+								to_write = [data['lid'],data['remover_name'],'OP from '+str(data['orig']),'remover is op = '+str(data['Is_OP']),'from history '+str(data['orig']),data['Is_OP'],data['description'],data['image_file'],data]
+								# to_write = [data['lid'],data2['su'],data2['si'],data['remover_name'],data['type'],data2['d'],'NA',data2]	
+						else:
+							#writing data taken from redis
+							if data['type'] == 'from my home':
+								to_write = [data['lid'],data2['su'],data2['si'],data['remover_name'],data['type'],data['Is_OP'],data2['d'],data2['iu'],data2]# TODO: add relevant column data
+							#writing data taken from Postgresql
+							else:
+								to_write = [data['lid'],data['remover_name'],'OP from '+str(data['orig']),'remover is op = '+str(data['Is_OP']),'from history '+str(data['orig']),data['Is_OP'],data['description'],data['image_file'],data]
 						wtr.writerows([to_write])
+
 	raise Http404("Completed ;)")

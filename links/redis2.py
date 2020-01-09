@@ -338,6 +338,7 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 	
 	# redis hash obj of the content will exist for at least 1 week (only if it's not limited by time)
 	add_to_short_lived_item_expireat_feed = True
+	log_this_fanout = True
 	if expire_at is None:# case of no-expiry - can potentially live forever
 		add_to_short_lived_item_expireat_feed = False
 		expire_at = time_now+PUBLIC_SUBMISSION_TTL#setting ttl of 'forever' content to 1 week for memory optimization reasons
@@ -349,8 +350,7 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 	# CASE 1) This case caters to fanning out to a subset of followers (input via 'follower_list')
 	if follower_list:
 		save_last_post_selected_followers(followers=follower_list,poster_id=user_id)
-		follower_list.append(int(user_id))# appending own self to populate own feed as well
-		set_temp_post_selected_followers(obj_hash_name=obj_hash,followers=follower_list,expire_at=expire_at)# temporarily save user_ids for a time-limited post (including poster ID)
+		
 		
 		follower_string = ':'
 
@@ -375,16 +375,23 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 
 		# Create Postgresql DB entries in bulk
 		if list_of_db_objs:
+			#add own id to followers
+			follower_list.append(int(user_id))# appending own self to populate own feed as well
+			#adding permission string to redis
+			set_temp_post_selected_followers(obj_hash_name=obj_hash,followers=follower_list,expire_at=expire_at)# temporarily save user_ids for a time-limited post (including poster ID)
+			#add own id to permission string for Postgresql
+			list_of_db_objs.append(Report(reporter_id=user_id,which_link_id=obj_id,target_id=user_id))
 			Report.objects.bulk_create(list_of_db_objs)
 	else:
 		
 		# CASE 2) this case caters to fanning out to only oneself (because no followers exist)
 		if my_server.exists(NO_FOLLOWERS+user_id):
+			log_this_fanout = False
 			# this person has no fan - short-circuit fanning out (but do add to poster's feed)
-			pipeline1.zadd(USER_FEED+user_id,obj_hash,time_now)# no fans, just add to poster's feed
-			if add_to_short_lived_item_expireat_feed:
-				pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,obj_hash,expire_at)
-			follower_string = ":"+user_id+":"# follower string is solely poster's ID 
+			# pipeline1.zadd(USER_FEED+user_id,obj_hash,time_now)# no fans, just add to poster's feed
+			# if add_to_short_lived_item_expireat_feed:
+			# 	pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,obj_hash,expire_at)
+			# follower_string = ":"+user_id+":"# follower string is solely poster's ID 
 
 		else:
 			# CASE 3) this case caters to fanning out to all followers	
@@ -392,13 +399,13 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 			if follower_string:
 				# fan out to followers
 				follower_list = follower_string[1:-1].split(":")	
-				follower_list.append(user_id)# appending poster ID, to populate poster feed as well			
+				# follower_list.append(user_id)# appending poster ID, to populate poster feed as well			
 				for follower_id in follower_list:
 					# concatenating user_id with obj hash to support toggle-able fan buttons
 					pipeline1.zadd(USER_FEED+str(follower_id),obj_hash,time_now)
 					if add_to_short_lived_item_expireat_feed:
 						pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+str(follower_id),obj_hash,expire_at)
-				follower_string = follower_string+user_id+":"# concatenating poster ID into follower string
+				# follower_string = follower_string+user_id+":"# concatenating poster ID into follower string
 
 			else:
 				# follower_string does not exist; reconstruct fan-string and then fan-out to followers
@@ -408,23 +415,25 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 				if follower_string:	
 					# fan out to followers
 					follower_list = follower_string[1:-1].split(":")
-					follower_list.append(user_id)# appending poster ID, to populate poster feed as well	
+					# follower_list.append(user_id)# appending poster ID, to populate poster feed as well	
 					for follower_id in follower_list:
 						# concatenating user_id with obj hash to support toggle-able fan buttons
 						pipeline1.zadd(USER_FEED+str(follower_id),obj_hash,time_now)
 						if add_to_short_lived_item_expireat_feed:
 							pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+str(follower_id),obj_hash,expire_at)
-					follower_string = follower_string+user_id+":"# concatenating poster ID into follower string
+					# follower_string = follower_string+user_id+":"# concatenating poster ID into follower string
 				
 				else:
 					# probably never happens - but nevertheless, fan-out to poster ID (since no followers found)
-					pipeline1.zadd(USER_FEED+user_id,obj_hash,time_now)# no fans, just add to poster feed
-					if add_to_short_lived_item_expireat_feed:
-						pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,obj_hash,expire_at)
-					follower_string = ":"+user_id+":"# follower string is solely poster's ID 
+					pass
+					# pipeline1.zadd(USER_FEED+user_id,obj_hash,time_now)# no fans, just add to poster feed
+					# if add_to_short_lived_item_expireat_feed:
+					# 	pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,obj_hash,expire_at)
+					# follower_string = ":"+user_id+":"# follower string is solely poster's ID 
 
 	pipeline1.execute()
-	log_follower_fanout(follower_string=follower_string, obj_hash=obj_hash, submitter_id=user_id, time_now=time_now)	
+	if log_this_fanout:
+		log_follower_fanout(follower_string=follower_string, obj_hash=obj_hash, submitter_id=user_id, time_now=time_now)	
 						
 
 ######################################### Logging Subscriber Fanouts ####################################

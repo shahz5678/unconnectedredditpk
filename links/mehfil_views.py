@@ -5209,7 +5209,7 @@ class DirectMessageCreateView(FormView):
 					return redirect("profile", slug=invitee, type='fotos')
 			else:
 				# invitee doesn't exist
-				return redirect("home")
+				return redirect('for_me')
 
 
 class ClosedGroupCreateView(FormView):

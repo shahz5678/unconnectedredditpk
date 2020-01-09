@@ -351,7 +351,7 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 	if follower_list:
 		save_last_post_selected_followers(followers=follower_list,poster_id=user_id)
 		
-		
+		# initializing a follower string 'skeleton'
 		follower_string = ':'
 
 		list_of_db_objs = []
@@ -376,11 +376,12 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 		# Create Postgresql DB entries in bulk
 		if list_of_db_objs:
 			#add own id to followers
-			follower_list.append(int(user_id))# appending own self to populate own feed as well
-			#adding permission string to redis
+			follower_list.append(int(user_id))# appending own self (so own self has permission to view the obj)
+			#adding permission string finalized in previous step into redis
 			set_temp_post_selected_followers(obj_hash_name=obj_hash,followers=follower_list,expire_at=expire_at)# temporarily save user_ids for a time-limited post (including poster ID)
 			#add own id to permission string for Postgresql
 			list_of_db_objs.append(Report(reporter_id=user_id,which_link_id=obj_id,target_id=user_id))
+			# creating the DB objs (in bulk)
 			Report.objects.bulk_create(list_of_db_objs)
 	else:
 		

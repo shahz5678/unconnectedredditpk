@@ -15,7 +15,7 @@
 
 
               <div class="cxl lsp" style="border-top:1px solid lightgray;padding-top:10px">
-              {% if count == 1 %}Aap ka 1 new follower hai:{% else %}Ap ke <b>{{ count }}</b> new followers hein:{% endif %}
+              {% if count == 1 %}You have 1 new follower:{% else %}You have <b>{{ count }}</b> new followers:<div class="cxs sp cgy">this includes verified and unverified users</div>{% endif %}
               </div>
               
               <ul style="display:inline-block;padding: 0;list-style:none;margin-top:5px">
@@ -56,7 +56,7 @@
               <div class="mt mbl"><a href="{% url 'user_profile' own_name %}#section0" class="cm sp cb" style="border-bottom:1px dotted blue">back to profile</a></div>
 
               <div class="cxl lsp" style="border-top:1px solid lightgray;padding-top:10px">
-              {% if count == 1 %}Aap ka 1 follower hai:{% else %}Ap ko total <b>{{ count }}</b> log follow ker rahey hein:{% endif %}
+              {% if count == 1 %}You have 1 follower:{% else %}You have <b>{{ count }}</b> followers:<div class="cxs sp cgy">this includes verified and unverified users</div>{% endif %}
               </div>
               
               <ul style="display:inline-block;padding: 0;list-style:none;margin-top:5px">

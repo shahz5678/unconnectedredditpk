@@ -1379,7 +1379,9 @@ def add_topic_post(obj_id, obj_hash, categ, submitter_id, submitter_av_url, subm
 	topic_obj['lpt'] = time_now# latest post time
 	my_server.set(topic_hash_obj,json.dumps(topic_obj))
 	##################################################
-	add_obj_to_feeds(submitter_id, topic_url, obj_hash, time_now, my_server, add_to_public_feed)
+	if audience_type == 'p':
+		# only add to any feed if the post is "public"
+		add_obj_to_feeds(submitter_id, topic_url, obj_hash, time_now, my_server, add_to_public_feed)
 
 
 def add_obj_to_feeds(submitter_id, topic_url, obj_hash_name, time_now, my_server=None, add_to_public_feed=False):

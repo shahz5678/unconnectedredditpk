@@ -201,7 +201,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					else:
 						# could be malicious
 						delete_ban_target_credentials(user_id)
-						return redirect("home")
+						return redirect('for_me')
 				else:
 					return redirect("banned_users_list")
 		elif initial_decision:
@@ -225,7 +225,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 			target_user_id = int(request.POST.get("tuid",None)[2:-2],16) #converting hex number to int
 			if target_user_id == user_id:
 				# cannot block self
-				return redirect("home")
+				return redirect('for_me')
 			elif target_user_id != user_id:
 				target_username = retrieve_uname(target_user_id,decode=True)
 				if target_username:
@@ -260,7 +260,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 				else:
 					raise Http404("Target username does not exist")
 			else:
-				return redirect("home")
+				return redirect('for_me')
 	else:
 		# it's a GET request from the direct response list
 		origin = request.session.pop('from_dir_rep_list'+str(user_id),None)
@@ -884,7 +884,7 @@ def voting_ban_defender_help(request):
 			return redirect("missing_page")
 	else:
 		# not a POST request
-		return redirect("home")
+		return redirect('for_me')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

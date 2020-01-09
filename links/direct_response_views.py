@@ -638,7 +638,7 @@ def post_direct_response(request):
 								elif origin == '3':
 									# text home
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
-									return redirect(reverse_lazy("home")+'?page=1#error')#redirecting to special error section
+									return redirect(reverse_lazy("fresh_text")+'?page=1#error')#redirecting to special error section
 								elif origin == '9':
 									# text comment page
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
@@ -668,7 +668,7 @@ def post_direct_response(request):
 								elif origin == '19':
 									# single notif on home
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
-									return redirect(reverse_lazy("home")+'?page=1#error')#redirecting to special error section
+									return redirect(reverse_lazy("fresh_text")+'?page=1#error')#redirecting to special error section
 								elif origin == '20':
 									# single notif on fresh photos
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
@@ -684,7 +684,7 @@ def post_direct_response(request):
 								elif origin == '26':
 									# custom home
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
-									return redirect(reverse_lazy("my_home")+'?page=1#error')#redirecting to special error section
+									return redirect(reverse_lazy("for_me")+'?page=1#error')#redirecting to special error section
 								
 								#####################################################
 								# fallback if case remains unhandled

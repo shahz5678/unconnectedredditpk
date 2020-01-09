@@ -47,7 +47,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 
 {% if user.is_authenticated %}
     <!-- bunched HTML removes spaces between li elements -->
-    <li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagain</b></a></li><li><a class="sharing" href="{% url 'show_user_ads' %}#section0">Meray Ads</a></li><li><a href="{% url 'home' %}">Chat and Fotos</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox</a></li>
+    <li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagain</b></a></li><li><a class="sharing" href="{% url 'show_user_ads' %}#section0">Meray Ads</a></li><li><a href="{% url 'for_me' %}">For Me</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox</a></li>
 
 {% else %}
     <li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagain</b></a></li><li><a href="{% url 'redirect_to_social_section' %}">Chat and Fotos</a></li>
@@ -65,7 +65,7 @@ mixpanel.init("35edd3c679b5af650046c6d054fe8f76");</script> end Mixpanel -->
 
 <ul class="navbar">
 {% if user.is_authenticated %}
-<li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}#section0">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagao</b></a></li><li><a href="{% url 'home' %}">Meray Ads</a></li><li><a href="{% url 'home' %}">Chat and Fotos</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox</a></li>
+<li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}#section0">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagao</b></a></li><li><a href="{% url 'for_me' %}">Meray Ads</a></li><li><a href="{% url 'for_me' %}">For Me</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox</a></li>
 {% else %}
 <li><a href="{% url 'classified_listing' %}">All Ads</a></li><li><a href="{% url 'city_list' %}">All Cities</a></li><li><a class="sharing" href="{% url 'init_classified' %}#section0"><b>Ad Lagain</b></a></li><li><a href="{% url 'redirect_to_social_section' %}">Chat and Fotos</a></li>
 {% endif %}

@@ -43,7 +43,7 @@
 
 <a name="shared"></a>
 <div class="mbl fx fxjscn fxaibl">
-	<a href="{% url 'my_home' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
+	<a href="/" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
 	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">For me <span class="cs">(page {{ page.number }})</span>:</h1>
 </div>
 
@@ -185,8 +185,8 @@
 	<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
 	<span class="cxl lsp clb">Sorry! Ye khali hai ...</span>
 	<hr size=1 COLOR="#f2f2f2">
-	<div class="mts lsp cl sp cgy">Ap users ko 'Home' ya 'Photos' pe follow karein ge tou yahan unki posts nazar aien gi</div>
-	<div class="mtl mbs"><a href="{% url 'home' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">home</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">photos</button></a></div>
+	<div class="mts lsp cl sp cgy">Ap users ko 'Text' ya 'Photos' se follow karein ge tou yahan unki posts nazar aien gi</div>
+	<div class="mtl mbs"><a href="{% url 'best_home_page' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">Text</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
 	</div>
 
 {% endfor %}

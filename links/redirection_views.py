@@ -43,8 +43,8 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 			return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list','pk':obj_id}))
 	elif origin == '3' or origin == '19':
 		if origin == '19':
-			# single notification on home
-			return redirect("home")
+			# single notification on 'fresh_text'
+			return redirect("fresh_text")
 		# originated from home
 		else:
 			request.session["home_hash_id"] = link_id
@@ -76,7 +76,7 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 		if target_uname:
 			return redirect("user_activity", target_uname)
 		else:
-			return redirect("home")
+			return redirect("fresh_text")
 	elif origin == '9':
 		# originated from a publicreply
 		if source_origin:

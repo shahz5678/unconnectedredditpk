@@ -55,7 +55,7 @@ def vote_result(request):
 		time_remaining = request.session.pop("time_remaining_to_vote",None)
 		return render(request,'voting/vote_cool_down.html',{'time_remaining':time_remaining,'lid':lid,'obid':vote_obj_id,'orig':orig,'topic':topic})
 	elif which_msg == '5':
-		return redirect("home")
+		return redirect('for_me')
 	# elif which_msg == '6':
 	# 	return redirect("home_loc")
 	# elif which_msg == '7':
@@ -373,7 +373,7 @@ def show_voting_summary(request,pk,orig,pht):
 			request.session.modified = True
 	else:
 		# not a link neither a photo
-		return redirect("home")
+		return redirect('for_me')
 	topic = request.session.pop("origin_topic",'')
 	defender, voter_id_names_status_and_votes = False, []
 	is_star = is_image_star(user_id=ooid)
@@ -953,7 +953,7 @@ def show_old_voting_summary(request,pk,orig,pht):
 			request.session.modified = True
 	else:
 		# not a link neither a photo
-		return redirect("home")
+		return redirect('for_me')
 	topic = request.session.pop("origin_topic",'')
 	defender, voter_id_names_status_and_votes = False, []
 	is_star = is_image_star(user_id=ooid)

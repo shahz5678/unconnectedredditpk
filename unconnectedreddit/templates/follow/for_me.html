@@ -1,0 +1,210 @@
+{% extends "base_noindex.html" %}
+{% load human_time %}
+{% load emoticons_tags %}
+{% load get_text_object %}
+{% load get_photo_object %}
+{% load url_target_blank %}
+{% load get_big_send_button %}
+{% load get_big_vote_button %}
+{% load get_big_group_button %}
+{% load get_big_home_reply_button %}
+{% load get_inline_replies_section %}
+{% load get_transparent_buttons_js %}
+{% load get_big_photo_comment_button %}
+{% load get_big_external_share_button %}
+{% block content %}
+
+<head><title>{{ own_name }}'s Home | Damadam</title></head>
+<style>body{background:#f0f3f4}</style>
+
+<main style="display:block;max-width:750px;margin:0 auto;width:98%;position:relative;">
+
+<a name="error"></a>
+{% if dir_rep_invalid %}
+	<div style="background:tomato;text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
+		{{ dir_rep_invalid }}
+	</div>
+{% elif show_post_removed_prompt %}
+	<div style="background: rgb(255,121,0);background: rgb(255,127,80);background: -moz-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: -webkit-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
+		Post apki taraf say hide ho gai
+	</div>
+{% endif %}
+
+{% if newbie_flag %}
+	{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='26' %}
+{% else %}
+	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
+	{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin='26' time_now=time_now %}
+{% endif %}
+
+<div class="mbl">{% include "follow/follower_count_notif.html" with new_count=new_count last_seen=last_seen|human_time %}</div>
+
+{% include "home_navbar.html" with section='for_me' %}
+
+<a name="shared"></a>
+<div class="mbl fx fxjscn fxaibl">
+	<a href="/" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
+	<h1 class="cxl lsp clb" style="margin:0;display:inline-block">For me <span class="cs">(page {{ page.number }})</span>:</h1>
+</div>
+
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+
+<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
+    {% csrf_token %}
+    <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
+    <div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
+    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="26"><input type="hidden" name="srep" value="1">
+
+    <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
+
+    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+</form>
+
+{% for link in link_list %}
+
+{% if not on_fbs and forloop.counter == 2 %}
+
+	<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
+		<ins class="adsbygoogle"
+		    style="display:inline-block;width:320px;height:100px"
+		    data-ad-client="ca-pub-2568547635306983"
+		    data-ad-slot="9571801752"></ins>
+		<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+	</aside>
+
+{% endif %}
+
+{% if link.ot == 'g' %}
+
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+	<a name="section{{ forloop.counter }}"></a>
+
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s show_trending=link.tr lazyload_idx=forloop.counter ratio=link.rt ot=link.ot aud=link.aud exp=link.exp %}
+	
+	<section class="mbl" style="display:block">
+	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+
+		{% if ident|stringformat:"s" == link.si|stringformat:"s" %}
+
+			{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='26' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+			{% if link.aud != 's' %}{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='26' static_url=STATIC_URL %}{% endif %}
+			{% big_photo_comment_button photo_id=link.i origin='26' comm_count=link.cc static_url=STATIC_URL %}
+			{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+
+		{% else %}
+
+			{% big_vote_button is_pht='1' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+			{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='26' target_username=link.su home_hash=link.h %}
+			{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='26' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+			{% if link.aud != 's' %}{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='26' static_url=STATIC_URL %}{% endif %}
+			{% big_photo_comment_button photo_id=link.i origin='26' comm_count=link.cc static_url=STATIC_URL %}
+			{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+			{% if link.aud == 'p' %}
+				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
+			{% elif link.aud == 'a' %}
+				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
+			{% endif %}
+
+		{% endif %}
+	</div>
+	</section>
+	
+	{% if link.com == '0' %}
+		<div size=1 style='border-top: dashed 1px #f2f2f2;'>
+			<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+ 				- Replies Disabled -
+ 			</div>
+ 		</div>
+	{% else %}
+		<section style="display:block" class="mls mrs mbl">
+			{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin='26' form=thin_rep_form btn_color='bct' %}
+		</section>
+
+		<section style="display:block" class="mls mbl"> 
+			{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='26' obj_owner_id=link.si obj_type='img' %}
+		</section>
+	{% endif %}	
+</article>
+	
+{% elif link.ot == 't' %}
+<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+	<a name="section{{ forloop.counter  }}"></a>
+		<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
+		{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 aud=link.aud exp=link.exp %}
+		</section>
+		<section class="mbl" style="display:block">
+		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+
+		{% if ident|stringformat:"s" == link.si|stringformat:"s" %}
+
+			{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='26' %}
+			{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+
+		{% else %}
+
+			{% big_vote_button is_pht='0' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+			{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='26' target_username=link.su home_hash=link.h %}
+			{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='26' %}
+			{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+			{% if link.aud == 'p' %}
+				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
+			{% elif link.aud == 'a' %}
+				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
+			{% endif %}
+
+		{% endif %}
+
+		</div>
+		</section>
+		
+		{% if link.com == '0' %}
+			<div size=1 style='border-top: dashed 1px #f2f2f2;'>
+				<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+	 				- Replies Disabled -
+	 			</div>
+	 		</div>
+		{% else %}
+			<section style="display:block" class="mls mrs mbl">
+			{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin='26' form=thin_rep_form btn_color='bct' %}
+			</section>
+
+			<section style="display:block" class="mts mls mbl">
+			{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='26' obj_owner_id=link.si obj_type='tx' %}
+			</section>
+		{% endif %}
+
+</article>
+{% else %}
+<!-- nothing -->
+{% endif %}
+
+{% empty %}
+
+	<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
+	<span class="cxl lsp clb">Sorry! Ye khali hai ...</span>
+	<hr size=1 COLOR="#f2f2f2">
+	<div class="mts lsp cl sp cgy">Ap users ko 'Text' ya 'Photos' se follow karein ge tou yahan unki posts nazar aien gi</div>
+	<div class="mtl mbs"><a href="{% url 'best_home_page' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">Text</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
+	</div>
+
+{% endfor %}
+
+</main>
+	<div class="mbl fx fxjscn">
+		{% if page.has_previous %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+	    </div>
+	    {% endif %}
+	    {% if page.has_next %}
+	    <div style="padding:0 10px">
+	    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+	    </div>
+	    {% endif %}
+	</div>
+
+{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+{% endblock %}

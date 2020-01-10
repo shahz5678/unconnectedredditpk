@@ -654,5 +654,4 @@ def rectify_follower_counts(request):
 				UserFan.objects.filter(fan_id__in=list(verified_ids)).update(fan_verification_status='1')
 			if unverified_ids:
 				UserFan.objects.filter(fan_id__in=list(unverified_ids)).update(fan_verification_status='0')
-			##########################################################
 	raise Http404("Completed ;)")

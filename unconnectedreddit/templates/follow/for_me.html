@@ -182,11 +182,17 @@
 
 {% empty %}
 
-	<div class="bizcard" style="background-color:white;text-align:center;padding:7px">
-	<span class="cxl lsp clb">Sorry! Ye khali hai ...</span>
+	<div class="mbl" style="background-color:white;padding:7px;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;">
+	<div class="cxl lsp clb">'Follow' karein mazedar posts karney waley users ko</div>
 	<hr size=1 COLOR="#f2f2f2">
-	<div class="mts lsp cl sp cgy">Ap users ko 'Text' ya 'Photos' se follow karein ge tou yahan unki posts nazar aien gi</div>
-	<div class="mtl mbs"><a href="{% url 'best_home_page' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">Text</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
+	<h2 class="clb mbs">Select type of posts:</h2>
+	
+	<div class="mbl">
+		<a href="{% url 'photo' 'best-list' %}#section0"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+		<a href="{% url 'best_home_page' %}#section0"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+	</div>
+
 	</div>
 
 {% endfor %}

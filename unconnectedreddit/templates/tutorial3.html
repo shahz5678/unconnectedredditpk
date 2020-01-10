@@ -15,26 +15,26 @@
 		<div style="padding:10px 8px;background-color:#fff169">
 
 			<div class="mbl mt fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">سب سے اوپر <bdo dir="ltr">'Home'</bdo> یا <bdo dir="ltr">'Photos'</bdo> کے بٹن ہیں</bdo></div>
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl"><bdo dir="ltr">'Follow'</bdo> کریں مزیدار پوسٹس کرنے والوں کو</bdo></div>
 				<div style="font-size:60px;font-weight:bold;color:#99ccff;padding:0px 8px 0 16px">1</div>
 			</div>
 
 			<div class="mbl fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl"><bdo dir="ltr">'Home'</bdo> پہ ٹیکسٹ اور <bdo dir="ltr">'Photos'</bdo> میں تصویریں پوسٹ ہوتی ہیں</bdo></div>
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl"><bdo dir="ltr">'Follow'</bdo> کرنے کے بعد انکی تمام پوسٹس آپکو <bdo dir="ltr">'For Me'</bdo> میں نظر آیں گی</bdo></div>
 				<div style="font-size:60px;font-weight:bold;color:#ffb3d1;padding:0px 8px 0 16px">2</div>
 			</div>
 
-			<div class="mbl fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">اچھی پوسٹس <img src="{{ STATIC_URL }}img/like.svg" width="18" height="18" style="vertical-align:sub"> لایک کریں یا ان پے اپنی راۓ دیں</bdo></div>
+			<div class="fx fxaicn" style="justify-content: flex-end">
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">پوسٹس دیکھنے کے لیے ان میں سے ایک سیلیکٹ کریں :</bdo></div>
 				<div style="font-size:60px;font-weight:bold;color:#48f5ad;padding:0px 8px 0 16px">3</div>
 			</div>
-		</div>
 
-		<div class="cxl lsp" style="padding:15px 8px 10px 8px"><bdo dir="rtl">لیکن سب سے پہلے اپنے اکاؤنٹ کو '<bdo dir="ltr">verify</bdo>' کروا لیں:</bdo></div>
-		
-		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
-			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
-		</a>
+			<div class="mbl">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+				<a href="{% url 'best_home_page' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+			</div>
+		</div>
 
 	</div>
 
@@ -42,7 +42,7 @@
 
 	<h1 class="cxl lsp sp" style="text-align:center;overflow:hidden;margin:0">Mazedar posts ka lutf uthaein!</h1>
 
-	<div class="bizcard sp mtl mbl" style="background-color:#FFD12B;color:#000000;text-align:center;">
+	<div class="sp mtl mbl" style="background-color:#FFD12B;color:#000000;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;">
 
 		<div style="text-align:right;padding-right:5px">
 			<a href="{% url 'turn_off_newbie' origin %}">
@@ -56,27 +56,26 @@
 
 			<div class="mt fx fxjsfs fxaicn">
 				<div style="font-size:60px;font-weight:bold;color:#99ccff;padding:0px 16px 0 8px">1</div>
-				<div class="cl lsp" style="text-align:left">Top pe 'Home' ya 'Photos' ke button hein</div>
+				<div class="cl lsp" style="text-align:left">'Follow' karein mazedar posts karney waloon ko</div>
 			</div>
 
 			<div class="fx fxjsfs fxaicn">
 				<div style="font-size:60px;font-weight:bold;color:#ffb3d1;padding:0px 16px 0 8px">2</div>
-				<div class="cl lsp" style="text-align:left">'Home' pe text, aur 'Photos' mein photos post hoti hein</div>
+				<div class="cl lsp" style="text-align:left">'Follow' karney ke baad unki tamam posts apko 'For Me' mein show hon gi</div>
 			</div>
 
-			<div class="mbs fx fxjsfs fxaicn">
+			<div class="fx fxjsfs fxaicn">
 				<div style="font-size:60px;font-weight:bold;color:#48f5ad;padding:0px 16px 0 8px">3</div>
-				<div class="cl lsp" style="text-align:left">Achi posts <img src="{{ STATIC_URL }}img/like.svg" width="18" height="18" style="vertical-align:sub"> 'like' karein, ya unpe apni raye dein</div>
+				<div class="cl lsp" style="text-align:left">Posts dekhney ke liye in mein se aik select karein:</div>
 			</div>
-		</div>
 
-		<div class="cxl lsp" style="padding:15px 8px 10px 8px">
-		Posts pe like ya baat cheet karne ke liye account verify karwa lein:
+			<div class="mbl">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+				<a href="{% url 'best_home_page' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+			</div>
+
 		</div>
-		
-		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
-			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
-		</a>
 
 	</div>
 

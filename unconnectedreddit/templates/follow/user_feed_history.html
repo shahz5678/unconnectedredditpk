@@ -42,7 +42,7 @@
 				{% else%}
 				<div class="mts lsp cl sp cgy">{{ target_uname }} ne public ke liye posts share nahi ki huin</div>
 				{% endif %}
-			<div class="mtl mbl"><a href="{% url 'home' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">home</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">photos</button></a></div>
+			<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
 		</div>
 
 	{% else %}
@@ -158,7 +158,7 @@
 				<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
 				<hr size=1 COLOR="#f2f2f2">
 					<div class="mts lsp cl sp cgy">Apki posts exist nahi kartein ya expire ho chuki hain</div>
-				<div class="mtl mbl"><a href="{% url 'home' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">home</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">photos</button></a></div>
+				<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
 		</div>	
 	{% elif post_count > 0 and is_own_profile %}
 		<!-- all posts for followers, viewed by own_profile -->
@@ -389,7 +389,7 @@
 				<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
 				<hr size=1 COLOR="#f2f2f2">
 					<div class="mts lsp cl sp cgy">Aap ne koi private posts share nahi ki huin</div>
-				<div class="mtl mbl"><a href="{% url 'home' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">home</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">photos</button></a></div>
+				<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
 			</div>
 
 	{% else %}

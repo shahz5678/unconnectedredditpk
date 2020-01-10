@@ -89,58 +89,6 @@ def personal_group_sanitization(obj_count, obj_ceiling, group_id):
 		personal_group_trimming_task.delay(group_id, obj_count)
 
 
-# def return_to_source(origin,parent_object_id,target_username):
-# 	"""
-# 	Redirect to a certain location
-# 	"""
-# 	if origin in ('home','home_reply'):
-# 		if parent_object_id:
-# 			return redirect("home_loc_pk",pk=parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'history':
-# 		if target_username:
-# 			return redirect("user_activity",slug=target_username)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'private':
-# 		return redirect("private_group_reply")
-# 	elif origin == 'public':
-# 		if parent_object_id:
-# 			return redirect("public_group",slug=parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'search':
-# 		return redirect("search_username")
-# 	elif origin == 'profile':
-# 		if parent_object_id:
-# 			return redirect("user_profile",slug=parent_object_id)
-# 		else:
-# 			return redirect("home")	
-# 	elif origin == 'profile_photos':
-# 		if parent_object_id:
-# 			return redirect("profile",slug=parent_object_id, type='fotos')
-# 		else:
-# 			return redirect("home")	
-# 	elif origin == 'best_photos':
-# 		if parent_object_id:
-# 			return redirect("best_photo_loc_pk", parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'photo_comments':
-# 		if parent_object_id:
-# 			return redirect("comment", parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'fresh_photos':
-# 		if parent_object_id:
-# 			return redirect("see_photo_pk", parent_object_id)
-# 		else:
-# 			return redirect("photo")
-# 	else:
-# 		return redirect("home")
-
-
 def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl, own_star, their_star):
 	"""
 	Preps raw personal group data for display
@@ -368,7 +316,7 @@ def enter_personal_group_from_single_notif(request):
 			request.session["personal_group_tid_key"] = target_id
 			return redirect("enter_personal_group")
 		else:
-			return redirect("home")
+			return redirect('for_me')
 	else:
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 
@@ -2041,11 +1989,11 @@ def accept_personal_group_invite(request):
 					if poid:
 						return redirect("publicreply_view",poid)
 					else:
-						return redirect("home")
+						return redirect('for_me')
 				else:
 					return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2075,12 +2023,12 @@ def send_personal_group_invite(request):
 				if poid:
 					return redirect("publicreply_view",poid)
 				else:
-					return redirect("home")
+					return redirect('for_me')
 			else:
 				# return return_to_source(origin,poid,target_username)
 				return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2168,7 +2116,7 @@ def change_personal_group_invite_privacy(request):
 							context["lid"] = request.POST.get("lid",None)
 							return render(request,"helpful_instructions.html",context)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

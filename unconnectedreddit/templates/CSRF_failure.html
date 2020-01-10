@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <style>body{background: #E9EBEE}</style>
-<head><title>Something went wrong | Damadam.pk</title></head>
+<head><title>Something went wrong | Damadam</title></head>
 <h1 class="cxl lsp clb" style="text-align:center;overflow:hidden">Something went wrong</span></h1>
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
@@ -10,7 +10,7 @@
 		<hr size=1 COLOR="#e5e7e9">
 		<div class="sp lsp mts">Apke browser mein <b>cookies</b> disabled hain, ya phir ap bar bar browser ka <b>back</b> button daba rehay hain</div>
         
-        {% if referrer %}<a href="{{ referrer }}">{% else %}<a href="{% url 'home' %}">{% endif %}<button class="btn bcb bm mtl mbl sp pg_ok_res" style="height:26px">wapis</button></a>
+        {% if referrer %}<a href="{{ referrer }}">{% else %}<a href="{% url 'for_me' %}">{% endif %}<button class="btn bcb bm mtl mbl sp pg_ok_res" style="height:26px">wapis</button></a>
 </div>
 <br><br>
 {% endblock %}

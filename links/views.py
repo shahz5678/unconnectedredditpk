@@ -1042,10 +1042,10 @@ def home_redirect(request, pk=None):
 		pk = request.session.pop('home_hash_id',None)
 		index = retrieve_home_feed_index(pk) if pk else 0
 	if index is None:
-		url = reverse_lazy("home")+'?page=1#section0'
+		url = reverse_lazy("fresh_text")+'?page=1#section0'
 	else:
 		addendum = get_addendum(index,ITEMS_PER_PAGE, only_addendum=True)
-		url = reverse_lazy("home")+addendum
+		url = reverse_lazy("fresh_text")+addendum
 	############################################
 	############################################
 	# request.session['rd'] = '1'#used by retention activity loggers in home_page() - remove whenever
@@ -1150,7 +1150,7 @@ def turn_off_newbie(request,origin):
 	"""
 	request.session.pop("newbie_flag",None)
 	if origin == '3':
-		return redirect("home")
+		return redirect("fresh_text")
 	elif origin == '2':
 		return redirect("photo",list_type='best-list')
 	elif origin == '1':
@@ -1158,11 +1158,11 @@ def turn_off_newbie(request,origin):
 	elif origin == '36':
 		return redirect('get_ranked_groups')
 	elif origin == '26':
-		return redirect('my_home')	
+		return redirect('for_me')	
 	elif origin == '27':
 		return redirect('topic_listing')
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 def new_user_gateway(request,lang=None,*args,**kwargs):
 	# set necessary newbie_flags for other parts of damadam too (e.g. for matka: is mein woh sab batien likhi aa jatien hain jin mein tum ne hissa liya (maslan jawab, tabsrey, waghera))
@@ -1191,7 +1191,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var'+choice)
 			############################################
 			############################################
-			return redirect("home")
+			return redirect('for_me')
 			# if choice == '5':
 			# 	return redirect("get_ranked_groups")
 			# elif choice == '6':
@@ -1199,7 +1199,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 			# elif choice == '7':
 			# 	return redirect(reverse_lazy("photo", args=['best-list']))
 			# else:
-			# 	return redirect("home")
+			# 	return redirect('for_me')
 		else:
 			request.session["redo_tut_selection"+str(user_id)] = '1'
 			return redirect("first_time_choice",lang)
@@ -1252,7 +1252,7 @@ def show_online_users(request):
 
 class LinkDeleteView(DeleteView):
 	model = Link
-	success_url = reverse_lazy("home")
+	success_url = reverse_lazy('for_me')
 
 
 def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, **kwargs):
@@ -2652,7 +2652,7 @@ class UserPhoneNumberView(CreateView):
 	#       on_fbs = False
 	#   if on_fbs:
 	#       return 
-	#       return redirect("home")#, pk= reply.answer_to.id)
+	#       return redirect('for_me')#, pk= reply.answer_to.id)
 
 class UserSMSView(FormView):
 	form_class = UserSMSForm
@@ -3784,7 +3784,7 @@ def welcome_reply(request,*args,**kwargs):
 					description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
 					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				else:
-					return redirect("home")
+					return redirect('for_me')
 				parent.latest_reply = reply
 				parent.save()
 				try:
@@ -3806,7 +3806,7 @@ def welcome_reply(request,*args,**kwargs):
 				# 	activity_dict = {'m':'POST','act':act,'t':time_now,'tuid':pk}# defines what activity just took place
 				# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
-				return redirect("home")
+				return redirect('for_me')
 			else:
 				return render(request,'old_user.html',{'username':target.username})
 		else:
@@ -3851,7 +3851,7 @@ def hell_ban(request,*args,**kwargs):
 					else:
 						return redirect("profile",username,'fotos')
 				except:
-					return redirect("home")
+					return redirect('for_me')
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
@@ -3943,7 +3943,7 @@ def kick_ban_user(request,*args,**kwargs):
 					Session.objects.filter(user_id__in=target_ids).delete()
 					return redirect("profile",username,'fotos')
 				except:
-					return redirect("home")
+					return redirect('for_me')
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
@@ -3994,7 +3994,7 @@ def kick_user(request,*args,**kwargs):
 					Session.objects.filter(user_id__in=target_ids).delete()
 					return redirect("profile",username,'fotos')
 				except:
-					return redirect("home")
+					return redirect('for_me')
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")

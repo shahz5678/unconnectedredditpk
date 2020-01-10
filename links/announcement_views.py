@@ -120,8 +120,8 @@ def survey(request):
 			log_superhuman_survey_answers(user_id=user_id, answers_dict=answers, time_now=time_now)
 			return render(request,"announcement/hxu_survey.html",{'skipped':True})
 		elif skip_survey == '0':
-			# return person to 'home'
-			return redirect("home")
+			# return person to 'for_me'
+			return redirect('for_me')
 		elif finalize_submission == '0':
 			# display 'are you sure you want to skip survey' prompt. I.e. always give them a warning they're about to skip the survey for good
 			return render(request,"announcement/hxu_survey.html",{'sure_about_skipping':True})
@@ -279,8 +279,8 @@ def survey(request):
 # 			log_superhuman_survey_answers(user_id=user_id, answers_dict=answers, time_now=time_now)
 # 			return render(request,"announcement/superhuman2.html",{'skipped':True})
 # 		elif skip_survey == '0':
-# 			# return person to 'home'
-# 			return redirect("home")
+# 			# return person to 'for_me'
+# 			return redirect('for_me')
 # 		elif finalize_submission == '0':
 # 			# display 'are you sure you want to skip survey' prompt. I.e. always give them a warning they're about to skip the survey for good
 # 			return render(request,"announcement/superhuman2.html",{'sure_about_skipping':True})
@@ -420,8 +420,8 @@ def survey(request):
 # 			log_superhuman_survey_answers(user_id=user_id, answers_dict=answers, time_now=time_now)
 # 			return render(request,"announcement/superhuman.html",{'skipped':True})
 # 		elif skip_survey == '0':
-# 			# return person to 'home'
-# 			return redirect("home")
+# 			# return person to 'for_me'
+# 			return redirect('for_me')
 # 		elif finalize_submission == '0':
 # 			# display 'are you sure you want to skip survey' prompt. I.e. always give them a warning they're about to skip the survey for good
 # 			return render(request,"announcement/superhuman.html",{'sure_about_skipping':True})

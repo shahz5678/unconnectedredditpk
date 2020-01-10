@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 
-<head><title>Doctor Advertisement | Damadam.pk</title></head>
+<head><title>Doctor Advertisement | Damadam</title></head>
 
 <div class="margin clb">
 <h2 class="cg bw">Aasan Doctor</h2>
@@ -15,7 +15,7 @@
 <div class="mbs">
 <b class="co">Fees:</b><span class="mls"> Rs. 200 (Ager Illaj phone per ho sakta hoa) </span><br>
 </div>
-<a href="{% url 'home' %}"><button class="btn bco bm mts mbl"><b>wapis</b></button></a>
+<a href="{% url 'for_me' %}"><button class="btn bco bm mts mbl"><b>wapis</b></button></a>
 <hr size=3 COLOR="#bfbfbf">
 	<form method="post" action="{% url 'asan_doc' %}" class="mtl">
 	{% csrf_token %}

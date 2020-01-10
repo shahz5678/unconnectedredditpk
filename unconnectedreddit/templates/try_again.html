@@ -1,6 +1,6 @@
 {% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
 {% block content %}
-<head><title>Try again | Damadam.pk</title></head>
+<head><title>Try again | Damadam</title></head>
 <div class="margin clb">
 
 {% if type == 'seller' %}
@@ -26,7 +26,7 @@
 
 	<span class="cxl">Number verify nahi hua!</span><br>
 	<span class="cgy">Phir se koshish karien</span><br><br>
-	<a href="{% url 'home' %}"><button class="ma" style="color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;">Theek hai</button></a>
+	<a href="{% url 'for_me' %}"><button class="ma" style="color:white;background-color:#00c853;border:solid 1px #008033;font-size:110%;width:9em;">Theek hai</button></a>
 
 {% elif type == 'personal_group_chatter' %}
 

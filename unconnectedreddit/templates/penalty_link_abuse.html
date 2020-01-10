@@ -2,11 +2,11 @@
 {% load humanize %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Unable to complete action | Damadam.pk</title></head>
+<head><title>Unable to complete action | Damadam</title></head>
 <div class="margin clb">
 	Apko yahan likhne ki ijazat miley gi <b style="color:#229ec3;font-size:105%;">{{ time_remaining|naturaltime }}</b><br></span>
 	<div class="mt cgy sp cs">Aesi baatein likhein jo logoon ko buri na lagien {% emoticons %}:-){% endemoticons %}</div>
-	<a href="{% url 'home' %}#section0" style="font-size:95%;"><button class="btn bct bm mtl">wapis</button></a>
+	<a href="{% url 'for_me' %}#section0" style="font-size:95%;"><button class="btn bct bm mtl">wapis</button></a>
 
 </div>
 {% endblock %}

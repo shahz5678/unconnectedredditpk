@@ -274,7 +274,7 @@ def topic_redirect(request, topic_url=None, obj_hash=None, *args, **kwargs):
 	"""
 	############################################
 	############################################
-	request.session['rd'] = '1'#used by retention activity loggers in home_page() or topic_page() - can be removed
+	# request.session['rd'] = '1'#used by retention activity loggers in home_page() or topic_page() - can be removed
 	############################################
 	############################################
 	if topic_url:
@@ -290,7 +290,7 @@ def topic_redirect(request, topic_url=None, obj_hash=None, *args, **kwargs):
 			url = reverse_lazy("topic_page",args=[topic_url])+addendum
 		return redirect(url)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 def retrieve_topic_contribution_page_data(topic_url, page_num, with_oldest=False):

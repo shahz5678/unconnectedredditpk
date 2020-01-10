@@ -21,15 +21,15 @@ def skip_outage_notif(request, *args, **kwargs):
 		if which_user is not None:
 			skip_outage(which_user)
 		if origin == '1':
-				return redirect("home")
+				return redirect("fresh_text")
 		elif origin == '2':
 			return redirect("photo",list_type='best-list')
 		elif origin == '0':
 			return redirect("photo",list_type='fresh-list')
 		else:
-			return redirect("home")
+			return redirect("fresh_text")
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 def damadam_cleanup(request, *args, **kwargs):
@@ -77,7 +77,7 @@ def change_nicks(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			count = int(request.POST.get("count",None))
 			if decision == 'No':
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True)
 				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
@@ -99,11 +99,11 @@ def change_nicks(request,*args,**kwargs):
 				else:
 					return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
 			else:
-				return redirect("home")
+				return redirect('for_me')
 		else:
 			return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 def export_nicks(request,*args,**kwargs):
 	"""Exports deprecated nicks in a CSV.
@@ -456,7 +456,7 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_5K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -483,7 +483,7 @@ def remove_inactives_groups(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -511,7 +511,7 @@ def remove_inactive_user_sessions(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -563,7 +563,7 @@ def remove_inactives_photos(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -597,7 +597,7 @@ def remove_inactives_photos(request,*args,**kwargs):
 #     		decision = request.POST.get("dec",None)
 # 			if decision == 'No':
 # 				delete_inactives_copy()
-# 				return redirect("home")
+# 				return redirect('for_me')
 # 			elif decision == 'Yes':
 # 				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
 # 				id_list = map(itemgetter(1), inactives) #list of user ids

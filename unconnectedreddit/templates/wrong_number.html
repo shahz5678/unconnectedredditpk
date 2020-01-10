@@ -1,11 +1,11 @@
 {% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
 {% block content %}
-<head><title>Wrong number | Damadam.pk</title></head>
+<head><title>Wrong number | Damadam</title></head>
 <div class="margin clb">
 <span class="cxl">Ye number kisi aur profile ke sath munsalik hai</span><br><span class="cgy">Isko sirf ussi profile se use kiya ja sakta hai</span><br>
 
 {% if referrer == 'home' %}
-<a href="{% url 'home' %}"><button class="btn bcg mtl bm" style="height:25px">wapis</button></a>
+<a href="{% url 'for_me' %}"><button class="btn bcg mtl bm" style="height:25px">wapis</button></a>
 {% elif referrer == 'personal_group' %}
 <form method="POST" class="mtl" action="{% url 'enter_personal_group' %}">
 	{% csrf_token %}

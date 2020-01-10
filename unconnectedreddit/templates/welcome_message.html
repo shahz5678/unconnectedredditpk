@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <style>body{background: #E9EBEE}</style>
-<head><title>Send welcome message {% if authorized %}to {{ target_user.username }}{% endif %} | Damadam.pk</title></head>
+<head><title>Send welcome message {% if authorized %}to {{ target_user.username }}{% endif %} | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">Welcome karein!</h1>
 
@@ -35,8 +35,8 @@
 	</form>
 
 {% else %}
-	<div class="cxl lsp">Please press home:</div>
-	<a href="{% url 'home' %}#section0"><button class="btn bct bl mtl mbl pg_ok_res sp" style="height:26px">home</button></a>
+	<div class="cxl lsp">Please press 'For Me':</div>
+	<a href="{% url 'for_me' %}#section0"><button class="btn bct bl mtl mbl pg_ok_res sp" style="height:26px">For Me</button></a>
 
 {% endif %}
 </div>

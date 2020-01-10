@@ -15,25 +15,31 @@
 		<div style="padding:10px 8px;background-color:#fff169">
 
 			<div class="mbl mtl fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">گپ شپ لگایں '<bdo dir="ltr">Home</bdo>', '<bdo dir="ltr">Fotos</bdo>', '<bdo dir="ltr">Mehfils</bdo>' ميں  يا '<bdo dir="ltr">1&nbsp;on&nbsp;1</bdo>'</bdo></div>
-				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/talking.svg" width="55" height="55" alt="pic"></div>
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">مزیدار پوسٹس دیکھیں اور پوسٹ کرنے والوں کو '<bdo dir="ltr">Follow</bdo>' کریں</bdo></div>
+				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/follow.svg" width="55" height="55" alt="pic"></div>
 			</div>
 
 			<div class="mbl fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">مزیدار پوسٹس کو '<bdo dir="ltr">like</bdo>' کریں</bdo></div>
-				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/like.svg" width="50" height="50" alt="pic"></div>
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">دوستی کرنے کے لیے پوسٹس کے نیچے '<bdo dir="ltr">Reply</bdo>' دیں</div>
+				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/talking.svg" width="50" height="50" alt="pic"></div>
 			</div>
 
 			<div class="mbl fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">پورے پاکستان کے لوگوں سے جان پہچان بنایں</bdo></div>
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">پورے پاکستان کی بہترین پوسٹس دیکھنے کے لیے کوئ ایک بٹن دبايں :</bdo></div>
 				<div style="width:55px;height:55px" class="mll mrs"><img src="{{ STATIC_URL }}img/pakistan.svg" width="55" height="55" alt="pic"></div>
+			</div>
+
+			<div class="mbl">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+				<a href="{% url 'best_home_page' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
 			</div>
 		</div>
 
-		<div class="cxl lsp" style="padding:15px 8px 10px 8px"><bdo dir="rtl">لیکن سب سے پہلے اپنے اکاؤنٹ کو '<bdo dir="ltr">verify</bdo>' کروا لیں:</bdo></div>
+		<div class="cxl lsp" style="padding:15px 8px 10px 8px"><bdo dir="rtl">'<bdo dir="ltr">Reply</bdo>' دینے کے لیے اکاؤنٹ '<bdo dir="ltr">verify</bdo>' کروانا ضروری ہے:</bdo></div>
 		
 		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
-			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
+			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;YOUR&nbsp;ACCOUNT</b></button>
 		</a>
 
 	</div>
@@ -55,27 +61,34 @@
 		<div style="padding:10px 8px;background-color:#fff169">
 
 			<div class="mbl mtl fx fxjsfs fxaicn">
-				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/talking.svg" width="55" height="55" alt="pic"></div>
-				<div class="cl lsp" style="text-align:left">Guppein lagain 'Home', 'Fotos', 'Mehfils' mein ya '1&nbsp;on&nbsp;1'</div>
+				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/follow.svg" width="55" height="55" alt="pic"></div>
+				<div class="cl lsp" style="text-align:left">Mazedar posts dekhein, aur post karney waloon ko 'Follow' karein</div>
 			</div>
 
 			<div class="mbl fx fxjsfs fxaicn">
-				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/like.svg" width="50" height="50" alt="pic"></div>
-				<div class="cl lsp" style="text-align:left">Mazedar posts ko 'like' karein</div>
+				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/talking.svg" width="50" height="50" alt="pic"></div>
+				<div class="cl lsp" style="text-align:left">Dosti karney ke liye posts ke neechay 'reply' dein</div>
 			</div>
 
-			<div class="mbl fx fxjsfs fxaicn">
+			<div class="mbs fx fxjsfs fxaicn">
 				<div style="width:55px;height:55px" class="mls mrl"><img src="{{ STATIC_URL }}img/pakistan.svg" width="55" height="55" alt="pic"></div>
-				<div class="cl lsp" style="text-align:left">Puray Pakistan ke logoon se jaan pehchaan banain</div>
+				<div class="cl lsp" style="text-align:left">Puray Pakistan ki best posts dekhney ke liye koi aik button dabain:</div>
 			</div>
+
+			<div class="mbl">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+				<a href="{% url 'best_home_page' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+			</div>
+
 		</div>
 
 		<div class="cxl lsp" style="padding:15px 8px 10px 8px">
-		Lekin ye sab karney ke liye account verify kerwana zaruri hai:
+		'Reply' dene ke liye account verify kerwana zaruri hai:
 		</div>
 		
 		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
-			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;NOW</b></button>
+			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;YOUR&nbsp;ACCOUNT</b></button>
 		</a>
 
 	</div>

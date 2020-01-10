@@ -2,7 +2,7 @@
 {% load emoticons_tags %}
 {% block content %}
 <style>body{background: #E9EBEE}</style>
-<head><title>Judgement on {{ oun }} | Damadam.pk</title></head>
+<head><title>Judgement on {{ oun }} | Damadam</title></head>
 
 {% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='ban_post' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
 
@@ -13,9 +13,9 @@
 
 	<div class="cxl lsp">Sorry! Is time koi bhi item banning ke liye selected nahi</div>
 	<hr size=1 COLOR="#e5e5e5">
-	<div class="cm mts sp cgy lsp mbl">Ap home pe ja ke items select karein</div>
+	<div class="cm mts sp cgy lsp mbl">Ap 'For Me' pe ja ke items select karein</div>
 	<div>
-	<a href="{% url 'home' %}#section0"><button class="btn bcgy bm sp pg_ok_res mbs" style="height:26px">home</button></a>
+	<a href="{% url 'for_me' %}#section0"><button class="btn bcgy bm sp pg_ok_res mbs" style="height:28px">For Me</button></a>
 	</div>
 
 {% else %}

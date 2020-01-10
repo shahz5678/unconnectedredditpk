@@ -33,9 +33,9 @@ body {
 
 {% if user.is_authenticated %}
     <!-- bunched HTML removes spaces between li elements -->
-    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'topic_listing' %}">Topics</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+    <li><a href="/">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li><a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox</a></li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'topic_listing' %}">Topics</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
 {% else %}
-    <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>New Account</b></a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li>
+    <li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>New Account</b></a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li>
 {% endif %}
 </ul>
 
@@ -52,9 +52,9 @@ body {
 <br><br>
 <ul class="navbar">
 {% if user.is_authenticated %}
-    <li><a href="/">Home</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
+    <li><a href="/">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
 {% else %}
-    <li><a href="{% url 'unauth_home_new' %}">Home</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'about' %}#section0">About</a></li>
+    <li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li><li><a href="{% url 'about' %}#section0">About</a></li>
 {% endif %}
 </ul>
 

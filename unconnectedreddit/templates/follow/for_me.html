@@ -95,15 +95,18 @@
 
 		{% else %}
 
-			{% big_vote_button is_pht='1' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
-			{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='26' target_username=link.su home_hash=link.h %}
-			{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='26' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
-			{% if link.aud != 's' %}{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='26' static_url=STATIC_URL %}{% endif %}
-			{% big_photo_comment_button photo_id=link.i origin='26' comm_count=link.cc static_url=STATIC_URL %}
-			{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
-			{% if link.aud == 'p' %}
-				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
-			{% elif link.aud == 'a' %}
+			{% if link.aud == 's' %}
+				{% big_vote_button is_pht='1' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='26' target_username=link.su home_hash=link.h %}
+				{% big_photo_comment_button photo_id=link.i origin='26' comm_count=link.cc static_url=STATIC_URL %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+			{% else %}
+				{% big_vote_button is_pht='1' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='26' target_username=link.su home_hash=link.h %}
+				{% big_photo_comment_button photo_id=link.i origin='26' comm_count=link.cc static_url=STATIC_URL %}
+				{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='26' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+				{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='26' static_url=STATIC_URL %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
 				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
 			{% endif %}
 
@@ -114,7 +117,7 @@
 	{% if link.com == '0' %}
 		<div size=1 style='border-top: dashed 1px #f2f2f2;'>
 			<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
- 				- Replies Disabled -
+ 				- Replies Off -
  			</div>
  		</div>
 	{% else %}
@@ -144,13 +147,16 @@
 
 		{% else %}
 
-			{% big_vote_button is_pht='0' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
-			{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='26' target_username=link.su home_hash=link.h %}
-			{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='26' %}
-			{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
-			{% if link.aud == 'p' %}
-				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
-			{% elif link.aud == 'a' %}
+			{% if link.aud == 's' %}
+				{% big_vote_button is_pht='0' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='26' target_username=link.su home_hash=link.h %}
+				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='26' %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+			{% else %}
+				{% big_vote_button is_pht='0' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='26' target_username=link.su home_hash=link.h %}
+				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='26' %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
 				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
 			{% endif %}
 
@@ -162,7 +168,7 @@
 		{% if link.com == '0' %}
 			<div size=1 style='border-top: dashed 1px #f2f2f2;'>
 				<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
-	 				- Replies Disabled -
+	 				- Replies Off -
 	 			</div>
 	 		</div>
 		{% else %}

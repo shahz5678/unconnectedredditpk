@@ -58,7 +58,7 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, photo_upload_tasks, \
-group_notification_tasks, publicreply_notification_tasks, log_user_activity, set_input_rate_and_history, post_to_followers
+publicreply_notification_tasks, log_user_activity, set_input_rate_and_history, post_to_followers
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, LatestSalat, Logout
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \

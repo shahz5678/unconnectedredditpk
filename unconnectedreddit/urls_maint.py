@@ -25,6 +25,6 @@ urlpatterns = patterns('',
 	url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
 	url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
 	url(r'^isolate_nonpaki_nums/$', auth(isolate_non_national_phone_numbers), name='isolate_non_national_phone_numbers'),
-	######################################## Follow Table Sanitzation ########################################
+	######################################## Follower Sanitzation ########################################
 	url(r'^fix-follower-counts/$', auth(rectify_follower_counts), name='rectify_follower_counts'),
 )

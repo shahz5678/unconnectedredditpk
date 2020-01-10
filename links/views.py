@@ -1328,7 +1328,7 @@ class UserProfileDetailView(FormView):
 			context["own_id"] = user_id
 			context["star_id"] = star_id
 			if user_id:
-					context["is_follower"] = check_if_follower(user_id, star_id, with_db_lookup=True)
+				context["is_follower"] = check_if_follower(user_id, star_id, with_db_lookup=True)
 			num_trending_pics = is_image_star(user_id=star_id)
 			context["is_star"] = int(num_trending_pics) if num_trending_pics else num_trending_pics
 			star_score = retreive_trending_rep(user_id=star_id)

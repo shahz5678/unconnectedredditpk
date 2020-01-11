@@ -155,6 +155,7 @@ def account_kit_verification_processing(request):
 				else:
 					# verify the user
 					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
+					change_verification_status(user_id,'verified')
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					log_ak_user_verification_outcome("verified")
 					################### Retention activity logging ###################
@@ -212,7 +213,8 @@ def account_kit_verification_result(request):
 	if verification_successful:
 		request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
 		request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-		return render(request,"verification/reward_earned.html",{'user_var':retrieve_var(user_id=request.user.id)})
+		user_id = request.user.id
+		return render(request,"verification/reward_earned.html",{'user_var':retrieve_var(user_id=user_id)})
 	else:
 		verification_failed = request.session.pop("account_kit_verification_failed",'')
 		if verification_failed:
@@ -241,7 +243,7 @@ def wait_before_verifying(request):
 	user_id = request.user.id
 	if request.method == "POST":
 		if is_mobile_verified(user_id):
-			return redirect("home")
+			return redirect('for_me')
 		else:
 			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 			if on_fbs:
@@ -404,7 +406,7 @@ def pin_verification(request):
 							change_verification_status(user_id,'verified')
 							set_personal_group_mobile_num_cooloff(user_id)
 							if their_anon_status is None:
-								return redirect("home")
+								return redirect('for_me')
 							else:
 								twiliolog_user_reverified()
 								log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())

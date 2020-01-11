@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from links.maint_views import insert_nicks, change_nicks, export_nicks, deprecate_nicks, remove_inactives_notification_activity, \
 remove_inactive_user_sessions, remove_inactives_groups, damadam_cleanup, skip_outage_notif, remove_inactives_photos, \
-isolate_non_national_phone_numbers
+isolate_non_national_phone_numbers, rectify_follower_counts
 
 
 admin.autodiscover()
@@ -25,4 +25,6 @@ urlpatterns = patterns('',
 	url(r'^export_nicks/$', auth(export_nicks), name='export_nicks'),
 	url(r'^deprecate_nicks/$', auth(deprecate_nicks), name='deprecate_nicks'),
 	url(r'^isolate_nonpaki_nums/$', auth(isolate_non_national_phone_numbers), name='isolate_non_national_phone_numbers'),
+	######################################## Follower Sanitzation ########################################
+	url(r'^fix-follower-counts/$', auth(rectify_follower_counts), name='rectify_follower_counts'),
 )

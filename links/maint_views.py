@@ -3,12 +3,14 @@ from verified import FEMALES
 from operator import itemgetter
 from datetime import datetime, timedelta
 from user_sessions.models import Session
+from django.http import Http404
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, UserFan, ChatPic
 from redis7 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
-from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes, remove_verified_mob
+from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes, remove_verified_mob,\
+get_global_verified_users
 from redis4 import save_deprecated_photo_ids_and_filenames, invalidated_cached_uname_credentials#, report_rate_limited_conversation
 
 ######################################## Notifications ########################################
@@ -631,8 +633,25 @@ def isolate_non_national_phone_numbers(request):
 		processed_bogus_pairs.append((user,number))
 	return render(request,"show_bogus_mobile_user_ids.html",{'bogus_pairs':processed_bogus_pairs,'total':len(processed_bogus_pairs)})
 
-# ############################################### Logger ###############################################
+# ############################################### Follower count rectification ###############################################
 
-# def rate_limit_logging_report(request):
-# 	report_rate_limited_conversation()
-# 	return redirect("missing_page")
+def rectify_follower_counts(request):
+	"""
+	Fixing follower counts across the website
+	"""
+	if request.user.username == 'mhb11':
+		fan_ids_and_statuses = UserFan.objects.values_list('fan_id','fan_verification_status')
+		if fan_ids_and_statuses:
+			verified_ids, unverified_ids = set(), set()
+			all_verified_ids = get_global_verified_users()
+			for fan_id, verification_status in fan_ids_and_statuses:
+				if str(fan_id) in all_verified_ids:
+					verified_ids.add(fan_id)
+				else:
+					unverified_ids.add(fan_id)
+			##########################################################
+			if verified_ids:
+				UserFan.objects.filter(fan_id__in=list(verified_ids)).update(fan_verification_status='1')
+			if unverified_ids:
+				UserFan.objects.filter(fan_id__in=list(unverified_ids)).update(fan_verification_status='0')
+	raise Http404("Completed ;)")

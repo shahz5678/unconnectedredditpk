@@ -58,7 +58,7 @@ from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, photo_upload_tasks, \
-group_notification_tasks, publicreply_notification_tasks, log_user_activity, set_input_rate_and_history, post_to_followers
+publicreply_notification_tasks, log_user_activity, set_input_rate_and_history, post_to_followers
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, LatestSalat, Logout
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
@@ -1328,7 +1328,7 @@ class UserProfileDetailView(FormView):
 			context["own_id"] = user_id
 			context["star_id"] = star_id
 			if user_id:
-					context["is_follower"] = check_if_follower(user_id, star_id, with_db_lookup=True)
+				context["is_follower"] = check_if_follower(user_id, star_id, with_db_lookup=True)
 			num_trending_pics = is_image_star(user_id=star_id)
 			context["is_star"] = int(num_trending_pics) if num_trending_pics else num_trending_pics
 			star_score = retreive_trending_rep(user_id=star_id)

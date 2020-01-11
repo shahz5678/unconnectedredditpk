@@ -1044,7 +1044,7 @@ def export_post_data(request,post_type):
 						if obj_hash_type[0] == 'tx':
 							#writing data taken from redis
 							if data['type'] == 'from my home':
-								to_write = [data['lid'],data2['su'].encode('utf-8'),data2['si'],data['remover_name']encode('utf-8'),data['type'],data['Is_OP'],data2['d'].encode('utf-8'),'NA',data2]# TODO: add relevant column data
+								to_write = [data['lid'],data2['su'].encode('utf-8'),data2['si'],data['remover_name'].encode('utf-8'),data['type'],data['Is_OP'],data2['d'].encode('utf-8'),'NA',data2]# TODO: add relevant column data
 							#writing data taken from Postgresql
 							else:
 								to_write = [data['lid'],data['remover_name'].encode('utf-8'),'OP from '+str(data['orig']),'remover is op = '+str(data['Is_OP']),'from history '+str(data['orig']),data['Is_OP'],data['description'].encode('utf-8'),data['image_file'],data]

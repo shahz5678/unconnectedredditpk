@@ -948,9 +948,13 @@ class UploadPhotoForm(forms.Form):
 			# raise forms.ValidationError('Dubara koshish karein')	
 		return expiry
 
-	def clean_com(self):			
-		return self.cleaned_data.get('com','on')
-
+	def clean_com(self):		
+		# return self.cleaned_data.get('com','1')
+		com = self.cleaned_data.get('com','1')
+		if com not in ('1','0'):
+			return '1'
+			# raise forms.ValidationError('Dubara koshish karein')	
+		return com
 
 class PicsChatUploadForm(forms.ModelForm):
 	image = forms.ImageField(label='Upload')

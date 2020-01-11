@@ -146,6 +146,7 @@
                         <div class="sp lsp" style="padding:0 10px;text-align:left">Yes</div>
                     </div>
                 </label>
+
               </div>
         {% else %}
             <div style="margin-left: auto;margin-right:auto">
@@ -166,17 +167,18 @@
                     </div>
                 </label>
             </div>
-            <input type="hidden" name="aud" class="checkbox" id="aud-default" value="p">
-            <input type="hidden" name="exp" class="checkbox" id="exp-default" value="i">
-            <input type="hidden" name="com" class="checkbox" id="com-default" value="1">
+            <input type="hidden" name="aud" id="aud-default" value="p">
+            <input type="hidden" name="exp" id="exp-default" value="i">
+            <input type="hidden" name="com" id="com-default" value="1">
 
-            <input type="hidden" name="aud" class="checkbox" id="aud-first" value="p">
-            <input type="hidden" name="aud" class="checkbox" id="aud-second" value="a">
-            <input type="hidden" name="aud" class="checkbox" id="aud-third" value="s">
+            <input type="hidden" name="aud1" id="aud-first" value="p">
+            <input type="hidden" name="aud2" id="aud-second" value="a">
+            <input type="hidden" name="aud3" id="aud-third" value="s">
 
-            <input type="hidden" name="exp" class="checkbox" id="exp-first" value="i">
-            <input type="hidden" name="exp" class="checkbox" id="exp-second" value="m1">
-            <input type="hidden" name="exp" class="checkbox" id="exp-third" value="m2">
+            <input type="hidden" name="exp1" id="exp-first" value="i">
+            <input type="hidden" name="exp2" id="exp-second" value="m1">
+            <input type="hidden" name="exp3" id="exp-third" value="m2">
+
         {% endif %}
 
         <div style="text-align:center">

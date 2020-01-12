@@ -1,5 +1,7 @@
+<style type="text/css">.main_txt>a{color:#01579b;text-decoration:none}.main_txt>a:hover{text-decoration:underline}.main_txt>a:active,.main_txt>a:visited{color:#01579b}</style>
 <div>
-	<style type="text/css">.main_txt>a{color:#01579b;text-decoration:none}.main_txt>a:hover{text-decoration:underline}.main_txt>a:active,.main_txt>a:visited{color:#01579b}</style>
+  {% if is_new %}<div style="background: #feec4d;text-align:center;color:black;padding:4px 0" class="cxs sp">NEW</div>{% endif %}
+  
   {% if topic and show_topic %}
 	{% include "topics/topic_header.html" with topic_header=topic color1=c1 color2=c2 static_url=static_url topic_url=topic_url %}
   {% endif %}

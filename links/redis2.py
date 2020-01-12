@@ -43,6 +43,8 @@ LAST_ACTIVE_ON_HOME = 'laoh:'
 NEW_FOLLOWERS_NOTIF = 'nfn:'
 NO_NEW_FOLLOWERS = 'nnf:'
 
+LAST_ACTIVE_ON_FOR_ME = 'lafm:'
+
 ############################# Retrieving data shown in a user's follower feed #############################
 
 
@@ -665,6 +667,45 @@ def invalidate_following_count(user_id):
 	Deletes the cached 'following count' (star count) attributed to a given user_id
 	"""
 	redis.Redis(connection_pool=POOL).execute_command('UNLINK', FOLLOWING_COUNT+str(user_id))
+
+
+######################################### For me count notif ###########################################
+
+
+def getset_for_me_seen_time(user_id, time_now):
+	"""
+	Setting the moment 'user_id' views their 'for_me' page
+
+	Useful for displaying unseen notification count in the navbar
+	"""
+	key_name = LAST_ACTIVE_ON_FOR_ME+str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	prev_for_me_seen_time = my_server.get(key_name)
+	my_server.setex(key_name,time_now,THREE_MONTHS)
+	if prev_for_me_seen_time:
+		return prev_for_me_seen_time
+	else:
+		return 0.0
+	# redis.Redis(connection_pool=POOL).setex(LAST_ACTIVE_ON_FOR_ME+str(user_id),time_now,THREE_MONTHS)
+
+
+def get_feed_count(user_id):
+	"""
+	Displays a count in the navbar
+	"""
+	user_id = str(user_id)
+	my_server = redis.Redis(connection_pool=POOL)
+	last_seen = my_server.get(LAST_ACTIVE_ON_FOR_ME+user_id)
+	if last_seen:
+		num_posts = my_server.zcount(USER_FEED+user_id,last_seen,'+inf')
+		if num_posts > 99:
+			return '99+'
+		else:
+			return num_posts
+	else:
+		return None
+
+
 
 ######################################### new follower notif ###########################################
 

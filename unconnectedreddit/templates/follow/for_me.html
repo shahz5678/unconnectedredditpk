@@ -39,8 +39,6 @@
 
 <div class="mbl">{% include "follow/follower_count_notif.html" with new_count=new_count last_seen=last_seen|human_time %}</div>
 
-{% include "home_navbar.html" with section='for_me' %}
-
 <a name="shared"></a>
 <div class="mbl fx fxjscn fxaibl">
 	<a href="/" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
@@ -81,7 +79,7 @@
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
 	<a name="section{{ forloop.counter }}"></a>
 
-	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s show_trending=link.tr lazyload_idx=forloop.counter ratio=link.rt ot=link.ot aud=link.aud exp=link.exp %}
+	{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s show_trending=link.tr lazyload_idx=forloop.counter ratio=link.rt ot=link.ot aud=link.aud exp=link.exp is_new=link.new %}
 	
 	<section class="mbl" style="display:block">
 	<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -133,9 +131,9 @@
 	
 {% elif link.ot == 't' %}
 <article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
-	<a name="section{{ forloop.counter  }}"></a>
+	<a name="section{{ forloop.counter }}"></a>
 		<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
-		{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 aud=link.aud exp=link.exp %}
+		{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 aud=link.aud exp=link.exp is_new=link.new %}
 		</section>
 		<section class="mbl" style="display:block">
 		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">

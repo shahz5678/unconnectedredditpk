@@ -1,15 +1,15 @@
 {% if section == 'best' %}
 
 	<div class="fx fxjscn fxaicn">
-		<button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #fbbf00;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#ff9933;font-weight:bold;padding-right:0;padding-left:0"><img src="{{ static_url }}img/fire.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">TRENDING</div></button>
-		<a href="{% url 'photo' 'fresh-list' %}#section0" ><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/stack-cgy.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">LATEST</div></button></a>
+		<button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #3cb7dd;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#229ec3;font-weight:bold;padding-right:0;padding-left:0"><img src="{{ static_url }}img/fire.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">TRENDING</div></button>
+		<a href="{% url 'photo' 'fresh-list' %}#section0" ><button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/stack-cgy.svg" width="15" height="15" class="mt" style="vertical-align:middle"><div class="mts">LATEST</div></button></a>
 	</div>
 
 {% elif section == 'fresh' %}
 
 	<div class="fx fxjscn fxaicn">
 		<a href="{% url 'photo' 'best-list' %}#section0"><button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold;padding-right:0;padding-left:0"><img src="{{ static_url }}img/fire-cgy.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">TRENDING</div></button></a>
-		<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #fbbf00;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#f93;font-weight:bold;background:white"><img src="{{ static_url }}img/stack.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">LATEST</div></button>
+		<button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #3cb7dd;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#229ec3;font-weight:bold;background:white"><img src="{{ static_url }}img/stack.svg" width="15" height="15" style="vertical-align:middle" class="mt"><div class="mts">LATEST</div></button>
 	</div>
 
 {% else %}

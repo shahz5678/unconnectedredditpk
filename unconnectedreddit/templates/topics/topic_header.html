@@ -13,7 +13,7 @@
 	{% if color1 %}
 		<form method="GET" action="{% url 'topic_page' topic_url %}">
 			<input type="hidden" name="rdr" value="1">
-			<button aria-label="enter topic page" style="padding:0;margin:0;border:none;width:100%;background: {{ color1 }};background: -moz-linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);background: -webkit-linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);background: linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);" class="pg_ok_res cm">
+			<button aria-label="enter topic page" style="padding:0;margin:0;border:none;border-radius:0;width:100%;background: {{ color1 }};background: -moz-linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);background: -webkit-linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);background: linear-gradient(45deg, {{ color1 }} 0%, {{ color2 }} 100%);" class="pg_ok_res cm">
 			  <div class="clb bw lsp" style="font-weight:bold;text-align:center;padding:10px 5px;border-bottom:2px solid whitesmoke">
 			  	<img src="{{ static_url }}img/click.svg" width="20" height="20" class="mrs" style="vertical-align:sub">
 			  	<h2 class="mts sp cl" itemprop="headline" style="display:inline;font-weight:bold;color:white;padding:0">{{ topic_header }}</h2>

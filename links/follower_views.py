@@ -17,7 +17,7 @@ from redirection_views import return_to_content
 from direct_response_forms import DirectResponseForm
 from redis3 import is_already_banned, is_mobile_verified
 from page_controls import FOLLOWERS_PER_PAGE, FOLLOWING_PER_PAGE, ITEMS_PER_PAGE
-from views import get_indices, format_post_times, retrieve_user_env, get_addendum
+from views import get_indices, retrieve_user_env, format_post_times, get_addendum
 from redis4 import retrieve_uname, retrieve_user_id, set_text_input_key, retrieve_avurl
 from redis7 import check_content_and_voting_ban, retrieve_obj_feed, retrieve_last_vote_time, retrieve_recent_votes,get_all_image_star_ids,\
 is_image_star, in_defenders
@@ -25,7 +25,7 @@ from redis2 import check_if_follower, add_follower, remove_follower, get_custom_
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
 get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
-logging_remove_data, retrieve_and_cache_new_followers_notif,set_user_last_seen # for loggers
+logging_remove_data, retrieve_and_cache_new_followers_notif, set_user_last_seen, getset_for_me_seen_time # for loggers
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
@@ -84,28 +84,46 @@ def custom_feed_page(request):
 	list_of_dictionaries = retrieve_obj_feed(obj_list, with_colors=True)
 
 	#######################
-	# must be done in this line, since the 't' information is lost subsequently
-	try:
-		oldest_post_time, latest_post_time = list_of_dictionaries[-1]['t'], list_of_dictionaries[0]['t']
-	except:
-		oldest_post_time, latest_post_time = 0.0, 0.0
+	if list_of_dictionaries:
+		
+		# should be done in here, since the 't' information is lost when format_post_times() is run
+		try:
+			oldest_post_time = list_of_dictionaries[-1]['t']
+		except:
+			oldest_post_time = 0.0
 
-	list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
+		#######################
+		
+		if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
+			recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
+			# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
+			recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
+		else:
+			recent_user_voted_obj_hashes = []
+		
+		#######################
+
+		prev_for_me_seen_time = getset_for_me_seen_time(user_id=own_id, time_now=time_now)
+
+		#######################
+
+		for obj in list_of_dictionaries:
+			
+			# enrich objs with information that 'own_id' liked them or not
+			if obj['h'] in recent_user_voted_obj_hashes:
+				obj['v'] = True# user 'liked' this particular object, so mark it
+
+			# enrich objs with 'seen' information 
+			if obj['t'] > float(prev_for_me_seen_time):
+				obj['new'] = True# this obj hasn't been seen by the user previously
+
+		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
 
 	#######################
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
 	on_opera = True if (not on_fbs and not is_js_env) else False
 	
-	#######################
-	# enrich objs with information that 'own_id' liked them or not
-	if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
-		recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
-		# payload in recent_user_votes is voter_id+":"+target_user_id+":"+vote_value+":"+obj_type+":"+target_obj_id
-		recent_user_voted_obj_hashes = set(obj.split(":",3)[-1] for obj in recent_user_votes)
-		for obj in list_of_dictionaries:
-			if obj['h'] in recent_user_voted_obj_hashes:
-				obj['v'] = True# user 'liked' this particular object, so mark it
 	########################
 
 	show_post_removed_prompt = request.session.pop("post_removed"+str(own_id),None)
@@ -1044,7 +1062,7 @@ def export_post_data(request,post_type):
 						if obj_hash_type[0] == 'tx':
 							#writing data taken from redis
 							if data['type'] == 'from my home':
-								to_write = [data['lid'],data2['su'].encode('utf-8'),data2['si'],data['remover_name']encode('utf-8'),data['type'],data['Is_OP'],data2['d'].encode('utf-8'),'NA',data2]# TODO: add relevant column data
+								to_write = [data['lid'],data2['su'].encode('utf-8'),data2['si'],data['remover_name'].encode('utf-8'),data['type'],data['Is_OP'],data2['d'].encode('utf-8'),'NA',data2]# TODO: add relevant column data
 							#writing data taken from Postgresql
 							else:
 								to_write = [data['lid'],data['remover_name'].encode('utf-8'),'OP from '+str(data['orig']),'remover is op = '+str(data['Is_OP']),'from history '+str(data['orig']),data['Is_OP'],data['description'].encode('utf-8'),data['image_file'],data]

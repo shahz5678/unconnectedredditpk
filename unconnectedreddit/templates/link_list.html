@@ -28,13 +28,13 @@
 
 {% endif %}
 
-{% include "home_navbar.html" with section=feed_type %}
+{% include "text_navbar.html" with section=feed_type %}
 
-<div class="mbl fx fxjscn fxaibl">
+<div class="mtl mbl fx fxjscn fxaibl">
 	{% if feed_type == 'best_text' %}
-		<a href="{% url 'best_home_page' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a><h1 class="cxl lsp clb" style="margin:0;display:inline-block">Trending home <span class="cs">(page {{ page.number }})</span>:</h1>
+		<a href="{% url 'best_home_page' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a><h1 class="cxl lsp clb" style="margin:0;display:inline-block">Trending text <span class="cs">(page {{ page.number }})</span>:</h1>
 	{% else %}
-		<a href="{% url 'fresh_text' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a><h1 class="cxl lsp clb" style="margin:0;display:inline-block">Latest home <span class="cs">(page {{ page.number }})</span>:</h1>
+		<a href="{% url 'fresh_text' %}" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a><h1 class="cxl lsp clb" style="margin:0;display:inline-block">Latest text <span class="cs">(page {{ page.number }})</span>:</h1>
 	{% endif %}
 </div>
 

@@ -26,6 +26,8 @@ body {
         {% load google_analytics %}
         {% google_analytics %}
 
+        {% if user.id > 2173960 %}{% include "full_story.html" with user_id=user.id %}{% endif %}
+
 </head>
 
 {% include "header.html" %}

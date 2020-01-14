@@ -21,7 +21,7 @@ from redis7 import check_content_and_voting_ban, invalidate_cached_public_replie
 from redis5 import add_content_to_personal_group, get_personal_group_anon_state, mark_personal_group_attendance, update_personal_group_last_seen,\
 set_uri_metadata_in_personal_group
 from redis6 import retrieve_single_group_submission, save_group_submission, invalidate_cached_mehfil_replies, invalidate_presence,\
-retrieve_group_uuid, populate_reply_mapping#, group_member_exists
+retrieve_group_uuid, populate_reply_mapping, group_member_exists
 from redis9 import retrieve_direct_response_list, delete_single_direct_response, bulk_delete_selective_dir_reps_of_single_user, \
 submit_direct_response, display_recent_reply_locations, retrieve_interacted_unames, remove_direct_response_activity
 

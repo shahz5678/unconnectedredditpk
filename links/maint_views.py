@@ -640,18 +640,33 @@ def rectify_follower_counts(request):
 	Fixing follower counts across the website
 	"""
 	if request.user.username == 'mhb11':
-		fan_ids_and_statuses = UserFan.objects.values_list('fan_id','fan_verification_status')
-		if fan_ids_and_statuses:
-			verified_ids, unverified_ids = set(), set()
-			all_verified_ids = get_global_verified_users()
-			for fan_id, verification_status in fan_ids_and_statuses:
-				if str(fan_id) in all_verified_ids:
-					verified_ids.add(fan_id)
+		if request.method == 'POST':
+			decision = request.POST.get('dec',None)
+			if decision == '2':
+				from redis3 import get_global_unverified_followers
+				verified_follower_ids = set()
+				all_verified_ids = get_global_verified_users()
+				all_unverified_follower_ids = get_global_unverified_followers()
+				for unverified_follower_id in list(all_unverified_follower_ids):
+					if unverified_follower_id in all_verified_ids:
+						verified_follower_ids.add(unverified_follower_id)
+				###############################
+				if verified_follower_ids:
+					UserFan.objects.filter(fan_id__in=list(verified_follower_ids)).update(fan_verification_status='1')
+					return render(request,"score_photo.html",{'problem_fixed':True})
 				else:
-					unverified_ids.add(fan_id)
-			##########################################################
-			if verified_ids:
-				UserFan.objects.filter(fan_id__in=list(verified_ids)).update(fan_verification_status='1')
-			if unverified_ids:
-				UserFan.objects.filter(fan_id__in=list(unverified_ids)).update(fan_verification_status='0')
+					return render(request,"score_photo.html",{'problem_fixed':False})
+			else:
+				pass
+		else:
+			fan_ids_and_statuses = UserFan.objects.values_list('fan_id','fan_verification_status')
+			unverified_fan_ids = set()
+			for fan_id, verification_status in fan_ids_and_statuses:
+				if verification_status == '0':
+					unverified_fan_ids.add(fan_id)
+			if unverified_fan_ids:
+				from redis3 import set_global_unverified_followers
+				set_global_unverified_followers(list(unverified_fan_ids))
+			return render(request,"score_photo.html",{'follower_set_populated':True})
+			
 	raise Http404("Completed ;)")

@@ -41,6 +41,8 @@
 	{% google_analytics %}
 	{% include "ga_user_analytics.html" with my_var=ident %}
 
+	{% if user.id > 2173960 %}{% include "full_story.html" with user_id=ident %}{% endif %}
+
 </head>
 
 <body style="background:#f0f3f4">

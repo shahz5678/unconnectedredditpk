@@ -394,7 +394,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_home_posts': {
 		'task': 'tasks.rank_home_posts',
-		'schedule': timedelta(seconds=2*60), # execute every 2 mins, home post ordering tasks
+		'schedule': timedelta(seconds=600), # execute every 10 mins, home post ordering tasks
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',

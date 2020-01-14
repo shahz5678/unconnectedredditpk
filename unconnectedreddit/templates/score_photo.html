@@ -1,16 +1,19 @@
 {% extends "base.html" %}
-{% load humanize %}
 {% block content %}
-<head><title>Unable to upload public photo | Damadam.pk</title></head>
-<div class="margin">
-Photo laganey ki price <b style="color:red;">3 points</b> hai.<br>Apka score is se kam hai
-<p style="color:gray"><hr size=1></p>
-<h2>Home ke rules:</h2>
-1) Kabhi kisi ko password nahi dein, chahey woh admin hi ho. Asli admins password nahi mangtay. Bewaqquf na banein<br>
-2) Jo baat achi ho, sirf us par jhappi dein<br>
-3) Gali denay ya fahashi phelani waley ko chupair marein<br>
-4) Zaati dushmani zaati mefil mein nikalein<br>
-5) Khawateen (ladies) se badtameezi nahi karein<br>
-6) Jhappi ke liye bheek nahi mangein<br>
+<head><title>Fixing follower count | Damadam</title></head>
+<div style="text-align:center">
+{% if follower_set_populated %}
+	
+	<h1>FOLLOWER SET POPULATED!</h1>
+	
+	<form method="POST" action="{% url 'rectify_follower_counts' %}">
+		{% csrf_token %}
+		<button type="submit" name="dec" class="bcp bxl sp pg_ok_res" style="height:29px;color:white" value="2"><b>NEXT</b></button>
+	</form>
+{% elif problem_fixed %}
+	<h1>PROBLEM SOLVED!</h1>
+{% else %}
+	<h1>PROBLEM COULD NOT BE DETECTED!</h1>
+{% endif %}
 </div><br><br>
 {% endblock %}

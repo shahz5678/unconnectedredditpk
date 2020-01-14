@@ -21,7 +21,7 @@ from redis7 import check_content_and_voting_ban, invalidate_cached_public_replie
 from redis5 import add_content_to_personal_group, get_personal_group_anon_state, mark_personal_group_attendance, update_personal_group_last_seen,\
 set_uri_metadata_in_personal_group
 from redis6 import retrieve_single_group_submission, save_group_submission, invalidate_cached_mehfil_replies, invalidate_presence,\
-retrieve_group_uuid, populate_reply_mapping#, group_member_exists
+retrieve_group_uuid, populate_reply_mapping, group_member_exists
 from redis9 import retrieve_direct_response_list, delete_single_direct_response, bulk_delete_selective_dir_reps_of_single_user, \
 submit_direct_response, display_recent_reply_locations, retrieve_interacted_unames, remove_direct_response_activity
 
@@ -192,7 +192,7 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 			target_text, image_url, group_topic, group_uuid, parent_user_id = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, \
 				parent_obj_id=parent_obj_id, obj_type=obj_type, is_main_reply=False)
 			if group_uuid:
-				obj_exists = True# if group_member_exists(parent_obj_id, own_id) else False
+				obj_exists = True if group_member_exists(parent_obj_id, own_id) else False
 
 	return obj_exists, target_text, parent_uname, parent_text, parent_user_id, topic_name, theme, c1, c2, topic_url, image_url, group_topic, \
 	group_uuid, own_uname, delete_status, expire_at, is_legacy_obj

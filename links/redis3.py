@@ -554,6 +554,20 @@ def set_inter_user_ban(own_id, target_id, target_username, ttl, time_now, can_un
 
 ##########################################Classifieds#################################################
 
+def set_global_unverified_followers(follower_data):
+	"""
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	my_server.sadd('unverified_followers',*follower_data)
+	my_server.expire('unverified_followers',1200)
+
+
+
+def get_global_unverified_followers():
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).smembers('unverified_followers')
+
 
 def save_ad_expiry_or_sms_feedback(ad_id, feedback, which_feedback):
 	my_server = redis.Redis(connection_pool=POOL)

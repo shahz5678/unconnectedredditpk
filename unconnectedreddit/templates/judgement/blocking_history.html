@@ -29,6 +29,7 @@
       {% if prev_page %}
       <div>
         <form style="display:inline" method="GET" action="{% url 'show_blocking_history_of_defenders' %}">
+        <input type="hidden" name="page" value="{{ prev_page }}">
         {% include 'big_buttons/big_prev_button.html' %}
         </form>
       </div>
@@ -36,6 +37,7 @@
       {% if num_items > items_per_page and num_displayed == items_per_page %}
       <div>
         <form style="display:inline" method="GET" action="{% url 'show_blocking_history_of_defenders' %}">
+        <input type="hidden" name="page" value="{{ next_page }}">
         {% include 'big_buttons/big_next_button.html' %}
         </form>
       </div>

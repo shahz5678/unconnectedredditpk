@@ -192,7 +192,7 @@ def retrieve_direct_response_data(obj_type, target_user_id, obj_id, parent_obj_i
 			target_text, image_url, group_topic, group_uuid, parent_user_id = retrieve_target_text(obj_id=obj_id, submitter_id=target_user_id, \
 				parent_obj_id=parent_obj_id, obj_type=obj_type, is_main_reply=False)
 			if group_uuid:
-				obj_exists = True# if group_member_exists(parent_obj_id, own_id) else False
+				obj_exists = True if group_member_exists(parent_obj_id, own_id) else False
 
 	return obj_exists, target_text, parent_uname, parent_text, parent_user_id, topic_name, theme, c1, c2, topic_url, image_url, group_topic, \
 	group_uuid, own_uname, delete_status, expire_at, is_legacy_obj

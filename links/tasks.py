@@ -855,8 +855,6 @@ def extract_trending_obj(obj_hash_names, obj_type='img', with_score=False):
 def rank_home_posts():
 	"""
 	Celery scheduled task used to create a 'best' list of home posts
-	
-	Currently, it's only an internal listing for us to view
 	"""
 	# Step 1) Isolate all fresh text posts (only 'text' - no 'img' type objs)
 	fresh_obj_hashes = retrieve_all_home_text_obj_names()#get_home_feed()

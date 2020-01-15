@@ -26,8 +26,6 @@
 
 {% google_analytics %}
 
-{% if user.id > 2173960 %}{% include "full_story.html" with user_id=user.id %}{% endif %}
-
 </head>
 <body style="position: relative">
 
@@ -38,7 +36,7 @@
 
 {% if user.is_authenticated %}
 	{% load feed_count %}
-    {% check_feed_count as feed_count %}
+    {% check_feed_count False as feed_count %}
 	{% load count %}
     {% check_reply_count as reply_count %}
 	{% load count_priv_invites %}

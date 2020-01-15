@@ -25,7 +25,7 @@ from redis2 import check_if_follower, add_follower, remove_follower, get_custom_
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
 get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
-logging_remove_data, retrieve_and_cache_new_followers_notif, set_user_last_seen, getset_for_me_seen_time # for loggers
+logging_remove_data, retrieve_and_cache_new_followers_notif, set_user_last_seen, get_for_me_seen_time
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
@@ -103,7 +103,7 @@ def custom_feed_page(request):
 		
 		#######################
 
-		prev_for_me_seen_time = getset_for_me_seen_time(user_id=own_id, time_now=time_now)
+		prev_for_me_seen_time = get_for_me_seen_time(user_id=own_id)
 
 		#######################
 

@@ -18,7 +18,7 @@
    	<!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting guys and girls to chat with. Join the fun now!">
+    <meta name="description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting guys and girls to follow. Join the fun now!">
     <meta name="author" content="mhb">
     <meta property="og:site_name" content="Damadam">
     {% if noindex %}
@@ -55,7 +55,7 @@
 {% if authenticated %}
     <!-- bunched HTML removes spaces between li elements -->
     {% load feed_count %}
-    {% check_feed_count as feed_count %}
+    {% check_feed_count False as feed_count %}
 	{% load count %}
 	{% check_reply_count as reply_count %}
     {% load count_priv_invites %}

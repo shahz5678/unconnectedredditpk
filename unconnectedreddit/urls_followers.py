@@ -10,8 +10,8 @@ admin.autodiscover()
 urlpatterns = patterns('',
 
 	####################### Display feed #######################
-	url(r'^$', auth(custom_feed_page), name='home'),
 	url(r'^$', auth(custom_feed_page), name='for_me'),
+	url(r'^$', auth(custom_feed_page), name='home'),
 	####################### Remove post ########################
 	url(r'^for-me/remove-single-post/$', auth(remove_single_post), name='remove_post'),
 	####################### Redirects #######################

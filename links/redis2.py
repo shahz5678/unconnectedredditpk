@@ -683,7 +683,11 @@ def get_for_me_seen_time(user_id):
 	"""
 	Retrieve time "for_me" was last seen
 	"""
-	return redis.Redis(connection_pool=POOL).get(LAST_ACTIVE_ON_FOR_ME+str(user_id))
+	seen_time = redis.Redis(connection_pool=POOL).get(LAST_ACTIVE_ON_FOR_ME+str(user_id))
+	if seen_time:
+		return seen_time
+	else:
+		return 0.0
 
 
 def get_feed_count(user_id):

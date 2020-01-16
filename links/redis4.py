@@ -352,6 +352,13 @@ def cache_image_count(num_images,list_type):
 ######################################### Storing hell-banned users ############################################
 
 
+def remove_from_hell(target_id):
+	"""
+	Removes a user's hell-ban
+	"""
+	redis.Redis(connection_pool=POOL).srem('hell_banned',target_id)
+
+
 def add_to_hell(target_id):
 	"""
 	Adds a user to the hell-ban list

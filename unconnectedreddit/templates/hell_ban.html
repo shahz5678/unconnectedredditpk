@@ -1,9 +1,20 @@
 {% extends "base_noindex.html" %}
 {% block content %}
-<head><title>Hell ban user(s) | Damadam</title></head>
+<head><title>Ghost ban user(s) | Damadam</title></head>
 <div class="margin clb">
 
-{% if offline %}
+{% if remove %}
+
+	<span class="cxl">Do you want to remove <b class="ct">{{ target_uname }}</b> from the ghost-ban list?</span><br>
+	{% if banned %}<span class="cs cr"><b>(currently ghost-banned)</b></span><br><br>{% else %}<span class="cs cgy"><b>(not currently ghost-banned)</b></span><br><br>{% endif %}
+	<form method="POST" action="{% url 'remove_hell_ban' %}">
+		{% csrf_token %}<input type="hidden" name="dec" value="1">
+		<button class="btn bcr bl mtl mbl" name="t_id" value="{{ t_id }}" type="submit" style="height:28px">Yes</button><br>
+	</form>
+	
+	<form method="POST" action="{% url 'manage_user' %}">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ t_id }}"><button class="btn bcgy bl bts mts mbs" type="submit" style="height:28px">No</button></form><br>
+
+{% elif offline %}
 	
 	<span class="cxl"><b class="ct">{{ original_target_uname }}</b> doesn't seem to be online right now</span><br>
 	{% if banned %}<span class="cs cr"><b>(already ghost-banned)</b></span><br><br>{% endif %}

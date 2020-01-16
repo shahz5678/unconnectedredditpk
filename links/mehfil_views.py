@@ -3235,7 +3235,9 @@ class PrivateGroupView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(PrivateGroupView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
+		if self.request.user_banned:
+			raise Http404("Mehfil unviewable for hell-banned users")
+		elif self.request.user.is_authenticated():
 			user_id = self.request.user.id
 			unique = self.request.session.get('unique_id',None)
 			data = retrieve_group_reqd_data(group_uuid=unique,requestor_id=user_id)#group privacy, group_id, group_topic, group_owner_id (optional), 'pics'(optional)
@@ -3492,7 +3494,9 @@ class PublicGroupView(FormView):
 
 	def get_context_data(self, **kwargs):
 		context = super(PublicGroupView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
+		if self.request.user_banned:
+			raise Http404("Mehfil unviewable for hell-banned users")
+		elif self.request.user.is_authenticated():
 			user_id = self.request.user.id
 			unique = self.request.session.get("public_uuid",None)
 			#####################

@@ -7,7 +7,7 @@ from datetime import datetime
 from utilities import convert_to_epoch
 from django.contrib.auth.models import User
 from location import REDLOC4
-from models import UserProfile, Link, Photo
+from models import UserProfile, Link, Photo, HellBanList
 from score import BAN_REASON, RATELIMIT_TTL, SUPER_FLOODING_THRESHOLD, FLOODING_THRESHOLD, LAZY_FLOODING_THRESHOLD, SHORT_MESSAGES_ALWD, \
 SHARED_PHOTOS_CEILING, PHOTO_DELETION_BUFFER, NUM_SUBMISSION_ALLWD_PER_DAY, CONTENT_SHARING_SHORT_RATELIMIT, CONTENT_SHARING_LONG_RATELIMIT
 
@@ -349,37 +349,50 @@ def cache_image_count(num_images,list_type):
 	redis.Redis(connection_pool=POOL).setex("cic:"+list_type,num_images,TWENTY_MINS)
 
 
-######################################### Log direct repsonse rate ############################################
-#TODO: temp logger - needs to be removed
+######################################### Storing hell-banned users ############################################
 
 
-# def log_replier_reply_rate(replier_id, text, time_now, target_id, marked_fast, rate_limited):
-# 	"""
-# 	Temporarily logging messges under posts
-# 	"""
-# 	redis.Redis(connection_pool=POOL).zadd(REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+marked_fast+":"+rate_limited,replier_id)
+def remove_from_hell(target_id):
+	"""
+	Removes a user's hell-ban
+	"""
+	redis.Redis(connection_pool=POOL).srem('hell_banned',target_id)
 
 
-# def log_mehfil_replier_reply_rate(replier_id, text, time_now, target_id, mehfil_type):
-# 	"""
-# 	Temporarily logging messges in mehfils
-# 	"""
-# 	redis.Redis(connection_pool=POOL).zadd(MEHFIL_REPLY_RATE,str(time_now)+":"+text+":"+str(target_id)+":"+mehfil_type,replier_id)
+def add_to_hell(target_id):
+	"""
+	Adds a user to the hell-ban list
+	"""
+	redis.Redis(connection_pool=POOL).sadd('hell_banned',target_id)
 
 
-# def retrieve_replier_rate():
-# 	"""
-# 	Retrieves logged data
-# 	"""
-# 	return redis.Redis(connection_pool=POOL).zrange(REPLY_RATE,0,-1,withscores=True)
+def add_to_hell_ban_in_bulk(target_ids):
+	"""
+	Adds multiple users into the hell-ban lisst
+	"""
+	if target_ids:
+		redis.Redis(connection_pool=POOL).sadd('hell_banned',*target_ids)
 
 
-# def retrieve_mehfil_replier_rate():
-# 	"""
-# 	Retrieves logged data
-# 	"""
-# 	return redis.Redis(connection_pool=POOL).zrange('meh_reply_rate',0,-1,withscores=True)
+def is_user_hell_banned(target_id):
+	"""
+	Checking whether a given user is hell_banned
+	"""
+	return redis.Redis(connection_pool=POOL).sismember('hell_banned',target_id)
 
+
+def recreate_hell_banned_list(my_server=None):
+	"""
+	Helper function that recreates 'hell_banned' list in redis
+
+	Run via a scheduled task every week
+	"""
+	hell_banned_ids = HellBanList.objects.values_list('condemned_id',flat=True)
+	if hell_banned_ids:
+		my_server = my_server if my_server else redis.Redis(connection_pool=POOL)
+		my_server.delete('hell_banned')
+		my_server.sadd('hell_banned',*hell_banned_ids)
+		my_server.expire('hell_banned',TWO_WEEKS)
 
 
 ######################## Rate limiting content sharing on feeds ########################

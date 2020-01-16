@@ -64,7 +64,8 @@ ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, Ho
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, cache_image_count,cache_online_data,\
 retrieve_online_cached_data, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
-cache_photo_dim, retrieve_bulk_unames, set_attribute_change_rate_limit,retrieve_image_count#, log_public_img
+cache_photo_dim, retrieve_bulk_unames, set_attribute_change_rate_limit,retrieve_image_count, add_to_hell, add_to_hell_ban_in_bulk,\
+is_user_hell_banned, remove_from_hell#, log_public_img
 from redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, set_user_choice, get_banned_users_count,\
 log_text_submissions, del_search_history, tutorial_unseen, is_mobile_verified, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, is_already_banned, \
@@ -334,12 +335,6 @@ def valid_passcode(user,num):
 		else:
 			return True
 
-def add_to_ban(user_id):
-	if HellBanList.objects.filter(condemned_id=user_id).exists():
-		pass
-	else:
-		HellBanList.objects.create(condemned_id=user_id)
-		UserProfile.objects.filter(user_id=user_id).update(score=random.randint(10,71))
 
 def valid_uuid(uuid):
 	if not uuid:
@@ -3815,9 +3810,38 @@ def welcome_reply(request,*args,**kwargs):
 
 ######################## HELL BANNING FUNCTIONALITY ########################
 
+@csrf_protect
+def remove_hell_ban(request):
+	"""
+	Removes a user's ID from the hell-ban-list
+	"""
+	if request.method == "POST":
+		target_id = request.POST.get("t_id",None)
+		is_defender, is_super_defender = in_defenders(request.user.id, return_super_status=True)
+		if is_defender:
+			decision = request.POST.get('dec',None)
+			if decision == '1':
+				if target_id:
+					if HellBanList.objects.filter(condemned_id=target_id).exists():
+						HellBanList.objects.filter(condemned_id=target_id).delete()
+						remove_from_hell(target_id)
+					return redirect("user_profile",retrieve_uname(target_id,decode=True))
+				else:
+					raise Http404("No target_id exists")
+			else:
+				return render(request,"hell_ban.html",{'remove':True,'t_id':target_id,'target_uname':retrieve_uname(target_id,decode=True),\
+					'own_id':request.user.id,'banned':is_user_hell_banned(target_id)})
+		else:
+			raise Http404("This can't be accessed")
+	else:
+		raise Http404("This can't be accessed")
+
 
 @csrf_protect
 def hell_ban(request,*args,**kwargs):
+	"""
+	Hell-bans a perp
+	"""
 	if request.method == "POST":
 		ghost_ban = request.POST.get("ghost_ban","")
 		if ghost_ban:
@@ -3830,7 +3854,9 @@ def hell_ban(request,*args,**kwargs):
 					HellBanList.objects.create(condemned_id=target)
 				else:
 					HellBanList.objects.create(condemned_id=target)
-				return redirect("profile",username,'fotos')
+				######### populating the hell-ban in redis as well #########
+				add_to_hell(target_id=target)
+				return redirect("user_profile",username)
 			else:
 				try:
 					counter = int(counter)
@@ -3847,9 +3873,10 @@ def hell_ban(request,*args,**kwargs):
 						for target_id in target_ids:
 							hellbanned.append(HellBanList(condemned_id=target_id))
 						HellBanList.objects.bulk_create(hellbanned)
-						return redirect("profile",username,'fotos')
+						add_to_hell_ban_in_bulk(target_ids)
+						return redirect("user_profile",username)
 					else:
-						return redirect("profile",username,'fotos')
+						return redirect("user_profile",username)
 				except:
 					return redirect('for_me')
 		else:
@@ -3898,7 +3925,8 @@ def hell_ban(request,*args,**kwargs):
 				'original_target_uname':target_username}
 				return render(request,'hell_ban.html',context)
 	else:
-		return render(request,"404.html",{})
+		raise Http404("This can't be accessed")
+
 
 @csrf_protect
 def show_clones(request,*args,**kwargs):
@@ -3916,7 +3944,8 @@ def show_clones(request,*args,**kwargs):
 			'own_id':request.user.id}
 			return render(request,"show_clones.html",context)
 	else:
-		return render(request,"404.html",{})
+		raise Http404("This can't be accessed")
+
 
 @csrf_protect
 def kick_ban_user(request,*args,**kwargs):
@@ -3929,7 +3958,7 @@ def kick_ban_user(request,*args,**kwargs):
 				target = request.POST.get("target1","")
 				Session.objects.filter(user_id=target).delete()
 				# BAN IP or USER_ID or BOTH?
-				return redirect("profile",username,'fotos')
+				return redirect("user_profile",username)
 			else:
 				try:
 					counter = int(counter)
@@ -3941,7 +3970,7 @@ def kick_ban_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",username,'fotos')
+					return redirect("user_profile",username)
 				except:
 					return redirect('for_me')
 		else:
@@ -3968,7 +3997,8 @@ def kick_ban_user(request,*args,**kwargs):
 				'own_id':request.user.id}
 				return render(request,'kick_ban_user.html',context)
 	else:
-		return render(request,"404.html",{})
+		raise Http404("This can't be accessed")
+
 
 @csrf_protect
 def kick_user(request,*args,**kwargs):
@@ -3980,7 +4010,7 @@ def kick_user(request,*args,**kwargs):
 			if counter == '1':
 				target = request.POST.get("target1","")
 				Session.objects.filter(user_id=target).delete()
-				return redirect("profile",username,'fotos')
+				return redirect("user_profile",username)
 			else:
 				try:
 					counter = int(counter)
@@ -3992,7 +4022,7 @@ def kick_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",username,'fotos')
+					return redirect("user_profile",username)
 				except:
 					return redirect('for_me')
 		else:
@@ -4019,7 +4049,8 @@ def kick_user(request,*args,**kwargs):
 				'original_target_uname':target_username}
 				return render(request,'kick_user.html',context)
 	else:
-		return render(request,"404.html",{})
+		raise Http404("This can't be accessed")
+
 
 @csrf_protect
 def cut_user_score(request,*args,**kwargs):
@@ -4029,7 +4060,7 @@ def cut_user_score(request,*args,**kwargs):
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
 			UserProfile.objects.filter(user_id=target_id).update(score=F('score')-int(penalty))
-			return redirect("profile",target_username,'fotos')
+			return redirect("user_profile",target_username)
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
@@ -4042,7 +4073,8 @@ def cut_user_score(request,*args,**kwargs):
 			'penalty1':penalty1,'penalty2':penalty2,'penalty3':penalty3,'penalty4':penalty4,'t_id':target_id}
 			return render(request,'cut_user_score.html',context)
 	else:
-		return render(request,"404.html",{})
+		raise Http404("This can't be accessed")
+
 
 @csrf_protect   
 def manage_user(request,*args,**kwargs):
@@ -4055,9 +4087,10 @@ def manage_user(request,*args,**kwargs):
 			context={'target_uname':target.username,'target_id':target_id}
 			return render(request,"manage_user.html",context)
 		else:
-			return render(request,"404.html",{})    
+			raise Http404("This can't be accessed")   
 	else:
-		return render(request,"404.html",{})
+		raise Http404("This can't be accessed")
+
 
 @csrf_protect    
 def manage_user_help(request,*args,**kwargs):
@@ -4084,9 +4117,9 @@ def manage_user_help(request,*args,**kwargs):
 		elif help_type == 'vhist':
 			return render(request,'check_voting_hist.html',context)
 		else:
-			return render(request,"404.html",{})    
+			raise Http404("This can't be accessed")   
 	else:
-		return render(request,"404.html",{})
+		raise Http404("This can't be accessed")
 
 
 def missing_page(request,*args,**kwargs):

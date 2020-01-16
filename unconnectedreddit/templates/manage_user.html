@@ -23,6 +23,10 @@
 <form method="POST" action="{% url 'hell_ban' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:tomato;height:38px;border:1px solid tomato">Ghost Ban</button></form>&nbsp;
 
 <form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="ghban" class="btn bcr cs bxs mll">?</button></form><br>
+<!-- Remove ghost Ban -->
+<form method="POST" action="{% url 'remove_hell_ban' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:tomato;height:38px;border:1px solid tomato">Remove Ghost Ban</button></form>&nbsp;
+
+<form method="POST" action="{% url 'manage_user_help' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" name="htype" value="ghban" class="btn bcr cs bxs mll">?</button></form><br>
 <!-- Check Clones -->
 <form method="POST" action="{% url 'show_clones' %}" style="display:inline">{% csrf_token %}<input type="hidden" name="t_uname" value="{{ target_uname }}"><input type="hidden" name="t_id" value="{{ target_id }}"><button type="submit" class="vt btn bxl mtl" style="color:darkorange;height:38px;border:1px solid darkorange">Check IP Clones</button></form>&nbsp;
 

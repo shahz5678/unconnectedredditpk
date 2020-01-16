@@ -672,21 +672,22 @@ def invalidate_following_count(user_id):
 ######################################### For me count notif ###########################################
 
 
-def getset_for_me_seen_time(user_id, time_now):
+def set_for_me_seen_time(user_id, time_now):
 	"""
-	Setting the moment 'user_id' views their 'for_me' page
+	Set time "for_me" is seen
+	"""
+	redis.Redis(connection_pool=POOL).setex(LAST_ACTIVE_ON_FOR_ME+str(user_id),time_now,THREE_MONTHS)
 
-	Useful for displaying unseen notification count in the navbar
+
+def get_for_me_seen_time(user_id):
 	"""
-	key_name = LAST_ACTIVE_ON_FOR_ME+str(user_id)
-	my_server = redis.Redis(connection_pool=POOL)
-	prev_for_me_seen_time = my_server.get(key_name)
-	my_server.setex(key_name,time_now,THREE_MONTHS)
-	if prev_for_me_seen_time:
-		return prev_for_me_seen_time
+	Retrieve time "for_me" was last seen
+	"""
+	seen_time = redis.Redis(connection_pool=POOL).get(LAST_ACTIVE_ON_FOR_ME+str(user_id))
+	if seen_time:
+		return seen_time
 	else:
 		return 0.0
-	# redis.Redis(connection_pool=POOL).setex(LAST_ACTIVE_ON_FOR_ME+str(user_id),time_now,THREE_MONTHS)
 
 
 def get_feed_count(user_id):
@@ -704,7 +705,6 @@ def get_feed_count(user_id):
 			return num_posts
 	else:
 		return None
-
 
 
 ######################################### new follower notif ###########################################

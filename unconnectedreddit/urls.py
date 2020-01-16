@@ -27,10 +27,10 @@ link_create_pk, welcome_pk, sitemap, show_online_users,perm_redirect_to_home, lo
 home_page, home_redirect,best_home_redirect, best_photos_list, fresh_photos_list, see_special_photo_pk, special_photo, display_link_detail,\
 submit_text_post, display_image_comments, profile_pk, faces_pages, error, share_content, sharing_help, photo_sitemap, \
 hide_comment, photo_sitemap_of_sitemaps, top_photo_help, reset_password, content_detail_view, display_text_comments, \
-manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, kick_ban_user,photo_top_trenders,\
+manage_user, manage_user_help, cut_user_score, kick_user, show_clones, hell_ban, remove_hell_ban,photo_top_trenders,\
 user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect,upload_public_photo, website_rules,\
 redirect_to_profile_photos,public_photo_upload_denied, user_profile_photos_redirect, display_old_image_comments, \
-content_sitemap_of_sitemaps, private_or_expired, photo_detail_view, content_sitemap
+content_sitemap_of_sitemaps, private_or_expired, photo_detail_view, content_sitemap, kick_ban_user
 from links.redirection_views import redirect_to_content
 from links.number_verification import verify_user_number
 from links.views import FacesHelpView, UserActivityView, PhotostreamView, DeviceHelpView, PicHelpView, PhotoJawabView, \
@@ -204,7 +204,8 @@ urlpatterns = patterns('',
 	url(r'^kick_user/$', auth(kick_user),name='kick_user'),
 	url(r'^kick_ban_user/$', auth(kick_ban_user),name='kick_ban_user'),
 	url(r'^show_clones/$', auth(show_clones),name='show_clones'),
-	url(r'^hell_ban/$', auth(hell_ban),name='hell_ban'),
+	url(r'^hell-ban/add/$', auth(hell_ban),name='hell_ban'),
+	url(r'^hell-ban/remove/$', auth(remove_hell_ban),name='remove_hell_ban'),
 	# url(r'^survey/answers/$', auth(survey),name='survey'),
 	url(r'^survey/export/$', auth(export_survey_results), name='export_survey_results'),
 	url(r'^announcement/new/$', auth(coming_soon), name='coming_soon'),

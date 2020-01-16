@@ -16,7 +16,7 @@ body {
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noindex">
-        <meta name="description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting people to chat with. Join the fun now!">
+        <meta name="description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting people to follow. Join the fun now!">
         <meta name="author" content="mhb">
         <title>Page not found! | Damadam</title>
         <meta property="og:site_name" content="Damadam.pk">
@@ -25,8 +25,6 @@ body {
         
         {% load google_analytics %}
         {% google_analytics %}
-
-        {% if user.id > 2173960 %}{% include "full_story.html" with user_id=user.id %}{% endif %}
 
 </head>
 

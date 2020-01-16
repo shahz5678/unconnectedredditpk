@@ -28,7 +28,7 @@ personal_group_hard_deletion, exited_personal_group_hard_deletion, update_person
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_share, logging_sharing_metrics, cache_photo_share_data, \
-retrieve_bulk_unames, save_most_recent_online_users,sanitize_unused_subscriptions,log_1on1_chat#, log_replier_reply_rate
+retrieve_bulk_unames, save_most_recent_online_users,sanitize_unused_subscriptions,log_1on1_chat, recreate_hell_banned_list#, log_replier_reply_rate
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
 log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
 retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group
@@ -422,11 +422,11 @@ def set_user_binding_with_twilio_notify_service(user_id,phone_number):
 	bind_user_to_twilio_notify_service(user_id,phone_number)
 
 
-# execute every 55 mins
+# execute once a week
 @celery_app1.task(name='tasks.expire_classifieds')
 def expire_classifieds():
 	"""
-	Run once a week
+	Runs once a week - reconstructs the hell-banned list in redis from the DB
 
 	Mislabeled due to legacy reasons
 	"""
@@ -1036,3 +1036,6 @@ def post_to_followers(own_id,obj_hash,time_now,expire_at,follower_list):
 
 #############################################################################################################################
 #############################################################################################################################
+
+obj1 = locals()['expire_classifieds']# this recreated the hell-banned list in redis from the DB (upon startup)
+obj1.run()

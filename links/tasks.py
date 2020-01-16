@@ -425,7 +425,12 @@ def set_user_binding_with_twilio_notify_service(user_id,phone_number):
 # execute every 55 mins
 @celery_app1.task(name='tasks.expire_classifieds')
 def expire_classifieds():
-	pass
+	"""
+	Run once a week
+
+	Mislabeled due to legacy reasons
+	"""
+	recreate_hell_banned_list()
 
 
 # execute every 2 days

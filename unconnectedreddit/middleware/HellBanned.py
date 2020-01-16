@@ -1,5 +1,4 @@
 from links.redis4 import is_user_hell_banned
-# from links.models import HellBanList
 
 class HellBannedMiddleware(object):
 

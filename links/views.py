@@ -64,7 +64,7 @@ ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, Ho
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, cache_image_count,cache_online_data,\
 retrieve_online_cached_data, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
-cache_photo_dim, retrieve_bulk_unames, set_attribute_change_rate_limit,retrieve_image_count#, log_public_img
+cache_photo_dim, retrieve_bulk_unames, set_attribute_change_rate_limit,retrieve_image_count, add_to_hell#, log_public_img
 from redis3 import insert_nick_list, get_nick_likeness, find_nickname, get_search_history, set_user_choice, get_banned_users_count,\
 log_text_submissions, del_search_history, tutorial_unseen, is_mobile_verified, get_temp_id, save_advertiser, get_advertisers, \
 purge_advertisers, get_gibberish_punishment_amount, export_advertisers, temporarily_save_user_csrf, is_already_banned, \
@@ -334,12 +334,6 @@ def valid_passcode(user,num):
 		else:
 			return True
 
-def add_to_ban(user_id):
-	if HellBanList.objects.filter(condemned_id=user_id).exists():
-		pass
-	else:
-		HellBanList.objects.create(condemned_id=user_id)
-		UserProfile.objects.filter(user_id=user_id).update(score=random.randint(10,71))
 
 def valid_uuid(uuid):
 	if not uuid:
@@ -3818,6 +3812,9 @@ def welcome_reply(request,*args,**kwargs):
 
 @csrf_protect
 def hell_ban(request,*args,**kwargs):
+	"""
+	Hell-bans a perp
+	"""
 	if request.method == "POST":
 		ghost_ban = request.POST.get("ghost_ban","")
 		if ghost_ban:
@@ -3830,7 +3827,9 @@ def hell_ban(request,*args,**kwargs):
 					HellBanList.objects.create(condemned_id=target)
 				else:
 					HellBanList.objects.create(condemned_id=target)
-				return redirect("profile",username,'fotos')
+				######### populating the hell-ban in redis as well
+				add_to_hell(target_id=target)
+				return redirect("user_profile",username)
 			else:
 				try:
 					counter = int(counter)
@@ -3899,6 +3898,7 @@ def hell_ban(request,*args,**kwargs):
 				return render(request,'hell_ban.html',context)
 	else:
 		return render(request,"404.html",{})
+
 
 @csrf_protect
 def show_clones(request,*args,**kwargs):

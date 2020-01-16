@@ -3827,7 +3827,7 @@ def hell_ban(request,*args,**kwargs):
 					HellBanList.objects.create(condemned_id=target)
 				else:
 					HellBanList.objects.create(condemned_id=target)
-				######### populating the hell-ban in redis as well
+				######### populating the hell-ban in redis as well #########
 				add_to_hell(target_id=target)
 				return redirect("user_profile",username)
 			else:
@@ -3846,9 +3846,10 @@ def hell_ban(request,*args,**kwargs):
 						for target_id in target_ids:
 							hellbanned.append(HellBanList(condemned_id=target_id))
 						HellBanList.objects.bulk_create(hellbanned)
-						return redirect("profile",username,'fotos')
+						add_to_hell_ban_in_bulk(target_ids)
+						return redirect("user_profile",username)
 					else:
-						return redirect("profile",username,'fotos')
+						return redirect("user_profile",username)
 				except:
 					return redirect('for_me')
 		else:
@@ -3929,7 +3930,7 @@ def kick_ban_user(request,*args,**kwargs):
 				target = request.POST.get("target1","")
 				Session.objects.filter(user_id=target).delete()
 				# BAN IP or USER_ID or BOTH?
-				return redirect("profile",username,'fotos')
+				return redirect("user_profile",username)
 			else:
 				try:
 					counter = int(counter)
@@ -3941,7 +3942,7 @@ def kick_ban_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",username,'fotos')
+					return redirect("user_profile",username)
 				except:
 					return redirect('for_me')
 		else:
@@ -3980,7 +3981,7 @@ def kick_user(request,*args,**kwargs):
 			if counter == '1':
 				target = request.POST.get("target1","")
 				Session.objects.filter(user_id=target).delete()
-				return redirect("profile",username,'fotos')
+				return redirect("user_profile",username)
 			else:
 				try:
 					counter = int(counter)
@@ -3992,7 +3993,7 @@ def kick_user(request,*args,**kwargs):
 							target_ids.append(target_id)
 						temp += 1
 					Session.objects.filter(user_id__in=target_ids).delete()
-					return redirect("profile",username,'fotos')
+					return redirect("user_profile",username)
 				except:
 					return redirect('for_me')
 		else:
@@ -4029,7 +4030,7 @@ def cut_user_score(request,*args,**kwargs):
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
 			UserProfile.objects.filter(user_id=target_id).update(score=F('score')-int(penalty))
-			return redirect("profile",target_username,'fotos')
+			return redirect("user_profile",target_username)
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")

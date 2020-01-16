@@ -356,8 +356,7 @@ def is_user_hell_banned(target_id):
 	"""
 	Checking whether a given user is hell_banned
 	"""
-	exists = True if redis.Redis(connection_pool=POOL).sismember('hell_banned',target_id) else False
-	return exists
+	return redis.Redis(connection_pool=POOL).sismember('hell_banned',target_id)
 
 
 def recreate_hell_banned_list(my_server=None):

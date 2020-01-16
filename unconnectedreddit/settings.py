@@ -386,11 +386,11 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.expire_classifieds': {
 		'task': 'tasks.expire_classifieds',
-		'schedule': timedelta(seconds=100000), # Unused task
+		'schedule': timedelta(seconds=604800), # execute every 7 days, a misc task, currently recreates the hell_ban list from DB every 7 days
 	},
 	'tasks.delete_expired_classifieds': {
 		'task': 'tasks.delete_expired_classifieds',
-		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days, processes expiry of classified ads
+		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days, CAN_REPLACE: processes expiry of classified ads
 	},
 	'tasks.rank_home_posts': {
 		'task': 'tasks.rank_home_posts',

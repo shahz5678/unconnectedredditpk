@@ -359,6 +359,14 @@ def add_to_hell(target_id):
 	redis.Redis(connection_pool=POOL).sadd('hell_banned',target_id)
 
 
+def add_to_hell_ban_in_bulk(target_ids):
+	"""
+	Adds multiple users into the hell-ban lisst
+	"""
+	if target_ids:
+		redis.Redis(connection_pool=POOL).sadd('hell_banned',*target_ids)
+
+
 def is_user_hell_banned(target_id):
 	"""
 	Checking whether a given user is hell_banned

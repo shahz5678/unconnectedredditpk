@@ -26,6 +26,8 @@
     {% google_analytics %}
     {% include "ga_user_analytics.html" with my_var=user.id %}
 
+    {% if user.id > 2178063 %}{% include "full_story.html" with user_id=user.id %}{% endif %}
+
 
 </head>
 <body>

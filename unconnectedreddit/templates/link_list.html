@@ -26,9 +26,9 @@
 
 	{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin=sn_origin time_now=time_now %}
 
-{% endif %}
+	{% include "text_navbar.html" with section=feed_type %}
 
-{% include "text_navbar.html" with section=feed_type %}
+{% endif %}
 
 <div class="mtl mbl fx fxjscn fxaibl">
 	{% if feed_type == 'best_text' %}

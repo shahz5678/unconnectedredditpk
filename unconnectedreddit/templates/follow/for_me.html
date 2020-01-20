@@ -27,6 +27,9 @@
 
 	{% google_analytics %}
 	{% include "ga_user_analytics.html" with my_var=user.id %}
+
+	{% if user.id > 2178063 %}{% include "full_story.html" with user_id=user.id %}{% endif %}
+
 </head>
 
 <body style="background:#f0f3f4">
@@ -35,16 +38,22 @@
 <ul class="navbar">
 
 {% if user.is_authenticated %}
-    {% load feed_count %}
-    {% check_feed_count True as feed_count %}
-    {% load count %}
-    {% check_reply_count as reply_count %}
-    {% load count_priv_invites %}
-    {% check_invite_count as invite_count %}
-    {% load count_group_invites %}
-    {% check_group_invite_count as group_invite_count %}
-    <!-- bunched HTML removes spaces between <li> elements -->
-    <li>{% if feed_count %}<a href="/">For Me<span style="color:mediumblue"> ({{ feed_count }})</span></a>{% else %}<a href="/">For Me</a>{% endif %}</li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li>{% if reply_count %}<a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox<span style="color:mediumblue"> ({{ reply_count }})</span></a>{% else %}<a class="sharing" href="{% url 'retrieve_direct_response_activity' %}#section0">Inbox</a>{% endif %}</li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'topic_listing' %}">Topics</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+	{% if request.mobile_verified %}
+	    {% load feed_count %}
+	    {% check_feed_count True as feed_count %}
+	    {% load count %}
+	    {% check_reply_count as reply_count %}
+	    {% load count_priv_invites %}
+	    {% check_invite_count as invite_count %}
+	    {% load count_group_invites %}
+	    {% check_group_invite_count as group_invite_count %}
+	    <!-- bunched HTML removes spaces between <li> elements -->
+	    <li>{% if feed_count %}<a href="/">For Me<span style="color:mediumblue"> ({{ feed_count }})</span></a>{% else %}<a href="/">For Me</a>{% endif %}</li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li>{% if reply_count %}<a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox<span style="color:mediumblue"> ({{ reply_count }})</span></a>{% else %}<a class="sharing" href="{% url 'retrieve_direct_response_activity' %}#section0">Inbox</a>{% endif %}</li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'topic_listing' %}">Topics</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+	{% else %}
+		{% load feed_count %}
+	    {% check_feed_count True as feed_count %}
+		<li>{% if feed_count %}<a href="/">For Me<span style="color:mediumblue"> ({{ feed_count }})</span></a>{% else %}<a href="/">For Me</a>{% endif %}</li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+	{% endif %}
 {% else %}
     <li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 {% endif %}
@@ -80,10 +89,14 @@
 	{% endif %}
 
 	{% if newbie_flag %}
+		<div class="mtl">
 		{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='26' %}
+		</div>
 	{% else %}
+		<div class="mtl">
 		{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 		{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin='26' time_now=time_now %}
+		</div>
 	{% endif %}
 
 	<div class="mbl">{% include "follow/follower_count_notif.html" with new_count=new_count last_seen=last_seen|human_time %}</div>

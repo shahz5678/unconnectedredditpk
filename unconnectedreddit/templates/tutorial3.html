@@ -10,17 +10,17 @@
 			</a>
 		</div>
 
-		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0"><bdo dir="rtl">وہ کیسے؟</bdo></div>
+		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0"><bdo dir="rtl">کیسے؟</bdo></div>
 	
 		<div style="padding:10px 8px;background-color:#fff169">
 
 			<div class="mbl mt fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl"><bdo dir="ltr">'Follow'</bdo> کریں مزیدار پوسٹس کرنے والوں کو</bdo></div>
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">دمادم پے مزیدار پوسٹس لگتی ہیں</bdo></div>
 				<div style="font-size:60px;font-weight:bold;color:#99ccff;padding:0px 8px 0 16px">1</div>
 			</div>
 
 			<div class="mbl fx fxaicn" style="justify-content: flex-end">
-				<div class="cl lsp" style="text-align:right"><bdo dir="rtl"><bdo dir="ltr">'Follow'</bdo> کرنے کے بعد انکی تمام پوسٹس آپکو <bdo dir="ltr">'For Me'</bdo> میں نظر آیں گی</bdo></div>
+				<div class="cl lsp" style="text-align:right"><bdo dir="rtl">ان میں سے بہترین پوسٹس کرنے والے یوزرز کو <bdo dir="ltr">'Follow'</bdo> کریں</div>
 				<div style="font-size:60px;font-weight:bold;color:#ffb3d1;padding:0px 8px 0 16px">2</div>
 			</div>
 
@@ -36,6 +36,14 @@
 			</div>
 		</div>
 
+		<div class="cxl lsp" style="padding:15px 8px 10px 8px">
+		<bdo dir="rtl">اگر پوسٹس پے <bdo dir="ltr">'Reply'</bdo> کرنا ہو تو اکاؤنٹ <bdo dir="ltr">'verify'</bdo> کروایں:</bdo>
+		</div>
+		
+		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
+			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;YOUR&nbsp;ACCOUNT</b></button>
+		</a>
+
 	</div>
 
 {% else %}
@@ -50,32 +58,40 @@
 			</a>
 		</div>
 
-		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0">Woh kaisey?</div>
+		<div class="cxl lsp" style="padding:0 8px 15px 8px;margin-bottom:0">Kaisey?</div>
 	
 		<div style="padding:10px 8px;background-color:#fff169">
 
 			<div class="mt fx fxjsfs fxaicn">
 				<div style="font-size:60px;font-weight:bold;color:#99ccff;padding:0px 16px 0 8px">1</div>
-				<div class="cl lsp" style="text-align:left">'Follow' karein mazedar posts karney waloon ko</div>
+				<div class="cl lsp" style="text-align:left">Damadam pe mazedar posts share hoti hain</div>
 			</div>
 
 			<div class="fx fxjsfs fxaicn">
 				<div style="font-size:60px;font-weight:bold;color:#ffb3d1;padding:0px 16px 0 8px">2</div>
-				<div class="cl lsp" style="text-align:left">'Follow' karney ke baad unki tamam posts apko 'For Me' mein show hon gi</div>
+				<div class="cl lsp" style="text-align:left">In mein se best posts karney waley users ko 'Follow' karein</div>
 			</div>
 
 			<div class="fx fxjsfs fxaicn">
 				<div style="font-size:60px;font-weight:bold;color:#48f5ad;padding:0px 16px 0 8px">3</div>
-				<div class="cl lsp" style="text-align:left">Posts dekhney ke liye in mein se aik select karein:</div>
+				<div class="cl lsp" style="text-align:left">Posts dekhney ke liye koi aik button dabain</div>
 			</div>
 
-			<div class="mbl">
-				<a href="{% url 'photo' 'best-list' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+			<div class="mbl mt">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="mrl mt pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
 
-				<a href="{% url 'best_home_page' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+				<a href="{% url 'best_home_page' %}#error"><button style="background:#fffacc;border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="mll mt pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
 			</div>
 
 		</div>
+
+		<div class="cxl lsp" style="padding:15px 8px 10px 8px">
+		Agr posts pe 'Reply' karna ho tou account verify karwaein:
+		</div>
+		
+		<a href="{% url 'verify_user_mobile_unpaid' %}#section0">
+			<button class="btn bcb pg_ok_res mt fx fxaicn fxjscn" style="height:50px;width:100%;border:none;border-top-right-radius:0px;border-top-left-radius:0px"><img src="{{ static_url }}img/verified_dark.svg" height="22" width="22" style="vertical-align:sub;height:22px;width:22px" class="mrs"><b style="color:white" class="cxl sp">VERIFY&nbsp;YOUR&nbsp;ACCOUNT</b></button>
+		</a>
 
 	</div>
 

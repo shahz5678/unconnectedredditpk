@@ -1,68 +1,14 @@
-{% if is_own_profile %}
+{% if section == 'about' %}
 
-	{% if section == 'profile' %}
-
-	<div class="mbl fx fxjscn fxaicn">
-		<button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#1edea8;font-weight:bold"><img src="{{ static_url }}img/user-ct.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button>
-		<a href="{% url 'display_user_public_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;"><img src="{{ static_url }}img/screens-cgy-optimised.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PUBLIC</div></button></a>
-		<a href="{% url 'display_user_follower_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;padding-left:0;padding-right:0"><img src="{{ static_url }}img/followers-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">FOLLOWER</div></button></a>
-		<a href="{% url 'display_user_private_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/selective-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PRIVATE</div></button></a>
-	</div>
+<div class="mbl fx fxjscn fxaicn">
+	<button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#1edea8;font-weight:bold"><img src="{{ STATIC_URL }}img/user-ct.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button>
+	<a href="{% url 'display_user_public_feed_history' uname %}"><button class="sp" style="height:50px;width:70px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div>{{ num_posts }}</div><div class="mt" style="font-size:9px;">POSTS</div></button></a>
+</div>
 
 {% elif section == 'public' %}
-
-	<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-		<button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#1edea8;font-weight:bold;background:white;border:1px solid #1edea8;"><img src="{{ static_url }}img/screens-edited.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PUBLIC</div></button>
-		<a href="{% url 'display_user_follower_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;padding-left:0;padding-right:0"><img src="{{ static_url }}img/followers-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">FOLLOWER</div></button></a>
-		<a href="{% url 'display_user_private_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/selective-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PRIVATE</div></button></a>
-	</div>
-
-{% elif section == 'limited' %}
-
-	<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-		<a href="{% url 'display_user_public_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;"><img src="{{ static_url }}img/screens-cgy-optimised.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PUBLIC</div></button></a>
-		<button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#1edea8;font-weight:bold;background:white;border:1px solid #1edea8;padding-left:0;padding-right:0"><img src="{{ static_url }}img/followers.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">FOLLOWER</div></button>
-		<a href="{% url 'display_user_private_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><img src="{{ static_url }}img/selective-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PRIVATE</div></button></a>
-	</div>
-
-{% elif section == 'private' %}
 	
 	<div class="mbl fx fxjscn fxaicn">
-		<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-		<a href="{% url 'display_user_public_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;"><img src="{{ static_url }}img/screens-cgy-optimised.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PUBLIC</div></button></a>
-		<a href="{% url 'display_user_follower_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;padding-left:0;padding-right:0"><img src="{{ static_url }}img/followers-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">FOLLOWER</div></button></a>
-		<button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:white"><img src="{{ static_url }}img/selective.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PRIVATE</div></button>
+		<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ STATIC_URL }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
+		<button class="sp" style="height:50px;width:70px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;font-weight:bold;background:white"><div style="color:#1cca99">{{ num_posts }}</div><div class="mt" style="font-size:9px;color:#1edea8">POSTS</div></button>
 	</div>
-{% endif %}
-
-{% else %}
-
-	{% if section == 'profile' %}
-
-		<div class="mbl fx fxjscn fxaicn">
-			<button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#1edea8;font-weight:bold"><img src="{{ static_url }}img/user-ct.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button>
-			<a href="{% url 'display_user_public_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;"><img src="{{ static_url }}img/screens-cgy-optimised.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PUBLIC</div></button></a>
-			<a href="{% url 'display_user_follower_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;padding-left:0;padding-right:0"><img src="{{ static_url }}img/followers-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">FOLLOWER</div></button></a>
-		</div>
-
-	{% elif section == 'public' %}
-
-		<div class="mbl fx fxjscn fxaicn">
-			<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-			<button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#1edea8;font-weight:bold;background:white;border:1px solid #1edea8;"><img src="{{ static_url }}img/screens.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PUBLIC</div></button>
-			<a href="{% url 'display_user_follower_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;padding-left:0;padding-right:0"><img src="{{ static_url }}img/followers-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">FOLLOWER</div></button></a>
-		</div>
-
-	{% elif section == 'limited' %}
-
-		<div class="mbl fx fxjscn fxaicn">
-			<a href="{% url 'user_profile' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><img src="{{ static_url }}img/user-cgy.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">ABOUT</div></button></a>
-			<a href="{% url 'display_user_public_feed_history' uname %}"><button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa;border:1px solid #dcdcdc;"><img src="{{ static_url }}img/screens-cgy-optimised.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">PUBLIC</div></button></a>
-			<button class="sp" style="height:50px;width:68px;font-size:8.2px;border:1px solid #1edea8;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#1edea8;font-weight:bold;background:white;padding-left:0;padding-right:0"><img src="{{ static_url }}img/followers.svg" width="15" height="15" style="vertical-align:middle"><div class="mts">FOLLOWER</div></button>
-		</div>
-
-	{% endif %}
-
 {% endif %}

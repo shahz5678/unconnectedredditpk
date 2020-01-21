@@ -25,7 +25,7 @@ from redis2 import check_if_follower, add_follower, remove_follower, get_custom_
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
 get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
-logging_remove_data, retrieve_and_cache_new_followers_notif, set_user_last_seen, get_for_me_seen_time
+logging_remove_data, retrieve_and_cache_new_followers_notif, set_user_last_seen, get_for_me_seen_time, add_last_fanout_to_feed
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
@@ -295,7 +295,9 @@ def follow(request):
 				time_now=time.time()
 				set_user_last_seen(target_user_id,time_now)
 				add_follower(user_id=own_id, target_user_id=target_user_id, verification_status=verification_status, time_now=time_now+1)
-				
+
+				add_last_fanout_to_feed(own_id,target_user_id,time_now)
+
 				###########################################################################
 				############################### Follow Logger #############################
 				###########################################################################
@@ -610,6 +612,9 @@ def display_user_public_feed_history(request, target_uname):
 		context["target_avurl"] = retrieve_avurl(target_user_id)
 		context["is_star"] = is_image_star(user_id=target_user_id)
 
+		time_now = int(time.time())
+		context['time_now'] = time_now
+
 		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
 
 		cached_json_data = retrieve_cached_user_feed_history(user_id=target_user_id, page_num=page_num, hist_type='public')
@@ -636,13 +641,15 @@ def display_user_public_feed_history(request, target_uname):
 				'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
 
 		else:
-			total_objs = Link.objects.filter(submitter_id=target_user_id, audience='p', delete_status='0').count()
-			
+			total_objs = Link.objects.filter(Q(submitter_id=target_user_id,audience='p',delete_status='0',mortality='i')|\
+				Q(submitter_id=target_user_id,audience='p',delete_status='0',expire_at__gte=time_now)).count()
 			if total_objs > 0:
 
-				dict_data = Link.objects.values('id', 'submitter_id', 'submitted_on', 'type_of_content', 'description', 'url', \
-					'image_file', 'reply_count', 'net_votes', 'trending_status', 'cagtegory','comment_status').filter(submitter_id=target_user_id,\
-					audience='p', delete_status='0').order_by('-id')[start_index:end_index+1]
+				dict_data = Link.objects.values('id','submitter_id','submitted_on','type_of_content','description','url',\
+					'image_file','reply_count','net_votes','trending_status','cagtegory','expire_at','comment_status',\
+					'mortality').filter(Q(submitter_id=target_user_id,audience='p',delete_status='0',mortality='i')|\
+					Q(submitter_id=target_user_id,audience='p',delete_status='0',expire_at__gte=time_now)).\
+					order_by('-id')[start_index:end_index+1]
 
 				for obj in dict_data:
 					# converting datetime obj into epoch
@@ -678,9 +685,10 @@ def display_user_public_feed_history(request, target_uname):
 				'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
 
 			######## cache the data alongwith page num ########
+
 			cache_user_feed_history(user_id=target_user_id, json_payload=json.dumps([dict_data,total_objs]),page_num=page_num, hist_type='public')
 
-		context['post_count'] = total_objs
+		context['num_posts'] = total_objs
 		context['is_follower'] = True if is_own_profile else check_if_follower(own_id,target_user_id,with_db_lookup=True)
 		context['show_post_removed_prompt'] = request.session.pop("history_post_removed"+str(own_id),None)
 		#######################
@@ -691,7 +699,6 @@ def display_user_public_feed_history(request, target_uname):
 	else:
 		# user does not exist
 		raise Http404("This user does not exist")
-
 
 
 def display_user_follower_feed_history(request, target_uname):

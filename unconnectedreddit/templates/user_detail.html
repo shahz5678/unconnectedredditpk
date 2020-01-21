@@ -8,7 +8,7 @@
 <head><title>{{ username }}'s profile | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
 
-{% include "user_profile_navbar.html" with static_url=STATIC_URL section='profile' uname=username is_own_profile=is_own_profile %}
+{% include "user_profile_navbar.html" with static_url=STATIC_URL section='about' uname=username num_posts=num_posts %}
 
 <div style="text-align:center" class="mbl"> 
 {% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %} 

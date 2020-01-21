@@ -14,10 +14,15 @@
 			</div>
 
 		 	<div class="tooltip">
+				
 				{% if aud == 'p' %}
-					<img src="{{ static_url }}img/screens.svg" width="16" height="16" style="padding:0 10px">
-						<span class="tooltiptext">Public post</span>
-					
+					{% if exp == 'm' %}
+						<div class="fx" style="justify-content:flex-end;padding-right:10px">
+							<div style="width:16px;height:16px;" class="mrs"><img src="{{ static_url }}img/clock.svg" width="16" height="16"></div>
+							<span class="tooltiptext">Temporary public post</span>
+						</div>
+					{% endif %}
+
 				{% elif aud == 'a' %} 
 					{% if exp == 'i' %}
 						<img src="{{ static_url }}img/followers.svg" width="16" height="16" style="padding:0 10px">

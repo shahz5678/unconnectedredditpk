@@ -187,7 +187,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	} else if (type === 'public_img') {
 		// originating from upload_public_photo
 		form_data.append("sk",document.getElementById('pub_img_sk').value);
-		form_data.append("aud",retrieve_audience());
+		form_data.append("aud",'p');
 		form_data.append("exp",retrieve_expiry());
 		form_data.append("com",retrieve_comments());
 		
@@ -1022,9 +1022,8 @@ function retrieve_expiry(){
 
 	var exp_first = document.getElementById('exp-first');
 	var exp_second = document.getElementById('exp-second');
-	var exp_third = document.getElementById('exp-third');
 	var exp_default = document.getElementById('exp-default');
-	if (exp_first.checked || exp_second.checked || exp_third.checked ){
+	if (exp_first.checked || exp_second.checked ){
 		if (exp_first.checked) {
 			return exp_first.value;
 		} else if (exp_second.checked) {

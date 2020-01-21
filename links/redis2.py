@@ -28,6 +28,8 @@ NO_FOLLOWERS = "nof:" # a key that is set for a user who has zero followers (ver
 USER_FEED = "uf:" # a key that keeps all the posts by all the people you follow
 SHORT_LIVED_CONTENT_EXPIRE_TIMES = "slcet:" # a key that keeps short-lived posts from all the people you follow sorted by expiry times, useful for culling expired items in a user's feed
 
+LAST_USER_FANOUT = 'luf:'
+
 RATE_LIMIT_FOLLOWER = "rlf:" #a key that stores ratelimit ttl of a target_id user after removing target as a follower or when a user unfollowes another user
 FOLLOWER_FANOUTS_AND_EXPIRES = 'ffe'# global sorted set containing all fan-outs and their fan-out times (useful for data expiry)
 FOLLOWER_FANOUTS_AND_SUBMITTERS = 'ffu'# global sorted set containing all fan-outs and their submitter IDs (useful for data expiry)
@@ -341,6 +343,7 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 	# redis hash obj of the content will exist for at least 1 week (only if it's not limited by time)
 	add_to_short_lived_item_expireat_feed = True
 	log_this_fanout = True
+	follower_string = ':'
 	if expire_at is None:# case of no-expiry - can potentially live forever
 		add_to_short_lived_item_expireat_feed = False
 		expire_at = time_now+PUBLIC_SUBMISSION_TTL#setting ttl of 'forever' content to 1 week for memory optimization reasons
@@ -349,12 +352,13 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 	my_server = redis.Redis(connection_pool=POOL)
 	pipeline1 = my_server.pipeline()
 	
+
 	# CASE 1) This case caters to fanning out to a subset of followers (input via 'follower_list')
 	if follower_list:
 		save_last_post_selected_followers(followers=follower_list,poster_id=user_id)
-		
+		# follower_string = ':'	
 		# initializing a follower string 'skeleton'
-		follower_string = ':'
+		
 
 		list_of_db_objs = []
 
@@ -389,7 +393,7 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 		
 		# CASE 2) this case caters to fanning out to only oneself (because no followers exist)
 		if my_server.exists(NO_FOLLOWERS+user_id):
-			log_this_fanout = False
+			log_this_fanout = True
 			# this person has no fan - short-circuit fanning out (but do add to poster's feed)
 			# pipeline1.zadd(USER_FEED+user_id,obj_hash,time_now)# no fans, just add to poster's feed
 			# if add_to_short_lived_item_expireat_feed:
@@ -433,27 +437,90 @@ def fan_out_to_followers(user_id, obj_hash, time_now, expire_at=None, follower_l
 					# if add_to_short_lived_item_expireat_feed:
 					# 	pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,obj_hash,expire_at)
 					# follower_string = ":"+user_id+":"# follower string is solely poster's ID 
-
+	if not follower_string:
+		follower_string = ':'
+	payload = follower_string+"*"+obj_hash
+	pipeline1.setex(LAST_USER_FANOUT+user_id, payload+'*'+str(add_to_short_lived_item_expireat_feed)+'-'+str(expire_at) , int(expire_at-time_now) )
 	pipeline1.execute()
 	if log_this_fanout:
-		log_follower_fanout(follower_string=follower_string, obj_hash=obj_hash, submitter_id=user_id, time_now=time_now)	
+		log_follower_fanout(payload=payload, obj_hash=obj_hash, submitter_id=user_id, time_now=time_now)	
 						
+
+
+def add_last_fanout_to_feed(own_id,target_user_id,time_now):
+	"""
+	1) check if last userfanout exists
+	2) check if obj_hash exists in follower feed
+	3) add objhash to uf:follower_id with  
+	4) add user id to fanout string if string exists ffu, ffe
+	5) add user id to slcet if add to short lived
+	6) update last user fanout
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	pipeline1 = my_server.pipeline()
+	target_user_id = str(target_user_id)
+	own_id = str(own_id)
+	key = LAST_USER_FANOUT+target_user_id
+	#3) check if last fanout exists
+	# if my_server.exists(key):
+	string_obj = my_server.get(key)
+	if string_obj:
+		obj , expire_at = string_obj.split('-')
+		data = obj.rpartition('*')
+		ffe_obj, add_to_short_lived_item_expireat_feed = data[0], data[2]
+		data2 = ffe_obj.split('*')
+		follower_string, obj_hash = data2[0], data2[1]
+		obj_already_added = my_server.zscore(USER_FEED+own_id,obj_hash)
+
+		if not obj_already_added:
+			expiry_time = my_server.zscore(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
+			
+			my_server.zadd(USER_FEED+own_id,obj_hash,time.time())
+			new_follower_string = follower_string+own_id+':'
+			new_obj = new_follower_string+'*'+obj_hash
+			pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
+			pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS,ffe_obj)
+			pipeline1.zadd(FOLLOWER_FANOUTS_AND_EXPIRES,new_obj,expiry_time)
+			pipeline1.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS,new_obj,target_user_id)
+	
+			if add_to_short_lived_item_expireat_feed == 'True':
+				pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash,expire_at)
+
+			payload = new_obj+'*'+str(add_to_short_lived_item_expireat_feed)+'-'+str(expire_at)
+			pipeline1.setex(LAST_USER_FANOUT+target_user_id, payload ,int(float(expire_at)-time_now))	
+			pipeline1.execute()
+	else:
+		pass
+
+def delete_last_fanout_data(user_id,obj_hash=None):
+	my_server = redis.Redis(connection_pool=POOL)
+	if not obj_hash:
+		my_server.delete(LAST_USER_FANOUT+str(user_id))
+	else:
+		fanout_data	= my_server.get(LAST_USER_FANOUT+user_id)
+		follower_string, saved_obj_hash, expire_data = fanout_data.split('*')
+		if (obj_hash == saved_obj_hash):
+			my_server.delete(LAST_USER_FANOUT+user_id)
+		else:
+			pass
+
+
 
 ######################################### Logging Subscriber Fanouts ####################################
 
 
-def log_follower_fanout(follower_string, obj_hash, submitter_id, time_now):
+def log_follower_fanout(payload, obj_hash, submitter_id, time_now):
 	"""
 	Logs the targeted feeds and the submitted object in a global sorted set
 
 	This is useful for periodic truncation of expired items and/or handling banned users whose feeds are to be eliminated
 	"""
-	if follower_string:
-		payload = follower_string+"*"+obj_hash
+	if payload:
 		expire_at = int(time_now+PUBLIC_SUBMISSION_TTL)
 		my_server = redis.Redis(connection_pool=POOL)
 		my_server.zadd(FOLLOWER_FANOUTS_AND_EXPIRES, payload, expire_at)
 		my_server.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS, payload, submitter_id)
+		# my_server.set()
 
 
 def trim_expired_fanouts(submitter_id=None, time_now=None):
@@ -484,6 +551,7 @@ def trim_expired_fanouts(submitter_id=None, time_now=None):
 			pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES,*user_fanouts)
 			pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS,*user_fanouts)
 			pipeline1.execute()
+			delete_last_fanout_data(submitter_id)
 		return fanned_out_objs
 
 	else:
@@ -886,6 +954,7 @@ def remove_single_post_from_custom_feed(obj_hash, own_id):
 
 			if removed:
 				Link.objects.filter(id=obj_id).update(delete_status='1')
+				delete_last_fanout_data(own_id,obj_hash)
 				# in case the object trended and was part of the sitemap, remove it from the sitemap model
 				if Cooldown.objects.filter(content_id=obj_id).exists():
 					Cooldown.objects.filter(content_id=obj_id).delete()

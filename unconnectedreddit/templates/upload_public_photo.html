@@ -2,9 +2,9 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Share image | Damadam</title></head>
-<style>body{background:#f0f3f4}.expiry-off{display:block}.expiry-on{display:none}#aud-second:checked~.expiry-off,#aud-third:checked~.expiry-off{display:none}#aud-second:checked~.expiry-on,#aud-third:checked~.expiry-on{display:block}#aud-second:checked~.expiry>label,#aud-third:checked~.expiry>label{border:1px solid #3cb7dd}.checkbox{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.label{background:#fff;padding:7px 10px;height:46px;width:260px;border:1px solid #93d7ec;margin:0 auto -1px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.crsr{cursor:pointer}input+label:hover{background-color:#eee}.checkbox:checked+label{background-color:#3cb7dd;color:#fff}</style>
+<style>body{background:#f0f3f4}label{border:1px solid #3cb7dd}.checkbox{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.label{background:#fff;padding:7px 10px;height:46px;width:260px;border:1px solid #93d7ec;margin:0 auto -1px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.crsr{cursor:pointer}input+label:hover{background-color:#eee}.checkbox:checked+label{background-color:#3cb7dd;color:#fff}</style>
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.17.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.18.js"></script>
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
 
 <div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
@@ -41,64 +41,13 @@
         {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp"><b style="color:#3cb7dd">2.</b> Likhein photo kis barey mein hai:</div>{% endif %}
         
         <div style="padding:5px 10px 0 10px;text-align:center">{{ form.caption }}</div>
-        {% if num_fans %}
-            <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">3.</b> Select Audience:</div>
+        <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">3.</b> Select Expiry:</div>
 
-            <div style="margin-left: auto;margin-right:auto">
+        <div style="margin-left: auto;margin-right:auto">
 
-                <input type="radio" name="aud" class="checkbox" id="aud-first" value="p">
-                <label class="label crsr"  for="aud-first" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
-                    <div class="fx fxjscn fxaicn">
-                        <img src="{{ STATIC_URL }}img/screens-optimised.svg" width="30" height="30" style="padding:0 10px">
-                        <div class="sp lsp" style="padding:0 10px;text-align:left">Post to all followers and to latest photos</div>
-                    </div>
-                </label>
-
-                <input type="radio" name="aud" class="checkbox" id="aud-second" value="a">
-                <label class="label crsr" for="aud-second" style="display: flex;align-items: center;">
-                    <div class="fx fxjscn fxaicn">
-                        <img src="{{ STATIC_URL }}img/followers.svg" width="30" height="30" style="padding:0 10px">
-                        <div class="sp lsp" style="padding:0 10px;text-align:left">Post to all followers only</div>
-                    </div>
-                </label>
-
-                <input type="radio" name="aud" class="checkbox" id="aud-third" value="s">
-                <label class="label crsr" for="aud-third" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center">
-                    <div class="fx fxjscn fxaicn">
-                        <img src="{{ STATIC_URL }}img/selective.svg" width="30" height="30" style="padding:0 10px">
-                        <div class="sp lsp" style="padding:0 10px;text-align:left">Post to some followers only</div>
-                    </div>
-                </label>
-
-                <div class="mbl mtl expiry-off">
-
-                    <div class="cxl lsp mbs" style="color:darkgray"><b>4.</b> Select Expiry:</div>
                 
-                    <div class="label" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;border-color:lightgray">
-                        <div class="fx fxjscn fxaicn">
-                            <img src="{{ STATIC_URL }}img/noexpire-cgy.svg" width="30" height="30" style="padding:0 10px">
-                            <div class="sp lsp" style="padding:0 10px;color:darkgray;text-align:left">Never expire post at all</div>
-                        </div>
-                    </div>
-
-                    <div class="label" style="display: flex;align-items: center;border-color:lightgray">
-                        <div class="fx fxjscn fxaicn">
-                            <img src="{{ STATIC_URL }}img/1day-cgy.svg" width="30" height="30" style="padding:0 10px">
-                            <div class="sp lsp" style="padding:0 10px;color:darkgray;text-align:left">Expire post after 1 day</div>
-                        </div>
-                    </div>
-
-                    <div class="label" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center;border-color:lightgray">
-                        <div class="fx fxjscn fxaicn">
-                            <img src="{{ STATIC_URL }}img/15mins-cgy.svg" width="30" height="30" style="padding:0 10px">
-                            <div class="sp lsp" style="padding:0 10px;color:darkgray;text-align:left">Expire post after 15 minutes</div>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="mbl mtl expiry-on">
-                    <div class="cxl lsp mbs"><b style="color:#3cb7dd">4.</b>&nbsp;Select Expiry:</div>
-
+                   
                     <input type="radio" name="exp" class="checkbox" id="exp-first" value="i">
                     <label style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;" class="label crsr" for="exp-first">
                         <div class="fx fxjscn fxaicn">
@@ -108,29 +57,17 @@
                     </label>
 
                     <input type="radio" name="exp" class="checkbox" id="exp-second" value="m1">
-                    <label class="label crsr" for="exp-second" style="display: flex;align-items: center;">
+                    <label class="label crsr" for="exp-second" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center">
                         <div class="fx fxjscn fxaicn">
-                            <img src="{{ STATIC_URL }}img/1day.svg" width="30" height="30" style="padding:0 10px">
+                            <img src="{{ STATIC_URL }}img/clock.svg" width="30" height="30" style="padding:0 10px">
                             <div class="sp lsp" style="padding:0 10px;text-align:left">Expire post after 1 day</div>
                         </div>
-                    </label>
-
-                    <input type="radio" name="exp" class="checkbox" id="exp-third" value="m2">
-                    <label style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center;" class="label crsr" for="exp-third">
-                        <div class="fx fxjscn fxaicn">
-                            <img src="{{ STATIC_URL }}img/15mins.svg" width="30" height="30" style="padding:0 10px">
-                            <div class="sp lsp" style="padding:0 10px;text-align:left">Expire post after 15 minutes</div>
-                        </div>
-                    </label>
+                    </label>      
 
                 </div>
 
-            </div>
-
-
-
               <div style="margin-left: auto;margin-right:auto">
-                <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">5.</b>&nbsp;Turn Off Replies:</div>
+                <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">4.</b>&nbsp;Turn Off Replies:</div>
                 <input type="radio" name="com" class="checkbox" id="com-on" value="1">
                 <label class="label crsr"  for="com-on" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
                     <div class="fx fxjscn fxaicn">
@@ -148,46 +85,16 @@
                 </label>
 
               </div>
-        {% else %}
-            <div style="margin-left: auto;margin-right:auto">
-                <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">3.</b>&nbsp;Turn Off Replies:</div>
-                <input type="radio" name="com" class="checkbox" id="com-on" value="1">
-                <label class="label crsr"  for="com-on" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
-                    <div class="fx fxjscn fxaicn">
-                        <img src="{{ STATIC_URL }}img/comment.svg" width="30" height="30" style="padding:0 10px">
-                        <div class="sp lsp" style="padding:0 10px;text-align:left">No</div>
-                    </div>
-                </label>
 
-                <input type="radio" name="com" class="checkbox" id="com-off" value="0">
-                <label class="label crsr" for="com-off" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center">
-                    <div class="fx fxjscn fxaicn">
-                        <img src="{{ STATIC_URL }}img/comment-off.svg" width="30" height="30" style="padding:0 10px">
-                        <div class="sp lsp" style="padding:0 10px;text-align:left">Yes</div>
-                    </div>
-                </label>
-            </div>
-            <input type="hidden" name="aud" id="aud-default" value="p">
-            <input type="hidden" name="exp" id="exp-default" value="i">
-            <input type="hidden" name="com" id="com-default" value="1">
+                <div style="text-align:center">
 
-            <input type="hidden" name="aud1" id="aud-first" value="p">
-            <input type="hidden" name="aud2" id="aud-second" value="a">
-            <input type="hidden" name="aud3" id="aud-third" value="s">
+                <button id="pub_img_subform" class="btn bl cl bct mtl sp pg_ok_res" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
 
-            <input type="hidden" name="exp1" id="exp-first" value="i">
-            <input type="hidden" name="exp2" id="exp-second" value="m1">
-            <input type="hidden" name="exp3" id="exp-third" value="m2">
-
-        {% endif %}
-
-        <div style="text-align:center">
-
-        <button id="pub_img_subform" class="btn bl cl bct mtl sp pg_ok_res" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
-
+                </div>
         </div>
-
+    
         </form>
+    
     </div>
 
         {% if not show_instructions %}

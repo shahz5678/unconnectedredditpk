@@ -18,7 +18,7 @@
 
 {% include "user_profile_navbar.html" with static_url=STATIC_URL section=section uname=target_uname is_own_profile=is_own_profile %}
 {% if section == 'public' %}
-	<h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}{% if is_own_profile %}My{% else %}{{ target_uname }}'s{% endif %} public posts:</h1>
+	<h1 class="cxl clb lsp" style="text-align:center">{% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}{% if is_own_profile %}My{% else %}{{ target_uname }}'s{% endif %} posts:</h1>
 
 	{% if is_profile_banned %}
     	{% load get_display_ban_msg %}
@@ -52,7 +52,7 @@
 
 			{% if obj.type_of_content == 't' %}	
 				<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
-					{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes home_hash='' block_time_remaining=time_remaining static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 aud='p' %}
+					{% text_object obid=obj.id ooid=obj.submitter_id text=obj.description|emoticons|linebreaksbr raw_text=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes home_hash='' block_time_remaining=time_remaining static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.topic_url show_topic='1' c1=obj.c1 c2=obj.c2 aud='p' exp=obj.mortality %}
 				
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 						{% if is_own_profile %}
@@ -83,7 +83,7 @@
 			{% elif obj.type_of_content == 'g' %}
 				
 				<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;box-sizing:border-box">
-					{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter show_trending=obj.trending_status ot='g' aud='p' %}
+					{% photo_object pid=obj.id ooid=obj.submitter_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description origin=origin upload_time=obj.submitted_on|human_time machine_time=obj.submitted_on oun=target_uname av_url=target_avurl|s3:'thumb' vsc=obj.net_votes block_time_remaining=time_remaining is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star lazyload_idx=forloop.counter show_trending=obj.trending_status ot='g' aud='p' exp=obj.mortality %}
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 						
 						{% if is_own_profile %}

@@ -1356,6 +1356,11 @@ class UserProfileDetailView(FormView):
 				context["successfully_unsubscribed"] = self.request.session.pop("successfully_unsubscribed"+str(user_id),'')
 			else:
 				context["mobile_verified"] = is_mobile_verified(star_id)
+			
+			total_objs = Link.objects.filter(Q(submitter_id=star_id,audience='p',delete_status='0',mortality='i')|\
+				Q(submitter_id=star_id,audience='p',delete_status='0',expire_at__gte=time.time())).count()
+			
+			context["num_posts"] = total_objs	
 			context["noindex"] = True if (banned or not context["mobile_verified"]) else False
 			################### Retention activity logging ###################
 			# if user_id:
@@ -3454,45 +3459,53 @@ def publish_post(request):
 			obj_id = obj.id
 		
 			if audience == 'p':
-				type_of_object = ('t','p','')#'tp'
-				invalidate_cached_user_feed_history(own_id, 'public')# all 'p' type posts are 'public'
-				add_to_public_feed = True
-				post_to_all_followers = True
+				if expiry == 'i':
+					type_of_object = ('t','p','i')#'gai'
+				
+				elif expiry == 'm':
+					type_of_object = ('t','p','m')#'gam'
+
+				# invalidate_cached_user_feed_history(own_id, 'public')# all 'p' type posts are 'public'
+				# add_to_public_feed = True
+				# post_to_all_followers = True
 
 			elif audience == 'a':
-				post_to_all_followers = True
+				# post_to_all_followers = True
 				
-				if expiry == 'i':
-					type_of_object = ('t','a','i')#'tai'
-					invalidate_cached_user_feed_history(own_id, 'limited')# all 't','a','i' type posts are 'limited'
+				# if expiry == 'i':
+				# 	type_of_object = ('t','a','i')#'tai'
+				# 	invalidate_cached_user_feed_history(own_id, 'limited')# all 't','a','i' type posts are 'limited'
 				
-				elif expiry == 'm':
-					type_of_object = ('t','a','m')#'tam'
-					invalidate_cached_user_feed_history(own_id, 'limited')# all posts apart from 't','p' and 't','a','i' are 'private' in user feed history
+				# elif expiry == 'm':
+				# 	type_of_object = ('t','a','m')#'tam'
+				# 	invalidate_cached_user_feed_history(own_id, 'limited')# all posts apart from 't','p' and 't','a','i' are 'private' in user feed history
 				
-				else:
-					# not a valid expiry type
-					raise Http404("Not a valid audience type")
+				# else:
+				# 	# not a valid expiry type
+				raise Http404("Not a valid audience type")
 
 			elif audience == 's':
-				if expiry == 'i':
-					type_of_object = ('t','s','i')#'tsi'
-					invalidate_cached_user_feed_history(own_id, 'private')
+				# if expiry == 'i':
+				# 	type_of_object = ('t','s','i')#'tsi'
+				# 	invalidate_cached_user_feed_history(own_id, 'private')
 
-				elif expiry == 'm':
-					type_of_object = ('t','s','m')#'tsm'
-					invalidate_cached_user_feed_history(own_id, 'private')
+				# elif expiry == 'm':
+				# 	type_of_object = ('t','s','m')#'tsm'
+				# 	invalidate_cached_user_feed_history(own_id, 'private')
 
-				else:
+				# else:
 					# not a valid expiry type
-					raise Http404("Not a valid audience type")
+				raise Http404("Not a valid audience type")
 			
 			else:
 				raise Http404("Not a valid audience type")	
 			
+			invalidate_cached_user_feed_history(own_id, 'public')# all 'p' type posts are 'public'
+			add_to_public_feed = True
+			post_to_all_followers = True
+
 			#######################################################################
 			# Step 2) Handle Redis Object(s)
-
 			obj_hash = "tx:"+str(obj_id)
 			submitter_name, av_url = retrieve_credentials(own_id,decode_uname=True)
 			if topic_payload:
@@ -3586,38 +3599,42 @@ def publish_post(request):
 			cache_photo_dim(str(obj_id),img_height,img_width)
 
 			if audience == 'p':
-				type_of_object = ('g','p','')#'gp'
-				invalidate_cached_user_feed_history(own_id, 'public')# all 'gp' type posts are 'public'
+				if expiry == 'i':
+					type_of_object = ('g','p','i')#'gai'
+				
+				elif expiry == 'm':
+					type_of_object = ('g','p','m')#'gam'
+				
+				invalidate_cached_user_feed_history(own_id, 'public')# all posts apart from 'gp' and 'gai' are 'private' in user feed history
 				add_to_photo_feed = True
 				post_to_all_followers = True
 
 			elif audience == 'a':
-
-				post_to_all_followers = True
-				if expiry == 'i':
-					type_of_object = ('g','a','i')#'gai'
-					invalidate_cached_user_feed_history(own_id, 'limited')# all 'gai' type post are 'limited'
-				elif expiry == 'm':
-					type_of_object = ('g','a','m')#'gam'
-					invalidate_cached_user_feed_history(own_id, 'limited')# all posts apart from 'gp' and 'gai' are 'private' in user feed history
+				# post_to_all_followers = True
+				# if expiry == 'i':
+				# 	type_of_object = ('g','a','i')#'gai'
+				# 	invalidate_cached_user_feed_history(own_id, 'limited')# all 'gai' type post are 'limited'
+				# elif expiry == 'm':
+				# 	type_of_object = ('g','a','m')#'gam'
+				# 	invalidate_cached_user_feed_history(own_id, 'limited')# all posts apart from 'gp' and 'gai' are 'private' in user feed history
 				
-				else:
-					# not a valid expiry type
-					raise Http404("Not a valid audience type")
+				# else:
+				# 	# not a valid expiry type
+				raise Http404("Not a valid audience type")
 
 			elif audience == 's':
 				
-				if expiry == 'i':
-					type_of_object = ('g','s','i')#'gsi'
-					invalidate_cached_user_feed_history(own_id, 'private')# all posts apart from 'gp' and 'gai' are 'private' in user feed history
+				# if expiry == 'i':
+				# 	type_of_object = ('g','s','i')#'gsi'
+				# 	invalidate_cached_user_feed_history(own_id, 'private')# all posts apart from 'gp' and 'gai' are 'private' in user feed history
 					
-				elif expiry == 'm':
-					type_of_object = ('g','s','m')#'gsm'
-					invalidate_cached_user_feed_history(own_id, 'private')# all posts apart from 'gp' and 'gai' are 'private' in user feed history
+				# elif expiry == 'm':
+				# 	type_of_object = ('g','s','m')#'gsm'
+				# 	invalidate_cached_user_feed_history(own_id, 'private')# all posts apart from 'gp' and 'gai' are 'private' in user feed history
 
-				else:
-					# not a valid expiry type
-					raise Http404("Not a valid audience type")
+				# else:
+				# 	# not a valid expiry type
+				raise Http404("Not a valid audience type")
 
 			else:
 				pass

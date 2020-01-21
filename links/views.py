@@ -1360,7 +1360,7 @@ class UserProfileDetailView(FormView):
 			total_objs = Link.objects.filter(Q(submitter_id=star_id,audience='p',delete_status='0',mortality='i')|\
 				Q(submitter_id=star_id,audience='p',delete_status='0',expire_at__gte=time.time())).count()
 			
-			context["num_posts"] = total_objs	
+			context["num_posts"] = total_objs if total_objs < 1000 else '999+'
 			context["noindex"] = True if (banned or not context["mobile_verified"]) else False
 			################### Retention activity logging ###################
 			# if user_id:

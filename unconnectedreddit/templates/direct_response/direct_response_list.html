@@ -201,11 +201,20 @@
 
 			</div>
 		{% empty %}
-		<div class="clb mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:98%;text-align:center;box-sizing:border-box">
-			<div class="cxl lsp" style="padding:8px;border-bottom:1px solid #f0f3f4">Sorry! Apke liye koi reply nahi aya hua</div>
-			<div style="padding:8px" class="lsp sp">Ap ne jo replies send kiye woh 'activity' mein dekh lein</div>
-			<a href="{% url 'retrieve_direct_response_activity' %}"><button class="btn bcb bm mts mbl sp pg_ok_res" style="height:28px">activity</button></a>
+
+		<div class="mbl" style="background-color:white;padding:7px;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;width:98%;box-sizing:border-box">
+			<div class="cxl lsp clb"><b>Apke liye <span class="ct">0</span> replies aye hain</b></div>
+			<hr size=1 COLOR="#f2f2f2">
+			<h2 class="clb mbs lsp" style="font-weight:lighter">In posts pe reply karein takey apko wapis replies aien:</h2>
+			
+			<div class="mbl">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+				<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+			</div>
+
 		</div>
+
 		{% endfor %}
 
 	{% if response_data %}

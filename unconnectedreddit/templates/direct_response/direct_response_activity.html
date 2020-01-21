@@ -121,10 +121,18 @@
 
 	</div>
 	{% empty %}
-	<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:98%;margin-right:auto;margin-left:auto;text-align:center">
-		<div class="cxl lsp clb mts mbs" style="text-align:center;padding:0 6px">Sorry! Ye khali hai kyun ke ap ne koi replies send nahi kiye</div>
-		<hr size=1 COLOR="#f4f4f4" style="margin:0">
-		<div class="clb cl sp lsp" style="text-align:center;background:white;padding:10px">Yahan woh posts show hoti hain jin pe ap ne pichley 2 weeks mein reply kia ho<br><a href="{% url 'for_me' %}"><button class="btn bcb bm mtl mbs sp pg_ok_res" style="height:28px">For Me</button></a></div>
+
+	<div class="mbl" style="background-color:white;padding:7px;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;width:98%;box-sizing:border-box">
+		<div class="cxl lsp clb"><b>Ap ne <span style="color:#1cca99">0</span> replies send kiye hain</b></div>
+		<hr size=1 COLOR="#f2f2f2">
+		<h2 class="clb mbs lsp" style="font-weight:lighter">Koi aik button press kar ke woh posts dekhein jin pe reply dia ja sakta hai:</h2>
+		
+		<div class="mbl">
+			<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+			<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+		</div>
+
 	</div>
 	{% endfor %}
 

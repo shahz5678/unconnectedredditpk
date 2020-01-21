@@ -492,17 +492,19 @@ def add_last_fanout_to_feed(own_id,target_user_id,time_now):
 	else:
 		pass
 
+
 def delete_last_fanout_data(user_id,obj_hash=None):
+	"""
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if not obj_hash:
 		my_server.delete(LAST_USER_FANOUT+str(user_id))
 	else:
 		fanout_data	= my_server.get(LAST_USER_FANOUT+user_id)
-		follower_string, saved_obj_hash, expire_data = fanout_data.split('*')
-		if (obj_hash == saved_obj_hash):
-			my_server.delete(LAST_USER_FANOUT+user_id)
-		else:
-			pass
+		if fanout_data:
+			follower_string, saved_obj_hash, expire_data = fanout_data.split('*')
+			if (obj_hash == saved_obj_hash):
+				my_server.delete(LAST_USER_FANOUT+user_id)
 
 
 

@@ -57,8 +57,8 @@ from user_sessions.models import Session
 from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
-from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, photo_upload_tasks, \
-publicreply_notification_tasks, log_user_activity, set_input_rate_and_history, post_to_followers
+from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, post_to_followers, \
+publicreply_notification_tasks, log_user_activity, set_input_rate_and_history
 from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
 ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, LatestSalat, Logout
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
@@ -3675,10 +3675,6 @@ def publish_post(request):
 					vote_scores = Link.objects.filter(type_of_content='g',id__in=recent_photo_ids).values_list('net_votes',flat=True)
 					for vote_score in vote_scores:
 						total_score += vote_score
-				# only used when audience type is 'p'
-
-				photo_upload_tasks.delay(user_id=own_id, photo_id=obj_id, upload_time=time_now, obj_hash_name=obj_hash, \
-					total_score=total_score)#number_of_photos=number_of_photos
 
 				# since being posted to a 'public' feed, ensure some rate-limits and such are in place
 				############################

@@ -23,7 +23,6 @@ TTL_FOLLOWER_STRING = 777600# 9 days, in seconds - must be > TTL_FOLLOWER_LIST. 
 ###############################################################################################################
 PUBLIC_SUBMISSION_TTL = 604800#7 days set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
-PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
 NUM_SUBMISSION_ALLWD_PER_DAY = 150#num of home and photo posts allowed in one day
 CONTENT_SHARING_SHORT_RATELIMIT = 45#amount of time to wait between sharing posts (time pooled between home and photos) 

@@ -66,7 +66,7 @@
 
                 </div>
 
-              <div style="margin-left: auto;margin-right:auto">
+              <div class="mbs" style="margin-left: auto;margin-right:auto">
                 <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">4.</b>&nbsp;Turn Off Replies:</div>
                 <input type="radio" name="com" class="checkbox" id="com-on" value="1">
                 <label class="label crsr"  for="com-on" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
@@ -88,7 +88,7 @@
 
                 <div style="text-align:center">
 
-                <button id="pub_img_subform" class="btn bl cl bct mtl sp pg_ok_res" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
+                <button id="pub_img_subform" class="btn mtl bl cl bct sp pg_ok_res" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
 
                 </div>
         </div>
@@ -98,11 +98,11 @@
     </div>
 
         {% if not show_instructions %}
-        <h2 class="cxl clb lsp nos" style="text-align:center">Post sharing help:</h2>
+        <h2 class="cxl clb lsp nos" style="text-align:center">Photo sharing tips:</h2>
     
         <div class="clb mbl mts nos" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
         <div class="cgy lsp sp cm mbs" style="padding:0 10px;">
-            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Photo post ke zariye apne followers ke samney apne apko express karein</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Photo post ke zariye apne followers se apne khayalaat ka izhar karein</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Hadd se zyada private photos share nahi karein. Agr screenshot le li gyi tou apke liye mushqil peda ho sakti hai</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Vulgarity, abuse, mazhabi fasaad aur spamming sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>

@@ -77,10 +77,11 @@ def custom_feed_page(request):
 	page_num = request.GET.get('page', '1')
 	own_name = retrieve_uname(own_id, decode=True)
 	start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
-	obj_list, list_total_size = get_custom_feed(own_id, start_idx=start_index, end_idx=end_index, with_feed_size=True)
+	obj_tup_list, list_total_size = get_custom_feed(own_id, time_now, start_idx=start_index, end_idx=end_index, with_feed_size=True)
 	num_pages = list_total_size/ITEMS_PER_PAGE
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
+	obj_list = [obj_hash for (obj_hash,time_of_entry_in_user_feed) in obj_tup_list]
 	list_of_dictionaries = retrieve_obj_feed(obj_list, with_colors=True)
 
 	#######################
@@ -107,6 +108,7 @@ def custom_feed_page(request):
 
 		#######################
 
+		obj_entry_times_dict = dict(obj_tup_list)
 		for obj in list_of_dictionaries:
 			
 			# enrich objs with information that 'own_id' liked them or not
@@ -114,7 +116,7 @@ def custom_feed_page(request):
 				obj['v'] = True# user 'liked' this particular object, so mark it
 
 			# enrich objs with 'seen' information 
-			if obj['t'] > float(prev_for_me_seen_time):
+			if obj_entry_times_dict[obj['h']] > float(prev_for_me_seen_time):
 				obj['new'] = True# this obj hasn't been seen by the user previously
 
 		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)

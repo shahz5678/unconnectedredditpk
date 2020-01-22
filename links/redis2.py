@@ -59,27 +59,25 @@ def retrieve_custom_feed_index(user_id, obj_hash):
 	return redis.Redis(connection_pool=POOL).zrevrank(USER_FEED+str(user_id),obj_hash)
 
 
-def get_custom_feed(user_id, start_idx=0,end_idx=-1, with_feed_size=False):
+def get_custom_feed(user_id, time_now, start_idx=0,end_idx=-1, with_feed_size=False):
 	"""
 	Retrieve given user's feed populated by people user follows
 	"""
-	user_id=str(user_id)
+	user_id = str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	if with_feed_size:
-		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time.time())
+		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time_now)
 		if expired_items:
 			my_server.zrem(USER_FEED+user_id,*expired_items)
 			my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,*expired_items)
-		obj_list = my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx), my_server.zcard(USER_FEED+user_id)
-		return obj_list
+		return my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx, withscores=True), my_server.zcard(USER_FEED+user_id)
 
 	else:
-		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time.time())
+		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time_now)
 		if expired_items:
 			my_server.zrem(USER_FEED+user_id,*expired_items)
 			my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,*expired_items)
-		obj_list = my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx)
-		return obj_list
+		return my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx, withscores=True)
 
 
 ############################# Fan button state helper funcs #############################
@@ -767,14 +765,11 @@ def get_feed_count(user_id):
 	user_id = str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	last_seen = my_server.get(LAST_ACTIVE_ON_FOR_ME+user_id)
-	if last_seen:
-		num_posts = my_server.zcount(USER_FEED+user_id,last_seen,'+inf')
-		if num_posts > 99:
-			return '99+'
-		else:
-			return num_posts
+	num_posts = my_server.zcount(USER_FEED+user_id,last_seen,'+inf') if last_seen else my_server.zcard(USER_FEED+user_id)
+	if num_posts > 99:
+		return '99+'
 	else:
-		return None
+		return num_posts
 
 
 ######################################### new follower notif ###########################################

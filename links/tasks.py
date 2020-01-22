@@ -12,8 +12,8 @@ from cricket_score import cricket_scr
 # from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
 process_user_pin_sms
-from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, PHOTO_HOT_SCORE_REQ,\
-GIBBERISH_PUNISHMENT_MULTIPLIER, SHARE_ORIGIN, NUM_TO_DELETE#, UPVOTE, DOWNVOTE,
+from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, SHARE_ORIGIN,NUM_TO_DELETE,\
+GIBBERISH_PUNISHMENT_MULTIPLIER#, UPVOTE, DOWNVOTE,
 # from page_controls import PHOTOS_PER_PAGE
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, Cooldown, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
@@ -943,12 +943,13 @@ def photo_upload_tasks(user_id, photo_id, upload_time, obj_hash_name, total_scor
 	"""
 	Tasks fired when a photo is uploaded in the photos section (for public viewing)
 	"""
+	pass
 	# photo_img_file = Link.objects.only('image_file').get(id=photo_id).image_file
 	# add_search_photo(photo_img_file, photo_id,user_id)# only adds public photo
 	########################################################################
 	# This determines whether to add the image into home's live feed (based on score of last few photos)
-	if total_score > PHOTO_HOT_SCORE_REQ:
-		add_obj_to_home_feed(user_id, upload_time, obj_hash_name)
+	# if total_score > PHOTO_HOT_SCORE_REQ:
+	# 	add_obj_to_home_feed(user_id, upload_time, obj_hash_name)
 	########################################################################
 	# This saves the 'benchmark' score of the poster, helps in deciding whether to broadcast image in fans' matka or not
 	# if number_of_photos:

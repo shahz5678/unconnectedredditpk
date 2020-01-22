@@ -688,7 +688,7 @@ def display_user_public_feed_history(request, target_uname):
 
 			cache_user_feed_history(user_id=target_user_id, json_payload=json.dumps([dict_data,total_objs]),page_num=page_num, hist_type='public')
 
-		context['num_posts'] = total_objs
+		context['num_posts'] = total_objs if total_objs < 1000 else '999+'
 		context['is_follower'] = True if is_own_profile else check_if_follower(own_id,target_user_id,with_db_lookup=True)
 		context['show_post_removed_prompt'] = request.session.pop("history_post_removed"+str(own_id),None)
 		#######################

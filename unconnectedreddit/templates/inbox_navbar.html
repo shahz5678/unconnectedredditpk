@@ -1,31 +1,31 @@
 {% if section == 'activity' %}
 	<div class="mbl fx fxjscn fxaicn">
 	
-	<button class="sp" style="height:50px;width:64px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#229ec3;font-weight:bold"><div><img src="{{ STATIC_URL }}img/posts.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts" style="color:#1edea8;font-size:8.2px;">ACTIVITY</div></button>
+	<button class="sp" style="height:50px;width:70px;border:1px solid #1edea8;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:white;color:#229ec3;font-weight:bold"><div><img src="{{ STATIC_URL }}img/posts.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts" style="color:#1edea8;font-size:9px;">ACTIVITY</div></button>
 
-	<a href="{% url 'retrieve_direct_responses' %}#section0"><button class="sp" style="height:50px;width:64px;border:1px solid #dcdcdc;border-radius:0px;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><div>{{ num_rep }}</div><div style="color:#a9a9a9;font-size:8.2px">REPLIES</div></button></a>
+	<a href="{% url 'retrieve_direct_responses' %}#section0"><button class="sp" style="height:50px;width:70px;border:1px solid #dcdcdc;border-radius:0px;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><div>{{ num_rep }}</div><div style="color:#a9a9a9;font-size:9px">REPLIES</div></button></a>
 
-	<a href="{% url 'user_vote_history' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div class="mt"><img src="{{ STATIC_URL }}img/unlike.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts">LIKES</div></button></a>
+	<a href="{% url 'user_vote_history' %}#section0"><button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div class="mt"><img src="{{ STATIC_URL }}img/unlike.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts">LIKES</div></button></a>
 	
 	</div>
 {% elif section == 'replies' %}
 	<div class="mbl fx fxjscn fxaicn">
 	
-	<a href="{% url 'retrieve_direct_response_activity' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;font-weight:bold;background:#f8f9fa"><div><img src="{{ STATIC_URL }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts" style="color:#a9a9a9;">ACTIVITY</div></button></a>
+	<a href="{% url 'retrieve_direct_response_activity' %}#section0"><button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;font-weight:bold;background:#f8f9fa"><div><img src="{{ STATIC_URL }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts" style="color:#a9a9a9;">ACTIVITY</div></button></a>
 	
-	<button class="sp" style="height:50px;width:64px;border:1px solid #3cb7dd;border-radius:0;background:white;color:#229ec3;font-weight:bold;"><div >{{ num_rep }}</div><div style="font-size:8.2px">REPLIES</div></button>
+	<button class="sp" style="height:50px;width:70px;border:1px solid #3cb7dd;border-radius:0;background:white;color:#229ec3;font-weight:bold;"><div >{{ num_rep }}</div><div style="font-size:9px">REPLIES</div></button>
 	
-	<a href="{% url 'user_vote_history' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div class="mt"><img src="{{ STATIC_URL }}img/unlike.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts">LIKES</div></button></a>
+	<a href="{% url 'user_vote_history' %}#section0"><button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;color:#a9a9a9;font-weight:bold;background:#f8f9fa"><div class="mt"><img src="{{ STATIC_URL }}img/unlike.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts">LIKES</div></button></a>
 	
 	</div>
 {% elif section == 'likes' %}
 	<div class="mbl fx fxjscn fxaicn">
 	
-	<a href="{% url 'retrieve_direct_response_activity' %}#section0"><button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;font-weight:bold"><div><img src="{{ STATIC_URL }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts" style="color:#a9a9a9;">ACTIVITY</div></button></a>
+	<a href="{% url 'retrieve_direct_response_activity' %}#section0"><button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #dcdcdc;border-radius:6px;border-top-right-radius:0;border-bottom-right-radius:0;background:#f8f9fa;font-weight:bold"><div><img src="{{ STATIC_URL }}img/mehfil_list_disabled.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts" style="color:#a9a9a9;">ACTIVITY</div></button></a>
 
-	<a href="{% url 'retrieve_direct_responses' %}#section0"><button class="sp" style="height:50px;width:64px;border:1px solid #dcdcdc;border-radius:0px;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><div>{{ num_rep }}</div><div style="color:#a9a9a9;font-size:8.2px">REPLIES</div></button></a>
+	<a href="{% url 'retrieve_direct_responses' %}#section0"><button class="sp" style="height:50px;width:70px;border:1px solid #dcdcdc;border-radius:0px;background:#f8f9fa;color:#a9a9a9;font-weight:bold"><div>{{ num_rep }}</div><div style="color:#a9a9a9;font-size:9px">REPLIES</div></button></a>
 	
-	<button class="sp" style="height:50px;width:64px;font-size:8.2px;border:1px solid #ff3377;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;background:white;color:#ff3377;font-weight:bold"><div class="mt"><img src="{{ STATIC_URL }}img/like.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts">LIKES</div></button>
+	<button class="sp" style="height:50px;width:70px;font-size:9px;border:1px solid #ff3377;border-radius:6px;border-top-left-radius:0;border-bottom-left-radius:0;background:white;color:#ff3377;font-weight:bold"><div class="mt"><img src="{{ STATIC_URL }}img/like.svg" width="15" height="15" style="vertical-align:middle"></div><div class="mts">LIKES</div></button>
 	
 	</div>
 {% endif %}

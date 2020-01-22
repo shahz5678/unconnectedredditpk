@@ -27,22 +27,27 @@
 
 	{% if show_post_removed_prompt %}
 		<div style="background: rgb(255,121,0);background: rgb(255,127,80);background: -moz-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: -webkit-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);text-align:center;color:white;padding:5px;border-radius:8px;max-width:750px;margin-left:auto;margin-right:auto;box-sizing:border-box;border:3px solid #ececec" class="cxl lsp mbs">
-			<div style="border-bottom:1px solid #ff9999;padding-bottom:10px"><b>Post apki history se hide ho gyi</b></div>
-			<div class="cs sp lsp" style="padding:6px">Agr ye post apke followers ke "For Me" section mein pohonch chuki thi tou wahan se hide nahi hogi</div>
+			<div style="border-bottom:1px solid #ff9999;padding-bottom:10px"><b>Apki post hide ho gyi</b></div>
+			<div class="cs sp lsp" style="padding:6px">Lekin agr ye post apke followers ke "For Me" page pe ja chuki thi tou wahan se hide nahi hogi</div>
 		</div>
 	{% endif %}
 
-	{% if post_count == 0 %}
+	{% if num_posts == 0 %}
 
 		<div class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto;text-align:center;box-sizing:border-box">
-			<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
+			{% if is_own_profile %}
+				<div class="cxl lsp clb mts">Apki posts mojood nahi ...</div>
+			{% else %}
+				<div class="cxl lsp clb mts">{{ target_uname }} ki posts mojood nahi ...</div>
+			{% endif %}
 			<hr size=1 COLOR="#f2f2f2">
-				{% if is_own_profile %}
-				<div class="mts lsp cl sp cgy">Aap ne public ke liye posts share nahi ki huin</div>
-				{% else%}
-				<div class="mts lsp cl sp cgy">{{ target_uname }} ne public ke liye posts share nahi ki huin</div>
-				{% endif %}
-			<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
+			<div class="mts lsp cl sp cgy">Damadam ki behtareen posts dekhney ke liye koi aik button dabain:</div>
+
+			<div class="mbl">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+
+				<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+			</div>
 		</div>
 
 	{% else %}

@@ -2100,8 +2100,13 @@ def report_content(request,*args,**kwargs):
 								# 	activity_dict = {'m':'GET','act':'K','t':time_now,'ot':tp}# defines what activity just took place
 								# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 								##################################################################
+								if tp == 'tx':
+									payload = Link.objects.only('description').get(id=dup_obid).description
+								else:
+									data = Link.objects.filter(id=dup_obid).values_list('image_file','description')[0]
+									payload = get_s3_object(data[0],category="thumb")
 								return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':dup_obid,'oun':oun,'tp':tp,\
-									'payload':dup_description if tp == 'tx' else dup_image,'lid':lid})
+									'payload':payload,'lid':lid})
 						else:
 							return return_to_content(request,orig,dup_obid,lid,oun) 
 				elif posted_from_screen == '2':

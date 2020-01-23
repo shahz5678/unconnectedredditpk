@@ -21,7 +21,7 @@ Video, HotUser, PhotoStream, HellBanList, UserFan
 from redis3 import retrieve_random_pin, calculate_world_age_discount, log_gibberish_text_writer, get_gibberish_text_writers, \
 set_world_age, queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, get_world_age, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, exact_date, \
-ratelimit_banner_from_unbanning_target
+ratelimit_banner_from_unbanning_target, is_mobile_verified
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -353,10 +353,10 @@ def post_banning_tasks(own_id, target_id):
 	################################################################################
 	# remove eachother from follower lists
 	verification_status = '1' if is_mobile_verified(target_id) else '0'
-	remove_follower(user_id=own_id,target_user_id=target_id,follower_verification_status=verification_status)
+	remove_follower(follower_id=own_id,star_id=target_id,follower_verification_status=verification_status)
 
 	verification_status = '1' if is_mobile_verified(own_id) else '0'
-	remove_follower(user_id=target_id,target_user_id=own_id,follower_verification_status=verification_status)
+	remove_follower(follower_id=target_id,star_id=own_id,follower_verification_status=verification_status)
 	################################################################################
 	# remove locations owned by each other from 'reply history'
 	cleanse_replier_history_when_pvp_blocked(replier_id_1=target_id, replier_id_2=own_id)

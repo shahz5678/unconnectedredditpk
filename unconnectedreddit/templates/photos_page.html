@@ -179,7 +179,7 @@
 				<a name="section{{ forloop.counter }}"></a>
 
 				<section style="display:block">
-				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=fbs static_url=STATIC_URL is_star=photo.s lazyload_idx=forloop.counter ratio=photo.rt ot='g' aud=photo.aud exp=photo.exp %}
+				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=fbs static_url=STATIC_URL is_star=photo.s lazyload_idx=forloop.counter ratio=photo.rt ot='g' aud=photo.aud exp=photo.exp et=photo.et time_now=time_now %}
 				</section>
 				
 				<div class="mls">
@@ -188,22 +188,29 @@
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 						{% if ident|stringformat:"s" == photo.si|stringformat:"s" %}
 							<!-- own content -->
-							{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
-							{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
-							{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
-							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
-						
+							{% if photo.et and photo.et < time_now %}
+								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+							{% else %}
+								{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
+								{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+								{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
+								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+							{% endif %}
 						{% else %}
 							<!-- others content -->
-							{% include "big_buttons/big_sub_button.html" with is_subbed=photo.f username=photo.su tid=photo.si origin=page_origin obid=photo.i obh=photo.h static_url=STATIC_URL %}
-							{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted=photo.v static_url=STATIC_URL %}
-							{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
-							{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
-							{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
-							{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
-							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
-							{% include "big_buttons/big_report_button.html" with origin=page_origin pid=photo.i oun=photo.su ooid=photo.si img_thumb=photo.it raw_caption=photo.d av_url=photo.sa home_hash=photo.h static_url=STATIC_URL type='img' %}
-
+							{% if photo.et and photo.et < time_now %}
+								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+								{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
+							{% else %}
+								{% include "big_buttons/big_sub_button.html" with is_subbed=photo.f username=photo.su tid=photo.si origin=page_origin obid=photo.i obh=photo.h static_url=STATIC_URL %}
+								{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted=photo.v static_url=STATIC_URL %}
+								{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
+								{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
+								{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+								{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
+								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+								{% include "big_buttons/big_report_button.html" with origin=page_origin pid=photo.i oun=photo.su ooid=photo.si img_thumb=photo.it raw_caption=photo.d av_url=photo.sa home_hash=photo.h static_url=STATIC_URL type='img' %}
+							{% endif %}
 						{% endif %}
 
 					</div>

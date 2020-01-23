@@ -325,6 +325,7 @@ def topic_page(request,topic_url):
 	"""
 	if topic_url:
 		own_id = request.user.id
+		time_now = time.time()
 		if own_id:
 			description, topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_desc=True, with_name=True, \
 				with_theme=True, with_is_subscribed=True, retriever_id=own_id)
@@ -365,7 +366,7 @@ def topic_page(request,topic_url):
 
 				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,\
 				'sk':str(secret_key),'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
-				'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
+				'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),'time_now':time_now,\
 				'ident':own_id, 'validation_error':request.session.pop("validation_error",''),'topic_url':topic_url,\
 				'is_subscribed':is_subscribed, 'new_subscriber':request.session.pop("subscribed"+str(own_id),None),\
 				'cannot_recreate':request.session.pop("cannot_recreate"+str(own_id),None), 'page':page,\
@@ -375,7 +376,7 @@ def topic_page(request,topic_url):
 				################### Retention activity logging ###################
 				# from_redirect = request.session.pop('rd',None)
 				# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-				# 	time_now = time.time()
+				# 	time_now = time_now
 				# 	act = 'T' if request.mobile_verified else 'T.u'
 				# 	activity_dict = {'m':'GET','act':act,'url':topic_url,'t':time_now,'pg':page_num}# defines what activity just took place
 				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
@@ -408,7 +409,7 @@ def topic_page(request,topic_url):
 				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,'page':page,\
 				'sk':'','topic_description':description,'c1':color_grads[0],'c2':color_grads[1], 'is_subscribed':False,\
 				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True),\
-				'topic_url':topic_url,'ident':None,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
+				'topic_url':topic_url,'ident':None,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'time_now':time_now}
 				
 				return render(request, 'topics/unauth_topic_home.html', context)
 			else:

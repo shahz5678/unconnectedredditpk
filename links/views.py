@@ -998,12 +998,12 @@ def best_home_page(request):
 
 	is_mob_verified = request.mobile_verified
 	context = {'link_list':list_of_dictionaries,'is_auth':True,'on_fbs':on_fbs,'ident':own_id,'on_opera':on_opera,\
-	'mobile_verified':is_mob_verified,'random':num,'newbie_lang':request.session.get("newbie_lang",None),\
+	'mobile_verified':is_mob_verified,'random':num,'newbie_lang':request.session.get("newbie_lang",None),'time_now':time_now,\
 	'dir_rep_form':DirectResponseForm(with_id=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
 	'single_notif_dir_rep_form':DirectResponseForm(),'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),\
 	'uname_rep_sent_to':request.session.pop("dir_rep_sent"+str(own_id),None),'thin_rep_form':DirectResponseForm(thin_strip=True),\
 	'obj_type_rep_sent_to':request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None),'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'time_now':time_now,'feed_type':'best_text',\
+	'parent_obj_id_rep_sent_to':request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None),'feed_type':'best_text',\
 	'origin':'12','sn_origin':'13'}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\

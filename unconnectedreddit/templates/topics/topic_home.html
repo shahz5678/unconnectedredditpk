@@ -152,18 +152,24 @@
 						<a name="section{{ forloop.counter }}"></a>
 						
 						<section style="display:block">
-						{% text_object obid=submission.i ooid=submission.si text=submission.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv is_fbs=on_fbs home_hash=submission.h static_url=STATIC_URL is_star=submission.s alignment=submission.c topic=topic topic_url=topic_url show_topic='1' aud=submission.aud exp=submission.exp %}
+						{% text_object obid=submission.i ooid=submission.si text=submission.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=submission.d origin='22' upload_time=submission.t machine_time=submission.mt oun=submission.su av_url=submission.sa vsc=submission.nv is_fbs=on_fbs home_hash=submission.h static_url=STATIC_URL is_star=submission.s alignment=submission.c topic=topic topic_url=topic_url show_topic='1' aud=submission.aud exp=submission.exp et=submission.et time_now=time_now %}
 						</section>
+
 						<section class="mbl" style="display:block">
-						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+						<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp">
 						{% if ident|stringformat:"s" == submission.si|stringformat:"s" %}
 							{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL origin='22' %}
 						{% else %}
-							{% include "big_buttons/big_sub_button.html" with is_subbed=submission.f username=submission.su tid=submission.si origin='22' obid=submission.i obh=submission.h static_url=STATIC_URL %}
-							{% big_vote_button is_pht='0' obid=submission.i origin='22' ooid=submission.si user_voted=submission.v static_url=STATIC_URL topic=topic_url %}
-							{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
-							{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL origin='22' %}
-							{% include "big_buttons/big_report_button.html" with origin='22' pid=submission.i oun=submission.su ooid=submission.si img_thumb='' raw_caption=submission.d av_url=submission.sa home_hash=submission.h static_url=STATIC_URL type='tx' %}
+							{% if submission.et and submission.et < time_now %}
+								{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL origin='22' %}
+								{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
+							{% else %}
+								{% include "big_buttons/big_sub_button.html" with is_subbed=submission.f username=submission.su tid=submission.si origin='22' obid=submission.i obh=submission.h static_url=STATIC_URL %}
+								{% big_vote_button is_pht='0' obid=submission.i origin='22' ooid=submission.si user_voted=submission.v static_url=STATIC_URL topic=topic_url %}
+								{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
+								{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL origin='22' %}
+								{% include "big_buttons/big_report_button.html" with origin='22' pid=submission.i oun=submission.su ooid=submission.si img_thumb='' raw_caption=submission.d av_url=submission.sa home_hash=submission.h static_url=STATIC_URL type='tx' %}
+							{% endif %}
 						{% endif %}
 						</div>
 						</section>

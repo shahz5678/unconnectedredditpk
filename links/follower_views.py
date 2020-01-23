@@ -950,11 +950,11 @@ def display_trending_history(request, target_uname):
 
 		# retrieve  objects
 		object_list = Link.objects.values('id','description','image_file','net_votes','submitted_on','reply_count','type_of_content',\
-			'cagtegory','url').filter(trending_status='1',delete_status='0',submitter_id=target_id).order_by('-id')[start_index:end_index+1]
+			'cagtegory','url','expire_at').filter(trending_status='1',delete_status='0',submitter_id=target_id).order_by('-id')[start_index:end_index+1]
 
 		context = {'target_uname':target_uname,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'is_star':is_image_star(user_id=target_id),\
 		'own_profile':True,'star_id':target_id,'av_url':get_s3_object(retrieve_avurl(target_id),category='thumb'),'total_objs':total_objs,\
-		'object_list':object_list}
+		'object_list':object_list,'time_now':time.time()}
 
 		for obj in object_list:
 			obj['machine_time'] = obj['submitted_on']

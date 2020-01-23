@@ -5,46 +5,22 @@
   {% if topic and show_topic %}
 	{% include "topics/topic_header.html" with topic_header=topic color1=c1 color2=c2 static_url=static_url topic_url=topic_url %}
   {% endif %}
-  <div class="fx fxjssb fxaicn mt" style="background:white">
+  <div class="fx fxjssb fxaicn" style="background:#fefefa;border-bottom:2px solid whitesmoke;">
 	
 	<div class="fx fxjsfs fxaicn" style="padding:7px">
 		<a href="{% url 'user_profile' oun %}" class="mrs" style="text-decoration: none;">{% if is_fbs %}<img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro">{% else %}<img data-src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="lazyload cxs sp" style="border-radius:50%;border:1px solid gainsboro">{% endif %}</a>
 		<div style="word-break: break-all;"><span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' oun %}" style="text-decoration: none"><h3 style="padding:0;margin:0;display:inline" class="clb cs sp" itemprop="name"><bdi>{{ oun }}</bdi></h3></a></span>{% if is_star %}&nbsp;<img src="{{ static_url }}img/gstar.svg" width="14" height="14">{% endif %}&nbsp;<time class="sp cxs cgy" itemprop="datePublished" datetime="{{ mt }}">- {{ upload_time }}</time></div>
 	</div>
 	<div class="tooltip">
-	{% if aud == 'p' %}
-		{% if exp == 'm' %}
-			<div class="fx" style="justify-content:flex-end;padding-right:10px">
-				<div style="width:16px;height:16px;" class="mrs"><img src="{{ static_url }}img/clock.svg" width="16" height="16"></div>
-				<span class="tooltiptext">Temporary post</span>
-			</div>
-		{% endif %}	
-	{% elif aud == 'a' %} 
-		{% if exp == 'i' %}
-			<img src="{{ static_url }}img/followers.svg" width="16" height="16" style="padding:0 10px">
-			<span class="tooltiptext">Post for all followers</span>
-		{% elif exp == 'm' %}
-			<div class="fx" style="justify-content:flex-end;padding-right:10px">
-				<div style="width:16px;height:16px;" class="mrs"><img src="{{ static_url }}img/followers.svg" width="16" height="16"></div>
-				<div style="width:16px;height:16px;" class="mrs"><img src="{{ static_url }}img/15mins.svg" width="16" height="16"></div>
-				<span class="tooltiptext">Temporary post for all followers</span>
-			</div>
-		{% endif %}
-	{% elif aud == 's' %} 
-		{% if exp == 'i' %}
-			<img src="{{ static_url }}img/selective.svg" width="16" height="16" style="padding:0 10px">
-			<span class="tooltiptext">Post for some followers</span>
-		{% elif exp == 'm' %}
-			<div class="fx" style="justify-content:flex-end;padding-right:10px">
-				<div style="width:16px;height:16px;" class="mrs"><img src="{{ static_url }}img/selective.svg" width="16" height="16"></div>
-				<div style="width:16px;height:16px;"><img src="{{ static_url }}img/15mins.svg" width="16" height="16"></div>
-				<span class="tooltiptext">Temporary post for some followers</span>
-			</div>
-		{% endif %}
+	{% if exp == 'm' %}
+		<div class="fx" style="justify-content:flex-end;padding-right:10px">
+			<div style="width:16px;height:16px;" class="mrs"><img src="{{ static_url }}img/clock.svg" width="16" height="16"></div>
+			<span class="tooltiptext">Expiring post</span>
+		</div>
 	{% endif %}
 	
   </div>
 </div>
 <div class="mbs mls mrs lsp nos" style="overflow:hidden">
-	{% if vsc|add:"0" < VDC or block_time_remaining %}<div class="mt cgy sp cs cxl" style="text-align:center">- mita diya gya -</div>{% else %}<h2 class="cxl clb mt mbs ow main_txt" style="text-align:{{ pos }};font-weight: 300" itemprop="text">{{ text }}</h2>{% endif %}
+	{% if et and et < time_now %}<div class="mtl mbs sp nos" style="text-align:center;color:darkgray">- post expired -</div>{% elif vsc|add:"0" < VDC or block_time_remaining %}<div class="mt cgy sp cxl" style="text-align:center">- mita diya gya -</div>{% else %}<h2 class="cxl clb mt mbs ow main_txt" style="text-align:{{ pos }};font-weight: 300" itemprop="text">{{ text }}</h2>{% endif %}
 </div>

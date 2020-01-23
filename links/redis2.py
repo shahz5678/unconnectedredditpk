@@ -1,6 +1,7 @@
 import threading
 import redis, time
 import ujson as json
+from random import random
 from location import REDLOC2
 from redis4 import retrieve_bulk_credentials
 from models import UserFan, Report, Link, Cooldown
@@ -59,25 +60,22 @@ def retrieve_custom_feed_index(user_id, obj_hash):
 	return redis.Redis(connection_pool=POOL).zrevrank(USER_FEED+str(user_id),obj_hash)
 
 
-def get_custom_feed(user_id, time_now, start_idx=0,end_idx=-1, with_feed_size=False):
+def get_custom_feed(user_id, time_now, start_idx=0,end_idx=-1):
 	"""
 	Retrieve given user's feed populated by people user follows
 	"""
 	user_id = str(user_id)
+	feed_key = USER_FEED+user_id
 	my_server = redis.Redis(connection_pool=POOL)
-	if with_feed_size:
-		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time_now)
-		if expired_items:
-			my_server.zrem(USER_FEED+user_id,*expired_items)
-			my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,*expired_items)
-		return my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx, withscores=True), my_server.zcard(USER_FEED+user_id)
 
-	else:
+	if random() < 0.1:
+		# perform a cull one out of 10 refreshes
 		expired_items = my_server.zrangebyscore(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,'-inf',time_now)
 		if expired_items:
-			my_server.zrem(USER_FEED+user_id,*expired_items)
+			my_server.zrem(feed_key,*expired_items)
 			my_server.zrem(SHORT_LIVED_CONTENT_EXPIRE_TIMES+user_id,*expired_items)
-		return my_server.zrevrange(USER_FEED+user_id, start_idx, end_idx, withscores=True)
+
+	return my_server.zrevrange(feed_key, start_idx, end_idx, withscores=True), my_server.zcard(feed_key)
 
 
 ############################# Fan button state helper funcs #############################

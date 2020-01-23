@@ -77,7 +77,7 @@ def custom_feed_page(request):
 	page_num = request.GET.get('page', '1')
 	own_name = retrieve_uname(own_id, decode=True)
 	start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
-	obj_tup_list, list_total_size = get_custom_feed(own_id, time_now, start_idx=start_index, end_idx=end_index, with_feed_size=True)
+	obj_tup_list, list_total_size = get_custom_feed(own_id, time_now, start_idx=start_index, end_idx=end_index)
 	num_pages = list_total_size/ITEMS_PER_PAGE
 	max_pages = num_pages if list_total_size % ITEMS_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)

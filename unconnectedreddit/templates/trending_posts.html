@@ -35,7 +35,7 @@
   <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-top:6px">
       <a name="section{{ forloop.counter }}"></a>
 
-      {% photo_object pid=obj.id ooid=star_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description vsc=obj.net_votes is_fbs=on_fbs origin='14' upload_time=obj.submitted_on|naturaltime machine_time=obj.submitted_on oun=target_uname static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending='' lazyload_idx=forloop.counter  ot='g' %}
+      {% photo_object pid=obj.id ooid=star_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description vsc=obj.net_votes is_fbs=on_fbs origin='14' upload_time=obj.submitted_on|naturaltime machine_time=obj.submitted_on oun=target_uname static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending='' lazyload_idx=forloop.counter ot='g' et=obj.expire_at time_now=time_now %}
         
         <div class="mbs mtl">
           <div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -43,10 +43,13 @@
             {% big_photo_comment_button photo_id=obj.id origin='14' comm_count=obj.reply_count static_url=STATIC_URL star_id=star_id %}
             {% big_points_button obj_id=obj.id owner_id=star_id is_pht=1 origin='14' net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
           {% else %}
-            {% big_photo_comment_button photo_id=obj.id origin='14' comm_count=obj.reply_count static_url=STATIC_URL star_id=star_id %}
-            {% include "big_buttons/big_report_button.html" with origin='14' pid=obj.id oun=target_uname ooid=star_id img_thumb=obj.image_file|s3:'thumb' raw_caption=obj.description av_url=av_url home_hash='' static_url=STATIC_URL type='img' %}
+            {% if obj.expire_at and obj.expire_at < time_now %}
+              {% big_photo_comment_button photo_id=obj.id origin='14' comm_count=obj.reply_count static_url=STATIC_URL star_id=star_id %}
+            {% else %}
+              {% big_photo_comment_button photo_id=obj.id origin='14' comm_count=obj.reply_count static_url=STATIC_URL star_id=star_id %}
+              {% include "big_buttons/big_report_button.html" with origin='14' pid=obj.id oun=target_uname ooid=star_id img_thumb=obj.image_file|s3:'thumb' raw_caption=obj.description av_url=av_url home_hash='' static_url=STATIC_URL type='img' %}
+            {% endif %}
           {% endif %}
-          
 
           </div>
         </div>
@@ -58,7 +61,7 @@
   <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
       <a name="section{{ forloop.counter }}"></a>
 
-      {% text_object obid=obj.id ooid=star_id text=obj.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=obj.description origin='14' upload_time=obj.submitted_on machine_time=obj.mt oun=target_uname av_url=av_url vsc=obj.net_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.url show_topic='1' c1=obj.c1 c2=obj.c2 %}
+      {% text_object obid=obj.id ooid=star_id text=obj.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=obj.description origin='14' upload_time=obj.submitted_on machine_time=obj.mt oun=target_uname av_url=av_url vsc=obj.net_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.url show_topic='1' c1=obj.c1 c2=obj.c2 et=obj.expire_at time_now=time_now %}
         
         <div class="mbs mtl">
           <div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -66,8 +69,12 @@
             {% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin='14' always_show=True %}
             {% big_points_button obj_id=obj.id owner_id=star_id is_pht=0 origin='14' net_votes=obj.net_votes base_color='rgb(24, 180, 136)' static_url=STATIC_URL %}
           {% else %}
-            {% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin='14' always_show=True %}
-            {% include "big_buttons/big_report_button.html" with origin='14' pid=obj.id oun=target_uname ooid=star_id img_thumb='' raw_caption=obj.description av_url=av_url home_hash='' static_url=STATIC_URL type='tx' %}
+            {% if obj.expire_at and obj.expire_at < time_now %}
+              {% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin='14' always_show=True %}
+            {% else %}
+              {% big_home_reply_button link_id=obj.id comm_count=obj.reply_count static_url=STATIC_URL origin='14' always_show=True %}
+              {% include "big_buttons/big_report_button.html" with origin='14' pid=obj.id oun=target_uname ooid=star_id img_thumb='' raw_caption=obj.description av_url=av_url home_hash='' static_url=STATIC_URL type='tx' %}
+            {% endif %}
           {% endif %}
 
           </div>

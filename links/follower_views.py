@@ -42,16 +42,9 @@ def custom_feed_redirect(request, obj_hash=None):
 	"""
 	Used to redirect to specific spot in the user's subscriber feed (e.g. after writing something, liking etc)
 	"""
-	# if obj_hash:
 	index = retrieve_custom_feed_index(request.user.id, obj_hash)
-	# else:
-	# 	obj_hash = request.session.pop('home_hash_id',None)
-	# 	index = retrieve_custom_feed_index(user_id, obj_hash) if obj_hash else 0
-	if index is None:
-		url = reverse_lazy('for_me')+'?page=1#section0'
-	else:
-		addendum = get_addendum(index,ITEMS_PER_PAGE, only_addendum=True)
-		url = reverse_lazy('for_me')+addendum
+	addendum = get_addendum(index,ITEMS_PER_PAGE, only_addendum=True) if index else '?page=1#section0'
+	url = reverse_lazy('for_me')+addendum
 	return redirect(url)
 
 

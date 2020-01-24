@@ -583,4 +583,11 @@ def maintainance_notice(request):
 	"""
 	Renders the detail of an announcement
 	"""
-	return render(request,"announcement/maintainance_detail.html",{})	
+	return render(request,"announcement/maintainance_detail.html",{})
+
+
+def benefits_of_data_mode(request):
+	"""
+	Renders the detail of an announcement
+	"""
+	return render(request,"announcement/benefits_of_data_mode.html",{})

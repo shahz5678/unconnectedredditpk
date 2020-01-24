@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 {% load cache %}
-{% cache 6000 about %}
+{% cache 1 about_page %}
 <head><title>About Damadam | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 <h1 class="clb cxl lsp" style="text-align:center">About Damadam:</h1>
@@ -23,6 +23,7 @@
 	<div class="mtl cl sp lsp"><b>Tell a joke:</b><br>Are you kidding me?</div>
 	<div class="mtl cl sp lsp"><b>Get a life:</b><br>Damadam IS life</div>
 </span>
+{{ request.META.HTTP_X_IORG_FBS }}
 </div>
 </main>
 <br><br>

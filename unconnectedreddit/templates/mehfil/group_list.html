@@ -44,7 +44,7 @@
 			            {% else %}
 			                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
 			            {% endif %}
-						{% if group.lrsn in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
+						{% if group.lrwi in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
 						</div>
 					</div>
 				{% endif %}
@@ -76,7 +76,7 @@
 			            {% else %}
 			                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
 			            {% endif %}
-						{% if group.lrsn in verified %}<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
+						{% if group.lrwi in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<span class="clb cm sp" style="font-weight:bold">{{ group.lrsn }}:</span>&nbsp;<span class="bw cl clb mrs"><bdi>{% emoticons %}{{ group.lrtx }}{% endemoticons %}</bdi></span><span class="cs cgy sp">{{ group.lrti|human_time }}</span>
 						</div>
 					</div>
 				{% endif %}
@@ -92,15 +92,15 @@
 
 {% endif %}
 </div><br>
-<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="fx fxjscn">
+<div class="fx fxjscn fxaicn">
 	{% if page_obj.has_previous %}
     <div style="padding:0 10px">
-    <a href="?page={{ page_obj.previous_page_number }}#section0"><button itemprop="url" class="pg_ok_res" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40"></button></a>
+    <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
     </div>
     {% endif %}
     {% if page_obj.has_next %}
     <div style="padding:0 10px">
-    <a href="?page={{ page_obj.next_page_number }}#section0"><button class="pg_ok_res" style="background:0 0;border:none;padding:0" itemprop="url"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40"></button></a>
+    <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
     </div>
     {% endif %}
 </div>

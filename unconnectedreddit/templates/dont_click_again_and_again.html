@@ -1,6 +1,6 @@
 {% extends from_ecomm|yesno:"base_ecomm.html,base.html" %}
 {% block content %}
-<head><title>Duplicate button presses | Damadam.pk</title></head>
+<head><title>Duplicate button presses | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 
 <h1 class="cxl lsp clb" style="text-align:center">Kuch ghalat ho gya:</h1>
@@ -25,7 +25,7 @@
 	{% elif from_publicreply %}
 		
 		<span class="cxl lsp">Sorry! Dubara try karein ...</span><br>
-		<a href="{% url 'home' %}#section0"><button class="btn bct bm mtl mbs sp pg_ok_res" style="height:26px">home</button></a>
+		<a href="{% url 'for_me' %}#section0"><button class="btn bct bm mtl mbs sp pg_ok_res" style="height:26px">For Me</button></a>
 
 	{% elif from_photo_comment %}
 		

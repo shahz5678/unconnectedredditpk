@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+{% for content_id, trending_time, content_type in content_ids_times_and_types reversed %}
+	<url>
+		<loc>https://damadam.pk/content/{{ content_id }}/{{ content_type }}/</loc>
+		<lastmod>{{ trending_time }}</lastmod>
+	</url>
+{% endfor %}
+
+</urlset>

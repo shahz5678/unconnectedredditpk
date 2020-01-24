@@ -10,12 +10,11 @@ from django.http import HttpResponse, Http404
 from django.views.decorators.cache import cache_control
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from redis2 import skip_private_chat_notif
-from redis7 import check_content_and_voting_ban
 from redis3 import tutorial_unseen, get_user_verified_number, is_already_banned
+from redis7 import check_content_and_voting_ban, is_pair_image_stars, get_all_image_star_ids
 from redis4 import set_photo_upload_key, get_and_delete_photo_upload_key, retrieve_bulk_unames, retrieve_bulk_avurls,retrieve_uname,\
-get_cached_photo_dim, cache_photo_dim, retrieve_user_id, retrieve_photo_data, retrieve_fresh_photo_shares_or_cached_data, \
-push_subscription_exists, retrieve_subscription_info,unsubscribe_target_from_notifications, track_notif_allow_behavior
+get_cached_photo_dim, cache_photo_dim, retrieve_user_id, push_subscription_exists, retrieve_fresh_photo_shares_or_cached_data, \
+retrieve_subscription_info,unsubscribe_target_from_notifications, track_notif_allow_behavior
 from redis5 import personal_group_invite_status, process_invite_sending, interactive_invite_privacy_settings, personal_group_sms_invite_allwd, \
 delete_or_hide_chat_from_personal_group, personal_group_already_exists, add_content_to_personal_group, retrieve_content_from_personal_group, \
 sanitize_personal_group_invites, delete_all_user_chats_from_personal_group, check_single_chat_current_status, get_personal_group_anon_state, \
@@ -30,29 +29,23 @@ get_single_user_credentials, get_user_credentials, get_user_friend_list, get_rat
 remove_1on1_push_subscription, can_send_1on1_push, personal_group_notification_invite_allwd,rate_limit_1on1_notification, \
 is_1on1_notif_rate_limited,log_1on1_sent_notif, log_1on1_received_notif_interaction
 from tasks import personal_group_trimming_task, add_image_to_personal_group_storage, private_chat_tasks, log_user_activity, cache_personal_group,\
-update_notif_object_anon, update_notif_object_del, update_notif_object_hide, private_chat_seen, photo_sharing_metrics_and_rate_limit,\
-cache_photo_shares
+hide_associated_direct_responses, private_chat_seen, photo_sharing_metrics_and_rate_limit#, update_notif_object_anon
 from page_controls import PERSONAL_GROUP_IMGS_PER_PAGE, PERSONAL_GROUP_MAX_SMS_SIZE, PERSONAL_GROUP_SMS_LOCK_TTL, PERSONAL_GROUP_OWN_BG, PRIV_CHAT_EMOTEXT, \
 PERSONAL_GROUP_THEIR_BG, PERSONAL_GROUP_OWN_BORDER, PERSONAL_GROUP_THEIR_BORDER, OBJS_PER_PAGE_IN_USER_GROUP_LIST, OBJS_PER_PAGE_IN_USER_GROUP_INVITE_LIST, \
-PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT
+PRIV_CHAT_NOTIF, PHOTO_SHARING_FRIEND_LIMIT, PERSONAL_GROUP_REJOIN_RATELIMIT
 from group_forms import PersonalGroupPostForm, PersonalGroupSMSForm, PersonalGroupReplyPostForm, PersonalGroupSharedPhotoCaptionForm
-from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT, SEGMENT_STARTING_USER_ID
+from score import PERSONAL_GROUP_ERR, THUMB_HEIGHT, PERSONAL_GROUP_DEFAULT_SMS_TXT#, SEGMENT_STARTING_USER_ID
 from push_notification_api import send_single_push_notification
 from views import get_indices, retrieve_user_env
 from image_processing import process_group_image
 from redirection_views import return_to_content
 from unconnectedreddit.env import PUBLIC_KEY
 from imagestorage import upload_image_to_s3
-from forms import UnseenActivityForm
-from models import Photo
+from redis2 import check_if_follower
+from models import Photo, Link
 
 ONE_DAY = 60*60*24
 ONE_WEEK = 7*60*60*24
-
-# def deletion_test(request):
-# 	"""
-# 	"""
-# 	exited_personal_group_hard_deletion(['5','6'])
 
 #######################################################################################################################
 ########################################### Personal Group Helper Functions ###########################################
@@ -96,260 +89,206 @@ def personal_group_sanitization(obj_count, obj_ceiling, group_id):
 		personal_group_trimming_task.delay(group_id, obj_count)
 
 
-# def return_to_source(origin,parent_object_id,target_username):
-# 	"""
-# 	Redirect to a certain location
-# 	"""
-# 	if origin in ('home','home_reply'):
-# 		if parent_object_id:
-# 			return redirect("home_loc_pk",pk=parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'history':
-# 		if target_username:
-# 			return redirect("user_activity",slug=target_username)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'private':
-# 		return redirect("private_group_reply")
-# 	elif origin == 'public':
-# 		if parent_object_id:
-# 			return redirect("public_group",slug=parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'search':
-# 		return redirect("search_username")
-# 	elif origin == 'profile':
-# 		if parent_object_id:
-# 			return redirect("user_profile",slug=parent_object_id)
-# 		else:
-# 			return redirect("home")	
-# 	elif origin == 'profile_photos':
-# 		if parent_object_id:
-# 			return redirect("profile",slug=parent_object_id, type='fotos')
-# 		else:
-# 			return redirect("home")	
-# 	elif origin == 'best_photos':
-# 		if parent_object_id:
-# 			return redirect("best_photo_loc_pk", parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'photo_comments':
-# 		if parent_object_id:
-# 			return redirect("comment", parent_object_id)
-# 		else:
-# 			return redirect("home")
-# 	elif origin == 'fresh_photos':
-# 		if parent_object_id:
-# 			return redirect("see_photo_pk", parent_object_id)
-# 		else:
-# 			return redirect("photo")
-# 	else:
-# 		return redirect("home")
-
-
-def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl):
+def construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, their_avurl, own_star, their_star):
 	"""
 	Preps raw personal group data for display
 
 	Helper function for enter_personal_group()
 	"""
-	index = 0
+	content_list_of_dictionaries = filter(None, content_list_of_dictionaries)
 	for dictionary in content_list_of_dictionaries:
-		if dictionary:
-			is_own_blob = True if dictionary['id'] == str(own_id) else False 
-			which_blob = dictionary.get("which_blob",None) # identifies 'nor' (normal), 'res' (response), 'action', 'notif' (notification) blobs
+		is_own_blob = True if dictionary['id'] == str(own_id) else False 
+		which_blob = dictionary.get("which_blob",None) # identifies 'nor' (normal), 'res' (response), 'action', 'notif' (notification) blobs
+		if is_own_blob:
+			dictionary["username"], dictionary["av_url"], dictionary["own_star"], dictionary['their_star'] = own_uname, own_avurl, own_star, their_star
+		else:
+			dictionary["username"], dictionary["av_url"], dictionary["own_star"], dictionary['their_star'] = their_uname, their_avurl, their_star, own_star
+		if which_blob == 'res':
+			dictionary["res_time"] = float(dictionary["res_time"])
 			if is_own_blob:
-				dictionary["username"] = own_uname
-				dictionary["av_url"] = own_avurl
+				dictionary["t_username"] = their_uname 
+				dictionary["t_av_url"] = their_avurl
 			else:
-				dictionary["username"] = their_uname
-				dictionary["av_url"] = their_avurl
-			if which_blob == 'res':
-				dictionary["res_time"] = float(dictionary["res_time"])
-				if is_own_blob:
-					dictionary["t_username"] = their_uname 
-					dictionary["t_av_url"] = their_avurl
-				else:
-					dictionary["t_username"] = own_uname
-					dictionary["t_av_url"] = own_avurl
-			elif which_blob in ('action','notif'):
-				if is_own_blob:
-					dictionary["t_username"] = their_uname 
-					dictionary["t_av_url"] = their_avurl
-				else:
-					dictionary["t_username"] = own_uname
-					dictionary["t_av_url"] = own_avurl
+				dictionary["t_username"] = own_uname
+				dictionary["t_av_url"] = own_avurl
+		elif which_blob in ('action','notif'):
+			if is_own_blob:
+				dictionary["t_username"] = their_uname 
+				dictionary["t_av_url"] = their_avurl
 			else:
-				"""
-				Degree of completeness (of retrieved metadata):
+				dictionary["t_username"] = own_uname
+				dictionary["t_av_url"] = own_avurl
+		else:
+			"""
+			Degree of completeness (of retrieved metadata):
 
-				'0': no metadata retrieved
-				'1': just image retrieved
-				'2': just title retrieved
-				'3': just desc retrieved
-				'4': just img and img_dim retrieved
-				'5': just desc and img retrieved
-				'6': just title and img retrieved
-				'7': just desc and title retrieved
-				'8': just title, img and img_dim retrieved
-				'9': just desc, img and img_dim retrieved
-				'10': just desc, title and img retrieved
-				'11': desc, title, img and img_dim retrieved
-				"""
-				normal_chat = []
-				for i in range(1,int(dictionary["idx"])+1):
-					idx = str(i)
-					doc = 'doc'+idx
-					has_url_meta = doc in dictionary
-					if has_url_meta and dictionary['type'+idx] == 'text':
-						meta_complete = dictionary[doc]
-						# add meta_complete in every 5th index (i.e. tup.5)
-						# add meta_data in this order: url, desc, title, img, img_hw_ratio, 'yt' - youtube (add empty index in case data doesn't exist - useful in personal_group.html)
-						if meta_complete == '1':
-							# just image retrieved
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'1',\
-								dictionary['url'+idx],'','',dictionary['url_img'+idx],'',dictionary['yt'+idx]))
-						elif meta_complete == '2':
-							# just title retrieved
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'2',\
-								dictionary['url'+idx],'',dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
-						elif meta_complete == '3':
-							# just desc retrieved
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'3',\
-								dictionary['url'+idx], dictionary['url_desc'+idx],'','','',dictionary['yt'+idx]))
-						elif meta_complete == '4':
-							# img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'4',\
-								dictionary['url'+idx],'','',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
-						elif meta_complete == '5':
-							# desc and img
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'5',\
-								dictionary['url'+idx], dictionary['url_desc'+idx],'',dictionary['url_img'+idx],'',dictionary['yt'+idx]))
-						elif meta_complete == '6':
-							# title and img
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'6',\
-								dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx]))
-						elif meta_complete == '7':
-							# desc and title
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'7',\
-								dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
-						elif meta_complete == '8':
-							# title, img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'8',\
-								dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
-								dictionary['yt'+idx]))
-						elif meta_complete == '9':
-							# desc, img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'9',\
-								dictionary['url'+idx],dictionary['url_desc'+idx],'',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
-								dictionary['yt'+idx]))
-						elif meta_complete == '10':
-							# desc, title and img
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'10',\
-								dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],'',\
-								dictionary['yt'+idx]))
-						elif meta_complete == '11':
-							# desc, title, img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'11',\
-								dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],\
-								dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
-						else:
-							# no meaningful metadata
-							normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx])))
-					elif has_url_meta and dictionary['type'+idx] == 'img':
-						meta_complete = dictionary[doc]
-						# add meta_complete in each 11th index (i.e. tup.11)
-						# add meta_data in this order: url, desc, title, img, img_hw_ratio, 'yt' - youtube (add empty index in case data doesn't exist - useful in personal_group.html)
-						if meta_complete == '1':
-							# just image retrieved
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'1',dictionary['url'+idx],'','',dictionary['url_img'+idx],'',\
-								dictionary['yt'+idx]))
-						elif meta_complete == '2':
-							# just title retrieved
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'2',dictionary['url'+idx],'',dictionary['url_title'+idx],'','',\
-								dictionary['yt'+idx]))
-						elif meta_complete == '3':
-							# just desc retrieved
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'3',dictionary['url'+idx],dictionary['url_desc'+idx],'','','',\
-								dictionary['yt'+idx]))
-						elif meta_complete == '4':
-							# img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'4',dictionary['url'+idx],'','',dictionary['url_img'+idx],\
-								dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
-						elif meta_complete == '5':
-							# desc and img
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'5',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
-								dictionary['url_img'+idx],'',dictionary['yt'+idx]))
-						elif meta_complete == '6':
-							# title and img
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'6',dictionary['url'+idx],'',dictionary['url_title'+idx],\
-								dictionary['url_img'+idx],'',dictionary['yt'+idx]))
-						elif meta_complete == '7':
-							# desc and title
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'7',dictionary['url'+idx],dictionary['url_desc'+idx],\
-								dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
-						elif meta_complete == '8':
-							# title, img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'8',dictionary['url'+idx],'',dictionary['url_title'+idx],\
-								dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
-						elif meta_complete == '9':
-							# desc, img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'9',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
-								dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
-						elif meta_complete == '10':
-							# desc, title and img
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'10',dictionary['url'+idx],dictionary['url_desc'+idx],\
-								dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx]))
-						elif meta_complete == '11':
-							# desc, title, img and img_dim
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'11',dictionary['url'+idx],dictionary['url_desc'+idx],\
-								dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx]))
-						else:
-							# no meaningful metadata
-							normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
-								dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-								dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx]))
-					elif dictionary['type'+idx] == 'text':
+			'0': no metadata retrieved
+			'1': just image retrieved
+			'2': just title retrieved
+			'3': just desc retrieved
+			'4': just img and img_dim retrieved
+			'5': just desc and img retrieved
+			'6': just title and img retrieved
+			'7': just desc and title retrieved
+			'8': just title, img and img_dim retrieved
+			'9': just desc, img and img_dim retrieved
+			'10': just desc, title and img retrieved
+			'11': desc, title, img and img_dim retrieved
+			"""
+			normal_chat = []
+			for i in range(1,int(dictionary["idx"])+1):
+				idx = str(i)
+				doc = 'doc'+idx
+				has_url_meta = doc in dictionary
+				if has_url_meta and dictionary['type'+idx] == 'text':
+					meta_complete = dictionary[doc]
+					# add meta_complete in every 5th index (i.e. tup.5)
+					# add meta_data in this order: url, desc, title, img, img_hw_ratio, 'yt' - youtube (add empty index in case data doesn't exist - useful in personal_group.html)
+					if meta_complete == '1':
+						# just image retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'1',\
+							dictionary['url'+idx],'','',dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '2':
+						# just title retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'2',\
+							dictionary['url'+idx],'',dictionary['url_title'+idx],'','',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '3':
+						# just desc retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'3',\
+							dictionary['url'+idx], dictionary['url_desc'+idx],'','','',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '4':
+						# img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'4',\
+							dictionary['url'+idx],'','',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
+					elif meta_complete == '5':
+						# desc and img
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'5',\
+							dictionary['url'+idx], dictionary['url_desc'+idx],'',dictionary['url_img'+idx],'',dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
+					elif meta_complete == '6':
+						# title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'6',\
+							dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
+					elif meta_complete == '7':
+						# desc and title
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'7',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],'','',dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
+					elif meta_complete == '8':
+						# title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'8',\
+							dictionary['url'+idx],'',dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '9':
+						# desc, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'9',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],'',dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],\
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '10':
+						# desc, title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'10',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],'',\
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '11':
+						# desc, title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx]),'11',\
+							dictionary['url'+idx],dictionary['url_desc'+idx],dictionary['url_title'+idx],dictionary['url_img'+idx],\
+							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					else:
+						# no meaningful metadata
 						normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx])))
-					elif dictionary['type'+idx] == 'img':
+				elif has_url_meta and dictionary['type'+idx] == 'img':
+					meta_complete = dictionary[doc]
+					# add meta_complete in each 11th index (i.e. tup.11)
+					# add meta_data in this order: url, desc, title, img, img_hw_ratio, 'yt' - youtube (add empty index in case data doesn't exist - useful in personal_group.html)
+					if meta_complete == '1':
+						# just image retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'1',dictionary['url'+idx],'','',dictionary['url_img'+idx],'',\
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '2':
+						# just title retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'2',dictionary['url'+idx],'',dictionary['url_title'+idx],'','',\
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '3':
+						# just desc retrieved
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'3',dictionary['url'+idx],dictionary['url_desc'+idx],'','','',\
+							dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '4':
+						# img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'4',dictionary['url'+idx],'','',dictionary['url_img'+idx],\
+							dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '5':
+						# desc and img
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'5',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
+							dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '6':
+						# title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'6',dictionary['url'+idx],'',dictionary['url_title'+idx],\
+							dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '7':
+						# desc and title
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'7',dictionary['url'+idx],dictionary['url_desc'+idx],\
+							dictionary['url_title'+idx],'','',dictionary['yt'+idx]))
+					elif meta_complete == '8':
+						# title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'8',dictionary['url'+idx],'',dictionary['url_title'+idx],\
+							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '9':
+						# desc, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'9',dictionary['url'+idx],dictionary['url_desc'+idx],'',\
+							dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '10':
+						# desc, title and img
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'10',dictionary['url'+idx],dictionary['url_desc'+idx],\
+							dictionary['url_title'+idx],dictionary['url_img'+idx],'',dictionary['yt'+idx], dictionary.get('vid'+idx,'')))
+					elif meta_complete == '11':
+						# desc, title, img and img_dim
+						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],'11',dictionary['url'+idx],dictionary['url_desc'+idx],\
+							dictionary['url_title'+idx],dictionary['url_img'+idx],dictionary['url_hw_ratio'+idx],dictionary['yt'+idx],\
+							dictionary.get('vid'+idx,'')))
+					else:
+						# no meaningful metadata
 						normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
 							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
 							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx]))
-					elif dictionary['type'+idx] == 'shared_img':
-						normal_chat.append((dictionary['status'+idx], idx, 'shared_img', dictionary['shared_img'+idx], float(dictionary['time'+idx]), \
-							dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
-							dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],dictionary['owner_uname'+idx].decode('utf-8')))
-					else:
-						# append nothing - this case shouldn't arise
-						pass
-				dictionary["iterator"] = normal_chat
-		else:
-			# remove this 'empty' dictionary from content_list_of_dictionaries
-			del content_list_of_dictionaries[index]
-		index += 1
+				elif dictionary['type'+idx] == 'text':
+					normal_chat.append((dictionary['status'+idx], idx, 'text', dictionary['text'+idx], float(dictionary['time'+idx])))
+				elif dictionary['type'+idx] == 'img':
+					normal_chat.append((dictionary['status'+idx], idx, 'img', dictionary['img'+idx], float(dictionary['time'+idx]), \
+						dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+						dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx]))
+				elif dictionary['type'+idx] == 'shared_img':
+					normal_chat.append((dictionary['status'+idx], idx, 'shared_img', dictionary['shared_img'+idx], float(dictionary['time'+idx]), \
+						dictionary['img_s_caption'+idx],dictionary['img_caption'+idx],dictionary['hidden'+idx],dictionary['img_width'+idx],\
+						dictionary['img_hw_ratio'+idx],dictionary['img_id'+idx],dictionary['owner_uname'+idx].decode('utf-8')))
+				else:
+					# append nothing - this case shouldn't arise
+					pass
+			dictionary["iterator"] = normal_chat
 	return content_list_of_dictionaries
 
 
@@ -377,7 +316,7 @@ def enter_personal_group_from_single_notif(request):
 			request.session["personal_group_tid_key"] = target_id
 			return redirect("enter_personal_group")
 		else:
-			return redirect("home")
+			return redirect('for_me')
 	else:
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 
@@ -421,8 +360,9 @@ def enter_personal_group(request):
 			prev_seen_time, own_anon_status, their_anon_status, auto_del_called, their_last_seen_time, is_suspended, content_list_of_dictionaries, \
 			own_cred, their_cred = retrieve_content_from_personal_group(group_id, own_id, target_id, own_refresh_time)
 			own_uname, own_avurl, their_uname, their_avurl = own_cred[0], own_cred[1], their_cred[0], their_cred[1]
+			is_self_star, are_they_star = is_pair_image_stars(own_id, target_id)
 			content_list_of_dictionaries = construct_personal_group_data(content_list_of_dictionaries, own_id, own_uname, their_uname, own_avurl, \
-				their_avurl)
+				their_avurl, is_self_star, are_they_star)
 			cache_personal_group.delay(json.dumps(content_list_of_dictionaries, ensure_ascii=False),group_id)#ensure_ascii used to get rid of error 'Unpaired high surrogate when decoding 'string'
 			t_nick = their_uname
 		t_nick = t_nick[:1].upper() if their_anon_status == '1' else t_nick
@@ -442,10 +382,10 @@ def enter_personal_group(request):
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
 		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		################### Retention activity logging ###################
-		from_redirect = request.session.pop("rd",None)
-		if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-			activity_dict = {'m':'GET','act':'Y.v','t':own_refresh_time,'tuid':target_id}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=own_refresh_time)
+		# from_redirect = request.session.pop("rd",None)
+		# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+		# 	activity_dict = {'m':'GET','act':'Y.v','t':own_refresh_time,'tuid':target_id}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=own_refresh_time)
 		###################################################################
 		return render(request,"personal_group/main/personal_group.html",{'form_errors':personal_group_form_error,'personal_group_form':PersonalGroupPostForm(),\
 			'tid':target_id,'content':content_list_of_dictionaries, 'own_id':own_id, 'last_seen_time':prev_seen_time,'sk':secret_key,'no_notif':no_notif,\
@@ -488,11 +428,11 @@ def post_to_personal_group(request, *args, **kwargs):
 						if personal_group_image_transfer_not_permitted(target_id, group_id):
 							request.session["personal_group_image_xfer_no_permit"] = True
 							################### Retention activity logging ###################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								request.session['rd'] = '1'
-								activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	request.session['rd'] = '1'
+							# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							###################################################################
 							if personal_group_photo_xfer_invite_allwd(target_id, group_id):
 								#'1' signifies photo permission notification
@@ -517,11 +457,11 @@ def post_to_personal_group(request, *args, **kwargs):
 								uploaded_image_loc = upload_image_to_s3(image_to_upload)
 								content = {'img_url':uploaded_image_loc, 'img_width':img_width, 'img_height':img_height, 'img_caption':reply}
 								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									time_now = time.time()
-									request.session['rd'] = '1'
-									activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+								# if own_id > SEGMENT_STARTING_USER_ID:
+								# 	time_now = time.time()
+								# 	request.session['rd'] = '1'
+								# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
+								# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 								###################################################################
 								if is_direct_response:
 									target_content_type = request.POST.get('tt',None)
@@ -553,11 +493,11 @@ def post_to_personal_group(request, *args, **kwargs):
 								personal_group_sanitization(obj_count, obj_ceiling, gid)
 					elif reply:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'W1','t':time_now,'pc':reply,'tuid':target_id}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'pc':reply,'tuid':target_id}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						if is_direct_response:
 							target_content_type = request.POST.get('tt',None)
@@ -590,11 +530,11 @@ def post_to_personal_group(request, *args, **kwargs):
 						return redirect("enter_personal_group")
 				else:
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('reply',''),'tuid':target_id}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('reply',''),'tuid':target_id}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					if is_direct_response:
 						request.session.modified = True
@@ -656,11 +596,12 @@ def delete_post_from_personal_group(request):
 		if exists:
 			if decision == '1':
 				action = 'undel' if undelete == '1' else 'del'
-				deleted, ttl = delete_or_hide_chat_from_personal_group(blob_id=target_blob_id, idx=target_index, own_id=own_id, group_id=group_id, \
-					img_id=None, action=action)#img_id is used in 'hiding', not needed here
-				if deleted:
-					update_notif_object_del.delay(action=action,blob_id=target_blob_id,idx=target_index,group_id=group_id)
-				elif ttl and not deleted:
+				action_completed, ttl, update_dir_rep, is_hidden = delete_or_hide_chat_from_personal_group(blob_id=target_blob_id, idx=target_index, own_id=own_id, \
+					group_id=group_id, img_id=None, action=action)#img_id is used in 'hiding', not needed here
+				if update_dir_rep:
+					hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+					receiver_id=target_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+				if ttl and not action_completed:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
 						'one_post':True,'tid':target_id})
 			request.session["personal_group_tid_key"] = target_id
@@ -1033,10 +974,12 @@ def hide_photo_from_personal_group_chat(request):
 					return redirect("enter_personal_group")
 				else:
 					action = request.POST.get('act',None)#values are either 'hide' or 'unhide' (i.e. 'hide' if request.POST.get('hval',None) == 'True' else 'unhide')
-					hidden, ttl = delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, img_id, action=action)
-					if hidden:
-						update_notif_object_hide.delay(action=action,blob_id=blob_id,idx=idx,group_id=group_id)
-					elif ttl and not hidden:
+					action_completed, ttl, update_dir_rep, is_hidden = delete_or_hide_chat_from_personal_group(blob_id, idx, own_id, group_id, \
+						img_id, action=action)
+					if update_dir_rep:
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=target_id,\
+						receiver_id=own_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+					if ttl and not action_completed:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'act':action,\
 							'one_photo':True,'tid':target_id})
 					return redirect("enter_personal_group")
@@ -1062,19 +1005,19 @@ def post_chat_action_in_personal_group(request):
 			option = request.POST.get('opt',None)
 			if option == '6':
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					activity_dict = {'m':'POST','act':'Y.s','t':time_now,'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	activity_dict = {'m':'POST','act':'Y.s','t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 				their_uname, their_avurl = get_uname_and_avurl(target_id,their_anon_status)
 				return render(request,"personal_group/general_settings/personal_group_all_settings.html",{'their_anon':their_anon_status,\
 					'avatar':their_avurl,'name':their_uname,'own_anon':own_anon_status,'tid':target_id})
 			elif option in ('0','1','2','3','4','5'):
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					request.session['rd'] = '1'
-					activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':PRIV_CHAT_EMOTEXT[option],'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	request.session['rd'] = '1'
+				# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':PRIV_CHAT_EMOTEXT[option],'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 				obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=option, type_='action', \
 					writer_id=own_id, group_id=group_id)
@@ -1141,106 +1084,6 @@ def get_user_perms_for_group(request):
 	return render(request,"404.html",{})
 
 
-def x_per_grp_notif(request, gid, fid, from_home):
-	"""
-	Used to skip personal group single notification
-	"""
-	own_id = request.user.id
-	group_id, exists = personal_group_already_exists(own_id, fid)
-	if exists and group_id == str(gid):
-		skip_private_chat_notif(own_id, group_id,curr_time=time.time(),seen=True)
-	################### Retention activity logging ###################
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		request.session['rd'] = '1'
-		act = 'Q4' if request.mobile_verified else 'Q4.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':fid}
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-	###################################################################
-	return return_to_content(request,from_home,group_id,None,None)
-
-
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def unseen_per_grp(request, gid, fid):
-	"""
-	Processes reply given in personal group straight from a notification or unseen activity
-	"""
-	if not request.mobile_verified:
-		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
-	elif request.method == "POST":
-		own_id = request.user.id
-		time_now = time.time()
-		own_uname = get_target_username(str(own_id))
-		group_id, exists = personal_group_already_exists(own_id, fid)
-		if exists and group_id == str(gid):
-			origin, lang, sort_by = request.POST.get("origin",None), request.POST.get("lang",None), request.POST.get("sort_by",None)
-			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-			if banned:
-				# show "user banned" message and redirect them to home
-				return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-					'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
-			else:
-				form = UnseenActivityForm(request.POST,user_id=own_id, prv_grp_id='',pub_grp_id='',photo_id='',link_id='',per_grp_id=group_id)
-				if form.is_valid():
-					text, type_ = form.cleaned_data.get("personal_group_reply"), 'text'
-					obj_count, obj_ceiling, gid, bid, idx, img_id, img_wid, hw_ratio = add_content_to_personal_group(content=text, type_=type_, \
-						writer_id=own_id, group_id=group_id)
-					private_chat_tasks.delay(own_id=own_id,target_id=fid,group_id=group_id,posting_time=time_now,text=text,txt_type=type_,\
-						own_anon='',target_anon='',blob_id=bid, idx=idx, img_url='',own_uname=own_uname,own_avurl='',deleted='undel',hidden='no',\
-						successful=True if bid else False, from_unseen=True)
-					personal_group_sanitization(obj_count, obj_ceiling, gid)
-					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						if origin:
-							# this is a single notification
-							activity_dict = {'m':'POST','act':'S5','t':time_now,'tx':text,'tuid':fid}
-						else:
-							# this is within the matka
-							activity_dict = {'m':'POST','act':'M5','t':time_now,'tx':text,'tuid':fid}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
-					if origin:
-						return return_to_content(request,origin,None,None,own_id)
-					else:
-						return redirect("unseen_activity", own_uname)
-				else:
-					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						if origin:
-							# this is a single notification
-							activity_dict = {'m':'POST','act':'S5.i','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-						else:
-							# this is within the matka
-							activity_dict = {'m':'POST','act':'M5.i','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
-					if origin:
-						request.session["notif_form"] = form
-						request.session.modified = True
-						return return_to_content(request,origin,None,None,own_id)
-					else:
-						request.session["unseen_error_string"] = form.errors.as_text().split("*")[2]
-						return redirect(reverse_lazy("unseen_activity", args=[own_uname])+"#error")
-		else:
-			################### Retention activity logging ###################
-			if own_id > SEGMENT_STARTING_USER_ID:
-				request.session['rd'] = '1'
-				if request.POST.get("origin",None):
-					# this is a single notification
-					activity_dict = {'m':'POST','act':'S5.e','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-				else:
-					# this is within the matka
-					activity_dict = {'m':'POST','act':'M5.e','t':time_now,'tx':request.POST.get("personal_group_reply",''),'tuid':fid}
-				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-			###################################################################
-			return redirect("unseen_activity", own_uname)
-	else:
-		return redirect("unseen_activity", request.user.username)
-
-
 
 ###########################################################################################################
 ######################################### Personal Group Settings #########################################
@@ -1281,7 +1124,7 @@ def personal_group_reentry(request):
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						return redirect(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'their_anon':their_anon_status,\
 						'avatar':their_avurl,'name':their_uname,'reentry_denied':True,'tid':tid})
-					elif time_diff < ONE_DAY:
+					elif time_diff < PERSONAL_GROUP_REJOIN_RATELIMIT:
 						# cant return yet - it's too soon
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'reentry_too_soon':True,\
@@ -1290,7 +1133,7 @@ def personal_group_reentry(request):
 						# re-enter normally, i.e. unsuspend group
 						unsuspend_personal_group(own_id, tid, group_id)
 						reset_all_group_chat(group_id) #permanently resetting group chat
-						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='reentry',txt_type='reentry',\
+						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='reentry in 1on1',txt_type='reentry',\
 							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
 							own_avurl='',deleted='undel',hidden='no')
 						request.session['personal_group_tid_key'] = tid
@@ -1341,14 +1184,14 @@ def personal_group_exit_settings(request):
 						purge_all_saved_chat_of_user(own_id, tid, group_id)
 						delete_all_user_chats_from_personal_group(own_id, group_id) #hides all user chat - not permanent deletion
 						private_chat_tasks.delay(own_id=own_id,target_id=tid,group_id=group_id,posting_time=time.time(),text='exit',txt_type='exited',\
-							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',own_uname='',\
-							own_avurl='',deleted='undel',hidden='no')
+							own_anon='1' if own_anon_status else '0',target_anon='1' if their_anon_status else '0',blob_id='', idx='', img_url='',\
+							own_uname='',own_avurl='',deleted='undel',hidden='no')
 						their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							activity_dict = {'m':'POST','act':'W0','t':time_now,'tuid':tid}
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	activity_dict = {'m':'POST','act':'W0','t':time_now,'tuid':tid}
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						return render(request,"personal_group/exit_settings/personal_group_exit_settings.html",{'were_sorry':True,\
 							'avatar':their_avurl,'name':their_uname,'their_anon':their_anon_status,'tid':tid})
@@ -1411,13 +1254,20 @@ def delete_or_hide_photo_from_photo_settings(request):
 				except (AttributeError,IndexError):
 					pass
 				action = request.POST.get('act',None)
-				deleted, ttl = delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, action=action)
-				if deleted:
-					if action in ('del','undel'):
-						update_notif_object_del.delay(action=action,blob_id=blob_id,idx=idx,group_id=group_id)
-					elif action in ('hide','unhide'):
-						update_notif_object_hide.delay(action,blob_id,idx,group_id)
-				elif not deleted and ttl:
+				action_completed, ttl, update_dir_rep, is_hidden = delete_or_hide_photo_from_settings(own_id, group_id, blob_id, idx, img_id, \
+					action=action)
+
+				if update_dir_rep:
+					if action in ('hide','unhide'):
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=target_id,\
+						receiver_id=own_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+					elif action in ('del','undel'):
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+						receiver_id=target_id,to_hide=is_hidden)# reply_id is not relevant for 1on1s
+					else:
+						pass
+
+				if not action_completed and ttl:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'act':action,\
 						'one_photo':True,'tid':target_id})
 				request.session["personal_group_tid_key"] = target_id
@@ -1440,7 +1290,7 @@ def delete_or_hide_photo_from_photo_settings(request):
 @csrf_protect
 def delete_all_posts_from_personal_group(request):
 	"""
-	Used to cleanse/uncleanse personal group of all chat written in it. 
+	Used to cleanse/uncleanse personal group of all chat written in it (in bulk). 
 	"""
 	if request.method == "POST":
 		own_id, tid = request.user.id, request.POST.get("tid",None)
@@ -1455,9 +1305,11 @@ def delete_all_posts_from_personal_group(request):
 					{'their_anon':their_anon_status,'name':their_uname,'avatar':their_avurl,'tid':tid})
 			elif decision == '1':
 				undelete = request.POST.get('un',None)
-				deleted, ttl = delete_all_user_chats_from_personal_group(own_id=own_id, group_id=group_id, undelete=undelete)
-				if deleted:
-					update_notif_object_del.delay(group_id, bulk_deletion=True)
+				deleted, ttl, top_most_post_affected, top_most_post_hidden = delete_all_user_chats_from_personal_group(own_id=own_id, \
+					group_id=group_id, undelete=undelete)
+				if top_most_post_affected:
+					hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+					receiver_id=tid,to_hide=top_most_post_hidden)# reply_id is not relevant for 1on1s
 				elif not deleted and ttl:
 					return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
 						'all_chat':True,'tid':tid})
@@ -1495,7 +1347,7 @@ def anonymize_user_in_personal_group(request):
 				their_uname, their_avurl = get_uname_and_avurl(tid,their_anon_status)
 				new_value = set_personal_group_anon_state(own_id, tid)
 				if new_value:
-					update_notif_object_anon.delay(value=new_value,which_user=own_id,which_group=group_id)
+					# update_notif_object_anon.delay(value=new_value,which_user=own_id,which_group=group_id)
 					return render(request,"personal_group/anon_settings/personal_group_anonymize.html",{'their_anon':their_anon_status,\
 						'own_anon':False if new_value == '0' else True,'name':their_uname,'avatar':their_avurl,'new_anon_value':new_value,\
 						'own_name':get_target_username(str(own_id)) if new_value == '1' else None,'tid':tid})
@@ -1528,7 +1380,8 @@ def personal_group_photo_settings(request):
 				# photo reception permissions
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phrec_value, ttl, garbage = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
+					new_phrec_value, ttl, garbage_1, garbage_2, garbage_3 = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,\
+						setting_type=photo_setting, group_id=group_id)
 				else:
 					request.session["personal_group_tid_key"] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
@@ -1538,12 +1391,16 @@ def personal_group_photo_settings(request):
 				# photo mass-deletion setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
-					if new_phdel_value == '1':
-						update_notif_object_del.delay(group_id=group_id,bulk_deletion=True)
+					new_phdel_value, ttl, undelete, top_most_post_affected, top_most_post_hidden = toggle_personal_group_photo_settings(own_id=own_id,\
+						target_id=tid,setting_type=photo_setting, group_id=group_id)
+					
+					if new_phdel_value == '1' and top_most_post_affected:# successfully deleted
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+						receiver_id=tid,to_hide=True)# reply_id is not relevant for 1on1s
+					
 					elif new_phdel_value is None and ttl is not None:
-						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
-							'tid':tid})
+						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,\
+							'all_photos':True,'tid':tid})
 				else:
 					request.session["personal_group_tid_key"] = tid
 					request.session["personal_group_gid_key:"+tid] = group_id
@@ -1553,9 +1410,12 @@ def personal_group_photo_settings(request):
 				# photo mass-restoration setting
 				decision = request.POST.get("pht_dec",None)
 				if decision == '1':
-					new_phdel_value, ttl, undelete = toggle_personal_group_photo_settings(own_id=own_id,target_id=tid,setting_type=photo_setting, group_id=group_id)
-					if new_phdel_value == '0':
-						update_notif_object_del.delay(group_id=group_id,bulk_deletion=True)
+					new_phdel_value, ttl, undelete, top_most_post_affected, top_most_post_hidden = toggle_personal_group_photo_settings(own_id=own_id,\
+						target_id=tid,setting_type=photo_setting, group_id=group_id)
+					if new_phdel_value == '0' and top_most_post_affected:# successfully undeleted
+						hide_associated_direct_responses.delay(obj_type='7',parent_obj_id=group_id,reply_id=None,sender_id=own_id,\
+						receiver_id=tid,to_hide=top_most_post_hidden)# reply_id is not relevant for 1on1s
+					
 					elif new_phdel_value is None and ttl is not None:
 						return render(request,"personal_group/deletion/personal_group_cant_delete_chat.html",{'ttl':ttl,'un':undelete,'all_photos':True,\
 							'tid':tid})
@@ -1973,19 +1833,19 @@ def show_personal_group_invite_list(request, list_type):
 			creation_time = expiry_time - time_gap
 			invites.append((invite_tokens[0],invite_tokens[1].decode('utf-8'),invite_tokens[3].decode('utf-8'),creation_time))
 		################### Retention activity logging ###################
-		from_redirect = request.session.pop('rd',None)
-		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			if list_type == 'received':
-				act = 'Y3' if request.mobile_verified else 'Y3.u'
-			else:
-				act = 'Y4' if request.mobile_verified else 'Y4.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# from_redirect = request.session.pop('rd',None)
+		# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	if list_type == 'received':
+		# 		act = 'Y3' if request.mobile_verified else 'Y3.u'
+		# 	else:
+		# 		act = 'Y4' if request.mobile_verified else 'Y4.u'
+		# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"personal_group/invites/personal_group_invite_list.html",{'invites':invites,'own_id':str(user_id),'invite_accepted':invite_accepted,\
 			't_username':t_username,'tid':tid,'t_av_url':t_av_url,'is_anon':is_anon,'current_page':page_num,'pages':page_list,'num_pages':len(page_list),\
-			'list_type':list_type})
+			'list_type':list_type,'stars':get_all_image_star_ids()})
 	else:
 		raise Http404("Such a listing does not exist")
 
@@ -1999,23 +1859,28 @@ def render_personal_group_invite(request):
 	own_id = request.user.id
 	if not request.mobile_verified:
 		################### Retention activity logging ###################
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'POST','act':'Y1.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'POST','act':'Y1.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	elif request.method == "POST":
-		target_id = request.POST.get('tid',None)
-		parent_object_id, object_type, origin, topic = request.POST.get('poid',None), request.POST.get('ot',None), request.POST.get('org',None),\
+		
+		target_id, parent_object_id, origin, topic = request.POST.get('tid',None), request.POST.get('poid',None), request.POST.get('org',None), \
 		request.POST.get('tp','')
 		if topic:
 			request.session["origin_topic"] = topic
+		
+		###################################################################
+		
+		object_type = request.POST.get('ot',None)
 		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
 		if banned:
 			# show "user banned" message and redirect them to home
 			return render(request,"voting/photovote_disallowed.html",{'is_profile_banned':True,'is_defender':False, 'own_profile':True,\
-				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':'19'})
+				'time_remaining':time_remaining,'uname':retrieve_uname(own_id,decode=True),'ban_details':ban_details,'origin':origin,\
+				'lid':request.POST.get('hh',None),'photo_owner_username':retrieve_uname(target_id,decode=True)})
 		elif str(own_id) == target_id:
 			return render(request,"personal_group/invites/personal_group_status.html",{'own_invite':True,'poid':parent_object_id,'org':origin,\
 				'lid':request.POST.get('hh',None)})
@@ -2028,11 +1893,12 @@ def render_personal_group_invite(request):
 				return redirect("enter_personal_group")
 			else:
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					activity_dict = {'m':'POST','act':'Y1','t':time_now,'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	activity_dict = {'m':'POST','act':'Y1','t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
+					
 				target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
 				state, invite_sending_time, recently_declined = personal_group_invite_status(own_id, get_target_username(str(own_id)), \
 					target_id, target_username)
@@ -2050,13 +1916,24 @@ def render_personal_group_invite(request):
 					request.session.modified = True
 					return render(request,"personal_group/invites/personal_group_status.html",context)
 				else:
-					request.session["personal_group_invite_target_username"], request.session["personal_group_invite_parent_object_id"], \
-					request.session["personal_group_invite_object_type"], request.session["personal_group_invite_origin"], \
-					request.session["personal_group_invite_target_id"], request.session["personal_group_invite_target_av_url"] = \
-					target_username, parent_object_id, object_type, origin, target_id, target_av_url
-					request.session.modified = True
-					return render(request,"personal_group/invites/personal_group_status.html",{'invited':True,'tun':target_username,'target_av_url':\
-						target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
+
+					# if target_id is a 'follower', own_id can send them a 1-on-1 invite
+					if check_if_follower(user_id=target_id,target_user_id=own_id,with_db_lookup=True):
+
+						request.session["personal_group_invite_target_username"], request.session["personal_group_invite_parent_object_id"], \
+						request.session["personal_group_invite_object_type"], request.session["personal_group_invite_origin"], \
+						request.session["personal_group_invite_target_id"], request.session["personal_group_invite_target_av_url"] = \
+						target_username, parent_object_id, object_type, origin, target_id, target_av_url
+						request.session.modified = True
+						return render(request,"personal_group/invites/personal_group_status.html",{'invited':True,'tun':target_username,\
+							'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
+			
+					# if target_id is not a 'follower', own_id cannot send them a 1-on-1 invite
+					else:
+						target_username, target_av_url = get_single_user_credentials(target_id,as_list=False)
+						return render(request,"personal_group/invites/personal_group_status.html",{'not_follower':True,'tun':target_username,\
+							'target_av_url':target_av_url,'org':origin,'poid':parent_object_id,'lid':request.POST.get('hh',None)})
+
 	raise Http404("Please do not refresh page when inviting users to 1 on 1")
 
 
@@ -2091,15 +1968,15 @@ def accept_personal_group_invite(request):
 					own_anon, target_anon = '0','1' if is_target_anon == True else '0'
 					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
-						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='1 on 1 started',txt_type='creation',\
 							own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 					request.session["personal_group_tid_key"] = target_id
 					request.session["personal_group_gid_key:"+target_id] = group_id
@@ -2112,11 +1989,11 @@ def accept_personal_group_invite(request):
 					if poid:
 						return redirect("publicreply_view",poid)
 					else:
-						return redirect("home")
+						return redirect('for_me')
 				else:
 					return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2127,10 +2004,10 @@ def send_personal_group_invite(request):
 	"""
 	if not request.mobile_verified:
 		################### Retention activity logging ###################
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'POST','act':'Y2.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'POST','act':'Y2.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	elif request.method == "POST":
@@ -2146,12 +2023,12 @@ def send_personal_group_invite(request):
 				if poid:
 					return redirect("publicreply_view",poid)
 				else:
-					return redirect("home")
+					return redirect('for_me')
 			else:
 				# return return_to_source(origin,poid,target_username)
 				return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2197,15 +2074,15 @@ def change_personal_group_invite_privacy(request):
 						own_anon, target_anon = '1' if decision == '0' else '0', '1' if state == '3' else '0'
 						group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						if not already_existed:
 							reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
-							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+							private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='1 on 1 started',txt_type='creation',\
 								own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl='',deleted='undel',hidden='no')
 						request.session["personal_group_tid_key"] = target_id
 						request.session["personal_group_gid_key:"+target_id] = group_id
@@ -2225,10 +2102,10 @@ def change_personal_group_invite_privacy(request):
 							return render(request,"personal_group/invites/personal_group_status.html",context)
 						else:
 							################### Retention activity logging ###################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								activity_dict = {'m':'POST','act':'Y','t':time_now,'tuid':target_id}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	activity_dict = {'m':'POST','act':'Y','t':time_now,'tuid':target_id}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							###################################################################
 							reset_invite_count(target_id)# resetting invite count shown in navbar for target_id
 							if decision == '0':
@@ -2239,7 +2116,7 @@ def change_personal_group_invite_privacy(request):
 							context["lid"] = request.POST.get("lid",None)
 							return render(request,"helpful_instructions.html",context)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2271,15 +2148,15 @@ def process_personal_group_invite(request):
 					own_anon, target_anon = '0', '1' if state == '3' else '0'
 					group_id, already_existed = create_personal_group(own_id, target_id, own_anon=own_anon, target_anon=target_anon)
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'Y.a','t':time_now,'tuid':target_id}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					if not already_existed:
 						reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
-						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='created',txt_type='creation',\
+						private_chat_tasks.delay(own_id=own_id,target_id=target_id,group_id=group_id,posting_time=time.time(),text='1 on 1 started',txt_type='creation',\
 							own_anon=own_anon,target_anon=target_anon,blob_id='', idx='', img_url='',own_uname=own_username,own_avurl=own_av_url,deleted='undel',\
 							hidden='no')
 					request.session["personal_group_tid_key"] = target_id
@@ -2291,11 +2168,11 @@ def process_personal_group_invite(request):
 					request.session.modified = True
 			else:
 				################### Retention activity logging ###################
-				if own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					request.session['rd'] = '1'
-					activity_dict = {'m':'POST','act':'Y.d','t':time_now,'tuid':target_id}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# if own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	request.session['rd'] = '1'
+				# 	activity_dict = {'m':'POST','act':'Y.d','t':time_now,'tuid':target_id}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 				ignore_invite(own_id, own_username, target_id, target_username)
 				reset_invite_count(own_id)# resetting invite count shown in navbar for own_id
@@ -2345,11 +2222,11 @@ def post_js_reply_to_personal_group(request):
 							if personal_group_image_transfer_not_permitted(target_id, group_id):
 								request.session["personal_group_image_xfer_no_permit"] = True
 								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									time_now = time.time()
-									request.session['rd'] = '1'
-									activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+								# if own_id > SEGMENT_STARTING_USER_ID:
+								# 	time_now = time.time()
+								# 	request.session['rd'] = '1'
+								# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'pi':'not permitted to send img','tuid':target_id}# defines what activity just took place
+								# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 								###################################################################
 								if personal_group_photo_xfer_invite_allwd(target_id, group_id):
 									#'1' signifies photo permission notification
@@ -2374,11 +2251,11 @@ def post_js_reply_to_personal_group(request):
 									uploaded_image_loc = upload_image_to_s3(image_to_upload)
 									content = {'img_url':uploaded_image_loc, 'img_width':img_width, 'img_height':img_height, 'img_caption':reply}
 									################### Retention activity logging ###################
-									if own_id > SEGMENT_STARTING_USER_ID:
-										time_now = time.time()
-										request.session['rd'] = '1'
-										activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
-										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									# if own_id > SEGMENT_STARTING_USER_ID:
+									# 	time_now = time.time()
+									# 	request.session['rd'] = '1'
+									# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'pi':uploaded_image_loc,'pc':reply,'tuid':target_id}# defines what activity just took place
+									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									###################################################################
 									# add as a 'response' blob
 									res_blob = {'target_blob_id':target_blob_id,'target_index':target_index,'target_content_type':target_content_type}
@@ -2391,11 +2268,11 @@ def post_js_reply_to_personal_group(request):
 									personal_group_sanitization(obj_count, obj_ceiling, gid)
 						elif reply:
 							################### Retention activity logging ###################
-							if own_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								request.session['rd'] = '1'
-								activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':reply,'tuid':target_id}# defines what activity just took place
-								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							# if own_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	request.session['rd'] = '1'
+							# 	activity_dict = {'m':'POST','act':'W1','t':time_now,'tx':reply,'tuid':target_id}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							###################################################################
 							# add as a 'response' blob
 							res_blob = {'target_blob_id':target_blob_id,'target_index':target_index,'target_content_type':target_content_type}
@@ -2414,11 +2291,11 @@ def post_js_reply_to_personal_group(request):
 							return redirect("enter_personal_group")
 					else:
 						################### Retention activity logging ###################
-						if own_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							request.session['rd'] = '1'
-							activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('rep_reply',''),'tuid':target_id}# defines what activity just took place
-							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	request.session['rd'] = '1'
+						# 	activity_dict = {'m':'POST','act':'W1.i','t':time_now,'tx':request.POST.get('rep_reply',''),'tuid':target_id}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						###################################################################
 						try:
 							request.session["personal_group_form_error"] = form.errors.as_text().split("*")[2]
@@ -2464,10 +2341,10 @@ def personal_group_user_listing(request):
 	own_id = request.user.id
 	if not request.mobile_verified:
 		################### Retention activity logging ###################
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'GET','act':'Y5.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'GET','act':'Y5.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 	else:
@@ -2485,14 +2362,14 @@ def personal_group_user_listing(request):
 			payload, total_grps = retrieve_user_group_list_contents(own_id,start_index,end_index)
 			page_list = get_overall_page_list(total_grps, OBJS_PER_PAGE_IN_USER_GROUP_LIST)
 			################### Retention activity logging ###################
-			if own_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				activity_dict = {'m':'GET','act':'Y5','t':time_now}# defines what activity just took place
-				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			# if own_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	activity_dict = {'m':'GET','act':'Y5','t':time_now}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			###################################################################
 			return render(request,"personal_group/group_listing/user_group_list.html",{'payload':payload,'pages':page_list,\
 				'num_pages':len(page_list),'current_page':page_num,'current_time':time.time(),'own_id':str(own_id),\
-				'items_in_curr_page':len(payload)})
+				'items_in_curr_page':len(payload),'stars':get_all_image_star_ids()})
 
 ####################################################################################################################
 #################################################### Help Page #####################################################
@@ -2557,43 +2434,6 @@ def private_chat_help_ad(request):
 ######################################### Sharing Photos in Personal Groups #########################################
 #####################################################################################################################
 
-def show_shared_photo_metrics(request,nick):
-	"""
-	Shows shared photos metrics to users
-	"""
-	their_id = retrieve_user_id(nick)
-	if their_id:
-		own_id = str(request.user.id) if request.user.is_authenticated() else None
-		photo_content, is_cached = retrieve_fresh_photo_shares_or_cached_data(their_id)
-		if is_cached:
-			final_photo_data = photo_content
-		else:
-			epoch_time_one_week_ago = time.time()-ONE_WEEK
-			#############################
-			last_week_shared_by_others = defaultdict(int)
-			for content in photo_content:
-				data = content.split(":")
-				photo_id, num_shares, sharer_id, sharing_time = data[0], data[1], data[2], data[3]
-				if float(sharing_time) > epoch_time_one_week_ago:
-					if sharer_id != their_id:
-						last_week_shared_by_others[photo_id] += int(num_shares)
-			photos = sorted(last_week_shared_by_others.iteritems(),key=lambda (k,v):v,reverse=True)
-			photo_ids = [i[0] for i in photos][0:5]
-			photo_data = retrieve_photo_data(photo_ids, their_id)
-			final_photo_data = []
-			for photo_id in photo_ids:
-				photo_data[photo_id]['num_shares'] = last_week_shared_by_others[photo_id]
-				final_photo_data.append(photo_data[photo_id])
-			cache_photo_shares.delay(json.dumps(final_photo_data), their_id)
-		if own_id and tutorial_unseen(user_id=own_id, which_tut='4', renew_lease=True):
-			first_time = True
-		else:
-			first_time = False
-		return render(request,"personal_group/sharing/photo_sharing_metrics.html",{'final_photo_data':final_photo_data,'num_photos':len(final_photo_data),\
-			'own_profile': their_id == own_id,'username':nick,'photo_owner_id':their_id,'first_time':first_time})
-	else:
-		return redirect('user_profile',nick)
-
 
 def cant_share_photo(request, ttl=None,*args, **kwargs):
 	"""
@@ -2638,8 +2478,14 @@ def post_shared_photo_to_personal_groups(group_ids,photo_url,photo_caption,photo
 	if photo_allwd:
 		img_height, img_width = get_cached_photo_dim(photo_id)
 		if not img_height:
-			img_obj = Photo.objects.get(id=photo_id) # reaffirm url at this point too
-			img_height, img_width = img_obj.image_file.height, img_obj.image_file.width
+			img_obj = Link.objects.get(id=photo_id)
+			if img_obj.type_of_content == 'g':
+				img_height, img_width = img_obj.image_file.height, img_obj.image_file.width
+				
+			else:
+				img_obj = Photo.objects.get(id=photo_id) # reaffirm url at this point too
+				img_height, img_width = img_obj.image_file.height, img_obj.image_file.width
+
 			cache_photo_dim(photo_id,img_height,img_width)
 		sharing_time = time.time()
 		for group_id in photo_allwd:
@@ -2710,12 +2556,12 @@ def share_photo_in_personal_group(request):
 							request.session.modified = True
 							# successfully shared (with a different caption)
 							################### Retention activity logging ###################
-							if user_id > SEGMENT_STARTING_USER_ID:
-								time_now = time.time()
-								num_1on1s_img_can_be_shared_in = len(allwd_friends)
-								act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
-								activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':new_photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
-								log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+							# if user_id > SEGMENT_STARTING_USER_ID:
+							# 	time_now = time.time()
+							# 	num_1on1s_img_can_be_shared_in = len(allwd_friends)
+							# 	act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
+							# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':new_photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
+							# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 							##################################################################
 							return redirect("photo_shared")
 						else:
@@ -2746,12 +2592,12 @@ def share_photo_in_personal_group(request):
 						request.session.modified = True
 						# successfully shared
 						################### Retention activity logging ###################
-						if user_id > SEGMENT_STARTING_USER_ID:
-							time_now = time.time()
-							num_1on1s_img_can_be_shared_in = len(allwd_friends)
-							act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
-							activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
-							log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+						# if user_id > SEGMENT_STARTING_USER_ID:
+						# 	time_now = time.time()
+						# 	num_1on1s_img_can_be_shared_in = len(allwd_friends)
+						# 	act = 'E' if num_1on1s_img_can_be_shared_in else 'E.i'
+						# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':num_1on1s_img_can_be_shared_in}# defines what activity just took place
+						# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 						##################################################################
 						return redirect("photo_shared")
 					else:
@@ -2796,11 +2642,11 @@ def share_photo_in_personal_group(request):
 				else:
 					context["friend_data"] = group_and_friend
 				################### Retention activity logging ###################
-				if user_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					act = 'E.i' if request.mobile_verified else 'E.i'
-					activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':len(group_and_friend)}# defines what activity just took place
-					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+				# if user_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time.time()
+				# 	act = 'E.i' if request.mobile_verified else 'E.i'
+				# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'pc':photo_caption,'nf':len(group_and_friend)}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 				##################################################################
 				return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 		else:
@@ -2828,11 +2674,11 @@ def share_photo_in_personal_group(request):
 				context["no_friends"] = True
 				num_friends = 0
 			################### Retention activity logging ###################
-			if user_id > SEGMENT_STARTING_USER_ID:
-				time_now = time.time()
-				act = 'E1' if request.mobile_verified else 'E1.u'
-				activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'tuid':owner_id,'pc':photo_caption,'nf':num_friends}# defines what activity just took place
-				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+			# if user_id > SEGMENT_STARTING_USER_ID:
+			# 	time_now = time.time()
+			# 	act = 'E1' if request.mobile_verified else 'E1.u'
+			# 	activity_dict = {'m':'POST','act':act,'t':time_now,'pi':photo_url,'tuid':owner_id,'pc':photo_caption,'nf':num_friends}# defines what activity just took place
+			# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 			return render(request,"personal_group/sharing/share_photo_in_personal_group.html",context)
 	else:

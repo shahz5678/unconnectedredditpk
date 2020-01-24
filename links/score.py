@@ -1,20 +1,32 @@
 # coding=utf-8
 MAX_BIO_SIZE = 1000
+REPLY_OBJECT_TTL = 604800# 7 days set as ttl for how long a direct response object lives
 MAX_HOME_SUBMISSION_SIZE = 750
 MAX_HOME_REPLY_SIZE = 350# i.e. Publicreply
 MAX_PHOTO_COMMENT_SIZE = 350# i.e. PhotoComment
 MAX_PHOTO_CAPTION_SIZE = 100
 THRESHOLD_WORLD_AGE = 17# world age after which a user is considered an 'experienced' user
+POST_HISTORY_TTL = 259200# 3 days - time length a user's post visitors are logged for
+PUBLIC_TEXT_QUALITY_THRESHOLD_LENGTH = 40# text-length below which a public text post is considered 'low quality'
+PREFIX_TEXT_LENGTH = 43# useful when splitting a sentence into prefix and postfix parts (for 'reference' display)
+NUM_ACTIVITY_ITEMS_PER_PAGE = 10# num items to be shown in reply history
 ###############################################################################################################
-VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 1728000# i.e. 20 days. This is the amount of time closed-voting objs are kept around for 'like_prob' analysis
+VOTING_CLOSED_ARCHIVE_OVERFLOW_TIME = 2419200# i.e. 28 days. This is the amount of time closed-voting objs are kept around for 'like_prob' or 'handpicked_prob' analysis
+################################################ Follow Feature Related Variables ##################################
+REMOVAL_RATE_LIMIT_TIME = 300# 5 mins in seconds
+RATELIMIT_REMOVED_FOLLOWER = 172800
+SHORT_RATELIMIT_UNFOLLOWER = 180#2 mins
+LONG_LIVED_POST_TIME = 86400 # 1 day in seconds
+SHORT_LIVED_POST_TIME = 900#15 mins in seconds TO DO:
+TTL_FOLLOWER_LIST = 691200# 8 days, in seconds - must be > PUBLIC_SUBMISSION_TTL. This is TTL for 'Follower List' (a list of user's followers, saved in redis)
+TTL_FOLLOWER_STRING = 777600# 9 days, in seconds - must be > TTL_FOLLOWER_LIST. This is TTL for 'Follower String' (a string obj of user's followers, concatenated with ":", saved in redis)
 ###############################################################################################################
-PUBLIC_SUBMISSION_TTL = 86400#24 hours set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
+PUBLIC_SUBMISSION_TTL = 604800#7 days set as ttl for links and photos submitted to Damadam (i.e. redis object TTL)
 UPLOAD_PHOTO_REQ = 30 #score below which you're not allowed photo uploads
-PHOTO_HOT_SCORE_REQ = 4 #aggregated 'vote_score' over previous 5 photos, above which your photo appears on home
 NUM_TRENDING_PHOTOS = 200 #how many trending photos to keep in a sorted set for users' viewing?
-NUM_SUBMISSION_ALLWD_PER_DAY = 100#num of home and photo posts allowed in one day
+NUM_SUBMISSION_ALLWD_PER_DAY = 150#num of home and photo posts allowed in one day
 CONTENT_SHARING_SHORT_RATELIMIT = 45#amount of time to wait between sharing posts (time pooled between home and photos) 
-CONTENT_SHARING_LONG_RATELIMIT = 86400# 
+CONTENT_SHARING_LONG_RATELIMIT = 86400# 1 day in seconds
 HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES = 50#how many hours to look back when reporting a content clone (used in get_content_history in judgement_views.py)
 CONTEST_LENGTH = 604800 #Length of time to calculate top trending photo contributors
 RIGHT_ALIGNMENT_THRESHOLD_RATIO = 0.5 #if a text has more 'urdu' characters than this ratio, right align it
@@ -29,7 +41,7 @@ MIN_TOPIC_DESCRIPTION_SIZE = 20
 USER_REBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from re-blocking a target (right after unblocking them)
 USER_UNBAN_ACTION_RATELIMIT = 86400#1 day is the length of time a user should be rate limited from unblocking a target (right after blocking them)
 ###############################################################################################################
-TRENDER_RANKS_TO_COUNT = 15 #of top trenders to be shown
+TRENDER_RANKS_TO_COUNT = 20 #of top trenders to be shown
 # SEARCH_FEATURE_THRESHOLD = 100# REMOVE
 # SUPER_UPVOTE = 20# REMOVE
 # PERMANENT_RESIDENT_SCORE = 300#REMOVE
@@ -53,6 +65,7 @@ VOTE_TEXT = {'1':'<span style="font-size:80%;color:#009940;"> ne barri si <b>jha
 ###############################################################################################################
 THUMB_HEIGHT = 38
 MIN_PUBLIC_IMG_WIDTH = 315# this number must belong to this interval: [450, 405, 360, 315, 270, 225, 180, 135, 90] (equal to resize_ranges in image_processing.py)
+MAX_PUBLIC_IMG_WIDTH = 450
 ###############################################################################################################
 FBS_VERIFICATION_WAIT_TIME = 86400# amount of time (1 day) a free basics person has to wait before mobile verification is allowed
 FBS_PUBLIC_PHOTO_UPLOAD_RL = 900#amount of time an FBS user has to wait before being allowed to upload a public photo again. MUST be greater than CONTENT_SHARING_SHORT_RATELIMIT
@@ -75,7 +88,7 @@ PRIVATE_GROUP_MAX_MEMBERSHIP = 50
 PUBLIC_GROUP_MAX_TITLE_SIZE = 150 #more than 150 chars not allowed
 PUBLIC_GROUP_MAX_RULES_SIZE = 500 #more than 500 chars not allowed
 PUBLIC_GROUP_REPLY_LENGTH = 500
-NUM_PUBLIC_GROUPS_OWNED_SHOWN_ON_PROFILE = 5#how many public groups to show on user profile
+NUM_PUBLIC_GROUPS_OWNED_SHOWN_ON_PROFILE = 6#how many public groups to show on user profile
 PRIVATE_GROUP_REPLY_LENGTH = 500
 
 ###### Mehfil list ######
@@ -283,8 +296,7 @@ MERCH = {
 ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
-SEGMENT_STARTING_TIME = 1560425907	# starting time of user segment analysis
-SEGMENT_STARTING_USER_ID = 1979518# starting user ID of user segment analysis
+# SEGMENT_STARTING_USER_ID = 2004144# starting user ID of user segment analysis
 PROJ_ZUCK_STARTING_USER_ID = 1975000
 
 """
@@ -294,14 +306,22 @@ note: we only log authenticated users. Non-auth users are not logged at the mome
 '.u' is added if the user is attempting the action while 'unverified'
 '.i' is added if the user is attempting an 'invalid' action (while verified)
 
-A1 - loaded home text history 
+A1 - loaded own home text history 
 A2 - loaded own about page
-A3 - loaded photos history page
-A4 - loaded photos trending history page
-A1.u - loaded home text history (while unverified)
-A2.u - loaded about page (while unverified)
-A3.u - loaded photos history page (while unverified)
-A4.u - loaded photos trending history page (while unverified)
+A3 - loaded own photos history page
+A4 - loaded own photos trending history page
+A5 - loaded other's home text history 
+A6 - loaded other's about page
+A7 - loaded other's photo history page
+A8 - loaded other's photo trending history page
+A1.u - loaded own home text history (while unverified)
+A2.u - loaded own about page (while unverified)
+A3.u - loaded own photos history page (while unverified)
+A4.u - loaded own photos trending history page (while unverified)
+A5.u - loaded other's home text history (while unverified)
+A6.u - loaded other's about page (while unverified)
+A7.u - loaded other's photo history page (while unverified)
+A8.u - loaded other's photo trending history page (while unverified)
 
 D - visited edit profile page
 D.u - visited edit profile page (while unverified)
@@ -312,11 +332,15 @@ D1.u - new avatar uploaded (while unverified)
 D2 - bio has been updated
 D2.u - bio has been updated (while unverified)
 
-H - landing on 'home' page
+H - landing on 'home' page 1
+H2 - landing on 'home' page 2 (or beyond)
 H.u - landing on 'home' page (while unverified)
+H2.u - landing on 'home' page 2 or beyond (while unverified)
 
-B - landing on 'best photos'
+B - landing on 'best photos' page 1
+B2 - landing on 'best photos' page 2 (or beyond)
 B.u - landing on 'best photos' (while unverified)
+B2.u - landing on 'best photos' page 2 or beyond (while unverified)
 
 C - comment (tabsra) from comment page
 C.u - comment (tabsra) attempt from comment page (while unverified)
@@ -332,8 +356,10 @@ L.i - publicreply (jawab) attempted from jawab page (invalid)
 L1 - landing on publicreply (jawab) page
 L1.u - landing on publicreply (jawab) page (while unverified)
 
-F - landing on 'fresh photos'
-F.u - landing on 'fresh photos' while unverified
+F - landing on 'fresh photos' page 1
+F2 - landing on 'fresh photos' page 2 or beyond
+F.u - landing on 'fresh photos' (while unverified)
+F2.u - landing on 'fresh photos' page 2 or beyond (while unverified)
 
 T - landing on 'topic'
 T.u - landing on 'topic' (while unverified)
@@ -379,8 +405,6 @@ N - became a fan
 N1 - unfan
 N.u - fanning attempt (while unverified)
 
-S1 - single notification response for a public text post (i.e. jawab via single notif)
-S2 - single notification response for a public photo post (i.e. a tabsra via single notif)
 S3 - single notification response for private mehfil (i.e. replying to private mehfil via single notif)
 S4 - single notification response for public mehfil (i.e. replying to public mehfil via single notif) 
 S5 - single notification response for 1on1 (i.e. replying to 1on1 via single notif)
@@ -417,12 +441,16 @@ M6.i - matka invalid photo comment
 M7.i - matka invalid home jawab
 
 V - voted on an object
+V.i - voted on an object (invalid)
 V.u - voted on an object (while unverified)
 
 V1 - selected 'var1' in the tutorial
 V2 - selected 'var2' in the tutorial
 V3 - selected 'var3' in the tutorial
 V4 - selected 'var4' in the tutorial
+V5 - selected 'var5' in the tutorial
+V6 - selected 'var6' in the tutorial
+V7 - selected 'var7' in the tutorial
 
 G1 - loaded list of joined mehfils
 G2 - loaded mehfil invite list
@@ -432,6 +460,10 @@ R - joined private mehfil
 R1 - visited joined private mehfil
 R2 - visited unjoined private mehfil
 R3 - created private mehfil
+R4 - visited joined private mehfil's settings as a regular member
+R5 - visited joined private mehfil's settings as an owner
+R6 - visited joined private mehfil's 'info' page
+R7 - visited joined private mehfil's 'visitor' page
 R.u - attempted to join private mehfil (while unverified)
 R1.u - visited joined private mehfil (while unverified)
 R2.u - visited unjoined private mehfil (while unverified)
@@ -448,8 +480,13 @@ U1 - visited joined public mehfil
 U2 - visited unjoined public mehfil
 U3 - created public mehfil
 U4 - visited popular mehfil list
+U5 - visited joined public mehfil's settings as a normal member
+U6 - visited joined public mehfil's settings as an officer
+U7 - visited joined public mehfil's settings as an owner
+U8 - visited joined public mehfil's 'guidance' page
+U9 - visited joined public mehfil's 'info' page
+U10 - visited joined public mehfil's 'visitor' page
 U.u - attempted to join public mehfil (while unverified)
-U1.u - visited joined public mehfil (while unverified)
 U2.u - visited unjoined public mehfil (while unverified)
 U3.u - attempted to create a public mehfil (while unverified)
 U3.i - attempted to create a public mehfil (invalid)
@@ -461,7 +498,9 @@ W2 - posted in private mehfil
 W3 - posted in public mehfil
 W4 - posted in a topic (from within a topic)
 
-W1.u - attempted to post in 1on1 (while unverified)
+W2.h - hide/unhide a posting in a private mehfil
+W3.h - hide/unhide a posting in a private mehfil
+
 W2.u - attempted to post in private mehfil (while unverified)
 W3.u - attempted to post in public mehfil (while unverified)
 W4.u - attempted to post in a topic from within a topic (while unverified)
@@ -524,10 +563,10 @@ J.u - blocking another user successfully (pvp), while unverified
 
 K - reported content
 
-F - searched a username, and some results were obtained
-F.u - searched a username, and some results were obtained (while unverified)
-F.i - searched a username (but no results obtained)
-F.u.i - searched a username (but no results obtained - while unverified)
+G - searched a username, and some results were obtained
+G.u - searched a username, and some results were obtained (while unverified)
+G.i - searched a username (but no results obtained)
+G.u.i - searched a username (but no results obtained - while unverified)
 
 E - public image shared in a 1on1, successfully
 E.i - invalid attempt at sharing a public image in a 1on1 (because no 1on1s selected, or none of the selected 1on1s have given img sharing perm)

@@ -1,13 +1,13 @@
 {% extends "base_pg.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>Action on shared photo (1 on 1 messaging) | Damadam.pk</title></head>
+<head><title>Action on shared photo (1 on 1 messaging) | Damadam</title></head>
 <div class="margin clb" style="max-width:420px;width:92%;text-align:center;">
 
     <div class="mbl">
     
        <div class="mbs">
-        {% if action == 'del' %}<span class="cl cgy">Kya ye foto mita di jaye?</span>{% elif action == 'undel' %}<span class="cl cgy">Kya ye foto bahal kar di jaye?</span>{% elif action == 'hide' %}<span class="cl cgy">Kya ye foto hide kar di jaye?</span>{% elif action == 'unhide' %}<span class="cl cgy">Kya ye foto dikha di jaye?</span>{% endif %}
+        {% if action == 'del' %}<span class="cl cgy">Kya ye photo mita di jaye?</span>{% elif action == 'undel' %}<span class="cl cgy">Kya ye photo bahal kar di jaye?</span>{% elif action == 'hide' %}<span class="cl cgy">Kya ye photo hide kar di jaye?</span>{% elif action == 'unhide' %}<span class="cl cgy">Kya ye photo dikha di jaye?</span>{% endif %}
         </div>
 
         <form action="{% url 'delete_or_hide_photo_from_photo_settings' %}" method="POST" class="mtl mbl">

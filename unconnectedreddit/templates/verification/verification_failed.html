@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Account verification incomplete | Damadam.pk</title></head>
+<head><title>Account verification incomplete | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 {% include "fb_analytics.html" %}
 
@@ -8,7 +8,7 @@
 
 {% if reason == '0' %}
 	<div class="cxl mbl clb">Apki ID pehlay se verified hai</div>
-	<a href="{% url 'home' %}"><button class="btn bcb bm sp pg_ok_res" style="height:28px">home</button></a>
+	<a href="{% url 'for_me' %}"><button class="btn bcb bm sp pg_ok_res" style="height:28px">For Me</button></a>
 {% elif reason == '1' %}
 	<span class="cxl clb">Sorry! Koi aur account is mobile number pe verified hai</span>
 	<hr size=1 COLOR="#E6E6E6">

@@ -3,14 +3,15 @@ from verified import FEMALES
 from operator import itemgetter
 from datetime import datetime, timedelta
 from user_sessions.models import Session
+from django.http import Http404
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from models import Link, Photo, PhotoComment, UserProfile, Publicreply, UserFan, ChatPic
 from redis7 import get_inactives, set_inactives, get_inactive_count, create_inactives_copy, delete_inactives_copy, bulk_sanitize_group_invite_and_membership
-from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes, remove_verified_mob
+from redis3 import insert_nick_list, get_nick_likeness, skip_outage, retrieve_all_mobile_numbers, retrieve_numbers_with_country_codes, remove_verified_mob,\
+get_global_verified_users
 from redis4 import save_deprecated_photo_ids_and_filenames, invalidated_cached_uname_credentials#, report_rate_limited_conversation
-from redis2 import bulk_sanitize_notifications
 
 ######################################## Notifications ########################################
 
@@ -22,15 +23,15 @@ def skip_outage_notif(request, *args, **kwargs):
 		if which_user is not None:
 			skip_outage(which_user)
 		if origin == '1':
-				return redirect("home")
+				return redirect("fresh_text")
 		elif origin == '2':
 			return redirect("photo",list_type='best-list')
 		elif origin == '0':
 			return redirect("photo",list_type='fresh-list')
 		else:
-			return redirect("home")
+			return redirect("fresh_text")
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 def damadam_cleanup(request, *args, **kwargs):
@@ -78,7 +79,7 @@ def change_nicks(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			count = int(request.POST.get("count",None))
 			if decision == 'No':
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True)
 				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
@@ -100,11 +101,11 @@ def change_nicks(request,*args,**kwargs):
 				else:
 					return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
 			else:
-				return redirect("home")
+				return redirect('for_me')
 		else:
 			return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 def export_nicks(request,*args,**kwargs):
 	"""Exports deprecated nicks in a CSV.
@@ -457,11 +458,11 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_5K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
-				notification_hash_deleted, sorted_sets_deleted, object_hash_deleted = bulk_sanitize_notifications(id_list)
+				notification_hash_deleted, sorted_sets_deleted, object_hash_deleted = None, None, None#bulk_sanitize_notifications(id_list)
 				if last_batch:
 					# delete_inactives_copy(delete_orig=True)
 					delete_inactives_copy()
@@ -484,7 +485,7 @@ def remove_inactives_groups(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -512,7 +513,7 @@ def remove_inactive_user_sessions(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -564,7 +565,7 @@ def remove_inactives_photos(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect("home")
+				return redirect('for_me')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -598,7 +599,7 @@ def remove_inactives_photos(request,*args,**kwargs):
 #     		decision = request.POST.get("dec",None)
 # 			if decision == 'No':
 # 				delete_inactives_copy()
-# 				return redirect("home")
+# 				return redirect('for_me')
 # 			elif decision == 'Yes':
 # 				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
 # 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -632,8 +633,40 @@ def isolate_non_national_phone_numbers(request):
 		processed_bogus_pairs.append((user,number))
 	return render(request,"show_bogus_mobile_user_ids.html",{'bogus_pairs':processed_bogus_pairs,'total':len(processed_bogus_pairs)})
 
-# ############################################### Logger ###############################################
+# ############################################### Follower count rectification ###############################################
 
-# def rate_limit_logging_report(request):
-# 	report_rate_limited_conversation()
-# 	return redirect("missing_page")
+def rectify_follower_counts(request):
+	"""
+	Fixing follower counts across the website
+	"""
+	if request.user.username == 'mhb11':
+		if request.method == 'POST':
+			decision = request.POST.get('dec',None)
+			if decision == '2':
+				from redis3 import get_global_unverified_followers
+				verified_follower_ids = set()
+				all_verified_ids = get_global_verified_users()
+				all_unverified_follower_ids = get_global_unverified_followers()
+				for unverified_follower_id in list(all_unverified_follower_ids):
+					if unverified_follower_id in all_verified_ids:
+						verified_follower_ids.add(unverified_follower_id)
+				###############################
+				if verified_follower_ids:
+					UserFan.objects.filter(fan_id__in=list(verified_follower_ids)).update(fan_verification_status='1')
+					return render(request,"score_photo.html",{'problem_fixed':True})
+				else:
+					return render(request,"score_photo.html",{'problem_fixed':False})
+			else:
+				pass
+		else:
+			fan_ids_and_statuses = UserFan.objects.values_list('fan_id','fan_verification_status')
+			unverified_fan_ids = set()
+			for fan_id, verification_status in fan_ids_and_statuses:
+				if verification_status == '0':
+					unverified_fan_ids.add(fan_id)
+			if unverified_fan_ids:
+				from redis3 import set_global_unverified_followers
+				set_global_unverified_followers(list(unverified_fan_ids))
+			return render(request,"score_photo.html",{'follower_set_populated':True})
+			
+	raise Http404("Completed ;)")

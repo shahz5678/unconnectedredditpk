@@ -5,7 +5,7 @@
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Rejected reports history | Damadam.pk</title></head>
+<head><title>Rejected reports history | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 
 {% super_defender_navbar static_url=STATIC_URL section='ledger' %}
@@ -73,14 +73,14 @@
       {% if prev_page %}
       <div>
         <form style="display:inline" method="GET" action="{% url 'show_rejecton_history_of_defenders' %}">
-        <button class="pg_ok_res" style="background:0 0;border:none" type="submit" name="page" value="{{ prev_page }}"><img src="{{ STATIC_URL }}img/back_page.svg" width="40" height="40" style="vertical-align:text-bottom"></button>
+        {% include 'big_buttons/big_prev_button.html' %}
         </form>
       </div>
       {% endif %}
       {% if num_items > items_per_page and num_displayed == items_per_page %}
       <div>
         <form style="display:inline" method="GET" action="{% url 'show_rejecton_history_of_defenders' %}">
-        <button class="pg_ok_res" style="background:0 0;border:none" type="submit" name="page" value="{{ next_page }}"><img src="{{ STATIC_URL }}img/forward_page.svg" width="40" height="40" style="vertical-align:text-bottom"></button>
+        {% include 'big_buttons/big_next_button.html' %}
         </form>
       </div>
       {% endif %}

@@ -1,4 +1,5 @@
-import redis, time
+import redis, time, random
+import json as json_backup
 import ujson as json
 from operator import itemgetter
 from collections import defaultdict
@@ -14,6 +15,7 @@ COHORT_TIME_LENGTH = 86400#i.e. set to '1 day' (in secs)
 USER_ACTIVITY_STORE = 'uactivity'# global sorted set containing comprehensive logs of new user actions across the product
 GLOBAL_EXP_USERS = 'geu'#global sorted set containing all users who're part of an experiment
 UVAR = 'u:'# holds an identifier for every user, used to identify the said user within the said variation (useful for retention analysis)
+USER_DAYS = 'ud:'# global sets holding user_ids visiting d0,d1, ... , dN 
 
 d1 = {0:'d0',1:'d1',2:'d2',3:'d3',4:'d4',5:'d5',6:'d6',7:'d7',8:'d8',9:'d9',10:'d10',11:'d11',12:'d12'}
 DAY_NAMES = defaultdict(lambda: 'd13+', d1)# populates DAY_NAMES by d1, and then uses 'd13+' as default value ('d13+' means 'd13 or more' - where d13 is included)
@@ -31,14 +33,14 @@ def retrieve_cohort(time_now):
 	return int(time_now/COHORT_TIME_LENGTH)
 
 
-def set_variation_wise_retention(user_id, which_var=None):
+def log_activity(user_id, activity_dict, time_now, which_var=None):
 	"""
 	Setting cohort-wise daily retention levels for visitors coming into a given experimental variation (defined by 'which_var' parameter)
 
 	This enables us to extract 'd1'-retention type metrics for the said experiment
 	Experiments could be first-time visitors coming into 'trending fotos', 'home', '1_on_1', etc
 	"""
-	time_now, user_id = time.time(), str(user_id)
+	user_id = str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	variation = my_server.get(UVAR+user_id)
 	if variation:
@@ -53,7 +55,6 @@ def set_variation_wise_retention(user_id, which_var=None):
 		# the cohort this user originally belonged to
 		cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
 
-		# if user_registration_time:
 		if cohort_id:
 			
 			cohort_id = int(cohort_id)
@@ -61,31 +62,40 @@ def set_variation_wise_retention(user_id, which_var=None):
 			# the user of variation 'which_var' is returning on 'which_day'
 			which_day = DAY_NAMES[cohort_id_now-cohort_id]
 
-			if which_day != 'd13+' and not my_server.exists(EXP[which_var+'rl']+user_id):
+			if which_day != 'd13+' and not my_server.sismember(USER_DAYS+which_day,user_id):
 
 				# increment 'dN' (e.g. d1, d5, d11, etc) of this particular time_cohort
 				my_server.hincrby(EXP[which_var+'r']+str(cohort_id), which_day, amount=1)
 
-				# rate limit user_id from being 'seen again' in this experiment (for the next COHORT_TIME_LENGTH - ie. 24 hours)
-				my_server.setex(EXP[which_var+'rl']+user_id, '1', COHORT_TIME_LENGTH)
+				# stop the user_id from being 'logged again' in this experiment
+				my_server.sadd(USER_DAYS+which_day,user_id)
+
 		else:
+			which_day = 'd0'
+			cohort_id = cohort_id_now
+
 			pipeline1 = my_server.pipeline()
 
 			# user is 'new', so 'register' them into the current cohort
-			pipeline1.zadd(GLOBAL_EXP_USERS,user_id,cohort_id_now)
+			pipeline1.zadd(GLOBAL_EXP_USERS,user_id,cohort_id)
 
 			# next, increment 'd0' of the current cohort (and set its expiry time)
-			cohort = EXP[which_var+'r']+str(cohort_id_now)
-			pipeline1.hincrby(cohort,'d0',amount=1)# counting as having hit 'd0'
-			pipeline1.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. days)
+			cohort = EXP[which_var+'r']+str(cohort_id)
+			pipeline1.hincrby(cohort,which_day,amount=1)# counting as having hit 'd0'
+			pipeline1.expire(cohort,TWO_WEEKS)# remove this cohort after TWO_WEEKS, since we only care about the previous 13 cohorts (i.e. 13 days)
 
-			# next, rate limit user_id from being used again for the next 'COHORT_TIME_LENGTH' (or 24 hours)
-			pipeline1.setex(EXP[which_var+'rl']+user_id,'1',COHORT_TIME_LENGTH)# rate limit till: 'COHORT_TIME_LENGTH' (or 24 hrs) from the time of registration
+			# stop the user_id from being logged again
+			pipeline1.sadd(USER_DAYS+which_day,user_id)
 
 			# finally, save the variation the user is a part of for retrieval later
-			pipeline1.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after 2 weeks, since we only care about the prev 13 cohorts (i.e. days)
+			pipeline1.setex(UVAR+user_id,which_var,TWO_WEEKS)# kill the key after TWO_WEEKS, since we only care about the prev 13 cohorts (i.e. 13 days)
 
 			pipeline1.execute()
+		#######################################
+		if which_day in ('d0','d1','d2','d3','d4','d5','d6','d7'):
+			# log the action if it's d0, d1,... d7 only
+			activity_dict['day'], activity_dict['cid'] = which_day, cohort_id
+			my_server.zadd(USER_ACTIVITY_STORE, json.dumps(activity_dict), user_id)
 
 
 def report_section_wise_retention(which_var):
@@ -184,31 +194,91 @@ def retention_clean_up(which_var):
 ######################################################## Segment Analysis ########################################################
 ##################################################################################################################################
 
+TUT_SEEN = 'ts:'
 
-def log_activity(user_id, activity_dict, time_now):
+VAR_SUBSET_2 = 'vs2:'
+VAR_SUBSET_3 = 'vs3:'
+VAR_SUBSET_4 = 'vs4:'
+
+def set_tutorial_seen(viewer_id):
 	"""
-	Logging all user activity for finding the drivers of user retention
+	Logs that a user has seen a specific portion of a tutorial
 	"""
+	is_set = redis.Redis(connection_pool=POOL).setnx(TUT_SEEN+str(viewer_id),'1')
+	if is_set:
+		redis.Redis(connection_pool=POOL).expire(TUT_SEEN+str(viewer_id),TWO_WEEKS)
+	return is_set
+
+
+def is_tutorial_seen(viewer_id):
+	"""
+	Retrieves whether a user has seen a portion of a tutorial
+	"""
+	return redis.Redis(connection_pool=POOL).exists(TUT_SEEN+str(viewer_id))
+
+
+def retrieve_variation_subset(user_id, choice):
+	"""
+	Used to add new 'mehfil', 'topic' and 'photo' variations
+	"""
+	if choice == '2':
+		# divide var2 into 2
+		subset_key = VAR_SUBSET_2+str(user_id)
+	elif choice == '3':
+		# divide var3 into 3
+		subset_key = VAR_SUBSET_3+str(user_id)
+	elif choice == '4':
+		# divide var4 into 2
+		subset_key = VAR_SUBSET_4+str(user_id)
+	
 	my_server = redis.Redis(connection_pool=POOL)
+	chosen_subset = my_server.get(subset_key)
+	if not chosen_subset:
+		# fresh user - allot subset for the rest of their journey
+		# '2' means 1on1
+		# '3' means generic content
+		# '4' means old control
+		# '5' means mehfils
+		# '6' means topics
+		# '7' means img content
+		if choice == '2':	
+			coin = random.randint(1, 2)
+			if coin == 1:
+				# allot '2'
+				chosen_subset = '2'
+			else:
+				# change choice to '5'
+				chosen_subset = '5'
 
-	# the cohort this user originally belonged to
-	cohort_id = my_server.zscore(GLOBAL_EXP_USERS,user_id)
+		elif choice == '3':
+			coin = random.choice([1,2,3])
+			if coin == 1:
+				# allot 3
+				chosen_subset = '3'
+			elif coin == 2:
+				# change choice to '6'
+				chosen_subset = '6'
+			else:
+				# change choice to '7'
+				chosen_subset = '7'
 
-	if cohort_id:
+		elif choice == '4':
+			coin = random.randint(1, 2)
+			if coin == 1:
+				# allot '4'
+				chosen_subset = '4'
+			else:
+				# change choice to '7'
+				chosen_subset = '7'
+		my_server.setex(subset_key,chosen_subset,TWO_WEEKS)
+	return chosen_subset
 
-		# the cohort active right now
-		cohort_id_now = retrieve_cohort(time_now)
 
-		# the user of variation 'which_var' is returning on 'which_day'
-		which_day = DAY_NAMES[cohort_id_now-cohort_id]
-
-		if which_day in ('d0','d1','d2','d3','d4','d5','d6','d7'):
-			# log the action if it's d0, d1,... d7 only
-			activity_dict['day'], activity_dict['cid'] = which_day, cohort_id
-			my_server.zadd(USER_ACTIVITY_STORE, json.dumps(activity_dict), user_id)
-		else:
-			# no need to log the action - we're not studying anything beyond d7 at this moment
-			pass
+def retrieve_var(user_id):
+	"""
+	Returns the variation a user is part of
+	"""
+	return redis.Redis(connection_pool=POOL).get(UVAR+str(user_id))
 
 
 def retrieve_retention_activity_raw_records():
@@ -219,7 +289,10 @@ def retrieve_retention_activity_raw_records():
 	all_activity = my_server.zrange(USER_ACTIVITY_STORE,0,-1,withscores=True)
 	final_result = []
 	for json_activity, user_id in all_activity:
-		activity = json.loads(json_activity)
+		try:
+			activity = json.loads(json_activity)
+		except:
+			activity = json_backup.loads(json_activity)
 		final_result.append((activity,int(activity['cid']),int(user_id),str(activity['day']),float(activity['t'])))
 	return sorted(final_result,key=itemgetter(1,2,3,4))
 
@@ -235,7 +308,10 @@ def compile_activity_occurence_rows():
 	user_actions = defaultdict(set)
 	for json_activity, user_id in all_activity:
 		user_id = int(user_id)
-		activity = json.loads(json_activity)
+		try:
+			activity = json.loads(json_activity)
+		except:
+			activity = json_backup.loads(json_activity)
 		readable_activity_data.append((activity,user_id))
 		key = str(int(activity['cid']))+":"+activity['day']+":"+str(user_id)
 		user_actions[str(key)].add(str(activity['act']))# activity type performed by user_id
@@ -245,7 +321,7 @@ def compile_activity_occurence_rows():
 	for activity, user_id in readable_activity_data:
 		activity_string = str(activity['act'])
 		time_of_activity = float(activity['t'])
-		if activity_string in ('V1','V2','V3','V4'):
+		if activity_string in ('V1','V2','V3','V4','V5','V6','V7'):
 			user_exp_variations[user_id].append((activity_string,time_of_activity))
 
 	user_variation_strings = {}
@@ -278,7 +354,10 @@ def compile_activity_frequency_rows():
 	user_actions = defaultdict(lambda: defaultdict(int))
 	for json_activity, user_id in all_activity:
 		user_id = int(user_id)
-		activity = json.loads(json_activity)
+		try:
+			activity = json.loads(json_activity)
+		except:
+			activity = json_backup.loads(json_activity)
 		readable_activity_data.append((activity,user_id))
 		key = str(int(activity['cid']))+":"+activity['day']+":"+str((int(user_id)))
 		user_actions[str(key)][str(activity['act'])] += 1
@@ -288,7 +367,7 @@ def compile_activity_frequency_rows():
 	for activity, user_id in readable_activity_data:
 		activity_string = str(activity['act'])
 		time_of_activity = float(activity['t'])
-		if activity_string in ('V1','V2','V3','V4'):
+		if activity_string in ('V1','V2','V3','V4','V5','V6','V7'):
 			user_exp_variations[user_id].append((activity_string,time_of_activity))
 
 	user_variation_strings = {}

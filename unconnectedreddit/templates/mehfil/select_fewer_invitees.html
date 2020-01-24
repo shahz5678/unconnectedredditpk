@@ -37,7 +37,7 @@
 				<div class="mtl" style="word-break: break-all">
 				{% for invitee_id, invitee_username in invited_usernames %}
 					<li class="mbl cl sp" style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px">
-						<input type="checkbox" style="vertical-align:sub" name="vids" id="{{ invitee_id }}" value="{{ invitee_id }}" checked><label for="{{ invitee_id }}">{% if invitee_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ invitee_username }}</bdi></b></label>
+						<input type="checkbox" style="vertical-align:sub" name="vids" id="{{ invitee_id }}" value="{{ invitee_id }}" checked><label for="{{ invitee_id }}">{% if invitee_id|slugify in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<b><bdi>{{ invitee_username }}</bdi></b></label>
 					</li>
 				{% endfor %}
 				</div>
@@ -69,7 +69,7 @@
 				<div class="mtl" style="word-break: break-all">
 				{% for invitee_id, invitee_username in invited_usernames %}
 					<li class="mbl cl sp" style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px">
-						<input type="checkbox" style="vertical-align:sub" name="vids" id="{{ invitee_id }}" value="{{ invitee_id }}" checked><label for="{{ invitee_id }}">{% if invitee_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ invitee_username }}</bdi></b></label>
+						<input type="checkbox" style="vertical-align:sub" name="vids" id="{{ invitee_id }}" value="{{ invitee_id }}" checked><label for="{{ invitee_id }}">{% if invitee_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<b><bdi>{{ invitee_username }}</bdi></b></label>
 					</li>
 				{% endfor %}
 				</div>

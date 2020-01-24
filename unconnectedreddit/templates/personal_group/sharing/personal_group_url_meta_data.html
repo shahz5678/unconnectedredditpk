@@ -291,20 +291,41 @@
 {% elif doc == '11' %}
 	<!-- desc title img height-->
 	{% if is_yt == '1' %}
-	<div class="mts mbl bw">
-		<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;width:95%;max-width:400px;margin:0 auto;overflow: hidden">
-			<a href="{{ url }}" target="_blank" rel="nofollow" style="text-decoration:none">
-			<div style="position:relative">
-				<img src="{{ static_url }}img/yt.svg" class="yt_play" style="position:absolute;z-index:10;margin: auto;top: 0;left: 0;right: 0;bottom: 0;">
-				<img src="{{ url_img }}" alt="{{ url_title }}" class="cs yt_img" style="width:auto;height:auto;max-height:100%;max-width:100%;border-radius:8px;overflow: hidden">
+		{% if vid_id %}
+			<style type="text/css">
+				.videoWrapper {
+					position: relative;
+					padding-bottom: 56.25%; /* 16:9 */
+					padding-top: 25px;
+					height: 0;
+				}
+				.videoWrapper iframe {
+					position: absolute;
+					top: 0;
+					left: 0;
+					width: 100%;
+					height: 100%;
+				}
+			</style>
+			<div class="mtl videoWrapper">
+				<iframe width="640" height="390" src="https://www.youtube-nocookie.com/embed/{{ vid_id }}" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 			</div>
-			<div class="mt cl clb lsp" style="text-align:left;font-weight:bold">{{ url_title|truncatechars:'50' }}</div>
-			<div class="mt lsp" style="color:#808080;text-align:left">{{ url_desc|truncatechars:'125' }}</div>
-			<hr size=1 COLOR="#e5e1e1">
-			<div class="sp cxs" style="text-align:center;color:#808080">{{ url|truncatechars:'35' }}</div>
-			</a>
-		</div>
-	</div>
+		{% else %}
+			<div class="mts mbl bw">
+				<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;width:95%;max-width:400px;margin:0 auto;overflow: hidden">
+					<a href="{{ url }}" target="_blank" rel="nofollow" style="text-decoration:none">
+					<div style="position:relative">
+						<img src="{{ static_url }}img/yt.svg" class="yt_play" style="position:absolute;z-index:10;margin: auto;top: 0;left: 0;right: 0;bottom: 0;">
+						<img src="{{ url_img }}" alt="{{ url_title }}" class="cs yt_img" style="width:auto;height:auto;max-height:100%;max-width:100%;border-radius:8px;overflow: hidden">
+					</div>
+					<div class="mt cl clb lsp" style="text-align:left;font-weight:bold">{{ url_title|truncatechars:'50' }}</div>
+					<div class="mt lsp" style="color:#808080;text-align:left">{{ url_desc|truncatechars:'125' }}</div>
+					<hr size=1 COLOR="#e5e1e1">
+					<div class="sp cxs" style="text-align:center;color:#808080">{{ url|truncatechars:'35' }}</div>
+					</a>
+				</div>
+			</div>
+		{% endif %}
 	{% else %}
 	<div class="mts mbl">
 		<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;width:95%;max-width:400px;margin:0 auto;overflow: hidden">

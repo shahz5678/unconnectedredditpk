@@ -1,7 +1,7 @@
 # Django settings for unconnectedreddit project.
 import os
 from datetime import datetime, timedelta
-from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN, AWS_STORAGE_BUCKET
+from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN, NEW_AWS_STORAGE_BUCKET
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
 MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
@@ -10,24 +10,17 @@ ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
 RATELIMIT_CACHE_BACKEND = 'links.mybrake.MyBrake'
 
-#git init
-#git remote add origin https://github.com/mhb11/unconnectedredditpk.git
-#git pull origin master
-#git add <files>
-#git push origin master	
-
 expires = datetime.utcnow() + timedelta(days=365)
 expires = expires.strftime("%a, %d %b %Y %H:%M:%S GMT")
 
 S3_STORAGE_CLASS = 'links.imagestorage.S3Storage'
 AWS_HEADERS = {'Expires': expires,'Cache-Control': 'max-age=31536000'}
-AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET
+AWS_STORAGE_BUCKET_NAME = NEW_AWS_STORAGE_BUCKET
 AWS_QUERYSTRING_AUTH = False
 
 
 if ON_AZURE == '1':
 	DEBUG=False
-	# STATIC_URL = '//damadamstatic.azureedge.net/'
 else:
 	DEBUG=True
 	
@@ -36,7 +29,7 @@ STATIC_URL = '/static/'
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-	('H B', 'baig.hassan@gmail.com'),
+	('H B', 'mhb11@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -187,10 +180,10 @@ INSTALLED_APPS = (
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
 	'django.contrib.admin',
-	'django.contrib.comments',
+	# 'django.contrib.comments',
 	'links',
 	'unconnectedreddit',
-	'south',
+	# 'south',
 	#'registration', #found at has@has-VirtualBox:~/.virtualenvs/unconnectedreddit/local/lib/python2.7/site-packages/registration/backends/simple$
 	'bootstrap_pagination',
 	'djcelery',
@@ -369,7 +362,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_all_photos': {
 		'task': 'tasks.rank_all_photos',
-		'schedule': timedelta(seconds=5*60), #execute every 5 mins, spew best photo to trending
+		'schedule': timedelta(seconds=210), #execute every 3.5 mins, spew best photo to trending
 	},
 	'tasks.rank_all_photos1': {
 		'task': 'tasks.rank_all_photos1',
@@ -377,7 +370,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.calc_photo_quality_benchmark': {
 		'task': 'tasks.calc_photo_quality_benchmark',
-		'schedule': timedelta(seconds=86400), # execute every 24 hours, setting top photo uploaders list
+		'schedule': timedelta(seconds=86400), # empty task - available for other stuff
 	},
 	'tasks.calc_ecomm_metrics': {
 		'task': 'tasks.calc_ecomm_metrics',
@@ -393,15 +386,15 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.expire_classifieds': {
 		'task': 'tasks.expire_classifieds',
-		'schedule': timedelta(seconds=55*60), # execute every 55 mins, processes ad_expiry of ecomm ads
+		'schedule': timedelta(seconds=604800), # execute every 7 days, a misc task, currently recreates the hell_ban list from DB every 7 days
 	},
 	'tasks.delete_expired_classifieds': {
 		'task': 'tasks.delete_expired_classifieds',
-		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days, processes expiry of classified ads
+		'schedule': timedelta(seconds=2*24*60*60), # execute every 2 days, CAN_REPLACE: processes expiry of classified ads
 	},
 	'tasks.rank_home_posts': {
 		'task': 'tasks.rank_home_posts',
-		'schedule': timedelta(seconds=5*60), # execute every 5 mins, home post ordering tasks
+		'schedule': timedelta(seconds=600), # execute every 10 mins, home post ordering tasks
 	},
 	'tasks.trim_top_group_rankings': {
 		'task': 'tasks.trim_top_group_rankings',
@@ -414,7 +407,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.fans': {
 		'task': 'tasks.fans',
-		'schedule': timedelta(seconds=1200),  # execute every 20 mins, displays correct num fans in top photos list
+		'schedule': timedelta(seconds=3600),  # execute every 1 hour, cleans up expired 'direct replies'
 		'args': (),
 	},
 	'tasks.salat_streaks': {

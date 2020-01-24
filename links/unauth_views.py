@@ -21,7 +21,7 @@ from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewFor
 ForgettersMobileNumber, ForgettersPin
 from verification_views import get_requirements
 from forms import getip
-from score import PW, SEGMENT_STARTING_USER_ID
+from score import PW#, SEGMENT_STARTING_USER_ID
 from brake.decorators import ratelimit
 
 ######################################################################################
@@ -62,7 +62,7 @@ def logout_then_login(request):
 		request.session.modified = True
 		return redirect("login")
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 ###################################### Forgot password flow ######################################
 
@@ -77,7 +77,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 	It takes user's username and phone number (one-by-one) as an input
 	"""
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	elif request.method == "POST":
 		form = ForgettersNicknameForm(data=request.POST, lang=lang)
 		if form.is_valid():
@@ -109,7 +109,7 @@ def prelim_mobile_verification(request, lang=None, *args, **kwargs):
 	Can be removed if Account Kit is no longer in use
 	"""
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	elif request.method == "POST":
 		username = request.session.get('forgetters_username',None)
 		user_id = request.session.get('forgetters_userid',None)
@@ -153,7 +153,7 @@ def set_forgetters_password(request, lang=None, *args, **kwargs):
 	It uses Account Kit
 	"""
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	elif request.method == "POST":
 		user_id = request.session.get('forgetters_userid',None)
 		if user_id:
@@ -236,7 +236,7 @@ def render_set_new_password(request):
 	Renders form where user can set a new password (part of the forgot password flow)
 	"""
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	else:
 		if request.session.get("allwd_set_new_pass",'') == '1':
 			log_fp_ak_user_verification_outcome("forgetter_on_setting_pass_screen")
@@ -257,7 +257,7 @@ def render_set_new_password(request):
 # 	"""
 # 	print "func inside send sms to forgetter"
 # 	if request.user.is_authenticated():
-# 		return redirect("home")
+# 		return redirect('for_me')
 # 	elif request.method == "POST":
 # 		username = request.session.get('forgetters_username',None)
 # 		user_id = request.session.get('forgetters_userid',None)
@@ -298,7 +298,7 @@ def render_set_new_password(request):
 # 	Verify's whether the pin code entered by the forgetter is the correct one
 # 	"""
 # 	if request.user.is_authenticated():
-# 		return redirect("home")
+# 		return redirect('for_me')
 # 	elif request.method == "POST":
 # 		username = request.session.get('forgetters_username',None)
 # 		user_id = request.session.get('forgetters_userid',None)
@@ -338,7 +338,7 @@ def render_set_new_password(request):
 # 	This enables a verified user (who's forgotten their password) to simply type a new one
 # 	"""
 # 	if request.user.is_authenticated():
-# 		return redirect("home")
+# 		return redirect('for_me')
 # 	elif request.method == "POST":
 # 		user_id = request.session.get('forgetters_userid',None)
 # 		if user_id:
@@ -381,7 +381,7 @@ def log_google_in(request, *args, **kwargs):
 	if request.method == "POST":
 		# user = authenticate(username=request.POST.get("username",None),password=request.POST.get("password",None))
 		# quick_login(request,user)
-		return redirect("home")
+		return redirect('photo','best-list')
 	else:
 		return render(request,"unauth/login_backdoor.html",{'form':CreateAccountForm()})
 
@@ -392,39 +392,39 @@ def log_google_in(request, *args, **kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
-# @ratelimit(method='POST', rate='11/h')
+@ratelimit(method='POST', rate='21/h')
 def login(request, lang=None, *args, **kwargs):
 	"""
 	Renders and processes the returning user login form
 	"""
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	else:
-		# was_limited = getattr(request, 'limits', False)
-		# if was_limited:
-		# 	template_name = 'unauth/penalty_login_ur.html' if lang == 'ur' else 'unauth/penalty_login.html'
-		# 	return render(request, template_name, {})
-		# else:
-		if request.method == 'POST':
-			if not request.session.test_cookie_worked():
-				return render(request,"CSRF_failure.html",{'referrer':request.META.get('HTTP_REFERER',None)})
-			try:
-				request.session.delete_test_cookie() #cleaning up
-			except:
-				pass
-			form = SignInForm(data=request.POST, lang=lang)
-			if form.is_valid():
-				quick_login(request,form.cleaned_data)
-				return redirect("home")
+		was_limited = getattr(request, 'limits', False)
+		if was_limited:
+			template_name = 'unauth/penalty_login_ur.html' if lang == 'ur' else 'unauth/penalty_login.html'
+			return render(request, template_name, {})
+		else:
+			if request.method == 'POST':
+				if not request.session.test_cookie_worked():
+					return render(request,"CSRF_failure.html",{'referrer':request.META.get('HTTP_REFERER',None)})
+				try:
+					request.session.delete_test_cookie() #cleaning up
+				except:
+					pass
+				form = SignInForm(data=request.POST, lang=lang)
+				if form.is_valid():
+					quick_login(request,form.cleaned_data)
+					return redirect('for_me')
+				else:
+					request.session.set_test_cookie()
+					template_name = "unauth/sign_in_ur.html" if lang == 'ur' else "unauth/sign_in.html"
+					return render(request,template_name,{'form':form})
 			else:
+				just_logged_out = request.session.pop("logged_out",None)
 				request.session.set_test_cookie()
 				template_name = "unauth/sign_in_ur.html" if lang == 'ur' else "unauth/sign_in.html"
-				return render(request,template_name,{'form':form})
-		else:
-			just_logged_out = request.session.pop("logged_out",None)
-			request.session.set_test_cookie()
-			template_name = "unauth/sign_in_ur.html" if lang == 'ur' else "unauth/sign_in.html"
-			return render(request,template_name,{'form':SignInForm(),'just_logged_out':True if just_logged_out == '1' else False})
+				return render(request,template_name,{'form':SignInForm(),'just_logged_out':True if just_logged_out == '1' else False})
 
 
 ############################################ Account Creation ##########################################
@@ -436,7 +436,7 @@ def login(request, lang=None, *args, **kwargs):
 @csrf_protect
 def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=None,*args,**kwargs):
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	elif account_creation_disallowed(getip(request)):
 		template_name = 'unauth/penalty_account_create_ur.html' if lang == 'ur' else 'unauth/penalty_account_create.html'
 		return render(request,template_name,{})
@@ -497,7 +497,7 @@ def create_account(request,lang=None,slug1=None,length1=None,slug2=None,length2=
 @csrf_protect
 def create_password_new(request,lang=None,slug=None,length=None,*args,**kwargs):
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	elif account_creation_disallowed(getip(request)):
 		template_name = 'unauth/penalty_account_create_ur.html' if lang == 'ur' else 'unauth/penalty_account_create.html'
 		return render(request,template_name,{})
@@ -550,7 +550,7 @@ def create_password_new(request,lang=None,slug=None,length=None,*args,**kwargs):
 @csrf_protect		
 def create_nick_new(request,lang=None,*args,**kwargs):
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	elif account_creation_disallowed(getip(request)):
 		template_name = 'unauth/penalty_account_create_ur.html' if lang == 'ur' else 'unauth/penalty_account_create.html'
 		return render(request, template_name,{})
@@ -608,7 +608,7 @@ def unauth_home_new(request,lang=None,*args,**kwargs):
 	Renders English and Urdu versions of the landing page
 	"""
 	if request.user.is_authenticated():
-		return redirect("home")
+		return redirect('for_me')
 	else:
 		template_name = "unauth/unauth_home_ur.html" if lang == 'ur' else "unauth/unauth_home.html"
 		return render(request,template_name,{'form':CreateNickNewForm()})

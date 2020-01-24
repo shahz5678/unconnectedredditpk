@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% load future_time %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Share image | Damadam</title></head>
-<style>body{background: #f0f3f4}</style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
+<style>body{background:#f0f3f4}label{border:1px solid #3cb7dd}.checkbox{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.label{background:#fff;padding:7px 10px;height:46px;width:260px;border:1px solid #93d7ec;margin:0 auto -1px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.crsr{cursor:pointer}input+label:hover{background-color:#eee}.checkbox:checked+label{background-color:#3cb7dd;color:#fff}</style>
+
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.18.js"></script>
 {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
 
-<div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
-<div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye foto kharab hai, koi aur chunein</span></div>
+<div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
+<div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo kharab hai, koi aur chunein</span></div>
 
 {% if forbidden %}
-<h1 class="cxl clb lsp" style="text-align:center">Share foto post on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Share photo post on Damadam:</h1>
     <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
         {% load get_display_ban_msg %}
         <div class="mtl">
@@ -19,48 +19,93 @@
         </div>
     </div>
 {% else %}
-<h1 class="cxl clb lsp" style="text-align:center">Share foto post on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Share photo post on Damadam:</h1>
     
     <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
         {% if show_instructions %}
             <div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
-            <div style="text-align:center" class="cxl lsp">Welcome! Purey Damadam se koi mazedar foto share karein!</div>
+            <div style="text-align:center" class="cxl lsp">Welcome! Purey Damadam se koi mazedar photo share karein!</div>
             <hr size=1 COLOR="#E9EBEE">
-            <div class="mt sp lsp">1) Maslan poetry, paheliyan (riddles), quotes, jokes, latest news, sports, politics, religion, celebrities, fashion, nature or philosophy</div>
-            <div class="mts sp lsp">2) Apki shared fotos jin users ko pasand ai, woh unko 'like' kar ke save karein ge</div>
+            <div class="mt sp lsp">1) Maslan memes, current affairs, poetry, paheliyan (riddles), quotes, jokes, sports, politics, religion, celebrities, fashion, or nature</div>
+            <div class="mts sp lsp">2) Apki shared photos agr munfarid huin tou 'trending' mein aa sakti hain. Zyada se zyada photos trending mein laney waley users ko 'red star' mil jata hai</div>
             <div class="mts sp lsp">3) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
             </div>
         {% endif %}
-        <form action="{% url 'upload_public_photo' %}" id="public_photo_form" class="mt" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'upload_public_photo' %}" style="text-align:center" id="public_photo_form" class="mt" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="opt" value="0">
         
-        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="clb sp" style="text-align:left;padding:10px 10px 0 10px;">STEP 1: Select foto</div>{% endif %}
+        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="mts cxl lsp"><b style="color:#3cb7dd">1.</b>&nbsp;Select Photo:</div>{% endif %}
         <div class="mts mbl" style="text-align:center">{{ form.image_file }}</div>
-        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="clb lsp sp" style="text-align:left;padding:5px 10px 0 10px;">STEP 2: Neechay likhein ke foto kis barey mein hai:</div>{% endif %}
+        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp"><b style="color:#3cb7dd">2.</b> Likhein photo kis barey mein hai:</div>{% endif %}
         
         <div style="padding:5px 10px 0 10px;text-align:center">{{ form.caption }}</div>
-        <div style="text-align:center">
-        <button id="pub_img_subform" class="btn bco bl mtl mbl pg_ok_res sp" style="width:95%;height:38px" type="submit"><b>SHARE</b></button>
+        <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">3.</b> Select Expiry:</div>
+
+        <div style="margin-left: auto;margin-right:auto">
+
+                
+                <div class="mbl mtl expiry-on">
+                   
+                    <input type="radio" name="exp" class="checkbox" id="exp-first" value="i">
+                    <label style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;" class="label crsr" for="exp-first">
+                        <div class="fx fxjscn fxaicn">
+                            <img src="{{ STATIC_URL }}img/noexpire.svg" width="30" height="30" style="padding:0 10px">
+                            <div class="sp lsp" style="padding:0 10px;text-align:left">Never expire post at all</div>
+                        </div>
+                    </label>
+
+                    <input type="radio" name="exp" class="checkbox" id="exp-second" value="m1">
+                    <label class="label crsr" for="exp-second" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center">
+                        <div class="fx fxjscn fxaicn">
+                            <img src="{{ STATIC_URL }}img/clock.svg" width="30" height="30" style="padding:0 10px">
+                            <div class="sp lsp" style="padding:0 10px;text-align:left">Expire post after 1 day</div>
+                        </div>
+                    </label>      
+
+                </div>
+
+              <div class="mbs" style="margin-left: auto;margin-right:auto">
+                <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">4.</b>&nbsp;Turn Off Replies:</div>
+                <input type="radio" name="com" class="checkbox" id="com-on" value="1">
+                <label class="label crsr"  for="com-on" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
+                    <div class="fx fxjscn fxaicn">
+                        <img src="{{ STATIC_URL }}img/comment.svg" width="30" height="30" style="padding:0 10px">
+                        <div class="sp lsp" style="padding:0 10px;text-align:left">No</div>
+                    </div>
+                </label>
+
+                <input type="radio" name="com" class="checkbox" id="com-off" value="0">
+                <label class="label crsr" for="com-off" style="border-bottom-left-radius:8px;border-bottom-right-radius:8px;display: flex;align-items: center">
+                    <div class="fx fxjscn fxaicn">
+                        <img src="{{ STATIC_URL }}img/comment-off.svg" width="30" height="30" style="padding:0 10px">
+                        <div class="sp lsp" style="padding:0 10px;text-align:left">Yes</div>
+                    </div>
+                </label>
+
+              </div>
+
+                <div style="text-align:center">
+
+                <button id="pub_img_subform" class="btn mtl bl cl bct sp pg_ok_res" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
+
+                </div>
         </div>
+    
         </form>
+    
     </div>
 
         {% if not show_instructions %}
-        <h2 class="cxl clb lsp" style="text-align:center">Foto sharing help:</h2>
+        <h2 class="cxl clb lsp nos" style="text-align:center">Photo sharing tips:</h2>
     
-        <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
+        <div class="clb mbl mts nos" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
         <div class="cgy lsp sp cm mbs" style="padding:0 10px;">
-            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is page se share ki hui foto Google search mein bhi show hogi</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Ap ne foto ke barey mein jo likha ho ga, wohi alfaz Google pe foto ko search karney mein use hon ge</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Maslan agr poetry ki foto ho, tou foto title mein "Urdu Poetry" ya phir "Sad Poetry" likh dein. Kuch days baad apki foto Google pe inhi alfaz se search ho paye gi</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Check karney ke liye ke foto Google search mein show ho rahi hai ke nahi, apna nickname aur foto ka title aik sath likh ke Google search karein (e.g. "user_123 Sad Poetry")</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Agar foto ap ne khud edit ki ho (kahien se copy na ki ho) tou Google aisi fotos ko tarjeeh deta hai, aur unkey search ke top pe pohonchney ke chances barhtey hain!</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">6)</span> Kuch alfaz Pakistani Google pe buhut search kartey hain (e.g. 'whatsapp dp', 'sad dp', 'girls dp'). In alfaz se related fotos, jinka title bhi yehi alfaz hon, Google search ke top pe ja sakti hain (lekin original fotos hon, copied nahi)</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">7)</span> Google search pe sirf 'Share' se uploaded fotos ja sakti hain. Mehfils ya 1 on 1 mein lagai pics Google search pe nahi jaatien</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">8)</span> Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">9)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Photo post ke zariye apne followers se apne khayalaat ka izhar karein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Hadd se zyada private photos share nahi karein. Agr screenshot le li gyi tou apke liye mushqil peda ho sakti hai</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Vulgarity, abuse, mazhabi fasaad aur spamming sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
         </div>
         </div>
         {% endif %}

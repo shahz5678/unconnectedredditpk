@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Unable to complete action | Damadam.pk</title></head>
+<head><title>Unable to complete action | Damadam</title></head>
 <style>body{background: #E9EBEE}</style>
 <h1 class="cxl clb lsp" style="text-align:center">Too many tries!</h1>
 
 <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
 <div class="cxl lsp">Ap password change kar sakein ge 60 mins baad {% emoticons %}.g5.g6.g7.g8{% endemoticons %}</div>
-<a href="{% url 'home' %}"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:28px">wapis</button></a>
+<a href="{% url 'for_me' %}"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:28px">wapis</button></a>
 </div>
 <br><br>
 {% endblock %}

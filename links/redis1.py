@@ -3,11 +3,8 @@ import redis, time
 from multiprocessing import Pool
 from random import randint, random
 from location import REDLOC1
-from redis2 import remove_group_notification, remove_group_object
 from score import VOTE_TEXT
 from home_post_rating_algos import recency_and_length_score
-#from html_injector import category_formatting, device_formatting, scr_formatting, \
-#username_formatting, av_url_formatting#, comment_count_formatting, pinkstar_formatting
 
 '''
 ##########Redis Namespace##########
@@ -997,14 +994,6 @@ def get_best_photo():
 	except:
 		return None
 
-def get_previous_best_photo():
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.get("best_photo")
-
-def set_best_photo(photo_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	my_server.set("best_photo",photo_id)
-
 # def all_photos():
 # 	my_server = redis.Redis(connection_pool=POOL)
 # 	return my_server.lrange("photos:1000", 0, -1)
@@ -1263,13 +1252,13 @@ def legacy_mehfil_exit(group_id, user_id, username, group_type='public'):
 	if group_type == 'public':
 		remove_group_member(group_id, username)#redis 1 legacy (remove later)
 		remove_user_group(user_id, group_id)#redis 1 legacy (remove later)
-		remove_group_notification(user_id,group_id)#redis 2
+		# remove_group_notification(user_id,group_id)#redis 2
 	elif group_type == 'private':
 		memcount = remove_group_member(group_id, username) #group membership is truncated from pgm:group_id (redis 1)
 		remove_user_group(user_id, group_id) #user's groups are truncated from ug:user_id (redis 1)
-		remove_group_notification(user_id,group_id) #group removed from user's notifications (redis 2)
-		if memcount < 1:
-			remove_group_object(group_id) # group's object removed from notifications (redis 2)
+		# remove_group_notification(user_id,group_id) #group removed from user's notifications (redis 2)
+		# if memcount < 1:
+		# 	remove_group_object(group_id) # group's object removed from notifications (redis 2)
 
 
 def add_group_member(group_id, username):

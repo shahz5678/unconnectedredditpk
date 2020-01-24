@@ -3,10 +3,10 @@
 {% load s3 %}
 {% block content %}
 
-<head><title>Blocked users | Damadam.pk</title></head>
+<head><title>Blocked users | Damadam</title></head>
 
 <style>body{background: #E9EBEE}</style>
-<h1 class="cxl clb" style="text-align:center">Blocked Users</h1>
+<h1 class="cxl clb" style="text-align:center">People blocked by you:</h1>
 <div class="clb bizcard" style="margin: 0 auto;max-width:520px;width:92%;padding:10px 8px;background-color:white">
 {% if status == '0' %}
 	<div class="mbl" style="text-align:center">
@@ -38,12 +38,8 @@
 {% endif %}
 {% for banned_user, ttl in banned_users_with_ttl %}
 	<span class="cgy cs"><span class="cxs">{{ forloop.counter }}.</span>
-	<a href="{% url 'user_profile' banned_user.username %}#section0">
-        <img src='{{ banned_user.userprofile.avatar|s3:"thumb" }}' width="22" height="22" alt="pic" style="border-radius:50%">
+	   <a href="{% url 'user_profile' banned_user.username %}#section0">
         <b class="cb cl"><bdi>{{ banned_user.username }}</bdi></b>
-        {% if banned_user.username in females %}
-            <img src="{{ STATIC_URL }}img/pstar.svg" alt="*" height="13" width="13">
-        {% endif %}
         </a></span>&nbsp;<span class="cgy cs mrs">{{ ttl|future_time }}&nbsp;block end ho ga</span>&nbsp; 
         <form action="{% url 'change_ban_time' %}" method="POST" style="display:inline">
         {% csrf_token %}

@@ -7,7 +7,7 @@ show_your_banning_history, defender_instruction_failure, log_banning_reason_give
 enter_inter_user_ban, inter_user_ban_not_permitted, first_time_inter_user_banner, change_ban_time, content_culling_instructions, user_ban_help, ban_underway,\
 report_or_block, get_top_50_reporters, get_reporter_history, defender_history_super_admin_view, report_content_help, defender_instructions, \
 voting_ban_defender_help, edit_content_submission_and_voting_ban, render_ban_details, notify_and_redirect, cull_content_post, \
-spamming_definition, show_report_help, judge_content_voters, judge_content_submitters, show_rejecton_history_of_defenders#, judge_mehfil, report_mehfil, report_mehfil_help
+spamming_definition, show_report_help, judge_content_voters, judge_content_submitters, show_rejecton_history_of_defenders, submit_ban_category#, judge_mehfil, report_mehfil, report_mehfil_help
 
 admin.autodiscover()
 
@@ -44,7 +44,7 @@ urlpatterns = patterns('',
 	url(r'^defender/banning/$', auth(ban_content_submitter_or_voters), name='ban_content_submitter_or_voters'),
 	url(r'^defender/cull-content/$', auth(cull_content), name='cull_content'),
 	url(r'^defender/cull-content/data/$', auth(cull_content_post), name='cull_content_post'),
-	# url(r'^defender/cull-content/single/$', auth(cull_single_content), name='cull_single_content'),
+	url(r'^defender/cull-content/troll-feedback/$', auth(submit_ban_category), name='submit_ban_category'),
 	url(r'^defender/show-expired-ban/content-submission-and-voting/$', auth(render_ban_details), name='render_ban_details'),
 	url(r'^defender/edit-ban/content-submission-and-voting/$', auth(edit_content_submission_and_voting_ban), name='edit_content_submission_and_voting_ban'),
 	url(r'^defender/set-ban/voting/$', auth(judge_content_voters), name='judge_content_voters'),

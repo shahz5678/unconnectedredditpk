@@ -4,7 +4,7 @@ from django import forms
 from forms import AdFeedbackForm
 from links.ads_forms import CareemAdForm
 from django.utils import timezone
-from views import convert_to_epoch
+from utilities import convert_to_epoch
 from django.core.exceptions import ValidationError
 from django.middleware import csrf
 from django.views.decorators.csrf import csrf_protect

@@ -62,14 +62,16 @@ def export_retention_activity_occurrence_log(request):
 			filename = 'occurrence_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions
+				actions.sort()
+				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions+['Total Actions']
 				wtr.writerow(columns)
 				for header in data_header:
 					user_id = header[2]
 					header_key = str(header[0])+":"+'d'+str(header[1])+":"+str(user_id)
 					set_of_user_actions = data_details[header_key]
 					which_day = 'd'+str(header[1])
-					to_write = [header[0],which_day,user_id,variation_strings.get(user_id,''),1 if actions[0] in set_of_user_actions else 0,\
+					credentials = [header[0],which_day,user_id,variation_strings.get(user_id,'')]
+					acts = [1 if actions[0] in set_of_user_actions else 0,\
 					1 if actions[1] in set_of_user_actions else 0,1 if actions[2] in set_of_user_actions else 0,\
 					1 if actions[3] in set_of_user_actions else 0,1 if actions[4] in set_of_user_actions else 0,\
 					1 if actions[5] in set_of_user_actions else 0,1 if actions[6] in set_of_user_actions else 0,\
@@ -173,7 +175,22 @@ def export_retention_activity_occurrence_log(request):
 					1 if actions[201] in set_of_user_actions else 0,1 if actions[202] in set_of_user_actions else 0,\
 					1 if actions[203] in set_of_user_actions else 0,1 if actions[204] in set_of_user_actions else 0,\
 					1 if actions[205] in set_of_user_actions else 0,1 if actions[206] in set_of_user_actions else 0,\
-					1 if actions[207] in set_of_user_actions else 0,1 if actions[208] in set_of_user_actions else 0]
+					1 if actions[207] in set_of_user_actions else 0,1 if actions[208] in set_of_user_actions else 0,\
+					1 if actions[209] in set_of_user_actions else 0,1 if actions[210] in set_of_user_actions else 0,\
+					1 if actions[211] in set_of_user_actions else 0,1 if actions[212] in set_of_user_actions else 0,\
+					1 if actions[213] in set_of_user_actions else 0,1 if actions[214] in set_of_user_actions else 0,\
+					1 if actions[215] in set_of_user_actions else 0,1 if actions[216] in set_of_user_actions else 0,\
+					1 if actions[217] in set_of_user_actions else 0,1 if actions[218] in set_of_user_actions else 0,\
+					1 if actions[219] in set_of_user_actions else 0,1 if actions[220] in set_of_user_actions else 0,\
+					1 if actions[221] in set_of_user_actions else 0,1 if actions[222] in set_of_user_actions else 0,\
+					1 if actions[223] in set_of_user_actions else 0,1 if actions[224] in set_of_user_actions else 0,\
+					1 if actions[225] in set_of_user_actions else 0,1 if actions[226] in set_of_user_actions else 0,\
+					1 if actions[227] in set_of_user_actions else 0,1 if actions[228] in set_of_user_actions else 0,\
+					1 if actions[229] in set_of_user_actions else 0,1 if actions[230] in set_of_user_actions else 0,\
+					1 if actions[231] in set_of_user_actions else 0,1 if actions[232] in set_of_user_actions else 0,\
+					1 if actions[233] in set_of_user_actions else 0,1 if actions[234] in set_of_user_actions else 0]
+					total = [sum(acts)]
+					to_write = credentials+acts+total
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")
@@ -191,15 +208,16 @@ def export_retention_activity_frequency_log(request):
 			filename = 'frequency_data.csv'
 			with open(filename,'wb') as f:
 				wtr = csv.writer(f)
-				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions
+				actions.sort()
+				columns = ['Cohort Number','Which Day', 'User ID', 'User Variations']+actions+['Total Actions']
 				wtr.writerow(columns)
 				for header in data_header:
 					user_id = header[2]
 					header_key = str(header[0])+":"+'d'+str(header[1])+":"+str(user_id)
 					dict_of_user_actions = data_details[header_key]
 					which_day = 'd'+str(header[1])
-					to_write = [header[0],which_day,user_id,variation_strings.get(user_id,''),\
-					dict_of_user_actions.get(actions[0],0),dict_of_user_actions.get(actions[1],0),\
+					credentials = [header[0],which_day,user_id,variation_strings.get(user_id,'')]
+					acts = [dict_of_user_actions.get(actions[0],0),dict_of_user_actions.get(actions[1],0),\
 					dict_of_user_actions.get(actions[2],0),dict_of_user_actions.get(actions[3],0),\
 					dict_of_user_actions.get(actions[4],0),dict_of_user_actions.get(actions[5],0),\
 					dict_of_user_actions.get(actions[6],0),dict_of_user_actions.get(actions[7],0),\
@@ -303,7 +321,22 @@ def export_retention_activity_frequency_log(request):
 					dict_of_user_actions.get(actions[202],0),dict_of_user_actions.get(actions[203],0),\
 					dict_of_user_actions.get(actions[204],0),dict_of_user_actions.get(actions[205],0),\
 					dict_of_user_actions.get(actions[206],0),dict_of_user_actions.get(actions[207],0),\
-					dict_of_user_actions.get(actions[208],0)]					
+					dict_of_user_actions.get(actions[208],0),dict_of_user_actions.get(actions[209],0),\
+					dict_of_user_actions.get(actions[210],0),dict_of_user_actions.get(actions[211],0),\
+					dict_of_user_actions.get(actions[212],0),dict_of_user_actions.get(actions[213],0),\
+					dict_of_user_actions.get(actions[214],0),dict_of_user_actions.get(actions[215],0),\
+					dict_of_user_actions.get(actions[216],0),dict_of_user_actions.get(actions[217],0),\
+					dict_of_user_actions.get(actions[218],0),dict_of_user_actions.get(actions[219],0),\
+					dict_of_user_actions.get(actions[220],0),dict_of_user_actions.get(actions[221],0),\
+					dict_of_user_actions.get(actions[222],0),dict_of_user_actions.get(actions[223],0),\
+					dict_of_user_actions.get(actions[224],0),dict_of_user_actions.get(actions[225],0),\
+					dict_of_user_actions.get(actions[226],0),dict_of_user_actions.get(actions[227],0),\
+					dict_of_user_actions.get(actions[228],0),dict_of_user_actions.get(actions[229],0),\
+					dict_of_user_actions.get(actions[230],0),dict_of_user_actions.get(actions[231],0),\
+					dict_of_user_actions.get(actions[232],0),dict_of_user_actions.get(actions[233],0),\
+					dict_of_user_actions.get(actions[234],0)]
+					total = [sum(acts)]
+					to_write = credentials+acts+total			
 					wtr.writerows([to_write])
 		##########################################################
 	raise Http404("Completed ;)")

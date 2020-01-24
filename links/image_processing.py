@@ -134,7 +134,7 @@ def prep_image(img,quality,max_width=None, already_resized=None):
 
 def clean_image_file(image,quality=None,already_reoriented=None, already_resized=None):
 	"""
-	Used in PhotoReplyView (unreleased), PicsChatUploadView, AdImageView (unreleased)
+	Used in PhotoReplyView (unreleased), PicsChatUploadView	
 	"""
 	image = Image.open(image)
 	if float(image.height)/image.width > 7.0:
@@ -164,7 +164,7 @@ def process_public_image(image, quality=None, already_resized=None, already_reor
 	img_width = image.width
 	if img_width < MIN_PUBLIC_IMG_WIDTH:
 		return None, 'too_narrow', None, None
-	elif float(image.height)/img_width > 7.0:
+	elif float(image.height)/img_width > 12.0:#7.0:
 		return None, 'too_high', None, None
 	else:
 		image = image if already_reoriented else reorient_image(image)

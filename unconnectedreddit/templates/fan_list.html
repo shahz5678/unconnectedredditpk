@@ -38,14 +38,16 @@
                     <span class="cgy cxs sp">{{ forloop.counter0|add:page_obj.start_index }}.</span>
                     <a href="{% url 'user_profile' fan.username %}#section0" class="clb" style="font-weight:bold">
                 	<img src="{{ fan.userprofile.avatar|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">
-                    {{ fan.username }}</a>{% if fan.username in girls %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*">{% endif %}
+                    {{ fan.username }}</a>
 
                     {% if is_new %}
                     <div style="padding:2px 5px;border-radius:4px;background-color:tomato;color:white;font-weight:bold;display:inline-block;" class="cs sp">new</div>
                     {% endif %}
                     {% if user == star %}
-                    <span class="mll mrl">{% unfan_button target_user_id=fan.id target_username=fan.username self_user_id=user.id static_url=STATIC_URL %}</span>
-                    <span>{% block_button fan.id fan.username star.id user.id '12' STATIC_URL %}</span>
+                        <div class="mtl fx fxjsfe fxaicn">
+                        {% unfan_button target_user_id=fan.id target_username=fan.username self_user_id=user.id static_url=STATIC_URL %}
+                        {% block_button fan.id fan.username star.id user.id '12' STATIC_URL %}
+                        </div>
                     {% endif %}
                     </div>
                 </li>

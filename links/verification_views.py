@@ -10,9 +10,11 @@ twiliolog_reverification_pin_sms_sent, twiliolog_user_reverified, log_fbs_please
 retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id, log_ak_entered, log_ak_user_verification_outcome
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points, log_user_activity
-from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME, SEGMENT_STARTING_USER_ID
-from views import convert_to_epoch
+from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME#, SEGMENT_STARTING_USER_ID
+from redis2 import change_verification_status
+from utilities import convert_to_epoch
 from redis4 import retrieve_uname
+from redis8 import retrieve_var
 from models import UserProfile
 
 ############################## Number verification administration  #################################
@@ -39,6 +41,7 @@ def verify_user_artificially(request):
 					mobile_data = {'national_number':random_string,'number':random_string,'country_prefix':'92'}
 					with_points = request.POST.get("wth_pts",None)
 					save_consumer_number(account_kid_id,mobile_data,valid_user_id)
+					change_verification_status(valid_user_id,'verified')
 					if with_points == '1':
 						UserProfile.objects.filter(user_id=valid_user_id).update(score=F('score')+500)
 					
@@ -67,6 +70,7 @@ def unverify_user(request):
 			if processed_form.is_valid():
 				target_id = processed_form.cleaned_data['user_id']
 				numbers_released = unverify_user_id(target_id)
+				change_verification_status(target_id,'unverified')
 				return render(request,"verification/unverify_user.html",{'form':UnverifyUserIDForm(),\
 					'unverified_id':target_id,'numbers_released':numbers_released})
 			else:
@@ -151,13 +155,14 @@ def account_kit_verification_processing(request):
 				else:
 					# verify the user
 					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
+					change_verification_status(user_id,'verified')
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					log_ak_user_verification_outcome("verified")
 					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						activity_dict = {'m':'GET','act':'Z','t':time_now}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					# if user_id > SEGMENT_STARTING_USER_ID:
+					# 	time_now = time.time()
+					# 	activity_dict = {'m':'GET','act':'Z','t':time_now}# defines what activity just took place
+					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					request.session["account_kit_verification_succeeded"] = '1'
 					request.session.modified = True
@@ -208,7 +213,8 @@ def account_kit_verification_result(request):
 	if verification_successful:
 		request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
 		request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-		return render(request,"verification/reward_earned.html",{})
+		user_id = request.user.id
+		return render(request,"verification/reward_earned.html",{'user_var':retrieve_var(user_id=user_id)})
 	else:
 		verification_failed = request.session.pop("account_kit_verification_failed",'')
 		if verification_failed:
@@ -237,7 +243,7 @@ def wait_before_verifying(request):
 	user_id = request.user.id
 	if request.method == "POST":
 		if is_mobile_verified(user_id):
-			return redirect("home")
+			return redirect('for_me')
 		else:
 			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 			if on_fbs:
@@ -280,11 +286,11 @@ def verify_user_mobile_unpaid(request):
 		return redirect("missing_page")
 	else:
 		################### Retention activity logging ###################
-		user_id = request.user.id
-		if user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'GET','act':'Z.u','t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		# user_id = request.user.id
+		# if user_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'GET','act':'Z.u','t':time_now}# defines what activity just took place
+		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		return render(request,'verification/user_mobile_verification.html',{'form':MobileVerificationForm()})	
 
@@ -397,9 +403,10 @@ def pin_verification(request):
 							number ='+92'+national_number	
 							mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
 							save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
+							change_verification_status(user_id,'verified')
 							set_personal_group_mobile_num_cooloff(user_id)
 							if their_anon_status is None:
-								return redirect("home")
+								return redirect('for_me')
 							else:
 								twiliolog_user_reverified()
 								log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
@@ -434,6 +441,7 @@ def pin_verification(request):
 					number ='+92'+national_number	
 					mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
 					save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
+					change_verification_status(user_id,'verified')
 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
 					twiliolog_user_verified()
 					log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())

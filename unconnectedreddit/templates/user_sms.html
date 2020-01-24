@@ -1,6 +1,6 @@
 {% extends "empty.html" %}
 {% block content %}
-<head><title>SMS photo | Damadam.pk</title></head>
+<head><title>SMS photo | Damadam</title></head>
 <body bgcolor="#FFFFE0">
 <div class="margin" style="font-family:sans-serif;">
 {% if legit %}
@@ -18,7 +18,7 @@
 <br>
 
 	<hr size=1 COLOR="#ff9933">
-		<span style="color:#732673;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);font-size:90%;">Damadam pe wapis jao: <a href="{% url 'home' %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;"><b>Damadam</b></button></a></span>
+		<span style="color:#732673;text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);font-size:90%;">Damadam pe wapis jao: <a href="{% url 'for_me' %}"><button style="text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);background-color:#993399;border-color:#732673;border-radius:4px;color:white;width:8em;white-space:nowrap;margin-top:0.25em;margin-bottom:0.3em;padding-bottom:0.1em;"><b>Damadam</b></button></a></span>
 {% else %}
 	<span style="color:red;font-size:95%;"><b>Is terah kaam nahi chalta ...</b></span>
 {% endif %}

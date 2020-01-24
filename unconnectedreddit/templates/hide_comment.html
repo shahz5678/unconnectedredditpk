@@ -1,0 +1,1 @@
+<form action="{% url 'hide_comment' comment_id photo_id origin %}" method="POST" style="display:inline" class="mrl">{% csrf_token %}<input type="hidden" name="slug" value="{{ photo_owner_id }}"><button type="submit" class="pg_ok_res sp cxs vt" style="border:1px solid #d8dde2;padding:2px 0;width:52px;color:coral">HIDE</button></form>

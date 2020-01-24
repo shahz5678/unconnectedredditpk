@@ -152,6 +152,8 @@ class ResetForgettersPasswordForm(forms.Form):
 			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='damadam'))
 		elif 'qwerty' in lower_pass:
 			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='qwerty'))
+		elif 'pakistan' in lower_pass:
+			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='pakistan'))
 		elif 'babykobasspasandhai' in lower_pass:
 			raise ValidationError(retrieve_validation_error_string('example_sequence_in_pass',lang=lang,payload='babykobasspasandhai'))
 		elif 'chaachi420' in lower_pass:
@@ -417,6 +419,8 @@ class CreateAccountForm(forms.ModelForm):
 			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='damadam'))
 		elif 'qwerty' in lower_pass:
 			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='qwerty'))
+		elif 'pakistan' in lower_pass:
+			raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='pakistan'))
 		elif 'babykobasspasandhai' in lower_pass:
 			raise ValidationError(retrieve_validation_error_string('example_sequence_in_pass',lang=lang,payload='babykobasspasandhai'))
 		elif 'chaachi420' in lower_pass:
@@ -481,6 +485,8 @@ class CreatePasswordForm(forms.Form):
 				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='damadam'))
 			elif 'qwerty' in lower_pass:
 				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='qwerty'))
+			elif 'pakistan' in lower_pass:
+				raise ValidationError(retrieve_validation_error_string('banned_sequence_in_pass',lang=lang,payload='pakistan'))
 			elif 'babykobasspasandhai' in lower_pass:
 				raise ValidationError(retrieve_validation_error_string('example_sequence_in_pass',lang=lang,payload='babykobasspasandhai'))
 			elif 'chaachi420' in lower_pass:

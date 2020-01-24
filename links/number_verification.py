@@ -167,7 +167,7 @@ def verify_personal_group_user(request):
 				set_personal_group_mobile_num_cooloff(user_id)
 				own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(user_id, tid)
 				if their_anon_status is None:
-					return redirect("home")
+					return redirect('for_me')
 				else:
 					return render(request,"personal_group/sms_settings/personal_group_successful_mob_verification.html",{'tid':tid,\
 						'avatar':None if their_anon_status else UserProfile.objects.filter(user_id=tid).values_list('avatar',flat=True)[0],\

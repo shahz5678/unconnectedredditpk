@@ -1,4 +1,3 @@
-import re
 from django.template.defaulttags import register
 
 def url_target_blank(text):

@@ -44,7 +44,7 @@
 			{% if section_header %}<h2 style="text-align:left;font-size:60px;color:lightgray;margin:10px 0">{{ section_header }}</h2>{% endif %}
 			<li class="mbl cl sp" style="text-align:left;padding-bottom:10px;border-bottom:1px dashed lightgray">
 			<span class="cgy cs">{{ forloop.counter }}. </span>
-			{% if visitor_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ visitor_username }}</bdi></b>
+			{% if visitor_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<b><bdi>{{ visitor_username }}</bdi></b>
 			</li>
 		{% endfor %}
 		</div>
@@ -55,7 +55,7 @@
 			<div class="mts" style="word-break: break-all">
 			{% for visitor_id, visitor_username, visitor_username_lower, section_header in object_list %}
 				{% if section_header %}<h2 style="text-align:left;font-size:60px;color:lightgray;margin:10px 0">{{ section_header }}</h2>{% endif %}
-				<li class="mbl cl sp" style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px"><input type="checkbox" style="vertical-align:sub" name="vids" id="{{ visitor_id }}" value="{{ visitor_id }}" {{ status }}><label for="{{ visitor_id }}">{% if visitor_username in legit %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<b><bdi>{{ visitor_username }}</bdi></b></label></li>
+				<li class="mbl cl sp" style="text-align:left;border-bottom:1px dashed lightgray;padding-bottom:10px"><input type="checkbox" style="vertical-align:sub" name="vids" id="{{ visitor_id }}" value="{{ visitor_id }}" {{ status }}><label for="{{ visitor_id }}">{% if visitor_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<b><bdi>{{ visitor_username }}</bdi></b></label></li>
 			{% endfor %}
 			</div>
 			<button type="submit" name="puid" class="btn bcp bl mbs pg_ok_res sp" value="{{ unique }}" style="height:27px">invite</button>

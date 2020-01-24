@@ -5,7 +5,7 @@
 {% block content %}
 <head><title>{% if switching %}Public mehfil{% else %}{{ group_topic }} (public mehfil){% endif %} | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.15.js"></script>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.18.js"></script>
 {% if switching %}
 
 <div class="mbs">
@@ -15,33 +15,46 @@
 </div>
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">    
-    <div class="cxl lsp" style="text-align:center">Ye mehfil dar ke bhag gye hai! {% emoticons %}:P{% endemoticons %}</div>
+    <div class="cxl lsp" style="text-align:center">Ho sakta hai mehfil delete ho gyi ho</div>
     <hr size=1 COLOR="#E9EBEE">
-    <div class="sp lsp mbl" style="text-align:center">Hum pakarne ki koshish kar rehay hain</div>
+    <div class="sp lsp mbl" style="text-align:center">Ap beshaq koi aur mehfil try kar lein</div>
     <div style="text-align:center"><a href="{% url 'group_page' %}#section0"><button class="btn bm bcp mbl pg_ok_res sp" style="height:26px">wapis</button></a></div>
 </div>
 {% elif full_member %}
+
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+
+<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
+    {% csrf_token %}
+    <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
+    <div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
+    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="16">
+
+    <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
+
+    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+</form>
 
 {% load get_group_button %}
 <div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
 </div>
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:600px;width:96%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
+<div class="mbl" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:750px;width:100%;overflow:hidden;background:white;margin-right:auto;margin-left:auto;color:black;box-sizing:border-box">
     <a name="sectionJ"></a> 
 
-    <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
-    <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+    <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
+    <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye photo kharab hai, koi aur chunein</span></div>
     <form action="{% url 'public_group_reply' %}" id="grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if pics_perms == '1' %}
         <div class="mbl">
-        <b class="sp cs">Upload foto:</b>
+        <b class="sp cs">Upload photo:</b>
         <div class="mt">{{ form.image }}</div>
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
         </div>
         {% endif %}
-       <div class="mtl sp">{% if form_error %}<span class="cr lsp">{{ form_error }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div><div class="mt">{{ form.text }}</div>
+       <div class="mtl sp">{% if form_error %}<span class="cr lsp">{{ form_error }}</span>{% elif error_string %}<span class="cr lsp">{{ error_string }}</span>{% else %}<b class="cs">Message likhein:</b>{% endif %}</div><div class="mt">{{ form.text }}</div>
         <input id="grp_sk" type="hidden" name="sk" value="{{ sk }}">
         <input id="grp_wid" type="hidden" name="wid" value="-1">
         <input name="uid" type="hidden" value="{{ unique }}">
@@ -55,17 +68,14 @@
         {% include "mehfil/public_group_navbar.html" with uuid=unique gid=group_id static_url=STATIC_URL %}
 
         {% for reply,status in replies %}
-        
+
         {% if reply.category == '2' %}
-            <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>
-        {% elif reply.category == '3' %}
-            <div class="lsp sp cs mrl" style="display:inline"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ki baat hide kar di geyi</span></div>
-            <form method="POST" action="{% url 'group_hide_submission' %}" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="dec" value="u">
-            <input type="hidden" name="gid" value="{{ reply.gid }}">
-            <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/restore.svg" width="18" height="18" style="vertical-align:sub"></button>
-            </form>
+            <div class="lsp sp cs" style="overflow:hidden;color:#999"><bdi><b>{{ reply.text }}</b></bdi> ko mehfil se kick kar dia gya</div>
+        {% elif reply.category == '3' or reply.category == '1' %}
+            <div class="lsp sp cs mrl" style="display:inline;color:#999"><bdi><b>{{ reply.writer_uname }}</b></bdi> ki chat hide kar di geyi</div>
+            <div style="display:inline-block">
+                {% include "mehfil/hide_reply.html" with dec='u' reply_gid=reply.gid reply_id=reply.id %}
+            </div>
         {% elif reply.category == '4' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new topic rakha: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
         {% elif reply.category == '5' %}
@@ -74,9 +84,95 @@
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ka new owner <bdi><a href="{% url 'user_profile' reply.text %}" class="clb" style="font-weight:bold">{{ reply.text }}</a></bdi> ko bana dia</span></div>
         {% elif reply.category == '9' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><a href="{% url 'user_profile' reply.writer_uname %}" class="clb" style="font-weight:bold">{{ reply.writer_uname }}</a></bdi> ne mehfil ko join kiya</span></div>
+        {% elif reply.category == '11' %}
+
+            <!-- reference exists -->
+            {% if reply.wid == own_id|slugify %}
+            <div class="lsp" style="overflow:hidden;background:ivory">
+            {% else %}
+            <div class="lsp" style="overflow:hidden">
+            {% endif %}
+
+            {% if status == 'green' %}
+                <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
+            {% elif status == 'idle' %}
+                <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
+            {% else %}
+                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
+            {% endif %}
+
+            {% if reply.hd == '1' %}
+
+                <!-- reference hidden -->
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% include "mehfil/hide_reply.html" with dec='h' reply_gid=reply.gid reply_id=reply.id %}
+
+                        {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+                        
+                        {% if reply.wid != own_id|slugify %}{% include "direct_response/dr_button.html" with origin='16' obtp='5' poid=reply.gid obid=reply.id wid=reply.wid tx=reply.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                    </div>
+                </div>
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu state='1' %}
+
+            {% elif reply.tgt_image %}
+
+                <!-- image reference -->
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% include "mehfil/hide_reply.html" with dec='h' reply_gid=reply.gid reply_id=reply.id %}
+
+                        {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+                        
+                        {% if reply.wid != own_id|slugify %}{% include "direct_response/dr_button.html" with origin='16' obtp='5' poid=reply.gid obid=reply.id wid=reply.wid tx=reply.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                    </div>
+                </div>
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons img=reply.tgt_image|s3 %}
+
+            {% elif reply.pre %}
+
+                <!-- text reference -->
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% include "mehfil/hide_reply.html" with dec='h' reply_gid=reply.gid reply_id=reply.id %}
+
+                        {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+                        
+                        {% if reply.wid != own_id|slugify %}{% include "direct_response/dr_button.html" with origin='16' obtp='5' poid=reply.gid obid=reply.id wid=reply.wid tx=reply.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                    </div>
+                </div>
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons %}
+
+            {% else %}
+
+                <!-- no reference -->
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+                <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+                    <div class="fx fxjsfs" style="max-width:300px">
+                        {% include "mehfil/hide_reply.html" with dec='h' reply_gid=reply.gid reply_id=reply.id %}
+
+                        {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+                        
+                        {% if reply.wid != own_id|slugify %}{% include "direct_response/dr_button.html" with origin='16' obtp='5' poid=reply.gid obid=reply.id wid=reply.wid tx=reply.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
+                    </div>
+                </div>
+
+            {% endif %}
+            
+            </div>
+
         {% else %}
-            {% if reply.image %}
-                <div style="text-align:center"><img src="{{ reply.image|s3 }}" style="border-radius:12px;max-width:100%" alt="foto"></div>
+
+            <!-- no reference -->
+            {% if reply.chat_image %}
+                <div style="max-width:450px;max-height:{{ reply.nht }}px;margin:0 auto"><div style="display: block;position: relative;padding-bottom:{{ reply.rt }}%;height: 0;">{% if on_fbs %}<img src="{{ reply.chat_image|s3 }}" style="background:whitesmoke;border-radius:6px;width:100%" alt="pic">{% else %}<img data-src="{{ reply.chat_image|s3 }}" class="lazyload" style="background:whitesmoke;border-radius:6px;width:100%" alt="pic">{% endif %}</div></div>
             {% endif %}
             
             {% if reply.wid == own_id|slugify %}
@@ -93,22 +189,19 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;{% if reply.tu %}<b>@&nbsp;</span>{{ reply.tu }}&nbsp;-&nbsp;</b>{% endif %}<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
-            <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
-        
-            <button name="wid" style="display:{{ display }};background:0 0;border:none;padding:0" class="at pg_ok_res mrs" value="{{ reply.wid }}"><img src="{{ STATIC_URL }}img/at.svg" width="15" height="15" class="mrs" style="vertical-align:sub"></button>
+            <div id="disc_btns{{ reply.id }}" style="display:inline-block">
+            <div class="fx fxjsfs" style="max-width:300px">
+                {% include "mehfil/hide_reply.html" with dec='h' reply_gid=reply.gid reply_id=reply.id %}
+                
+                {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
 
-            <form method="POST" action="{% url 'group_hide_submission' %}" style="display:inline">
-            {% csrf_token %}
-            <input type="hidden" name="dec" value="h">
-            <input type="hidden" name="gid" value="{{ reply.gid }}">
-            <button type="submit" name="pk" class="mt pg_ok_res mrs" value="{{ reply.id }}" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/report_dark.svg" width="16" height="16" style="vertical-align:sub"></button>
-            </form>
-            
-            {% group_button own_id=own_id target_id=reply.wid parent_object_id=unique object_type='group' origin='16' target_username=reply.writer_uname %}
+                {% if reply.wid != own_id|slugify %}{% include "direct_response/dr_button.html" with origin='16' obtp='5' poid=reply.gid obid=reply.id wid=reply.wid tx=reply.text|truncatechars:'60' static_url=STATIC_URL %}{% endif %}
             </div>
-           
+            </div>
+
+            </div>
         {% endif %}
         <hr size=1 COLOR="#f4f4f4">
         
@@ -123,7 +216,7 @@
 </div>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;">
 
     <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
 
@@ -158,9 +251,9 @@
     {% for reply,status in replies %}
 
         {% if reply.category == '2' %}
-            <div class="lsp sp cs"><span class="cgy"><bdi><b class="clb">{{ reply.text }}</b></bdi> ko mehfil se kick out kar dia gya</span></div>
-        {% elif reply.category == '3' %}
-            <div class="lsp sp cs"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ki baat hide kar di geyi</span></div>
+            <div class="lsp sp cs" style="color:#999"><bdi><b>{{ reply.text }}</b></bdi> ko mehfil se kick kar dia gya</div>
+        {% elif reply.category == '3' or reply.category == '1' %}
+            <div class="lsp sp cs" style="color:#999"><bdi><b>{{ reply.writer_uname }}</b></bdi> ki chat hide kar di geyi</div>
         {% elif reply.category == '4' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne new topic rakha: <b class="clb"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></b></span></div>
         {% elif reply.category == '5' %}
@@ -169,9 +262,27 @@
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ka new owner <b class="clb"><bdi>{{ reply.text }</bdi></b> ko bana dia</span></div>
         {% elif reply.category == '9' %}
             <div class="lsp sp cs" style="overflow:hidden"><span class="cgy"><bdi><b class="clb">{{ reply.writer_uname }}</b></bdi> ne mehfil ko join kiya</span></div>
+        {% elif reply.category == '11' %}
+
+            {% if status == 'green' %}
+                <div class="st-dot" style="background-color:#00FF00;border:2px solid #00F200;"></div>
+            {% elif status == 'idle' %}
+                <div class="st-dot" style="background-color:#9BE29B;border:2px solid #91DF91;"></div>
+            {% else %}
+                <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
+            {% endif %}
+
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+
+            {% if reply.tgt_image %}
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons static_url=STATIC_URL img=reply.tgt_image|s3 state=reply.hd %}
+            {% elif reply.pre %}
+                {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons static_url=STATIC_URL state=reply.hd %}
+            {% endif %}
+
         {% else %}
-            {% if reply.image %}
-            <div style="text-align:center"><img class="pht" src="{{ reply.image|s3 }}" style="border-radius:12px;" alt="foto"></div>
+            {% if reply.chat_image %}
+                <div style="max-width:450px;max-height:{{ reply.nht }}px;margin:0 auto"><div style="display: block;position: relative;padding-bottom:{{ reply.rt }}%;height: 0;">{% if on_fbs %}<img src="{{ reply.chat_image|s3 }}" style="background:whitesmoke;border-radius:6px;width:100%" alt="img">{% else %}<img class="lazyload" data-src="{{ reply.chat_image|s3 }}" style="background:whitesmoke;border-radius:6px;width:100%" alt="img">{% endif %}</div></div>
             {% endif %}
             <div class="lsp" style="overflow:hidden">
 
@@ -183,9 +294,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold"><img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% if reply.writer_uname in ensured %}&nbsp;<img src="{{ STATIC_URL }}img/pstar.svg" width="11" height="11" alt="*" style="color:deeppink">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span>
-
-            <span class="sp cgy cxs mrl">&nbsp;{{ reply.submitted_on|human_time }}</span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             </div>
            

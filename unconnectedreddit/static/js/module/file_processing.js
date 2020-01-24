@@ -1,4 +1,4 @@
-// feeder for helper_funcs.v1.15.js
+// feeder for helper_funcs.v1.17.js
 // Compress via https://jscompress.com/ and press "download"
 var valid_img = false;
 var max_img_width = 450;
@@ -36,7 +36,7 @@ function personal_group_preloader(action) {
 			var caption = document.createElement('div');
 			caption.id = "preloader_message";
 			caption.className = "cap sp cs cgy mbl";//
-			caption.insertAdjacentText('afterbegin','- resizing foto -');
+			caption.insertAdjacentText('afterbegin','- resizing photo -');
 			document.body.appendChild(overlay);
 			document.body.appendChild(parent);
 			parent.insertAdjacentElement('afterbegin',loader);
@@ -54,7 +54,7 @@ function personal_group_preloader(action) {
 			// var caption = document.createElement('div');
 			// caption.id = "preloader_message";
 			// caption.className = "cap sp cs cgy mbl";//
-			// caption.innerHTML = '- resizing foto -';
+			// caption.innerHTML = '- resizing photo -';
 			// document.body.appendChild(overlay);
 			// document.body.appendChild(parent);
 			// parent.insertAdjacentElement('afterbegin',loader);
@@ -63,7 +63,7 @@ function personal_group_preloader(action) {
 			break;
 		case "update":
 			var caption = document.getElementById("preloader_message");
-			if (caption) {caption.innerHTML = '- posting foto -';}
+			if (caption) {caption.innerHTML = '- posting photo -';}
 			break;
 		case "finishing":
 			var caption = document.getElementById("preloader_message");
@@ -187,6 +187,10 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	} else if (type === 'public_img') {
 		// originating from upload_public_photo
 		form_data.append("sk",document.getElementById('pub_img_sk').value);
+		form_data.append("aud",'p');
+		form_data.append("exp",retrieve_expiry());
+		form_data.append("com",retrieve_comments());
+		
 	} else if (type === 'pg_reply') {
 		// uploading from private chat (direct response)
 		form_data.append("tt",rep_tt);
@@ -198,7 +202,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 		// uploading from public/private mehfil
 		form_data.append("gp",document.getElementById('grp_subform').value);
 		form_data.append("sk",document.getElementById('grp_sk').value);
-		form_data.append("wid",grp_writer_id);
+		// form_data.append("wid",grp_writer_id);
 	}; 
 	form_data.append(img_field, img_to_send, img_name);
 	personal_group_preloader('update');
@@ -990,6 +994,71 @@ function public_photo_submit(e) {
 		}
 	}
 };
+
+
+function retrieve_audience(){
+
+	var aud_first = document.getElementById('aud-first');
+	var aud_second = document.getElementById('aud-second');
+	var aud_third = document.getElementById('aud-third');
+	var aud_default = document.getElementById('aud-default');
+	if (aud_first.checked || aud_second.checked || aud_third.checked){
+		if (aud_first.checked) {
+			return aud_first.value;
+		} else if (aud_second.checked) {
+			return aud_second.value;
+		} else if (aud_third.checked) {
+			return aud_third.value;
+		} else {
+			return aud_first.value;
+		}
+	}
+	else {
+			return 'p';
+	}
+}
+
+function retrieve_expiry(){
+
+	var exp_first = document.getElementById('exp-first');
+	var exp_second = document.getElementById('exp-second');
+	var exp_default = document.getElementById('exp-default');
+	if (exp_first.checked || exp_second.checked ){
+		if (exp_first.checked) {
+			return exp_first.value;
+		} else if (exp_second.checked) {
+			return exp_second.value;
+		} else if (exp_third.checked) {
+			return exp_third.value;
+		} else {
+			return exp_first.value;
+		}
+	}
+	else {
+			return 'i';
+	}
+}
+
+function retrieve_comments(){
+
+	var com_on = document.getElementById('com-on');
+	var com_off = document.getElementById('com-off');
+	var com_default = document.getElementById('com-default');
+	
+	// console.log(com_default.value)
+	if (com_on.checked || com_off.checked){
+		if (com_on.checked) {
+			return com_on.value;
+		} else {
+			return com_off.value;
+		}
+	}
+	else {
+			return '1'
+	}
+}
+
+
 /////////////////////////////////////////////////////////
 // Uploading Photos in Mehfils (JS functionality)
 var is_grp_img = false;
@@ -999,20 +1068,20 @@ if (grp_form) {grp_form.onsubmit = grp_form_submit;};
 var grp_browse_image_btn = document.getElementById('grp_browse_image_btn');//supported
 if (grp_browse_image_btn) {grp_browse_image_btn.onchange = validate_grp_img;};
 
-var grp_writer_id = -1;
-var grp_wid_input = document.getElementById('grp_wid');
-var atbtns = document.getElementsByClassName('at');
-if (atbtns) {
-	for (var i=0, len=atbtns.length; i < len; i++) atbtns[i].onclick = grp_at_submit;
-}
+// var grp_writer_id = -1;
+// var grp_wid_input = document.getElementById('grp_wid');
+// var atbtns = document.getElementsByClassName('at');
+// if (atbtns) {
+// 	for (var i=0, len=atbtns.length; i < len; i++) atbtns[i].onclick = grp_at_submit;
+// }
 
-function grp_at_submit(e) {
-	var vb = e.currentTarget;//at button
-	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !vb.value || !vb) return;
-	grp_wid_input.value = vb.value;
-	grp_writer_id = vb.value;
-	document.getElementById("grp_subform").click();
-}
+// function grp_at_submit(e) {
+// 	var vb = e.currentTarget;//at button
+// 	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !vb.value || !vb) return;
+// 	grp_wid_input.value = vb.value;
+// 	grp_writer_id = vb.value;
+// 	document.getElementById("grp_subform").click();
+// }
 
 function validate_grp_img(e) { 
 	// if opera mini, do nothing

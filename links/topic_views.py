@@ -1,4 +1,5 @@
 import time, uuid
+import ujson as json
 from operator import itemgetter
 from django.shortcuts import redirect, render
 from django.core.urlresolvers import reverse_lazy
@@ -7,21 +8,20 @@ from django.views.decorators.cache import cache_control
 from django.http import Http404, HttpResponsePermanentRedirect
 from topic_forms import SubmitInTopicForm, CreateTopicform
 from page_controls import ITEMS_PER_PAGE
-from verified import FEMALES
 from models import Link
-from redis2 import bulk_is_fan
-from forms import PublicreplyMiniForm
-from redis3 import log_text_submissions
+from direct_response_forms import DirectResponseForm
 from tasks import set_input_history, log_user_activity
-from views import get_indices, get_addendum, beautiful_date, format_post_times
+from views import get_indices, get_addendum, format_post_times, retrieve_user_env
 from redis4 import retrieve_credentials, set_text_input_key, content_sharing_rate_limited, rate_limit_content_sharing
 from colors import PRIMARY_COLORS, SECONDARY_COLORS, COLOR_GRADIENTS, PRIMARY_COLOR_DISTANCE, SECONDARY_COLOR_DISTANCE, \
 PRIMARY_COLOR_GRADIENT_MAPPING
 from redis7 import get_topic_feed, check_content_and_voting_ban, add_topic_post, create_topic_feed, retrieve_topic_feed_data, \
 retrieve_topic_feed_index, retrieve_recently_used_color_themes, retrieve_topic_credentials, subscribe_topic, in_defenders, \
-retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes
-###############
-from score import SEGMENT_STARTING_USER_ID
+retire_abandoned_topics, retrieve_subscribed_topics, bulk_unsubscribe_topic, retrieve_last_vote_time, retrieve_recent_votes,\
+is_image_star, set_temp_post_data
+from redis2 import filter_following, fan_out_to_followers#TODO: call relevant function from tasks instead of fan_out_to_followers
+from score import NUM_SUBMISSION_ALLWD_PER_DAY#, SEGMENT_STARTING_USER_ID
+
 
 ##########################################################################################################
 #################################### Calculate Topic Background Color ####################################
@@ -249,8 +249,9 @@ def suggest_new_topic_feed(request):
 			if created:
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=topic_owner_id, obj_id='1', obj_type='home', secret_key=secret_key)
-				context = {'c1':primary_color,'c2':secondary_color,'submissions':[],'form':SubmitInTopicForm(),'topic':topic_name,'page':{},\
-				'fanned':[],'sk':str(secret_key),'topic_started':True,'topic_description':description,'topic_url':topic_in_url_form}
+				context = {'c1':primary_color,'c2':secondary_color,'submissions':[],'form':SubmitInTopicForm(),\
+				'topic':topic_name,'sk':str(secret_key),'topic_started':True,'topic_description':description,\
+				'page':{},'topic_url':topic_in_url_form,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 				return render(request, 'topics/topic_home.html', context)
 			else:
 				# it already existed, so redirect to it
@@ -273,7 +274,7 @@ def topic_redirect(request, topic_url=None, obj_hash=None, *args, **kwargs):
 	"""
 	############################################
 	############################################
-	request.session['rd'] = '1'#used by retention activity loggers in home_page() or topic_page() - can be removed
+	# request.session['rd'] = '1'#used by retention activity loggers in home_page() or topic_page() - can be removed
 	############################################
 	############################################
 	if topic_url:
@@ -289,7 +290,7 @@ def topic_redirect(request, topic_url=None, obj_hash=None, *args, **kwargs):
 			url = reverse_lazy("topic_page",args=[topic_url])+addendum
 		return redirect(url)
 	else:
-		return redirect("home")
+		return redirect('for_me')
 
 
 def retrieve_topic_contribution_page_data(topic_url, page_num, with_oldest=False):
@@ -324,6 +325,7 @@ def topic_page(request,topic_url):
 	"""
 	if topic_url:
 		own_id = request.user.id
+		time_now = time.time()
 		if own_id:
 			description, topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_desc=True, with_name=True, \
 				with_theme=True, with_is_subscribed=True, retriever_id=own_id)
@@ -333,14 +335,22 @@ def topic_page(request,topic_url):
 					with_oldest=True)
 				color_grads = COLOR_GRADIENTS[bg_theme]
 				#######################
-				replyforms = {}
-				for obj in list_of_dictionaries:
-					replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+				# replyforms = {}
+				# for obj in list_of_dictionaries:
+				# 	replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 				#######################
 				secret_key = str(uuid.uuid4())
 				set_text_input_key(user_id=own_id, obj_id='1', obj_type='home', secret_key=secret_key)
-				
-				#######################
+				####################### Filter followers ####################	
+				submitter_ids = set()
+				for obj in list_of_dictionaries:
+					 submitter_ids.add(str(obj['si']))
+
+				ids_already_fanned = filter_following(submitter_ids,own_id)
+				for obj in list_of_dictionaries:
+					if str(obj['si']) in ids_already_fanned:
+						obj['f'] = True
+				#############################################################
 				# enrich objs with information that 'own_id' liked them or not
 				if retrieve_last_vote_time(voter_id=own_id) > oldest_post_time:
 					recent_user_votes = retrieve_recent_votes(voter_id=own_id, oldest_post_time=oldest_post_time)
@@ -354,21 +364,22 @@ def topic_page(request,topic_url):
 				page = {'next_page_number':page_num+1,'number':page_num,'has_previous':True if page_num>1 else False,\
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 
-				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,'page':page,\
-				'replyforms':replyforms,'fanned':bulk_is_fan(set(obj['si'] for obj in list_of_dictionaries),own_id),\
+				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,\
 				'sk':str(secret_key),'topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
-				'topic_direct_reply_error_string':request.session.pop("topic_direct_reply_error_string",''),\
+				'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),'time_now':time_now,\
 				'ident':own_id, 'validation_error':request.session.pop("validation_error",''),'topic_url':topic_url,\
 				'is_subscribed':is_subscribed, 'new_subscriber':request.session.pop("subscribed"+str(own_id),None),\
-				'cannot_recreate':request.session.pop("cannot_recreate"+str(own_id),None)}
+				'cannot_recreate':request.session.pop("cannot_recreate"+str(own_id),None), 'page':page,\
+				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True),\
+				'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}
 				
 				################### Retention activity logging ###################
-				from_redirect = request.session.pop('rd',None)
-				if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
-					time_now = time.time()
-					act = 'T' if request.mobile_verified else 'T.u'
-					activity_dict = {'m':'GET','act':act,'url':topic_url,'t':time_now,'pg':page_num}# defines what activity just took place
-					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				# from_redirect = request.session.pop('rd',None)
+				# if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+				# 	time_now = time_now
+				# 	act = 'T' if request.mobile_verified else 'T.u'
+				# 	activity_dict = {'m':'GET','act':act,'url':topic_url,'t':time_now,'pg':page_num}# defines what activity just took place
+				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				###################################################################
 
 				return render(request, 'topics/topic_home.html', context)
@@ -387,17 +398,18 @@ def topic_page(request,topic_url):
 				list_of_dictionaries, page_num, max_pages = retrieve_topic_contribution_page_data(topic_url, page_num)
 				color_grads = COLOR_GRADIENTS[bg_theme]
 				#######################
-				replyforms = {}
-				for obj in list_of_dictionaries:
-					replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
+				# replyforms = {}
+				# for obj in list_of_dictionaries:
+				# 	replyforms[obj['h']] = PublicreplyMiniForm() #passing home_hash to forms dictionary
 				#######################
 				
 				page = {'next_page_number':page_num+1,'number':page_num,'has_previous':True if page_num>1 else False,\
 				'has_next':True if page_num<max_pages else False,'previous_page_number':page_num-1}
 
 				context = {'submissions':list_of_dictionaries,'form':SubmitInTopicForm(),'topic':topic_name,'page':page,\
-				'replyforms':replyforms,'sk':'','topic_description':description,'c1':color_grads[0],'c2':color_grads[1],\
-				'topic_url':topic_url,'ident':None, 'is_subscribed':False}
+				'sk':'','topic_description':description,'c1':color_grads[0],'c2':color_grads[1], 'is_subscribed':False,\
+				'thin_rep_form':DirectResponseForm(thin_strip=True),'dir_rep_form':DirectResponseForm(with_id=True),\
+				'topic_url':topic_url,'ident':None,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'time_now':time_now}
 				
 				return render(request, 'topics/unauth_topic_home.html', context)
 			else:
@@ -432,14 +444,22 @@ def topic_listing(request):
 	Displays all topics currently available in Damadam
 	"""
 	################### Retention activity logging ###################
-	own_id = request.user.id
-	if own_id > SEGMENT_STARTING_USER_ID:
-		time_now = time.time()
-		act = 'Z5' if request.mobile_verified else 'Z5.u'
-		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	# own_id = request.user.id
+	# from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	# if not from_redirect and  own_id > SEGMENT_STARTING_USER_ID:
+	# 	time_now = time.time()
+	# 	act = 'Z5' if request.mobile_verified else 'Z5.u'
+	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	##################################################################
-	return render(request,"topics/topics_list.html",{})
+	context = {}
+	newbie_flag = request.session.get("newbie_flag",None)
+	if newbie_flag == '6':
+		context["newbie_flag"] = True
+		context["newbie_tutorial_page"] = 'tutorial6.html'
+		context["newbie_lang"] = request.session.get("newbie_lang",None)
+		context['origin'] = '27'
+	return render(request,"topics/topics_list.html",context)
 
 
 ##########################################################################################################
@@ -455,76 +475,76 @@ def submit_topic_post(request,topic_url):
 	"""
 	own_id = request.user.id
 	if request.method == "POST":
-		banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-		if banned:
-			return render(request, 'links/link_form.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,\
-				'own_profile':True,'defender':None,'is_profile_banned':True})
+		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		on_opera = True if (not on_fbs and not is_js_env) else False
+		if on_opera:
+			# disallowing opera mini users from posting public text posts on topics
+			# mislabeled template - used to show some generic errors and such to posters
+			return render(request, 'error_photo.html', {'opera_detected':True, 'topic':topic_url})
 		else:
-			topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_name=True, with_theme=True, \
-				with_is_subscribed=True, retriever_id=own_id)
-			if is_subscribed:
-				time_now = time.time()
-				mobile_verified = request.mobile_verified
-				if not mobile_verified:
-					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						activity_dict = {'m':'POST','act':'W4.u','t':time_now}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-					###################################################################
-					return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
-				elif request.user_banned:
-					return redirect("error")
-				else:
-					ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
-					if ttl:
-						# this is wrongly named, but tells the user to wait
-						return render(request, 'error_photo.html', {'time':ttl,'origin':'22','tp':type_of_rate_limit,'topic_url':topic_url})
-					else:
-						banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
-						if banned:
-							# Cannot submit topic contribution if banned
-							request.session["origin_topic"] = topic_url
-							return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-								'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'22'})
-						else:
-							form = SubmitInTopicForm(request.POST,user_id=own_id)
-							if form.is_valid():
-								text = form.cleaned_data['description']
-								alignment = form.cleaned_data['alignment']
-								submitter_name, av_url = retrieve_credentials(own_id,decode_uname=True)
-								# parking bg_theme, topic url and name in 'url'
-								obj = Link.objects.create(description=text, submitter_id=own_id, cagtegory=alignment, \
-									url=bg_theme+":"+topic_name+":"+topic_url)
-								obj_id = obj.id
-								obj_hash = "tx:"+str(obj_id)
-								add_topic_post(obj_id=obj_id, obj_hash=obj_hash, categ=alignment, submitter_id=str(own_id), \
-									submitter_av_url=av_url, is_pinkstar=(True if submitter_name in FEMALES else False), \
-									submission_time=time_now, text=text, from_fbs=request.META.get('HTTP_X_IORG_FBS',False), \
-									topic_url=topic_url, topic_name=topic_name ,bg_theme=bg_theme, add_to_public_feed=True,\
-									submitter_username=submitter_name)
-								log_text_submissions('topic')
-								rate_limit_content_sharing(own_id)#rate limiting for X mins (and hard limit set at 100 submissions per day)
-								set_input_history.delay(section='home',section_id='1',text=text,user_id=own_id)
-								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									activity_dict = {'m':'POST','act':'W4','t':time_now,'tx':text,'url':topic_url}
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-								###################################################################
-								return redirect("topic_redirect", topic_url=topic_url, obj_hash=obj_hash)
-							else:
-								################### Retention activity logging ###################
-								if own_id > SEGMENT_STARTING_USER_ID:
-									request.session['rd'] = '1'
-									activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
-									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
-								###################################################################
-								error_string = form.errors.as_text().split("*")[2]
-								if error_string:
-									request.session["validation_error"] = error_string
-								return redirect("topic_page", topic_url=topic_url)
+			banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+			if banned:
+				return render(request, 'links/link_form.html', {'time_remaining': time_remaining,'ban_details':ban_details,'forbidden':True,\
+					'own_profile':True,'defender':None,'is_profile_banned':True})
 			else:
-				# Some kind of error, just redirect to topic page
-				return redirect("topic_page", topic_url=topic_url)
+				topic_name, bg_theme, is_subscribed = retrieve_topic_credentials(topic_url=topic_url, with_name=True, with_theme=True, \
+					with_is_subscribed=True, retriever_id=own_id)
+				if is_subscribed:
+					time_now = time.time()
+					mobile_verified = request.mobile_verified
+					if not mobile_verified:
+						################### Retention activity logging ###################
+						# if own_id > SEGMENT_STARTING_USER_ID:
+						# 	activity_dict = {'m':'POST','act':'W4.u','t':time_now}
+						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						###################################################################
+						return render(request, 'verification/unable_to_submit_without_verifying.html', {'share_on_home':True})
+					elif request.user_banned:
+						return redirect("error")
+					else:
+						ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
+						if ttl:
+							# this is wrongly named, but tells the user to wait
+							return render(request, 'error_photo.html', {'time':ttl,'origin':'22','tp':type_of_rate_limit,'topic_url':topic_url,\
+								'sharing_limit':NUM_SUBMISSION_ALLWD_PER_DAY})
+						else:
+							banned, time_remaining, ban_details = check_content_and_voting_ban(own_id, with_details=True)
+							if banned:
+								# Cannot submit topic contribution if banned
+								request.session["origin_topic"] = topic_url
+								return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+									'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'org':'22'})
+							else:
+								form = SubmitInTopicForm(request.POST,user_id=own_id)
+								if form.is_valid():
+									text = form.cleaned_data['description']
+									alignment = form.cleaned_data['alignment']
+									submitter_name, av_url = retrieve_credentials(own_id,decode_uname=True)
+									# parking bg_theme, topic url and name in 'url'
+									url = bg_theme+":"+topic_name+":"+topic_url
+
+									post_data = {'ct':'t','aud':'p','exp':'i','ein':-1,'d':text,'a':alignment,\
+									'tp':url,'turl':topic_url,'tn':topic_name,'tbg':bg_theme,'origin':'from_topic_page',\
+									'com':'1'}
+									
+									set_temp_post_data(user_id=own_id,data=json.dumps(post_data),post_type='tx',obj_id=None)
+									
+									return redirect("publish_post")
+								else:
+									################### Retention activity logging ###################
+									# if own_id > SEGMENT_STARTING_USER_ID:
+									# 	request.session['rd'] = '1'
+									# 	activity_dict = {'m':'POST','act':'W4.i','t':time_now,'tx':request.POST.get("description",''),'url':topic_url}
+									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									###################################################################
+									error_string = form.errors.as_text().split("*")[2]
+									if error_string:
+										request.session["validation_error"] = error_string
+									return redirect("topic_page", topic_url=topic_url)
+				else:
+					# Some kind of error, just redirect to topic page
+					return redirect("topic_page", topic_url=topic_url)
 	else:
 		# this is a GET request
 		return redirect("topic_page",topic_url=topic_url)
@@ -558,10 +578,10 @@ def subscribe_to_topic(request, topic_url):
 					response = redirect("topic_page",topic_url=topic_url)
 					response['Location'] += '?subscribed=True#section0'# added 'subscribe' parameter so that the act of subscription is measured separately in GA
 					################### Retention activity logging ###################
-					if own_id > SEGMENT_STARTING_USER_ID:
-						request.session['rd'] = '1'
-						activity_dict = {'m':'POST','act':'W4.s','t':time_now,'url':topic_url}
-						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					# if own_id > SEGMENT_STARTING_USER_ID:
+					# 	request.session['rd'] = '1'
+					# 	activity_dict = {'m':'POST','act':'W4.s','t':time_now,'url':topic_url}
+					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					###################################################################
 					return response
 				else:
@@ -575,11 +595,11 @@ def subscribe_to_topic(request, topic_url):
 			return redirect("topic_page",topic_url=topic_url)
 	else:
 		################### Retention activity logging ###################
-		own_id = request.user.id
-		if own_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			activity_dict = {'m':'POST','act':'W4.u','t':time_now}
-			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		# own_id = request.user.id
+		# if own_id > SEGMENT_STARTING_USER_ID:
+		# 	time_now = time.time()
+		# 	activity_dict = {'m':'POST','act':'W4.u','t':time_now}
+		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		###################################################################
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'subscribe_to_topic':True})
 
@@ -605,3 +625,24 @@ def unsubscribe_topics(request):
 		# render unsubscription options
 		return render(request,"topics/unsubscribe_topics.html",{'subscribed_topics':retrieve_subscribed_topics(str(own_id))})
 
+
+##########################################################################################################
+############################################### Utilities ################################################
+##########################################################################################################
+
+
+def isolate_topic_data(topic_data, colors_only=False):
+	"""
+	Isolate topic data from composite payload of type "theme:topic_name:topic_url"
+
+	Used by retrieve_direct_response_data() in direct_response_views.py
+	"""
+	if colors_only:
+		color_grads = COLOR_GRADIENTS[topic_data]
+		return color_grads[0], color_grads[1]
+	else:
+		data = topic_data.split(":")
+		theme, topic_name, topic_url = data[0], data[1], data[2]
+		color_grads = COLOR_GRADIENTS[theme]
+		c1, c2 = color_grads[0], color_grads[1]
+		return theme, topic_name, c1, c2, topic_url

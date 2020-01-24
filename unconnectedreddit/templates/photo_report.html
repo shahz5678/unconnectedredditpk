@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Report photo | Damadam.pk</title></head>
+<head><title>Report photo | Damadam</title></head>
 <div class="margin clb">
 {% if reporting_self %}
 	<h2>Apni photos ko report nahi kiya ja sakta</h2>
-	<a href="{% url 'home' %}#section0"><button class="btn bm bco pg_ok_res" style="height:26px">wapis</button></a>
+	<a href="{% url 'for_me' %}#section0"><button class="btn bm bco pg_ok_res" style="height:26px">wapis</button></a>
 {% else %}
 	<img src="{{ purl }}" style="border: 1px solid #A9A9A9;border-radius:5px"></img>
 	<h2>Is photo ko kiyun report krna hai?</h2>

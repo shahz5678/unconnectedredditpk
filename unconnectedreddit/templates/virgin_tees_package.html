@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Virgin Tees advertisement | Damadam.pk</title></head>
+<head><title>Virgin Tees advertisement | Damadam</title></head>
 <div class="margin clb">
 <h2 class="cg bw">Stylish T-Shirts</h2>
 <b class="clb cs">Grey T-Shirt, Price Rs. 400/-</b><br>
@@ -34,7 +34,7 @@
 <b class="clb cs">Funny Batman T-Shirt, Price Rs. 800/-</b><br>
 <img class="pht mrs mbl mts" src="{{ STATIC_URL }}img/funnybatman_tshirt1.png" style="max-width:72px;">
 <img class="pht mbl" src="{{ STATIC_URL }}img/funnybatman_tshirt2.png" style="max-width:205px;"><br>
-<a href="{% url 'home' %}"><button class="btn bco bm mts mbl"><b>wapis</b></button></a>
+<a href="{% url 'for_me' %}"><button class="btn bco bm mts mbl"><b>wapis</b></button></a>
 <hr size=3 COLOR="#bfbfbf">
 	<form method="post" action="{% url 'virgin_tees' %}" class="mtl">
 	{% csrf_token %}

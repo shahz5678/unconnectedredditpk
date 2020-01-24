@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+{% load cache %}
+{% cache 10000 data_mode %}
+<head><title>Data Mode | Damadam</title></head>
+<style>body{background: #E9EBEE}</style>
+<h1 class="clb cxl lsp" style="text-align:center">Data mode ke faidey:</h1>
+<main class="mbl clb" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:97%;margin-right:auto;margin-left:auto">
+<div style="padding:10px">
+	<a href="https://damadam.pk"><button class="mbs sp" style="width:100%;height:36px;border:1px solid #e4b701;background:#ffe44d;color:black">Try Data Mode</button></a>
+	<div class="mts cl sp lsp"><b><span style="color:gold">★&nbsp;</span>No page reload for 'reply','like' or 'follow':</b><br>Data mode mein 'Reply','Like' aur 'Follow' karna buhut fast hai, kyunke page reload nahi hota</div>
+	<hr size="1" color="#e6e6e6">
+	<div class="mts cl sp lsp"><b><span style="color:gold">★&nbsp;</span>Photos load everytime:</b><br>Data mode pe photos hamesha load hoti hain. Free Basics pe photos zyada tar load nahi hotien</div>
+	<hr size="1" color="#e6e6e6">
+	<div class="mbs cl sp lsp"><b><span style="color:gold">★&nbsp;</span>Photos bigger than 200KB:</b><br>10MB ki HD photos upload karein data mode pe. Free Basics pe 200kb se barri photo upload nahi hoti</div>
+	<hr size="1" color="#e6e6e6">
+	<div class="mts cl sp lsp"><b><span style="color:gold">★&nbsp;</span>Don't wait 14 mins to upload photos:</b><br>Data mode mein dher sari pics fast share karein. 14 mins wali pabandi data mode mein mojood nahi</div>
+	<hr size="1" color="#e6e6e6">
+	<div class="mts mbs cl sp lsp"><b><span style="color:gold">★&nbsp;</span>Faster speed:</b><br>Data mode kafi tez hai Free basics ki nisbat. Try zarur karein</div>
+	<a href="https://damadam.pk"><button class="mts sp" style="width:100%;height:36px;border:1px solid #e4b701;background:#ffe44d;color:black">Try Data Mode</button></a>
+</div>
+</main>
+<br><br>
+{% endcache %}
+{% endblock %}

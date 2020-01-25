@@ -1024,7 +1024,7 @@ def best_home_page(request):
 		else:
 			context["newbie_tutorial_page"] = 'newbie_rules.html'
 
-	return render(request, 'link_list.html', context)
+	return render(request, 'text_page.html', context)
 
 
 def home_redirect(request, pk=None):
@@ -1131,7 +1131,7 @@ def home_page(request, lang=None):
 		else:
 			context["newbie_tutorial_page"] = 'newbie_rules.html'
 
-	return render(request, 'link_list.html', context)
+	return render(request, 'text_page.html', context)
 
 
 ##############################################################################################################################

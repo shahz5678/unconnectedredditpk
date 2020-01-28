@@ -145,9 +145,6 @@ MIDDLEWARE_CLASSES = (
 SESSION_ENGINE = 'user_sessions.backends.db'
 # SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
-#MOBI_DETECT_TABLET = True
-#MOBI_USER_AGENT_IGNORE_LIST = ['ipad', 'android', 'iphone',]
-
 TEMPLATE_CONTEXT_PROCESSORS = (
 	"django.contrib.auth.context_processors.auth",
 	"django.core.context_processors.csrf",

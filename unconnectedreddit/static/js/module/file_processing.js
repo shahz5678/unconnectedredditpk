@@ -209,7 +209,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	// send the form via AJAX
 	var xhr = new XMLHttpRequest();
 	xhr.open('POST', target_action);
-	xhr.timeout = 55000; // time in milliseconds, i.e. 55 seconds
+	xhr.timeout = 120000; // time in milliseconds, i.e. 55 seconds
 	xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
 	xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 	xhr.onload = function () {
@@ -225,7 +225,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	};
 	xhr.onerror = function () {
 		// onerror fires when there is a failure on the network level
-		window.location.replace(fail_url);// e.g. fail_url = '/1-on-1/'
+		window.location.replace(fail_url);// e.g. fail_url = '/1-on-1/'	
 		personal_group_preloader('destroy');
 	};
 	xhr.ontimeout = function (e) {

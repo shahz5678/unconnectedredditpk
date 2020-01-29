@@ -42,7 +42,7 @@ body {
     <li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>New Account</b></a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li>
 {% endif %}
 </ul>
-
+{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
 <br>
 
 <div style="margin-top:1em;margin-right: auto;margin-left: auto;max-width:600px;width:93%;border-radius:6px;padding:5px 5px 5px 5px;background-color:#26d5ab;padding-bottom:2em;-webkit-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);-moz-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-sizing: border-box;">

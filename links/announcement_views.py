@@ -1,5 +1,5 @@
 # coding=utf-8
-import time
+import time, requests
 import ujson as json
 from django.http import Http404
 from django.contrib.auth.models import User
@@ -583,4 +583,16 @@ def maintainance_notice(request):
 	"""
 	Renders the detail of an announcement
 	"""
-	return render(request,"announcement/maintainance_detail.html",{})	
+	return render(request,"announcement/maintainance_detail.html",{})
+
+
+@csrf_protect
+def benefits_of_data_mode(request):
+	"""
+	Renders the detail of an announcement
+	"""
+	if request.method == "POST":
+		r = requests.get(url = "https://damadam.pk", params = {'click_out':True}) 
+		return redirect(r.url)
+	else:
+		return render(request,"announcement/benefits_of_data_mode.html",{})

@@ -56,6 +56,9 @@
     <li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
 {% endif %}
 </ul>
+
+{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
+
 <script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 <a name="section0"></a>
 
@@ -82,7 +85,7 @@
 		</div>
 	{% elif show_post_removed_prompt %}
 		<div style="background: rgb(255,121,0);background: rgb(255,127,80);background: -moz-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: -webkit-linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);background: linear-gradient(135deg, rgba(255,127,80,1) 0%, rgba(255,5,0,1) 88%);text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">
-			Post apki taraf say hide ho gai
+			Post ap ke 'For Me' se hide ho gai
 		</div>
 	{% endif %}
 

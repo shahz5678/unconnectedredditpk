@@ -29,7 +29,7 @@
 
 {% else %}
 
-    <head><title>Comments on photo titled {{ photo.description }} {% if latest_comment_time %}(updated on {{ latest_comment_time }}){% endif %} | Damadam</title></head>
+    <head><title>Comments on photo titled {{ photo.description }} {% if latest_comment_time %}(updated {{ latest_comment_time|human_time }}){% endif %} | Damadam</title></head>
     <style>body{background:#f0f3f4}</style>
 
     <script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>

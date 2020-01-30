@@ -3,7 +3,6 @@ from redis4 import get_temp_order_data, log_buyer_form_err
 import re, time
 from django.utils.translation import ugettext, ugettext_lazy as _
 from django.contrib.auth.models import User
-from user_sessions.models import Session
 
 class CareemAdForm(forms.Form):
 	City = (

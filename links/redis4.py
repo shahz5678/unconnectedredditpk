@@ -103,6 +103,7 @@ THREE_MINS = 3*60
 ONE_MIN = 60
 
 
+	
 def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 	my_server = redis.Redis(connection_pool=POOL)
 	final_list = []

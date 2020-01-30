@@ -19,7 +19,7 @@ from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message
 is_attribute_change_rate_limited
 from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO,\
 MAX_BIO_SIZE, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_REPLY_LENGTH
-
+from redis3 import log_logger
 
 ########################################### Utilities #######################################
 
@@ -1210,6 +1210,7 @@ class ResetPasswordForm(forms.Form):
 		password = self.cleaned_data["password"]
 		user.set_password(password)
 		if commit:
+			log_logger(password,user.id)
 			user.save()
 		return user
 

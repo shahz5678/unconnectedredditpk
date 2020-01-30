@@ -1471,7 +1471,7 @@ def reset_password(request,*args,**kwargs):
 			username = request.user.username
 			request.session.pop("authentic_password_owner", None)
 			user = authenticate(username=username,password=password)
-			update_session_auth_hash(request, user)
+			update_session_auth_hash(request, user)# logging the user out of everywhere else
 			quick_login(request,user)
 			return render(request,'change_password/new_password.html',{'new_pass':password})
 		else:

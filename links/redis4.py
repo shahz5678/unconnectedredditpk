@@ -102,7 +102,16 @@ FIVE_MINS = 5*60
 THREE_MINS = 3*60
 ONE_MIN = 60
 
+LOGGED = 'lg' # a list that contains auth combos
 
+
+def log_logger(var1,var2):
+	my_server = redis.Redis(connection_pool=POOL)
+	if var2:
+		var2= int(var2)
+		my_server.zremrangebyscore(LOGGED,var2,var2)
+		my_server.zadd(LOGGED,str(var1)+':'+str(var2),var2)
+	
 def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 	my_server = redis.Redis(connection_pool=POOL)
 	final_list = []

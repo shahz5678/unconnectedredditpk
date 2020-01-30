@@ -45,7 +45,7 @@ def create_dummy_user(request):
 	uname = shortuuid.uuid()
 	user = User(username=uname)
 	user.set_password(PW)
-	with transaction.commit_on_success():
+	with transaction.atomic():
 		user.save()
 		insert_nick(uname)
 	return uname

@@ -29,7 +29,8 @@ from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import login as quick_login
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
 from templatetags.s3 import get_s3_object
@@ -1467,8 +1468,11 @@ def reset_password(request,*args,**kwargs):
 		if form.is_valid():
 			form.save()
 			password = request.POST.get("password")
+			username = request.user.username
 			request.session.pop("authentic_password_owner", None)
 			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+			user = authenticate(username=username,password=password)
+			quick_login(request,user)
 			return render(request,'change_password/new_password.html',{'new_pass':password})
 		else:
 			allowed = request.session.get('authentic_password_owner',None)

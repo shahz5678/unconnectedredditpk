@@ -5,7 +5,7 @@ from django.contrib.auth import authenticate
 from django.core.exceptions import ValidationError
 from redis3 import nick_already_exists,insert_nick, bulk_nicks_exist, log_erroneous_passwords, check_nick_status, invalidate_user_pin, verify_user_pin,\
 is_mobile_verified, is_sms_sending_rate_limited, get_user_verified_number, log_pin_attempt, invalid_nick_logger#, someone_elses_number
-from redis4 import log_logger
+from redis3 import log_logger
 from abuse import BANNED_NICKS, BANNED_FORGOTTEN_NICKS
 from forms import retrieve_validation_error_string
 from views import secs_to_mins

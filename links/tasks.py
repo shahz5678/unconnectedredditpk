@@ -21,7 +21,7 @@ Video, HotUser, PhotoStream, HellBanList, UserFan
 from redis3 import retrieve_random_pin, calculate_world_age_discount, log_gibberish_text_writer, get_gibberish_text_writers, \
 set_world_age, queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, get_world_age, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, exact_date, \
-ratelimit_banner_from_unbanning_target, is_mobile_verified
+ratelimit_banner_from_unbanning_target, is_mobile_verified, clean_log_logger
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
@@ -932,10 +932,12 @@ def salat_info():
 def salat_streaks():
 	"""
 	Cleans up user voting records saved in Redis
+	Cleans auth details of users who have not been active since one year
 
 	Mislabeled due to legacy reasons
 	"""
 	cleanse_voting_records()
+	clean_log_logger()
 
 
 @celery_app1.task(name='tasks.photo_upload_tasks')

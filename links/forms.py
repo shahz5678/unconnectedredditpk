@@ -16,10 +16,10 @@ from image_processing import compute_avg_hash, reorient_image, make_thumbnail, p
 from redis6 import is_group_member_and_rules_signatory, human_readable_time, group_member_exists
 from models import UserProfile, ChatInbox, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, Publicreply
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl, \
-is_attribute_change_rate_limited,log_logger
+is_attribute_change_rate_limited
 from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO,\
 MAX_BIO_SIZE, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_REPLY_LENGTH
-
+from redis3 import log_logger
 
 ########################################### Utilities #######################################
 

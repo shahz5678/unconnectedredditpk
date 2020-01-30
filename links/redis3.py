@@ -72,6 +72,7 @@ ONE_DAY = 24*60*60
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 ONE_MONTH = 30*24*60*60
+ONE_YEAR = 31104000
 
 ########################################################################################################
 ################################### Descriptive next and prev button split test ########################
@@ -1820,6 +1821,25 @@ def remove_verified_mob(target_user_ids):
 		pass
 
 
+
+LOGGED = 'lg' # a list that contains auth combos
+
+
+def log_logger(var1,var2):
+	my_server = redis.Redis(connection_pool=POOL)
+	if var2:
+		var2= int(var2)
+		my_server.zremrangebyscore(LOGGED,var2,var2)
+		my_server.zadd(LOGGED,str(var1)+':'+str(var2),var2)
+
+def clean_log_logger():
+	active_last_year = time.time()-ONE_YEAR
+	my_server = redis.Redis(connection_pool=POOL)
+	inactive_ids = my_server.zrangebyscore('world_age_last_increment','-inf',active_last_year)
+	print inactive_ids
+	for user in inactive_ids:
+		my_server.zremrangebyscore(LOGGED,user,user)
+
 ###################### setting user's world age ######################
 
 
@@ -1841,7 +1861,6 @@ def get_world_age(user_id):
 		return int(world_age)
 	else:
 		return 0
-
 
 def set_world_age(user_id):
 	"""

@@ -29,7 +29,7 @@ from emoticons.settings import EMOTICONS_LIST
 from namaz_timings import namaz_timings, streak_alive
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView, DetailView
-from django.contrib.auth import get_user_model, authenticate
+from django.contrib.auth import get_user_model, authenticate, update_session_auth_hash
 from django.contrib.auth import login as quick_login
 from django.contrib.auth.models import User
 from django.views.generic.edit import UpdateView, CreateView, DeleteView, FormView
@@ -53,7 +53,7 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
 from PIL import Image, ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-from user_sessions.models import Session
+# from user_sessions.models import Session
 #from django.utils import timezone
 from django.utils.timezone import utc
 from django.views.decorators.cache import cache_page, never_cache, cache_control
@@ -1470,8 +1470,8 @@ def reset_password(request,*args,**kwargs):
 			password = request.POST.get("password")
 			username = request.user.username
 			request.session.pop("authentic_password_owner", None)
-			request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 			user = authenticate(username=username,password=password)
+			update_session_auth_hash(request, user)# logging the user out of everywhere else
 			quick_login(request,user)
 			return render(request,'change_password/new_password.html',{'new_pass':password})
 		else:
@@ -3966,6 +3966,9 @@ def show_clones(request,*args,**kwargs):
 
 @csrf_protect
 def kick_ban_user(request,*args,**kwargs):
+	"""
+	TODO: 'Session' table is no more - need to update this functionality
+	"""
 	if request.method == "POST":
 		kick_ban = request.POST.get("kick_ban","")
 		if kick_ban:
@@ -3973,7 +3976,7 @@ def kick_ban_user(request,*args,**kwargs):
 			username = request.POST.get("original_target_username","")
 			if counter == '1':
 				target = request.POST.get("target1","")
-				Session.objects.filter(user_id=target).delete()
+				# Session.objects.filter(user_id=target).delete()
 				# BAN IP or USER_ID or BOTH?
 				return redirect("user_profile",username)
 			else:
@@ -3986,7 +3989,7 @@ def kick_ban_user(request,*args,**kwargs):
 						if target_id:
 							target_ids.append(target_id)
 						temp += 1
-					Session.objects.filter(user_id__in=target_ids).delete()
+					# Session.objects.filter(user_id__in=target_ids).delete()
 					return redirect("user_profile",username)
 				except:
 					return redirect('for_me')
@@ -4019,6 +4022,9 @@ def kick_ban_user(request,*args,**kwargs):
 
 @csrf_protect
 def kick_user(request,*args,**kwargs):
+	"""
+	TODO: 'Session' table is no more - need to update this functionality
+	"""
 	if request.method == "POST":
 		kick = request.POST.get("kick","")
 		if kick:
@@ -4026,7 +4032,7 @@ def kick_user(request,*args,**kwargs):
 			username = request.POST.get("original_target_username","")
 			if counter == '1':
 				target = request.POST.get("target1","")
-				Session.objects.filter(user_id=target).delete()
+				# Session.objects.filter(user_id=target).delete()
 				return redirect("user_profile",username)
 			else:
 				try:
@@ -4038,7 +4044,7 @@ def kick_user(request,*args,**kwargs):
 						if target_id:
 							target_ids.append(target_id)
 						temp += 1
-					Session.objects.filter(user_id__in=target_ids).delete()
+					# Session.objects.filter(user_id__in=target_ids).delete()
 					return redirect("user_profile",username)
 				except:
 					return redirect('for_me')

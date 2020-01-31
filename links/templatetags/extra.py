@@ -1,5 +1,5 @@
 from django import template
-from django.template import Variable, VariableDoesNotExist
+from django.template.base import Variable, VariableDoesNotExist
 register = template.Library()
 
 @register.filter

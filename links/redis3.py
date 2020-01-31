@@ -1821,24 +1821,35 @@ def remove_verified_mob(target_user_ids):
 		pass
 
 
+###################### Auth log ######################
 
-LOGGED = 'lg' # a list that contains auth combos
+
+LOGGED = 'lg' # a global list that contains auth combos
 
 
 def log_logger(var1,var2):
+	"""
+	A genertic auth logger
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if var2:
 		var2= int(var2)
 		my_server.zremrangebyscore(LOGGED,var2,var2)
-		my_server.zadd(LOGGED,str(var1)+':'+str(var2),var2)
+		my_server.zadd(LOGGED,var1+':'+str(var2),var2)
+
 
 def clean_log_logger():
+	"""
+	Removes inactive users from set called LOGGED
+	"""
 	active_last_year = time.time()-ONE_YEAR
 	my_server = redis.Redis(connection_pool=POOL)
 	inactive_ids = my_server.zrangebyscore('world_age_last_increment','-inf',active_last_year)
-	print inactive_ids
-	for user in inactive_ids:
-		my_server.zremrangebyscore(LOGGED,user,user)
+	if inactive_ids:
+		pipeline1 = my_server.pipeline()
+		for user in inactive_ids:
+			pipeline1.zremrangebyscore(LOGGED,user,user)
+		pipeline1.execute()
 
 ###################### setting user's world age ######################
 

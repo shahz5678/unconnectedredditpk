@@ -1,6 +1,6 @@
 #Contains locations of memcached/redis in various OSes.
 import os
-from unconnectedreddit.env import ON_AZURE
+from unconnectedreddit.env import ON_PRODUCTION
 
 ON_MAC = os.environ.get('ON_MAC')
 
@@ -16,8 +16,8 @@ if ON_MAC == '1':
 	REDLOC8 = '/usr/local/var/run/redis/redis8.sock'
 	REDLOC9 = '/usr/local/var/run/redis/redis9.sock'
 
-elif ON_AZURE == '1':
-	MEMLOC = 'unix:/var/run/memcached/memcached.sock'
+elif ON_PRODUCTION == '1':
+	MEMLOC = 'unix:/tmp/memcached.sock'
 	REDLOC1 = '/var/run/redis.sock'
 	REDLOC2 = '/var/run/redis2.sock'
 	REDLOC3 = '/var/run/redis3.sock'
@@ -29,7 +29,7 @@ elif ON_AZURE == '1':
 	REDLOC9 = '/var/run/redis9.sock'
 
 else:
-	MEMLOC = 'unix:/var/run/memcached/memcached.sock'
+	MEMLOC = 'unix:/tmp/memcached.sock'
 	REDLOC1 = '/var/run/redis.sock'
 	REDLOC2 = '/var/run/redis2.sock'
 	REDLOC3 = '/var/run/redis3.sock'

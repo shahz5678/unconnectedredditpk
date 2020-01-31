@@ -2,7 +2,7 @@
 import shortuuid, requests, uuid, time
 from django.db import transaction
 from django.contrib.auth import login as quick_login
-from django.contrib.auth import authenticate, logout
+from django.contrib.auth import authenticate, logout, update_session_auth_hash
 from django.views.decorators.csrf import csrf_exempt
 ######################################################################################
 from django.contrib.auth.views import login as log_me_in
@@ -174,7 +174,8 @@ def set_forgetters_password(request, lang=None, *args, **kwargs):
 					form.save()
 					user = authenticate(username=user.username,password=password)
 					quick_login(request,user)
-					request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+					update_session_auth_hash(request, user)# logging the user out of everywhere else
+					# request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
 					request.session.pop('forgetters_userid',None)
 					request.session.pop('forgetters_username',None)
 					log_fp_ak_user_verification_outcome("verified")

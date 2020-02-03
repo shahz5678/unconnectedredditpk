@@ -35,7 +35,7 @@ edit_content_and_voting_ban, is_ban_editing_locked, set_complaint, are_ids_unban
 from redis6 import retrieve_group_reqd_data, freeze_reported_group_functionality, retrieve_group_owner_id, retrieve_group_creation_time, \
 retrieve_group_rules, get_reported_group_info
 from redis4 import return_referrer_logs, retrieve_uname, retrieve_bulk_unames, freeze_critical_profile_functionality, retrieve_credentials
-from redis2 import invalidate_cached_user_feed_history
+from redis2 import invalidate_cached_user_feed_history, delete_last_fanout_data
 
 SEVEN_MINS = 7*60
 TWENTY_MINS = 20*60
@@ -1327,6 +1327,7 @@ def judge_content_submitters(request):
 								invalidate_cached_user_feed_history(obj_owner_id,'public')
 								invalidate_cached_user_feed_history(obj_owner_id,'limited')
 								invalidate_cached_user_feed_history(obj_owner_id,'private')
+								delete_last_fanout_data(obj_owner_id)
 								#################################################################
 								#################################################################
 								if ban_time:

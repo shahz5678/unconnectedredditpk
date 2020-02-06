@@ -1131,6 +1131,8 @@ def invalidate_cached_user_feed_history(user_id, hist_type):
 ##################### Loggers for follow feature ####################
 #####################################################################
 
+# NOTE: THESE LOGGERS ARE OFFLINE CURRENTLY
+
 POST_DATA_LOGGER = 'dl'
 POST_FOLLOW_LOGGER = 'fl'
 POST_REMOVE_LOGGER = 'rl'

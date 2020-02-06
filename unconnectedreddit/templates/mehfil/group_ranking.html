@@ -4,12 +4,6 @@
 <head><title>Trending public groups | Damadam</title></head>
 <style>body{background:#f0f3f4}</style>
 
-<main style="display:block;max-width:600px;margin:0 auto;width:97%;position:relative;">
-    {% if newbie_flag %}
-        {% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='36' %}
-    {% endif %}
-</main>
-
 {% include "mehfil/mehfil_list_navbar.html" with section='ranking' static_url=STATIC_URL %}
 
 <h1 class="clb cxl lsp" style="text-align:center">Popular mehfils:</h1>

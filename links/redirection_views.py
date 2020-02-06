@@ -27,21 +27,21 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 
 	This is merely a redirect view and needs no url pattern (request is passed from other views, e.g. redirect_to_content())
 	"""
-	if origin == '1' or origin == '20':
-		# originated from taza photos page
+	if origin in ('1','20'):
+		# originated from fresh photos page
 		if origin == '20':
 			# single notification on fresh photos 
 			return redirect("photo",list_type='fresh-list')
 		else:
 			return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'fresh-list','pk':obj_id}))
-	elif origin == '2' or origin == '21':
+	elif origin in ('2','21'):
 		# originated from best photos
 		if origin == '21':
 			# single notification on best photos
 			return redirect("photo",list_type='best-list')
 		else:
 			return redirect(reverse_lazy("redirect_to_photo",kwargs={'list_type': 'best-list','pk':obj_id}))
-	elif origin == '3' or origin == '19':
+	elif origin in ('3','19'):
 		if origin == '19':
 			# single notification on 'fresh_text'
 			return redirect("fresh_text")
@@ -66,10 +66,7 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 		else:
 			return redirect("photo",list_type='fresh-list')
 	elif origin == '7':
-		# originated from shared photos page
-		# if target_uname:
-		# 	return redirect("show_shared_photo_metrics", target_uname)
-		# else:
+		# originated from fresh photos page
 		return redirect("photo",list_type='fresh-list')
 	elif origin == '8':
 		# originated from home history
@@ -137,12 +134,16 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 	elif origin == '25':
 		# originated from 'upvoting' history page
 		return redirect('user_vote_history')
-	elif origin == '26':
-		# originated from 'my home'
-		if link_id:
-			return redirect(reverse_lazy("custom_feed_redirect",kwargs={'obj_hash':link_id}))
-		else:
+	elif origin in ('26','38'):
+		# originated from single notif on 'for_me'
+		if origin == '38':
 			return redirect("custom_feed_redirect")
+		# originated from 'my home'
+		else:
+			if link_id:
+				return redirect(reverse_lazy("custom_feed_redirect",kwargs={'obj_hash':link_id}))
+			else:
+				return redirect("custom_feed_redirect")
 	elif origin == '27':
 		# originated from 'followers list'
 		var = request.session.pop('page_num',None)		
@@ -204,9 +205,12 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 		return redirect('get_ranked_groups')
 	elif origin == '37':
 		# originated from 'Red Stars' list 
-		return redirect('top_photo')		
+		return redirect('top_photo')
+	############
+	# origin '38' is also used up
+	############	
 	else:
-		# when no origin, redirent to 'my home'
+		# when no origin, redirect to 'for_me'
 		if link_id:
 			return redirect(reverse_lazy("custom_feed_redirect",kwargs={'obj_hash':link_id}))
 		else:

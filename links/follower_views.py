@@ -24,13 +24,15 @@ is_image_star, in_defenders
 from redis2 import check_if_follower, add_follower, remove_follower, get_custom_feed, retrieve_custom_feed_index, retrieve_follower_data, \
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
-get_all_follower_count,get_verified_follower_count, logging_follow_data, get_user_activity_event_time, retrieve_cached_new_follower_notif, \
-logging_remove_data, retrieve_and_cache_new_followers_notif, set_user_last_seen, get_for_me_seen_time, add_last_fanout_to_feed
+get_all_follower_count,get_verified_follower_count, get_user_activity_event_time, retrieve_cached_new_follower_notif, get_for_me_seen_time,\
+retrieve_and_cache_new_followers_notif, set_user_last_seen, add_last_fanout_to_feed#, logging_remove_data, logging_follow_data
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
+from score import SEGMENT_STARTING_USER_ID
 from templatetags.s3 import get_s3_object
 from utilities import convert_to_epoch
+from tasks import log_user_activity
 from colors import COLOR_GRADIENTS
 from redis7 import get_obj_data
 
@@ -43,9 +45,8 @@ def custom_feed_redirect(request, obj_hash=None):
 	Used to redirect to specific spot in the user's subscriber feed (e.g. after writing something, liking etc)
 	"""
 	index = retrieve_custom_feed_index(request.user.id, obj_hash)
-	addendum = get_addendum(index,ITEMS_PER_PAGE, only_addendum=True) if index else '?page=1#section0'
-	url = reverse_lazy('for_me')+addendum
-	return redirect(url)
+	addendum = '?page=1#section0' if index is None else get_addendum(index, ITEMS_PER_PAGE, only_addendum=True)
+	return redirect(reverse_lazy('for_me')+addendum)
 
 
 def custom_feed_page(request):
@@ -54,6 +55,7 @@ def custom_feed_page(request):
 	"""
 	own_id = request.user.id
 	time_now = time.time()
+	is_mob_verified = request.mobile_verified
 	#############################################################################
 	# guaging whether to show a 'new followers' notification at the top
 
@@ -101,7 +103,7 @@ def custom_feed_page(request):
 
 		#######################
 
-		obj_entry_times_dict = dict(obj_tup_list)
+		obj_entry_times_dict, unseen_posts = dict(obj_tup_list), False
 		for obj in list_of_dictionaries:
 			
 			# enrich objs with information that 'own_id' liked them or not
@@ -110,9 +112,34 @@ def custom_feed_page(request):
 
 			# enrich objs with 'seen' information 
 			if obj_entry_times_dict[obj['h']] > float(prev_for_me_seen_time):
-				obj['new'] = True# this obj hasn't been seen by the user previously
+				obj['new'] = True# this obj has not been seen by the user previously
+				unseen_posts = True# TODO: remove when retention loggers are removed
 
 		list_of_dictionaries = format_post_times(list_of_dictionaries, with_machine_readable_times=True)
+
+		###################### Retention activity logging ######################
+		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+		if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+			if page_num == 1:
+				act = 'FN' if unseen_posts else 'FO'
+				act = act if is_mob_verified else act+'.u'
+			else:
+				act = 'F2'
+				act = act if is_mob_verified else act+'.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		########################################################################
+	
+	else:
+		###################### Retention activity logging ######################
+		# there are no posts
+		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+		if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+			act = 'FE'
+			act = act if is_mob_verified else act+'.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		########################################################################
 
 	#######################
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
@@ -122,13 +149,14 @@ def custom_feed_page(request):
 	########################
 
 	show_post_removed_prompt = request.session.pop("post_removed"+str(own_id),None)
+
 	context = {'link_list':list_of_dictionaries,'fanned':None,'is_auth':True,'on_fbs':on_fbs,'stars':get_all_image_star_ids(),\
 	'ident':own_id, 'process_notification':False,'newest_user':None,'newbie_lang':request.session.get("newbie_lang",None),\
-	'mobile_verified':request.mobile_verified, 'show_post_removed_prompt':show_post_removed_prompt,'time_now':time_now,\
+	'mobile_verified':is_mob_verified, 'show_post_removed_prompt':show_post_removed_prompt,'time_now':time_now,\
 	'on_opera':on_opera,'own_name':own_name,'new_count':new_count,'dir_rep_form':DirectResponseForm(with_id=True),\
 	'thin_rep_form':DirectResponseForm(thin_strip=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
 	'single_notif_dir_rep_form':DirectResponseForm(),'last_seen':last_seen,'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None)}
+	'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),'origin':'26','single_notif_origin':'38'}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
@@ -178,10 +206,9 @@ def follow(request):
 
 	Ensure that the subscriber:
 	i) is target_user_id an actual user
-	ii) is mobile verified
-	iii) is not already subscribed
-	iv) is not pvp blocked by target_user_id
-	v) is not banned in the system
+	ii) is not already subscribed
+	iii) is not pvp blocked by target_user_id
+	iv) is not banned in the system
 
 	Ensure that the target_user_id is:
 	i) is mobile verified
@@ -286,21 +313,30 @@ def follow(request):
 				# now we can subcribe!
 				if topic:
 					request.session["origin_topic"] = topic
-				verification_status = '1' if request.mobile_verified else '0'
-				time_now=time.time()
+				is_mob_verified = request.mobile_verified
+				verification_status = '1' if is_mob_verified else '0'
+				time_now = time.time()
 				set_user_last_seen(target_user_id,time_now)
 				add_follower(user_id=own_id, target_user_id=target_user_id, verification_status=verification_status, time_now=time_now+1)
 
 				add_last_fanout_to_feed(own_id,target_user_id,time_now)
 
+				###################### Retention activity logging ######################
+				if own_id > SEGMENT_STARTING_USER_ID:
+					request.session['rd'] = '1'
+					act = 'N' if is_mob_verified else 'N.u'
+					activity_dict = {'m':'POST','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				########################################################################
+
 				###########################################################################
 				############################### Follow Logger #############################
 				###########################################################################
-				num_fans = get_all_follower_count(own_id)
-				num_vfans = get_verified_follower_count(own_id)
-				data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
-				'numf':num_fans,'num_vf':num_vfans,'type':'follow'}
-				logging_follow_data(data)
+				# num_fans = get_all_follower_count(own_id)
+				# num_vfans = get_verified_follower_count(own_id)
+				# data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
+				# 'numf':num_fans,'num_vf':num_vfans,'type':'follow'}
+				# logging_follow_data(data)
 				###########################################################################
 				###########################################################################	
 				###########################################################################
@@ -339,14 +375,24 @@ def unfollow(request):
 				request.session["origin_topic"] = topic
 			verification_status = '1' if is_mobile_verified(target_user_id) else '0'
 			remove_follower(follower_id=own_id, star_id=target_user_id,follower_verification_status=verification_status)
+
+			###################### Retention activity logging ######################
+			if own_id > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				request.session['rd'] = '1'
+				act = 'N1' if request.mobile_verified else 'N1.u'
+				activity_dict = {'m':'POST','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
+
 			###########################################################################
-			############################### Unfollow Logger #############################
+			############################### Unfollow Logger ###########################
 			###########################################################################
-			num_fans = get_all_follower_count(own_id)
-			num_vfans = get_verified_follower_count(own_id)
-			data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
-			'numf':num_fans,'num_vf':num_vfans,'type':'unfollow'}
-			logging_follow_data(data)
+			# num_fans = get_all_follower_count(own_id)
+			# num_vfans = get_verified_follower_count(own_id)
+			# data = {'star_id':target_user_id,'follower':own_id, 'v_stat':verification_status,'orig':origin, 'obj_id':obj_id,'lid':obj_hash,\
+			# 'numf':num_fans,'num_vf':num_vfans,'type':'unfollow'}
+			# logging_follow_data(data)
 			###########################################################################
 			###########################################################################	
 			###########################################################################
@@ -395,7 +441,7 @@ def remove_my_follower(request, target_username):
 			rate_limit_removed_follower(follower_id=follower_id, star_id=star_id )
 			verification_status = '1' if is_mobile_verified(follower_id) else '0'
 			remove_follower(follower_id=follower_id, star_id=star_id, follower_verification_status=verification_status)
-			
+
 			page_num = request.POST.get("page_num",None)
 			origin = request.POST.get("origin",None)
 			start_index, end_index = get_indices(page_num, FOLLOWERS_PER_PAGE)
@@ -405,6 +451,16 @@ def remove_my_follower(request, target_username):
 				request.session['page_num']= str(new_num)
 			else:
 				request.session['page_num']= page_num
+
+			###################### Retention activity logging ######################
+			if star_id > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				request.session['rd'] = '1'
+				act = 'N3' if request.mobile_verified else 'N3.u'
+				activity_dict = {'m':'POST','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+				log_user_activity.delay(user_id=star_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
+
 			return return_to_content(request=request,origin=origin,obj_id=str(obj_id),link_id=None,\
 				target_uname=target_username)
 		else:
@@ -439,16 +495,17 @@ def remove_single_post(request):
 					else:
 						invalidate_cached_user_feed_history(own_id,'private')
 				request.session["history_post_removed"+str(own_id)] = '1'
+
 				###########################################################################
 				############################### Post Removal Logger #######################
 				###########################################################################				
-				post_data = Link.objects.values('type_of_content', 'description', 'url', \
-					'image_file', 'reply_count', 'net_votes', 'trending_status').filter(id=which_link)
-				data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from history',\
-				'type_of_content':post_data[0]['type_of_content'],'trending_status':post_data[0]['trending_status'],'url':post_data[0]['url'],\
-				'image_file':post_data[0]['image_file'],'reply_count':post_data[0]['reply_count'],'net_votes':post_data[0]['net_votes'],\
-				'description':post_data[0]['description']}
-				logging_remove_data(data)
+				# post_data = Link.objects.values('type_of_content', 'description', 'url', \
+				# 	'image_file', 'reply_count', 'net_votes', 'trending_status').filter(id=which_link)
+				# data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from history',\
+				# 'type_of_content':post_data[0]['type_of_content'],'trending_status':post_data[0]['trending_status'],'url':post_data[0]['url'],\
+				# 'image_file':post_data[0]['image_file'],'reply_count':post_data[0]['reply_count'],'net_votes':post_data[0]['net_votes'],\
+				# 'description':post_data[0]['description']}
+				# logging_remove_data(data)
 				###########################################################################
 				###########################################################################	
 				###########################################################################
@@ -468,14 +525,15 @@ def remove_single_post(request):
 			# for removal of post from own feed
 			removed, ttl, action_by_op = remove_single_post_from_custom_feed(obj_hash=obj_hash, own_id=own_id)
 			own_name = retrieve_uname(own_id, decode=True)
+
 			###########################################################################
 			############################### Post Removal Logger #######################
 			###########################################################################				
-			post_data = get_obj_data(obj_hash)#Link.objects.values('type_of_content', 'description', 'url', \#'image_file', 'reply_count', 'net_votes', 'trending_status').filter(id=which_link)
-			if post_data:
-				data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from my home',\
-				'post_details':post_data}
-				logging_remove_data(data)
+			# post_data = get_obj_data(obj_hash)#Link.objects.values('type_of_content', 'description', 'url', \#'image_file', 'reply_count', 'net_votes', 'trending_status').filter(id=which_link)
+			# if post_data:
+			# 	data = {'Is_OP':action_by_op,'remover_name':own_name, 'orig':origin,'lid':obj_hash,'which_link':which_link,'type':'from my home',\
+			# 	'post_details':post_data}
+			# 	logging_remove_data(data)
 			###########################################################################
 			###########################################################################	
 			###########################################################################
@@ -520,6 +578,15 @@ def show_follower_list(request):
 		# no followers have been retrieved, and the page is greater than 1
 	own_name = retrieve_uname(own_id, decode=True)
 	origin = '27'
+
+	###################### Retention activity logging ######################
+	if own_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		act = 'A6' if request.mobile_verified else 'A6.u'
+		activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	########################################################################
+
 	#TODO: micro-cache 'followers'
 	context={'followers':followers,'own_name':own_name,'count':num_followers,'own_id':own_id,'origin':origin}#,'page_obj':page_obj}
 	context["page_obj"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -538,7 +605,15 @@ def show_new_followers(request):
 	if last_seen_time == None:
 		last_seen_time = time.time()
 	followers, num_followers = retrieve_follower_data(own_id,start_idx=0, end_idx=-1, with_follower_count_since_last_seen=last_seen_time)
-	
+		
+	###################### Retention activity logging ######################
+	if own_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		act = 'N2' if request.mobile_verified else 'N2.u'
+		activity_dict = {'m':'GET','act':act,'t':time_now,'pg':''}# defines what activity just took place
+		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	########################################################################
+
 	own_name = retrieve_uname(own_id, decode=True)
 	new_follower_list = True
 	origin = '32'
@@ -551,17 +626,24 @@ def show_following_list(request):
 	Renders the list of users the given user is following
 	"""
 	context = {}
-	pk = request.user.id
-	ids = UserFan.objects.filter(fan_id=pk).values_list('star_id',flat=True).order_by('-fanning_time')
+	own_id = request.user.id
+	ids = UserFan.objects.filter(fan_id=own_id).values_list('star_id',flat=True).order_by('-fanning_time')
 
 	page_num = request.GET.get('page', '1')	
 	start_index, end_index = get_indices(page_num, FOLLOWING_PER_PAGE)
-	own_id = request.user.id
 	following, num_following = retrieve_following_ids(own_id,start_idx=start_index, end_idx=end_index, with_follower_count=True)
 	num_pages = num_following/FOLLOWING_PER_PAGE
 	max_pages = num_pages if num_following % FOLLOWING_PER_PAGE == 0 else (num_pages+1)
 	page_num = int(page_num)
 	own_name = retrieve_uname(own_id, decode=True)
+
+	###################### Retention activity logging ######################
+	if own_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		act = 'A7' if request.mobile_verified else 'A7.u'
+		activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	########################################################################
 
 	context={'followers':following,'own_name':own_name,'count':num_following,'own_id':own_id,\
 	'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)}#,'page_obj':page_obj}
@@ -584,15 +666,15 @@ def display_user_public_feed_history(request, target_uname):
 	target_user_id = retrieve_user_id(target_uname)
 	if target_user_id:
 
-
 		dict_data = []
 		own_id = request.user.id
+		own_mobile_verified = request.mobile_verified
 		page_num = request.GET.get('page', '1')
 		is_own_profile = str(own_id) == target_user_id
 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 		context = {'target_uname':target_uname,'own_id':own_id,'section':'public','origin':'29','is_own_profile':is_own_profile,\
-		'mobile_verified':request.mobile_verified if is_own_profile else is_mobile_verified(target_user_id),\
-		'on_fbs':on_fbs,'target_user_id':target_user_id}
+		'mobile_verified':own_mobile_verified if is_own_profile else is_mobile_verified(target_user_id), 'on_fbs':on_fbs,\
+		'target_user_id':target_user_id}
 
 		###########
 		# is user banned?
@@ -682,6 +764,15 @@ def display_user_public_feed_history(request, target_uname):
 			######## cache the data alongwith page num ########
 
 			cache_user_feed_history(user_id=target_user_id, json_payload=json.dumps([dict_data,total_objs]),page_num=page_num, hist_type='public')
+
+		###################### Retention activity logging ######################
+		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+		if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+			act = 'A2' if is_own_profile else 'A5'
+			act = act if own_mobile_verified else act+'.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		########################################################################
 
 		context['num_posts'] = total_objs if total_objs < 1000 else '999+'
 		context['is_follower'] = True if is_own_profile else check_if_follower(own_id,target_user_id,with_db_lookup=True)
@@ -942,6 +1033,7 @@ def display_trending_history(request, target_uname):
 	target_id = retrieve_user_id(target_uname)
 	if str(own_id) == target_id:
 		
+		time_now = time.time()
 		page_num = request.GET.get('page', '1')
 		start_index, end_index = get_indices(page_num, ITEMS_PER_PAGE)
 
@@ -954,7 +1046,7 @@ def display_trending_history(request, target_uname):
 
 		context = {'target_uname':target_uname,'on_fbs':request.META.get('HTTP_X_IORG_FBS',False),'is_star':is_image_star(user_id=target_id),\
 		'own_profile':True,'star_id':target_id,'av_url':get_s3_object(retrieve_avurl(target_id),category='thumb'),'total_objs':total_objs,\
-		'object_list':object_list,'time_now':time.time()}
+		'object_list':object_list,'time_now':time_now}
 
 		for obj in object_list:
 			obj['machine_time'] = obj['submitted_on']
@@ -968,6 +1060,13 @@ def display_trending_history(request, target_uname):
 				except:
 					obj['topic_name'], obj['url'] = '', ''
 					obj['c1'], obj['c2'] = '', ''
+
+		###################### Retention activity logging ######################
+		if own_id > SEGMENT_STARTING_USER_ID:
+			act = 'A3' if request.mobile_verified else 'A3.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now,'pg':page_num}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		########################################################################
 
 		########### Enabling pagination ###########
 

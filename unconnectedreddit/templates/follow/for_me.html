@@ -91,12 +91,12 @@
 
 	{% if newbie_flag %}
 		<div class="mtl">
-		{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='26' %}
+		{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=origin %}
 		</div>
 	{% else %}
 		<div class="mtl">
 		{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
-		{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin='26' time_now=time_now %}
+		{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin=single_notif_origin time_now=time_now %}
 		</div>
 	{% endif %}
 
@@ -149,19 +149,19 @@
 
 			{% if link.et and link.et < time_now %}
 				
-				{% big_photo_comment_button photo_id=link.i origin='26' comm_count=link.cc static_url=STATIC_URL %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='26' target_username=link.su home_hash=link.h %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+				{% big_photo_comment_button photo_id=link.i origin=origin comm_count=link.cc static_url=STATIC_URL %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin=origin target_username=link.su home_hash=link.h %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
 
 			{% else %}
 
-				{% big_vote_button is_pht='1' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin='26' target_username=link.su home_hash=link.h %}
-				{% big_photo_comment_button photo_id=link.i origin='26' comm_count=link.cc static_url=STATIC_URL %}
-				{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin='26' home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
-				{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin='26' static_url=STATIC_URL %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
-				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
+				{% big_vote_button is_pht='1' obid=link.i origin=origin ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin=origin target_username=link.su home_hash=link.h %}
+				{% big_photo_comment_button photo_id=link.i origin=origin comm_count=link.cc static_url=STATIC_URL %}
+				{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin=origin home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+				{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin=origin static_url=STATIC_URL %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
+				{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
 
 			{% endif %}
 		</div>
@@ -175,11 +175,11 @@
 	 		</div>
 		{% else %}
 			<section style="display:block" class="mls mrs mbl">
-				{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin='26' form=thin_rep_form btn_color='bct' %}
+				{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin=origin form=thin_rep_form btn_color='bct' %}
 			</section>
 
 			<section style="display:block" class="mls mbl"> 
-				{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='26' obj_owner_id=link.si obj_type='img' %}
+				{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin=origin obj_owner_id=link.si obj_type='img' %}
 			</section>
 		{% endif %}	
 	</article>
@@ -194,15 +194,15 @@
 			
 			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
 			{% if link.et and link.et < time_now %}
-				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='26' %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='26' target_username=link.su home_hash=link.h %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
+				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
 			{% else %}
-				{% big_vote_button is_pht='0' obid=link.i origin='26' ooid=link.si user_voted=link.v static_url=STATIC_URL %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin='26' target_username=link.su home_hash=link.h %}
-				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin='26' %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin='26' obj_hash=link.h static_url=STATIC_URL %}
-				{% include "big_buttons/big_report_button.html" with origin='26' pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
+				{% big_vote_button is_pht='0' obid=link.i origin=origin ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
+				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
+				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
+				{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
 			{% endif %}
 			</div>
 
@@ -216,11 +216,11 @@
 		 		</div>
 			{% else %}
 				<section style="display:block" class="mls mrs mbl">
-				{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin='26' form=thin_rep_form btn_color='bct' %}
+				{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin=origin form=thin_rep_form btn_color='bct' %}
 				</section>
 
 				<section style="display:block" class="mts mls mbl">
-				{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin='26' obj_owner_id=link.si obj_type='tx' %}
+				{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin=origin obj_owner_id=link.si obj_type='tx' %}
 				</section>
 			{% endif %}
 

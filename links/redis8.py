@@ -45,6 +45,7 @@ def log_activity(user_id, activity_dict, time_now, which_var=None):
 	variation = my_server.get(UVAR+user_id)
 	if variation:
 		which_var = variation
+
 	#######################################################
 	# only proceed if user is part of any variation, otherwise ignore the user entirely (they're not part of any experimental variation)
 	if which_var:

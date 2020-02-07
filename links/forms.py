@@ -17,8 +17,8 @@ from redis6 import is_group_member_and_rules_signatory, human_readable_time, gro
 from models import UserProfile, ChatInbox, PhotoComment, ChatPicMessage, Photo, Link, ChatPic, UserSettings, Publicreply
 from redis4 import retrieve_previous_msgs,many_short_messages, log_short_message, is_limited, get_and_delete_text_input_key, get_aurl, \
 is_attribute_change_rate_limited
-from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, MAX_PHOTO_COMMENT_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO,\
-MAX_BIO_SIZE, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_REPLY_LENGTH
+from score import MAX_HOME_SUBMISSION_SIZE, MAX_HOME_REPLY_SIZE, MAX_PHOTO_CAPTION_SIZE, RIGHT_ALIGNMENT_THRESHOLD_RATIO,\
+MAX_BIO_SIZE, PRIVATE_GROUP_REPLY_LENGTH, PUBLIC_GROUP_REPLY_LENGTH#, MAX_PHOTO_COMMENT_SIZE
 from redis3 import log_logger
 
 ########################################### Utilities #######################################
@@ -819,63 +819,63 @@ class ReportFeedbackForm(forms.Form):
 		fields = ("description",)
 
 
-class PhotoCommentForm(forms.Form):
-	photo_comment = forms.CharField(max_length=MAX_PHOTO_COMMENT_SIZE, error_messages={'required': 'Pehlay safed patti mein likhein, phir "reply" dabain'})
-	sk = forms.CharField(required=False)
-	origin = forms.CharField(required=False)
+# class PhotoCommentForm(forms.Form):
+# 	photo_comment = forms.CharField(max_length=MAX_PHOTO_COMMENT_SIZE, error_messages={'required': 'Pehlay safed patti mein likhein, phir "reply" dabain'})
+# 	sk = forms.CharField(required=False)
+# 	origin = forms.CharField(required=False)
 
-	class Meta:
-		fields = ("photo_comment",)
+# 	class Meta:
+# 		fields = ("photo_comment",)
 
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		self.photo_id = kwargs.pop('photo_id',None)
-		self.is_mob_verified = kwargs.pop('mob_verified',False)
-		super(PhotoCommentForm, self).__init__(*args, **kwargs)
-		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
-		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:4px;'
-		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
-		self.fields['photo_comment'].widget.attrs['autocapitalize'] = 'off'
-		self.fields['photo_comment'].widget.attrs['spellcheck'] = 'false'
-		self.fields['photo_comment'].widget.attrs['maxlength'] = MAX_PHOTO_COMMENT_SIZE
+# 	def __init__(self,*args,**kwargs):
+# 		self.user_id = kwargs.pop('user_id',None)
+# 		self.photo_id = kwargs.pop('photo_id',None)
+# 		self.is_mob_verified = kwargs.pop('mob_verified',False)
+# 		super(PhotoCommentForm, self).__init__(*args, **kwargs)
+# 		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
+# 		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:4px;'
+# 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
+# 		self.fields['photo_comment'].widget.attrs['autocapitalize'] = 'off'
+# 		self.fields['photo_comment'].widget.attrs['spellcheck'] = 'false'
+# 		self.fields['photo_comment'].widget.attrs['maxlength'] = MAX_PHOTO_COMMENT_SIZE
 
-	def clean(self):
-		if not self.is_mob_verified:
-			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
-		else:
-			data = self.cleaned_data
-			comment, user_id, photo_id, section, secret_key_from_form, origin = data.get("photo_comment"), self.user_id, self.photo_id, \
-			'pht_comm', data.get("sk"), data.get("origin")
-			if origin == '1' or origin == '20':
-				org = 'fresh_photos'
-			elif origin in ('3','19','26'):
-				org = 'home'
-			elif origin == '26':
-				org = 'my_home'	
-			else:
-				org = 'best_photos'
-			secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
-			if secret_key_from_form != secret_key_from_session:
-				raise forms.ValidationError('Sirf aik dafa button dabain')
-			comment = comment.strip() if comment else comment
-			if not comment:
-				raise forms.ValidationError('Pehlay safed patti mein likhein, phir "reply" button dabain')
-			elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
-				raise forms.ValidationError('Milti julti baatien nahi likhein, kuch new likhein')
-			else:
-				rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap photos pe reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					comm_len = len(comment)
-					if comm_len < 6:
-						if many_short_messages(user_id,section,photo_id):
-							raise forms.ValidationError('Har thori deir baad choti reply nahi likhein')
-						else:
-							log_short_message(user_id,section,photo_id)
-					elif comm_len > MAX_PHOTO_COMMENT_SIZE:
-						raise forms.ValidationError('Itni lambi reply nahi likh sakte')
-					return data
+# 	def clean(self):
+# 		if not self.is_mob_verified:
+# 			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
+# 		else:
+# 			data = self.cleaned_data
+# 			comment, user_id, photo_id, section, secret_key_from_form, origin = data.get("photo_comment"), self.user_id, self.photo_id, \
+# 			'pht_comm', data.get("sk"), data.get("origin")
+# 			if origin == '1' or origin == '20':
+# 				org = 'fresh_photos'
+# 			elif origin in ('3','19','26'):
+# 				org = 'home'
+# 			elif origin == '26':
+# 				org = 'my_home'	
+# 			else:
+# 				org = 'best_photos'
+# 			secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
+# 			if secret_key_from_form != secret_key_from_session:
+# 				raise forms.ValidationError('Sirf aik dafa button dabain')
+# 			comment = comment.strip() if comment else comment
+# 			if not comment:
+# 				raise forms.ValidationError('Pehlay safed patti mein likhein, phir "reply" button dabain')
+# 			elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
+# 				raise forms.ValidationError('Milti julti baatien nahi likhein, kuch new likhein')
+# 			else:
+# 				rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
+# 				if rate_limited > 0:
+# 					raise forms.ValidationError('Ap photos pe reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
+# 				else:
+# 					comm_len = len(comment)
+# 					if comm_len < 6:
+# 						if many_short_messages(user_id,section,photo_id):
+# 							raise forms.ValidationError('Har thori deir baad choti reply nahi likhein')
+# 						else:
+# 							log_short_message(user_id,section,photo_id)
+# 					elif comm_len > MAX_PHOTO_COMMENT_SIZE:
+# 						raise forms.ValidationError('Itni lambi reply nahi likh sakte')
+# 					return data
 
 
 class UploadPhotoReplyForm(forms.ModelForm):

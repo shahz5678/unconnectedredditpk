@@ -13,10 +13,10 @@ from models import PhotoComment, Publicreply
 from redirection_views import return_to_content
 from group_views import personal_group_sanitization
 from direct_response_forms import DirectResponseForm
-from score import DELETION_THRESHOLD, NUM_ACTIVITY_ITEMS_PER_PAGE
 from redis4 import retrieve_uname, retrieve_bulk_unames, retrieve_avurl
 from views import get_indices, break_text_into_prefix_and_postfix, convert_to_epoch
-from tasks import trim_group_submissions, set_input_rate_and_history, direct_response_tasks
+from score import DELETION_THRESHOLD, NUM_ACTIVITY_ITEMS_PER_PAGE, SEGMENT_STARTING_USER_ID
+from tasks import trim_group_submissions, set_input_rate_and_history, direct_response_tasks, log_user_activity
 from redis7 import check_content_and_voting_ban, invalidate_cached_public_replies, store_inline_reply, retrieve_shared_obj_meta_data
 from redis5 import add_content_to_personal_group, get_personal_group_anon_state, mark_personal_group_attendance, update_personal_group_last_seen,\
 set_uri_metadata_in_personal_group
@@ -244,7 +244,88 @@ def post_direct_response(request):
 	'7' reply to chat in 1on1
 	"""
 	if request.method == "POST":
-		if not request.mobile_verified:
+		is_mobile_verified = request.mobile_verified
+		if not is_mobile_verified:
+			########################################################################
+			###################### Retention activity logging ######################
+			own_id = request.user.id			
+			if own_id > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				obj_type = request.POST.get("obtp",None)
+				origin = request.POST.get("origin",None)
+				act = None
+				if origin == '1':
+					# fresh photos
+					act = 'K2.u'
+				elif origin == '2':
+					# best photos
+					act = 'K1.u'
+				elif origin == '3':
+					# text home
+					act = 'K4.u'
+				elif origin == '9':
+					# text comment page
+					act = 'L.u'
+				elif origin == '11':
+					# photo comment page
+					act = 'C.u'
+				elif origin == '12':
+					# best home
+					act = 'K3.u'
+				elif origin in ('13','19','20','21','38'):
+					# single notif on best home, fresh home, fresh photos, best photos and for me respectively
+					if obj_type == '3':
+						# to text post
+						act = 'S1.u'
+					elif obj_type == '4':
+						# to photo post
+						act = 'S2.u'
+					elif obj_type == '5':
+						# to pub mehfil
+						act = 'S4.u'
+					elif obj_type == '6':
+						# to priv mehfil
+						act = 'S5.u'
+					elif obj_type == '7':
+						# to 1on1
+						act = 'S3.u'
+				elif origin == '16':
+					# public mehfil
+					act = 'W6.u'
+				elif origin == '15':
+					# priv mehfil
+					act = 'W5.u'
+				elif origin == '22':
+					# topic page
+					act = 'K5.u'
+				elif origin == '24':
+					# replying from inbox
+					if obj_type == '3':
+						# to text post
+						act = 'I1.u'
+					elif obj_type == '4':
+						# to photo post
+						act = 'I2.u'
+					elif obj_type == '5':
+						# to pub mehfil
+						act = 'I4.u'
+					elif obj_type == '6':
+						# to priv mehfil
+						act = 'I5.u'
+					elif obj_type == '7':
+						# to 1on1
+						act = 'I3.u'
+
+				elif origin == '26':
+					# custom home
+					act = 'K6.u'
+				if act:
+					activity_dict = {'m':'POST','act':act,'t':time_now,'pg':''}# defines what activity just took place
+					request.session['rd'] = '1'
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			########################################################################
+			########################################################################
+
 			return render(request,"verification/unable_to_submit_without_verifying.html",{'direct_reply':True})
 		elif request.user_banned:
 			raise Http404("Hell banned users can't avail this facility")
@@ -594,6 +675,82 @@ def post_direct_response(request):
 												request.session["dir_rep_tgt_obj_id"+str(own_id)] = parent_obj_id
 											request.session["dir_rep_sent"+str(own_id)] = tuname
 
+										##################################################################
+										################### Retention activity logging ###################
+										if own_id > SEGMENT_STARTING_USER_ID:
+											act = None
+											if origin == '1':
+												# fresh photos
+												act = 'K2'
+											elif origin == '2':
+												# best photos
+												act = 'K1'
+											elif origin == '3':
+												# text home
+												act = 'K4'
+											elif origin == '9':
+												# text comment page
+												act = 'L'
+											elif origin == '11':
+												# photo comment page
+												act = 'C'
+											elif origin == '12':
+												# best home
+												act = 'K3'
+											elif origin in ('13','19','20','21','38'):
+												# single notif on best home, fresh home, fresh photos, best photos and for me respectively
+												if obj_type == '3':
+													# to text post
+													act = 'S1'
+												elif obj_type == '4':
+													# to photo post
+													act = 'S2'
+												elif obj_type == '5':
+													# to pub mehfil
+													act = 'S4'
+												elif obj_type == '6':
+													# to priv mehfil
+													act = 'S5'
+												elif obj_type == '7':
+													# to 1on1
+													act = 'S3'
+											elif origin == '16':
+												# public mehfil
+												act = 'W6'
+											elif origin == '15':
+												# priv mehfil
+												act = 'W5'
+											elif origin == '22':
+												# topic page
+												act = 'K5'
+											elif origin == '24':
+												# replying from inbox
+												if obj_type == '3':
+													# to text post
+													act = 'I1'
+												elif obj_type == '4':
+													# to photo post
+													act = 'I2'
+												elif obj_type == '5':
+													# to pub mehfil
+													act = 'I4'
+												elif obj_type == '6':
+													# to priv mehfil
+													act = 'I5'
+												elif obj_type == '7':
+													# to 1on1
+													act = 'I3'
+
+											elif origin == '26':
+												# custom home
+												act = 'K6'
+											if act:
+												activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+												request.session['rd'] = '1'
+												log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+										##################################################################
+										##################################################################
+
 										# log direct response metrics, and some other stuff
 										direct_response_tasks.delay(action_status=is_reply_to_reply, action_type='1', \
 											parent_obj_id=parent_obj_id, obj_owner_id=parent_user_id,obj_hash_name=lid, \
@@ -612,6 +769,82 @@ def post_direct_response(request):
 						else:
 							# form is invalid - redirect to 'origin' and show relevant error message
 							error_string = form.errors.as_text().split("*")[2]
+
+							##################################################################
+							################### Retention activity logging ###################
+							if own_id > SEGMENT_STARTING_USER_ID:
+								act = None
+								if origin == '1':
+									# fresh photos
+									act = 'K2.i'
+								elif origin == '2':
+									# best photos
+									act = 'K1.i'
+								elif origin == '3':
+									# text home
+									act = 'K4.i'
+								elif origin == '9':
+									# text comment page
+									act = 'L.i'
+								elif origin == '11':
+									# photo comment page
+									act = 'C.i'
+								elif origin == '12':
+									# best home
+									act = 'K3.i'
+								elif origin in ('13','19','20','21','38'):
+									# single notif on best home, fresh home, fresh photos, best photos and for me respectively
+									if obj_type == '3':
+										# to text post
+										act = 'S1.i'
+									elif obj_type == '4':
+										# to photo post
+										act = 'S2.i'
+									elif obj_type == '5':
+										# to pub mehfil
+										act = 'S4.i'
+									elif obj_type == '6':
+										# to priv mehfil
+										act = 'S5.i'
+									elif obj_type == '7':
+										# to 1on1
+										act = 'S3.i'
+								elif origin == '16':
+									# public mehfil
+									act = 'W6.i'
+								elif origin == '15':
+									# priv mehfil
+									act = 'W5.i'
+								elif origin == '22':
+									# topic page
+									act = 'K5.i'
+								elif origin == '24':
+									# replying from inbox
+									if obj_type == '3':
+										# to text post
+										act = 'I1.i'
+									elif obj_type == '4':
+										# to photo post
+										act = 'I2.i'
+									elif obj_type == '5':
+										# to pub mehfil
+										act = 'I4.i'
+									elif obj_type == '6':
+										# to priv mehfil
+										act = 'I5.i'
+									elif obj_type == '7':
+										# to 1on1
+										act = 'I3.i'
+
+								elif origin == '26':
+									# custom home
+									act = 'K6.i'
+								if act:
+									activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+									request.session['rd'] = '1'
+									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							##################################################################
+							##################################################################
 
 							if from_direct_response_list:
 								request.session["dir_rep_invalid"+str(own_id)] = error_string
@@ -676,7 +909,7 @@ def post_direct_response(request):
 									# topic page
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
 									return redirect(reverse_lazy("topic_page",kwargs={'topic_url':topic_url})+'?page=1#error')#redirecting to special error section
-								elif origin == '26':
+								elif origin in ('26','38'):
 									# custom home
 									request.session["dir_rep_invalid"+str(own_id)] = error_string
 									return redirect(reverse_lazy("for_me")+'?page=1#error')#redirecting to special error section
@@ -692,6 +925,52 @@ def post_direct_response(request):
 				elif decision == '3':
 					# 'skip' this response and reload the page
 					obj_type = request.POST.get("obtp",None)
+
+					##################################################################
+					################### Retention activity logging ###################
+					if own_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						if origin in ('13','19','20','21','38'):
+							# single notif on best home, fresh home, fresh photos, best photos and for me respectively
+							if obj_type == '3':
+								# to text post
+								act = 'S1.s'
+							elif obj_type == '4':
+								# to photo post
+								act = 'S2.s'
+							elif obj_type == '5':
+								# to pub mehfil
+								act = 'S4.s'
+							elif obj_type == '6':
+								# to priv mehfil
+								act = 'S5.s'
+							elif obj_type == '7':
+								# to 1on1
+								act = 'S3.s'
+						elif origin == '24':
+							# replying from inbox
+							if obj_type == '3':
+								# to text post
+								act = 'I1.s'
+							elif obj_type == '4':
+								# to photo post
+								act = 'I2.s'
+							elif obj_type == '5':
+								# to pub mehfil
+								act = 'I4.s'
+							elif obj_type == '6':
+								# to priv mehfil
+								act = 'I5.s'
+							elif obj_type == '7':
+								# to 1on1
+								act = 'I3.s'
+
+						activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+						request.session['rd'] = '1'
+						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					##################################################################
+					##################################################################
+
 					deleted = delete_single_direct_response(target_user_id=own_id, obj_type=obj_type, parent_obj_id=parent_obj_id, sender_id=target_id)
 					if deleted:
 						# log direct response metrics
@@ -748,6 +1027,16 @@ def retrieve_direct_responses(request):
 	rep_invalid = None if uname_rep_sent_to else request.session.pop("dir_rep_invalid"+str(own_id),None)
 	##########################
 
+	################### Retention activity logging ###################
+	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		act = 'IR' if response_data else 'IRE'
+		act = act if request.mobile_verified else act+".u"
+		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	##################################################################
+
 	context = {'form':DirectResponseForm(render_page_with_one_response=False),'uname_rep_sent_to':uname_rep_sent_to,\
 	'uname_of_deleted_rep':uname_of_deleted_rep,'response_data':response_data,'obj_type_rep_sent_to':obj_type_rep_sent_to,\
 	'obj_hash_name_string':'-'.join(obj_hash_name_list) if obj_hash_name_list else '', 'rep_invalid':rep_invalid, \
@@ -777,6 +1066,13 @@ def skip_direct_responses(request):
 		# can be used to delete ALL direct replies in inbox - not shipped
 		# bulk_delete_user_direct_responses(target_user_ids=[own_id])
 		##################################
+
+		############################################
+		############################################
+		request.session['rd'] = '1'#used by retention activity loggers in home_page() - remove whenever
+		############################################
+		############################################
+
 		request.session["page_skipped"+str(own_id)] = '1'
 	return redirect(reverse_lazy("retrieve_direct_responses"))
 
@@ -785,6 +1081,7 @@ def retrieve_direct_response_activity(request):
 	"""
 	Renders the 'reply history' of a given user
 	"""
+	time_now = time.time()
 	page_num = request.GET.get('page', '1')
 	start_index, end_index = get_indices(page_num, NUM_ACTIVITY_ITEMS_PER_PAGE)
 	own_id = request.user.id
@@ -793,7 +1090,16 @@ def retrieve_direct_response_activity(request):
 		start_idx=start_index, end_idx=end_index)
 
 	context = {'object_list':final_data,'page_num':page_num,'activity_removed':request.session.pop('activity_removed',''),\
-	'time_now':time.time()}
+	'time_now':time_now}
+
+	################### Retention activity logging ###################
+	from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+	if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:
+		act = 'IA' if final_data else 'IAE'
+		act = act if request.mobile_verified else act+".u"
+		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	##################################################################
 
 	################ Pagination ################
 	page_num = int(page_num)
@@ -826,6 +1132,13 @@ def remove_direct_response_activity_log(request):
 			removed = remove_direct_response_activity(request.user.id, visited_location, page_num)
 		if removed:
 			request.session['activity_removed'] = '1'
+
+		############################################
+		############################################
+		request.session['rd'] = '1'#used by retention activity loggers in home_page() - remove whenever
+		############################################
+		############################################
+
 		url = reverse_lazy("retrieve_direct_response_activity")+'?page={}#section0'.format(page_num)
 		return redirect(url)
 	else:

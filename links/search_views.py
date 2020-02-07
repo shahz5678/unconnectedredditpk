@@ -2,7 +2,7 @@ import time
 from django.shortcuts import redirect, render
 from django.views.decorators.csrf import csrf_protect
 from redis3 import find_nickname, get_search_history, del_search_history, bump_up_selected_nick_in_search_history
-# from score import SEGMENT_STARTING_USER_ID
+from score import SEGMENT_STARTING_USER_ID
 from redis4 import retrieve_bulk_credentials
 from page_controls import ITEMS_PER_PAGE
 from forms import SearchNicknameForm
@@ -31,10 +31,10 @@ def search_username(request):
 		form = SearchNicknameForm(request.POST,searched=True)
 		if form.is_valid():
 			################### Retention activity logging ###################
-			# if own_id > SEGMENT_STARTING_USER_ID:
-			# 	act = 'G' if request.mobile_verified else 'G.u'
-			# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if own_id > SEGMENT_STARTING_USER_ID:
+				act = 'G' if request.mobile_verified else 'G.u'
+				activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 			nickname = form.cleaned_data.get("nickname")
 			found_flag, exact_matches, similar = find_nickname(nickname,own_id)
@@ -43,19 +43,19 @@ def search_username(request):
 				'search_history':search_history,'page':page_obj})
 		else:
 			################### Retention activity logging ###################
-			# if own_id > SEGMENT_STARTING_USER_ID:
-			# 	act = 'G.i' if request.mobile_verified else 'G.u.i'
-			# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if own_id > SEGMENT_STARTING_USER_ID:
+				act = 'G.i' if request.mobile_verified else 'G.u.i'
+				activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			##################################################################
 			return render(request,'search/username_search.html',{'form':form,'found_flag':None,'search_history':search_history,'page':page_obj,\
 				'on_fbs':request.META.get('HTTP_X_IORG_FBS',False)})    
 	else:
 		################### Retention activity logging ###################
-		# if own_id > SEGMENT_STARTING_USER_ID:
-		# 	act = 'Z4' if request.mobile_verified else 'Z4.u'
-		# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		if own_id > SEGMENT_STARTING_USER_ID:
+			act = 'Z4' if request.mobile_verified else 'Z4.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
 		# GET request. Load the page as it ought to be loaded (without any search results)
 		return render(request,'search/username_search.html',{'form':SearchNicknameForm(),'found_flag':None,'search_history':search_history,\

@@ -45,7 +45,6 @@ delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, c
 log_rate_of_reply
 from redis2 import trim_expired_fanouts, fan_out_to_followers,remove_follower, sanitize_posts_after_pvp_ban
 from ecomm_tracking import insert_latest_metrics
-from links.azurevids.azurevids import uploadvid
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
 from redis3 import log_vote_disc

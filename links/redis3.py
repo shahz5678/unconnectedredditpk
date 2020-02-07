@@ -1734,14 +1734,14 @@ def tutorial_unseen(user_id, which_tut, renew_lease=False):
 	'23' 'first time instruction viewer in private mehfil invited users list'
 	'24' 'first time visitor of member activity in private mehfils'
 	'25' 'first time viewer of sharing tutorial'
-	'26' 'first time foto sharer'
+	'26' 'first time photo sharer'
 	'27' 'first time password change'
 	'28' 'first time officership applier'
 	'29' 'first time officer applications list viewer'
 	'30' 'first time officer dashboard viewing'
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	key_name = "tk:"+str(user_id)+":"+str(which_tut)
+	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(key_name):
 		if renew_lease:
 			# increase TTL if renew_lease is passed

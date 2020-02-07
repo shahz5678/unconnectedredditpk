@@ -188,7 +188,27 @@ def export_retention_activity_occurrence_log(request):
 					1 if actions[227] in set_of_user_actions else 0,1 if actions[228] in set_of_user_actions else 0,\
 					1 if actions[229] in set_of_user_actions else 0,1 if actions[230] in set_of_user_actions else 0,\
 					1 if actions[231] in set_of_user_actions else 0,1 if actions[232] in set_of_user_actions else 0,\
-					1 if actions[233] in set_of_user_actions else 0,1 if actions[234] in set_of_user_actions else 0]
+					1 if actions[233] in set_of_user_actions else 0,1 if actions[234] in set_of_user_actions else 0,\
+					1 if actions[235] in set_of_user_actions else 0,1 if actions[236] in set_of_user_actions else 0,\
+					1 if actions[237] in set_of_user_actions else 0,1 if actions[238] in set_of_user_actions else 0,\
+					1 if actions[239] in set_of_user_actions else 0,1 if actions[240] in set_of_user_actions else 0,\
+					1 if actions[241] in set_of_user_actions else 0,1 if actions[242] in set_of_user_actions else 0,\
+					1 if actions[243] in set_of_user_actions else 0,1 if actions[244] in set_of_user_actions else 0,\
+					1 if actions[245] in set_of_user_actions else 0,1 if actions[246] in set_of_user_actions else 0,\
+					1 if actions[247] in set_of_user_actions else 0,1 if actions[248] in set_of_user_actions else 0,\
+					1 if actions[249] in set_of_user_actions else 0,1 if actions[250] in set_of_user_actions else 0,\
+					1 if actions[251] in set_of_user_actions else 0,1 if actions[252] in set_of_user_actions else 0,\
+					1 if actions[253] in set_of_user_actions else 0,1 if actions[254] in set_of_user_actions else 0,\
+					1 if actions[255] in set_of_user_actions else 0,1 if actions[256] in set_of_user_actions else 0,\
+					1 if actions[257] in set_of_user_actions else 0,1 if actions[258] in set_of_user_actions else 0,\
+					1 if actions[259] in set_of_user_actions else 0,1 if actions[260] in set_of_user_actions else 0,\
+					1 if actions[261] in set_of_user_actions else 0,1 if actions[262] in set_of_user_actions else 0,\
+					1 if actions[263] in set_of_user_actions else 0,1 if actions[264] in set_of_user_actions else 0,\
+					1 if actions[265] in set_of_user_actions else 0,1 if actions[266] in set_of_user_actions else 0,\
+					1 if actions[267] in set_of_user_actions else 0,1 if actions[268] in set_of_user_actions else 0,\
+					1 if actions[269] in set_of_user_actions else 0,1 if actions[270] in set_of_user_actions else 0,\
+					1 if actions[271] in set_of_user_actions else 0,1 if actions[272] in set_of_user_actions else 0,\
+					1 if actions[273] in set_of_user_actions else 0]
 					total = [sum(acts)]
 					to_write = credentials+acts+total
 					wtr.writerows([to_write])

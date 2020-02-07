@@ -1004,6 +1004,7 @@ def judge_content_voters(request):
 									invalidate_cached_user_feed_history(unbanned_id,'public')
 									invalidate_cached_user_feed_history(unbanned_id,'limited')
 									invalidate_cached_user_feed_history(unbanned_id,'private')
+									delete_last_fanout_data(unbanned_id)
 								#################################################################
 								#################################################################
 								if ban_time:
@@ -1050,6 +1051,7 @@ def judge_content_voters(request):
 									invalidate_cached_user_feed_history(unbanned_id,'public')
 									invalidate_cached_user_feed_history(unbanned_id,'limited')
 									invalidate_cached_user_feed_history(unbanned_id,'private')
+									delete_last_fanout_data(unbanned_id)
 								#################################################################
 								#################################################################
 								if ban_time:

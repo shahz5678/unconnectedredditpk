@@ -148,8 +148,9 @@ def cast_vote(request,*args,**kwargs):
 				###################### Retention activity logging ######################
 				if own_id > SEGMENT_STARTING_USER_ID:
 					if is_pht == '1':
-						photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-						activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+						photo = Link.objects.only('image_file','description').get(id=obj_id)
+						activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'img','pc':photo.description,'pi':photo.image_file.url}# defines what activity just took place
+						print activity_dict
 					else:
 						description = Link.objects.only('description').get(id=obj_id).description
 						activity_dict = {'m':'POST','act':'V.u','t':time_now,'ot':'tx','pc':description}# defines what activity just took place
@@ -252,8 +253,8 @@ def cast_vote(request,*args,**kwargs):
 							###################### Retention activity logging ######################
 							if own_id > SEGMENT_STARTING_USER_ID:
 								if is_pht == '1':
-									photo = Photo.objects.only('image_file','caption').get(id=obj_id)
-									activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'img','pc':photo.caption,'pi':photo.image_file.url}# defines what activity just took place
+									photo = Link.objects.only('image_file','description').get(id=obj_id)
+									activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'img','pc':photo.description,'pi':photo.image_file.url}# defines what activity just took place
 								else:
 									description = Link.objects.only('description').get(id=obj_id).description
 									activity_dict = {'m':'POST','act':'V.i','t':time_now,'ot':'tx','pc':description}# defines what activity just took place

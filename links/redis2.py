@@ -470,21 +470,24 @@ def add_last_fanout_to_feed(own_id,target_user_id,time_now):
 
 		if not obj_already_added:
 			expiry_time = my_server.zscore(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
-			
-			my_server.zadd(USER_FEED+own_id,obj_hash,time.time())
-			new_follower_string = follower_string+own_id+':'
-			new_obj = new_follower_string+'*'+obj_hash
-			pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
-			pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS,ffe_obj)
-			pipeline1.zadd(FOLLOWER_FANOUTS_AND_EXPIRES,new_obj,expiry_time)
-			pipeline1.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS,new_obj,target_user_id)
-	
-			if add_to_short_lived_item_expireat_feed == 'True':
-				pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash,expire_at)
+			if expiry_time:
+				my_server.zadd(USER_FEED+own_id,obj_hash,time.time())
+				new_follower_string = follower_string+own_id+':'
+				new_obj = new_follower_string+'*'+obj_hash
+				pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
+				pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS,ffe_obj)
+				pipeline1.zadd(FOLLOWER_FANOUTS_AND_EXPIRES,new_obj,expiry_time)
+				pipeline1.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS,new_obj,target_user_id)
+				
+				if add_to_short_lived_item_expireat_feed == 'True':
+					pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash,expire_at)
 
-			payload = new_obj+'*'+str(add_to_short_lived_item_expireat_feed)+'-'+str(expire_at)
-			pipeline1.setex(LAST_USER_FANOUT+target_user_id, payload ,int(float(expire_at)-time_now))	
-			pipeline1.execute()
+				payload = new_obj+'*'+str(add_to_short_lived_item_expireat_feed)+'-'+str(expire_at)
+				pipeline1.setex(LAST_USER_FANOUT+target_user_id, payload ,int(float(expire_at)-time_now))	
+				
+				pipeline1.execute()
+			else:
+				pass
 	else:
 		pass
 

@@ -37,17 +37,9 @@ from templatetags.s3 import get_s3_object
 from templatetags.human_time import human_time
 from image_processing import process_public_image, clean_image_file
 from salutations import SALUTATIONS
-from forms import getip
-from forms import UserProfileForm, DeviceHelpForm, PhotoScoreForm, BaqiPhotosHelpForm, AdFeedbackForm, FacesPagesForm, \
-ChainPhotoTutorialForm, PhotoJawabForm, PhotoReplyForm, UploadPhotoReplyForm, UploadPhotoForm, ContactForm, AboutForm, \
-PrivacyPolicyForm, CaptionDecForm, CaptionForm, PhotoHelpForm, PicPasswordForm, CrossNotifForm, EmoticonsHelpForm, UserSMSForm, \
-PicHelpForm, DeletePicForm, UserPhoneNumberForm, PicExpiryForm, PicsChatUploadForm, VerifiedForm, LinkForm, SmsInviteForm, \
-WelcomeMessageForm, WelcomeForm, LogoutHelpForm, LogoutPenaltyForm, SmsReinviteForm, SearchNicknameForm, UserProfileDetailForm,\
-RegisterLoginForm, AdTitleForm, HistoryHelpForm, BestPhotosListForm, TestAdsForm, UserSettingsForm, HelpForm, ReauthForm, \
-RegisterHelpForm, VerifyHelpForm, ResetPasswordForm, PhotosListForm, TestReportForm, AdImageForm, TopPhotoForm, SalatTutorialForm, \
-SalatInviteForm, ExternalSalatInviteForm,ReportcommentForm, SearchAdFeedbackForm, PhotoShareForm, AdTitleYesNoForm, FacesHelpForm, \
-CricketCommentForm, AdAddressYesNoForm, AdTitleForm, AdAddressForm, AdGenderChoiceForm, AdCallPrefForm, AdImageYesNoForm, \
-AdDescriptionForm, AdMobileNumForm
+from forms import UserProfileForm, PhotoScoreForm, FacesPagesForm, UploadPhotoForm, ContactForm, AboutForm, PrivacyPolicyForm, PhotoHelpForm, \
+EmoticonsHelpForm, LinkForm, WelcomeMessageForm, LogoutHelpForm, LogoutPenaltyForm, SearchNicknameForm, UserProfileDetailForm, RegisterLoginForm, \
+HistoryHelpForm, UserSettingsForm, HelpForm, RegisterHelpForm, VerifyHelpForm, ResetPasswordForm, WelcomeForm, PhotoShareForm, FacesHelpForm, ReauthForm
 from django.core.urlresolvers import reverse_lazy, reverse
 from django.shortcuts import redirect, get_object_or_404, render
 from django.http import HttpResponse, HttpResponseRedirect, Http404, HttpResponsePermanentRedirect
@@ -59,8 +51,8 @@ from django.views.decorators.cache import cache_page, never_cache, cache_control
 from brake.decorators import ratelimit
 from tasks import hide_associated_direct_responses, log_404, group_attendance_tasks, publicreply_tasks, post_to_followers, \
 publicreply_notification_tasks, log_user_activity, set_input_rate_and_history
-from .models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
-ChatPic, UserProfile, ChatPicMessage, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, LatestSalat, Logout
+from models import Link, Cooldown, PhotoStream, TutorialFlag, PhotoVote, Photo, PhotoComment, PhotoCooldown, ChatInbox, \
+UserProfile, UserSettings, Publicreply, HellBanList, HotUser, UserFan, Salat, Logout
 from redis4 import get_clones, set_photo_upload_key, get_and_delete_photo_upload_key, set_text_input_key, invalidate_avurl, \
 retrieve_user_id, get_most_recent_online_users, retrieve_uname, retrieve_credentials, cache_image_count,cache_online_data,\
 retrieve_online_cached_data, rate_limit_content_sharing, content_sharing_rate_limited, retrieve_avurl, get_cached_photo_dim, \
@@ -322,19 +314,6 @@ def get_price(points):
 	return int(price)
 
 
-def valid_passcode(user,num):
-	if user.is_authenticated():
-		if ChatPicMessage.objects.filter(sender=user,what_number=num).exists():
-			return False
-		else:
-			return True
-	else:
-		if ChatPicMessage.objects.filter(sender_id=1,what_number=num).exists():
-			return False
-		else:
-			return True
-
-
 def valid_uuid(uuid):
 	if not uuid:
 		return False
@@ -360,32 +339,6 @@ def format_post_times(list_of_dictionaries, with_machine_readable_times=False):
 	return list_of_dictionaries
 
 
-# link_id, writer_username, writer_avatar_url, writer_id, link_description
-def process_publicreply(request,link_id,text,origin=None,link_writer_id=None):
-	try:
-		parent = Link.objects.select_related('submitter__userprofile').get(id=link_id)
-	except Link.DoesNotExist:
-		# return a string you're sure is NOT a username
-		return ";"
-	if link_writer_id and int(link_writer_id) != parent.submitter_id:
-		# return a string you're sure is NOT a username
-		return ":"
-	parent_username = parent.submitter.username
-	user_id = request.user.id
-	username = request.user.username
-	reply = Publicreply.objects.create(description=text, answer_to=parent, submitted_by_id=user_id)
-	invalidate_cached_public_replies(link_id)
-	reply_time = convert_to_epoch(reply.submitted_on)
-	url = retrieve_avurl(user_id)
-	owner_url = retrieve_avurl(parent.submitter_id)
-	amnt = update_comment_in_home_link(reply=text,writer=username,reply_id=reply.id,time=reply_time,writer_id=user_id,link_pk=link_id)
-	publicreply_tasks.delay(user_id, reply.id, link_id, text, reply_time, True if username != parent_username else False, link_writer_id)
-	publicreply_notification_tasks.delay(link_id=link_id,link_submitter_url=owner_url,sender_id=user_id,link_submitter_id=parent.submitter_id,\
-		link_submitter_username=parent_username,link_desc=parent.description,reply_time=reply_time,reply_poster_url=url,reply_count=amnt,\
-		reply_poster_username=username,reply_desc=text,is_welc=False,priority='home_jawab',from_unseen=(True if origin == 'from_unseen' else False))
-	return parent_username
-
-
 def csrf_failure(request, reason=""):
 	context = {'referrer':request.META.get('HTTP_REFERER',None)}
 	return render(request,"CSRF_failure.html", context)
@@ -395,28 +348,6 @@ class NeverCacheMixin(object):
 	@method_decorator(never_cache)
 	def dispatch(self, *args, **kwargs):
 		return super(NeverCacheMixin, self).dispatch(*args, **kwargs)
-
-class DeviceHelpView(FormView):
-	form_class = DeviceHelpForm
-	template_name = "device_help.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(DeviceHelpView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			device = self.kwargs.get("pk")
-			if device == '1':
-				context["device"] = '1'
-			elif device == '2':
-				context["device"] = '2'
-			elif device == '3':
-				context["device"] = '3'
-			elif device == '4':
-				context["device"] = '4'
-			elif device == '5':
-				context["device"] = '5'
-			else:
-				context["device"] = None
-		return context
 
 
 class HistoryHelpView(FormView):
@@ -433,42 +364,10 @@ class PhotosHelpView(FormView):
 		context["decision"] = self.kwargs.get("pk")
 		return context
 
-class SmsReinviteView(FormView):
-	form_class = SmsReinviteForm
-	template_name = "sms_reinvite.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(SmsReinviteView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			unique = self.request.session["unique_outsider"]#self.kwargs["slug"]
-			context["number"] = '03450000000'
-			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
-			#context["group"] = Group.objects.get(unique=unique)
-		return context
-
-class SmsInviteView(FormView):
-	form_class = SmsInviteForm
-	template_name = "sms_invite.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(SmsInviteView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			unique = self.kwargs["slug"]
-			number = self.kwargs["num"]
-			name = self.kwargs["name"]
-			context["name"] = name
-			context["number"] = number
-			context["sms_url"] = "https://http-damadam-pk.0.freebasics.com/mehfil/"+unique+"/bahir/"
-		return context
 
 class RegisterLoginView(FormView):
 	form_class = RegisterLoginForm
 	template_name = "register_login.html"
-
-	# def get_context_data(self, **kwargs):
-	#   context = super(RegisterLoginView, self).get_context_data(**kwargs)
-	#   mp.track(self.request.session.get('new_id',None), 'inside_register_login')
-	#   return context
 
 
 def website_rules(request):
@@ -485,9 +384,11 @@ def website_rules(request):
 	##################################################################
 	return render(request,"website_rules.html",{})
 
+
 class ContactView(FormView):
 	form_class = ContactForm
 	template_name = "contact.html"
+
 
 class AboutView(FormView):
 	form_class = AboutForm
@@ -587,41 +488,6 @@ class EmoticonsHelpView(FormView):
 class LogoutHelpView(FormView):
 	form_class = LogoutHelpForm
 	template_name = "logout_help.html"
-
-class SalatRankingView(ListView):
-	template_name = "salat_ranking.html"
-	model = LatestSalat
-	paginate_by = 50
-
-	def get_queryset(self):
-		return []
-
-	def get_context_data(self, **kwargs):
-		context=super(SalatRankingView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			context["girls"] = FEMALES
-		return context
-
-class SalatSuccessView(ListView):
-	template_name = "salat_success.html"
-	model = LatestSalat
-	paginate_by = 50
-
-	def get_queryset(self):
-		return []
-
-	def get_context_data(self, **kwargs):
-		context=super(SalatSuccessView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			mins = self.kwargs["mins"]
-			previous_namaz, next_namaz, namaz, next_namaz_start_time, current_namaz_start_time, current_namaz_end_time = namaz_timings[int(mins)]
-			context["namaz"] = namaz
-			context["time"] = next_namaz_start_time
-			context["weekday"] = self.kwargs["num"]
-			if context["weekday"] == '4' and context["namaz"] == 'Zuhr':
-				context["namaz"] = 'Jummah'
-			context["girls"] = FEMALES
-		return context
 
 
 @csrf_protect
@@ -1296,8 +1162,6 @@ def user_profile_photos_redirect(request, slug, list_type):
 	return redirect(url)
 
 
-
-
 class UserProfileDetailView(FormView):
 	template_name = "user_detail.html"
 	form_class = UserProfileDetailForm
@@ -1514,16 +1378,6 @@ def reauth(request, *args, **kwargs):
 
 ############################################################################################################
 
-class VerifiedView(ListView):
-	model = User
-	form_class = VerifiedForm
-	template_name = "verified.html"
-	paginate_by = 100
-
-	def get_queryset(self):
-		global condemned
-		return User.objects.filter(username__in=FEMALES).order_by('-userprofile__score')
-
 
 def photo_top_trenders(request):
 	"""
@@ -1560,144 +1414,6 @@ def photo_top_trenders(request):
 		enriched_data.append(list_obj)
 	
 	return render(request,"top_photo.html",{'object_list':enriched_data,'list_size':TRENDER_RANKS_TO_COUNT,'ident':own_id})
-
-
-# class TopView(ListView):
-# 	# model = User
-# 	form_class = TopForm
-# 	template_name = "top.html"
-
-# 	def get_queryset(self):
-# 		return UserProfile.objects.only('user__username','score').values('user__username','score').order_by('-score')[:100]
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(TopView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			context["verified"] = FEMALES        
-# 		return context
-
-
-class PhotoJawabView(FormView):
-	form_class = PhotoJawabForm
-	template_name = "photo_jawab.html"
-
-# class PhotoTimeView(FormView):
-# 	form_class = PhotoTimeForm
-# 	template_name = "photo_time.html"
-
-# 	def get_context_data(self, **kwargs):
-# 		context = super(PhotoTimeView, self).get_context_data(**kwargs)
-# 		if self.request.user.is_authenticated():
-# 			ident = self.kwargs["pk"]
-# 			context["photo_time"] = Photo.objects.get(id=ident).upload_time
-# 		return context
-
-class AuthPicsDisplayView(ListView):
-	model = ChatPic
-	template_name = "pics_display.html"
-	paginate_by = 8
-
-	def get_queryset(self):
-		if self.request.user.is_authenticated():
-			return ChatPic.objects.filter(owner=self.request.user).exclude(is_visible=False).order_by('-upload_time')
-		else:
-			return 0
-
-
-class PhotostreamView(ListView):
-	model = Photo
-	#form_class = PhotostreamForm
-	template_name = "photostream.html"
-	paginate_by = 10
-
-	def get_queryset(self):
-		return []
-
-	def get_context_data(self, **kwargs):
-		context = super(PhotostreamView, self).get_context_data(**kwargs)
-		context["girls"] = FEMALES
-		if context["object_list"]:
-			context["valid"] = True
-		else:
-			context["valid"] = False
-		pk = self.request.session["photo_photostream_id"]
-		context["stream_id"] = pk
-		context["can_vote"] = False
-		# context["number"] = PhotoStream.objects.get(id=pk).photo_count
-		return context
-
-	def get(self, request, *args, **kwargs):
-		self.object_list = self.get_queryset()
-		allow_empty = self.get_allow_empty()
-		if not allow_empty:
-			# When pagination is enabled and object_list is a queryset,
-			# it's better to do a cheap query than to load the unpaginated
-			# queryset in memory.
-			if (self.get_paginate_by(self.object_list) is not None
-				and hasattr(self.object_list, 'exists')):
-				is_empty = not self.object_list.exists()
-			else:
-				is_empty = len(self.object_list) == 0
-			if is_empty:
-				raise Http404(_("Empty list and '%(class_name)s.allow_empty' is False.")
-						% {'class_name': self.__class__.__name__})
-		context = self.get_context_data(object_list=self.object_list)
-		try:
-			target_id = self.request.session["photo_stream_id"]
-			self.request.session["photo_stream_id"] = None
-			self.request.session.modified = True
-		except:
-			target_id = None
-		if target_id:
-			try:
-				index = list(photo.id for photo in self.object_list).index(int(target_id))
-			except:
-				index = None
-			if 0 <= index <= 9:
-				addendum = '#section'+str(index+1)
-			elif 10 <= index <= 19:
-				addendum = '?page=2#section'+str(index+1-10)
-			elif 20 <= index <= 29:
-				addendum = '?page=3#section'+str(index+1-20)
-			elif 30 <= index <= 39:
-				addendum = '?page=4#section'+str(index+1-30)
-			elif 40 <= index <= 49:
-				addendum = '?page=5#section'+str(index+1-40)
-			elif 50 <= index <= 59:
-				addendum = '?page=6#section'+str(index+1-50)
-			elif 60 <= index <= 69:
-				addendum = '?page=7#section'+str(index+1-60)
-			elif 70 <= index <= 79:
-				addendum = '?page=8#section'+str(index+1-70)
-			elif 80 <= index <= 89:
-				addendum = '?page=9#section'+str(index+1-80)
-			elif 90 <= index <= 99:
-				addendum = '?page=10#section'+str(index+1-90)
-			elif 100 <= index <= 109:
-				addendum = '?page=11#section'+str(index+1-100)
-			elif 110 <= index <= 119:
-				addendum = '?page=12#section'+str(index+1-110)
-			elif 120 <= index <= 129:
-				addendum = '?page=13#section'+str(index+1-120)
-			elif 130 <= index <= 139:
-				addendum = '?page=14#section'+str(index+1-130)
-			elif 140 <= index <= 149:
-				addendum = '?page=15#section'+str(index+1-140)
-			elif 150 <= index <= 159:
-				addendum = '?page=16#section'+str(index+1-150)
-			elif 160 <= index <= 169:
-				addendum = '?page=17#section'+str(index+1-160)
-			elif 170 <= index <= 179:
-				addendum = '?page=18#section'+str(index+1-170)
-			elif 180 <= index <= 189:
-				addendum = '?page=19#section'+str(index+1-180)
-			elif 190 <= index <= 199:
-				addendum = '?page=20#section'+str(index+1-190)
-			else:
-				addendum = '#section0'      
-			return HttpResponseRedirect(addendum)
-		else:
-			return self.render_to_response(context)
 
 
 @ratelimit(rate='3/s')
@@ -1902,41 +1618,6 @@ def display_image_comments(request,pk,origin=None):
 		context["authenticated"] = False
 
 	return render(request,"comments.html",context)
-
-
-@ratelimit(rate='3/s')
-def see_special_photo_pk(request,pk=None,*args,**kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		return redirect("missing_page")
-	else:
-		if pk.isdigit():
-			request.session["target_special_photo_id"] = pk
-			return redirect("see_special_photo")
-		else:
-			return redirect("see_special_photo")
-
-@ratelimit(rate='3/s')
-def special_photo(request, *args, **kwargs):
-	was_limited = getattr(request, 'limits', False)
-	if was_limited:
-		return redirect("missing_page")
-	else:
-		if request.user.is_authenticated() and request.user.userprofile.score > 29:
-			try:
-				seen_special_photo_option = TutorialFlag.objects.get(user=request.user).seen_special_photo_option
-				if seen_special_photo_option:
-					request.session["ftue_special_photo_option"] = False
-					return redirect("see_special_photo")
-				else:
-					request.session["ftue_special_photo_option"] = True
-					return redirect("special_photo_tutorial")
-			except:
-				TutorialFlag.objects.create(user=request.user)
-				request.session["ftue_special_photo_option"] = True
-				return redirect("special_photo_tutorial")
-		else:
-			return redirect("see_special_photo")
 
 
 #########################Views for fresh photos#########################
@@ -2456,402 +2137,6 @@ class PhotoShareView(FormView):
 
 ##################################################################
 
-class PicsChatUploadView(CreateView):
-	model = ChatPic
-	form_class = PicsChatUploadForm
-	template_name = "pics_chat_upload.html"
-
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-		#image = f.image
-		if f.image:
-			image_file = clean_image_file(f.image)
-			if image_file:
-				f.image = image_file
-			else:
-				f.image = None
-		else: 
-			f.image = None
-		unique = uuid.uuid4()
-		user = self.request.user
-		if user.is_authenticated():
-			if f.image:
-				ChatPic.objects.create(image=f.image, owner=user, times_sent=0, unique=unique)
-			else:
-				context = {'unique': unique}
-				return render(self.request, 'error_pic.html', context)
-		else:
-			if f.image:
-				ChatPic.objects.create(image=f.image, owner_id=1, times_sent=0, unique=unique)
-			else:
-				context = {'unique': unique}
-				return render(self.request, 'error_pic.html', context)
-		return redirect("pic_expiry", slug=unique)
-
-class PicExpiryView(FormView):
-	form_class = PicExpiryForm
-	template_name = "pic_expiry_form.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(PicExpiryView, self).get_context_data(**kwargs)
-		unique = self.kwargs["slug"]
-		context["unique"] = unique
-		if self.request.user.is_authenticated():
-			context["is_authenticated"] = True
-		else:
-			context["is_authenticated"] = False
-		return context
-
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		unique = self.request.POST.get("unique")
-		decision = self.request.POST.get("decision")
-		if decision == 'sirf aik bar' and valid_uuid(unique):
-			num = 1
-		elif decision == 'kayee bar' and valid_uuid(unique):
-			num = 2
-		else:
-			return redirect("pic_expiry", slug=unique)
-		return redirect("captionview", num=num, slug=unique)
-
-class CaptionView(CreateView):
-	model = ChatPicMessage
-	form_class = CaptionForm
-	template_name = "caption.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(CaptionView, self).get_context_data(**kwargs)
-		unique = self.kwargs["slug"]
-		num = self.kwargs["num"]
-		err = self.kwargs["err"]
-		context["unique"] = unique
-		context["num"] = num
-		context["err"] = err
-		return context
-
-	def form_valid(self,form):
-		if self.request.method == 'POST':
-			f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-			user = self.request.user
-			caption = f.caption
-			unique = self.kwargs["slug"]
-			num = self.kwargs["num"]
-			if len(caption) > 149:
-				return redirect("caption", num=num, slug=unique, err=1)
-			which_pic = ChatPic.objects.get(unique=unique)
-			if user.is_authenticated():
-				message = ChatPicMessage.objects.create(which_pic=which_pic, sender=user, caption=caption, expiry_interval=num)
-			else:
-				message = ChatPicMessage.objects.create(which_pic=which_pic, sender_id=1, caption=caption, expiry_interval=num)
-			return redirect("user_phonenumber", slug=unique, num=num, err=0, id=message.id)
-
-class CaptionDecView(FormView):
-	form_class = CaptionDecForm
-	template_name = "caption_form.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(CaptionDecView, self).get_context_data(**kwargs)
-		unique = self.kwargs["slug"]
-		num = self.kwargs["num"]
-		context["unique"] = unique
-		context["num"] = num
-		return context
-
-	def form_valid(self,form):
-		unique = self.kwargs["slug"]
-		num = self.kwargs["num"]
-		dec = self.request.POST.get("dec")
-		if dec == 'Haan':
-			return redirect("caption", num=num, slug=unique, err=0)
-		elif dec == 'Nahi':
-			return redirect("user_phonenumber", slug=unique, num=num, err=0, id=0)      
-		else:
-			return redirect("captionview", num=num, slug=unique)
-
-class UserPhoneNumberView(CreateView):
-	model = ChatPicMessage
-	form_class = UserPhoneNumberForm
-	template_name = "get_user_phonenumber.html"
-
-	# def get_initial(self):#initial is a keyword argument to a formfield that enables pre-filling in the formfield
-	#   """
-	#   Returns the initial data to use for forms on this view.
-	#   """
-	#   user = self.request.user
-	#   if user.is_authenticated():
-	#       try:
-	#           msg = ChatPicMessage.objects.filter(sender=user).latest('sending_time')
-	#           self.initial = {'what_number': msg.what_number} #initial needs to be passed a dictionary
-	#           return self.initial
-	#       except:
-	#           return self.initial
-	#   else:#i.e user is not authenticated
-	#       return self.initial
-	#   return self.initial
-
-	def get_context_data(self, **kwargs):
-		context = super(UserPhoneNumberView, self).get_context_data(**kwargs)
-		unique = self.kwargs["slug"]
-		ident = self.kwargs["id"]
-		context["unique"] = unique
-		num = self.kwargs["num"]
-		context["decision"] = num
-		context["id"] = ident
-		err = self.kwargs["err"]
-		context["err"] = err
-		return context
-
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		f = form.save(commit=False) #getting form object, and telling database not to save (commit) it just yet
-		num = f.what_number
-		user = self.request.user
-		unique = self.kwargs["slug"]
-		ident = self.kwargs["id"]
-		decision = self.kwargs["num"]
-		if not num.isdigit():
-			return redirect("user_phonenumber", slug=unique, num=decision, err=1, id=ident)     
-		if not valid_uuid(unique):
-			return redirect("user_phonenumber", slug=unique, num=decision, err=3, id=ident)
-		if not valid_passcode(user=user, num=num):
-			return redirect("user_phonenumber", slug=unique, num=decision, err=2, id=ident)
-		if not (decision == '1' or '2'):
-			return redirect("pic_expiry", slug=unique)
-		which_image = ChatPic.objects.get(unique=unique)
-		which_image.times_sent = which_image.times_sent + 1
-		which_image.save()
-		if int(ident):#i.e. it is not zero
-			try:
-				messageobject = ChatPicMessage.objects.get(pk=ident)
-				messageobject.what_number = num
-				messageobject.save()
-			except:
-				return redirect("user_phonenumber", slug=unique, num=decision, err=3, id=ident)
-		else:#i.e. it is 0; no caption was set
-			if user.is_authenticated():
-				ChatPicMessage.objects.create(which_pic=which_image, sender=user, expiry_interval=decision, what_number=num)
-			elif not user.is_authenticated():
-				ChatPicMessage.objects.create(which_pic=which_image, sender_id=1, expiry_interval=decision, what_number=num)
-			else:
-				return redirect("user_phonenumber", slug=unique, num=decision, err=2, id=ident)
-		on_fbs = self.request.META.get('HTTP_X_IORG_FBS',False)
-		# try:
-		#   on_fbs = self.request.META.get('X-IORG-FBS')
-		# except:
-		#   on_fbs = False
-		if on_fbs:
-				#definitely on a mobile browser, but can't redirect out now, so show the web address they are to send
-				return redirect("user_SMS", fbs=1, num=num)
-		else:#i.e. not on internet.org, now detect whether mobile browser or desktop browser
-				return redirect("user_SMS", fbs=0, num=num)
-
-	# def get_success_url(self): #which URL to go back once settings are saved?
-	#   try: 
-	#       on_fbs = self.request.META.get('X-IORG-FBS')
-	#   except:
-	#       on_fbs = False
-	#   if on_fbs:
-	#       return 
-	#       return redirect('for_me')#, pk= reply.answer_to.id)
-
-class UserSMSView(FormView):
-	form_class = UserSMSForm
-	template_name = "user_sms.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(UserSMSView, self).get_context_data(**kwargs)
-		#send_sms = str(self.kwargs["sms"])
-		num = str(self.kwargs["num"])
-		fbs = str(self.kwargs["fbs"])
-		if (fbs == '1' or '0') and num.isdigit():
-			context["legit"] = True
-			context["num"] = num
-			context["fbs"] = fbs
-			if self.request.is_feature_phone:
-				context["device"] = '1'
-			elif self.request.is_phone:
-				context["device"] = '2'
-			elif self.request.is_tablet:
-				context["device"] = '4'
-			elif self.request.is_mobile:
-				context["device"] = '5'
-			else:
-				context["device"] = '3'
-			user = self.request.user
-			if user.is_authenticated():
-				try:
-					inbox = ChatInbox.objects.filter(owner=user).latest('id')
-				except:
-					inbox = ChatInbox.objects.create(owner=user)#.latest('id')
-				addr = inbox.pin_code
-				context["addr"] = addr
-				#context["authenticated"] = True
-			elif not user.is_authenticated():
-				inbox = ChatInbox.objects.create(owner_id=1)
-				addr = inbox.pin_code
-				context["addr"] = addr
-				#context["authenticated"] = False
-			else:
-				context["legit"] = False
-				#context["dev"] = None
-				context["num"] = None
-				context["fbs"] = None
-				context["addr"] = None
-				#context["send_sms"] = None
-				#context["authenticated"] = None
-				#context["sentence"] = None                             
-		else:
-			context["legit"] = False
-			#context["dev"] = None
-			context["num"] = None
-			context["fbs"] = None
-			context["addr"] = None
-			context["device"] = '0'
-			#context["send_sms"] = None
-			#context["authenticated"] = None
-			#context["sentence"] = None
-		return context
-
-
-class DeletePicView(FormView):
-	form_class = DeletePicForm
-	template_name = "delete_pic.html"   
-
-	def get_context_data(self, **kwargs):
-		context = super(DeletePicView, self).get_context_data(**kwargs)
-		if self.request.user.is_authenticated():
-			unique = self.kwargs["slug"]
-			context["unique"] = unique
-		return context
-
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		if self.request.method == 'POST':
-			unique = self.request.POST.get("ident")
-			decision = self.request.POST.get("decision")
-			if decision == 'Haan':
-				pic = ChatPic.objects.get(unique=unique)
-				if self.request.user == pic.owner:
-					pic.is_visible = False
-					pic.save()
-				else:
-					pass
-			elif decision == 'Nahi':
-				pass
-			else:
-				pass
-			return redirect("auth_pics_display")
-		else:
-			return redirect("score_help")
-
-class PicHelpView(FormView):
-	form_class = PicHelpForm
-	template_name = "pic_help.html"     
-
-class PicPasswordView(NeverCacheMixin,FormView):
-	form_class = PicPasswordForm
-	template_name = "pic_password.html"
-
-	def get_context_data(self, **kwargs):
-		context = super(PicPasswordView, self).get_context_data(**kwargs)
-		code = str(self.kwargs["code"])
-		if code.isdigit():
-			context["code"] = code
-		else:
-			context["code"] = None
-		return context
-
-	def form_valid(self, form): #this processes the form before it gets saved to the database
-		mobile = self.request.POST.get("mobile_number")
-		code = self.kwargs["code"]
-		try:
-			inbox = ChatInbox.objects.get(pin_code=code)
-			user = inbox.owner #mhb11 is selected if unauthenticated user
-			message = ChatPicMessage.objects.filter(what_number=mobile, sender=user).latest('sending_time')
-			sender = message.sender
-			caption = message.caption
-			expiry_interval = message.expiry_interval
-			pic = message.which_pic #the picture to be shown
-			is_visible = pic.is_visible
-		except:
-			context = {'sender':None, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,'caption':None,}
-			return render(self.request, 'pic.html', context)
-		if message.seen:
-			#i.e. the message was already seen
-			if expiry_interval == '1':
-				#the viewer has refreshed, so disappear the image FOREVER, but determine which error message to show
-				#time_now = datetime.utcnow().replace(tzinfo=utc)
-				time_now = timezone.now()
-				viewing_time = message.viewing_time
-				difference = time_now - viewing_time
-				if difference.total_seconds() < 60 and is_visible:
-					#pic:3 Ye photo dekh li gaye hai. 1 minute wali photo aik dafa se ziyada nahi dekhi jaa sakti. 
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':3, 'max_times':0,'caption':None,}
-				elif difference.total_seconds() < 60 and not is_visible:
-					#pic:-1 Ye photo bhejnay waley ne mita di hai
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
-				elif difference.total_seconds() > 60 and is_visible:
-					#pic:0 Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':0, 'max_time':viewing_time + timedelta(minutes = 1),'caption':None,}
-				else:
-					#pic:1 Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':True, 'exists':0, 'pic':1, 'max_time':viewing_time + timedelta(minutes = 1),'caption':None,}
-			elif expiry_interval == '2':
-				#the user has refreshed, but it was a day-long image
-				#time_now = datetime.utcnow().replace(tzinfo=utc)
-				time_now = timezone.now()
-				viewing_time = message.viewing_time
-				difference = time_now - viewing_time
-				if difference.total_seconds() < (60*60*24) and is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee','caption':caption,}
-				elif difference.total_seconds() < (60*60*24) and not is_visible:
-					#pic:-1 Ye photo bhejnay waley ne mita di hai
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
-				elif difference.total_seconds() > (60*60*24) and is_visible:
-					#pic:0 Is photo ka waqt khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':0, 'max_time':viewing_time + timedelta(minutes = 1440),'caption':None,}
-				else:
-					#pic:1 Is photo ka time khatam ho gaya, <b>{{ max_time|naturaltime }}</b>
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':1, 'max_time':viewing_time + timedelta(minutes = 1440),'caption':None,}
-			else:# the expiry_interval was not set: ABORT
-				#pic:2 Yahan dekney ke liye kuch nahi hai
-				context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,'caption':None,}
-			return render(self.request, 'pic.html', context)
-		else:
-			#the message object is being opened for the first time
-			if self.request.user.is_authenticated() and self.request.user == sender:
-				#if the person opening it is the same person who sent the photo
-				#time_now = datetime.utcnow().replace(tzinfo=utc)
-				time_now = timezone.now
-				context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':0,'caption':caption,}
-			else:
-				#set the seen flag of the message object
-				message.seen = True
-				#viewing_time = datetime.utcnow().replace(tzinfo=utc)
-				viewing_time = timezone.now()
-				message.viewing_time = viewing_time
-				message.save()
-				if expiry_interval == '1' and is_visible:
-					context = {'sender':sender, 'refresh_now':True, 'exists':1, 'pic':pic, 'max_time':'aik','caption':caption,}
-				elif expiry_interval == '1' and not is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
-				elif expiry_interval == '2' and is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':1, 'pic':pic, 'max_time':'kayee','caption':caption,}
-				elif expiry_interval == '2' and not is_visible:
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':-1, 'max_time':0,'caption':None,}
-				else:
-					#Yahan dekhney ke liye kuch nahi hai
-					context = {'sender':sender, 'refresh_now':False, 'exists':0, 'pic':2, 'max_time':0,'caption':None,}
-			return render(self.request, 'pic.html', context)
-
-
-# @ratelimit(rate='7/s')
-# def first_time_unseen_refresh(request, *args, **kwargs):
-# 	if getattr(request, 'limits', False):
-# 		return redirect("missing_page")
-# 	else:
-# 		if tutorial_unseen(user_id=request.user.id, which_tut='14', renew_lease=True):
-# 			return render(request, 'unseen_activity_refresh.html', {'unique': request.user.username})
-# 		else:
-# 			return redirect("unseen_activity", request.user.username)
-				
 
 @ratelimit(rate='3/s')
 def welcome_pk(request, pk=None, *args, **kwargs):
@@ -4651,80 +3936,5 @@ class UserActivityView(ListView):
 #  links_userprofile                | 131 MB  | 54 MB
 #  links_userfan                    | 105 MB  | 67 MB
 #  auth_user                        | 99 MB   | 38 MB
-
-
-# Report run on 15/3/2017
-#               Table               |  Size   | External Size 
-# ----------------------------------+---------+---------------
-#  user_sessions_session            | 8578 MB | 6911 MB
-#  links_publicreply                | 5918 MB | 3040 MB
-#  links_photocomment               | 2877 MB | 1381 MB
-#  links_photo                      | 2505 MB | 2180 MB
-#  links_link                       | 1409 MB | 369 MB
-#  links_reply                      | 875 MB  | 660 MB
-#  links_salatinvite                | 439 MB  | 319 MB
-#  links_photo_which_stream         | 234 MB  | 157 MB
-#  links_photostream                | 223 MB  | 118 MB
-#  links_userprofile                | 130 MB  | 54 MB
-#  links_userfan                    | 105 MB  | 66 MB
-
-# Report run on 4/3/2017
-#               Table               |  Size   | External Size 
-# ----------------------------------+---------+---------------
-#  user_sessions_session            | 8578 MB | 6911 MB
-#  links_publicreply                | 5636 MB | 2904 MB
-#  links_photocomment               | 2717 MB | 1303 MB
-#  links_photo                      | 2423 MB | 2098 MB
-#  links_link                       | 1334 MB | 352 MB
-#  links_reply                      | 873 MB  | 659 MB
-#  links_vote                       | 579 MB  | 371 MB
-#  links_salatinvite                | 429 MB  | 312 MB
-#  links_groupseen                  | 394 MB  | 362 MB
-#  links_photo_which_stream         | 225 MB  | 151 MB
-#  links_photostream                | 214 MB  | 113 MB
-#  links_userprofile                | 129 MB  | 53 MB
-#  links_userfan                    | 101 MB  | 63 MB
-#  auth_user                        | 96 MB   | 36 MB
-#  links_totalfanandphotos          | 82 MB   | 73 MB
-#  links_report                     | 82 MB   | 67 MB
-#  links_photovote                  | 49 MB   | 49 MB
-
-
-# Report run on 24/2/2017
-#               Table               |  Size   | External Size 
-# ----------------------------------+---------+---------------
-#  user_sessions_session            | 8578 MB | 6911 MB
-#  links_publicreply                | 5453 MB | 2817 MB
-#  links_photocomment               | 2604 MB | 1249 MB
-#  links_photo                      | 2366 MB | 2040 MB
-#  links_link                       | 1277 MB | 338 MB
-#  links_reply                      | 868 MB  | 655 MB
-#  links_vote                       | 555 MB  | 356 MB
-#  links_salatinvite                | 419 MB  | 305 MB
-#  links_groupseen                  | 394 MB  | 362 MB
-#  links_photo_which_stream         | 218 MB  | 146 MB
-#  links_photostream                | 208 MB  | 110 MB
-#  links_userprofile                | 129 MB  | 52 MB
-
-
-# Report run on 12/11/2016
-#               Table               |  Size   | External Size 
-# ----------------------------------+---------+---------------
-#  user_sessions_session            | 8214 MB | 6464 MB
-#  links_publicreply                | 3666 MB | 1923 MB
-#  links_photoobjectsubscription    | 2627 MB | 2251 MB
-#  links_photo                      | 1822 MB | 1497 MB
-#  links_grouptraffic               | 1756 MB | 1724 MB
-#  links_photocomment               | 1569 MB | 749 MB
-#  links_link                       | 795 MB  | 216 MB
-#  links_reply                      | 544 MB  | 413 MB
-#  links_groupseen                  | 454 MB  | 362 MB
-#  links_vote                       | 363 MB  | 235 MB
-#  links_seen                       | 351 MB  | 351 MB
-#  links_salatinvite                | 314 MB  | 228 MB
-#  links_groupinvite                | 164 MB  | 125 MB
-#  links_photo_which_stream         | 147 MB  | 99 MB
-#  links_photostream                | 140 MB  | 74 MB
-#  links_userprofile                | 119 MB  | 43 MB
 
 ###################################################

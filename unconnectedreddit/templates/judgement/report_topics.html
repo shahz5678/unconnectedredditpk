@@ -1,7 +1,7 @@
 {% if section == 'text_fan_to_fan' %}
-	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">"Fan to fan" ya "1 on 1" ki post</div>
-	<div style="text-align:left" class="mts lsp sp">Fan-to-fan ya 1-on-1 ki posts share karney waley users ko report karein, kiyun ke aisi posts <a href="{% url 'spamming_definition' %}#section0" class="cb" style="border-bottom:1px dotted blue" target="_blank">'spamming'</a> ke zumrey mein ati hain.</div>
-	<div style="text-align:left" class="mts lsp sp">Damadam pe spam share nahi karien, sirf dilchusp topics pe high quality posts lagain jin pe users discussion kar sakein</div>
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">"1 on 1" ki post</div>
+	<div style="text-align:left" class="mts lsp sp">1-on-1 ki posts karney waley users ko report karein.</div>
+	<div style="text-align:left" class="mts lsp sp">1-on-1 ki bheek nahi mangein, sirf dilchusp topics pe high quality posts lagain jin pe users discussion kar sakein</div>
 
 {% elif section == 'text_abuse' %}	
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Galiyan ya dhamkiyan</div>
@@ -145,5 +145,8 @@
 {% elif section == 'photo_wrong_title' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Wrong or unrelated photo title</div>
 	<div style="text-align:left" class="mts lsp sp">Photo ka title photo se related hona chahiye. Unrelated ya betukkey titles photo ko low quality banatey hain. Aik relevant aur dilchusp title kisi bhi photo mein jaan daal deta hai.</div>
+{% elif section == 'photo_rumor' %}
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Rumor</div>
+	<div style="text-align:left" class="mts lsp sp">Photo mein aisa kuch nahi hona chahiye jo kisi aur user ki dil-azaari karey. Maslan koi fake rumor ho ya screenshot ho jis mein kisi user ko be-izzat kia ja raha ho. Aisi photos ke khilaf action lia jaye ga.</div>
 {% else %}
 {% endif %}

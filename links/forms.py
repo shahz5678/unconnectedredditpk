@@ -491,54 +491,6 @@ class UserSettingsForm(forms.ModelForm):
 		exclude = ('user', 'setting2', 'setting3', 'setting4', 'setting5')
 		fields = ('score_setting',)
 
-class CricketCommentForm(forms.Form): #a 'Form' version of the LinkForm modelform
-	description = forms.CharField(widget=forms.Textarea(attrs={'cols':40,'rows':3,'style':'width:98%;',\
-		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false'}))
-	sk = forms.CharField(required=False)
-
-	class Meta:
-		fields = ("description",)
-
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		super(CricketCommentForm, self).__init__(*args, **kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:95%;height:50px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean(self):
-		data = self.cleaned_data
-		user_id, description, section_id, section, secret_key_from_form = self.user_id, data.get("description"), '1', 'home', data.get("sk")
-		description = description.strip() if description else None
-		if not description:
-			raise forms.ValidationError('tip: likhna zaruri hai')
-		secret_key_from_session = get_and_delete_text_input_key(user_id,'1','home')
-		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('tip: sirf aik dafa button dabain')
-		if repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
-			raise forms.ValidationError('tip: milti julti baatien nah likho, kuch new likho')
-		else:
-			rate_limited, reason = is_limited(user_id,section='home',with_reason=True)
-			if rate_limited > 0:
-				raise forms.ValidationError('Ap yahan likhne se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-			else:
-				desc_len = len(description)
-				# if desc_len < 2:
-				#   raise forms.ValidationError('tip: itna choti reply nahi likh sakte')
-				if desc_len < 6:
-					if many_short_messages(user_id,section,section_id):
-						raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
-					else:
-						log_short_message(user_id,section,section_id)
-				elif desc_len > 500:
-					raise forms.ValidationError('Itni lambi reply nahi likh sakte')
-				# description = clear_zalgo_text(description)
-				# uni_str = uniform_string(description)
-				# if uni_str:
-				#   if uni_str.isspace():
-				#       raise forms.ValidationError('tip: ziyada spaces daal di hain')
-				#   else:
-				#       raise forms.ValidationError('tip: "%s" ki terhan bar bar ek hi harf nah likho' % uni_str)
-				return data
-
 
 class LinkForm(forms.Form):#this controls the link edit form
 	description = forms.CharField(widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
@@ -637,74 +589,6 @@ class WelcomeMessageForm(forms.ModelForm):
 		fields = ("description",)
 
 
-class PublicreplyForm(forms.ModelForm):
-	description = forms.CharField(label='Jawab:', widget=forms.Textarea(attrs={'class': 'cxl','autofocus': 'autofocus',\
-		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':MAX_HOME_REPLY_SIZE}), \
-	error_messages={'required': 'Pehlay reply likhein, phir OK dabain'})
-	sk = forms.CharField(required=False)
-
-	class Meta:
-		model = Publicreply
-		exclude = ("submitted_by","answer_to","seen","category","abuse","submitted_on")
-		fields = ("description",)
-
-	def __init__(self,*args,**kwargs):
-		self.user_id = kwargs.pop('user_id',None)
-		self.link_id = kwargs.pop('link_id',None)
-		self.mob_verified = kwargs.pop('mob_verified',None)
-		super(PublicreplyForm, self).__init__(*args,**kwargs)
-		self.fields['description'].widget.attrs['style'] = 'width:97%;height:75px;border-radius:10px;border: 1px #E0E0E0 solid; background-color:#FAFAFA;padding:5px;'
-
-	def clean_sk(self):
-		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id,self.link_id,'home_rep')
-		if secret_key_from_form != secret_key_from_session:
-			raise forms.ValidationError('Rabta munqata ho gaya, phir se karien')
-		return secret_key_from_form
-
-	def clean_description(self):
-		if not self.mob_verified:
-			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
-		else:
-			description, user_id, section_id, section = self.cleaned_data.get("description"), self.user_id, self.link_id, 'home_rep'
-			description = description.strip() if description else None
-			if not description:
-				raise forms.ValidationError('Likhna zaruri hai')
-			elif repetition_found(section=section,section_id=section_id,user_id=user_id, target_text=description):
-				raise forms.ValidationError('Milte julte reply nahi likhein')
-			else:
-				rate_limited, reason = is_limited(user_id,section='home_rep',with_reason=True)
-				if rate_limited > 0:
-					raise forms.ValidationError('Ap reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-				else:
-					desc_len = len(description)
-					if desc_len < 6:
-						if many_short_messages(user_id,section,section_id):
-							raise forms.ValidationError('Har thori deir baad yahan choti reply nahi likhein')
-						else:
-							log_short_message(user_id,section,section_id)
-					elif desc_len > MAX_HOME_REPLY_SIZE:
-						raise forms.ValidationError('Ap ne {0} chars likhey, ap {1} se zyada chars nahi likh saktey'.format(desc_len,MAX_HOME_REPLY_SIZE))
-					return description
-
-
-# class PublicreplyMiniForm(PublicreplyForm):
-# 	description = forms.CharField(max_length=MAX_HOME_REPLY_SIZE, \
-# 		error_messages={'required': 'Pehlay safed patti mein likhein, phir "reply" dabain'})
-# 	sk = forms.CharField(required=False)
-
-# 	def __init__(self,*args,**kwargs):
-# 		super(PublicreplyMiniForm, self).__init__(*args,**kwargs)
-# 		self.fields['description'].error_messages = {'required': 'Pehlay safed patti mein likhein, phir "reply" dabain','max_length':'Reply 350 characters se zyada nahi hona chahiye'}
-# 		self.fields['description'].widget.attrs['class'] = 'box-with-button-right cdt'
-# 		self.fields['description'].widget.attrs['style'] = 'max-width:750px;border: 1px solid lightgrey; border-radius:4px; line-height:30px;'
-# 		self.fields['description'].widget.attrs['autocomplete'] = 'off'
-
-# 	def clean_sk(self):
-# 		secret_key_from_form, secret_key_from_session = self.cleaned_data.get("sk"), get_and_delete_text_input_key(self.user_id, '1', 'home')
-# 		if secret_key_from_form != secret_key_from_session:
-# 			raise forms.ValidationError('Phir se karein, reply send nahi hua')
-# 		return secret_key_from_form
-
 
 class SearchNicknameForm(forms.Form):
 	nickname = forms.CharField(max_length=71,error_messages={'required': 'Safed patti mein "nickname" likhein jisko search karna hai'})
@@ -728,167 +612,17 @@ class SearchNicknameForm(forms.Form):
 		return nickname
 
 
-class CaptionDecForm(forms.Form):
-	class Meta:
-		pass
-
-class PhotostreamForm(forms.Form):
-	class Meta:
-		pass
-
-class CaptionForm(forms.ModelForm):
-	caption = forms.CharField(max_length=150)
-	class Meta:
-		model = ChatPicMessage
-		exclude = ("which_pic","viewing_time","sending_time","expiry_interval","what_number","seen")
-		fields = ("caption",)
-
-class UserPhoneNumberForm(forms.ModelForm):
-	what_number = forms.CharField(label='Mobile number:', max_length=50)
-	class Meta:
-		model = ChatPicMessage
-		exclude = ("which_pic","viewing_time","sending_time","expiry_interval","caption","seen")
-		fields = ("what_number",)
-
-class UserSMSForm(forms.Form):
-	class Meta:
-		pass
-
-class AdImageForm(forms.ModelForm):
-	image = forms.ImageField(label='Upload', error_messages={'required': 'Photo ka intekhab sahi nahi hua'})
-	class Meta:
-		model = ChatPic
-		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
-		fields = ("image",)
-
-	def __init__(self, *args, **kwargs):
-		super(AdImageForm, self).__init__(*args, **kwargs)
-		self.fields['image'].widget.attrs['style'] = 'width:95%;'
-
-class AdImageYesNoForm(forms.Form):
-	class Meta:
-		pass
-
-class AdAddressYesNoForm(forms.Form):
-	class Meta:
-		pass
-
-class AdCallPrefForm(forms.Form):
-	class Meta:
-		pass
-
-class AdGenderChoiceForm(forms.Form):
-	class Meta:
-		pass
-
-class AdTitleYesNoForm(forms.Form):
-	class Meta:
-		pass
-
-class AdAddressForm(forms.Form):
-	address = forms.CharField(max_length=250)
-	class Meta:
-		fields = ("address",)
-
-class AdTitleForm(forms.Form):
-	title = forms.CharField(max_length=250)
-	class Meta:
-		fields = ("title",)
-
-class TestAdsForm(forms.Form):
-	class Meta:
-		pass
-
-class TestReportForm(forms.Form):
-	class Meta:
-		pass
-
-class AdMobileNumForm(forms.Form):
-	mobile_number = forms.CharField(max_length=20)
-	class Meta:
-		fields = ("mobile_number",)
-
-class AdDescriptionForm(forms.Form):
-	description = forms.CharField(max_length=250)
-	class Meta:
-		fields = ("description",)
-
-class ReportFeedbackForm(forms.Form):
-	description = forms.CharField(max_length=250)
-	class Meta:
-		fields = ("description",)
-
-
-# class PhotoCommentForm(forms.Form):
-# 	photo_comment = forms.CharField(max_length=MAX_PHOTO_COMMENT_SIZE, error_messages={'required': 'Pehlay safed patti mein likhein, phir "reply" dabain'})
-# 	sk = forms.CharField(required=False)
-# 	origin = forms.CharField(required=False)
-
+# class UploadPhotoReplyForm(forms.ModelForm):
+# 	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab dubara karein'})
+# 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
 # 	class Meta:
-# 		fields = ("photo_comment",)
+# 		model = Photo
+# 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
+# 		fields = ("image_file", "caption",)
 
-# 	def __init__(self,*args,**kwargs):
-# 		self.user_id = kwargs.pop('user_id',None)
-# 		self.photo_id = kwargs.pop('photo_id',None)
-# 		self.is_mob_verified = kwargs.pop('mob_verified',False)
-# 		super(PhotoCommentForm, self).__init__(*args, **kwargs)
-# 		self.fields['photo_comment'].widget.attrs['class'] = 'box-with-button-right cdo'
-# 		self.fields['photo_comment'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:4px;'
-# 		self.fields['photo_comment'].widget.attrs['autocomplete'] = 'off'
-# 		self.fields['photo_comment'].widget.attrs['autocapitalize'] = 'off'
-# 		self.fields['photo_comment'].widget.attrs['spellcheck'] = 'false'
-# 		self.fields['photo_comment'].widget.attrs['maxlength'] = MAX_PHOTO_COMMENT_SIZE
-
-# 	def clean(self):
-# 		if not self.is_mob_verified:
-# 			raise forms.ValidationError('Account verify kiye beghair ap yahan nahi likh saktey')
-# 		else:
-# 			data = self.cleaned_data
-# 			comment, user_id, photo_id, section, secret_key_from_form, origin = data.get("photo_comment"), self.user_id, self.photo_id, \
-# 			'pht_comm', data.get("sk"), data.get("origin")
-# 			if origin == '1' or origin == '20':
-# 				org = 'fresh_photos'
-# 			elif origin in ('3','19','26'):
-# 				org = 'home'
-# 			elif origin == '26':
-# 				org = 'my_home'	
-# 			else:
-# 				org = 'best_photos'
-# 			secret_key_from_session = get_and_delete_text_input_key(user_id,'1',org)
-# 			if secret_key_from_form != secret_key_from_session:
-# 				raise forms.ValidationError('Sirf aik dafa button dabain')
-# 			comment = comment.strip() if comment else comment
-# 			if not comment:
-# 				raise forms.ValidationError('Pehlay safed patti mein likhein, phir "reply" button dabain')
-# 			elif repetition_found(section=section,section_id=photo_id,user_id=user_id, target_text=comment):
-# 				raise forms.ValidationError('Milti julti baatien nahi likhein, kuch new likhein')
-# 			else:
-# 				rate_limited, reason = is_limited(user_id,section='pht_comm',with_reason=True)
-# 				if rate_limited > 0:
-# 					raise forms.ValidationError('Ap photos pe reply karney se {0} tak banned ho. Reason: {1}'.format(human_readable_time(rate_limited),reason))
-# 				else:
-# 					comm_len = len(comment)
-# 					if comm_len < 6:
-# 						if many_short_messages(user_id,section,photo_id):
-# 							raise forms.ValidationError('Har thori deir baad choti reply nahi likhein')
-# 						else:
-# 							log_short_message(user_id,section,photo_id)
-# 					elif comm_len > MAX_PHOTO_COMMENT_SIZE:
-# 						raise forms.ValidationError('Itni lambi reply nahi likh sakte')
-# 					return data
-
-
-class UploadPhotoReplyForm(forms.ModelForm):
-	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab dubara karein'})
-	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
-	class Meta:
-		model = Photo
-		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
-		fields = ("image_file", "caption",)
-
-	def __init__(self, *args, **kwargs):
-		super(UploadPhotoReplyForm, self).__init__(*args, **kwargs)
-		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
+# 	def __init__(self, *args, **kwargs):
+# 		super(UploadPhotoReplyForm, self).__init__(*args, **kwargs)
+# 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 
 
 class UploadPhotoForm(forms.Form):
@@ -956,93 +690,16 @@ class UploadPhotoForm(forms.Form):
 			# raise forms.ValidationError('Dubara koshish karein')	
 		return com
 
-class PicsChatUploadForm(forms.ModelForm):
-	image = forms.ImageField(label='Upload')
-	class Meta:
-		model = ChatPic
-		exclude = ("sender","sending_time", "sms_created", "expiry_interval")
-		fields = ("image",)
-
-	def __init__(self, *args, **kwargs):
-		super(PicsChatUploadForm, self).__init__(*args, **kwargs)
-		self.fields['image'].widget.attrs['style'] = 'width:95%;'
-		# self.fields['image'].widget.attrs['accept'] = 'image/*'
-
-
-class HomeLinkListForm(forms.Form):
-	reply = forms.CharField(max_length=250)
-
-	class Meta:
-		fields = ("reply",)
-
-	def __init__(self, *args, **kwargs):
-		super(HomeLinkListForm, self).__init__(*args, **kwargs)
-		self.fields['reply'].widget.attrs['style'] = \
-		'background-color:#F8F8F8;width:1400px;max-width:90%;border: 1px solid #1f8cad;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #1f8cad;'
-
-class BestPhotosListForm(forms.Form):
-	class Meta:
-		pass
-
-class PhotosListForm(forms.Form):
-	class Meta:
-		pass
 
 class FacesPagesForm(forms.Form):
 	class Meta:
 		pass
 
-class CrossNotifForm(forms.Form):
-	class Meta:
-		pass
-		#model = Link
-
 class PhotoShareForm(forms.Form):
 	class Meta:
 		pass
 
-class InternalSalatInviteForm(forms.Form):
-	class Meta:
-		pass
-
-class ExternalSalatInviteForm(forms.Form):
-	class Meta:
-		pass
-
-class PhotoReplyForm(forms.Form):
-	class Meta:
-		pass
-
-class PhotoJawabForm(forms.Form):
-	class Meta:
-		pass
-
-class PicPasswordForm(forms.Form):
-	mobile_number = forms.CharField(max_length=50)
-	class meta:
-		fields = ("mobile_number",)
-
-	def __init__(self, *args, **kwargs):
-		super(PicPasswordForm, self).__init__(*args, **kwargs)
-		self.fields['mobile_number'].widget.attrs['style'] = 'width:95%;'
-
-class SalatTutorialForm(forms.Form):
-	class Meta:
-		pass
-
-class SalatInviteForm(forms.Form):
-	class Meta:
-		pass
-
-class ChainPhotoTutorialForm(forms.Form):
-	class Meta:
-		pass
-
 class PhotoScoreForm(forms.Form):
-	class Meta:
-		pass
-
-class BaqiPhotosHelpForm(forms.Form):
 	class Meta:
 		pass
 
@@ -1062,41 +719,9 @@ class PhotoHelpForm(forms.Form):
 	class Meta:
 		pass
 
-class DeletePicForm(forms.Form):
-	class Meta:
-		pass
-
-class PicHelpForm(forms.Form):
-	class Meta:
-		pass
-
-class PicExpiryForm(forms.Form):
-	class Meta:
-		pass
-
-class VerifiedForm(forms.Form):
-	class Meta:
-		model = User
-
-class TopPhotoForm(forms.Form):
-	class Meta:
-		model = User
-
 class TopForm(forms.Form):
 	class Meta:
 		model = User
-
-class DeviceHelpForm(forms.Form):
-	class Meta:
-		pass
-
-class ReportcommentForm(forms.Form):
-	class Meta:
-		pass
-
-# class MehfilCommentForm(forms.Form):
-# 	class Meta:
-# 		pass
 
 class WelcomeForm(forms.Form):
 	class Meta:
@@ -1214,13 +839,6 @@ class ResetPasswordForm(forms.Form):
 			user.save()
 		return user
 
-class SmsReinviteForm(forms.Form):
-	class Meta:
-		pass
-
-class SmsInviteForm(forms.Form):
-	class Meta:
-		pass
 
 class HistoryHelpForm(forms.Form):
 	class Meta:
@@ -1237,45 +855,3 @@ class RegisterHelpForm(forms.Form):
 class VerifyHelpForm(forms.Form):
 	class Meta:
 		pass
-
-class SearchAdFeedbackForm(forms.Form):
-	ad_campaign = forms.CharField(max_length=100)
-
-	def __init__(self, *args, **kwargs):
-		super(SearchAdFeedbackForm, self).__init__(*args, **kwargs)
-		self.fields['ad_campaign'].widget.attrs['style'] = \
-		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #179b36;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #179b36;'
-		self.fields['ad_campaign'].widget.attrs['class'] = 'cxl'
-		self.fields['ad_campaign'].widget.attrs['autofocus'] = 'autofocus'
-
-	def clean_ad_campaign(self):
-		ad_campaign = self.cleaned_data.get("ad_campaign")
-		ad_campaign = ad_campaign.strip()
-		if len(ad_campaign) > 100:
-			raise forms.ValidationError('tip: inta bara name nahi likh sakte')
-		ad_campaign = clear_zalgo_text(ad_campaign)
-		return ad_campaign
-
-class AdFeedbackForm(forms.Form):
-	feedback = forms.CharField(widget=forms.Textarea(attrs=\
-		{'cols':40,'rows':3,'style':'max-width:90%;background-color:#F8F8F8;border: 1px solid green;border-radius:5px;color: #404040;'}),\
-		validators=[validators.RegexValidator(regex="^[A-Za-z0-9._~()'!*:@, ;+?-]*$")],error_messages={'invalid': _("(tip: sirf english harf, number ya @ _ . + - likh sakte ho)"),\
-		'required':_("(tip: isko khali nahi chore sakte)")})
-	class Meta:
-		fields = ("feedback",)
-
-	def __init__(self, *args, **kwargs):
-		super(AdFeedbackForm, self).__init__(*args, **kwargs)
-		self.fields['feedback'].widget.attrs['class'] = 'cxl'
-		self.fields['feedback'].widget.attrs['autocomplete'] = 'off'
-
-	def clean_feedback(self):
-		feedback = self.cleaned_data.get("feedback")
-		feedback = feedback.strip()
-		if len(feedback) < 5:
-			raise forms.ValidationError('(tip: is se ziyada likho)')
-		elif len(feedback) > 250:
-			raise forms.ValidationError('(tip: buhut ziyada likh diya hai. Chota karo)')
-		feedback = clear_zalgo_text(feedback)
-		return feedback
-		

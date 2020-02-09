@@ -591,7 +591,7 @@ function report_modal(e) {
 			var report_user = document.getElementById("uploader");
 			report_user.innerHTML = payload_array[3]; // owner_username
 			var report_label = document.getElementById("report_label");
-			report_label.innerHTML = 'REPORT<br>FOTO';
+			report_label.innerHTML = 'REPORT<br>PHOTO';
 			var block_label = document.getElementById("block_label");
 			block_label.innerHTML = 'BLOCK<br>USER';
 			var target_id = payload_array[4];// owner_id

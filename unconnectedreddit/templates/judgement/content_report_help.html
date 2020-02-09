@@ -10,7 +10,7 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Text report help:</h1>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		<div class="cxl lsp"><span class="cgy">Damadam pe shared text ki quality high karney ke liye following cheezoon ka khayal rakhein</span></div>
+		<div class="cxl lsp"><span class="cgy">Shared text ki quality high rakhney ke liye in cheezoon ka khayal rakhein</span></div>
 		<hr size=1 COLOR="#E9EBEE">
 		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
 		{% csrf_token %}
@@ -47,10 +47,6 @@
 	</div>
 	<br>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_chat' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
 		{% include "judgement/report_topics.html" with section='text_firqa_wariyat' %}
 	</div>
 	<br>
@@ -59,23 +55,7 @@
 	</div>
 	<br>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_plagiarism' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_double_posting' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_romantic_solicitation' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
 		{% include "judgement/report_topics.html" with section='text_rumor' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_multi_new_line' %}
 	</div>
 	<br>
 	{% endcache %}
@@ -214,9 +194,9 @@
 {% elif tp == 'img' %}
 	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
 
-	<h1 class="cxl clb lsp" style="text-align:center">Foto report help:</h1>
+	<h1 class="cxl clb lsp" style="text-align:center">Photo report help:</h1>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		<div class="cxl lsp"><span class="cgy">Damadam ki shared fotos ki quality high karney ke liye following cheezoon ka khayal rakhein</span></div>
+		<div class="cxl lsp"><span class="cgy">Shared photos ki quality high rakhney ke liye in cheezoon ka khayal rakhein</span></div>
 		<hr size=1 COLOR="#E9EBEE">
 		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
 		{% csrf_token %}
@@ -231,7 +211,7 @@
 		</form>
 	</div>
 	<br>
-	{% cache 5000 foto_report_help %}
+	{% cache 5000 photo_report_help %}
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
 		{% include "judgement/report_topics.html" with section='photo_nudity_or_sex' %}
 	</div>
@@ -249,27 +229,7 @@
 	</div>
 	<br>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_screenshot' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_low_quality' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_wrong_title' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_title_solicitation' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_plagiarism' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_double_posting' %}
+		{% include "judgement/report_topics.html" with section='photo_rumor' %}
 	</div>
 	<br>
 	{% endcache %}
@@ -288,7 +248,7 @@
 {% endif %}
 
 <hr size=1 COLOR="#E9EBEE">
-<div class="cs sp lsp"><span class="cgy">Damadam ki quality high karney mein hamari help karein</span></div>
+<div class="cs sp lsp"><span class="cgy">Content quality high rakhney mein hamari help karein</span></div>
 </div>
 <br><br>
 {% endblock %}

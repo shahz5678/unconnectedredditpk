@@ -185,40 +185,20 @@ GROUP_SOFT_DELETION_CUTOFF = 604800#7 days old groups are target of soft deletio
 
 PUBLICREPLY = 2 #score for leaving publicreply on a home 'link'
 ###############################################################################################################
-CRICKET_SUPPORT_STARTING_POINT = 10 #score at which PSL support options open up
-CRICKET_TEAM_NAMES = {'Lahore Qalandars':'Qalandars','Islamabad United':'United',\
-'Karachi Kings':'Kings','Peshawar Zalmi':'Zalmi','Quetta Gladiators':'Gladiators',\
-'South Africa':'South Africa','New Zealand':'New Zealand', 'Pakistan':'Pakistan',\
-'West Indies':'West Indies', 'India':'India','Sri Lanka':'Sri Lanka','England':'England',\
-'World-XI':'World-XI','Multan Sultans':'Sultans','Australia':'Australia'}
-CRICKET_TEAM_IDS = {'Lahore Qalandars':'5','Islamabad United':'8','Karachi Kings':'3',\
-'Peshawar Zalmi':'4','Quetta Gladiators':'7','misc':'9','South Africa':'11','New Zealand':'10',\
-'Pakistan':'12','West Indies':'13', 'India':'14', 'Sri Lanka':'15','England':'16','World-XI':'18',\
-'Multan Sultans':'19','Australia':'20'}
-CRICKET_COLOR_CLASSES = {'Lahore Qalandars':'qal','Islamabad United':'uni','Multan Sultans':'msu',\
-'Karachi Kings':'kng','Peshawar Zalmi':'zal','Quetta Gladiators':'gld','misc':'bcb',\
-'South Africa':'saf','New Zealand':'nze','Pakistan':'pak','West Indies':'wid','India':'ind',\
-'Sri Lanka':'slk','England':'eng','World-XI':'wxi','Australia':'aus'}
-###############################################################################################################
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
 #REPORTED_CASE_COMPLETION_BONUS = 0#15#turning case completion bonus to '0' for now (revert if defenders complain)
 
-PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Foto mein nudity ya sex hai','2':'Foto mein firqa wariyat hai',\
-'3':'Foto mein khoon kharaba ya aziyat hai','4':'Foto dehshat gardi ki himayat kar rahi hai',\
-'7':'Title ka foto se taluq nahi hai','8':'Title mein vote or comments ki bheek hai',\
-'5':'Foto Damadam ki screenshot hai','6':'Foto quality buhut ziyada dhundhli hai','9':'Apki recent foto copy ki hai',\
-'10':'Isne apni recent foto dubara lagai hai'}# 9 and 10 keys of this dictionary MUST MATCH 9 and 10 keys of TEXT_REPORT_PROMPT
+PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Photo mein porn hai','2':'Photo mein firqa wariyat hai',\
+'3':'Photo mein khoon kharaba ya aziyat hai','4':'Photo dehshat gardi ki himayat kar rahi hai','11':'Photo apkey barey mein ghalat rumor phela rahi hai'}# 9 and 10 keys of this dictionary MUST MATCH 9 and 10 keys of TEXT_REPORT_PROMPT
 GET_PHOTO_REPORT_HELP_LABEL = {'0':'','1':'photo_nudity_or_sex','2':'photo_firqa_wariyat','3':'photo_bloodshed','4':'photo_terrorism',\
 '5':'photo_screenshot','6':'photo_low_quality','7':'photo_wrong_title','8':'photo_title_solicitation','9':'photo_plagiarism',\
-'10':'photo_double_posting'}
+'10':'photo_double_posting','11':'photo_rumor'}
 
-TEXT_REPORT_PROMPT = {'0':'Report rehne dein','1':'Fan to fan ya 1 on 1 ki post ki hai',\
-'2':'Galiyan ya dhamkiyan di hain','3':'Sexual ya vulgar post ki hai','4':'Betukki cheez likhi hai (e.g. "sadfsadfa" or ":P:D:P")',\
-'5':'Repeat honay wali cheez likhi hai (e.g. "سلام, سلام, سلام")','6':'Home pe chat karney ki koshish ki hai (e.g. "Hello, how are you")',\
-'7':'Firqa wariyat wali post ki hai','8':'Dehshat gardi ki himayat ki hai','9':'Apki recent post copy ki hai',\
-'10':'Isne apni recent post dubara lagai hai','11':'Romance ki bheek mangi hai',\
-'12':'Ghalat afwahein phelai hain (e.g. "Admin users ke phone number bech raha hai")',\
-'13':'Kam alfaz mein ziyada new-lines hain: <div style="text-align:center">(e.g.<br>"malik ne<br>nokar se<br>poocha")</div>'}
+TEXT_REPORT_PROMPT = {'0':'Report rehne dein','1':'1 on 1 mein bulaney ki post ki hai',\
+'2':'Dhamkiyan di hain','3':'Sex or romance ki bheek mangi hai','4':'Betukki typing yani spamming ki hai (e.g. "sadfsadfa")',\
+'5':'Repeat honay wali cheez likhi hai (e.g. "سلام, سلام, سلام")',\
+'7':'Firqa wariyat wali post ki hai','8':'Dehshat gardi ki himayat ki hai',\
+'12':'Fake news phelai hai (e.g. "Admin users ke phone number bech raha hai")'}
 GET_TEXT_REPORT_HELP_LABEL = {'0':'','1':'text_fan_to_fan','2':'text_abuse','3':'text_vulgar','4':'text_crap','5':'text_repeating',\
 '6':'text_chat','7':'text_firqa_wariyat','8':'text_terrorism','9':'text_plagiarism','10':'text_double_posting',\
 '11':'text_romantic_solicitation','12':'text_rumor','13':'text_multi_new_line'}
@@ -231,8 +211,8 @@ GET_MEHFIL_REPORT_HELP_LABEL = {'0':'','1':'mehfil_topic_vulgar','2':'mehfil_top
 '4':'mehfil_topic_rumor','5':'mehfil_rules_vulgar','6':'mehfil_rules_abuse','7':'mehfil_rules_firqa_wariyat','8':'mehfil_rules_rumor'}
 
 PROFILE_REPORT_PROMPT = {'0':'Report rehne dein','1':'Nickname ganda hai','2':'Nickname mein abuse hai',\
-'3':'Nickname mein firqa wariyat hai','4':'Profile foto gandi hai','5':'Profile foto mein screenshot hai',\
-'6':'Profile foto mein firqa wariyat hai','7':'Profile foto mein jhooti afwah hai'}# do NOT add '9' and '10'
+'3':'Nickname mein firqa wariyat hai','4':'Profile photo gandi hai','5':'Profile photo mein screenshot hai',\
+'6':'Profile photo mein firqa wariyat hai','7':'Profile photo mein jhooti afwah hai'}# do NOT add '9' and '10'
 GET_PROFILE_REPORT_HELP_LABEL = {'0':'','1':'username_vulgar','2':'username_abuse','3':'username_firqa_wariyat','4':'profile_pic_vulgar',\
 '5':'profile_pic_screenshot','6':'profile_pic_firqa_wariyat','7':'profile_pic_rumor'}
 
@@ -256,7 +236,7 @@ PW = 'F1l2O3c4C5i6N7a8U9c1I2n3I4h5I6l7I8p9I1l2I3f4I5c6A7t8I9o1N2'
 ###############################################################################################################
 PERSONAL_GROUP_NOTIF_IVT_RATE_LIMIT = 86400#1 day breather between sending notification invites in personal groups
 PERSONAL_GROUP_NOTIF_RATE_LIMIT = 1800#rate limit a person for 30 mins after they've sent a push notification
-PERSONAL_GROUP_ERR = {'too_high':'Ye foto buhut lambi hai, koi aur chunein',\
+PERSONAL_GROUP_ERR = {'too_high':'Ye photo buhut lambi hai, koi aur chunein',\
 'mismatch':'Rabta munqata ho gaya, phir se karien','generic':'Internet ka rabta munqata ho gaya, phir se karien'}
 PERSONAL_GROUP_DEFAULT_SMS_TXT = ' ne apko Damadam ki 1 on 1 mein bulaya'
 EXTRA_PADDING = 20 #used to adjust image sizes in cases where CSS uses box-sizing:border-box property

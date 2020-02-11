@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_noindex.html" %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Share image | Damadam</title></head>
@@ -19,19 +19,25 @@
         </div>
     </div>
 {% else %}
-<h1 class="cxl clb lsp" style="text-align:center">Share photo post on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Share photo on Damadam:</h1>
     
-    <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
+    <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:center">
+
+        <div class="fx fxjscn fxaicn">
+            <div class="sp nos" style="border-radius:0;width:50%;border:none;color:#4b9eca;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid gainsboro">POST PHOTO</div>
+            <a href="{% url 'show_templates' %}#section0" class="sp" style="width:50%"><button class="wt" style="background:gainsboro;border-radius:0;border:none;color:#808080;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">TEMPLATES</button></a>
+        </div>
+
         {% if show_instructions %}
-            <div class="bizcard mbl" style="background-color:#ffffe6;padding:4px 8px 6px 8px">
-            <div style="text-align:center" class="cxl lsp">Welcome! Purey Damadam se koi mazedar photo share karein!</div>
+            <div class="mbl" style="text-align:left;background-color:#ffffe6;padding:4px 8px 6px 8px;border-bottom:1px solid #e9ebee">
+            <div style="text-align:center" class="cxl lsp">Welcome! Mazedar photos share karein aur followers barhain!</div>
             <hr size=1 COLOR="#E9EBEE">
-            <div class="mt sp lsp">1) Maslan memes, current affairs, poetry, paheliyan (riddles), quotes, jokes, sports, politics, religion, celebrities, fashion, or nature</div>
-            <div class="mts sp lsp">2) Apki shared photos agr munfarid huin tou 'trending' mein aa sakti hain. Zyada se zyada photos trending mein laney waley users ko 'red star' mil jata hai</div>
-            <div class="mts sp lsp">3) Vulgarity, abuse and firqa wariyat sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mt sp lsp">1) Agr apki shared photo dilchusp hui tou 'trending' mein aa sakti hai</div>
+            <div class="mts sp lsp">2) 'Trending' mein aney se apko aur users 'Follow' karna start kar dete hain</div>
+            <div class="mts sp lsp">3) Photo examples: funny memes, jokes, current affairs, poetry,riddles, quotes, sports, or nature etc</div>
             </div>
         {% endif %}
-        <form action="{% url 'upload_public_photo' %}" style="text-align:center" id="public_photo_form" class="mt" method="POST" enctype="multipart/form-data">
+        <form action="{% url 'upload_public_photo' %}" id="public_photo_form" class="mt" method="POST" enctype="multipart/form-data">
         {% csrf_token %}
         <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="opt" value="0">
@@ -102,9 +108,9 @@
     
         <div class="clb mbl mts nos" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:snow;max-width:500px;margin-left:auto;margin-right:auto;width:97%;text-align:left">
         <div class="cgy lsp sp cm mbs" style="padding:0 10px;">
-            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Photo post ke zariye apne followers se apne khayalaat ka izhar karein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> Hadd se zyada private photos share nahi karein. Agr screenshot le li gyi tou apke liye mushqil peda ho sakti hai</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Vulgarity, abuse, mazhabi fasaad aur spamming sakhti se mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">Damadam rules</a> zarur dekh lein</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Agr apki shared photo dilchusp hui tou 'trending' mein aa sakti hai</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> 'Trending' mein aney se apko aur users 'Follow' karna start kar dete hain</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Vulgarity, abuse, mazhabi fasaad aur spamming mana hain. Aik dafa <a href="{% url 'website_rules' %}#section0" class="cb" target="_blank" style="border-bottom:1px dotted blue">rules</a> zarur dekh lein</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
         </div>
         </div>

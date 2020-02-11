@@ -1789,6 +1789,21 @@ def photo_page(request,list_type='best-list'):
 ##################################################################
 
 
+def show_templates(request):
+	"""
+	Renders templates that can be downloaded for creating original content
+	"""
+	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+	on_opera = True if (not on_fbs and not is_js_env) else False
+	if on_opera:
+		# disallowing opera mini users from posting public text posts
+		# mislabeled template - used to show some generic errors and such to posters
+		return render(request, 'error_photo.html', {'opera_detected':True})
+	else:
+		return render(request,"content/content_templates.html",{})
+
+
 def public_photo_upload_denied(request):
 	"""
 	Helper view for upload_public_photo

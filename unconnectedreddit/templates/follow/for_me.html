@@ -135,6 +135,14 @@
 			</script>
 		</aside>
 
+	{% elif forloop.counter == 4 %}
+
+		<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#80d4ff;text-align:center;overflow:hidden">
+			<img class="mtl" src="{{ STATIC_URL }}img/gstar.svg" width="30" height="30">
+			<div class="mt mbl cxl lsp" style="color:black"><b>Apna 'red star' paaney ka chance barhain!</b></div>
+			<a href="{% url 'coming_soon' %}#section0"><button class="cs lsp sp" style="width:100%;border-radius:0;border:none;background:tomato;color:white;height:40px"><b>KAISEY?</b></button></a>
+		</div>
+
 	{% endif %}
 
 	{% if link.ot == 'g' %}
@@ -162,6 +170,8 @@
 				{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin=origin static_url=STATIC_URL %}
 				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
 				{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
+
+				{% include "big_buttons/big_share_button.html" with origin=origin %}
 
 			{% endif %}
 		</div>

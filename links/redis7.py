@@ -2128,11 +2128,12 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 			vote_key = VOTE_ON_TXT+obj_id
 		else:
 			vote_key = VOTE_ON_IMG+obj_id
-		vote_keys.append(vote_key)
+		vote_keys.append((vote_key, obj))
 
 	pipeline1 = my_server.pipeline()
-	for vote_key in vote_keys:
+	for vote_key, obj_hash_name in vote_keys:
 		pipeline1.zrange(vote_key,0,-1)
+		pipeline1.hgetall(obj_hash_name)
 	result1, counter = pipeline1.execute(),0
 
 	objs_and_vote_vals = []
@@ -2145,39 +2146,121 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 				vote_score = my_server.zscore(VOTER_AUD_LIKE_PROBS,voter_id)
 				if vote_score > highest_vote_score:
 					highest_vote_score = vote_score
-		objs_and_vote_vals.append((obj, highest_vote_score))
-		counter += 1
+		###############################################################	
+		obj_data = result1[counter+1]
+		if obj_data:
+			obj_data = unpack_json_blob([obj_data])[0]
+			time_of_submission = obj_data['t']
+		###############################################################
+			objs_and_vote_vals.append((obj, highest_vote_score, time_of_submission, obj_data))
+		else:
+			my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj)# remove from hand_picked list
+		counter += 2
 
-	objs_and_vote_vals.sort(key=itemgetter(1),reverse=True)
+	# first sort according to vote score (descending), and then time of submission (ascending)
+	objs_and_vote_vals = sorted(objs_and_vote_vals, key=lambda x: (-x[1], x[2]))
 
-	best_trending_items = objs_and_vote_vals[:5]# selecting the best 5 - now try pushing them one by one
+	# selecting the best 5 - now try pushing them one by one
+	best_trending_items = objs_and_vote_vals[:5]
+
 	if best_trending_items:
-		for obj_hash_name, item_highest_vote in best_trending_items:
-			obj_hash = my_server.hgetall(obj_hash_name)
-			if obj_hash:
-				# this img obj is locked from entering trending because of sybil votes
-				if my_server.exists(LOCKED_IMG+obj_hash_name):
-					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
-				else:
-					# do the deed - push the object for members to see!
-					time_of_selection = time.time()
-					obj_hash['tos'] = time_of_selection
-					obj_hash = unpack_json_blob([obj_hash])[0]
-					obj_id = obj_hash['i']
-					########################
-					# related to 'rep'
-					my_server.setex(HANDPICKED_TRENDING_IMG+obj_hash_name,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
-					my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,obj_hash_name+":"+str(obj_hash['si']),obj_hash['si'])
-					########################
-					add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
-						from_hand_picked=True)
-					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list as well
-					pushed = True
-					break# break out of the for loop
-			else:
+		for obj_hash_name, item_highest_vote, time_of_submission, obj_hash_data in best_trending_items:
+			# this img obj is locked from entering trending because of sybil votes
+			if False:#my_server.exists(LOCKED_IMG+obj_hash_name):
 				my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
+			
+			# push this into trending
+			else:
+				obj_id = obj_hash_data['i']
+				obj_hash_data['tos'] = time.time()# time_of_selection
+				########################
+				# related to 'rep'
+				my_server.setex(HANDPICKED_TRENDING_IMG+obj_hash_name,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
+				my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,obj_hash_name+":"+str(obj_hash_data['si']),obj_hash_data['si'])
+				# ########################
+				# # do the deed - push the object for members to see!
+				add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash_data, my_server=my_server,\
+					from_hand_picked=True)
+				my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list as well
+				pushed = True
+				break# break out of the for loop
 	
 	return pushed, obj_id
+
+
+# def select_hand_picked_obj_for_trending(feed_type='best_photos'):
+# 	"""
+# 	Pick the submitter within HAND_PICKED_TRENDING_PHOTOS with the best voting score (aud-likes based vote score used here)
+# 	"""
+# 	pushed, obj_id = False, None
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	all_enqueued_members = my_server.zrange(HAND_PICKED_TRENDING_PHOTOS,0,-1)	
+# 	vote_keys = []
+# 	for obj in all_enqueued_members:
+# 		data = obj.partition(":")
+# 		obj_type, obj_id = data[0], data[-1]
+# 		if obj_type == 'tx':
+# 			vote_key = VOTE_ON_TXT+obj_id
+# 		else:
+# 			vote_key = VOTE_ON_IMG+obj_id
+# 		vote_keys.append(vote_key)
+
+# 	pipeline1 = my_server.pipeline()
+# 	for vote_key in vote_keys:
+# 		pipeline1.zrange(vote_key,0,-1)
+# 	result1, counter = pipeline1.execute(),0
+
+# 	objs_and_vote_vals = []
+# 	for obj in all_enqueued_members:
+
+# 		highest_vote_score = 0
+# 		obj_votes = result1[counter]
+# 		if obj_votes:
+# 			for voter_id in obj_votes:
+# 				vote_score = my_server.zscore(VOTER_AUD_LIKE_PROBS,voter_id)
+# 				if vote_score > highest_vote_score:
+# 					highest_vote_score = vote_score
+		
+
+
+
+
+
+# 		objs_and_vote_vals.append((obj, highest_vote_score))
+# 		counter += 1
+
+	
+# 	objs_and_vote_vals.sort(key=itemgetter(1),reverse=True)
+
+	
+# 	best_trending_items = objs_and_vote_vals[:5]# selecting the best 5 - now try pushing them one by one
+# 	if best_trending_items:
+# 		for obj_hash_name, item_highest_vote in best_trending_items:
+# 			obj_hash = my_server.hgetall(obj_hash_name)
+# 			if obj_hash:
+# 				# this img obj is locked from entering trending because of sybil votes
+# 				if my_server.exists(LOCKED_IMG+obj_hash_name):
+# 					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
+# 				else:
+# 					# do the deed - push the object for members to see!
+# 					time_of_selection = time.time()
+# 					obj_hash['tos'] = time_of_selection
+# 					obj_hash = unpack_json_blob([obj_hash])[0]
+# 					obj_id = obj_hash['i']
+# 					########################
+# 					# related to 'rep'
+# 					my_server.setex(HANDPICKED_TRENDING_IMG+obj_hash_name,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
+# 					my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,obj_hash_name+":"+str(obj_hash['si']),obj_hash['si'])
+# 					########################
+# 					add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
+# 						from_hand_picked=True)
+# 					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list as well
+# 					pushed = True
+# 					break# break out of the for loop
+# 			else:
+# 				my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
+	
+# 	return pushed, obj_id
 
 
 def push_hand_picked_obj_into_trending(feed_type='best_photos'):

@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% load get_render_single_ban %}
 {% block content %}
-<style>body{background: #E9EBEE}</style>
-<head><title>Judgement on {{ oun }} | Damadam.pk</title></head>
+<head><title>Judgement on {{ oun }} | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">Edit ban duration:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
 
 <div class="mbs cxl cr lsp" style="text-align:center"><b>Already banned!</b>&nbsp;{% if time_remaining == '-1' %}{{ oun|truncatechars:'13' }} banned hai forever ke liye{% else %}{% load future_time %}{{ oun|truncatechars:'13' }} ka ban end hoga {{ time_remaining|future_time }}{% endif %}</div>
 

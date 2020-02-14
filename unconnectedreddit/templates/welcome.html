@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<style>body{background: #E9EBEE}</style>
-<head><title>Send welcome message {% if authenticated %}to {{ target_user.username }}{% endif %} | Damadam.pk</title></head>
+<head><title>Send welcome message {% if authenticated %}to {{ target_user.username }}{% endif %} | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">Welcome karein!</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
 
 		<div class="cxl lsp">{{ target_user.username }} ko kaunsi mithai bhejni hai?</div>
 		

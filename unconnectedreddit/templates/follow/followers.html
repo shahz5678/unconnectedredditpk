@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <head><title>People following {{ own_name }} | Damadam</title></head>
-<style>body{background: #E9EBEE}</style>
 
       {% if new_follower_list %}
           <h1 class="cxl clb" style="text-align:center;overflow:hidden">Your new followers:</span></h1>
-          <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">  
+          <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;text-align:center">  
            
               {% load s3 %}
               {% load get_big_remove_follower_button %}

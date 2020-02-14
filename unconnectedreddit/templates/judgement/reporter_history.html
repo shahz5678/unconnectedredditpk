@@ -2,10 +2,10 @@
 {% load emoticons_tags %}
 {% load human_time %}
 {% block content %}
-<head><title>{{ target_uname }} reporting history | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>{{ target_uname }} reporting history | Damadam</title></head>
+
 <h1 class="cxl clb lsp" style="text-align:center">{{ target_uname }}'s reporting history:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;">
 <div class="cs sp" style="text-align:center">
 	{% if num_cases == 0 %}
 		<span class="cgy">No logged cases, or case history deleted (see footnotes)</span>

@@ -4,7 +4,6 @@
 
 {% if deleted %}
 	<head><title>Completed deletion action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil deleted!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Mehfil delete kar di geyi</div>
@@ -17,7 +16,6 @@
 	<br>
 {% elif cannot_target_self %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap apney ap ko kick nahi kar saktey</div>
@@ -30,7 +28,6 @@
 	<br>
 {% elif img_too_big %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ye photo hadd se ziyada lambi hai</div>
@@ -45,7 +42,6 @@
 	<br>
 {% elif member_overflow %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot send invite!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Private mehfil mein {{ max_members }} se ziyada members nahi ho saktey</div>
@@ -56,7 +52,6 @@
 	<br>
 {% elif action_frozen %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Is mehfil ko report kar dia gaya hai</div>
@@ -71,7 +66,6 @@
 	<br>
 {% elif uninvited %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap is mehfil ko join nahi kar saktey</div>
@@ -82,7 +76,6 @@
 	<br>
 {% elif cant_unhide %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap ye action le sakein ge {{ ttl }} seconds baad</div>
@@ -95,7 +88,6 @@
 	<br>
 {% elif cant_unhide_kicked_user_reply %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ye reply unhide nahi ho sakta</div>
@@ -110,7 +102,6 @@
 	<br>
 {% elif invite_overflow %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot send invite!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Apkey invites khatam ho chukay</div>
@@ -123,7 +114,6 @@
 	<br>
 {% elif member_limit_reached %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if owner_spot_saved %}
@@ -140,7 +130,6 @@
 	<br>
 {% elif cannot_join %}
 	<head><title>Unable to join | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if time_remaining %}<div class="cxl lsp">Sorry! Ap ye mehfil abhi nahi join kar saktey</div> 
@@ -152,7 +141,6 @@
 	<br>
 {% elif too_young_to_give_feedback %}
 	<head><title>Unable to exit | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Apko is mehfil ka member banney ziyada time nahi guzra</div> 
@@ -164,7 +152,6 @@
 {% elif read_rules %}
 	{% load emoticons_tags %}
 	<head><title>Read mehfil rules | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl cp" style="text-align:center;overflow:hidden">{% emoticons %}{{ topic }}{% endemoticons %}</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Is mehfil ke rules ye hain:</div> 
@@ -174,7 +161,6 @@
 	<br>
 {% elif recently_quit %}
 	<head><title>Unable to join | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot join mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap ne kuch time pehlay hi yeh mehfil exit ki</div> 
@@ -185,7 +171,6 @@
 	<br>
 {% elif cannot_exit %}
 	<head><title>Unable to exit | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot exit mehfil!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap ne kuch time pehlay hi yeh mehfil join ki hai</div> 
@@ -200,7 +185,6 @@
 	<br>
 {% elif kick_rate_limited %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap ye kar sakein ge {{ ttl|future_time }}</div>
@@ -213,7 +197,6 @@
 	<br>
 {% elif feedback_thanks %}
 	<head><title>Feedback submitted | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Thank you!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Submit ho gaya, ab ap group mein wapis ja saktey hain</div>
@@ -222,7 +205,6 @@
 	<br>
 {% elif feedback_rate_limited %}
 	<head><title>Feedback not submitted | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl cr lsp">Sorry! Ap ye submit karwa sakein ge {{ ttl|future_time }}</div>
@@ -231,7 +213,6 @@
 	<br>
 {% elif cannot_target_owner %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap mehfil ke owner ko punish nahi kar saktey</div>
@@ -240,7 +221,6 @@
 	<br>
 {% elif cannot_hide_or_unhide %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">{% if reason == 'hidden_by_op' %}Sorry! Ye poster ne khud hide kia hai, ap unhide nahi kar saktey{% elif reason == 'hidden_by_owner' %}Sorry! Ye post mehfil owner ne hide ki, ap unhide nahi kar saktey{% else %}Sorry! Ye post apki nahi, ap aisa nahi kar saktey{% endif %}</div>
@@ -249,7 +229,6 @@
 	<br>
 {% elif cannot_afford %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ye request reject ho geyi kiyunke is user ke pas ab itney points mojood nahi jitney is ne offer kiye thay</div>
@@ -258,7 +237,6 @@
 	<br>
 {% elif offer_does_not_exist %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ye offer expire ho geyi hai, bhejnay waley ne cancel kar di hai, ya phir exist nahi karti</div>
@@ -271,7 +249,6 @@
 	<br>
 {% elif ratify_ownership_transfer %}
 	<head><title>Ratify this action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Are you sure?</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Kya ap apni jagah <b>{{ ouname }}</b> ko is mehfil ka owner banana chahtey hain?</div>
@@ -286,7 +263,6 @@
 	<br>
 {% elif ownership_request_successful %}
 	<head><title>Ownership request submitted | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Thank you!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="lsp">
@@ -303,7 +279,6 @@
 	<br>	
 {% elif sent_ownership_request_recently %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if ttl_type == 'short' %}<div class="cxl lsp">Sorry! Ap ne kuch time pehlay bhi ownership transfer ki request bheji thi</div>{% else %}<div class="cxl lsp">Sorry! Ap ne kuch time pehlay hi mehfil ka lain dain kiya hai</div>{% endif %}
@@ -318,7 +293,6 @@
 	<br>
 {% elif only_pinkstar_can_be_owner %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Is mehfil ki ownership sirf pink stars ke liye hai</div>
@@ -327,7 +301,6 @@
 	<br>
 {% elif group_too_young_to_be_transferred %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Is mehfil ko create huay itna time nahi guzra ke ownership transfer ki ja sakey</div>
@@ -340,7 +313,6 @@
 	<br>
 {% elif member_too_young_to_become_owner %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Is user ko mehfil join kiye itna time nahi guzra ke ownership transfer ki ja sakey</div>
@@ -353,7 +325,6 @@
 	<br>
 {% elif offerer_is_hellbanned %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ye ownership request karney wala user banned hai, aur isko mehfil transfer nahi ho sakti</div>
@@ -366,7 +337,6 @@
 	<br>
 {% elif topic_or_rules_rl_cannot_transfer %}
 	<head><title>Unable to join | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if ttl_type == 'topic' %}<div class="cxl lsp">Sorry! Topic change karney ke forun baad new owner nahi banaya ja sakta</div> 
@@ -382,7 +352,6 @@
 	<br>
 {% elif too_young_to_become_owner %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Is user ko Damadam join kiye huay itna time nahi guzra ke public mehfil ki ownership transfer ki ja sakey</div>
@@ -391,7 +360,6 @@
 	<br>
 {% elif too_much_price_offered %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ye mehfil itni mehngi nahi biq sakti</div>
@@ -400,7 +368,6 @@
 	<br>
 {% elif not_enough_price_offered %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Is mehfil ki ownership hasil karney ke liye kam az kam {{ min_price }} points ki offer honi chahiye</div>
@@ -409,7 +376,6 @@
 	<br>
 {% elif offerer_not_a_member %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Is offer ko bhejnay waley ko mehfil ka member hona zaruri hai</div>
@@ -422,7 +388,6 @@
 	<br>
 {% elif only_verified_can_be_owner %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Is mehfil ki ownership sirf verified users ko mil sakti hai</div>
@@ -435,7 +400,6 @@
 	<br>
 {% elif owner_rl_due_to_prev_transaction %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if ttl_type == 'owner' %}
@@ -456,7 +420,6 @@
 	<br>
 {% elif officer_app_rate_limited %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit application!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if ttl_type == 'generic' %}
@@ -473,7 +436,6 @@
 	<br>
 {% elif too_young_for_officer %}
 	<head><title>Cannot submit officer request | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot submit application!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	{% if youth_type == 'recent_app_joiner' %}
@@ -490,7 +452,6 @@
 	<br>
 {% elif officer_app_submitted %}
 	<head><title>Officer request submitted | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Answers submitted!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Apke answers mehfil owner ko submit ho gaye</div>
@@ -501,7 +462,6 @@
 	<br>
 {% elif cannot_target_officers %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap mehfil ke officers ko punish nahi kar saktey</div>
@@ -510,7 +470,6 @@
 	<br>
 {% elif wrong_input_by_owner %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Kuch ghalat ho gya</div>
@@ -523,7 +482,6 @@
 	<br>
 {% else %}
 	<head><title>Unable to complete action | Damadam</title></head>
-	<style>body{background: #E9EBEE}</style>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action!</span></h1>
 	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Apke pas ye karney ka permission nahi</div>

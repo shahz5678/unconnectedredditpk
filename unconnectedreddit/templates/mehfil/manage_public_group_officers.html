@@ -3,13 +3,12 @@
 {% load s3 %}
 {% load human_time %}
 {% block content %}
-<head><title>Public group administration | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Public group administration | Damadam</title></head>
 
 {% if add_officers %}
 	{% include "mehfil/officer_navbar.html" with guid=guid static_url=STATIC_URL section='add' %}
 	<h1 style="text-align:center" class="clb cxl lsp">Check officer applications:</h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
 	
 	<div class="mbs mt"><a href="{% url 'public_group' slug=guid %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
 
@@ -55,7 +54,7 @@
 {% elif set_priveleges %}
 
 	<h1 style="text-align:center" class="clb cxl lsp">Make officer:</h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
 	
 	<div class="mbs lsp">
 		<div class="cxl">Is officer ko hide ki power di jaye gi ...</div>
@@ -81,7 +80,7 @@
 	{% include "mehfil/officer_navbar.html" with guid=guid static_url=STATIC_URL section='remove' %}
 	{% load human_time %}
 	<h1 style="text-align:center" class="clb cxl lsp">Remove officers:</h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
 		
 	<div class="mbs mt"><a href="{% url 'public_group' slug=guid %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
 

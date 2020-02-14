@@ -1,32 +1,31 @@
 {% extends "base.html" %}
 {% block content %}
 
-<head><title>Foto upload prohibited in Freebasics (error) | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Photo upload prohibited in Freebasics (error) | Damadam</title></head>
 
-<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden">Unable to upload foto:</h1>
+<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden">Unable to upload photo:</h1>
 
 <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
 	
 	{% if rate_limited %}
 		
 		{% load future_time %}
-		<div class="cxl lsp">Sorry! Freebasics pe abhi foto nahi lag sakti, {{ ttl|future_time }} try karein</div>
+		<div class="cxl lsp">Sorry! Freebasics pe abhi photo nahi lag sakti, {{ ttl|future_time }} try karein</div>
 		<hr size=1 COLOR="#e5e7e9">
-		<div class="sp lsp mts"><a href="https://damadam.pk" target="_blank" style="border-bottom:1px dotted blue" class="cb sp">https://damadam.pk</a> ke zariye Damadam pe foto lagain, phir beshak Freebasics pe wapis a jaein</div>
+		<div class="sp lsp mts"><a href="https://damadam.pk" target="_blank" style="border-bottom:1px dotted blue" class="cb sp">https://damadam.pk</a> ke zariye Damadam pe photo lagain, phir beshak Freebasics pe wapis a jaein</div>
 
 	{% else %}
 		
 		{% load emoticons_tags %}
-		<div class="cxl lsp">Sorry! Freebasics pe 200KB se barri fotos mana hain {% emoticons %}:({% endemoticons %}</div>
+		<div class="cxl lsp">Sorry! Freebasics pe 200KB se barri photos mana hain {% emoticons %}:({% endemoticons %}</div>
 		<hr size=1 COLOR="#e5e7e9">
-		<div class="sp lsp mts"><a href="https://damadam.pk" target="_blank" style="border-bottom:1px dotted blue" class="cb sp">https://damadam.pk</a> ke zariye Damadam use karein, foto lagain, phir beshak Freebasics pe wapis a jaein</div>
+		<div class="sp lsp mts"><a href="https://damadam.pk" target="_blank" style="border-bottom:1px dotted blue" class="cb sp">https://damadam.pk</a> ke zariye Damadam use karein, photo lagain, phir beshak Freebasics pe wapis a jaein</div>
 
 	{% endif %}
 
 	<a href="{% url 'share_content' %}#section0"><button class="btn bco bm mbl mtl pg_ok_res sp" style="height:26px">wapis</button></a>
 
-	<div style="border-top:1px dashed lightgray;padding-top:10px;text-align:left" class="lsp cs sp"><span class="cgy"><b>Note:</b> Mobile data ya WiFi se Damadam pe asani se barri aur high-quality fotos upload ho jati hain</span></div>
+	<div style="border-top:1px dashed lightgray;padding-top:10px;text-align:left" class="lsp cs sp"><span class="cgy"><b>Note:</b> Mobile data ya WiFi se Damadam pe asani se barri aur high-quality photos upload ho jati hain</span></div>
 
 </div>
 <br><br>

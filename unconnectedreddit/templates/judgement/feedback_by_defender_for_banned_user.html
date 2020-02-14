@@ -4,11 +4,9 @@
 {% load emoticons_tags %}
 {% load get_banning_history %}
 {% block content %}
-<head><title>Defender's feedback | Damadam.pk</title></head>
+<head><title>Defender's feedback | Damadam</title></head>
 
-<style>body{background: #E9EBEE}</style>
-
-<div class="clb" style="margin: 0 auto;max-width:600px;width:93%">
+<div class="clb" style="margin: 0 auto;max-width:600px;width:96%">
   <div class="bizcard" style="background-color:white;padding:10px">
     <div class="cxl lsp" style="text-align:center">{% if action == 'undo_content_ban' %}<b>{{ oun|truncatechars:'13' }}</b> ki saza khatam karney ka reason likhein:{% elif action == 'banned_content_submitter' %}<b>{{ oun|truncatechars:'13' }}</b> ko saza dene ka reason batain:{% elif action == 'banned_voter' %}Ye like ban laganey ka reason batain:{% endif %}</div>
     <hr size=1 COLOR="#E9EBEE">

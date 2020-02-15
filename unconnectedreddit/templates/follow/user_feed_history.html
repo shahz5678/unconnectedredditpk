@@ -15,7 +15,6 @@
 {% load get_big_external_share_button %}
 {% block content %}
 <head><title>{{ target_uname }}'s posts | Damadam</title></head>
-<style>body{background: #f0f3f4}</style>
 
 {% include "user_profile_navbar.html" with static_url=STATIC_URL section=section uname=target_uname is_own_profile=is_own_profile %}
 {% if section == 'public' %}

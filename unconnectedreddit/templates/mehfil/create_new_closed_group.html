@@ -1,13 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
-<head><title>Create private mehfil | Damadam.pk</title></head>
-<style>body{background:#f0f3f4}</style>
+<head><title>Create private mehfil | Damadam</title></head>
 
 {% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
 
 <h1 class="clb cxl lsp" style="text-align:center">Create private mehfil:</h1>
 
-<div class="clb bizcard sp" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">
+<div class="clb bizcard sp" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white">
 
 <form method="post" action="{% url 'closed_group_create' %}" method="POST">
 	{% csrf_token %}

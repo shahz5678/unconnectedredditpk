@@ -6,7 +6,6 @@
 {% load s3 %}
 {% block content %}
 <head><title>{{ username }}'s profile | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
 
 {% include "user_profile_navbar.html" with static_url=STATIC_URL section='about' uname=username num_posts=num_posts %}
 
@@ -19,7 +18,7 @@
 {% endif %}
  </div>
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto">
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;margin-right:auto;margin-left:auto">
 	{% if manageable and not is_own_profile %} 
 	        <form method="POST" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm sp pg_ok_res" style="height:32px;width:100%;border-bottom-left-radius:0;border-bottom-right-radius:0">manage</button></form>
 	{% endif %}

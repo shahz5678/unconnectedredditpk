@@ -8,7 +8,6 @@
 {% load get_transparent_buttons_js %}
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
 
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
 
@@ -23,7 +22,7 @@
     <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
 </form>
 
-<main style="display: block;margin: 0 auto;max-width:750px;width:97%" class="clb">
+<main style="display: block;margin: 0 auto;max-width:750px;width:98%" class="clb">
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 

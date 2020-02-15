@@ -1,14 +1,13 @@
 {% extends "base.html" %}
 {% block content %}
 {% load cache %}
-<head><title>Select mehfil type | Damadam.pk</title></head>
-<style>body{background:#f0f3f4}</style>
+<head><title>Select mehfil type | Damadam</title></head>
 
 {% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
 
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Create new mehfil:</span></h1>
 
-<div class="mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;margin-left:auto;margin-right:auto;width:97%;text-align:center">
+<div class="mbl mtl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;margin-left:auto;margin-right:auto;width:98%;text-align:center">
 
 {% if not_verified %}
 	<div style="padding:10px"><div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl cr lsp">Sorry! Mehfil create karney ke liye apko apna <a href="{% url 'verify_user_mobile_unpaid' %}#section0" class="cb" style="border-bottom:1px dotted dodgerblue">account verify</a> karwana hoga</div></div>

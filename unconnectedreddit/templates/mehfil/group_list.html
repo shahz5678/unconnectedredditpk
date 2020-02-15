@@ -2,15 +2,14 @@
 {% load emoticons_tags %}
 {% load human_time %}
 {% block content %}
-<head><title>User mehfils | Damadam.pk</title></head>
-<style>body{background:#f0f3f4}</style>
+<head><title>User mehfils | Damadam</title></head>
 
 {% include "mehfil/mehfil_list_navbar.html" with section='list' static_url=STATIC_URL %}
 
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if num_grps == 1 %}1 mehfil:{% else %}{{ num_grps }} mehfils:{% endif %}</span></h1>
 
 {% if not object_list %}
-<div class="clb" style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:97%;overflow:hidden;background:ivory;max-width:600px;text-align:center">
+<div class="clb" style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:98%;overflow:hidden;background:ivory;max-width:600px;text-align:center">
 
 	<div style="padding:10px 5px 5px 5px;background:white" class="cxl lsp">Ap kisi bhi mehfil ke member nahi!</div>
 	<div class="sp lsp cgy" style="background:white;padding-bottom:5px;border-bottom:1px solid #E9EBEE">'Mehfil' group ko kehtay hain jahan messaging and foto sharing hoti hai</div>

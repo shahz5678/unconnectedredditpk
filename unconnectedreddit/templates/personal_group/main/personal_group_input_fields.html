@@ -28,7 +28,7 @@
         {% endif %}
     </div>
 
-    {% if is_js_env %}
+    {% if not is_js_env %}
 
         <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" class="mts" enctype="multipart/form-data">
             {% csrf_token %}<input type="hidden" id="sk" name="sk" value="{{ sk }}"><input type="hidden" id="tid" name="tid" value="{{ tid }}">
@@ -60,7 +60,7 @@
         <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" enctype="multipart/form-data" style="display:inline">
         {% csrf_token %}<input type="hidden" id="sk" name="sk" value="{{ sk }}"><input type="hidden" id="tid" name="tid" value="{{ tid }}">
             <input class="mts mbs" style="max-width:750px;width:99%;border: 1px #bdebfe solid;border-radius:6px;background:azure" name="image" type="file" id="browse_image_btn">
-            <textarea id="text_field" class="cxl" autocomplete="off" autofocus="autofocus" cols="30" name="reply" rows="10" style="width:99%;height:60px;border-radius:8px;border: 1px #bdebfe solid; background-color:#FAFAFA;padding:5px;box-sizing:border-box"></textarea>
+            <textarea id="text_field" class="cxl" autocomplete="off" autofocus="autofocus" cols="30" name="reply" rows="10" style="width:99%;height:60px;border-radius:8px;border: 1px #bdebfe solid; background-color:white;padding:5px;box-sizing:border-box"></textarea>
             <br><button class="mt mbs btn sp cs bcb bl pg_ok mrl" style="height:36px;width:120px">SEND</button>
         </form>
 

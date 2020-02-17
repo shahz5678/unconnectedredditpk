@@ -380,7 +380,7 @@ def enter_personal_group(request):
 		no_permit = request.session.pop("personal_group_image_xfer_no_permit",None)
 		no_notif = request.session.pop("personal_group_notif_no_permit",None)
 		no_save_chat = request.session.pop("personal_group_save_chat_no_permit",None)
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs=request.META.get('HTTP_X_IORG_FBS',False))
+		is_js_env = retrieve_user_env(opera_mini=request.is_opera_mini, fbs=request.META.get('HTTP_X_IORG_FBS',False))
 		################### Retention activity logging ###################
 		from_redirect = request.session.pop("rd",None)
 		if not from_redirect and own_id > SEGMENT_STARTING_USER_ID:

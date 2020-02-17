@@ -2166,7 +2166,7 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 	if best_trending_items:
 		for obj_hash_name, item_highest_vote, time_of_submission, obj_hash_data in best_trending_items:
 			# this img obj is locked from entering trending because of sybil votes
-			if False:#my_server.exists(LOCKED_IMG+obj_hash_name):
+			if my_server.exists(LOCKED_IMG+obj_hash_name):
 				my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
 			
 			# push this into trending

@@ -1,0 +1,85 @@
+{% load google_analytics %}
+<!DOCTYPE html>
+<html style="background:#f0f3f4">
+<head>
+    <!-- has to be the first tag in head -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    {% include "favicons.html" %}
+    {% include "css.html" %}
+   <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Damadam is the place for gupshup with Pakistani girls and guys like you, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+    <meta name="robots" content="noindex">
+    <meta name="robots" content="noarchive">
+    <meta property="og:site_name" content="Damadam.pk">
+    <meta property="og:title" content="Damadam.pk">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://damadam.pk/">
+    <meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
+    <meta property="og:image:width" content="300">
+    <meta property="og:image:height" content="300">
+    <meta property="og:description" content="Damadam is the place for gupshup with girls and guys from Pakistan, the best funny photos and memes, and Urdu poetry. Join the fun now!">
+    <meta property="fb:app_id" content="1758220174446684" />
+    <meta name="author" content="mhb">
+
+    {% google_analytics %}
+    {% include "ga_user_analytics.html" with my_var=user.id %}
+
+</head>
+<body>
+
+{% include "header.html" %}
+
+{% if user.is_authenticated %}
+    {% if request.mobile_verified %}
+        {% include "navbars/top_navbar.html" with username=user.username %}
+    {% else %}
+        {% include "navbars/top_navbar_unverified.html" %}
+    {% endif %}
+{% else %}
+    {% include "navbars/top_navbar_unauth.html" %}
+{% endif %}
+
+{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
+
+<a name="section0"></a>
+
+{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
+
+<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
+
+<div class="mbl"></div>
+{% block content %}
+{% endblock %}
+{% block pagination %}
+{% endblock %}
+
+{% if user.is_authenticated %}
+
+    {% if request.mobile_verified %}
+
+        {% load feed_count %}
+        {% check_feed_count False as feed_count %}
+        {% load count %}
+        {% check_reply_count as reply_count %}
+        {% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count selected='profile' %}
+
+    {% else %}
+
+        {% load feed_count %}
+        {% check_feed_count False as feed_count %}
+        {% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count selected='profile' %}
+
+    {% endif %}
+
+{% else %}
+
+    {% include "navbars/bottom_navbar_unauth.html" with selected='profile' %}
+
+{% endif %}
+
+{% include "min_service_worker.html" %}
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
+</body>
+</html>

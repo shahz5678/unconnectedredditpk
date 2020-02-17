@@ -1,6 +1,6 @@
 {% load google_analytics %}
 <!DOCTYPE html>
-<html>
+<html style="background:#f0f3f4">
 <head>
 	<!-- has to be the first tag in head -->
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -30,37 +30,27 @@
 
 </head>
 
-<body style="background:#f0f3f4">
+<body>
 	
 {% include "header.html" %}
-<ul class="navbar">
 
 {% if user.is_authenticated %}
 	{% if request.mobile_verified %}
-	    {% load feed_count %}
-	    {% check_feed_count True as feed_count %}
-	    {% load count %}
-	    {% check_reply_count as reply_count %}
-	    {% load count_priv_invites %}
-	    {% check_invite_count as invite_count %}
-	    {% load count_group_invites %}
-	    {% check_group_invite_count as group_invite_count %}
-	    <!-- bunched HTML removes spaces between <li> elements -->
-	    <li>{% if feed_count %}<a href="/">For Me<span style="color:mediumblue"> ({{ feed_count }})</span></a>{% else %}<a href="/">For Me</a>{% endif %}</li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li>{% if reply_count %}<a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox<span style="color:mediumblue"> ({{ reply_count }})</span></a>{% else %}<a class="sharing" href="{% url 'retrieve_direct_response_activity' %}#section0">Inbox</a>{% endif %}</li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'topic_listing' %}">Topics</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+	    {% include "navbars/top_navbar.html" with username=user.username %}
 	{% else %}
-		{% load feed_count %}
-	    {% check_feed_count True as feed_count %}
-		<li>{% if feed_count %}<a href="/">For Me<span style="color:mediumblue"> ({{ feed_count }})</span></a>{% else %}<a href="/">For Me</a>{% endif %}</li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
+		{% include "navbars/top_navbar_unverified.html" %}
 	{% endif %}
 {% else %}
-    <li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
+    {% include "navbars/top_navbar_unauth.html" %}
 {% endif %}
-</ul>
 
 {% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 <a name="section0"></a>
+
+{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
+
+<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 
 <main style="display:block;max-width:750px;margin:0 auto;width:98%;position:relative;">
 	<!-- content -->
@@ -103,8 +93,11 @@
 	<div class="mbl">{% include "follow/follower_count_notif.html" with new_count=new_count last_seen=last_seen|human_time %}</div>
 
 	<a name="shared"></a>
-	<div class="mbl fx fxjscn fxaibl">
-		<a href="/" style="display:inline-block"><button class="rf" style="background:0 0;vertical-align:text-bottom;width:44px;height:24px" type="submit"><img src="{{ STATIC_URL }}img/refresh.svg" style="height:24px;width:24px" width="24" height="24"></button></a>
+
+	{% load feed_count %}
+	{% check_feed_count True as feed_count %}
+	
+	<div class="mbl" style="text-align:center;">
 		<h1 class="cxl lsp clb" style="margin:0;display:inline-block">{% if feed_count == 1 %}1 new post for me:{% elif feed_count %}{{ feed_count }} new posts for me:{% else %}For me <span class="cs">(page {{ page.number }})</span>:{% endif %}</h1>
 	</div>
 
@@ -121,99 +114,51 @@
 	    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
 	</form>
 
-	{% for link in link_list %}
+	{% if link_list %}
+		{% for link in link_list %}
 
-	{% if not on_fbs and forloop.counter == 2 %}
+		{% if not on_fbs and forloop.counter == 2 %}
 
-		<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
-			<ins class="adsbygoogle"
-			    style="display:inline-block;width:320px;height:100px"
-			    data-ad-client="ca-pub-2568547635306983"
-			    data-ad-slot="9571801752"></ins>
-			<script>
-			(adsbygoogle = window.adsbygoogle || []).push({});
-			</script>
-		</aside>
+			<aside class="mbl" id="adcontainer" style="text-align:center;background:#f0f3f4">
+				<ins class="adsbygoogle"
+				    style="display:inline-block;width:320px;height:100px"
+				    data-ad-client="ca-pub-2568547635306983"
+				    data-ad-slot="9571801752"></ins>
+				<script>
+				(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</aside>
 
-	{% elif forloop.counter == 4 %}
+		{% endif %}
 
-		<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#80d4ff;text-align:center;overflow:hidden">
-			<img class="mtl" src="{{ STATIC_URL }}img/gstar.svg" width="30" height="30">
-			<div class="mt mbl cxl lsp" style="color:black"><b>Apna 'red star' paaney ka chance barhain!</b></div>
-			<a href="{% url 'coming_soon' %}#section0"><button class="cs lsp sp" style="width:100%;border-radius:0;border:none;background:tomato;color:white;height:40px"><b>KAISEY?</b></button></a>
-		</div>
+		{% if link.ot == 'g' %}
 
-	{% endif %}
+		<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+			<a name="section{{ forloop.counter }}"></a>
 
-	{% if link.ot == 'g' %}
-
-	<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
-		<a name="section{{ forloop.counter }}"></a>
-
-		{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s show_trending=link.tr lazyload_idx=forloop.counter ratio=link.rt ot=link.ot aud=link.aud exp=link.exp is_new=link.new  et=link.et time_now=time_now %}
-		
-		<section class="mbl" style="display:block">
-		<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-
-			{% if link.et and link.et < time_now %}
-				
-				{% big_photo_comment_button photo_id=link.i origin=origin comm_count=link.cc static_url=STATIC_URL %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin=origin target_username=link.su home_hash=link.h %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
-
-			{% else %}
-
-				{% big_vote_button is_pht='1' obid=link.i origin=origin ooid=link.si user_voted=link.v static_url=STATIC_URL %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin=origin target_username=link.su home_hash=link.h %}
-				{% big_photo_comment_button photo_id=link.i origin=origin comm_count=link.cc static_url=STATIC_URL %}
-				{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin=origin home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
-				{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin=origin static_url=STATIC_URL %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
-				{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
-
-			{% endif %}
-		</div>
-		</section>
-		
-		{% if link.com == '0' %}
-			<div size=1 style='border-top: dashed 1px #f2f2f2;'>
-				<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
-	 				- Replies Off -
-	 			</div>
-	 		</div>
-		{% else %}
-			<section style="display:block" class="mls mrs mbl">
-				{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin=origin form=thin_rep_form btn_color='bct' %}
-			</section>
-
-			<section style="display:block" class="mls mbl"> 
-				{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin=origin obj_owner_id=link.si obj_type='img' %}
-			</section>
-		{% endif %}	
-	</article>
-		
-	{% elif link.ot == 't' %}
-	<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
-		<a name="section{{ forloop.counter }}"></a>
-			<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
-			{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 aud=link.aud exp=link.exp is_new=link.new et=link.et time_now=time_now %}
-			</section>
-			<section class="mbl" style="display:block">
+			{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s show_trending=link.tr lazyload_idx=forloop.counter ratio=link.rt ot=link.ot aud=link.aud exp=link.exp is_new=link.new  et=link.et time_now=time_now %}
 			
+			<section class="mbl" style="display:block">
 			<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-			{% if link.et and link.et < time_now %}
-				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
-			{% else %}
-				{% big_vote_button is_pht='0' obid=link.i origin=origin ooid=link.si user_voted=link.v static_url=STATIC_URL %}
-				{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
-				{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
-				{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
-				{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
-			{% endif %}
-			</div>
 
+				{% if link.et and link.et < time_now %}
+					
+					{% big_photo_comment_button photo_id=link.i origin=origin comm_count=link.cc static_url=STATIC_URL %}
+					{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin=origin target_username=link.su home_hash=link.h %}
+					{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
+
+				{% else %}
+
+					{% big_vote_button is_pht='1' obid=link.i origin=origin ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+					{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='photo' origin=origin target_username=link.su home_hash=link.h %}
+					{% big_photo_comment_button photo_id=link.i origin=origin comm_count=link.cc static_url=STATIC_URL %}
+					{% big_send_button photo_owner_username=link.su photo_id=link.i photo_owner_id=link.si photo_caption=link.d origin=origin home_hash=link.h img_url=link.iu static_url=STATIC_URL %}
+					{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin=origin static_url=STATIC_URL %}
+					{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
+					{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
+
+				{% endif %}
+			</div>
 			</section>
 			
 			{% if link.com == '0' %}
@@ -224,35 +169,88 @@
 		 		</div>
 			{% else %}
 				<section style="display:block" class="mls mrs mbl">
-				{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin=origin form=thin_rep_form btn_color='bct' %}
+					{% include "reply_bar.html" with target_user_id=link.si target_obj_type='4' obj_id=link.i origin=origin form=thin_rep_form btn_color='bct' %}
 				</section>
 
-				<section style="display:block" class="mts mls mbl">
-				{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin=origin obj_owner_id=link.si obj_type='tx' %}
+				<section style="display:block" class="mls mbl"> 
+					{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin=origin obj_owner_id=link.si obj_type='img' %}
 				</section>
-			{% endif %}
+			{% endif %}	
+		</article>
+			
+		{% elif link.ot == 't' %}
+		<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+			<a name="section{{ forloop.counter }}"></a>
+				<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
+				{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 aud=link.aud exp=link.exp is_new=link.new et=link.et time_now=time_now %}
+				</section>
+				<section class="mbl" style="display:block">
+				
+				<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+				{% if link.et and link.et < time_now %}
+					{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
+					{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
+					{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
+				{% else %}
+					{% big_vote_button is_pht='0' obid=link.i origin=origin ooid=link.si user_voted=link.v static_url=STATIC_URL %}
+					{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
+					{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
+					{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
+					{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
+				{% endif %}
+				</div>
 
-	</article>
+				</section>
+				
+				{% if link.com == '0' %}
+					<div size=1 style='border-top: dashed 1px #f2f2f2;'>
+						<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+			 				- Replies Off -
+			 			</div>
+			 		</div>
+				{% else %}
+					<section style="display:block" class="mls mrs mbl">
+					{% include "reply_bar.html" with target_user_id=link.si target_obj_type='3' obj_id=link.i origin=origin form=thin_rep_form btn_color='bct' %}
+					</section>
+
+					<section style="display:block" class="mts mls mbl">
+					{% inline_replies_section raw_replies=link.rb static_url=STATIC_URL self_user_id=ident home_hash=link.h origin=origin obj_owner_id=link.si obj_type='tx' %}
+					</section>
+				{% endif %}
+
+		</article>
+		{% else %}
+		<!-- nothing -->
+		{% endif %}
+
+		{% endfor %}
+
+		<!-- show top stars -->
+		{% if top_list %}
+			<div class="mbl" style="background-color:white;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;">
+				<h2 class="clb mbs lsp" style="font-weight:lighter;padding:8px;background:ivory;margin:0;border-bottom:1px solid #f2f2f2">Hamarey best posters ko 'Follow' karna hai tou in mein se choose karein:</h2>
+				{% include "top_stars.html" with object_list=top_list origin=origin %}
+			</div>
+		{% endif %}
+
 	{% else %}
-	<!-- nothing -->
-	{% endif %}
+		<!-- no posts -->
+		<div class="mbl" style="background-color:white;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;">
+			<div class="cxl lsp clb" style="background:ivory;padding:8px;border-bottom:1px solid #f2f2f2">'For Me' mein un users ki posts show hoti hain jinko ap 'Follow' karte hain</div>
+			<h2 class="clb mbs mts lsp" style="font-weight:lighter;padding:0 8px">Hamarey best posters ko 'Follow' karna hai tou in mein se choose karein:</h2>
+			{% include "top_stars.html" with object_list=top_list origin=origin %}
 
-	{% empty %}
-
-		<div class="mbl" style="background-color:white;padding:7px;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;">
-		<div class="cxl lsp clb"><b>'Follow' karein mazedar posts karney waley users ko</b></div>
-		<hr size=1 COLOR="#f2f2f2">
-		<h2 class="clb mbs" style="font-weight:lighter">Kaunsi posts dekhni hain?</h2>
+			<hr size=1 COLOR="#f2f2f2" style="margin:0">
+			<h2 class="clb mts mbs lsp" style="font-weight:lighter;padding:0 8px;">Agr best posts dekhni hain tou aik button dabain:</h2>
 		
-		<div class="mbl">
-			<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+			<div class="mbl">
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
 
-			<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+				<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
+			</div>
+
 		</div>
-
-		</div>
-
-	{% endfor %}
+	{% endif %}
 
 </main>
 
@@ -272,17 +270,25 @@
 {% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 
-<ul class="navbar">
 {% if user.is_authenticated %}
-	<li><a href="/">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'help' %}#section0">Help</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li>
-{% else %}
-	<li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li>
-{% endif %}
-</ul>
 
-<div style="text-align:center;padding-bottom:10px" class="mtl sp lsp cxs cgy">
-    |<a href="{% url 'about' %}" class="clb" style="font-weight:bold"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}" class="clb" style="font-weight:bold"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'bahirniklo' %}#section0" class="clb" style="font-weight:bold"> &nbsp;Logout&nbsp; </a>|
-</div>
+	{% if request.mobile_verified %}
+
+		{% load count %}
+		{% check_reply_count as reply_count %}
+		{% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count selected='for_me' %}
+
+	{% else %}
+
+		{% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count selected='for_me' %}
+
+	{% endif %}
+
+{% else %}
+
+	{% include "navbars/bottom_navbar_unauth.html" with selected='for_me' %}
+
+{% endif %}
 
 {% include "min_service_worker.html" %}
 

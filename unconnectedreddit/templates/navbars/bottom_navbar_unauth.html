@@ -1,0 +1,163 @@
+<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement"><ul class="navbar"><li><a href="{% url 'unauth_home_new' %}#section0">Sign Up</a></li><li><a href="{% url 'login' %}#section0">Login</a></li><li><a href="{% url 'about' %}#section0">About</a></li></ul></nav>
+
+<footer style="text-align:center;padding-bottom:30px" class="mtl sp lsp cxs cgy">
+	|<a href="{% url 'privacy_policy' %}" class="clb" style="font-weight:bold"> &nbsp;Privacy Policy&nbsp; </a>|
+</footer>
+
+{% include "navbars/navbar_sprites_unauth.svg" %}
+<div style="background:white;position: fixed;bottom: 0;height:56px;width:100%;text-align:center;border-top:1px solid #E9E9E9">
+	
+	<form method="GET" style="height:100%;background:0 0" class="fx fxjscn fxaicn" action="{% url 'bottom_navbar' %}">
+		
+		{% if selected == 'sign_up' %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">LOGIN</div>
+			
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">PHOTOS</div>
+			
+			</button>
+
+		{% elif selected == 'login' %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%">LOGIN</div>
+			
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">PHOTOS</div>
+			
+			</button>
+
+		{% elif selected == 'photos' %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">LOGIN</div>
+			
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%">PHOTOS</div>
+			
+			</button>
+
+		{% else %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">LOGIN</div>
+			
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#c0c0c0"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#c0c0c0;height:37px;width:100%;">PHOTOS</div>
+			
+			</button>
+		{% endif %}
+
+	</form>
+
+</div>

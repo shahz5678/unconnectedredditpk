@@ -1,3 +1,21 @@
+<div id="share_popup" style="display:none;position: fixed;top: 0px;left: 0px;z-index: 102">
+	<div class="outer_ldr" style="background-color:white;padding:12px;border-radius:10px;border:1px solid #DCDCDC;color:#080808;text-align:center;width:300px" class="cs sp">
+		
+		<div style="text-align:right">
+			<button style="padding:0;border:none;background:0 0" id="share_popup_x" class="pg_ok_res"><img src="{{ static_url }}img/x_b.svg" width="15" height="15"></button>
+		</div>
+
+		<h2>Sharing options:</h2>
+
+		<button class="sp lsp" style="border-radius:8px;border:1px solid white;width:120px;height:120px;background-color:coral">SHARE IN<br>1-ON-1</button><br>
+		<button class="sp lsp" style="border-radius:8px;border:1px solid white;width:120px;height:120px;background-color:coral">SHARE ON<br>FACEBOOK</button><br>
+		<button class="sp lsp" style="border-radius:8px;border:1px solid white;width:120px;height:120px;background-color:coral">SHARE ON<br>WHATSAPP</button><br>
+		<button class="sp lsp" style="border-radius:8px;border:1px solid white;width:120px;height:120px;background-color:coral">COPY<br>LINK</button>
+
+	</div>
+	<br>
+</div>
+
 <div id="report_popup" style="display:none;position: fixed;top: 0px;left: 0px;z-index: 101">
 	<div class="outer_ldr" style="background-color:white;padding:12px;border-radius:10px;border:1px solid #DCDCDC;color:#00664e;text-align:center" class="cs sp">
 		<div style="text-align:right">
@@ -42,13 +60,14 @@
 	</div>
 </div>
 
-<div id="quick_prompt" style="display:none;position:fixed;z-index:10;bottom:0;width:100%;text-align:center">
-<div id="quick_text" style="position:relative; background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);display:inline-block;padding:8px 12px;border-top-right-radius:6px;border-top-left-radius:6px;color:white;text-align:center;font-size:14px;font-weight:600;min-width:200px" class="sp lsp"></div>
+<div id="quick_prompt" style="display:none;position:fixed;z-index:10000;bottom:0;width:100%;text-align:center">
+	<div id="quick_text" style="position:relative; background: rgb(0,238,209);background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);display:inline-block;padding:8px 12px;border-top-right-radius:6px;border-top-left-radius:6px;color:white;text-align:center;font-size:14px;font-weight:600;min-width:200px" class="sp lsp"></div>
 </div>
 
-<div id="quick_err_prompt" style="display:none;position:fixed;z-index:10;bottom:0;width:100%;text-align:center">
-<div id="quick_err_text" style="position:relative; background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);display:inline-block;padding:8px 12px;border-top-right-radius:6px;border-top-left-radius:6px;color:white;text-align:center;font-size:14px;font-weight:600;min-width:200px" class="sp lsp"></div>
+<div id="quick_err_prompt" style="display:none;position:fixed;z-index:10000;bottom:0;width:100%;text-align:center">
+	<div id="quick_err_text" style="position:relative; background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);display:inline-block;padding:8px 12px;border-top-right-radius:6px;border-top-left-radius:6px;color:white;text-align:center;font-size:14px;font-weight:600;min-width:200px" class="sp lsp"></div>
 </div>
 
 <input type="hidden" id="uident" name="myid" value="{{ ident }}">
-<script async type="text/javascript" src="{{ static_url }}js/module/transparent_btns.v10.js"></script>
+<!-- <script async type="text/javascript" src="{{ static_url }}js/module/transparent_btns.v10.js"></script> -->
+<script async type="text/javascript" src="{{ static_url }}js/module/transparent_buttons.js"></script>

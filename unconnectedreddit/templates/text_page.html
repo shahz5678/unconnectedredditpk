@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_text.html" %}
 {% load emoticons_tags %}
 {% load get_text_object %}
 {% load url_target_blank %}
@@ -13,7 +13,6 @@
 {% load get_big_external_share_button %}
 {% block content %}
 <head><title>{% if feed_type == 'best_text' %}Trending text{% elif feed_type == 'fresh_text' %}Latest text{% endif %} | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
 <main style="display:block;max-width:750px;margin:0 auto;width:98%;position:relative;">
 
 {% if newbie_flag %}

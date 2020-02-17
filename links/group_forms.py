@@ -21,7 +21,7 @@ class PersonalGroupPostForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.on_fbs = kwargs.pop('on_fbs',None)
 		super(PersonalGroupPostForm, self).__init__(*args,**kwargs)
-		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:6px;border: 1px #bdebfe solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:6px;border: 1px #bdebfe solid; background-color:white;padding:5px;'
 		self.fields['reply'].widget.attrs['id'] = 'text_field'
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
 		self.fields['image'].widget.attrs['class'] = 'cam_img'

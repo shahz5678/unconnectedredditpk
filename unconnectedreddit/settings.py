@@ -152,12 +152,13 @@ MIDDLEWARE_CLASSES = (
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
 	#'debug_toolbar.middleware.DebugToolbarMiddleware',
 	'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
+	'django.contrib.messages.middleware.MessageMiddleware',
 	'unconnectedreddit.middleware.MobileVerified.MobVerifiedMiddleware',
 	'unconnectedreddit.middleware.WhoseOnline.WhoseOnlineMiddleware', #enable from here
-	'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
+	# 'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
+	'unconnectedreddit.middleware.OperaMini.OperaMiniMiddleware',
 	#'request.middleware.RequestMiddleware',
-	'django.contrib.messages.middleware.MessageMiddleware',
 	'mobileesp.middleware.MobileDetectionMiddleware',
 	# Uncomment the next line for simple clickjacking protection:
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',

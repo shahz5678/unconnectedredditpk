@@ -11,7 +11,7 @@
     <img src="{{ aurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">&nbsp;<b class='sp cl'><bdi >{{ username }}</bdi></b>:&nbsp;<span class="sp cgy">{{ num_trending_pics }} trending posts</span>
     <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
         <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=username static_url=STATIC_URL %}</div>
-        {% if ident != user_id %}{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=username tid=user_id origin='37' obid='' obh='' static_url=STATIC_URL %}{% endif %}
+        {% if ident != user_id %}{% include "big_buttons/big_sub_button.html" with is_subbed=is_follower username=username tid=user_id origin=origin obid='' obh='' static_url=STATIC_URL %}{% endif %}
     </div>
 </div>
 {% endfor %}

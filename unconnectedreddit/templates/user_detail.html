@@ -1,4 +1,4 @@
-{% extends noindex|yesno:"base_noindex.html,base.html" %}
+{% extends noindex|yesno:"base_profile_noindex.html,base_profile.html" %}
 {% load get_transparent_buttons_js %}
 {% load get_display_ban_msg %}
 {% load emoticons_tags %}
@@ -65,7 +65,10 @@
 		<div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ object.date_joined|naturaltime }}</div>
 
 		{% if is_own_profile %}
-			<div style="text-align:center"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px;width:100%;border-radius:0;background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);"><b>Edit my profile</b></button></a></div>
+			<div style="text-align:center;width:100%" class="fx fxjscn fxaicn">
+				<a href="{% url 'edit_profile' %}#section0" style="width:100%;background-color:#1edea8"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px"><b>EDIT<br>PROFILE</b></button></a>
+				<a href="{% url 'reauth' %}#section0" style="width:100%;background-color:#59adf7;"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px;"><b>CHANGE<br>PASSWORD</b></button></a>
+			</div>
 		{% else %}
 			{% if own_id %}
 				{% load get_big_group_button %}

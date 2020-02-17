@@ -91,21 +91,18 @@ from imagestorage import upload_image_to_s3
 condemned = HellBanList.objects.values_list('condemned_id', flat=True).distinct()
 
 
-def retrieve_user_env(user_agent, fbs):
+def retrieve_user_env(opera_mini, fbs):
 	"""
-	Checks whether environment can support JS
+	Does the user's environment support JS?
 
 	Opera mini (extreme mode) and free basics do not support JS
 	"""
 	if fbs:
-		return False#, True
-	elif user_agent:
-		if 'Presto' in user_agent and 'Opera Mini' in user_agent:
-			return False#, False
-		else:
-			return True#, False
+		return False# does NOT support JS
+	elif opera_mini:
+		return False# does NOT support JS
 	else:
-		return True#, False
+		return True# supports JS
 
 
 def secs_to_mins(seconds):
@@ -413,6 +410,43 @@ class PrivacyPolicyView(FormView):
 	template_name = "privacy_policy.html"
 
 
+def bottom_navbar(request):
+	"""
+	Handles navigation of the bottom menu
+	"""
+	decision = request.GET.get('dec', None)
+	if decision == '1':
+		# redirect to 'for me'
+		return redirect("for_me")
+	elif decision == '2a':
+		# redirect to inbox replies
+		return redirect("retrieve_direct_responses")
+	elif decision == '2b':
+		# redirect to inbox activity
+		return redirect("retrieve_direct_response_activity")
+	elif decision == '3':
+		# redirect to content sharing page
+		return redirect("share_content")
+	elif decision == '4':
+		# redirect to best photos
+		return redirect("photo",list_type='best-list')
+	elif decision == '5':
+		# redirect to best text
+		return redirect("best_home_page")
+	elif decision == '6':
+		# redirect to sign up
+		return redirect("unauth_home_new")
+	elif decision == '7':
+		# redirect to login
+		return redirect("login")
+	elif decision == '8':
+		# redirect to user's profile
+		return redirect("user_profile",request.user.username)
+	else:
+		# default redirect
+		return redirect("photo",list_type='best-list')
+
+
 class HelpView(FormView):
 	form_class = HelpForm
 	template_name = "help.html"
@@ -617,12 +651,12 @@ def content_detail_view(request, pk, origin=None, obj_type=None):
 				context["show_copy_prompt"] = True
 				context["regular_url"] = "https://damadam.pk"+reverse('content_detail_view',kwargs={"pk": pk,"obj_type":'g'})
 			else:
-				is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+				on_opera = request.is_opera_mini
+				is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+				context["on_opera"] = on_opera
 				if is_js_env:
 					context["is_js_env"] = True
-					context["on_opera"] = False
-				else:
-					context["on_opera"] = True
+				
 			#################################################################
 			
 			context["defender"] = False
@@ -763,12 +797,11 @@ def photo_detail_view(request, pk, origin=None):
 		context["show_copy_prompt"] = True
 		context["regular_url"] = "https://damadam.pk"+reverse('photo_detail',kwargs={"pk": pk})
 	else:
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		context["on_opera"] = on_opera
 		if is_js_env:
 			context["is_js_env"] = True
-			context["on_opera"] = False
-		else:
-			context["on_opera"] = True
 	context["defender"] = False
 	context["is_star"] = is_image_star(user_id=photo.owner_id)
 	context["oun"] = retrieve_uname(photo.owner_id,decode=True)
@@ -838,8 +871,9 @@ def best_home_page(request):
 	#############################################################
 
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-	on_opera = True if (not on_fbs and not is_js_env) else False
+	on_opera = request.is_opera_mini
+	is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+	# on_opera = True if (not on_fbs and not is_js_env) else False
 	num = random.randint(1,4)
 	#######################
 	# enrich objs with information that 'own_id' liked them or not
@@ -944,8 +978,9 @@ def home_page(request, lang=None):
 	#############################################################
 
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-	on_opera = True if (not on_fbs and not is_js_env) else False
+	on_opera = request.is_opera_mini
+	is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+	# on_opera = True if (not on_fbs and not is_js_env) else False
 	num = random.randint(1,4)
 	#######################
 	# short-circuit in case user's previous voting time was BEFORE oldest_post_time on the page
@@ -1734,8 +1769,9 @@ def photo_page(request,list_type='best-list'):
 			newbie_lang, newbie_flag = None, None
 			mobile_verified = None
 
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		on_opera = True if (not on_fbs and not is_js_env) else False
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		# on_opera = True if (not on_fbs and not is_js_env) else False
 		
 		context = {'object_list':list_of_dictionaries,'single_notif_dir_rep_form':DirectResponseForm(),\
 		'single_notif_origin':single_notif_origin, 'page_origin':page_origin,'fbs':on_fbs,'list_type':list_type,\
@@ -1794,8 +1830,9 @@ def show_templates(request):
 	Renders templates that can be downloaded for creating original content
 	"""
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-	on_opera = True if (not on_fbs and not is_js_env) else False
+	on_opera = request.is_opera_mini
+	is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+	# on_opera = True if (not on_fbs and not is_js_env) else False
 	if on_opera:
 		# disallowing opera mini users from posting public text posts
 		# mislabeled template - used to show some generic errors and such to posters
@@ -2068,8 +2105,9 @@ def upload_public_photo(request,*args,**kwargs):
 							return redirect('publish_post')
 	else:
 		# if it's a GET request
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		on_opera = True if (not on_fbs and not is_js_env) else False
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		# on_opera = True if (not on_fbs and not is_js_env) else False
 		if on_opera:
 			# disallowing opera mini users from posting public text posts
 			# mislabeled template - used to show some generic errors and such to posters
@@ -2576,8 +2614,9 @@ def submit_text_post(request):
 						'random':random.sample(xrange(1,188),15),'subscribed_topics':retrieve_subscribed_topics(str(own_id)),\
 						'num_fans':followers_exist(own_id)})
 	else:
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		on_opera = True if (not on_fbs and not is_js_env) else False
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		# on_opera = True if (not on_fbs and not is_js_env) else False
 		if on_opera:
 			# disallowing opera mini users from posting public text posts
 			# mislabeled template - used to show some generic errors and such to posters
@@ -3801,8 +3840,9 @@ def user_profile_photos(request,slug,type):
 	context["time_remaining"] = time_remaining
 	###########
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-	context["on_opera"] = True if (not on_fbs and not is_js_env) else False
+	on_opera = request.is_opera_mini
+	is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+	context["on_opera"] = on_opera
 	context["on_fbs"] = on_fbs
 	###########
 	context["subject"] = subject

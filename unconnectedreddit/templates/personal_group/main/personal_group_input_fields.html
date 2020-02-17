@@ -28,7 +28,7 @@
         {% endif %}
     </div>
 
-    {% if not is_js_env %}
+    {% if is_js_env %}
 
         <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" class="mts" enctype="multipart/form-data">
             {% csrf_token %}<input type="hidden" id="sk" name="sk" value="{{ sk }}"><input type="hidden" id="tid" name="tid" value="{{ tid }}">

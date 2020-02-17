@@ -66,8 +66,8 @@
 
 		{% if is_own_profile %}
 			<div style="text-align:center;width:100%" class="fx fxjscn fxaicn">
-				<a href="{% url 'edit_profile' %}#section0" style="width:100%;background-color:#1edea8"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px"><b>EDIT<br>PROFILE</b></button></a>
-				<a href="{% url 'reauth' %}#section0" style="width:100%;background-color:#59adf7;"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px;"><b>CHANGE<br>PASSWORD</b></button></a>
+				<a href="{% url 'edit_profile' %}#section0" style="width:100%;background-color:#1edea8"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px"><b><div>EDIT</div><div>PROFILE</div></b></button></a>
+				<a href="{% url 'reauth' %}#section0" style="width:100%;background-color:#59adf7;"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px;"><b><div>CHANGE</div><div>PASSWORD</div></b></button></a>
 			</div>
 		{% else %}
 			{% if own_id %}

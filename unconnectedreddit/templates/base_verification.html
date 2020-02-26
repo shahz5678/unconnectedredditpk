@@ -1,6 +1,6 @@
 {% load google_analytics %}
 <!DOCTYPE html>
-<html>
+<html style="background:#f0f3f4">
 <head>
     <!-- has to be the first tag in head -->
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -26,12 +26,10 @@
     {% google_analytics %}
     {% include "ga_user_analytics.html" with my_var=user.id %}
 
-
 </head>
 <body>
 
 <div class="header cl">Damadam</div>
-
 
 <a name="section0"></a>
 <div class="mbl"></div>
@@ -39,19 +37,30 @@
 {% endblock %}
 {% block pagination %}
 {% endblock %}
-<ul class="navbar">
+
 {% if user.is_authenticated %}
-<li><a href="/">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'online_kon' %}#section0">Online</a></li><li><a href="{% url 'website_rules' %}#section0">Rules</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li>
+
+    {% if request.mobile_verified %}
+
+        {% load feed_count %}
+        {% check_feed_count False as feed_count %}
+        {% load count %}
+        {% check_reply_count as reply_count %}
+        {% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count %}
+
+    {% else %}
+
+        {% load feed_count %}
+        {% check_feed_count False as feed_count %}
+        {% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count %}
+
+    {% endif %}
+
 {% else %}
-<li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'unauth_home_new' %}#section0">New Account</a></li><li><a href="{% url 'login' %}#section0">Old Account</a></li>
+
+    {% include "navbars/bottom_navbar_unauth.html" %}
+
 {% endif %}
-</ul>
-
-
-<div style="text-align:center;padding-bottom:10px" class="mtl sp lsp cxs cgy">
-    |<a href="{% url 'about' %}" class="clb" style="font-weight:bold"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}" class="clb" style="font-weight:bold"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'bahirniklo' %}#section0" class="clb" style="font-weight:bold"> &nbsp;Logout&nbsp; </a>|
-</div>
-
 
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 </body>

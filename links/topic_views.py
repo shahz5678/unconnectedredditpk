@@ -476,8 +476,9 @@ def submit_topic_post(request,topic_url):
 	own_id = request.user.id
 	if request.method == "POST":
 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		on_opera = True if (not on_fbs and not is_js_env) else False
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		# on_opera = True if (not on_fbs and not is_js_env) else False
 		if on_opera:
 			# disallowing opera mini users from posting public text posts on topics
 			# mislabeled template - used to show some generic errors and such to posters

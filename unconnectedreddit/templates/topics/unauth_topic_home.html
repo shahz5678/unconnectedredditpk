@@ -1,7 +1,7 @@
 {% load google_analytics %}
 <!DOCTYPE html>
 
-<html>
+<html style="background:#f0f3f4">
 <head>
 
 	<!-- has to be the first tag in head -->
@@ -40,15 +40,16 @@
 	{% include "ga_user_analytics.html" with my_var=user.id %}
 
 </head>
-<body style="background:#f0f3f4">
+<body>
 <script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 {% include "header.html" %}
 
 <nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
-	<ul class="navbar">
-	<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li itemprop="name"><a href="{% url 'login' %}#section0" itemprop="url">Use Old Account</a></li>
-	</ul>
+	{% include "navbars/top_navbar_unauth.html" %}
+	
 	<a name="section0"></a>
+
+	{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
 </nav>
 
 <main style="display:block" itemscope itemtype="http://schema.org/CollectionPage">
@@ -126,15 +127,8 @@
 </main>
 <br>
 
-<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
-	<ul class="navbar">
-		<li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}">Home</a></li><li itemprop="name"><a itemprop="url" href="{% url 'unauth_home_new' %}#section0">Create New Account</a></li><li itemprop="name"><a itemprop="url" href="{% url 'login' %}#section0">Use Old Account</a></li><li itemprop="name"><a itemprop="url" href="{% url 'help' %}#section0">Help</a></li>
-	</ul>
-</nav>
+{% include "navbars/bottom_navbar_unauth.html" %}
 
-<footer style="text-align:center;display:block" class="mtl sp cxs cgy">
-	|<a href="{% url 'about' %}"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}"> &nbsp;Privacy Policy&nbsp; </a>|<a href="{% url 'website_rules' %}#section0"> &nbsp;Rules&nbsp; </a>|
-</footer>
 {% include "min_service_worker.html" %}
 <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
 

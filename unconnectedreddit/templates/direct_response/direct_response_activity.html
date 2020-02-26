@@ -1,4 +1,4 @@
-{% extends "base_noindex.html" %}
+{% extends "base_inbox.html" %}
 {% load emoticons_tags %}
 {% load human_time %}
 {% load count %}
@@ -6,7 +6,7 @@
 {% block content %}
 <head><title>Activity | Damadam</title></head>
 
-<style>body{background:#f0f3f4}p{display:none}input:checked~p{display:block}input[type=checkbox]{position:absolute;left:-1000px}</style>
+<style>p{display:none}input:checked~p{display:block}input[type=checkbox]{position:absolute;left:-1000px}</style>
 
 	{% check_reply_count as reply_count %}
 	{% include "inbox_navbar.html" with username=user.username section='activity' num_rep=reply_count %}

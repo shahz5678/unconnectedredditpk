@@ -624,8 +624,9 @@ def vote_history_admin_view(request,user_id):
 		##############################################################
 		page_num = int(page_num)
 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		on_opera = True if (not on_fbs and not is_js_env) else False
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		# on_opera = True if (not on_fbs and not is_js_env) else False
 
 		return render(request,"voting/admin_voting_history_view.html",{'data':final_enriched_data,'slug':retrieve_uname(own_id,decode=True), \
 			'own_profile':False,'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
@@ -743,8 +744,9 @@ def user_vote_history(request):
 	##############################################################
 	page_num = int(page_num)
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-	on_opera = True if (not on_fbs and not is_js_env) else False
+	on_opera = request.is_opera_mini
+	is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+	# on_opera = True if (not on_fbs and not is_js_env) else False
 	###################### Retention activity logging ######################
 	if own_id > SEGMENT_STARTING_USER_ID:
 		time_now = time.time()
@@ -887,8 +889,9 @@ def user_old_vote_history(request):
 	##############################################################
 	page_num = int(page_num)
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-	on_opera = True if (not on_fbs and not is_js_env) else False
+	on_opera = request.is_opera_mini
+	is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+	# on_opera = True if (not on_fbs and not is_js_env) else False
 
 	return render(request,"legacy/old_voting_history.html",{'slug':retrieve_uname(own_id,decode=True), 'own_profile':True,\
 		'page':{'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\

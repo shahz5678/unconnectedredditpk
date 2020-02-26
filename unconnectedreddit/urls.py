@@ -29,7 +29,8 @@ faces_pages, error, share_content, sharing_help, photo_sitemap, hide_comment, ph
 reset_password, content_detail_view, display_text_comments, manage_user, manage_user_help, cut_user_score, kick_user, show_clones, \
 hell_ban, remove_hell_ban,photo_top_trenders, user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect, \
 upload_public_photo, website_rules, redirect_to_profile_photos,public_photo_upload_denied, user_profile_photos_redirect, \
-display_old_image_comments, content_sitemap_of_sitemaps, private_or_expired, photo_detail_view, content_sitemap, kick_ban_user
+display_old_image_comments, content_sitemap_of_sitemaps, private_or_expired, photo_detail_view, content_sitemap, kick_ban_user,\
+show_templates, bottom_navbar
 from links.views import FacesHelpView, UserActivityView, AboutView, ContactView, PrivacyPolicyView, PhotosHelpView, \
 EmoticonsHelpView, LogoutHelpView, WelcomeView, WelcomeMessageView, LogoutPenaltyView, UserSettingsEditView, \
 UserProfileDetailView, UserProfileEditView, LinkDeleteView, HelpView, PhotoShareView, RegisterHelpView, VerifyHelpView, \
@@ -69,7 +70,6 @@ urlpatterns = patterns('',
 	url(r'^logout_penalty/$', LogoutPenaltyView.as_view(), name='logout_penalty'),
 	################################################################################################
 	url(r'^logout_help/$', LogoutHelpView.as_view(), name='logout_help'),
-	# url(r'', include('user_sessions.urls', 'user_sessions')),
 	url(r'^user/(?P<slug>[\w.@+-]+)/$', redirect_to_profile_photos, name='profile_photos_redirect'),
 	url(r'^user/likes/history/$', auth(user_vote_history), name='user_vote_history'),
 	url(r'^user/likes/history/old/$', auth(user_old_vote_history), name='user_old_vote_history'),
@@ -116,9 +116,12 @@ urlpatterns = patterns('',
 	url(r'^photo/top-trenders/help/$', auth(top_photo_help), name='top_photo_help'),
 	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', photo_page, name='photo'),
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),
+	###################################################################################
+	url(r'^navigate/$', bottom_navbar, name='bottom_navbar'),
 	######################################################## Content Sharing ###################################################
 	url(r'^share/$', auth(share_content), name='share_content'),
 	url(r'^share/help/$', auth(sharing_help), name='sharing_help'),
+	url(r'^share/photo/templates/$', auth(show_templates), name='show_templates'),
 	url(r'^share/photo/upload-denied/$', auth(public_photo_upload_denied), name='public_photo_upload_denied'),
 	url(r'^share/photo/upload/$', auth(upload_public_photo), name='upload_public_photo'),
 	url(r'^share/text/$', auth(submit_text_post), name='link_create'),

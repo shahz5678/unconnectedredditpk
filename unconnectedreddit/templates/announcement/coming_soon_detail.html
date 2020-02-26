@@ -1,24 +1,29 @@
-{% extends "base.html" %}
+{% extends "base_noindex.html" %}
 {% block content %}
 {% load cache %}
-{% cache 1000 new_changes %}
-<head><title>New changes</title></head>
+{% cache 10000 use_templates %}
+<head><title>Templates</title></head>
 
-<style>body{background: #E9EBEE}</style>
-
-<h1 class="cxl lsp" style="text-align:center">New changes:</h1>
+<h1 class="cxl lsp" style="text-align:center">Use TEMPLATES to get red star:</h1>
 
 <div class="bizcard cxl lsp bx" style="background-color:#FEFCFC;max-width:750px;width:98%;margin:0 auto;overflow: hidden;text-align:center;padding:10px 6px">
-	<div class="mt mbs"> Kuch roz pehlay Damadam pe 'Follow' option release hua. Is option se related 3 new changes ye hain:</div>
 	<div style="text-align:left">
-		1) Ab users sirf apney followers ko 1 on 1 invite send kar sakein ge<br>
-		2) 1 on 1 invites ki tadaad 4 se barha ke 20 kar di gyi hai (in 1 hour)<br>
-		3) 'For Me' ko jald 'Home' page bana dia jaye ga. Mojooda 'Home' page ko alehda jagga pe move kar dia jaye ga<br>
-		<div class="mts cgy" style="border-top:1px solid lightgray;padding-top:10px"><b>General guidance:</b><br>
-		1) Un users ko 'follow' karein jinki posts zabardast laggein ya jin se dosti ho. Is terah apko 'For Me' ka page hamesha relevant posts dikhaye ga<br>
-		2) 'Follow to Follow' nahi karein. Kyun ke andha dhund follow karney se ho sakta hai ke apka 'For Me' page low quality posts se bhar jaye<br>
-		3) Lehaza follow karney se pehlay dekh lein ke dusrey user ki posts kesi hain, kyun ke wohi apko 'For Me' mein show honi hain</div>
+		1) Photo sharing mein 'TEMPLATES' introduce kiye gaye hain:<br>
+		<div class="mt" style="text-align:center"><img src="{{ STATIC_URL }}img/templates.png" style="max-width:514px;width:100%"></div>
+		<div class="mts">
+		2) 'TEMPLATES' woh pics hoti hain jinko edit kia ja sakey
+		</div>
+		<div class="mts">
+		3) 'TEMPLATES' download karein aur un pe munfarid editing karein
+		</div>
+		<div class="mts">
+		4) Sab se dilchusp edited pics 'trending' mein aien gi
+		</div>
+		<div class="mts">
+		5) Hamara maqsad 'original content' ko farogh dena hai. Ap hamari 'TEMPLATES' ke ilawa deegar templates bhi use kar sakte hain
+		</div>
 	</div>
+	<div class="mts" style="border-top:1px solid gainsboro;padding-top:6px">GOOD LUCK!</div>
 </div>
 
 <br>

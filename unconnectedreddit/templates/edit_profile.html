@@ -1,13 +1,13 @@
-{% extends "base_noindex.html" %}
+{% extends "base_profile_noindex.html" %}
 {% load get_user_profile_navbar %}
 {% block content %}
 <head><title>Edit profile | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
+
 {% user_profile_navbar static_url=STATIC_URL section='edit' uname=username is_own_profile=is_own_profile %}
 
 <h1 class="cxl lsp clb" style="text-align:center">Edit my profile:</h1>
 
-<div class="mbl clb" style="margin-right:auto;margin-left:auto;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:97%">
+<div class="mbl clb" style="margin-right:auto;margin-left:auto;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%">
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}

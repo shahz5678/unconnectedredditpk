@@ -9,7 +9,6 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>{{ uname }}'s home posts | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
 
 
 {% if is_own_profile %}
@@ -19,7 +18,7 @@
 {% endif %}
 <div style="text-align:center" class="cxl cr lsp">- this section will be removed soon -</div>
 
-<div style="max-width:750px;margin:0 auto;width:97%;position:relative;">
+<div style="max-width:750px;margin:0 auto;width:98%;position:relative;">
 
 {% if is_profile_banned %}<div class="mbl">{% display_ban_msg static_url=STATIC_URL is_banned=is_profile_banned is_defender=is_defender is_own_profile=is_own_profile time_remaining=time_remaining uname=uname ban_detail=ban_detail %}</div>{% endif %}
 

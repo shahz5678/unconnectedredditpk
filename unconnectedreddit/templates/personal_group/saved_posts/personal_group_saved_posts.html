@@ -10,8 +10,8 @@
 {% load get_personal_group_hidden_pht_small %}
 {% load get_personal_group_deleted_post_message %}
 {% block content %}
-<head><title>Saving messages in 1 on 1 | Damadam.pk</title></head>    
-    <div class="nos margin clb" style="max-width:600px;width:92%;">
+<head><title>Saving messages in 1 on 1 | Damadam</title></head>    
+    <div class="nos margin clb" style="max-width:600px;width:96%;background:white;padding:10px;border-radius:12px;border:3px solid #ececec">
       {% if new_save_perm %}
         <div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
           <span class="cxl">{% if new_perm == '1' %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} ko apke messages save karney ki ijazat de di geyi{% else %}{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se apke messages save karney ki ijazat wapis le li geyi{% endif %}</span>

@@ -5,12 +5,11 @@
 {% load show_error %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Share photo in 1 on 1 messaging | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Share photo in 1 on 1 messaging | Damadam</title></head>
 
 {% if edit_caption %}
 
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden">
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:96%;margin:0 auto;overflow: hidden">
 	<div style="text-align:center">
 		<img src='{{ photo_url|s3:"thumb" }}' style="border-radius:5px;overflow:hidden;background-color:#f9e1bb;text-align:left" height="38" class="cs sp mrs" alt="pic"><span class="cs sp lsp cgy">Is photo ka title hai:<br><span class="sp cxl clb">'{% emoticons %}{{ photo_caption }}{% endemoticons %}'</span></span>
 	</div>

@@ -1,4 +1,4 @@
-{% extends noindex|yesno:"base_noindex.html,base.html" %}
+{% extends noindex|yesno:"base_profile_noindex.html,base_profile.html" %}
 {% load get_transparent_buttons_js %}
 {% load get_display_ban_msg %}
 {% load emoticons_tags %}
@@ -6,7 +6,6 @@
 {% load s3 %}
 {% block content %}
 <head><title>{{ username }}'s profile | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
 
 {% include "user_profile_navbar.html" with static_url=STATIC_URL section='about' uname=username num_posts=num_posts %}
 
@@ -19,7 +18,7 @@
 {% endif %}
  </div>
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:96%;margin-right:auto;margin-left:auto">
+<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;margin-right:auto;margin-left:auto">
 	{% if manageable and not is_own_profile %} 
 	        <form method="POST" action="{% url 'manage_user' %}" style="text-align:center">{% csrf_token %}<input type="hidden" name="m_id" value="{{ own_id }}"><input type="hidden" name="t_id" value="{{ star_id }}"><button type="submit" class="btn bco bm sp pg_ok_res" style="height:32px;width:100%;border-bottom-left-radius:0;border-bottom-right-radius:0">manage</button></form>
 	{% endif %}
@@ -66,7 +65,10 @@
 		<div class="mt cs cgy lsp sp mbl" style="text-align:center">joined {{ object.date_joined|naturaltime }}</div>
 
 		{% if is_own_profile %}
-			<div style="text-align:center"><a href="{% url 'edit_profile' %}#section0"><button class="btn nw bm cl sp pg_ok_res" style="background-color:#1edea8;height:55px;width:100%;border-radius:0;background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);"><b>Edit my profile</b></button></a></div>
+			<div style="text-align:center;width:100%" class="fx fxjscn fxaicn">
+				<a href="{% url 'edit_profile' %}#section0" style="width:100%;background-color:#1edea8"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px"><b><div>EDIT</div><div>PROFILE</div></b></button></a>
+				<a href="{% url 'reauth' %}#section0" style="width:100%;background-color:#59adf7;"><button class="btn nw cm sp lsp pg_ok_res" style="background:0 0;height:56px;"><b><div>CHANGE</div><div>PASSWORD</div></b></button></a>
+			</div>
 		{% else %}
 			{% if own_id %}
 				{% load get_big_group_button %}

@@ -1,7 +1,7 @@
 {% extends "base_noindex.html" %}
 {% block content %}
 <head><title>Select Followers | Damadam</title></head>
-<style>body{background: #f0f3f4}</style>
+
 <a name="top"></a>
 <h1 class="clb cxl lsp" style="text-align:center">Select followers:</h1>
 	{% if err_type %}
@@ -19,7 +19,7 @@
 {% if previously_selected_list %}
 	
 
-	<main class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:450px;margin-left:auto;margin-right:auto;text-align:center;display:block;box-sizing:border-box;width:97%;">
+	<main class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:450px;margin-left:auto;margin-right:auto;text-align:center;display:block;box-sizing:border-box;width:98%;">
 
 			<form method="POST" action="{% url 'finalize_audience' %}">
 				{% if num_followers > 5 %}<button class="btn bl cl bct sp pg_ok_res" type="submit" style="width:100%;height:44px;border-bottom-left-radius:0;border-bottom-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)">SHARE</button>

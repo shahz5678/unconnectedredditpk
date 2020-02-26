@@ -6,12 +6,11 @@
 
 {% include "mehfil/decide_officer_application_navbar.html" with static_url=STATIC_URL section='single_app' applier_id=application.user_id guid=guid idx=application.idx %}
 
-<head><title>Officer application | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Officer application | Damadam</title></head>
 
 	<h1 style="text-align:center" class="clb cxl lsp">{{ application.uname|truncatechars:'12' }}'s officer application:</h1>
 
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white;text-align:center">
+	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96s%;background-color:white;text-align:center">
 		
 		<form class="mbs mt" method="POST" style="border-bottom:1px dashed lightgray;padding:10px 0" action="{% url 'public_mehfil_oversight_dashboard' %}">{% csrf_token %}<input type="hidden" name="guid" value="{{ guid }}"><button class="cm sp cb pg_ok_res" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to settings</button></form>
 

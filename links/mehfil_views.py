@@ -31,7 +31,7 @@ from redis7 import check_content_and_voting_ban, get_all_image_star_ids
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
-from views import condemned, valid_uuid, get_page_obj, get_price, get_indices, create_sorted_invitee_list, retrieve_user_env
+from views import condemned, valid_uuid, get_page_obj, get_price, get_indices, create_sorted_invitee_list
 
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users

@@ -2,8 +2,7 @@
 {% load s3 %}
 {% load human_time %}
 {% block content %}
-<head><title>Invited users | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Invited users | Damadam</title></head>
 
 {% include "mehfil/closed_group_invite_navbar.html" with static_url=STATIC_URL section='invited' guid=guid %}
 
@@ -11,7 +10,7 @@
     <h1 style="display:inline" class="clb cxl lsp">Invite list:</h1>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
 
 <form method="POST" class="mt mbl" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ guid }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
 

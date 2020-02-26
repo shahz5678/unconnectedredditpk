@@ -1,9 +1,9 @@
-    <div class="fr" id="pg_size_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye foto buhut barri hai, choti foto chunein</span></div>
-    <div class="fr" id="pg_mime_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye foto kharab hai, koi aur chunein</span></div>
+    <div class="fr" id="pg_size_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
+    <div class="fr" id="pg_mime_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye photo kharab hai, koi aur chunein</span></div>
 
     <div class="bizcard" style="border-radius:8px" id="personal_group_top">
-        {% if no_permit %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko foto send karney ki ijazat nahi di hui</span></div>{% elif no_save_chat %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko uski chat save karney ki ijazat nahi di hui</span></div>{% elif no_notif %}<div class="cs sp fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko notification send karney ki ijazat nahi di hui</span></div>{% elif form_errors %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp">{{ form_errors }}</span></div>{% elif last_seen_time_diff %}
-        <div class="fr" style="background-color: #F0F3F4;">
+        {% if no_permit %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko photo send karney ki ijazat nahi di hui</span></div>{% elif no_save_chat %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko uski chat save karney ki ijazat nahi di hui</span></div>{% elif no_notif %}<div class="cs sp fr" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko notification send karney ki ijazat nahi di hui</span></div>{% elif form_errors %}<div class="fr cs sp" style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp">{{ form_errors }}</span></div>{% elif last_seen_time_diff %}
+        <div class="fr" style="background-color: #F7F7F7;">
             <div style="padding:5px;" class="sp cs cgy">
                 {% if is_js_env %}
                     {% if last_seen_time_diff < 60 %}
@@ -60,7 +60,7 @@
         <form id="personal_group_form" action="{% url 'post_to_personal_group' %}" method="POST" enctype="multipart/form-data" style="display:inline">
         {% csrf_token %}<input type="hidden" id="sk" name="sk" value="{{ sk }}"><input type="hidden" id="tid" name="tid" value="{{ tid }}">
             <input class="mts mbs" style="max-width:750px;width:99%;border: 1px #bdebfe solid;border-radius:6px;background:azure" name="image" type="file" id="browse_image_btn">
-            <textarea id="text_field" class="cxl" autocomplete="off" autofocus="autofocus" cols="30" name="reply" rows="10" style="width:99%;height:60px;border-radius:8px;border: 1px #bdebfe solid; background-color:#FAFAFA;padding:5px;box-sizing:border-box"></textarea>
+            <textarea id="text_field" class="cxl" autocomplete="off" autofocus="autofocus" cols="30" name="reply" rows="10" style="width:99%;height:60px;border-radius:8px;border: 1px #bdebfe solid; background-color:white;padding:5px;box-sizing:border-box"></textarea>
             <br><button class="mt mbs btn sp cs bcb bl pg_ok mrl" style="height:36px;width:120px">SEND</button>
         </form>
 

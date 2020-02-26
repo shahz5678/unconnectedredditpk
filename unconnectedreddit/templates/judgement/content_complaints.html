@@ -3,14 +3,13 @@
 {% load human_time %}
 {% block content %}
 
-<head><title>{% if total %}{{ total }}{% else %}0{% endif %} reported content | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>{% if total %}{{ total }}{% else %}0{% endif %} reported content | Damadam</title></head>
 
 {% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='cull_content' num_complaints=total obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
 
 <h1 class="cxl clb lsp" style="text-align:center">{{ total }} item(s):</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;">
 
 	{% if total > 0 %}
 

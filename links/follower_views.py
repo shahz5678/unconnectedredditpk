@@ -20,12 +20,12 @@ from page_controls import FOLLOWERS_PER_PAGE, FOLLOWING_PER_PAGE, ITEMS_PER_PAGE
 from views import get_indices, retrieve_user_env, format_post_times, get_addendum
 from redis4 import retrieve_uname, retrieve_user_id, set_text_input_key, retrieve_avurl
 from redis7 import check_content_and_voting_ban, retrieve_obj_feed, retrieve_last_vote_time, retrieve_recent_votes,get_all_image_star_ids,\
-is_image_star, in_defenders
+is_image_star, in_defenders, retrieve_top_trenders
 from redis2 import check_if_follower, add_follower, remove_follower, get_custom_feed, retrieve_custom_feed_index, retrieve_follower_data, \
 retrieve_following_ids,is_potential_follower_rate_limited, rate_limit_removed_follower,rate_limit_unfollower, cache_user_feed_history, \
 retrieve_cached_user_feed_history, remove_single_post_from_custom_feed, invalidate_cached_user_feed_history, update_user_activity_event_time,\
 get_all_follower_count,get_verified_follower_count, get_user_activity_event_time, retrieve_cached_new_follower_notif, get_for_me_seen_time,\
-retrieve_and_cache_new_followers_notif, set_user_last_seen, add_last_fanout_to_feed#, logging_remove_data, logging_follow_data
+retrieve_and_cache_new_followers_notif, set_user_last_seen, add_last_fanout_to_feed, filter_following#, logging_remove_data, logging_follow_data
 from score import MAX_HOME_REPLY_SIZE, REMOVAL_RATE_LIMIT_TIME
 from redis9 import retrieve_latest_direct_reply
 from links.templatetags import future_time
@@ -82,6 +82,8 @@ def custom_feed_page(request):
 	#######################
 	if list_of_dictionaries:
 		
+		list_size = len(list_of_dictionaries)
+
 		# should be done in here, since the 't' information is lost when format_post_times() is run
 		try:
 			oldest_post_time = list_of_dictionaries[-1]['t']
@@ -131,6 +133,7 @@ def custom_feed_page(request):
 		########################################################################
 	
 	else:
+		list_size = 0
 		###################### Retention activity logging ######################
 		# there are no posts
 		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
@@ -141,10 +144,41 @@ def custom_feed_page(request):
 			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		########################################################################
 
+	# recommend red stars to this user
+	if list_size < 5:
+		
+		# Step 1) Retreive top trenders
+		data = retrieve_top_trenders()
+
+		# Step 2) Retrieve whether own_id is following any top trender
+		trending_ids = set()
+		for obj in data:
+			 trending_ids.add(str(obj[0]))
+		
+		ids_already_fanned = filter_following(trending_ids,own_id)
+
+		# Step 3) Set 'is_follower' flag for trenders that own_id is following
+		enriched_data = []
+
+		for tup_obj in data:
+			list_obj = list(tup_obj)
+			if str(tup_obj[0]) in ids_already_fanned:
+				list_obj.insert(0, True)
+			else:
+				list_obj.insert(0, False)	
+			enriched_data.append(list_obj)
+
+		top_list = enriched_data
+
+	# no need to recommend red stars to this user
+	else:
+		top_list = None
+
 	#######################
 	on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-	is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-	on_opera = True if (not on_fbs and not is_js_env) else False
+	on_opera = request.is_opera_mini
+	is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+	# on_opera = True if (not on_fbs and not is_js_env) else False
 	
 	########################
 
@@ -156,7 +190,8 @@ def custom_feed_page(request):
 	'on_opera':on_opera,'own_name':own_name,'new_count':new_count,'dir_rep_form':DirectResponseForm(with_id=True),\
 	'thin_rep_form':DirectResponseForm(thin_strip=True),'latest_dir_rep':retrieve_latest_direct_reply(user_id=own_id),\
 	'single_notif_dir_rep_form':DirectResponseForm(),'last_seen':last_seen,'max_home_reply_size':MAX_HOME_REPLY_SIZE,\
-	'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),'origin':'26','single_notif_origin':'38'}
+	'dir_rep_invalid':request.session.pop("dir_rep_invalid"+str(own_id),None),'origin':'26','single_notif_origin':'38',\
+	'top_list':top_list}
 
 	context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 	'previous_page_number':page_num-1,'next_page_number':page_num+1}
@@ -778,8 +813,9 @@ def display_user_public_feed_history(request, target_uname):
 		context['is_follower'] = True if is_own_profile else check_if_follower(own_id,target_user_id,with_db_lookup=True)
 		context['show_post_removed_prompt'] = request.session.pop("history_post_removed"+str(own_id),None)
 		#######################
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		context['on_opera'] = True if (not on_fbs and not is_js_env) else False
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		context['on_opera'] = on_opera
 
 		return render(request,"follow/user_feed_history.html",context)
 	else:
@@ -907,8 +943,9 @@ def display_user_follower_feed_history(request, target_uname):
 		context['is_follower'] = True if is_own_profile else check_if_follower(own_id,target_user_id,with_db_lookup=True)
 		context['show_post_removed_prompt'] = request.session.pop("history_post_removed"+str(own_id),None)
 		#######################
-		is_js_env = retrieve_user_env(user_agent=request.META.get('HTTP_USER_AGENT',None), fbs = on_fbs)
-		context['on_opera'] = True if (not on_fbs and not is_js_env) else False
+		on_opera = request.is_opera_mini
+		is_js_env = retrieve_user_env(opera_mini=on_opera, fbs = on_fbs)
+		context['on_opera'] = on_opera
 
 		return render(request,"follow/user_feed_history.html",context)
 	else:

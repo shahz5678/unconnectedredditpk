@@ -2,14 +2,13 @@
 {% load get_report_navbar %}
 {% block content %}
 {% load cache %}
-<head><title>Report help | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Report help | Damadam</title></head>
 
 {% if tp == 'tx' %}
 	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
 
 	<h1 class="cxl clb lsp" style="text-align:center">Text report help:</h1>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
 		<div class="cxl lsp"><span class="cgy">Shared text ki quality high rakhney ke liye in cheezoon ka khayal rakhein</span></div>
 		<hr size=1 COLOR="#E9EBEE">
 		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">

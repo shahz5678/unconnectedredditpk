@@ -2,13 +2,12 @@
 {% load get_report_navbar %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Report mehfil | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Report mehfil | Damadam</title></head>
 
 {% report_navbar categ='mehfil' topic=topic rules=rules guid=group_uuid obid=gid static_url=STATIC_URL section='report' %}
 
 <h1 class="cxl lsp clb" style="text-align:center">Report mehfil:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
 
 <div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">
 <b class="cp">{% emoticons %}{{ topic|truncatechars:'28' }}{% endemoticons %}</b><br>

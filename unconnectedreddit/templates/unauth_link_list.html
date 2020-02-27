@@ -1,4 +1,4 @@
-{% extends "base_min.html" %}
+{% extends "base/base_min.html" %}
 {% load humanize %}
 {% load mathfilters %}
 {% load emoticons_tags %}
@@ -82,7 +82,7 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:'thumb' }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:'thumb' }}" class="pht"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
@@ -107,13 +107,13 @@
 		    	<img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 		    {% elif link.v|add:"0" < -1 %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:'thumb' }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:'thumb' }}" class="pht"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}
 		    {% else %}
 			    {% if link.i %}
-			    <img src="{{ link.i|s3:'thumb' }}" class="pht bright"></img>
+			    <img src="{{ link.i|s3:'thumb' }}" class="pht"></img>
 			    {% else %}
 			    <img src="{{ STATIC_URL }}img/broken_pic_small.png" alt="no pic" width="38" height="38"></img>
 			    {% endif %}

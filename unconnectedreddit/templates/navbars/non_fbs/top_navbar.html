@@ -1,0 +1,59 @@
+<div class="bg-strip" style="height:36px;width:100%;background:#ffe804;position:absolute;z-index:50;border-bottom:1px solid #e8e090"></div>
+<div class="sticky" style="height:36px;width:100%;text-align:center">
+	
+	<form method="GET" style="height:100%;background:0 0" class="fx fxjscn fxaicn" action="{% url 'main_navbar' %}">
+		
+		{% if selected == 'stars' %}
+			<!-- photos -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;padding-left:0;padding-right:0" value="4">PHOTOS</button>
+
+			<!-- stars -->
+			<button name="dec" class="hd bx sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;padding:0" value="9">
+				<div style="height:4px;width:100%;background:#282828"></div>
+				<div style="height:32px;font-weight:600;color:#000000;padding-top:7px">STARS</div>
+			</button>
+
+			<!-- text -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;" value="5">TEXT</button>
+
+		{% elif selected == 'photos' %}
+			<!-- photos -->
+			<button name="dec" class="hd bx sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;padding:0" value="4">
+				<div style="height:4px;width:100%;background:#282828"></div>
+				<div style="height:32px;font-weight:600;color:#000000;padding-top:7px;padding-left:0;padding-right:0">PHOTOS</div>
+			</button>
+
+			<!-- stars -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;" value="9">STARS</button>
+
+			<!-- text -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;" value="5">TEXT</button>
+
+		{% elif selected == 'text' %}
+			<!-- photos -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;padding-left:0;padding-right:0" value="4">PHOTOS</button>
+
+			<!-- stars -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;" value="9">STARS</button>
+
+			<!-- text -->
+			<button name="dec" class="hd bx sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;padding:0" value="5">
+				<div style="height:4px;width:100%;background:#282828"></div>
+				<div style="height:32px;font-weight:600;color:#000000;padding-top:7px">TEXT</div>
+			</button>
+
+		{% else %}
+			<!-- photos -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;padding-left:0;padding-right:0" value="4">PHOTOS</button>
+
+			<!-- stars -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;" value="9">STARS</button>
+
+			<!-- text -->
+			<button name="dec" class="hd sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none;color:#282828;" value="5">TEXT</button>
+
+		{% endif %}
+
+	</form>
+
+</div>

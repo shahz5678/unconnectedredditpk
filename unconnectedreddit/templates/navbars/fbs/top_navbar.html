@@ -1,0 +1,551 @@
+<div style="background:#fefefa;height:46px;width:100%;text-align:center;border-bottom:1px solid #dddddd">
+	<form method="GET" style="height:100%;background:0 0" class="fx fxjscn fxaicn" action="{% url 'main_navbar' %}">
+		{% if selected == 'for_me' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if feed_count %}
+							<b style="font-size:14px;color:#00bfa5;">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:20px;width:100%">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="4">
+
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">PHOTOS</div>
+
+			</button>
+
+			<!-- inbox -->
+			{% if reply_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2a">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ reply_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2b">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#invite"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% endif %}
+
+			<!-- 1on1 -->
+			{% if invite_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15b">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ invite_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15a">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#1on1"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% endif %}
+
+			<!-- mehfil -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="11">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if group_invite_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ group_invite_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#group"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">MEHFIL</div>
+
+			</button>
+
+		{% elif selected == 'photos' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if feed_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="4">
+
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:20px;width:100%;">PHOTOS</div>
+
+			</button>
+
+			<!-- inbox -->
+			{% if reply_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2a">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ reply_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2b">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#invite"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% endif %}
+
+			<!-- 1on1 -->
+			{% if invite_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15b">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ invite_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15a">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#1on1"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% endif %}
+
+			<!-- mehfil -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="11">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if group_invite_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ group_invite_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#group"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">MEHFIL</div>
+
+			</button>
+
+		{% elif selected == 'inbox' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if feed_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="4">
+
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">PHOTOS</div>
+
+			</button>
+
+			<!-- inbox -->
+			{% if reply_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2a">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#00bfa5">{{ reply_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:600;color:#00bfa5;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2b">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#invite"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:600;color:#00bfa5;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% endif %}
+
+			<!-- 1on1 -->
+			{% if invite_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15b">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ invite_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15a">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#1on1"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% endif %}
+
+			<!-- mehfil -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="11">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if group_invite_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ group_invite_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#group"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">MEHFIL</div>
+
+			</button>
+
+		{% elif selected == '1_on_1' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if feed_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="4">
+
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">PHOTOS</div>
+
+			</button>
+
+			<!-- inbox -->
+			{% if reply_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2a">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ reply_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2b">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#invite"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% endif %}
+
+			<!-- 1on1 -->
+			{% if invite_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15b">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#00bfa5">{{ invite_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:600;color:#00bfa5;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15a">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#1on1"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:600;color:#00bfa5;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% endif %}
+
+			<!-- mehfil -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="11">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if group_invite_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ group_invite_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#group"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">MEHFIL</div>
+
+			</button>
+
+		{% elif selected == 'mehfil' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if feed_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="4">
+
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">PHOTOS</div>
+
+			</button>
+
+			<!-- inbox -->
+			{% if reply_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2a">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ reply_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2b">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#invite"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% endif %}
+
+			<!-- 1on1 -->
+			{% if invite_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15b">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ invite_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15a">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#1on1"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% endif %}
+
+			<!-- mehfil -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="11">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if group_invite_count %}
+							<b style="font-size:14px;color:#00bfa5">{{ group_invite_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="#group"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:20px;width:100%;">MEHFIL</div>
+
+			</button>
+
+		{% else %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if feed_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- photos -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="4">
+
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">PHOTOS</div>
+
+			</button>
+
+			<!-- inbox -->
+			{% if reply_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2a">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ reply_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="2b">
+
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#invite"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">INBOX</div>
+
+				</button>
+			{% endif %}
+
+			<!-- 1on1 -->
+			{% if invite_count %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15b">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<b style="font-size:14px;color:#b4b4b4">{{ invite_count }}</b>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% else %}
+				<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="15a">
+					<div class="bx" style="height:26px;width:100%">
+						<div style="padding-top:4px">
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#1on1"></use></svg>
+						</div>
+					</div>
+					<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">1&nbsp;ON&nbsp;1</div>
+				</button>
+			{% endif %}
+
+			<!-- mehfil -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:20%;max-width:150px;border-radius:0;border:none" value="11">
+				
+				<div class="bx" style="height:26px;width:100%">
+					<div style="padding-top:4px">
+						{% if group_invite_count %}
+							<b style="font-size:14px;color:#b4b4b4">{{ group_invite_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="#group"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:20px;width:100%;">MEHFIL</div>
+
+			</button>
+
+		{% endif %}
+	</form>
+</div>

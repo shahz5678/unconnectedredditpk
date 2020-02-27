@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 
 <head><title>Unverify user | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">Freedom Factory</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;width:96%;margin:0 auto;overflow:hidden;text-align:center">
+<div class="clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;margin:0 auto;overflow:hidden;text-align:center">
 
 	<form method="POST" class="mbs" action="{% url 'unverify_user' %}">
 		{% csrf_token %}

@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load s3 %}
 {% load human_time %}
 {% block content %}
 <head><title>Blocked users | Damadam</title></head>
-
-{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kicked' guid=guid privacy=privacy %}
-
+<div class="mtl">
+	{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kicked' guid=guid privacy=privacy %}
+</div>
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Kick list:</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-right:auto;margin-left:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
 {% if privacy == '0' %}<div class="mt mbs"><a href="{% url 'public_group' guid %}" class="cb sp cm" style="border-bottom:1px dotted blue">back to mehfil</a></div>{% else %}<form method="POST" class="mt mbs" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ guid }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>{% endif %}
 <hr size=1 COLOR="#E9EBEE">
@@ -34,5 +34,5 @@
 {% endif %}
 
 </div>
-<br>
+<br><br>
 {% endblock %}

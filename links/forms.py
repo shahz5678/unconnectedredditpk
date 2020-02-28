@@ -386,9 +386,11 @@ class UserProfileForm(forms.ModelForm):
 		super(UserProfileForm, self).__init__(*args, **kwargs)
 		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
 		self.fields['bio'].widget.attrs['style'] = 'width:95%;height:200px;border-radius:8px;border: 1px #1edea8 solid; background-color:#f2f1f0;padding:5px;'
+		self.fields['bio'].widget.attrs['class'] = 'inp'
 		self.fields['age'].error_messages = {'required':retrieve_validation_error_string('required_age'),\
 		'invalid':retrieve_validation_error_string('age_too_large')}
 		self.fields['age'].widget.attrs['maxlength'] = 2
+		self.fields['age'].widget.attrs['class'] = 'inp'
 		self.fields['streak'].error_messages = {'invalid':'Ye ghalat hai'}
 		
 

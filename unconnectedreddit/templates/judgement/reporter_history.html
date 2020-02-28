@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load emoticons_tags %}
 {% load human_time %}
 {% block content %}
 <head><title>{{ target_uname }} reporting history | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">{{ target_uname }}'s reporting history:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;">
 <div class="cs sp" style="text-align:center">
 	{% if num_cases == 0 %}
 		<span class="cgy">No logged cases, or case history deleted (see footnotes)</span>
@@ -60,7 +60,7 @@
 <div class="sp cl mts mbs" style="font-weight:bold;text-align:center">Nothing to see here...</div>
 {% endfor %}
 <div style="text-align:center">
-<a href="{% url 'get_top_50_reporters' %}"><button class="btn bcb bm sp pg_ok_res mtl mbs" style="height:26px">back</button></a>
+<a href="{% url 'get_top_50_reporters' %}"><button class="btn bcb bm sp pg_ok_res mtl mbs" style="height:28px">back</button></a>
 </div>
 
 <hr size=1 COLOR="#E9EBEE">

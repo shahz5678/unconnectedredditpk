@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load get_render_single_ban %}
 {% block content %}
 <head><title>Judgement on {{ oun }} | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">Edit ban duration:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 
 <div class="mbs cxl cr lsp" style="text-align:center"><b>Already banned!</b>&nbsp;{% if time_remaining == '-1' %}{{ oun|truncatechars:'13' }} banned hai forever ke liye{% else %}{% load future_time %}{{ oun|truncatechars:'13' }} ka ban end hoga {{ time_remaining|future_time }}{% endif %}</div>
 
@@ -33,7 +33,7 @@
 		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="5" type="radio" name="dur" value="5"><label for="5"><span class="cr sp">1 month</span></label></li>
 		<li style="text-align:left" class="mbl"><input style="margin:-2px 10px 0 0;vertical-align:middle" id="6" type="radio" name="dur" value="6"><label for="6"><span class="cr sp">Ban forever</span></label></li>
 	</ul><br>
-	<button type="submit" name="ddec" class="btn bcr bm pg_ok_res mbl mrs sp" style="height:26px" value="1">OK</button><button type="submit" name="ddec" class="mls cgy cl sp" style="background:0 0;border:none;padding:0;height:26px;border-bottom:1px dotted darkgray" value="0">Cancel</button>
+	<button type="submit" name="ddec" class="btn bcr bm pg_ok_res mbl mrs sp" style="height:28px" value="1">OK</button><button type="submit" name="ddec" class="mls cgy cl sp" style="background:0 0;border:none;padding:0;height:26px;border-bottom:1px dotted darkgray" value="0">Cancel</button>
 </form>
 
 

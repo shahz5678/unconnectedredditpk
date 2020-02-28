@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load show_error %}
 {% load human_time %}
 {% load emoticons_tags %}
@@ -6,8 +6,8 @@
 {% block content %}
 <head><title>Defender's feedback | Damadam</title></head>
 
-<div class="clb" style="margin: 0 auto;max-width:600px;width:96%">
-  <div class="bizcard" style="background-color:white;padding:10px">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px">
+  <div style="background-color:white;padding:10px">
     <div class="cxl lsp" style="text-align:center">{% if action == 'undo_content_ban' %}<b>{{ oun|truncatechars:'13' }}</b> ki saza khatam karney ka reason likhein:{% elif action == 'banned_content_submitter' %}<b>{{ oun|truncatechars:'13' }}</b> ko saza dene ka reason batain:{% elif action == 'banned_voter' %}Ye like ban laganey ka reason batain:{% endif %}</div>
     <hr size=1 COLOR="#E9EBEE">
     <div class="cgy sp" style="font-weight:bold">Instructions:</div>

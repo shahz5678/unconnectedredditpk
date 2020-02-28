@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load s3 %}
 {% load human_time %}
 {% block content %}
@@ -6,7 +6,7 @@
 {% if visitors %}
 <head><title>Mehfil visitors | Damadam</title></head>
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Visiting members:</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
 {% if show_init_msg %}<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">Yahan is mehfil ke pichley <b>1 day</b> ke visitors nazar atey hain</div>{% endif %}
 
@@ -42,7 +42,7 @@
 {% elif members %}
 <head><title>Mehfil members | Damadam</title></head>
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil members:</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 <form method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cs" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
 
 	{% if object_list %}	
@@ -68,17 +68,17 @@
 {% if is_paginated %}
 	<div class="fx fxjscn fxaicn">
 		{% if page_obj.has_previous %}
-	    <div style="padding:0 10px">
+	    <div style="padding:0 10px 30px 10px">
 	    <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
 	    </div>
 	    {% endif %}
 	    {% if page_obj.has_next %}
-	    <div style="padding:0 10px">
+	    <div style="padding:0 10px 30px 10px">
 	    <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
 	    </div>
 	    {% endif %}
 	</div>
 {% endif %}
-<br>
-
+<br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=user.id %}
 {% endblock %}

@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load human_time %}
 {% load get_super_defender_navbar %}
 {% block content %}
 <head><title>Remove defender | Damadam</title></head>
-
-{% super_defender_navbar static_url=STATIC_URL section='remove' %}
-
+<div class="mtl">
+	{% super_defender_navbar static_url=STATIC_URL section='remove' %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center">Luca Brasi sleeps with the fishes ...</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;width:96%;margin:0 auto;overflow:hidden;text-align:left">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow:hidden;text-align:left">
 {% if successful %}
 <div class="cxl mbs lsp" style="text-align:center;font-weight:bold">... and {{ removed_username }} sleeps with the fishes too!</div>
 {% endif %}

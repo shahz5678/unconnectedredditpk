@@ -1,74 +1,18 @@
-{% load google_analytics %}
-{% load get_transparent_buttons_js %}
+{% extends "base/base_content.html" %}
 {% load get_photo_object %}
-{% load s3 %}
-
-<!DOCTYPE html>
-<html style="background:#f0f3f4">
-<head>
-
-	<!-- has to be the first tag in head -->
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    {% include "favicons.html" %}
-    {% include "css.html" %}
-   	<!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting guys and girls to follow. Join the fun now!">
-    <meta name="author" content="mhb">
-    <title>"{{ photo.caption }}" image uploaded on {{ photo.upload_time }} | Damadam</title>
-    <meta property="og:site_name" content="Damadam">
-    {% if noindex %}
-    	<meta name="robots" content="noindex">
-    	<meta name="robots" content="noarchive">
-    {% endif %}
-	<meta property="og:title" content="Image title: '{{ photo.caption|truncatechars:53 }}'">
-	<meta property="og:type" content="website">
-	<meta property="og:description" content="Uploaded by {{ photo.owner }} on Damadam, the desi social sharing site, with the latest images and memes from across Pakistan. Join now!">
-	<meta property="og:url" content="https://damadam.pk/photo_detail/{{ photo_id }}/">
-	<meta property="og:image" content="https:{{ photo.image_file|s3 }}">
-	<meta property="og:image:width" content="{{ photo_width }}">
-	<meta property="og:image:height" content="{{ photo_height }}">
-	<meta property="fb:app_id" content="1758220174446684" />
-    {% google_analytics %}
-
-    <link rel="canonical" href="{% url 'photo_detail' photo_id %}" />
-
-</head>
-<body>
-
-{% include "header.html" %}
-
-{% if user.is_authenticated %}
-	{% if request.mobile_verified %}
-	    {% include "navbars/top_navbar.html" with username=user.username %}
-	{% else %}
-		{% include "navbars/top_navbar_unauth.html" %}
-	{% endif %}
-{% else %}
-    {% include "navbars/top_navbar_unauth.html" %}
-{% endif %}
-
-{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
-
-<a name="section0"></a>
-
-{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
-
-<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
 {% load emoticons_tags %}
 {% load humanize %}
-<br>
+{% load s3 %}
+{% block content %}
 
-	{% if not from_cull_queue and show_copy_prompt %}
-		<div class="mbl" style="margin-left:auto;margin-right:auto;max-width:600px;background:white;border-radius:12px;border:3px solid #ececec;">
-			<div style="text-align:center;border-bottom:2px solid whitesmoke;background:#fefefa;padding:0 5px 10px 5px" class="cl clb lsp mts">Is photo ko Whatsapp ya Facebook pe share karne ke liye ye link copy karein:</div>
-			<div class="lsp cxl cp" style="padding:10px;text-align:center">{{ regular_url }}</div>
-		</div>
-	{% endif %}
+{% if not from_cull_queue and show_copy_prompt %}
+	<div class="mbl" style="margin-left:auto;margin-right:auto;max-width:600px;background:white;border-radius:12px;border:3px solid #ececec;">
+		<div style="text-align:center;border-bottom:2px solid whitesmoke;background:#fefefa;padding:0 5px 10px 5px" class="cl clb lsp mts">Is photo ko Whatsapp ya Facebook pe share karne ke liye ye link copy karein:</div>
+		<div class="lsp cxl cp" style="padding:10px;text-align:center">{{ regular_url }}</div>
+	</div>
+{% endif %}
 
-<main style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;width:98%;max-width:600px;margin-right:auto;margin-left:auto">
+<main class="mtl mbl" style="overflow:hidden;background:white;max-width:600px;margin-right:auto;margin-left:auto">
 
 {% if not absent %}
 	
@@ -134,36 +78,8 @@
 
 	{% endif %}
 {% else %}
-<div class="cxl lsp clb" style="text-align:center">Photo available nahi</div>
+<div class="cxl lsp clb" style="text-align:center">Image unavailable!</div>
 {% endif %}
 </main><br><br>
 
-{% if user.is_authenticated %}
-
-    {% if request.mobile_verified %}
-
-        {% load feed_count %}
-        {% check_feed_count False as feed_count %}
-        {% load count %}
-        {% check_reply_count as reply_count %}
-        {% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count %}
-
-    {% else %}
-
-        {% load feed_count %}
-        {% check_feed_count False as feed_count %}
-        {% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count %}
-
-    {% endif %}
-
-{% else %}
-
-    {% include "navbars/bottom_navbar_unauth.html" %}
-
-{% endif %}
-
-{% include "min_service_worker.html" %}
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
-{% transparent_buttons_js ident=user.id static_url=STATIC_URL %}
-</body>
-</html>
+{% endblock %}

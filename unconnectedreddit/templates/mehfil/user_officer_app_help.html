@@ -1,11 +1,11 @@
 {% extends "base/base_mehfil.html" %}
 {% block content %}
 {% load cache %}
-{% cache 6000 officer_app_help_page %}
 <head><title>Officership application help | Damadam</title></head>
 <div class="mtl">
 	{% include "mehfil/officer_application_navbar.html" with section='help' static_url=STATIC_URL guid=unique %}
 </div>
+{% cache 6000 officer_app_help %}
 <div class="mbl" style="max-width:600px;margin-left:auto;margin-right:auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl lsp">Officer application help:</h1>
 </div>

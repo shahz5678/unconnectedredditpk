@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load s3 %}
 {% load human_time %}
 {% load emoticons_tags %}
@@ -8,17 +8,17 @@
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.19.js"></script>
 {% if switching %}
 
-<div class="mbs">
+<div class="mbs mtl">
 <div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl sp">Mehfil not found:</h1>
 </div>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:98%;padding:10px;background-color:white">    
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;width:98%;padding:10px;background-color:white">    
     <div class="cxl lsp" style="text-align:center">Ho sakta hai mehfil delete ho gyi ho</div>
     <hr size=1 COLOR="#E9EBEE">
-    <div class="sp lsp mbl" style="text-align:center">Ap beshaq koi aur mehfil try kar lein</div>
-    <div style="text-align:center"><a href="{% url 'group_page' %}#section0"><button class="btn bm bcp mbl pg_ok_res sp" style="height:26px">wapis</button></a></div>
+    <div class="sp lsp mbl" style="text-align:center">Ap beshak koi aur mehfil try kar lein</div>
+    <div style="text-align:center"><a href="{% url 'group_page' %}#section0"><button class="btn bm bcp mbl pg_ok_res sp" style="height:28px">wapis</button></a></div>
 </div>
 {% elif full_member %}
 
@@ -36,11 +36,11 @@
 </form>
 
 {% load get_group_button %}
-<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
-    <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
+<div class="mbl mtl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden;padding:0 6px">
+    <h1 style="display:inline" class="clb cl sp lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
 </div>
 
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:750px;width:100%;overflow:hidden;background:white;margin-right:auto;margin-left:auto;color:black;box-sizing:border-box">
+<div class="mbl" style="padding:10px 8px;max-width:750px;width:100%;overflow:hidden;background:white;margin-right:auto;margin-left:auto;color:black;box-sizing:border-box">
     <a name="sectionJ"></a> 
 
     <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
@@ -58,7 +58,7 @@
         <input id="grp_sk" type="hidden" name="sk" value="{{ sk }}">
         <input id="grp_wid" type="hidden" name="wid" value="-1">
         <input name="uid" type="hidden" value="{{ unique }}">
-        <button class="btn bm bcp mrl mbs mts pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:28px" value="{{ group_id }}">OK</button>
+        <button class="btn bm bcp mrl mbs mts pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:28px;width:130px" value="{{ group_id }}">OK</button>
     </form>&nbsp;
     <form action="{% url 'first_time_public_refresh' %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
@@ -216,7 +216,7 @@
 </div>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;">
+<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;">
 
     <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
 
@@ -307,4 +307,5 @@
 {% endif %}
     <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
+{% include "navbars/bottom_navbar_js_helper.html" with ident=own_id %}
 {% endblock %}

@@ -1,17 +1,17 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% block content %}
 <head><title>Hide content in public mehfil | Damadam</title></head>
 
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Hide offensive item:</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 {% if allowed %}
 	<div class="lsp cxl">Kya is item ko hide karna hai?</div>
 	<form action="{% url 'group_hide_submission' %}" class="mtl" method="POST">
 	{% csrf_token %}
     <input type="hidden" name="gid" value="{{ gid }}">
     <input type="hidden" name="pk" value="{{ reply_pk }}">
-	<button type="submit" name="repdec" class="btn bcg bm mrl mbs pg_ok_res sp" style="height:26px" value="1">Yes</button>
-	<button type="submit" name="repdec" class="btn bcr bm mts pg_ok_res sp" style="height:26px" value="0">No</button>
+	<button type="submit" name="repdec" class="btn bcg bm mrl mbs pg_ok_res sp" style="height:28px" value="1">Yes</button>
+	<button type="submit" name="repdec" class="btn bcr bm mts pg_ok_res sp" style="height:28px" value="0">No</button>
 	</form>
 {% elif non_existence %}
 	<div class="cxl lsp">Ap is item ko hide nahi kar saktey!</div>

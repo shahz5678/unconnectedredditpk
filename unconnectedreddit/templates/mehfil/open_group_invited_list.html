@@ -1,16 +1,16 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load s3 %}
 {% load human_time %}
 {% block content %}
 <head><title>Invited users | Damadam</title></head>
-
-{% include "mehfil/open_group_invite_navbar.html" with static_url=STATIC_URL section='invited' guid=guid %}
-
+<div class="mtl">
+	{% include "mehfil/open_group_invite_navbar.html" with static_url=STATIC_URL section='invited' guid=guid %}
+</div>
 <div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl lsp">Invite list:</h1>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
 <div class="mt mbl"><a href="{% url 'public_group' guid %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
 

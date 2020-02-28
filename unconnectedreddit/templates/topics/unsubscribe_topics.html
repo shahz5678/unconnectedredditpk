@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 <head><title>Unsubscribe topics | Damadam</title></head>
    
@@ -6,7 +6,7 @@
 		<h1 class="cxl lsp clb" style="text-align:center">Unsubscribe topic:</h1>
 	</div>
 
-    <div class="mbl mts clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:ivory;max-width:600px;margin-left:auto;margin-right:auto;width:98%;text-align:center">
+    <div class="mbl mts clb" style="overflow:hidden;background:ivory;max-width:600px;margin-left:auto;margin-right:auto;text-align:center">
 	    
 	    <div class="cxl lsp" style="border-bottom:1px solid gainsboro;padding:8px">Jis topic ko unsubscribe karna hai, usko select kar ke "Unsubscribe" dabain:</div>
 	    <form style="background:white;padding-top:15px" method="POST" action="{% url 'unsubscribe_topics' %}">

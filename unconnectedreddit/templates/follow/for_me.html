@@ -1,58 +1,6 @@
-{% load google_analytics %}
-<!DOCTYPE html>
-<html style="background:#f0f3f4">
-<head>
-	<!-- has to be the first tag in head -->
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	{% include "favicons.html" %}
-	{% include "css.html" %}
-   <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="My feed on Damadam">
-	<meta name="robots" content="noindex">
-    <meta name="robots" content="noarchive">
-	<meta property="og:site_name" content="Damadam.pk">
-	<meta property="og:title" content="Damadam.pk">
-	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://damadam.pk/">
-	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
-	<meta property="og:image:width" content="300">
-	<meta property="og:image:height" content="300">
-	<meta property="og:description" content="Damadam is a Pakistani social network. Join the fun now!">
-	<meta property="fb:app_id" content="1758220174446684" />
-	<meta name="author" content="mhb">
-	
-	<title>For Me | Damadam</title>
-
-	{% google_analytics %}
-	{% include "ga_user_analytics.html" with my_var=user.id %}
-
-</head>
-
-<body>
-	
-{% include "header.html" %}
-
-{% if user.is_authenticated %}
-	{% if request.mobile_verified %}
-	    {% include "navbars/top_navbar.html" with username=user.username %}
-	{% else %}
-		{% include "navbars/top_navbar_unverified.html" %}
-	{% endif %}
-{% else %}
-    {% include "navbars/top_navbar_unauth.html" %}
-{% endif %}
-
-{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
-
-<a name="section0"></a>
-
-{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
-
-<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
-
-<main style="display:block;max-width:750px;margin:0 auto;width:98%;position:relative;">
+{% extends "base/base_for_me.html" %}
+{% block content %}
+<main class="mbl" style="display:block;max-width:750px;margin-left:auto;margin-right:auto;width:100%;position:relative;">
 	<!-- content -->
 	{% load human_time %}
 	{% load emoticons_tags %}
@@ -64,7 +12,6 @@
 	{% load get_big_group_button %}
 	{% load get_big_home_reply_button %}
 	{% load get_inline_replies_section %}
-	{% load get_transparent_buttons_js %}
 	{% load get_big_photo_comment_button %}
 	{% load get_big_external_share_button %}
 
@@ -133,7 +80,7 @@
 
 		{% if link.ot == 'g' %}
 
-		<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+		<article class="mbl" style="display:block;overflow:hidden;background:white">
 			<a name="section{{ forloop.counter }}"></a>
 
 			{% photo_object pid=link.i ooid=link.si img_url=link.iu img_thumb=link.it caption=link.d|emoticons raw_caption=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s show_trending=link.tr lazyload_idx=forloop.counter ratio=link.rt ot=link.ot aud=link.aud exp=link.exp is_new=link.new  et=link.et time_now=time_now %}
@@ -179,7 +126,7 @@
 		</article>
 			
 		{% elif link.ot == 't' %}
-		<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+		<article class="mbl" style="display:block;overflow:hidden;background:white">
 			<a name="section{{ forloop.counter }}"></a>
 				<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
 				{% text_object obid=link.i ooid=link.si text=link.d|urlize|url_target_blank|emoticons|linebreaksbr raw_text=link.d origin=26 upload_time=link.t machine_time=link.mt oun=link.su av_url=link.sa vsc=link.nv is_fbs=on_fbs home_hash=link.h static_url=STATIC_URL is_star=link.s alignment=link.c topic=link.tn topic_url=link.url show_topic='1' c1=link.c1 c2=link.c2 aud=link.aud exp=link.exp is_new=link.new et=link.et time_now=time_now %}
@@ -196,7 +143,7 @@
 					{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
 					{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
 					{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
-					{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
+					{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' topic_url=link.url %}
 				{% endif %}
 				</div>
 
@@ -227,7 +174,7 @@
 
 		<!-- show top stars -->
 		{% if top_list %}
-			<div class="mbl" style="background-color:white;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;">
+			<div class="mbl" style="background-color:white;text-align:center;overflow:hidden;">
 				<h2 class="clb mbs lsp" style="font-weight:lighter;padding:8px;background:ivory;margin:0;border-bottom:1px solid #f2f2f2">Hamarey best posters ko 'Follow' karna hai tou in mein se choose karein:</h2>
 				{% include "top_stars.html" with object_list=top_list origin=origin %}
 			</div>
@@ -235,7 +182,7 @@
 
 	{% else %}
 		<!-- no posts -->
-		<div class="mbl" style="background-color:white;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;">
+		<div class="mbl" style="background-color:white;text-align:center;overflow:hidden;">
 			<div class="cxl lsp clb" style="background:ivory;padding:8px;border-bottom:1px solid #f2f2f2">'For Me' mein un users ki posts show hoti hain jinko ap 'Follow' karte hain</div>
 			<h2 class="clb mbs mts lsp" style="font-weight:lighter;padding:0 8px">Hamarey best posters ko 'Follow' karna hai tou in mein se choose karein:</h2>
 			{% include "top_stars.html" with object_list=top_list origin=origin %}
@@ -252,48 +199,21 @@
 		</div>
 	{% endif %}
 
-</main>
-
-<div class="mbl fx fxjscn">
+	<div class="fx fxjscn">
 		{% if page.has_previous %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
-	    </div>
-	    {% endif %}
-	    {% if page.has_next %}
-	    <div style="padding:0 10px">
-	    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
-	    </div>
-	    {% endif %}
+		<div style="padding:0 10px 30px 10px">
+		<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+		</div>
+		{% endif %}
+		{% if page.has_next %}
+		<div style="padding:0 10px 30px 10px">
+		<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+		</div>
+		{% endif %}
 	</div>
 
-{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+</main><br>
+{% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
+{% include "navbars/bottom_navbar_js_helper.html" with ident=ident %}
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-
-{% if user.is_authenticated %}
-
-	{% if request.mobile_verified %}
-
-		{% load count %}
-		{% check_reply_count as reply_count %}
-		{% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count selected='for_me' %}
-
-	{% else %}
-
-		{% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count selected='for_me' %}
-
-	{% endif %}
-
-{% else %}
-
-	{% include "navbars/bottom_navbar_unauth.html" with selected='for_me' %}
-
-{% endif %}
-
-{% include "min_service_worker.html" %}
-
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
-
-</body>
-
-</html>
+{% endblock %}

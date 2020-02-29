@@ -1,25 +1,25 @@
-{% extends "base_verification.html" %}
+{% extends "base/base_verification.html" %}
 {% block content %}
 <head><title>User verification | Damadam.pk</title></head>
 <style>body{background: #fefbfb}</style>
 {% include "fb_analytics.html" %}
 
-<div class="bizcard" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
-	<div class="cs mbl">Enter your phone number:</div>
-	<div class="cxs sp mbl">Aapko 6 digits ka pin code <b>SMS</b> ya <b>WhatsApp</b> ke zariye bheja jai ga</div>				
+<div class="mbl mtl" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center"> 
+  <div class="cxl mbl">Enter your phone number:</div>
+  <div class="cs sp lsp mbl">Hum apko aik pin code bhejein ge</div>       
 
 
-		<form method="POST" action="{% url 'account_kit_verification_commencement' %}" class="mtl cgy">
+    <form method="POST" action="{% url 'account_kit_verification_commencement' %}" class="mtl cgy">
 
-			{% csrf_token %}
-			{% if form.phonenumber.errors %}<b class="cr sp cxs mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
-			{{ form.phonenumber }}<br>
-			<div class="cxs mt clb">oper mobile number likhien (example: 03451234567)</div>
-			<button class="btn bct mtl mbs bl cs sp pg_ok_res" style="height:35px;width:100%;padding:10px;">Submit</button>
-		</form>
+      {% csrf_token %}
+      {% if form.phonenumber.errors %}<b class="cr sp cs lsp mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
+      {{ form.phonenumber }}<br>
+      <div class="cs mt clb">oper mobile number likhien (example: 03451234567)</div>
+      <button class="btn bct mtl mbs bl cs sp pg_ok_res" style="height:35px;width:100%;padding:10px;">SUBMIT</button>
+    </form>
 
-		<hr size=1 COLOR="#e6e6e6">
-		<div class="cs lsp" style="text-align:left;padding:5px 5px;"><span class="cgy"><b>Tip I:</b> mobile number '0' se start hona chahiye, '+92' se nahi<br><b>Tip II:</b> Agli screen per number change na kerien warna aap ka account verify nahi ho sakey ga<br><b>Tip III:</b> Sirf numbers likhien, dashes ya spaces ki zarurat nahi</span></div>
+    <hr size=1 COLOR="#e6e6e6">
+    <div class="cs lsp" style="text-align:left;padding:5px 5px;"><span class="cgy"><b>Tip:</b> Sirf numbers likhien, dashes ya spaces ki zarurat nahi</span></div>
 
-</div><br><br>
+</div>
 {% endblock %}

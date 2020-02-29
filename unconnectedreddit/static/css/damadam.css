@@ -666,8 +666,6 @@ MARGINS
     }
 }
 
-/* CSS FOR PRIVATE CHAT */
-
 /* generates a flexbox with various alignments */
 
 .fx {
@@ -712,11 +710,48 @@ MARGINS
             align-items:flex-end;
 }
 
+/*mostly used to make avatar thumbs round*/
+.circle{
+  border-radius: 50%;
+}
+
 /* ensures buttons don't get highlighted after being pressed */
 
 ::-moz-focus-inner, :active, :focus {
     outline:none;
     -moz-outline-style: none;
+}
+
+/* CSS FOR PRIVATE CHAT */
+
+/*youtube link+image*/
+
+img.yt_play {
+  width:65px;
+  height: 65px;
+}
+
+img.yt_play:hover{
+  width:60px;
+  height: 60px;
+}
+
+img.yt_img {
+  opacity:0.7;
+}
+
+img.yt_img:hover{
+  opacity: 1;
+}
+
+.cam_img{
+  position:absolute;
+  z-index:4;
+  opacity:0.01;
+  border:none;
+  max-width:132px;
+  height:60px;
+  font-size:50px
 }
 
 /* online dot in mehfils */
@@ -731,7 +766,7 @@ MARGINS
 /* increasing line height for better readability */
 
 .lsp{
-  line-height:1.55;
+  line-height:1.56;
 }
 
 /* spacing out characters for cases when small font is used */

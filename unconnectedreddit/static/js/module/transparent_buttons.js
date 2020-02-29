@@ -531,19 +531,26 @@ function determine_pause_length(string) {
 
 ///////////////////////////////////////////////////////////////////////////////////
 
-var input_btns = document.getElementsByClassName('inp');// selecting all textareas or inputs for processing (e.g. making fixed bottom menu 'absolute')
-for (var i=0, len=input_btns.length; i < len; i++) {
-	input_btns[i].onfocus = () => {
-		var bottom_nav = document.getElementById("bottom_nav")
-		bottom_nav.classList.remove('show-it');
-      	bottom_nav.classList.add('hide-it');
-	}
-	input_btns[i].onblur = () => {
-		var bottom_nav = document.getElementById("bottom_nav")
-		bottom_nav.classList.remove('hide-it');
-      	bottom_nav.classList.add('show-it');
-	}
-}
+// var share_btns = document.getElementsByClassName('share');
+// for (var i=0, len=share_btns.length; i < len; i++) share_btns[i].onclick = share_modal;
+
+
+// function share_modal(e) {
+
+// 	var pop_up = document.getElementById("share_popup");
+// 	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.currentTarget.value || !pop_up) return;
+// 	e.preventDefault();
+
+// 	var overlay = document.createElement('div');
+//     overlay.id = "personal_group_overlay";
+//     overlay.className = 'ovl';//
+//     overlay.style.background = '#000000';
+//     overlay.style.opacity = '0.5';
+
+//     document.body.appendChild(overlay);
+// 	pop_up.style.display = 'block';
+
+// }
 
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -568,7 +575,6 @@ function report_modal(e) {
 			var payload_array = payload.split("#",8);// one more than python's split (i.e. in python, we would have split by '7')
 			
 			var content_topic = document.getElementById("tp"+payload_array[2]);
-
 			var report_content = document.getElementById("report_txt");
 			report_content.innerHTML = '"'+payload_array[7].substring(0, 40)+' ..."'; // description
 			var report_user = document.getElementById("submitter");
@@ -746,11 +752,15 @@ function report_modal(e) {
 				report_thumburl.value = '';
 				report_linkid.value = '';
 				report_ownerid.value = '';
-				report_topic.value = '';
+				if (report_topic && report_topic.value) {
+					report_topic.value = '';
+				}
 
 				block_targetid.value = '';
 				block_targetusername.value = '';
-				block_topic.value = '';
+				if (block_topic && block_topic.value) {
+					block_topic.value = '';
+				}
 			};
 	    }
 

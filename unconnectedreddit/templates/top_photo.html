@@ -1,12 +1,11 @@
-{% extends "base.html" %}
-{% load get_transparent_buttons_js %}
+{% extends "base/base_stars.html" %}
 {% block content %}
 
 <head><title>Trending posters | Damadam</title></head>
 
 <h1 style="text-align:center" class="cxl lsp clb">Top Damadam Stars:</h1>
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-right: auto;margin-left: auto;max-width:600px;width:98%;">
+<div class="mbl clb" style="overflow:hidden;background:white;margin-right: auto;margin-left: auto;max-width:600px">
 
     <div style="text-align:center" class="fx fxjscn fxaicn">
         <div class="sp" style="border-radius:0;width:50%;border:none;background:#ff5849;color:white;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid #ff1500">TOP STARS</div>
@@ -23,5 +22,5 @@
 </div>
 
 <br><br>
-{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+{% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
 {% endblock %}

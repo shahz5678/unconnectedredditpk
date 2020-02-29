@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 <head><title>Account not verified | Damadam</title></head>
 
 <h1 class="cxl lsp clb" style="text-align:center">Please verify your account!</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 {% if share_on_home %}
 <div class="cxl lsp mbs">Sorry! Share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif reply %}
@@ -34,10 +34,10 @@
 {% elif file_report %}
 <div class="cxl lsp mbs">Sorry! Kisi item ko report karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif upload_public_photo %}
-<div class="cxl lsp mbs">Sorry! Foto share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+<div class="cxl lsp mbs">Sorry! Photo share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif subscribe_to_topic %}
 <div class="cxl lsp mbs">Sorry! Topic ko subscribe karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif logout %}
+{% else %}
 <div class="cxl lsp mbs">Sorry! Ye sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% endif %}
 	

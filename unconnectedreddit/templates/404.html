@@ -1,83 +1,12 @@
-<!DOCTYPE html>
-<html style="background-color: #f0f3f4">
-<style>
-body {
-    font-family:Arial;
-}
-</style>
-<head>
-    <!-- has to be the first tag in head -->
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-    {% include "favicons.html" %}
-    {% include "css.html" %}
-       <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="robots" content="noindex">
-        <meta name="description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting people to follow. Join the fun now!">
-        <meta name="author" content="mhb">
-        <title>Page not found! | Damadam</title>
-        <meta property="og:site_name" content="Damadam.pk">
-        <meta property="og:type" content="website">
-        <meta property="og:description" content="Damadam is a Pakistani social site, with the best funny photos and memes, Urdu poetry, and interesting people to chat with. Join the fun now!">
-        
-        {% load google_analytics %}
-        {% google_analytics %}
-
-</head>
-
-{% include "header.html" %}
-
-{% if user.is_authenticated %}
-    {% if request.mobile_verified %}
-        {% include "navbars/top_navbar.html" with username=user.username %}
-    {% else %}
-        {% include "navbars/top_navbar_unauth.html" %}
-    {% endif %}
-{% else %}
-    {% include "navbars/top_navbar_unauth.html" %}
-{% endif %}
-
-{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
-
-{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
-
-<br>
-
-<div style="margin-top:1em;margin-right: auto;margin-left: auto;max-width:600px;width:93%;border-radius:6px;padding:5px 5px 5px 5px;background-color:#26d5ab;padding-bottom:2em;-webkit-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);-moz-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-sizing: border-box;">
+{% extends "base/base_noindex.html" %}
+{% block content %}
+<div style="margin-right: auto;margin-left: auto;max-width:600px;padding:5px 5px 5px 5px;background-color:#26d5ab;padding-bottom:2em;-webkit-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);-moz-box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-shadow:0 1px 3px 0 rgba(0,0,0,0.13);box-sizing: border-box;font-family:Arial">
     <div style="margin-top:1em;text-align:center">
     <img src="{{ STATIC_URL }}img/scream.svg" alt="scream" height="200" width="200" style="font-size:60%;">
     </div>
     <h1 style="color:white;text-shadow:1px 1px #009940;text-align:center;font-size:180%;">Aaa! Ye aik khokhlay matkey ki terah khali hai</h1>
 
-    <h2 style="color:#f9ef6c;text-shadow:1px 1px #009940;text-align:center;">Ap rasta toh nahi bhool gaye?</h2>
+    <h2 style="color:#f9ef6c;text-shadow:1px 1px #009940;text-align:center;font-size:130%;">Ap rasta toh nahi bhool gaye?</h2>
 </div>
 <br><br>
-
-{% if user.is_authenticated %}
-
-    {% if request.mobile_verified %}
-
-        {% load feed_count %}
-        {% check_feed_count False as feed_count %}
-        {% load count %}
-        {% check_reply_count as reply_count %}
-        {% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count %}
-
-    {% else %}
-
-        {% load feed_count %}
-        {% check_feed_count False as feed_count %}
-        {% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count %}
-
-    {% endif %}
-
-{% else %}
-
-    {% include "navbars/bottom_navbar_unauth.html" %}
-
-{% endif %}
-
-</body>
-</html>
+{% endblock %}

@@ -11,11 +11,7 @@
 
     <form action="{% url 'hide_photo_from_personal_group_chat' %}" method="POST" class="mtl mbl">
         {% csrf_token %}
-        <input type="hidden" name="act" value="{{ action }}">
-        <input type="hidden" name="bid" value="{{ bid }}">
-        <input type="hidden" name="iid" value="{{ iid }}">
-        <input type="hidden" name="tid" value="{{ tid }}">
-        <input type="hidden" name="idx" value="{{ idx }}">
+        <input type="hidden" name="act" value="{{ action }}"><input type="hidden" name="bid" value="{{ bid }}"><input type="hidden" name="iid" value="{{ iid }}"><input type="hidden" name="tid" value="{{ tid }}"><input type="hidden" name="idx" value="{{ idx }}">
         <button class="btn bcb bm mrl mbs pg_ok" style="border:none;height:30px;" name="dec" value="1">Haan</button>
         <button class="btn bcgy bm mts pg_cl" style="border:none;height:30px;" name="dec" value="0">Nahi</button>
     </form>

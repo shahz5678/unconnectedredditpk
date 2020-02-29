@@ -1,4 +1,4 @@
-{% extends "base_text.html" %}
+{% extends "base/base_text.html" %}
 {% load emoticons_tags %}
 {% load get_text_object %}
 {% load url_target_blank %}
@@ -8,25 +8,24 @@
 {% load get_big_group_button %}
 {% load get_big_home_reply_button %}
 {% load get_inline_replies_section %}
-{% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
 {% load get_big_external_share_button %}
 {% block content %}
 <head><title>{% if feed_type == 'best_text' %}Trending text{% elif feed_type == 'fresh_text' %}Latest text{% endif %} | Damadam</title></head>
-<main style="display:block;max-width:750px;margin:0 auto;width:98%;position:relative;">
+<main class="mbl" style="display:block;max-width:750px;margin-left:auto;margin-right:auto">
 
 {% if newbie_flag %}
-	
-	{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=origin %}
-	
+	<div class="mbl mts">
+		{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=origin %}
+	</div>
 {% else %}
+	<div class="mtl">
+		{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
-	{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
+		{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin=sn_origin time_now=time_now %}
 
-	{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin=sn_origin time_now=time_now %}
-
-	{% include "text_navbar.html" with section=feed_type %}
-
+		{% include "text_navbar.html" with section=feed_type %}
+	</div>
 {% endif %}
 
 <div class="mtl mbl fx fxjscn fxaibl">
@@ -73,7 +72,7 @@
 
 {% endif %}
 	
-<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+<article class="mbl" style="display:block;overflow:hidden;background:white">
 	
 	<a name="section{{ forloop.counter }}"></a>
 	<section style="display:block" itemscope itemtype="http://schema.org/SocialMediaPosting">
@@ -93,7 +92,7 @@
 			{% big_vote_button is_pht='0' obid=link.i origin=origin ooid=link.si user_voted=link.v static_url=STATIC_URL %}
 			{% big_group_button own_id=ident target_id=link.si parent_object_id=link.i object_type='link' origin=origin target_username=link.su home_hash=link.h %}
 			{% big_home_reply_button link_id=link.i comm_count=link.cc static_url=STATIC_URL origin=origin %}
-			{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb='' raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' %}
+			{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb='' raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='tx' topic_url=link.url %}
 		{% endif %}
 	{% endif %}
 	</div>
@@ -124,21 +123,22 @@
 
 {% endfor %}
 
-</main>
-
-<div class="mbl fx fxjscn">
+<div class="fx fxjscn">
 	{% if page.has_previous %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
     </div>
     {% endif %}
     {% if page.has_next %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
     </div>
     {% endif %}
 </div>
 
-{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+</main><br>
+
+{% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
+{% include "navbars/bottom_navbar_js_helper.html" with ident=ident %}
 <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

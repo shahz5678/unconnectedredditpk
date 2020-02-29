@@ -9,7 +9,6 @@ from operator import itemgetter
 from templatetags.s3 import get_s3_object
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
-from html_injector import image_thumb_formatting#, contacter_string
 from redis4 import retrieve_bulk_unames, retrieve_user_id, retrieve_avurl
 from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT, THRESHOLD_WORLD_AGE
 

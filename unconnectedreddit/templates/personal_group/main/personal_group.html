@@ -496,13 +496,13 @@
 
     {% endfor %}
 
+    {% personal_group_bottom_navbar tid STATIC_URL own_nick %}
+
     {% if autodel == '1' %}
       <div class="lsp mts" style="text-align:center;">
-        <span class="sp cxs" style="color:#148BDA">... baqi messages delete kar diye gaye</span>
+        <span class="sp cxs" style="color:#16161D">- remaining messages deleted -</span>
       </div>
     {% endif %}
-
-    {% personal_group_bottom_navbar tid STATIC_URL own_nick %}
 </div>
 <br><br>
 

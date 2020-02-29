@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends noindex|yesno:"base/base_profile_noindex.html,base/base_profile.html" %}
 {% block content %}
 <head><title>People following {{ own_name }} | Damadam</title></head>
 
       {% if new_follower_list %}
           <h1 class="cxl clb" style="text-align:center;overflow:hidden">Your new followers:</span></h1>
-          <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;text-align:center">  
+          <div class="clb" style="background-color:#FEFCFC;padding:10px;max-width:600px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">  
            
               {% load s3 %}
               {% load get_big_remove_follower_button %}
@@ -21,7 +21,7 @@
               {% for follower_id,following_time,uname,avurl,new in followers %}
                 <li style="text-align:left;border-bottom:1px solid #f4f4f4;padding:12px 0 6px 0" class="sp">
                   <div style="word-break: break-all;">
-                        <img src="{{ avurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">
+                        <img src="{{ avurl|s3:"thumb" }}" width="22" height="22" class="circle" style="vertical-align:sub" alt="pic">
                         <b class="clb cm sp">{{ uname }}</b>                
                         <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
                           <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=uname static_url=STATIC_URL %}</div>
@@ -37,7 +37,7 @@
          <br>
       {% else %}
        <h1 class="cxl clb" style="text-align:center;overflow:hidden">People following you:</span></h1>
-        <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+        <div class="clb" style="background-color:#FEFCFC;padding:10px;max-width:600px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
           {% if not followers %}
          
          
@@ -63,7 +63,7 @@
                 <li style="text-align:left;border-bottom:1px solid #f4f4f4;padding:12px 0 6px 0" class="sp">
                   <div style="word-break: break-all;">
 
-                        <img src="{{ avurl|s3:"thumb" }}" width="22" height="22" style="border-radius:50%;vertical-align:sub" alt="pic">
+                        <img src="{{ avurl|s3:"thumb" }}" width="22" height="22" class="circle" style="vertical-align:sub" alt="pic">
                         <b class="clb cm sp">{{ uname }} </b>                
                         <div style="flex-wrap:wrap" class="mtl fx fxjscn fxaicn cxs sp cgy">
                           <div style="margin-right:4px;margin-bottom:4px">{% include "big_buttons/big_search_buttons.html" with username=uname static_url=STATIC_URL %}</div>
@@ -81,17 +81,17 @@
 
       <div class="mbl fx fxjscn">
         {% if page_obj.has_previous %}
-          <div style="padding:0 10px">
+          <div style="padding:0 10px 30px 10px">
           <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
           </div>
         {% endif %}
         {% if page_obj.has_next %}
-          <div style="padding:0 10px">
+          <div style="padding:0 10px 30px 10px">
           <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
           </div>
         {% endif %}
       </div>
-      
+      <br>
       {% endif %}
   
 {% endblock %}

@@ -43,12 +43,12 @@
         <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="opt" value="0">
         
-        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="mts cxl lsp"><b style="color:#3cb7dd">1.</b>&nbsp;Select Photo:</div>{% endif %}
+        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">1.</b>&nbsp;Select Photo:</div>{% endif %}
         <div class="mts mbl" style="text-align:center">{{ form.image_file }}</div>
-        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp"><b style="color:#3cb7dd">2.</b> Likhein photo kis barey mein hai:</div>{% endif %}
+        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">2.</b> Likhein photo kis barey mein hai:</div>{% endif %}
         
         <div style="padding:5px 10px 0 10px;text-align:center">{{ form.caption }}</div>
-        <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">3.</b> Select Expiry:</div>
+        <div class="mtl cxl lsp mbs nos"><b style="color:#3cb7dd">3.</b> Select Expiry:</div>
 
         <div style="margin-left: auto;margin-right:auto">
 
@@ -74,7 +74,7 @@
                 </div>
 
               <div class="mbs" style="margin-left: auto;margin-right:auto">
-                <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">4.</b>&nbsp;Turn Off Replies:</div>
+                <div class="mtl cxl lsp mbs nos"><b style="color:#3cb7dd">4.</b>&nbsp;Turn Off Replies:</div>
                 <input type="radio" name="com" class="checkbox" id="com-on" value="1">
                 <label class="label crsr"  for="com-on" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
                     <div class="fx fxjscn fxaicn">

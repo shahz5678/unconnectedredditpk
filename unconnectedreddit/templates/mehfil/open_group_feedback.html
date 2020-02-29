@@ -31,7 +31,7 @@
 
 <hr size=1 COLOR="#E9EBEE">
 {% for item in feedback %}
-<div class="cl lsp sp mts"><img src="{{ item.oau|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<b>{{ item.uname }}:</b>&nbsp;{% emoticons %}{{ item.f }}{% endemoticons %}</div>
+<div class="cl lsp sp mts"><img src="{{ item.oau|s3:'thumb' }}" class="circle" style="vertical-align:sub">&nbsp;<b>{{ item.uname }}:</b>&nbsp;{% emoticons %}{{ item.f }}{% endemoticons %}</div>
 <div class="sp lsp cxs mts mbs" style="text-align:right"><span class="cgy">{{ item.tt|human_time }}</span></div>
 <hr size=1 COLOR="#E9EBEE">
 {% empty %}

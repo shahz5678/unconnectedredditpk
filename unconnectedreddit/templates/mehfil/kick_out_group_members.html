@@ -77,7 +77,7 @@
 				<li style="text-align:left">
 				<div class="mts mbl">
 				{% if member_id in immune_ids %}<input style="vertical-align:sub" type="radio" id="{{ forloop.counter }}" name="cid" value="{{ member_id }}" disabled>{% else %}<input style="vertical-align:sub" type="radio" id="{{ forloop.counter }}" name="cid" value="{{ member_id }}">{% endif %}
-				<label for="{{ forloop.counter }}"><img src="{{ member.avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%" alt="pic">{% if member_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<span class="mrl">{{ member.uname }}</span><span class="cgy cxs sp">joined {{ join_time|human_time }}</span></label>
+				<label for="{{ forloop.counter }}"><img src="{{ member.avurl|s3:'thumb' }}" class="circle" style="vertical-align:sub" alt="pic">{% if member_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;<span class="mrl">{{ member.uname }}</span><span class="cgy cxs sp">joined {{ join_time|human_time }}</span></label>
 				</div>
 				</li>
 			{% endfor %}

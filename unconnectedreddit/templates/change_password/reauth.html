@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "base/base_profile.html" %}
 {% block content %}
 <head><title>Change password | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">Enter existing password</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="clb mbl" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 <div class="cxl lsp">Pehlay apna abhi wala password likhein:</div>
 <hr size=1 COLOR="#e5e7e9">
 <form method="post" action="{% url 'reauth' %}#section0">

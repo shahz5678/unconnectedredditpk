@@ -1,307 +1,208 @@
-{% load google_analytics %}
-<!DOCTYPE html>
-<html style="background:#f0f3f4">
+{% extends "base/base_photos.html" %}
+{% block content %}
+<main itemscope itemtype="https://schema.org/ImageGallery" class="mbl" style="display:block;max-width:750px;margin-left:auto;margin-right:auto">
 
-<head>
-	<!-- has to be the first tag in head -->
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	{% include "favicons.html" %}
-	{% include "css.html" %}
-   <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="See and share the best images and memes related to Pakistan. Genres include funny memes, sad poetry pics, Whatsapp dp pics, Islamic pics, couple pics, girl dp pics, Urdu poetry pics, attitude pics and memes, etc.">
-	<meta property="og:site_name" content="Damadam.pk">
-	<meta property="og:title" content="Damadam.pk">
-	<meta property="og:type" content="website">
-	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
-	<meta property="og:image:width" content="300">
-	<meta property="og:image:height" content="300">
-	<meta property="og:description" content="See and share the best images and memes related to Pakistan. Genres include funny memes, sad poetry pics, Whatsapp dp pics, Islamic pics, couple pics, girl dp pics, Urdu poetry pics, attitude pics and memes, etc.">
-	<meta property="fb:app_id" content="1758220174446684" />
-	<meta name="author" content="mhb">
-	<meta name=”GOOGLEBOT” content=”NOARCHIVE”>
+	{% load get_photo_object %}
+	{% load emoticons_tags %}
+	{% load get_big_send_button %}
+	{% load get_big_vote_button %}
+	{% load get_big_group_button %}
+	{% load get_big_external_share_button %}
+	{% load get_inline_replies_section %}
+	{% load get_big_photo_comment_button %}
+
+	{% if newbie_flag %}
 	
-	{% if feed_type == 'fresh_photos' %}
-		<title>{{ num_in_last_1_day }} Latest Images and Memes from Pakistan in the Last 24 Hours | Damadam</title>
+		<div class="mbl mts">
+		{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='top' %}
+		</div>
+	
 	{% else %}
-		<title>{{ num_in_last_1_day }} Best Images and Memes Trending in Pakistan in the Last 24 Hours! | Damadam</title>
-	{% endif %}
-	
-	<link rel="canonical" href="https://damadam.pk/photo/{{ list_type }}/">
-	<meta property="og:url" content="https://damadam.pk/photo/{{ list_type }}/">
-
-	{% if page.has_previous %}
-		<link rel="prev" href="?page={{ page.previous_page_number }}" />
-	{% endif %}
-	{% if page.has_next %}
-		<link rel="next" href="?page={{ page.next_page_number }}" />
-	{% endif %}
-
-	{% google_analytics %}
-	{% include "ga_user_analytics.html" with my_var=ident %}
-
-</head>
-
-<body>
-	{% include "header.html" %}
-	<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
-
-		{% if user.is_authenticated %}
-			{% if request.mobile_verified %}
-				{% include "navbars/top_navbar.html" with username=user.username %}
-			{% else %}
-				{% include "navbars/top_navbar_unverified.html" %}
-			{% endif %}
-		{% else %}
-			{% include "navbars/top_navbar_unauth.html" %}
-		{% endif %}
-
-		{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
-		
-		<a name="section0"></a>
-
-		{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
-		
-		<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
-		
-	</nav>
-
-	<main itemscope itemtype="https://schema.org/ImageGallery" style="display:block;max-width:750px;margin:0 auto;width:97%">
-
-		{% load get_photo_object %}
-		{% load emoticons_tags %}
-		{% load get_big_send_button %}
-		{% load get_transparent_buttons_js %}
-		{% load get_big_vote_button %}
-		{% load get_big_group_button %}
-		{% load get_big_external_share_button %}
-		{% load get_inline_replies_section %}
-		{% load get_big_photo_comment_button %}
-
-		{% if newbie_flag %}
-		
-			<div class="mbl mts">
-			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='top' %}
-			</div>
-		
-		{% else %}
-
+		<div class="mtl">
 			{% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mobile_verified static_url=STATIC_URL %}
 
 			{% include "direct_response/latest_direct_response.html" with data=latest_dir_rep form=single_notif_dir_rep_form origin=single_notif_origin time_now=time_now %}
 
 			{% include "photos_navbar.html" with section=navbar_type static_url=STATIC_URL %}
-
-		{% endif %}
-
-		<section style="display:block" itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
-
-		{% if page.max_pages < 2 %}
-			<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest photos</span>{% else %}<span itemprop="headline">Trending photos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
-		{% else %}
-			{% load next_page %}
-			{% load prev_page %}
-			<div class="fx fxjscn fxaicn">
-				
-				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
-				<button style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|prev_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
-				</form>
-
-				<div><h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest photos</span>{% else %}<span itemprop="headline">Trending photos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1></div>
-
-				<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
-				<button  style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|next_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
-				</form>
-
-			</div>
-		{% endif %}
-
-		<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
-
-		<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
-		    {% csrf_token %}
-		    <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
-    		<div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
-		    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="{{ page_origin }}"><input type="hidden" name="srep" value="1">
-
-		    <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
-
-		    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
-		</form>
-
-		<a name="error"></a>
-		{% if dir_rep_invalid %}
-			<div style="background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">{{ dir_rep_invalid }}</div>
-		{% endif %}
-
-		{% for photo in object_list %}
-		
-			{% if not fbs and forloop.counter == 2 %}
-
-				{% if feed_type == 'fresh_photos' %}
-					<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-					<aside class="mbl" style="text-align:center;background:#f0f3f4">
-						<ins class="adsbygoogle"
-						     style="display:block"
-						     data-ad-format="fluid"
-						     data-ad-layout-key="-6y+ed+2i-1n-4w"
-						     data-ad-client="ca-pub-2568547635306983"
-						     data-ad-slot="3247177655"></ins>
-						<script>
-						     (adsbygoogle = window.adsbygoogle || []).push({});
-						</script>
-					</aside>
-				{% else %}
-					<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
-					<aside class="mbl" style="text-align:center;background:#f0f3f4">
-						<ins class="adsbygoogle"
-						     style="display:block"
-						     data-ad-format="fluid"
-						     data-ad-layout-key="-6w+eh+2a-1h-5f"
-						     data-ad-client="ca-pub-2568547635306983"
-						     data-ad-slot="3722448669"></ins>
-						<script>
-						     (adsbygoogle = window.adsbygoogle || []).push({});
-						</script>
-					</aside>
-				{% endif %}
-
-			{% elif forloop.counter == 4 %}
-
-				<div class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#80d4ff;text-align:center;overflow:hidden">
-					<img class="mtl" src="{{ STATIC_URL }}img/gstar.svg" width="30" height="30">
-					<div class="mt mbl cxl lsp" style="color:black"><b>Apna 'red star' paaney ka chance barhain!</b></div>
-					<a href="{% url 'coming_soon' %}#section0"><button class="cs lsp sp" style="width:100%;border-radius:0;border:none;background:tomato;color:white;height:40px"><b>KAISEY?</b></button></a>
-				</div>
-
-			{% endif %}
-
-			<article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;display:block">
-
-				<a name="section{{ forloop.counter }}"></a>
-
-				<section style="display:block">
-				{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=fbs static_url=STATIC_URL is_star=photo.s lazyload_idx=forloop.counter ratio=photo.rt ot='g' aud=photo.aud exp=photo.exp et=photo.et time_now=time_now %}
-				</section>
-				
-				<div class="mls">
-
-					<section class="mbl" style="display:block">
-					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
-						{% if ident|stringformat:"s" == photo.si|stringformat:"s" %}
-							<!-- own content -->
-							{% if photo.et and photo.et < time_now %}
-								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
-							{% else %}
-								{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
-								{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
-								{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
-								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
-							{% endif %}
-						{% else %}
-							<!-- others content -->
-							{% if photo.et and photo.et < time_now %}
-								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
-								{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
-							{% else %}
-								{% include "big_buttons/big_sub_button.html" with is_subbed=photo.f username=photo.su tid=photo.si origin=page_origin obid=photo.i obh=photo.h static_url=STATIC_URL %}
-								{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted=photo.v static_url=STATIC_URL %}
-								{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
-								{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
-								{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
-								{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
-								{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
-								{% include "big_buttons/big_report_button.html" with origin=page_origin pid=photo.i oun=photo.su ooid=photo.si img_thumb=photo.it raw_caption=photo.d av_url=photo.sa home_hash=photo.h static_url=STATIC_URL type='img' %}
-							{% endif %}
-						{% endif %}
-
-					</div>
-					</section>
-					{% if photo.com == '0' %}
-						<div size=1 style='border-top: dashed 1px #f2f2f2;'>
-							<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
-				 				- Replies Off -
-				 			</div>
-				 		</div>
-					{% else %}
-						<section style="display:block" class="mrs mbl">
-							{% include "reply_bar.html" with target_user_id=photo.si target_obj_type='4' obj_id=photo.i origin=page_origin form=thin_rep_form btn_color='bct' %}
-						</section>
-
-						<section style="display:block">
-							{% inline_replies_section raw_replies=photo.rb static_url=STATIC_URL self_user_id=ident origin=page_origin obj_owner_id=photo.si obj_type='img' %}
-						</section>
-					{% endif %}
-				</div>
-
-			</article>
-
-		{% empty %}
-
-			<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px" class="cxl lsp mbl clb">Sorry! Ye abhi empty hai<br>
-				{% if feed_type == 'fresh_photos' %}
-					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Ap <a href="{% url 'for_me' %}" class="cb" style="border-bottom:1px dotted dodgerblue">For Me</a> check karein!</div>
-				{% else %}
-					<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Ap <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Images</a> check karein!</div>
-				{% endif %}
-			</div>
-
-		{% endfor %}
-
-		</section>
-
-		{% if newbie_flag == '7' %}
-				<div class="mbs mt">
-				{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='bottom' %}
-				</div>
-		{% endif %}
-
-		<div class="fx fxjscn">
-			{% if page.has_previous %}
-		    <div style="padding:0 10px">
-		    	<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
-		    </div>
-		    {% endif %}
-		    {% if page.has_next %}
-		    <div style="padding:0 10px">
-		    	<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
-		    </div>
-		    {% endif %}
 		</div>
-
-	</main>
-	{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
-
-	<br>
-
-	{% if user.is_authenticated %}
-
-		{% if request.mobile_verified %}
-
-			{% load feed_count %}
-			{% check_feed_count False as feed_count %}
-			{% load count %}
-			{% check_reply_count as reply_count %}
-			{% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count selected='photos' %}
-
-		{% else %}
-
-			{% load feed_count %}
-			{% check_feed_count False as feed_count %}
-			{% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count selected='photos' %}
-
-		{% endif %}
-
-	{% else %}
-
-		{% include "navbars/bottom_navbar_unauth.html" with selected='photos' %}
-
 	{% endif %}
 
-	{% include "min_service_worker.html" %}
-	<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
+	<section style="display:block" itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
 
-</body>
+	{% if page.max_pages < 2 %}
+		<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest photos</span>{% else %}<span itemprop="headline">Trending photos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
+	{% else %}
+		{% load next_page %}
+		{% load prev_page %}
+		<div class="fx fxjscn fxaicn">
+			
+			<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
+			<button style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|prev_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+			</form>
 
-</html>
+			<div><h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest photos</span>{% else %}<span itemprop="headline">Trending photos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1></div>
+
+			<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
+			<button  style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|next_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
+			</form>
+
+		</div>
+	{% endif %}
+
+	<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+
+	<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
+	    {% csrf_token %}
+	    <div id="dir_rep_empty" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Likhna zaruri hai ...</div>
+		<div id="dir_rep_max_len_err" style="background:tomato;color:white;border-radius:4px;padding:2px 0;text-align:center;display:none" class="sp lsp cr">Reply {{ max_home_reply_size }} chars se lamba nahi likhein, ap ne <span id="dir_rep_chars"></span> chars likhe</div>
+	    <input id="drep_poid" type="hidden" name="poid" value="{{ poid }}"><input id="drep_obid" type="hidden" name="obid" value="{{ obid }}"><input id="drep_tuid" type="hidden" name="tuid" value="{{ tuid }}"><input id="drep_obtp" type="hidden" name="obtp" value="{{ obtp }}"><input type="hidden" name="origin" value="{{ page_origin }}"><input type="hidden" name="srep" value="1">
+
+	    <div style="border:1px solid #3cb7dd;border-top-right-radius:5px;border-top-left-radius:5px;overflow:hidden;background:#ecfffb">{{ dir_rep_form.direct_response }}</div>
+
+	    <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
+	</form>
+
+	<a name="error"></a>
+	{% if dir_rep_invalid %}
+		<div style="background: rgb(255,121,0);background: -moz-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: -webkit-linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);background: linear-gradient(90deg, rgba(255,121,0,1) 1%, rgba(255,0,0,1) 100%);text-align:center;color:white;padding:5px;border-radius:7px;border:2px solid whitesmoke" class="cxl lsp mbs">{{ dir_rep_invalid }}</div>
+	{% endif %}
+
+	{% for photo in object_list %}
+	
+		{% if not fbs and forloop.counter == 2 %}
+
+			{% if feed_type == 'fresh_photos' %}
+				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<aside class="mbl" style="text-align:center;background:#f0f3f4">
+					<ins class="adsbygoogle"
+					     style="display:block"
+					     data-ad-format="fluid"
+					     data-ad-layout-key="-6y+ed+2i-1n-4w"
+					     data-ad-client="ca-pub-2568547635306983"
+					     data-ad-slot="3247177655"></ins>
+					<script>
+					     (adsbygoogle = window.adsbygoogle || []).push({});
+					</script>
+				</aside>
+			{% else %}
+				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<aside class="mbl" style="text-align:center;background:#f0f3f4">
+					<ins class="adsbygoogle"
+					     style="display:block"
+					     data-ad-format="fluid"
+					     data-ad-layout-key="-6w+eh+2a-1h-5f"
+					     data-ad-client="ca-pub-2568547635306983"
+					     data-ad-slot="3722448669"></ins>
+					<script>
+					     (adsbygoogle = window.adsbygoogle || []).push({});
+					</script>
+				</aside>
+			{% endif %}
+
+		{% elif forloop.counter == 1 %}
+
+			<div class="mbl" style="display:block;overflow:hidden;background:#80d4ff;text-align:center;overflow:hidden">
+				<img class="mtl" src="{{ STATIC_URL }}img/gstar.svg" width="30" height="30">
+				<div class="mt mbl cxl lsp" style="color:black"><b>Apna 'red star' paaney ka chance barhain!</b></div>
+				<a href="{% url 'coming_soon' %}#section0"><button class="cs lsp sp" style="width:100%;border-radius:0;border:none;background:tomato;color:white;height:40px"><b>KAISEY?</b></button></a>
+			</div>
+
+		{% endif %}
+
+		<article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="overflow:hidden;background:white;display:block">
+
+			<a name="section{{ forloop.counter }}"></a>
+
+			<section style="display:block">
+			{% photo_object pid=photo.i ooid=photo.si img_url=photo.iu img_thumb=photo.it caption=photo.d|emoticons raw_caption=photo.d origin=page_origin upload_time=photo.t machine_time=photo.mt vsc=photo.nv oun=photo.su av_url=photo.sa is_fbs=fbs static_url=STATIC_URL is_star=photo.s lazyload_idx=forloop.counter ratio=photo.rt ot='g' aud=photo.aud exp=photo.exp et=photo.et time_now=time_now %}
+			</section>
+			
+			<div class="mls">
+
+				<section class="mbl" style="display:block">
+				<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
+					{% if ident|stringformat:"s" == photo.si|stringformat:"s" %}
+						<!-- own content -->
+						{% if photo.et and photo.et < time_now %}
+							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+						{% else %}
+							{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
+							{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+							{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
+							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+						{% endif %}
+					{% else %}
+						<!-- others content -->
+						{% if photo.et and photo.et < time_now %}
+							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+							{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
+						{% else %}
+							{% include "big_buttons/big_sub_button.html" with is_subbed=photo.f username=photo.su tid=photo.si origin=page_origin obid=photo.i obh=photo.h static_url=STATIC_URL %}
+							{% big_vote_button is_pht='1' obid=photo.i origin=page_origin ooid=photo.si user_voted=photo.v static_url=STATIC_URL %}
+							{% big_group_button own_id=ident target_id=photo.si parent_object_id=photo.i object_type='photos' origin=page_origin target_username=photo.su %}
+							{% big_send_button photo_owner_username=photo.su photo_id=photo.i photo_owner_id=photo.si photo_caption=photo.d origin=page_origin img_url=photo.iu static_url=STATIC_URL %}
+							{% big_external_share_button owner_username=photo.su on_opera=on_opera photo_id=photo.i origin=page_origin static_url=STATIC_URL owner_id=photo.si sharer_id=ident js_class='wa-sharing' sharing_type='wa' %}
+							{% if feed_type == 'best_photos' %}{% include "big_buttons/big_fb_share_link_button.html" with static_url=STATIC_URL photo_id=photo.i %}{% endif %}
+							{% big_photo_comment_button photo_id=photo.i origin=page_origin comm_count=photo.cc|default_if_none:"0"|add:"0" static_url=STATIC_URL %}
+							{% include "big_buttons/big_report_button.html" with origin=page_origin pid=photo.i oun=photo.su ooid=photo.si img_thumb=photo.it raw_caption=photo.d av_url=photo.sa home_hash=photo.h static_url=STATIC_URL type='img' %}
+						{% endif %}
+					{% endif %}
+
+				</div>
+				</section>
+				{% if photo.com == '0' %}
+					<div size=1 style='border-top: dashed 1px #f2f2f2;'>
+						<div style="text-align:center;color:#999" class="nos cxs sp mtl mbl">
+			 				- Replies Off -
+			 			</div>
+			 		</div>
+				{% else %}
+					<section style="display:block" class="mrs mbl">
+						{% include "reply_bar.html" with target_user_id=photo.si target_obj_type='4' obj_id=photo.i origin=page_origin form=thin_rep_form btn_color='bct' %}
+					</section>
+
+					<section style="display:block">
+						{% inline_replies_section raw_replies=photo.rb static_url=STATIC_URL self_user_id=ident origin=page_origin obj_owner_id=photo.si obj_type='img' %}
+					</section>
+				{% endif %}
+			</div>
+
+		</article>
+
+	{% empty %}
+
+		<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;text-align:center;padding:10px" class="cxl lsp mbl clb">Sorry! Ye abhi empty hai<br>
+			{% if feed_type == 'fresh_photos' %}
+				<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Ap <a href="{% url 'for_me' %}" class="cb" style="border-bottom:1px dotted dodgerblue">For Me</a> check karein!</div>
+			{% else %}
+				<div class="cs sp mbs lsp" style="border-top:1px solid #f4f4f4;padding-top:10px;margin-top:10px">Ap <a href="{% url 'photo' 'fresh-list' %}" class="cb" style="border-bottom:1px dotted dodgerblue">Latest Images</a> check karein!</div>
+			{% endif %}
+		</div>
+
+	{% endfor %}
+
+	</section>
+
+	{% if newbie_flag == '7' %}
+			<div class="mbs mt">
+			{% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin=page_origin tut_type=newbie_flag position='bottom' %}
+			</div>
+	{% endif %}
+
+	<div class="fx fxjscn">
+		{% if page.has_previous %}
+	    <div style="padding:0 10px 30px 10px">
+	    	<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
+	    </div>
+	    {% endif %}
+	    {% if page.has_next %}
+	    <div style="padding:0 10px 30px 10px">
+	    	<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
+	    </div>
+	    {% endif %}
+	</div>
+
+</main><br>
+{% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
+{% include "navbars/bottom_navbar_js_helper.html" with ident=ident %}
+{% endblock %}

@@ -1,11 +1,10 @@
-{% extends "base_pg.html" %}
-{% load s3 %}
-{% load truncap %}
+{% extends "base/base_pg.html" %}
 {% block content %}
 <head><title>1 on 1 settings | Damadam</title></head>
 
 <h1 class="cxl lsp clb" style="text-align:center">
 	{% if their_anon %}
+		{% load truncap %}
 		<span style="font-weight:lighter"><b>Settings:</b> 1 on 1 with <div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>
 	{% else %}
 		<span style="font-weight:lighter"><b>Settings:</b> 1 on 1 with {{ name|truncatechars:15 }}</span>
@@ -14,7 +13,7 @@
 
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.19.js"></script>
 
-<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;max-width:450px;width:98%;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
+<div class="mbl clb" style="max-width:500px;overflow:hidden;background:white;margin-right:auto;margin-left:auto">
 
 
 	<form method="POST" class="mts" action="{% url 'enter_personal_group' %}" style="text-align:center">

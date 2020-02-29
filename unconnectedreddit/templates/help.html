@@ -1,10 +1,12 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
-<head><title>Damadam help | Damadam</title></head>
+{% load cache %}
+{% cache 10000 help_section %}
+<head><title>Help | Damadam</title></head>
 
 <h1 class="cxl lsp clb" style="text-align:center">Damadam help:</h1>
 
-<div class="bx clb cl sp lsp" style="background-color:white;margin: 0 auto;max-width:600px;width:96%;padding:10px;border:3px solid #ececec;border-radius:12px">
+<div class="bx clb cl sp lsp" style="background-color:white;margin: 0 auto;max-width:600px;padding:10px">
 
 
 <table>
@@ -40,18 +42,36 @@
   </tr>
 
    <tr>
-    <td style="border-bottom:1px dashed lightgray;padding-bottom:5px"><b>Profile</b></td>
-    <td style="border-bottom:1px dashed lightgray;padding-bottom:5px">Har user ki aik profile hoti hai. Apki shared posts yahan nazar ati hain. Ap apni profile mein apne barey mein information dal saktey hain</td>
+    <td style="padding-bottom:5px"><b>Profile</b></td>
+    <td style="padding-bottom:5px">Har user ki aik profile hoti hai. Apki shared posts yahan nazar ati hain. Ap apni profile mein apne barey mein information dal saktey hain</td>
   </tr>
  
 </table>
     
     </div>
 
+<a name="faqs"></a>
+<h1 style="text-align:center" class="clb cxl lsp">Questions & Answers:</h1>
+
+<div class="clb bx" style="margin: 0 auto;max-width:600px;background-color:white">
+  <div class="cl sp lsp" style="padding:10px;border-bottom:1px solid whitesmoke;background:ivory">Q) Meri ID kis terhan delete ho sakti hai?</div>
+  <div class="cl sp lsp mbs" style="padding:10px;">Ans) ID 'delete' nahi ho sakti. Lekin ap apni posts 'hide' kar saktey hain. Apni profile ki 'pic' aur 'about' ko khatam kar saktey hain. Phir beshak 'log out' kar jaien</div>
+
+  <div class="cl sp lsp" style="padding:10px;border-bottom:1px solid whitesmoke;background:ivory">Q) Mujhe apna password yad nahi, mein 'login' kaisey karun?</div>
+  <div class="cl sp lsp mbs" style="padding:10px;">Ans) 'Login' screen pe "password yad nahi" ko click karein. Yahan se apka password recover ho jaye ga</div>
+
+  <div class="cl sp lsp" style="padding:10px;border-bottom:1px solid whitesmoke;background:ivory">Q) Mujhe apni 'unverified' ID ka password yad nahi, mein 'login' kaisey karun?</div>
+  <div class="cl sp lsp mbs" style="padding:10px;">Ans) 'Unverified' IDs ka password recover nahi ho sakta. Jab bhi ID banain, 'verify' zarur karein</div>
+
+  <div class="cl sp lsp" style="padding:10px;border-bottom:1px solid whitesmoke;background:ivory">Q) Mujhe aik user tang kar raha hai. Kya woh ban kia ja sakta hai?</div>
+  <div class="cl sp lsp mbs" style="padding:10px;">Ans) Sab se pehlay tou aise users ko forun 'block' karein. Aur agr in users ki posts hamari guidelines ke mutabiq nahi hain tou un posts ko 'report' karein. Hamari guidelines neechay di gyi hain</div>
+
+</div>
+
 <a name="guidelines"></a>
 <h1 style="text-align:center" class="clb cxl lsp">Guidelines:</h1>
 
-<div class="clb bx" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;border:3px solid #ececec;border-radius:12px">
+<div class="clb bx mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white">
   <div class="cxl lsp" style="text-align:center">In se apka account ban ho sakta hai:</div>
   <hr size=1 COLOR="#e5e7e9">
   <div style="text-align:left" class="cm sp clb lsp">
@@ -64,5 +84,7 @@
 
 </div>
 
-    <br><br>
+<br><br>
+{% endcache %}
+{% include "navbars/bottom_navbar_js_helper.html" with ident=user.id %}
 {% endblock %}

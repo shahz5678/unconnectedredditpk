@@ -1,4 +1,4 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load s3 %}
 {% load truncap %}
 {% load human_time %}
@@ -8,15 +8,15 @@
 {% load get_personal_group_deleted_post_message %}
 {% block content %}
 <head><title> {% if undelete %}Restore{% else %}Delete{% endif %} private message | Damadam</title></head>
-<div class="margin clb" style="max-width:600px;width:92%;">
+<div class="mbl clb" style="padding:14px 10px;max-width:500px;margin-right:auto;margin-left:auto;background:white">
 
     <div class="mbl" style="text-align:center">
     
        <div class="mbs">
-        {% if undelete %}<span class="cl cgy">Kya ye bahal kar dia jaye?</span>{% else %}<span class="cl cgy">Kya ye mita dia jaye?</span>{% endif %}
+        {% if undelete %}<span class="cxl clb">Kya ye bahal kar dia jaye?</span>{% else %}<span class="cxl clb">Kya ye mita dia jaye?</span>{% endif %}
         </div>
 
-        <form action="{% url 'delete_post_from_personal_group' %}" method="POST" class="mtl mbl">
+        <form action="{% url 'delete_post_from_personal_group' %}" method="POST" class="mt mbl">
             {% csrf_token %}
             {% if undelete %}<input type="hidden" name="un" value="1">{% endif %}
             <input type="hidden" name="bid" value="{{ bid }}">
@@ -26,11 +26,9 @@
             <button class="btn bcgy bm mts pg_cl" style="border:none;height:30px;" name="dec" value="0">Nahi</button>
         </form>
     
-        <hr size=1 COLOR="#e6e6e6">
-    
     </div>
 
-    <div class="card csb" style="margin-top:1.3em;text-align:right;">
+    <div class="card csb" style="margin:6px;text-align:right;">
         
         <div class="mbs tr_cnr">
             <a href="{% url 'user_profile' usr %}">

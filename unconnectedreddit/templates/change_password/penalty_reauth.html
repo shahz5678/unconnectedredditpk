@@ -1,11 +1,10 @@
-{% extends "base.html" %}
-{% load emoticons_tags %}
+{% extends "base/base_profile.html" %}
 {% block content %}
 <head><title>Unable to complete action | Damadam</title></head>
 <h1 class="cxl clb lsp" style="text-align:center">Too many tries!</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
-<div class="cxl lsp">Ap password change kar sakein ge 60 mins baad {% emoticons %}.g5.g6.g7.g8{% endemoticons %}</div>
+<div class="clb mbl" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
+<div class="cxl lsp">Ap password change kar sakein ge 60 mins baad</div>
 <a href="{% url 'for_me' %}"><button class="btn bcg bm mbl mtl pg_ok_res sp" style="height:28px">wapis</button></a>
 </div>
 <br><br>

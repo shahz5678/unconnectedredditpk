@@ -1,12 +1,12 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load s3 %}
 {% block content %}
 <head><title>Search users | Damadam</title></head>
-
-{% include 'search/search_navbar.html' with section='search' static_url=STATIC_URL %}
-
+<div class="mtl">
+	{% include 'search/search_navbar.html' with section='search' static_url=STATIC_URL %}
+</div>
 <h1 class="clb cxl lsp" style="text-align:center">Search nicknames:</h1>
-<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
+<div class="clb mbl" style="margin-right: auto;margin-left: auto;max-width:600px;background-color:white;padding:10px">
 
 {% if found_flag != None %}
 {% if found_flag %}
@@ -19,7 +19,7 @@
 
 		{% for nickname, av_url in exact_matches %}
 			{% if forloop.counter != 1 %}<hr size=1 COLOR="#f0f3f4">{% endif %}
-			<div style="font-weight:bold" class="cl ct sp">{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}{{ nickname }}:</div>
+			<div style="font-weight:bold" class="cl ct sp">{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="vertical-align:sub;width:26px;height:26px" class="mrs circle">{% else %}<img src="{{ av_url|s3 }}" style="vertical-align:sub;width:32px;height:32px" class="circle mrs">{% endif %}{{ nickname }}:</div>
 
 			<div class="mts">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
 		{% endfor %}
@@ -28,7 +28,7 @@
 
 	<div class="cl clb sp mtl mbl" style="font-weight:bold">Is jaise aur nicknames ye hain:</div>
 	{% for nickname, av_url in similar %}
-		{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="display:inline;vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="display:inline;vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}<div class="mts cl cgy sp" style="display:inline">{{ nickname }}:</div>
+		{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="display:inline;vertical-align:sub;width:26px;height:26px" class="mrs circle">{% else %}<img src="{{ av_url|s3 }}" style="display:inline;vertical-align:sub;width:32px;height:32px" class="mrs circle">{% endif %}<div class="mts cl cgy sp" style="display:inline">{{ nickname }}:</div>
 
 		<div class="mts">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
 
@@ -43,7 +43,7 @@
 	</div>
 
 	{% for nickname, av_url in similar %}
-	{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="display:inline;vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="display:inline;vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}<div style="font-weight:bold;display:inline" class="sp mts cl ct bw">{{ nickname }}:</div>
+	{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="display:inline;vertical-align:sub;width:26px;height:26px" class="mrs circle">{% else %}<img src="{{ av_url|s3 }}" style="display:inline;vertical-align:sub;width:32px;height:32px" class="mrs circle">{% endif %}<div style="font-weight:bold;display:inline" class="sp mts cl ct bw">{{ nickname }}:</div>
 	
 	<div class="mts">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
 
@@ -75,7 +75,7 @@
 
 {% if search_history %}
 
-<div class="clb bizcard mbl" style="margin-right: auto;margin-left: auto;max-width:600px;width:93%;background-color:white;padding:10px">
+<div class="clb mbl" style="margin-right: auto;margin-left: auto;max-width:600px;background-color:white;padding:10px">
 
 	<div class="mbl cl sp lsp cgy" style="text-align:center;border-bottom:1px solid lightgray;padding-bottom:10px">My search history:</div>
 	{% for nickname, av_url in search_history %}
@@ -87,7 +87,7 @@
 			<input type="hidden" name="uid" value="{{ user.id }}">
 			<button type="submit" style="background:0 0;border:none;padding:0"><img src="{{ STATIC_URL }}img/x_gy.svg" width="15" height="15"></button>
 		</form>
-		<div class="cl ct mls sp bw" style="display:inline;font-weight:bold">{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="vertical-align:sub;width:26px;height:26px;border-radius:50%" class="mrs">{% else %}<img src="{{ av_url|s3 }}" style="vertical-align:sub;width:32px;height:32px;border-radius:50%" class="mrs">{% endif %}{{ nickname }}:</div>
+		<div class="cl ct mls sp bw" style="display:inline;font-weight:bold">{% if on_fbs %}<img src="{{ av_url|s3:'thumb' }}" style="vertical-align:sub;width:26px;height:26px" class="mrs circle">{% else %}<img src="{{ av_url|s3 }}" style="vertical-align:sub;width:32px;height:32px" class="mrs circle">{% endif %}{{ nickname }}:</div>
 
 		<div class="mtl">{% include "big_buttons/big_search_buttons.html" with username=nickname static_url=STATIC_URL %}</div>
 	
@@ -97,15 +97,15 @@
 
 	<div itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl fx fxjscn">
 		{% if page.has_previous %}
-		    <div style="padding:0 10px">
+		    <div style="padding:0 10px 30px 10px">
 		    <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
 		    </div>
 	    {% endif %}
 	    {% if page.has_next %}
-		    <div style="padding:0 10px">
+		    <div style="padding:0 10px 30px 10px">
 		    <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
 		    </div>
 	    {% endif %}
 	</div>
-
+<br>
 {% endblock %}

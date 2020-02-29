@@ -1,13 +1,11 @@
-{% extends "base_profile_noindex.html" %}
+{% extends "base/base_profile_noindex.html" %}
 {% load get_user_profile_navbar %}
 {% block content %}
 <head><title>Edit profile | Damadam</title></head>
 
-{% user_profile_navbar static_url=STATIC_URL section='edit' uname=username is_own_profile=is_own_profile %}
-
 <h1 class="cxl lsp clb" style="text-align:center">Edit my profile:</h1>
 
-<div class="mbl clb" style="margin-right:auto;margin-left:auto;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%">
+<div class="mbl clb" style="margin-right:auto;margin-left:auto;overflow:hidden;background:white;max-width:600px">
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
@@ -48,7 +46,7 @@
   <hr size=1 COLOR="#f4f4f4">
 
   <div style="padding:5px 7px">
-    {% if form.avatar.errors %}<div class="sp lsp cr"><b>{{ form.avatar.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apki profile foto:</b></div>{% endif %}
+    {% if form.avatar.errors %}<div class="sp lsp cr"><b>{{ form.avatar.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apki profile photo:</b></div>{% endif %}
     <div class="lsp">{{ form.avatar }}</div>
   </div>
   <hr size=1 COLOR="#f4f4f4">
@@ -98,4 +96,5 @@
   <a href="{% url 'user_profile' username %}"><button class="btn bl sp pg_ok_res" style="width:100%;height:45px;background-color:#bebebe;border-radius:0" type="submit"><b>CANCEL</b></button></a>
 </div>
 <br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=user.id %}
 {% endblock %}

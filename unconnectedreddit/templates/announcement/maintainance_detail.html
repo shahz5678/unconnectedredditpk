@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 {% load cache %}
 {% cache 6000 announcement_page %}
 <head><title>Coming soon!</title></head>
 
-<div class="bizcard" style="background:#fff169;text-align:center;padding:8px;color:black">
+<div class="mbl mtl" style="background:#fff169;text-align:center;padding:8px;color:black">
   <img src="{{ STATIC_URL }}img/attention.png" width="70" height="70" class="mtl">
   <div class="cxl lsp" style="font-weight:bold;border-bottom:1px solid #fffcb9;padding-bottom:5px">Zaroori Ailan!</div>
   

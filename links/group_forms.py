@@ -117,7 +117,7 @@ class PersonalGroupReplyPostForm(forms.Form):
 		super(PersonalGroupReplyPostForm, self).__init__(*args,**kwargs)
 		self.fields['rep_reply'].widget.attrs['style'] = 'width:100%;height:60px;box-sizing: border-box;border-radius:8px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['rep_reply'].widget.attrs['id'] = 'rep_text_field'
-		self.fields['rep_reply'].widget.attrs['class'] = 'inp'
+		# self.fields['rep_reply'].widget.attrs['class'] = 'inp'
 		self.fields['rep_image'].widget.attrs['id'] = 'browse_rep_image_btn'
 		# self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
 		self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'

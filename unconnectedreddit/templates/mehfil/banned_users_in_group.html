@@ -22,7 +22,7 @@
 		<ul style="display:inline-block;padding: 0;margin-bottom: 0;list-style:none">
 		{% for banned_user in banned_users %}
 			<li style="text-align:left" class="mts mbl sp">
-			<input type="checkbox" id="{{ forloop.counter }}" name="tids" class="mrl" style="vertical-align:sub" value="{{ banned_user.kid }}"><label for="{{ forloop.counter }}"><img src="{{ banned_user.kavurl|s3:'thumb' }}" style="vertical-align: sub;border-radius:50%">&nbsp;{{ banned_user.kuname }}<span class="mls cs cgy">banned {{ banned_user.kt|human_time }} by {{ banned_user.kbuname }}. Duration: {{ banned_user.kd }}</span></label>
+			<input type="checkbox" id="{{ forloop.counter }}" name="tids" class="mrl" style="vertical-align:sub" value="{{ banned_user.kid }}"><label for="{{ forloop.counter }}"><img src="{{ banned_user.kavurl|s3:'thumb' }}" class="circle" style="vertical-align: sub">&nbsp;{{ banned_user.kuname }}<span class="mls cs cgy">banned {{ banned_user.kt|human_time }} by {{ banned_user.kbuname }}. Duration: {{ banned_user.kd }}</span></label>
 			</li>
 		{% endfor %}
 		</ul>

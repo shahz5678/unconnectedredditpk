@@ -1,4 +1,4 @@
-{% extends "base_signup.html" %}
+{% extends "base/base_signup.html" %}
 {% block content %}
 <head><title>User verification | Damadam.pk</title></head>
 <style>body{background: #fefbfb}</style>
@@ -7,7 +7,7 @@
 <div class="lsp cm" style="color:white;padding:10px;border-bottom:1px #c0f4d5;font-weight:bold;background-color:#26d5ab;text-align:center">Ab apna verified mobile number likhein</div>
 
 <div class="bizcard" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
-	<div class="cxs sp mbl">Aapko 6 digits ka pin code <b>SMS</b> ya <b>WhatsApp</b> ke zariye bheja jai ga</div>				
+	<div class="cxs sp mbl">Apko 6 digits ka pin code <b>SMS</b> ya <b>WhatsApp</b> ke zariye bheja jai ga</div>				
 
 
 		<form method="POST" action="{% url 'prelim_mobile_verification' %}" class="mtl cgy">

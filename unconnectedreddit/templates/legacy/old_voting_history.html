@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 <head><title>{{ slug }}'s likes | Damadam</title></head>
 
@@ -9,7 +9,6 @@
 {% load get_photo_object %}
 {% load get_big_group_button %}
 {% load get_big_home_reply_button %}
-{% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
 <h1 class="cxl clb lsp" style="text-align:center">Your old likes:</h1>
 
@@ -41,7 +40,7 @@
 
 		{% endif %}
 
-		{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+		{% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
 		
 	{% empty %}
 

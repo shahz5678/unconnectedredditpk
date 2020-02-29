@@ -1,60 +1,8 @@
-{% load google_analytics %}
-<!DOCTYPE html>
-
-<html style="background:#f0f3f4">
-<head>
-
-	<!-- has to be the first tag in head -->
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-	{% include "favicons.html" %}
-	{% include "css.html" %}
-	<!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="{{ topic_description }}">
-	<meta name="author" content="mhb">
-	<meta name="keywords" content="{{ topic }}"> 
-	<meta property="og:site_name" content="Damadam">
-	<meta property="og:title" content="{{ topic }}">
-	<meta property="og:type" content="website">
-	<meta property="og:description" content="{{ topic_description }}">
-	<meta property="og:url" content="https://damadam.pk/{{ topic_url }}/">
-	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
-	<meta property="og:image:width" content="300">
-	<meta property="og:image:height" content="300">
-	<meta property="fb:app_id" content="1758220174446684" />
-	{% google_analytics %}
-
-	<title>{{ topic }} | Damadam</title>
-
-	{% if page.has_previous %}
-		<link rel="prev" href="?page={{ page.previous_page_number }}" />
-	{% endif %}
-	{% if page.has_next %}
-		<link rel="next" href="?page={{ page.next_page_number }}" />
-	{% endif %}
-
-	<link rel="canonical" href="{% url 'topic_page' topic_url %}" />
-
-	{% include "ga_user_analytics.html" with my_var=user.id %}
-
-</head>
-<body>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
-{% include "header.html" %}
-
-<nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
-	{% include "navbars/top_navbar_unauth.html" %}
-	
-	<a name="section0"></a>
-
-	{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
-</nav>
-
+{% extends "base/base_topic_home.html" %}
+{% block content %}
 <main style="display:block" itemscope itemtype="http://schema.org/CollectionPage">
 
-	<article style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#fefefa;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
+	<article style="overflow:hidden;background:#fefefa;max-width:750px;margin-left:auto;margin-right:auto;display:block">
 
 		{% include "topics/topic_header.html" with topic_header=topic topic_description=topic_description c1=c1 c2=c2 %}
 		
@@ -72,7 +20,6 @@
 			{% load get_text_object %}
 			{% load url_target_blank %}
 			{% load get_inline_replies_section %}
-			{% load get_transparent_buttons_js %}
 
 			<section style="display:block">
 			<div class="fx fxjscn fxaicn">
@@ -82,7 +29,7 @@
 
 			{% for submission in submissions %}
 
-				<article itemprop="hasPart" itemscope itemtype="http://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
+				<article itemprop="hasPart" itemscope itemtype="http://schema.org/SocialMediaPosting" class="mbl" style="overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;display:block">
 					<div>
 						<a name="section{{ forloop.counter }}"></a>
 						
@@ -106,31 +53,22 @@
 
 			<div class="fx fxjscn fxaicn">
 				{% if page.has_previous %}
-				<div style="padding:0 10px">
+				<div class="mbl" style="padding:0 10px">
 					<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
 				</div>
 				{% endif %}
 				{% if page.has_next %}
-				<div style="padding:0 10px">
+				<div class="mbl" style="padding:0 10px">
 					<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
 				</div>
 				{% endif %}
 			</div>
 
-			{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+			{% include "transparent_buttons_js_helper.html" with static_url=STATIC_URL %}
 
 		{% else %}
 			<br>
 		{% endif %}
 
-
 </main>
-<br>
-
-{% include "navbars/bottom_navbar_unauth.html" %}
-
-{% include "min_service_worker.html" %}
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
-
-</body>
-</html>
+{% endblock %}

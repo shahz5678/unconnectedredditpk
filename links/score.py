@@ -188,31 +188,32 @@ PUBLICREPLY = 2 #score for leaving publicreply on a home 'link'
 PHOTOS_WITH_SEARCHED_NICKNAMES = 5
 #REPORTED_CASE_COMPLETION_BONUS = 0#15#turning case completion bonus to '0' for now (revert if defenders complain)
 
-PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Photo mein porn hai','2':'Photo mein firqa wariyat hai',\
-'3':'Photo mein khoon kharaba ya aziyat hai','4':'Photo dehshat gardi ki himayat kar rahi hai','11':'Photo apkey barey mein ghalat rumor phela rahi hai'}# 9 and 10 keys of this dictionary MUST MATCH 9 and 10 keys of TEXT_REPORT_PROMPT
+PHOTO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Photo mein porn hai','2':'Photo mein firqa wariyat hai','3':'Photo mein khoon kharaba ya aziyat hai',\
+'4':'Photo dehshat gardi ki himayat kar rahi hai','11':'Photo apkey barey mein ghalat rumor phela rahi hai'}# 9 and 10 keys of this dictionary MUST MATCH 9 and 10 keys of TEXT_REPORT_PROMPT
 GET_PHOTO_REPORT_HELP_LABEL = {'0':'','1':'photo_nudity_or_sex','2':'photo_firqa_wariyat','3':'photo_bloodshed','4':'photo_terrorism',\
 '5':'photo_screenshot','6':'photo_low_quality','7':'photo_wrong_title','8':'photo_title_solicitation','9':'photo_plagiarism',\
 '10':'photo_double_posting','11':'photo_rumor'}
 
-TEXT_REPORT_PROMPT = {'0':'Report rehne dein','1':'1 on 1 mein bulaney ki post ki hai',\
-'2':'Dhamkiyan di hain','3':'Sex or romance ki bheek mangi hai','4':'Betukki typing yani spamming ki hai (e.g. "sadfsadfa")',\
-'5':'Repeat honay wali cheez likhi hai (e.g. "سلام, سلام, سلام")',\
-'7':'Firqa wariyat wali post ki hai','8':'Dehshat gardi ki himayat ki hai',\
-'12':'Fake news phelai hai (e.g. "Admin users ke phone number bech raha hai")'}
-GET_TEXT_REPORT_HELP_LABEL = {'0':'','1':'text_fan_to_fan','2':'text_abuse','3':'text_vulgar','4':'text_crap','5':'text_repeating',\
-'6':'text_chat','7':'text_firqa_wariyat','8':'text_terrorism','9':'text_plagiarism','10':'text_double_posting',\
-'11':'text_romantic_solicitation','12':'text_rumor','13':'text_multi_new_line'}
+TEXT_REPORT_PROMPT = {'0':'Report rehne dein','1':'1 on 1 mein bulaney ki post ki hai','2':'Dhamkiyan di hain','3':'Sex or romance ki bheek mangi hai',\
+'4':'Betukki typing yani spamming ki hai (e.g. "sadfsadfa")','5':'Repeat honay wali cheez likhi hai (e.g. "سلام, سلام, سلام")',\
+'7':'Firqa wariyat wali post ki hai','8':'Dehshat gardi ki himayat ki hai','12':'Fake news phelai hai (e.g. "Admin users ke phone number bech raha hai")'}
+GET_TEXT_REPORT_HELP_LABEL = {'0':'','1':'text_fan_to_fan','2':'text_abuse','3':'text_vulgar','4':'text_crap','5':'text_repeating','6':'text_chat',\
+'7':'text_firqa_wariyat','8':'text_terrorism','9':'text_plagiarism','10':'text_double_posting','11':'text_romantic_solicitation','12':'text_rumor',\
+'13':'text_multi_new_line'}
 
-MEHFIL_REPORT_PROMPT = {'0':'Report rehne dein','1':'Topic ganda hai','2':'Topic mein abuse hai',\
-'3':'Topic mein firqa wariyat hai','4':'Topic mein jhooti afwah hai','5':'Rules gandey hain',\
-'6':'Rules mein abuse hai','7':'Rules mein firqa wariyat hai',\
+VIDEO_REPORT_PROMPT = {'0':'Report rehne dein','1':'Video mein porn hai','2':'Video mein firqa wariyat hai','3':'Video mein khoon kharaba ya aziyat hai',\
+'4':'Video dehshat gardi ki himayat kar rahi hai','5':'Video apkey bare mein ghalat rumor phela rahi hai'}
+GET_VIDEO_REPORT_HELP_LABEL = {'0':'','1':'video_nudity_or_sex','2':'video_firqa_wariyat','3':'video_bloodshed','4':'video_terrorism',\
+'5':'video_rumor'}
+
+MEHFIL_REPORT_PROMPT = {'0':'Report rehne dein','1':'Topic ganda hai','2':'Topic mein abuse hai','3':'Topic mein firqa wariyat hai',\
+'4':'Topic mein jhooti afwah hai','5':'Rules gandey hain','6':'Rules mein abuse hai','7':'Rules mein firqa wariyat hai',\
 '8':'Rules mein jhooti afwah hai'}# do NOT add '9' and '10' (those are reserved for TEXT_REPORT_PROMPT and PHOTO_REPORT_PROMPT)
 GET_MEHFIL_REPORT_HELP_LABEL = {'0':'','1':'mehfil_topic_vulgar','2':'mehfil_topic_abuse','3':'mehfil_topic_firqa_wariyat',\
 '4':'mehfil_topic_rumor','5':'mehfil_rules_vulgar','6':'mehfil_rules_abuse','7':'mehfil_rules_firqa_wariyat','8':'mehfil_rules_rumor'}
 
-PROFILE_REPORT_PROMPT = {'0':'Report rehne dein','1':'Nickname ganda hai','2':'Nickname mein abuse hai',\
-'3':'Nickname mein firqa wariyat hai','4':'Profile photo gandi hai','5':'Profile photo mein screenshot hai',\
-'6':'Profile photo mein firqa wariyat hai','7':'Profile photo mein jhooti afwah hai'}# do NOT add '9' and '10'
+PROFILE_REPORT_PROMPT = {'0':'Report rehne dein','1':'Nickname ganda hai','2':'Nickname mein abuse hai','3':'Nickname mein firqa wariyat hai',\
+'4':'Profile photo gandi hai','5':'Profile photo mein screenshot hai','6':'Profile photo mein firqa wariyat hai','7':'Profile photo mein jhooti afwah hai'}# do NOT add '9' and '10'
 GET_PROFILE_REPORT_HELP_LABEL = {'0':'','1':'username_vulgar','2':'username_abuse','3':'username_firqa_wariyat','4':'profile_pic_vulgar',\
 '5':'profile_pic_screenshot','6':'profile_pic_firqa_wariyat','7':'profile_pic_rumor'}
 
@@ -276,8 +277,8 @@ MERCH = {
 ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'Gemini','8':'Cancer','9':'Leo','10':'Virgo',\
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
-SEGMENT_STARTING_USER_ID = 2206755# starting user ID of user segment analysis
-PROJ_ZUCK_STARTING_USER_ID = 1975000
+PROJ_ZUCK_STARTING_USER_ID = 20000000#1975000
+SEGMENT_STARTING_USER_ID = 2235775# starting user ID of user segment analysis
 
 """
 TYPES OF USER ACTIVITIES:

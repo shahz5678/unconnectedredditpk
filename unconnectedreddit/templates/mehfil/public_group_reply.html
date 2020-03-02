@@ -5,7 +5,6 @@
 {% block content %}
 <head><title>{% if switching %}Public mehfil{% else %}{{ group_topic }} (public mehfil){% endif %} | Damadam</title></head>
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 {% if switching %}
 
 <div class="mbs mtl">
@@ -22,7 +21,9 @@
 </div>
 {% elif full_member %}
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 
 <form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
     {% csrf_token %}

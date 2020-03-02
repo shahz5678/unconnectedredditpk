@@ -600,11 +600,7 @@ class SearchNicknameForm(forms.Form):
 		super(SearchNicknameForm, self).__init__(*args, **kwargs)
 		self.fields['nickname'].widget.attrs['style'] = \
 		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #3cb7dd;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #229ec9;'
-		if self.searched:
-			self.fields['nickname'].widget.attrs['class'] = 'cxl inp'
-		else:
-			self.fields['nickname'].widget.attrs['class'] = 'cxl'
-			self.fields['nickname'].widget.attrs['autofocus'] = 'autofocus'
+		self.fields['nickname'].widget.attrs['class'] = 'cxl inp'
 		self.fields['nickname'].widget.attrs['autocomplete'] = 'off'
 
 	def clean_nickname(self):
@@ -612,21 +608,7 @@ class SearchNicknameForm(forms.Form):
 		nickname = nickname.strip()
 		if len(nickname) > 70:
 			raise forms.ValidationError('Itna bara nickname nahi likh sakte')
-		# nickname = clear_zalgo_text(nickname)
 		return nickname
-
-
-# class UploadPhotoReplyForm(forms.ModelForm):
-# 	image_file = forms.ImageField(error_messages={'required': 'Photo ka intekhab dubara karein'})
-# 	caption = forms.CharField(widget=forms.Textarea(attrs={'cols':20,'rows':2,'style':'width:98%;'}), error_messages={'required': 'Photo ke bary mien likhna zaroori hai'})
-# 	class Meta:
-# 		model = Photo
-# 		exclude = ("owner", "children", "child_count", "upload_time", "comment_count", "category", "device", "latest_comment", "second_latest_comment", "is_visible", "visible_score", "invisible_score",)
-# 		fields = ("image_file", "caption",)
-
-# 	def __init__(self, *args, **kwargs):
-# 		super(UploadPhotoReplyForm, self).__init__(*args, **kwargs)
-# 		self.fields['image_file'].widget.attrs['style'] = 'width:95%;'
 
 
 class UploadPhotoForm(forms.Form):

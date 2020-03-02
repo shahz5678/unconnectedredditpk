@@ -23,7 +23,8 @@
 
 <style type="text/css">a{color:#01579b;text-decoration:none}a:hover{text-decoration:underline}a:active,a:visited{color:#01579b}</style>
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 
 <form action="{% url 'post_js_reply_to_personal_group' %}" id="form_template" method="POST" style="display:none" enctype="multipart/form-data">
   {% csrf_token %}
@@ -500,7 +501,7 @@
 
     {% if autodel == '1' %}
       <div class="lsp mts" style="text-align:center;">
-        <span class="sp cxs" style="color:#16161D">- remaining messages deleted -</span>
+        <span class="sp cxs clb">- remaining messages deleted -</span>
       </div>
     {% endif %}
 </div>

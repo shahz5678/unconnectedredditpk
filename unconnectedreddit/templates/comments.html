@@ -31,7 +31,8 @@
 
     <head><title>Comments on photo titled {{ photo.description }} {% if latest_comment_time %}(updated {{ latest_comment_time|human_time }}){% endif %} | Damadam</title></head>
 
-    <script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
 
     <form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
         {% csrf_token %}
@@ -93,7 +94,6 @@
             
         {% if not on_fbs and forloop.counter == 3 %}
 
-            <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
             <div style="background:snow;text-align:center;padding-bottom:5px">
                 <ins class="adsbygoogle"
                      style="display:inline-block;width:320px;height:50px"
@@ -249,5 +249,5 @@
     </div><br><br>
 {% endif %}
 {% include "transparent_buttons_js_helper.html" with ident=user_id static_url=STATIC_URL %}
-{% include "navbars/bottom_navbar_js_helper.html" with ident=user_id %}
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

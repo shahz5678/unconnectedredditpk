@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load future_time %}
 {% block content %}
 
@@ -6,7 +6,7 @@
 
 <h1 class="cxl clb lsp" style="text-align:center">{% if redirect_to_paid_internet %}Use Wi-Fi or Internet Package{% else %}Please wait!{% endif %}</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;width:96%;margin:0 auto;overflow:hidden;text-align:center">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-right:auto;margin-left:auto;overflow:hidden;text-align:center">
 
 {% if redirect_to_paid_internet %}
 

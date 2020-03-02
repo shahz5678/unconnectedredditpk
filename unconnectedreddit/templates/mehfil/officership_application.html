@@ -1,14 +1,14 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% block content %}
 <head><title>Officership application | Damadam</title></head>
-
-{% include "mehfil/officer_application_navbar.html" with section='application' static_url=STATIC_URL guid=unique %}
-
+<div class="mtl">
+	{% include "mehfil/officer_application_navbar.html" with section='application' static_url=STATIC_URL guid=unique %}
+</div>
 <div class="mbl" style="max-width:600px;margin-left:auto;margin-right:auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl lsp">Apply for officer:</h1>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	
 	<div class="mbl mt"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
 

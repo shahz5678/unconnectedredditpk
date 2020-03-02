@@ -1,4 +1,4 @@
-{% extends "base_min.html" %}
+{% extends "base/base_min.html" %}
 {% load humanize %}
 {% load s3 %}
 {% load human_time %}
@@ -74,19 +74,19 @@
 			{% if photo.vo|add:"0" < -2 %}
 				<img class="pht" src="{{ STATIC_URL }}img/broken_pic.png"></img>
 			{% elif photo.vo|add:"0" < -1 %}
-				<img class="pht bright" src="{{ photo.u|s3 }}"></img>
+				<img class="pht" src="{{ photo.u|s3 }}"></img>
 			{% else %}
 				<img class="pht" src="{{ photo.u|s3 }}"></img>
 			{% endif %}<br>
 
 			<a href="{% url 'comment_pk' photo.i 2 %}">
 			{% if photo.lctx and photo.slctx %}
-			<div class="bglo iw2">
+			<div class="iw2">
 			<span class="cb">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb">{% emoticons %}{{ photo.lctx|truncatechars:30 }}{% endemoticons %}</span><br>
 			<span class="cb">&nbsp;{{ photo.slcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb">{% emoticons %}{{ photo.slctx|truncatechars:30 }}{% endemoticons %}</span><br>
 			</div>
 			{% elif photo.lctx %}
-			<div class="bglo iw2">
+			<div class="iw2">
 			<span class="cb">&nbsp;{{ photo.lcwu|truncatechars:10 }}:</span>&nbsp;<span class="clb">{% emoticons %}{{ photo.lctx|truncatechars:30 }}{% endemoticons %}</span><br>
 			</div>
 			{% else %}

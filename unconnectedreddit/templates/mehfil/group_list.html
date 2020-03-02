@@ -1,18 +1,20 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% load human_time %}
 {% block content %}
 <head><title>User mehfils | Damadam</title></head>
-
-{% include "mehfil/mehfil_list_navbar.html" with section='list' static_url=STATIC_URL %}
-
+<div class="mtl">
+	{% load count_group_invites %}
+    {% check_group_invite_count as group_invite_count %}
+	{% include "mehfil/mehfil_list_navbar.html" with section='list' static_url=STATIC_URL %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if num_grps == 1 %}1 mehfil:{% else %}{{ num_grps }} mehfils:{% endif %}</span></h1>
 
 {% if not object_list %}
-<div class="clb" style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:98%;overflow:hidden;background:ivory;max-width:600px;text-align:center">
+<div class="clb" style="margin: 0 auto;overflow:hidden;background:ivory;max-width:600px;text-align:center">
 
 	<div style="padding:10px 5px 5px 5px;background:white" class="cxl lsp">Ap kisi bhi mehfil ke member nahi!</div>
-	<div class="sp lsp cgy" style="background:white;padding-bottom:5px;border-bottom:1px solid #E9EBEE">'Mehfil' group ko kehtay hain jahan messaging and foto sharing hoti hai</div>
+	<div class="sp lsp cgy" style="background:white;padding-bottom:5px;border-bottom:1px solid #E9EBEE">'Mehfil' group ko kehtay hain jahan messaging and photo sharing hoti hai</div>
 	<div class="cs sp lsp mbs">Damadam ki <a href="{% url 'get_ranked_groups' %}#section0" class="cb sp" style="border-bottom:1px dotted blue">popular mehfils</a> dekhain</div>
 </div>
 {% else %}
@@ -20,7 +22,7 @@
 {% for group in object_list %}
 	{% if group.p == '1' %}
 		<div class="mtl">
-		<div style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:97%;overflow:hidden;background:ivory;max-width:600px;padding:0">
+		<div style="margin: 0 auto;overflow:hidden;background:ivory;max-width:600px;padding:0">
 
 		    <form method="POST" action="{% url 'priv_group' %}">
 		    {% csrf_token %}
@@ -54,7 +56,7 @@
 	{% elif group.p == '0' %}
 
 		<div class="mtl">
-		<div style="margin: 0 auto;border:3px solid #ececec;border-radius:12px;width:97%;overflow:hidden;background:ivory;max-width:600px;padding:0">
+		<div style="margin: 0 auto;overflow:hidden;background:ivory;max-width:600px;padding:0">
 		    
 		    <a href="{% url 'public_group' group.u %}">
 			<button type="submit" style="font-size:100%;text-align:left;border:none;border-radius:0;padding:0px 0px;width:100%;background:0 0" class="lsp pg_ok_res">
@@ -90,18 +92,19 @@
 {% endfor %}
 
 {% endif %}
-</div><br>
+<br>
 <div class="fx fxjscn fxaicn">
 	{% if page_obj.has_previous %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
     </div>
     {% endif %}
     {% if page_obj.has_next %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
     </div>
     {% endif %}
 </div>
-<br>
+<br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=own_id %}
 {% endblock %}

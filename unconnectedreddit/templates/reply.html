@@ -1,11 +1,10 @@
-{% extends noindex|yesno:"base_noindex.html,base.html" %}
+{% extends noindex|yesno:"base/base_noindex.html,base/base.html" %}
 {% load s3 %}
 {% load human_time %}
 {% load emoticons_tags %}
 {% load get_block_button %}
 {% load url_target_blank %}
 {% load get_group_button %}
-{% load get_transparent_buttons_js %}
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
 
@@ -22,13 +21,13 @@
     <button id="dir_rep_subform" class="btn bm bct mrl pg_ok_res sp" style="border-radius:0;border-bottom-right-radius:5px;border-bottom-left-radius:5px;width:100%;height:40px" name="dec" value="1" type="submit"><b>SEND</b></button>
 </form>
 
-<main style="display: block;margin: 0 auto;max-width:750px;width:98%" class="clb">
+<main style="display: block;margin: 0 auto;max-width:750px" class="clb">
 
 {% include "verification/mobile_verification_bar.html" with is_auth=is_auth is_user_verified=mob_verified static_url=STATIC_URL %}
 
 <h1 class="cxl clb" style="text-align:center">{% if not origin or origin == '0' %}{% if is_star %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="16" height="16" style="color:gold">&nbsp;{% endif %}{{ parent_submitter_username|truncatechars:'13' }}'s post:{% else %}<div class="mbs">{% include "source_origin.html" with source_origin=origin obj_id=parent_submitter_id lid=lid oun=parent_submitter_username %}</div>{% endif %}</h1>
 
-<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+<article class="mbl" style="display:block;overflow:hidden;background:white">
 
 <section style="display:block" itemscope itemtype="https://schema.org/SocialMediaPosting">
 {% if viewable_status == '3' %}
@@ -44,7 +43,7 @@
 
 </article>
 
-<article class="mbl" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 7px;">
+<article class="mbl" style="display:block;overflow:hidden;background:white;padding:10px 7px;">
 
     <a name="error"></a>
     {% if dir_rep_invalid %}<div class="cr sp cxl lsp" style="text-align:center;color:white;background:tomato">{{ dir_rep_invalid }}</div>{% endif %}
@@ -102,7 +101,7 @@
             {% if reply.direct_reply_tgt_uname and reply.direct_reply_tgt_text_prefix %}
                 
                 <!-- reference visible -->
-                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="nos lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -121,7 +120,7 @@
             {% elif reply.direct_reply_tgt_uname and reply.direct_reply_id %}
                 
                 <!-- reference hidden -->
-                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:&nbsp;<span style="color:black" class="nos lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -140,7 +139,7 @@
             {% else %}
 
                 <!-- no reference -->
-                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
+                <a href="{% url 'user_profile' reply.submitted_by__username %}" style="color:black"><bdi><b>{{ reply.submitted_by__username }}</b></bdi></a>{% if reply.submitted_by|stringformat:"s" in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:&nbsp;<span style="color:black" class="nos lsp bw"><bdi>{% emoticons %}{{ reply.description }}{% endemoticons %}</bdi></span><span class="mls mrl cxs cgy sp"><bdi>{{ reply.submitted_on|human_time }}</bdi></span>
 
 
                 {% if reply.submitted_by == parent_submitter_id %}
@@ -191,7 +190,7 @@
     {% endif %}
 {% endfor %}
 
-</main><br>
-{% transparent_buttons_js ident=user_id static_url=STATIC_URL %}
+</main><br><br><br>
+{% include "transparent_buttons_js_helper.html" with ident=user_id static_url=STATIC_URL %}
 {% endblock %}
 

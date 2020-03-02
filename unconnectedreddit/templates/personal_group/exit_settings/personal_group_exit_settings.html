@@ -1,16 +1,16 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load s3 %}
 {% load future_time %}
 {% load truncap %}
 {% block content %}
 <head><title>Exit 1 on 1 messaging | Damadam</title></head>
-<div class="nos margin clb" style="max-width:420px;width:96%;background:white;padding:10px;border-radius:12px;border:3px solid #ececec">
+<div class="mbl clb" style="max-width:500px;background:white;padding:10px;margin-right:auto;margin-left:auto">
 
 	<div style="text-align:center">
 		{% if their_anon %}
 			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
 		{% endif %}
 	</div>
 
@@ -146,9 +146,16 @@
 		{% else %}
 
 			<div class="mbs mtl">
-			<span class="lsp cl cr"><b>Exit</b>: Kya ap is 1 on 1 ko hamesha ke liye chorna chahtey hain?</span>
+			<span class="lsp cl cr"><b>Exit</b>: Kya ap is 1 on 1 ko exit karna chahtey hain?</span>
 				<div class="mts">
-				<span class="lsp cl"><b>Warning:</b> Apke jatey hi yahan se apkey tamam messages aur fotos mita diye jaien ge. Apkey ke tamam saved messages bhi khatam ho jaien ge. Ap ne dubara {% if their_anon %}<b>{{ name|truncap }}</b>{% else %}{{ name|truncatechars:15 }}{% endif %} se 1 on 1 karni hui tou apko <b>1 day</b> wait karna ho ga. Agar ap is 1 on 1 mein <b>7 days</b> tak wapis na aye tou ye hamesha ke liye khatam ho jaye gi</span>
+				<span class="lsp cl"><b>Warning:</b> Yahan se exit kartey hi:
+					<ul style="padding: 0;list-style-type: circle;padding-left:15px">
+						<li>Apkey tamam messages aur photos mita diye jaien ge</li>
+						<li>Apkey ke tamam saved messages bhi khatam ho jaien ge</li> 
+						<li>Ap is 1 on 1 ko <b>1 day</b> baad dubara join kar sakein ge</li>
+						<li>Agar ap ne is 1 on 1 ko <b>7 days</b> tak dubara join na kia tou ye hamesha ke liye delete ho jaye gi</li>
+					</ul>
+				</span>
 				</div>
 			</div>
 

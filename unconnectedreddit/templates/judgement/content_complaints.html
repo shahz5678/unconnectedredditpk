@@ -1,15 +1,15 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load emoticons_tags %}
 {% load human_time %}
 {% block content %}
 
 <head><title>{% if total %}{{ total }}{% else %}0{% endif %} reported content | Damadam</title></head>
-
-{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='cull_content' num_complaints=total obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
-
+<div class="mtl">
+	{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='cull_content' num_complaints=total obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center">{{ total }} item(s):</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;">
+<div class="clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin:0 auto;overflow: hidden;">
 
 	{% if total > 0 %}
 
@@ -78,7 +78,7 @@
 
 {% for complaint in complaints %}
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;">
+<div class="clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin:0 auto;overflow: hidden;">
 <a name="section{{ forloop.counter }}"></a>
 {% if complaint.tp == 'mf' %}
 	<div class="bizcard" style="background-color:ivory;text-align:center;padding:10px">
@@ -176,12 +176,12 @@
 <div class="mbl fx fxjscn">
 	
 	{% if page.has_previous %}
-      <div style="padding:0 10px">
+      <div style="padding:0 10px 30px 10px">
 	  <a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
       </div>
     {% endif %}
     {% if page.has_next %}
-      <div style="padding:0 10px">
+      <div style="padding:0 10px 30px 10px">
       <a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
       </div>
     {% endif %}

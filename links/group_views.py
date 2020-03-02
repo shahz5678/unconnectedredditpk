@@ -403,9 +403,13 @@ def post_to_personal_group(request, *args, **kwargs):
 	Submit a text post, image post or a direct response
 	"""
 	if request.method == 'POST':
-		own_id, target_id = request.user.id, request.POST.get('tid',None)
+		decision, target_id, exists = request.POST.get('dec','1'), request.POST.get('tid',None), False
 		request.session["personal_group_tid_key"] = target_id
-		group_id, exists = personal_group_already_exists(own_id, target_id)
+		if decision != '1':
+			return redirect("enter_personal_group")
+		else:
+			own_id = request.user.id
+			group_id, exists = personal_group_already_exists(own_id, target_id)
 		if exists:
 			request.session["personal_group_gid_key:"+target_id] = group_id
 			is_ajax = request.is_ajax()

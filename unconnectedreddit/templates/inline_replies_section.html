@@ -16,7 +16,7 @@
 			<!-- reference visible -->
 			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName"><bdi>{{ reply.wun }}</bdi></b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
 			
-			<span class="lsp mrs sp" itemprop="text">
+			<span class="lsp mrs sp nos" itemprop="text">
 				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>
 			</span>
 			
@@ -47,7 +47,7 @@
 				</a>
 			</span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">{% endif %}:
 			
-			<span class="lsp mrs sp" itemprop="text">
+			<span class="lsp mrs sp nos" itemprop="text">
 				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>
 			</span>
 			
@@ -74,7 +74,7 @@
 			<!-- no reference -->
 			<span itemprop="author" itemscope itemtype="http://schema.org/Person"><a itemprop="url" href="{% url 'user_profile' reply.wun %}" class="clb"><b itemprop="alternateName"><bdi>{{ reply.wun }}</bdi></b></a></span>{% if reply.s == '1' %}&nbsp;<img src="{{ static_url }}img/gstar.svg" alt="*" width="12" height="12" style="color:gold">&nbsp;{% endif %}:
 			
-			<span class="lsp mrs sp" itemprop="text">
+			<span class="lsp mrs sp nos" itemprop="text">
 				<bdi>{% emoticons %}{{ reply.tx }}{% endemoticons %}</bdi>
 			</span>
 			

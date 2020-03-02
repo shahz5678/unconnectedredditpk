@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends noindex|yesno:"base/base_profile_noindex.html,base/base_profile.html" %}
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
@@ -6,10 +6,12 @@
 
 {% if defender %}
 	{% load get_voting_defender_navbar %}
-	{% voting_defender_navbar is_pht=pht orig=orig obid=obj_id vote_score=nv static_url=STATIC_URL section='voting' %}
+	<div class="mtl">
+		{% voting_defender_navbar is_pht=pht orig=orig obid=obj_id vote_score=nv static_url=STATIC_URL section='voting' %}
+	</div>
 {% endif %}
 <h1 class="cxl clb lsp" style="text-align:center">Total likes:</h1>
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding:10px 8px;max-width:450px;width:97%;text-align:center;margin-left:auto;margin-right:auto">
+<div class="mbl" style="overflow:hidden;background:white;padding:10px 8px;max-width:500px;text-align:center;margin-left:auto;margin-right:auto">
 
 
 <div class="mbs">

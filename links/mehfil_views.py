@@ -2478,7 +2478,7 @@ def group_hide_submission(request, *args, **kwargs):
 					####### construct and add to administrative activity #######
 					construct_administrative_activity.delay(own_id, writer_id, time_now, gid, 'hide', pk)
 					############################################################
-				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
+				url = reverse_lazy("public_group", args=[data['u']])+"#section0"
 				return redirect(url)
 			elif not submission_exists:
 				context["non_existence"] = True
@@ -2527,7 +2527,7 @@ def group_hide_submission(request, *args, **kwargs):
 					####### construct and add to administrative activity #######
 					construct_administrative_activity.delay(own_id, writer_id, time_now, gid, 'unhide', pk)
 					############################################################
-				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
+				url = reverse_lazy("public_group", args=[data['u']])+"#section0"
 				return redirect(url)
 			elif not submission_exists:
 				context["cant_restore"] = True
@@ -3435,7 +3435,7 @@ class PrivateGroupView(FormView):
 						return HttpResponse(json.dumps({'success':True,'message':reverse('private_group_reply')}),content_type='application/json',)
 					else:
 						self.request.session['unique_id'] = unique_id
-						url = reverse_lazy("private_group_reply")+"#sectionJ"
+						url = reverse_lazy("private_group_reply")+"#section0"
 						return redirect(url)
 			else:
 				# group does not exist - perhaps was deleted
@@ -3514,7 +3514,7 @@ class PublicGroupView(FormView):
 				context["own_id"] = user_id
 				context["stars"] = get_all_image_star_ids()
 				context["csrf"] = csrf.get_token(self.request)
-				context["score"] = self.request.user.userprofile.score
+				# context["score"] = self.request.user.userprofile.score
 				context["group_topic"] = group_data['tp']
 				context["group_owner_uname"] = retrieve_uname(group_data['oi'],decode=True)
 				updated_at = time.time()
@@ -3718,8 +3718,7 @@ class PublicGroupView(FormView):
 				if is_ajax:
 					return HttpResponse(json.dumps({'success':True,'message':reverse('public_group')}),content_type='application/json',)
 				else:
-					# url = reverse_lazy("public_group_reply")+"#sectionJ"
-					url = reverse_lazy("public_group", args=[public_uuid])+"#sectionJ"
+					url = reverse_lazy("public_group", args=[public_uuid])+"#section0"
 					return redirect(url)
 			else:
 				# not a member and / or signatory
@@ -3775,7 +3774,7 @@ def group_page(request):
 	########################################################################
 	return render(request,"mehfil/group_list.html",{'object_list':final_data,'stars':get_all_image_star_ids(),'num_grps':len(final_data),\
 		'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<num_pages else False,\
-		'has_previous':True if page_num>1 else False},'page_num':page_num})
+		'has_previous':True if page_num>1 else False},'page_num':page_num,'own_id':own_id})
 
 
 def group_invites(request):
@@ -4913,7 +4912,7 @@ def first_time_public_refresh(request):
 		if tutorial_unseen(user_id=request.user.id, which_tut='14', renew_lease=True):
 			return render(request, 'mehfil/public_mehfil_refresh.html', {'unique': unique})
 		else:
-			url = reverse_lazy("public_group", args=[unique])+"#sectionJ"
+			url = reverse_lazy("public_group", args=[unique])+"#section0"
 			return redirect(url)
 	else:
 		return redirect("public_group")
@@ -4930,10 +4929,10 @@ def first_time_refresh(request, unique=None, *args, **kwargs):
 			return render(request, 'mehfil/mehfil_refresh.html', {'unique': unique})
 		else:
 			request.session["unique_id"] = unique
-			url = reverse_lazy("private_group_reply")+"#sectionJ"
+			url = reverse_lazy("private_group_reply")+"#section0"
 			return redirect(url)
 	else:
-		url = reverse_lazy("private_group_reply")+"#sectionJ"
+		url = reverse_lazy("private_group_reply")+"#section0"
 		return redirect(url)
 
 

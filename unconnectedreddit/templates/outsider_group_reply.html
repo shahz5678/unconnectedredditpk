@@ -1,4 +1,4 @@
-{% extends user.is_authenticated|yesno:"base.html,empty.html" %}
+{% extends user.is_authenticated|yesno:"base/base.html,base/empty.html" %}
 {% load humanize %}
 {% load s3 %}
 {% load emoticons_tags %}

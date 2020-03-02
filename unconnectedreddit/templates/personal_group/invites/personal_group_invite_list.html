@@ -1,37 +1,21 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load emoticons_tags %}
 {% load human_time %}
 {% load next_page %}
 {% load prev_page %}
 {% block content %}
 <head><title>{{ user.username }}'s friend invite list | Damadam</title></head>
-<style type="text/css">
-	.pages{
-		border:1px solid #E6E6E6;
-		padding:2px 10px;
-		border-radius:6px;
-		background-color:#F0F3F4;
-	}
-	button.pages:focus{
-        background-color:#E6E6E6;
- 	}
- 	.curr_page{
- 		border:2px solid #E6E6E6;
-		padding:2px 10px;
-		border-radius:6px;
-		background-color:#FDFDFD;
- 	}
-</style>
+<style type="text/css">.pages{border:1px solid #e6e6e6;padding:2px 10px;border-radius:6px;background-color:#f0f3f4}button.pages:focus{background-color:#e6e6e6}.curr_page{border:2px solid #e6e6e6;padding:2px 10px;border-radius:6px;background-color:#fdfdfd}</style>
 
-<div class="clb lsp" style="max-width:450px;width:92%;padding-left:5px;padding-right:5px;margin:0 auto">
+<div class="clb lsp" style="max-width:450px;width:96%;padding-left:5px;padding-right:5px;margin:0 auto">
 
 
-<div class="mbl" style="text-align:center;">
+<div class="mbl mtl" style="text-align:center;">
 	{% if invite_accepted %}
 		<div class="card" style="background-color:#FFFAF0;padding-top:10px;">
 			{% load s3 %}
 			{% load truncap %}
-			<span class="cxl">Ap ne {% if is_anon %}<b>{{ t_username|truncap  }}</b>{% else %}<img src="{{ t_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ t_username|truncatechars:15 }}</b>{% if tid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="16" height="16" alt="*" style="color:gold">{% endif %}{% endif %} ka invite qabool kar lia</span>
+			<span class="cxl">Ap ne {% if is_anon %}<b>{{ t_username|truncap  }}</b>{% else %}<img src="{{ t_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle"> <b>{{ t_username|truncatechars:15 }}</b>{% if tid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="16" height="16" alt="*" style="color:gold">{% endif %}{% endif %} ka invite qabool kar lia</span>
 			<hr size=1 COLOR="#E6E6E6">
 			<div class="mt cl cgy">
 				1 on 1 start karney ke liye OK dabain:<br>
@@ -43,6 +27,10 @@
 			</div>
 		</div>
 	{% else %}
+
+		{% load count_priv_invites %}
+
+		{% check_invite_count as invite_count %}
 
         {% if list_type == 'received' %}
                 {% include "personal_group/navbars/1_on_1_navbar.html" with section='2' static_url=STATIC_URL inv_count=invite_count %}
@@ -77,7 +65,7 @@
 	{% endif %}
 </div>
 
-<div class="bizcard mbl" style="background-color:white;width:95%;padding:10px;">
+<div class="bizcard mbl" style="background-color:white;width:96%;padding:10px;">
 {% for id_1, uname_1, uname_2, creation_time in invites %}
 	
 	<div class="mt cl lsp" style="text-align:left">
@@ -153,4 +141,5 @@
 
 </div>
 <br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=own_id %}
 {% endblock %}

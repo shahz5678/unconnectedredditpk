@@ -30,12 +30,12 @@ reset_password, content_detail_view, display_text_comments, manage_user, manage_
 hell_ban, remove_hell_ban,photo_top_trenders, user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect, \
 upload_public_photo, website_rules, redirect_to_profile_photos,public_photo_upload_denied, user_profile_photos_redirect, \
 display_old_image_comments, content_sitemap_of_sitemaps, private_or_expired, photo_detail_view, content_sitemap, kick_ban_user,\
-show_templates, bottom_navbar
+show_templates, more_options
 from links.views import FacesHelpView, UserActivityView, AboutView, ContactView, PrivacyPolicyView, PhotosHelpView, \
 EmoticonsHelpView, LogoutHelpView, WelcomeView, WelcomeMessageView, LogoutPenaltyView, UserSettingsEditView, \
 UserProfileDetailView, UserProfileEditView, LinkDeleteView, HelpView, PhotoShareView, RegisterHelpView, VerifyHelpView, \
 HistoryHelpView
-from links.redirection_views import redirect_to_content
+from links.redirection_views import redirect_to_content, main_navbar
 from links.number_verification import verify_user_number
 from links.voting_views import user_vote_history, user_old_vote_history
 from links.announcement_views import export_survey_results, coming_soon, benefits_of_data_mode#, survey
@@ -117,7 +117,8 @@ urlpatterns = patterns('',
 	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', photo_page, name='photo'),
 	url(r'^topphotos/$', best_photos_list, name='best_photo'),
 	###################################################################################
-	url(r'^navigate/$', bottom_navbar, name='bottom_navbar'),
+	url(r'^navigate/$', main_navbar, name='main_navbar'),
+	url(r'^more/$', auth(more_options), name='more_options'),
 	######################################################## Content Sharing ###################################################
 	url(r'^share/$', auth(share_content), name='share_content'),
 	url(r'^share/help/$', auth(sharing_help), name='sharing_help'),

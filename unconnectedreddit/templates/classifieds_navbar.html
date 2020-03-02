@@ -1,7 +1,7 @@
 {% load join_string %}
 
 {% if is_feature_phone == '1' %}
-<div class="mtl mbs navbar_classifieds">
+<div class="mtl mbs">
 	<div style="width:49%; text-align:right;display: inline-block;">
 		<nav class="site-navbar" role="navigation" itemscope itemtype="http://schema.org/SiteNavigationElement">
 	<span><a href="{% url 'show_user_ads' %}#section0"><span itemprop="name">Meray ads</span></a></span>
@@ -22,7 +22,7 @@
 	</div>
 	{% endif %}
 {% else %}
-<div class="mtl mbs navbar_classifieds">
+<div class="mtl mbs">
 <div style="width:49%; text-align:right;display: inline-block;">
 	<nav class="site-navbar" role="navigation" itemscope itemtype="http://schema.org/SiteNavigationElement">
 <span><a href="{% url 'show_user_ads' %}#section0">{% if origin == 'my_ads' %}<b class="cg"><span itemprop="name">Meray ads</span></b>{% else %}Meray ads{% endif %}</a></span><br>

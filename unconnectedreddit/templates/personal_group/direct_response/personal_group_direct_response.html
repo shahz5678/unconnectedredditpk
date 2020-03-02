@@ -1,4 +1,4 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load s3 %}
 {% load truncap %}
 {% load human_time %}
@@ -6,7 +6,7 @@
 {% load get_personal_group_small_photo %}
 {% block content %}
 <head><title>Reply to {% if their_nick %}{{ tun }}{% else %}{{ tun|truncap }}{% endif %} | Damadam</title></head>
-<div class="nos margin clb" style="max-width:600px;width:92%;margin-top:2em">
+<div class="nos mbl clb" style="max-width:600px;margin-right:auto;margin-left:auto;padding:20px 10px 12px 10px;background:#fcfcfc;border-bottom:1px solid gainsboro">
 
   {% if personal_group_form.non_field_errors %}
   
@@ -18,7 +18,7 @@
   
   {% else %}
 
-    <div class="bizcard mbl ca" style="padding:3px">
+    <div class="bizcard mbl ca" style="padding:3px;margin:2px 6px">
         
         <div class="mbs tl_cnr">
           <a href="{% url 'user_profile' tun %}">
@@ -45,8 +45,8 @@
 
     </div>
 
-    <div id="personal_group_top">
-      {% if tt == 'text' %}<span class="cgy lsp sp">Is baat ka reply kar ke OK dabaein</span>{% elif tt == 'img' %}<span class="cgy lsp sp">Is photo pe reply kar ke OK dabaein</span>{% endif %}
+    <div class="mts" id="personal_group_top" style="text-align:center">
+      <span class="clb cl lsp sp">Reply likh ke SEND dabaein:</span>
     </div>
 
   {% endif %}
@@ -71,7 +71,7 @@
             {{ personal_group_form.reply }}
         </div>
         <input class="mts" style="max-width:600px;width:98%;border: 1px #E7ECEE solid;" name="image" type="file" id="browse_image_btn">
-        <button class="btn bm bcb mtl mbs mrl pg_ok" style="height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">OK</button>
+        <button class="btn bm bcb mtl mbs cs mrl pg_ok_res sp" style="height:30px;" name="tid" value="{{ tid }}" id="subform" type="submit">SEND</button>
 
     </form>
 

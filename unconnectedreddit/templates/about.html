@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 {% load cache %}
-{% cache 1000 about_us %}
+{% cache 1000 about %}
 <head><title>About Us | Damadam</title></head>
 <h1 class="clb cxl lsp" style="text-align:center">About Damadam:</h1>
-<main class="mbl clb" style="display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;width:97%;margin-right:auto;margin-left:auto">
+<main class="mbl clb" style="display:block;overflow:hidden;background:white;max-width:750px;margin-right:auto;margin-left:auto">
 <div style="padding:10px">
 <span itemscope itemtype="https://schema.org/Organization">
 	<div class="cl sp lsp"><b>What is Damadam:</b><br><span itemprop="description">Damadam is a Pakistani content sharing and social networking website. It's a great place to meet Pakistan's best posters and discover the pulse of the country</span></div>

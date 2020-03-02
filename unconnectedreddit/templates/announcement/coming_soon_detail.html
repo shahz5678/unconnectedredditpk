@@ -1,4 +1,4 @@
-{% extends "base_noindex.html" %}
+{% extends "base/base_noindex.html" %}
 {% block content %}
 {% load cache %}
 {% cache 10000 use_templates %}
@@ -6,9 +6,9 @@
 
 <h1 class="cxl lsp" style="text-align:center">Use TEMPLATES to get red star:</h1>
 
-<div class="bizcard cxl lsp bx" style="background-color:#FEFCFC;max-width:750px;width:98%;margin:0 auto;overflow: hidden;text-align:center;padding:10px 6px">
+<div class="mbl cxl lsp bx" style="background-color:#FEFCFC;max-width:750px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center;padding:10px 6px">
 	<div style="text-align:left">
-		1) Photo sharing mein 'TEMPLATES' introduce kiye gaye hain:<br>
+		1) Photo sharing mein 'TEMPLATES' mojood hain:<br>
 		<div class="mt" style="text-align:center"><img src="{{ STATIC_URL }}img/templates.png" style="max-width:514px;width:100%"></div>
 		<div class="mts">
 		2) 'TEMPLATES' woh pics hoti hain jinko edit kia ja sakey
@@ -24,10 +24,6 @@
 		</div>
 	</div>
 	<div class="mts" style="border-top:1px solid gainsboro;padding-top:6px">GOOD LUCK!</div>
-</div>
-
-<br>
-
-<br>
+</div><br><br>
 {% endcache %}
 {% endblock %}

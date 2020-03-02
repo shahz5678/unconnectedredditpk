@@ -1,4 +1,4 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load human_time %}
 {% load next_page %}
 {% load prev_page %}
@@ -8,27 +8,13 @@
 {% load s3 %}
 {% block content %}
 <head><title>{{ user.username }}'s friend list | Damadam</title></head>
-<style type="text/css">
-	.pages{
-		border:1px solid #E6E6E6;
-		padding:2px 10px;
-		border-radius:6px;
-		background-color:#F0F3F4;
-	}
-	button.pages:focus{
-        background-color:#E6E6E6;
- 	}
- 	.curr_page{
- 		border:2px solid #E6E6E6;
-		padding:2px 10px;
-		border-radius:6px;
-		background-color:#FDFDFD;
- 	}
-</style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.19.js"></script>
+<style type="text/css">.pages{border:1px solid #e6e6e6;padding:2px 10px;border-radius:6px;background-color:#f0f3f4}button.pages:focus{background-color:#e6e6e6}.curr_page{border:2px solid #e6e6e6;padding:2px 10px;border-radius:6px;background-color:#fdfdfd}</style>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 <div class="clb" style="max-width:450px;width:96%;margin:0 auto">
 <div class="lsp">	
-		<div class="mbl" style="text-align:center">
+		<div class="mbl mtl" style="text-align:center">
+		{% load count_priv_invites %}
+		{% check_invite_count as invite_count %}
 		{% include "personal_group/navbars/1_on_1_navbar.html" with section='1' static_url=STATIC_URL inv_count=invite_count %}    
 			{% if num_pages < 2 %}
 			<h1 class="cxl">1 on 1 messaging:</h1>
@@ -242,4 +228,5 @@
 	{% endif %}
 </div>
 <br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=own_id %}
 {% endblock %}

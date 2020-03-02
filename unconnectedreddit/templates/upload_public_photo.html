@@ -1,12 +1,13 @@
-{% extends "base_share.html" %}
+{% extends "base/base_share.html" %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Share image | Damadam</title></head>
 <style>label{border:1px solid #3cb7dd}.checkbox{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.label{background:#fff;padding:7px 10px;height:46px;width:260px;border:1px solid #93d7ec;margin:0 auto -1px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.crsr{cursor:pointer}input+label:hover{background-color:#eee}.checkbox:checked+label{background-color:#3cb7dd;color:#fff}</style>
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.19.js"></script>
-{% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
-
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
+<div class="mtl">
+    {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
+</div>
 <div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
 <div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo kharab hai, koi aur chunein</span></div>
 
@@ -21,11 +22,11 @@
 {% else %}
 <h1 class="cxl clb lsp" style="text-align:center">Share photo on Damadam:</h1>
     
-    <div class="clb mbl mts" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:500px;margin-left:auto;margin-right:auto;width:98%;text-align:center">
+    <div class="clb mbl mts" style="overflow:hidden;background:white;max-width:500px;margin-left:auto;margin-right:auto;text-align:center">
 
         <div class="fx fxjscn fxaicn">
             <div class="sp nos" style="border-radius:0;width:50%;border:none;color:#4b9eca;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid gainsboro">POST PHOTO</div>
-            <a href="{% url 'show_templates' %}#section0" class="sp" style="width:50%"><button class="wt" style="background:gainsboro;border-radius:0;border:none;color:#808080;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">TEMPLATES</button></a>
+            <a href="{% url 'show_templates' %}#section0" class="sp" style="width:50%;"><button style="background:gainsboro;border-radius:0;border:none;color:#808080;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">TEMPLATES</button></a>
         </div>
 
         {% if show_instructions %}
@@ -42,12 +43,12 @@
         <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="opt" value="0">
         
-        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="mts cxl lsp"><b style="color:#3cb7dd">1.</b>&nbsp;Select Photo:</div>{% endif %}
+        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">1.</b>&nbsp;Select Photo:</div>{% endif %}
         <div class="mts mbl" style="text-align:center">{{ form.image_file }}</div>
-        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp"><b style="color:#3cb7dd">2.</b> Likhein photo kis barey mein hai:</div>{% endif %}
+        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">2.</b> Likhein photo kis barey mein hai:</div>{% endif %}
         
         <div style="padding:5px 10px 0 10px;text-align:center">{{ form.caption }}</div>
-        <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">3.</b> Select Expiry:</div>
+        <div class="mtl cxl lsp mbs nos"><b style="color:#3cb7dd">3.</b> Select Expiry:</div>
 
         <div style="margin-left: auto;margin-right:auto">
 
@@ -73,7 +74,7 @@
                 </div>
 
               <div class="mbs" style="margin-left: auto;margin-right:auto">
-                <div class="mtl cxl lsp mbs"><b style="color:#3cb7dd">4.</b>&nbsp;Turn Off Replies:</div>
+                <div class="mtl cxl lsp mbs nos"><b style="color:#3cb7dd">4.</b>&nbsp;Turn Off Replies:</div>
                 <input type="radio" name="com" class="checkbox" id="com-on" value="1">
                 <label class="label crsr"  for="com-on" style="border-top-left-radius:8px;border-top-right-radius:8px;display: flex;align-items: center;">
                     <div class="fx fxjscn fxaicn">
@@ -94,7 +95,7 @@
 
                 <div style="text-align:center">
 
-                <button id="pub_img_subform" class="btn mtl bl cl bct sp pg_ok_res" style="width:100%;height:44px;border-top-left-radius:0;border-top-right-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
+                <button id="pub_img_subform" class="btn mtl bl cl bct sp pg_ok_res" style="width:100%;height:44px;border-radius:0;background: -moz-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: -webkit-linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%);background: linear-gradient(45deg, #00eed1 0%, #3cb7dd 100%)" name="btn" value="1" type="submit"><b>SHARE</b></button>
 
                 </div>
         </div>
@@ -106,7 +107,7 @@
         {% if not show_instructions %}
         <h2 class="cxl clb lsp nos" style="text-align:center">Photo sharing tips:</h2>
     
-        <div class="clb mbl mts nos" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:500px;margin-left:auto;margin-right:auto;width:98%;text-align:left">
+        <div class="clb mbl mts nos" style="overflow:hidden;background:white;max-width:500px;margin-left:auto;margin-right:auto;text-align:left">
         <div class="cgy lsp sp cm mbs" style="padding:0 10px;">
             <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Agr apki shared photo dilchusp hui tou 'trending' mein aa sakti hai</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> 'Trending' mein aney se apko aur users 'Follow' karna start kar dete hain</div>

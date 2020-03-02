@@ -1,4 +1,4 @@
-{% extends "base_noindex.html" %}
+{% extends "base/base_noindex.html" %}
 {% load s3 %}
 {% load human_time %}
 {% load emoticons_tags %}
@@ -6,7 +6,6 @@
 {% load get_block_button %}
 {% load url_target_blank %}
 {% load get_group_button %}
-{% load get_transparent_buttons_js %}
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
 
@@ -104,6 +103,6 @@
 {% endfor %}
 
 </main><br>
-{% transparent_buttons_js ident=user_id static_url=STATIC_URL %}
+{% include "transparent_buttons_js_helper.html" with ident=user_id static_url=STATIC_URL %}
 {% endblock %}
 

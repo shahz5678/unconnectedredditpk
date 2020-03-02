@@ -1,4 +1,4 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load s3 %}
 {% load truncap %}
 {% load human_time %}
@@ -21,91 +21,28 @@
 {% block content %}
 <head><title>{{ t_nick }}'s 1 on 1 messages | Damadam</title></head>
 
-<style type="text/css">
+<style type="text/css">a{color:#01579b;text-decoration:none}a:hover{text-decoration:underline}a:active,a:visited{color:#01579b}</style>
 
-body {
-  height: 100%;
-}
+<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 
-a {
-  color: #01579B;
-  text-decoration: none;
-}
-
-a:hover {
-  text-decoration: underline;
-}
-
-a:active,a:visited {
-  color: #01579B;
-}
-
-img.yt_play {
-  width:65px;
-  height: 65px;
-}
-
-img.yt_play:hover{
-  width:60px;
-  height: 60px;
-}
-
-.op{
-  opacity:1;
-}
-
-.op:hover{
-  opacity:0.75;
-}
-
-.cam_img{
-  position:absolute;
-  z-index:4;
-  opacity:0.01;
-  border:none;
-  max-width:132px;
-  height:60px;
-  font-size:50px
-}
-
-img.yt_img {
-  opacity:0.7;
-}
-
-img.yt_img:hover{
-  opacity: 1;
-}
-
-.circle{
-  border-radius: 50%;
-}
-
-
-</style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.19.js"></script>
-
-<form action="{% url 'post_js_reply_to_personal_group' %}" id="form_template" method="POST" class="mtl" style="display:none" enctype="multipart/form-data">
+<form action="{% url 'post_js_reply_to_personal_group' %}" id="form_template" method="POST" style="display:none" enctype="multipart/form-data">
   {% csrf_token %}
-    <span id="pg_rep_size_err" style="text-align:center;display:none" class="cr">Ye foto buhut barri hai, choti foto chunein</span>
-    <span id="pg_rep_mime_err" style="text-align:center;display:none" class="cr">Ye foto kharab hai, koi aur chunein</span>
-    <input id="rep_sk" type="hidden" name="sk" value="{{ sk }}">
-    <input id="rep_tid" type="hidden" name="tid" value="{{ tid }}">
-    <input id="rep_tt" type="hidden" name="tt" value="">
-    <input id="rep_idx" type="hidden" name="idx" value="">
-    <input id="rep_bid" type="hidden" name="bid" value="">
-    <div class="mts mbs">
-      <div style="width:75%;display:inline-block;">
+    <span id="pg_rep_size_err" style="text-align:center;display:none" class="cr">Ye photo buhut barri hai, choti photo chunein</span>
+    <span id="pg_rep_mime_err" style="text-align:center;display:none" class="cr">Ye photo kharab hai, koi aur chunein</span>
+    <input id="rep_sk" type="hidden" name="sk" value="{{ sk }}"><input id="rep_tid" type="hidden" name="tid" value="{{ tid }}"><input id="rep_tt" type="hidden" name="tt" value=""><input id="rep_idx" type="hidden" name="idx" value=""><input id="rep_bid" type="hidden" name="bid" value="">
+    <div class="mtl fx fxjscn">
+      <div style="width:20%; position:relative">
+          {{ personal_group_rep_form.rep_image }}
+          <label for="browse_rep_image_btn" class="pg_label" style="cursor: pointer;"><img id="rep_cam" alt="Select photo" src="{{ STATIC_URL }}img/cam1.svg" width="58" height="58" /><span class="cxs cb sp" style="display:none;border:1px dashed #6092F8;background-color:#FAFAFA;border-radius:8px;padding:3px;width:60px;height:60px;word-break: break-all;box-sizing: border-box;position:absolute;z-index:4" id="rep_filename"></span></label>
+      </div>
+      <div style="width:80%">
           {{ personal_group_rep_form.rep_reply }}
       </div>
-      <div style="width:22%;display:inline-block;float:right;text-align:center;position:relative">
-          {{ personal_group_rep_form.rep_image }}
-          <label for="browse_rep_image_btn" class="pg_label" style="cursor: pointer;"><img id="rep_cam" class="mt" alt="Select photo" src="{{ STATIC_URL }}img/cam1.svg" width="58" height="58" /><span class="cxs cb sp" style="display:none;border:1px dashed #6092F8;background-color:#FAFAFA;border-radius:8px;padding:3px;padding-top:10px;width:60px;height:60px;word-break: break-all;box-sizing: border-box;position:absolute;z-index:4" id="rep_filename"></span></label>
-      </div>
     </div>
-    <button id="rep_subform" class="btn bm bcb mbs mrl pg_ok_res" style="border:none;height:25px;line-height:25px;" type="submit">OK</button>
+    <button id="rep_subform" class="btn bm cs bcb mbs mts pg_ok_res sp" style="border:none;height:28px;margin-left:auto;display:block;margin-right: 0;" type="submit">SEND</button>
 </form>
 
-<div class="nos margin clb" style="max-width:750px;width:98%;">
+<div class="nos margin clb mbl" style="max-width:750px">
 
     {% if is_suspended %}
       
@@ -133,7 +70,7 @@ img.yt_img:hover{
 
           {% else %}
             
-            <div class="bizcard csb" style="padding:3px;margin-top:0.6em;text-align:right;">
+            <div class="csb" style="padding:3px;border-bottom:1px solid #d4f2fe;text-align:right;">
                   
                   <div class="mbs">
                       <a href="{% url 'user_profile' blob.username %}" style="text-decoration: none;">
@@ -346,7 +283,7 @@ img.yt_img:hover{
              {% personal_group_notif_chat own_id=own_id writer_id=blob.id notif=blob.notif username=blob.username av_url=blob.av_url|s3:'thumb' t_username=blob.t_username t_av_url=blob.t_av_url|s3:'thumb' static_url=STATIC_URL their_nick=their_nick trunick=blob.username|truncap time=blob.time|human_time blob_id=blob.blob_id status=blob.status tid=tid %}
 
           {% else %}
-            <div class="bizcard ca" style="padding:3px;margin-top:0.6em">
+            <div class="ca" style="padding:3px;border-bottom:1px solid #a0ffdf">
                 
                 <div class="mbs">
                     <a href="{% url 'user_profile' blob.username %}" style="text-decoration: none;">
@@ -559,13 +496,13 @@ img.yt_img:hover{
 
     {% endfor %}
 
+    {% personal_group_bottom_navbar tid STATIC_URL own_nick %}
+
     {% if autodel == '1' %}
       <div class="lsp mts" style="text-align:center;">
-        <span class="sp cxs" style="color:#148BDA">... baqi messages delete kar diye gaye</span>
+        <span class="sp cxs" style="color:#16161D">- remaining messages deleted -</span>
       </div>
     {% endif %}
-
-    {% personal_group_bottom_navbar tid STATIC_URL own_nick %}
 </div>
 <br><br>
 

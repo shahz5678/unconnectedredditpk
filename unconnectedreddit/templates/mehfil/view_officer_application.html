@@ -1,21 +1,21 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load human_time %}
 {% load s3 %}
 {% load emoticons_tags %}
 {% block content %}
-
-{% include "mehfil/decide_officer_application_navbar.html" with static_url=STATIC_URL section='single_app' applier_id=application.user_id guid=guid idx=application.idx %}
-
+<div class="mtl">
+	{% include "mehfil/decide_officer_application_navbar.html" with static_url=STATIC_URL section='single_app' applier_id=application.user_id guid=guid idx=application.idx %}
+</div>
 <head><title>Officer application | Damadam</title></head>
 
 	<h1 style="text-align:center" class="clb cxl lsp">{{ application.uname|truncatechars:'12' }}'s officer application:</h1>
 
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96s%;background-color:white;text-align:center">
+	<div class="mbl clb" style="margin-left:auto;margin-right:auto;max-width:600px;background-color:white;text-align:center">
 		
 		<form class="mbs mt" method="POST" style="border-bottom:1px dashed lightgray;padding:10px 0" action="{% url 'public_mehfil_oversight_dashboard' %}">{% csrf_token %}<input type="hidden" name="guid" value="{{ guid }}"><button class="cm sp cb pg_ok_res" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to settings</button></form>
 
 		<div class="mt cxl lsp" style="padding:10px">
-			<img src="{{ application.own_avurl|s3:'thumb' }}" style="border-radius:50%">{% if application.user_id|slugify in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" alt="*" style="color:gold">{% endif %}&nbsp;<a href="{% url 'user_profile' application.uname %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue"><b>{{ application.uname }}</b></a> ne officer banney ke liye neechay di geyi application submit ki <b>{{ application.t|human_time }}</b>:
+			<img src="{{ application.own_avurl|s3:'thumb' }}" class="circle">{% if application.user_id|slugify in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" alt="*" style="color:gold">{% endif %}&nbsp;<a href="{% url 'user_profile' application.uname %}" target="_blank" class="cb" style="border-bottom:1px dotted dodgerblue"><b>{{ application.uname }}</b></a> ne officer banney ke liye neechay di geyi application submit ki <b>{{ application.t|human_time }}</b>:
 		</div>
 
 		<div class="mt mbl bizcard mrs mls" style="background-color:ivory;padding:10px;text-align:left">

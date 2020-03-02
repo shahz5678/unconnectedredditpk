@@ -1,13 +1,13 @@
 {% if notif == '1' %}
 
-  <div class="bizcard" style="padding:3px;text-align:center;background-color:#FFFAF0;color:#696662;margin-top:0.6em">
+  <div style="padding:3px;text-align:center;background-color:#FFFAF0;color:#696662">
 
   {% if i_am_sender %}
   
   	<div class="lsp mts mbs mrs mls cl">
       <span class="cm sp">Sorry! Photo nahi gyi ...</span>
       <hr size=1 COLOR="#F1F1DA">
-  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap usko photos bhej sakein
+  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap usko photos bhej sakein
   	</div>
 
   	<div class="mbs mrs" style="text-align:right">
@@ -20,7 +20,7 @@
   	{% if status == 'open' %}
 
 	  	<div class="lsp mts mbs mrs mls cl">
-	  		{% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko photo bhejna chahta hai 
+	  		{% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko photo bhejna chahta hai 
 	  	</div>
 
 	  	<div class="mbs mrs" style="text-align:right">
@@ -59,14 +59,14 @@
 
 {% elif notif == '2' %}
 
-<div class="bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px;margin-top:0.6em">
+<div style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
 
   {% if i_am_sender %}
 
   	<div class="lsp mts mbs mrs mls cl">
       <span class="cm sp">Sorry! SMS nahi gyi ...</span>
       <hr size=1 COLOR="#F1F1DA">
-  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap usko SMS ke zariye online bula sakein
+  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap usko SMS ke zariye online bula sakein
   	</div>
 
   	<div class="mbs mrs" style="text-align:right">
@@ -79,7 +79,7 @@
   	{% if status == 'open' %}
 
 	  	<div class="lsp mts mbs mrs mls cl">
-	  		Jab ap online nahi hon aur {% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} chat karna chah raha ho tou kya woh SMS ke zariye apko online bula le?
+	  		Jab ap online nahi hon aur {% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} chat karna chah raha ho tou kya woh SMS ke zariye apko online bula le?
 	  	</div>
 	  	<div class="sp mt cgy cs mbs">Apka number {% if their_nick %}<b>{{ sent_by_username|truncatechars:10 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} ko nahi miley ga, SMS Damadam se aega</div>
 
@@ -116,14 +116,14 @@
 
 {% elif notif == '3' %}
 
-<div class="bizcard" style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px;margin-top:0.6em">
+<div style="text-align:center;background-color:#FFFAF0;color:#696662;padding:3px">
 
   {% if i_am_sender %}
 
     <div class="lsp mts mbs mrs mls cl">
       <span class="cm sp">Sorry! Notification nahi gya ...</span>
       <hr size=1 COLOR="#F1F1DA">
-      {% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap unko notification bhej ke online bula sakein
+      {% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap unko notification bhej ke online bula sakein
     </div>
 
     <div class="mbs mrs" style="text-align:right">
@@ -133,7 +133,7 @@
   {% else %}
 
 <div class="lsp mts mbs">
-      <div class="cxl">Kya {% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" style="border-radius:50%;">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko online bulaney ke liye notification send kar sakey?</div>
+      <div class="cxl">Kya {% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko online bulaney ke liye notification send kar sakey?</div>
       <hr size=1 COLOR="#F1F1DA">
       <div class="cm sp lsp">Neechay 'Allow Notification' press karein:</div>
     </div>

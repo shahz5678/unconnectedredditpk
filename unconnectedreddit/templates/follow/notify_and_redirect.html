@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 
 {% if target_not_verified %}
@@ -6,7 +6,7 @@
 	<head><title>Cannot complete action | Damadam</title></head>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
 
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! <b>{{ target_uname }}</b> ne account verify nahi karwaya hua</div>
 	<hr size=1 COLOR="#e5e7e9">
 	<div class="sp lsp mts">Agr {{ target_uname }} account verify karwa lein tou ap inko follow kar sakein ge</div>
@@ -16,7 +16,7 @@
 	<head><title>Cannot complete action | Damadam</title></head>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
 
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap <b>{{ target_uname }}</b> ko follow nahi kar saktey kyun ke <b>{{ target_uname }}</b> banned hain</div>
 	<hr size=1 COLOR="#e5e7e9">
 
@@ -25,7 +25,7 @@
 	<head><title>Cannot complete action | Damadam</title></head>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
 
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap <b>{{ target_uname }}</b> ko kuch time ke liay follow nahi ker sakte</div>
 	<hr size=1 COLOR="#e5e7e9">
 
@@ -34,7 +34,7 @@
 	<head><title>Cannot complete action | Damadam</title></head>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Follow!</span></h1>
 
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap kuch time tak <b>{{ target_uname }}</b> ko follow nahi kar sakte</div>
 	<hr size=1 COLOR="#e5e7e9">	
 
@@ -44,7 +44,7 @@
 	<head><title>Cannot complete action | Damadam</title></head>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unable to Remove Post!</span></h1>
 
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Sorry! Ap dubara post remove kar sakein ge {{ ttl|future_time }}</div>
 	<hr size=1 COLOR="#e5e7e9">
 	<div class="cgy">

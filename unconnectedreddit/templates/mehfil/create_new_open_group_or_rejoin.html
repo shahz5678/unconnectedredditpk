@@ -1,11 +1,11 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% block content %}
 <head><title>Create public mehfil | Damadam</title></head>
-
-{% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
-
+<div class="mtl">
+	{% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
+</div>
 <h1 class="clb cxl" style="text-align:center">{% if owner_rejoining %}Set new topic and rules:{% else %}Create public mehfil:{% endif %}</h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white">
+<div class="bx mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white">
 
 {% if data_expired %}
 	<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard cxl mbs cr lsp">
@@ -49,7 +49,7 @@
 	</div>
 	
 	<div class="mtl" style="text-align:center">
-		<button class="btn bl bcp pg_ok_res sp" type="submit" style="height:28px;font-weight:bold">Next</button>
+		<button class="btn bl cl bcp pg_ok_res sp" type="submit" style="height:28px;font-weight:bold">Next</button>
 	</div>
 </form>
 {% if owner_rejoining %}

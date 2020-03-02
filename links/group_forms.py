@@ -21,7 +21,7 @@ class PersonalGroupPostForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.on_fbs = kwargs.pop('on_fbs',None)
 		super(PersonalGroupPostForm, self).__init__(*args,**kwargs)
-		self.fields['reply'].widget.attrs['style'] = 'width:99%;height:50px;border-radius:6px;border: 1px #bdebfe solid; background-color:white;padding:5px;'
+		self.fields['reply'].widget.attrs['style'] = 'width:100%;height:60px;border-radius:6px;border: 1px #bdebfe solid; background-color:white;padding:5px;box-sizing:border-box'
 		self.fields['reply'].widget.attrs['id'] = 'text_field'
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
 		self.fields['image'].widget.attrs['class'] = 'cam_img'
@@ -115,8 +115,9 @@ class PersonalGroupReplyPostForm(forms.Form):
 	def __init__(self,*args,**kwargs):
 		self.on_fbs = kwargs.pop('on_fbs',None)
 		super(PersonalGroupReplyPostForm, self).__init__(*args,**kwargs)
-		self.fields['rep_reply'].widget.attrs['style'] = 'width:99%;height:60px;box-sizing: border-box;border-radius:8px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
+		self.fields['rep_reply'].widget.attrs['style'] = 'width:100%;height:60px;box-sizing: border-box;border-radius:8px;border: 1px #C9FFED solid; background-color:#FAFAFA;padding:5px;'
 		self.fields['rep_reply'].widget.attrs['id'] = 'rep_text_field'
+		# self.fields['rep_reply'].widget.attrs['class'] = 'inp'
 		self.fields['rep_image'].widget.attrs['id'] = 'browse_rep_image_btn'
 		# self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
 		self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'

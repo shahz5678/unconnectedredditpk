@@ -1,12 +1,12 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Judgement on {{ oun }} | Damadam</title></head>
-
-{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='ban_post' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
-
+<div class="mtl">
+	{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='ban_post' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center">Banning options:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="clb mbl" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 
 {% if not_enough_data %}
 

@@ -1,9 +1,9 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load get_display_ban_msg %}
 {% block content %}
 <head><title>Unable to complete action | Damadam</title></head>
 <h1 class="cxl clb" style="text-align:center">Cannot complete action!</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 
 <form method="POST" class="mt mbl" action="{% url 'redirect_to_content' %}">
 {% csrf_token %}

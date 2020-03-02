@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Reject private mehfil invite | Damadam</title></head>
@@ -7,7 +7,7 @@
     <h1 style="display:inline" class="cg cxl">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
 </div>
 </div>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:96%;padding:10px;background-color:white;text-align:center">
+<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 <div class="cxl lsp mbl">Is mehfil ke invite ko reject karna hai?</div>
 
 <form method="POST" action="{% url 'left_private_group' %}" style="display:inline">{% csrf_token %}

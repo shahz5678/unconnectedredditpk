@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 <head><title>Online users | Damadam</title></head>
 {% load cache %}
@@ -20,11 +20,7 @@
             </a>
         {% endif %}
     <a href="{% url 'user_activity' slug=active_user.username %}#section0">{{ active_user.username }}</a>
-    {% for person in legit %}
-    {% if person == active_user.username %}
-        <span style="font-size:200%;color:deeppink;"><b>*</b></span>
-    {% endif %}
-    {% endfor %}
+    
     <br>
 {% endfor %}
 </div>

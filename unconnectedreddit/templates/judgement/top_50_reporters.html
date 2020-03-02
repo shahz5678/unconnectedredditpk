@@ -1,13 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load emoticons_tags %}
 {% load get_super_defender_navbar %}
 {% block content %}
 <head><title>Top 50 reporters | Damadam</title></head>
-
-{% super_defender_navbar static_url=STATIC_URL section='top50' %}
-
+<div class="mtl">
+	{% super_defender_navbar static_url=STATIC_URL section='top50' %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center">Top 50 reporters:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:650px;width:96%;margin:0 auto;overflow: hidden;">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:650px;margin-left:auto;margin-right:auto;overflow: hidden;">
 <div class="cs sp cgy" style="text-align:center">{{ total_correct }} reporters with at least 1 correct report</div>
 <hr size=1 COLOR="#E9EBEE">
 {% for reporter_id,rep_uname,num_correct,num_total,ratio in top_50_reporters %}

@@ -215,3 +215,79 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 			return redirect(reverse_lazy("custom_feed_redirect",kwargs={'obj_hash':link_id}))
 		else:
 			return redirect("custom_feed_redirect")
+
+
+def main_navbar(request):
+	"""
+	Handles navigation of the bottom menu
+	"""
+	decision = request.GET.get('dec', None)
+	if decision == '1':
+		# redirect to 'for me'
+		return redirect("for_me")
+	elif decision == '2a':
+		# redirect to inbox replies
+		return redirect("retrieve_direct_responses")
+	elif decision == '2b':
+		# redirect to inbox activity
+		return redirect("retrieve_direct_response_activity")
+	elif decision == '3':
+		# redirect to content sharing page
+		return redirect("share_content")
+	elif decision == '4':
+		# redirect to best photos
+		return redirect("photo",list_type='best-list')
+	elif decision == '5':
+		# redirect to best text
+		return redirect("best_home_page")
+	elif decision == '6':
+		# redirect to sign up
+		return redirect("unauth_home_new")
+	elif decision == '7':
+		# redirect to login
+		return redirect("login")
+	elif decision == '8':
+		# redirect to user's profile
+		return redirect("user_profile",request.user.username)
+	elif decision == '9':
+		# redirect to top stars
+		return redirect("top_photo")
+	elif decision == '10':
+		# redirect to privacy_policy
+		return redirect("privacy_policy")
+	elif decision == '11':
+		# redirect to mehfils list
+		return redirect("group_page")
+	elif decision == '12':
+		# redirect to online
+		return redirect("online_kon")
+	elif decision == '13':
+		# redirect to topics
+		return redirect("topic_listing")
+	elif decision == '14':
+		# redirect to more
+		return redirect("more_options")
+	elif decision == '15a':
+		# redirect to 1on1 list
+		return redirect("personal_group_user_listing")
+	elif decision == '15b':
+		# redirect to 1on1 invites received
+		return redirect("show_personal_group_invite_list",'received')
+	elif decision == '16':
+		# redirect to help
+		return redirect("help")
+	elif decision == '17':
+		# redirect to about
+		return redirect("about")
+	elif decision == '18':
+		# redirect to logout
+		return redirect("bahirniklo")
+	elif decision == '19':
+		# redirect to user_verification
+		return redirect("verify_user_mobile_unpaid")
+	elif decision == '20':
+		# redirect to search
+		return redirect("search_username")
+	else:
+		# default redirect
+		return redirect("photo",list_type='best-list')

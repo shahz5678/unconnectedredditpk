@@ -1,4 +1,4 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load human_time %}
 {% load future_time %}
 {% load s3 %}
@@ -10,7 +10,7 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Cannot send 1 on 1 invite!</h1>
 	
-	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+	<div class="clb bx" style="overflow:hidden;background-color:white;margin: 0 auto;text-align:center;max-width:400px;padding:10px">
 
 		<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
 
@@ -31,7 +31,7 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Cannot send 1 on 1 invite!</h1>
 
-	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+	<div class="clb bx" style="overflow:hidden;background-color:white;margin: 0 auto;text-align:center;max-width:400px;padding:10px">
 		
 		<span class="lsp cxl">Ap aur invites nahi bhej saktey</span>
 		<hr size=1 COLOR="#ffeb3b">
@@ -53,11 +53,11 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Already invited!</h1>
 
-	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+	<div class="clb bx" style="overflow:hidden;background-color:white;margin: 0 auto;text-align:center;max-width:400px;padding:10px">
 
 		<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
 
-		<span class="cxl lsp">Ap&nbsp;<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 mein invite kar chukay hain<br><span class="cgy">({{ it|human_time }})</span></span><br>
+		<span class="cxl lsp">Ap&nbsp;<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 mein invite kar chukay hain<br><span class="cgy">({{ it|human_time }})</span></span><br>
 
 		<form method="POST" class="mtl" action="{% url 'redirect_to_content' %}">
 		{% csrf_token %}
@@ -74,9 +74,9 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Cannot start 1 on 1 ...</h1>
 
-	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+	<div class="clb bx" style="overflow:hidden;background-color:white;margin: 0 auto;text-align:center;max-width:400px;padding:10px">
 
-		<span class="cxl lsp">Sorry! Ap sirf apney followers se 1 on 1 chatting kar saktey hain<div class="cgy mts cs" style="border-top:1px solid #ececec;padding-top:10px"><a href="{% url 'user_profile' tun %}" class="clb"><img src="{{ target_av_url|s3:'thumb' }}" width="20" height="20" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b></a> ne apko follow nahi kia hua</span></div>
+		<span class="cxl lsp">Sorry! Ap sirf apney followers se 1 on 1 chatting kar saktey hain<div class="cgy mts cs" style="border-top:1px solid #ececec;padding-top:10px"><a href="{% url 'user_profile' tun %}" class="clb"><img src="{{ target_av_url|s3:'thumb' }}" width="20" height="20" alt="pic" class="circle"> <b>{{ tun|truncatechars:15 }}</b></a> ne apko follow nahi kia hua</span></div>
 
 
 		<div class="mts mbs fx fxjscn fxaicn">
@@ -96,13 +96,13 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Start 1 on 1:</h1>
 
-	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+	<div class="clb bx" style="overflow:hidden;background-color:white;margin: 0 auto;text-align:center;max-width:400px;padding:10px">
 
 		<div class="mbl cxl">
 			{% if is_anon %}
 				<a href="{% url 'user_profile' tun %}"><div class="av_btn sbb" style="width:26px;height:26px;line-height: 27px;color:#01579B;">{{ tun|truncap }}</div></a>&nbsp;ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
 			{% else %}
-				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
+				<img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle">&nbsp;<b>{{ tun|truncatechars:15 }}</b> ne apko {{ it|human_time }} 1 on 1 mein invite kiya{% if recently_declined %}&nbsp;tha, lekin ap ne reject kar diya tha{% endif %}
 			{% endif %}<br>
 			<hr size=1 COLOR="#ffeb3b">
 		</div>
@@ -125,11 +125,11 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Send invite for 1 on 1:</h1>
 
-	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+	<div class="clb bx" style="overflow:hidden;background-color:white;margin: 0 auto;text-align:center;max-width:400px;padding:10px">
 
 		<img src="{{ STATIC_URL }}img/chat_boxes.svg" width="130" height="100" class="mbl mts"><br>
 
-		<div class="mbl cxl lsp">Kya ap <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 messaging ke liye invite karna chahtey hain?</div>
+		<div class="mbl cxl lsp">Kya ap <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle"> <b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 messaging ke liye invite karna chahtey hain?</div>
 
 		<form action="{% url 'send_personal_group_invite' %}" method="POST" class="mbl" style="display:inline">
 	        {% csrf_token %}
@@ -147,12 +147,12 @@
 
 	<h1 class="cxl clb lsp" style="text-align:center">Invite setting:</h1>
 
-	<div class="clb bx" style="border:3px solid #ececec;overflow:hidden;border-radius:12px;background-color:white;margin: 0 auto;text-align:center;max-width:400px;width:96%;padding:10px">
+	<div class="clb bx" style="overflow:hidden;background-color:white;margin: 0 auto;text-align:center;max-width:400px;padding:10px">
 
 
 		<div style="text-align:center;" class="mts cl">
 			
-			Jab <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">	<b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 ka invite bheja jai, tou invite mein apka poora nickname dikhaya jai?
+			Jab <img src="{{ target_av_url|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle">	<b>{{ tun|truncatechars:15 }}</b> ko 1 on 1 ka invite bheja jai, tou invite mein apka poora nickname dikhaya jai?
 			<form method="POST" action="{% url 'change_personal_group_invite_privacy' %}">
 			{% csrf_token %}
 				<input type="hidden" name="lid" value="{{ lid }}">

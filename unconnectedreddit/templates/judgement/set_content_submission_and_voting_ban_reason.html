@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load show_error %}
 {% load get_banning_history %}
 {% load emoticons_tags %}
@@ -7,7 +7,7 @@
 <head><title>Judgement on {{ oun }} | Damadam</title></head>
 
 <h1 class="cxl clb" style="text-align:center">Give ban reason:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:96%;margin:0 auto;overflow: hidden">
+<div class="clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;margin:0 auto;overflow: hidden">
 
 {% if sin == 'bad_voting' %}
 
@@ -88,11 +88,11 @@
 </div>
 
 {% if previous_reasons %}
-<div class="bizcard clb mtl" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin-left:auto;margin-right:auto;overflow: hidden">
+<div class="clb mtl" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;margin-left:auto;margin-right:auto;overflow: hidden">
 <div class="cxl mbs mt" style="font-weight:bold;text-align:center">Your previous bans:</div>
 	{% banning_history banning_data=previous_reasons static_url=STATIC_URL without_hyperlinks=no_hyperlinks %}
 </div>
 {% endif %}
 
-<br><br>
+<br><br><br>
 {% endblock %}

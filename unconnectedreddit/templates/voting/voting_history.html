@@ -1,11 +1,12 @@
-{% extends "base_inbox.html" %}
+{% extends "base/base_inbox.html" %}
 {% block content %}
 <head><title>{{ slug }}'s likes | Damadam</title></head>
 
 {% load count %}
 {% check_reply_count as reply_count %}
-
-{% include "inbox_navbar.html" with section='likes' username=slug  num_rep=reply_count %}
+<div class="mtl">
+	{% include "inbox_navbar.html" with section='likes' username=slug  num_rep=reply_count %}
+</div>
 
 {% load s3 %}
 {% load human_time %}
@@ -15,7 +16,6 @@
 {% load get_big_send_button %}
 {% load get_big_group_button %}
 {% load get_big_home_reply_button %}
-{% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
 <h1 class="cxl clb lsp" style="text-align:center">My likes:</h1>
 
@@ -23,7 +23,7 @@
 
 		{% if datum.tp == 'tx' %}
 
-			<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
+			<article class="mbl" style="max-width:750px;display:block;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
 		
 
 				{% if datum.ex %}
@@ -52,7 +52,7 @@
 
 		{% else %}
 
-		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
+		<article class="mbl" style="max-width:750px;display:block;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
 			
 			{% if datum.ex %}
 
@@ -90,11 +90,11 @@
 
 		{% endif %}
 
-		{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+		{% include "navbars/bottom_navbar_js_helper.html" with ident=ident %}
 		
 	{% empty %}
 
-	<div class="mbl" style="background-color:white;padding:7px;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;width:98%;box-sizing:border-box">
+	<div class="mbl" style="background-color:white;padding:7px;text-align:center;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;box-sizing:border-box">
 		<div class="cxl lsp clb"><b>Ap ne <span style="color:#ff3377">0</span> posts 'like' ki hain</b></div>
 		<hr size=1 COLOR="#f2f2f2">
 		<h2 class="clb mbs lsp" style="font-weight:lighter">Koi aik button press kar ke woh posts dekhein jin ko 'like' kia ja sakta hai:</h2>
@@ -111,15 +111,15 @@
 
 <div class="mbl fx fxjscn fxaicn">
 	{% if page.has_previous %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     	<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
     </div>
     {% endif %}
     {% if page.has_next %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     	<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
     </div>
     {% endif %}
 </div>
-
+<br>
 {% endblock %}

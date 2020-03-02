@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load human_time %}
 {% load get_super_defender_navbar %}
 {% load get_thumb_to_img_url %}
@@ -6,13 +6,13 @@
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Rejected reports history | Damadam</title></head>
+<div class="mtl">
+  {% super_defender_navbar static_url=STATIC_URL section='ledger' %}
+</div>
+<h1 class="cxl clb lsp" style="text-align:center">Report rejection history:</h1>
 
-{% super_defender_navbar static_url=STATIC_URL section='ledger' %}
-
-<h1 class="cxl clb lsp" style="text-align:center">Damadam report rejection history:</h1>
-
-<div class="clb" style="margin: 0 auto;max-width:650px;width:96%">
-  <div class="bizcard" style="background-color:white;padding:10px 10px 2px 10px">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:650px">
+  <div style="background-color:white;padding:10px 10px 2px 10px">
     
     <div class="mbl" style="text-align:center"><a href="{% url 'show_blocking_history_of_defenders' %}" class="cb sp cs" style="border-bottom:1px dotted blue">show banning history</a></div>
     

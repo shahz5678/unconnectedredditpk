@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load future_time %}
 {% load emoticons_tags %}
 {% block content %}
@@ -23,20 +23,20 @@ window.onload = function () {
 
 {% if only_pinkstars_allowed %}
 <h1 class="cxl clb" style="text-align:center">Unable to join mehfil!</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin:0 auto;overflow: hidden;text-align:center">
 <div class="cxl lsp mbs">Ye mehfil sirf pink stars <img src="{{ STATIC_URL }}img/pstar.svg" width="13" height="13" alt="*" style="color:deeppink"> ke liye hai!</div>
 <div class="mbs"><a href="{% url 'public_group' %}" class="cl sp cgy" style="border-bottom:1px dotted darkgray">wapis</a></div>
 </div><br><br>
 {% elif verify_first %}
 <h1 class="cxl clb" style="text-align:center">Unable to join mehfil!</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin:0 auto;overflow: hidden;text-align:center">
 <div class="cxl cr lsp mbs">Pehlay apna mobile number verify karwain</div>
 <div class="mbs"><a href="{% url 'public_group' %}" class="cl sp cgy" style="border-bottom:1px dotted darkgray">wapis</a></div>
 </div><br><br>
 {% else %}
 
 <h1 class="cxl clb" style="text-align:center">Read mehfil rules:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:96%;margin:0 auto;overflow: hidden">
+<div class="clb mbl" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden">
 
     <div class="mbl" style="text-align:center">
     {% if show_help_msg %}
@@ -59,8 +59,8 @@ window.onload = function () {
     <input name="gid" type="hidden" value="{{ gid }}">
     <input name="uid" type="hidden" value="{{ uid }}">
     <input name="ttr" type="hidden" value="{{ ttr }}">
-    <button name="acc" class="btn bcp mt bm sp pg_ok_res mrs" style="height:26px" value="1">Haan</button>
-    <button name="acc" class="btn bcgy mt bm sp pg_ok_res mls" style="height:26px" value="0">Nahi</button>
+    <button name="acc" class="btn bcp mt bm sp pg_ok_res mrs" style="height:28px" value="1">Haan</button>
+    <button name="acc" class="btn bcgy mt bm sp pg_ok_res mls" style="height:28px" value="0">Nahi</button>
     </form>
 </div>
 <br><br>

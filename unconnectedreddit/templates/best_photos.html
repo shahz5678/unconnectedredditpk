@@ -1,9 +1,8 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load show_error %}
 {% load get_photo_object %}
 {% load emoticons_tags %}
 {% load get_big_send_button %}
-{% load get_transparent_buttons_js %}
 {% load get_big_group_button %}
 {% load get_big_vote_button %}
 {% load get_big_photo_comment_button %}
@@ -77,6 +76,7 @@
 
 </div>
 <br>
-{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+{% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
+{% include "navbars/bottom_navbar_js_helper.html" with ident=ident %}
 {% endblock %}
 

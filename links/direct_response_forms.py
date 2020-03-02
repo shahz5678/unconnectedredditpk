@@ -141,7 +141,7 @@ class DirectResponseForm(forms.Form):
 			self.fields['direct_response'] = forms.CharField(error_messages={'invalid': "Reply sahi likhein",'required':"Reply likhna zaruri hai"})
 			self.fields['direct_response'].widget.attrs['placeholder'] = 'Reply likhein..'
 			self.fields['direct_response'].widget.attrs['maxlength'] = MAX_HOME_REPLY_SIZE
-			self.fields['direct_response'].widget.attrs['class'] = 'box-with-button-right sp'
+			self.fields['direct_response'].widget.attrs['class'] = 'box-with-button-right sp inp'#'inp' class name allows us to select this field via JS and hide bottom menu bar when virtual keyboard opens
 			self.fields['direct_response'].widget.attrs['style'] = 'border: 1px solid lightgrey; border-radius:4px;'
 		else:
 			# initializing a Textarea for regular usage (as a text box)
@@ -150,11 +150,11 @@ class DirectResponseForm(forms.Form):
 			error_messages={'invalid': "Reply sahi likhein",'required':"Reply likhna zaruri hai"})
 			if self.render_page_with_one_response:
 				self.fields['direct_response'].widget.attrs['style'] = 'width:100%;height:100px;border-radius:0;border:none; background-color:#ecfffb;padding:10px;box-sizing:border-box'
-				self.fields['direct_response'].widget.attrs['class'] = 'cxl sp lsp'
+				self.fields['direct_response'].widget.attrs['class'] = 'cxl sp lsp inp'#'inp' class name allows us to select this field via JS and hide bottom menu bar when virtual keyboard opens
 				self.fields['direct_response'].widget.attrs['autofocus'] = 'autofocus'
 			else:
 				self.fields['direct_response'].widget.attrs['style'] = 'width:100%;height:65px;border-radius:0;border:none; background-color:#ecfffb;padding:10px;box-sizing:border-box'
-				self.fields['direct_response'].widget.attrs['class'] = 'cl sp lsp'
+				self.fields['direct_response'].widget.attrs['class'] = 'cl sp lsp inp'#'inp' class name allows us to select this field via JS and hide bottom menu bar when virtual keyboard opens
 			if self.with_id:
 				self.fields['direct_response'].widget.attrs['id'] = 'dir_rep_body'
 		self.fields['direct_response'].widget.attrs['autocomplete'] = 'off'

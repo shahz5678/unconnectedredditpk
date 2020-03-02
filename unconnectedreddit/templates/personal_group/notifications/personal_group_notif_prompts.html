@@ -1,4 +1,4 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load s3 %}
 {% load truncap %}
 {% block content %}
@@ -10,7 +10,7 @@
 		{% if their_anon %}
 			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle" style="border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
 		{% endif %}
 	</div>
 
@@ -45,7 +45,7 @@
 			{% if their_anon %}
 				<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
 			{% else %}
-				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle" style="border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
 			{% endif %}
 		</div>
 
@@ -67,7 +67,7 @@
 			{% if their_anon %}
 				<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
 			{% else %}
-				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="" style="border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
 			{% endif %}
 		</div>
 
@@ -89,7 +89,7 @@
 			{% if their_anon %}
 				<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1:</span>
 			{% else %}
-				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
+				<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle" style="border:1px solid darkgray;vertical-align:sub">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1:</span>
 			{% endif %}
 		</div>
 		{% load future_time %}

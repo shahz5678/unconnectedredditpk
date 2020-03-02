@@ -1,71 +1,7 @@
-{% load google_analytics %}
-<!DOCTYPE html>
-
-<html style="background:#f0f3f4">
-<head>
-
-	<!-- has to be the first tag in head -->
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-
-	{% include "favicons.html" %}
-	{% include "css.html" %}
-	<!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="{{ topic_description }}">
-	<meta name="author" content="mhb">
-	<meta name="keywords" content="{{ topic }}"> 
-	<meta property="og:site_name" content="Damadam">
-	<meta property="og:title" content="{{ topic }}">
-	<meta property="og:type" content="website">
-	<meta property="og:description" content="{{ topic_description }}">
-	<meta property="og:url" content="https://damadam.pk/{{ topic_url }}/">
-	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
-	<meta property="og:image:width" content="300">
-	<meta property="og:image:height" content="300">
-	<meta property="fb:app_id" content="1758220174446684" />
-	{% google_analytics %}
-
-	<title>{{ topic }} | Damadam</title>
-
-	{% if page.has_previous %}
-		<link rel="prev" href="?page={{ page.previous_page_number }}" />
-	{% endif %}
-	{% if page.has_next %}
-		<link rel="next" href="?page={{ page.next_page_number }}" />
-	{% endif %}
-
-	<link rel="canonical" href="{% url 'topic_page' topic_url %}" />
-	{% include "ga_user_analytics.html" with my_var=user.id %}
-
-</head>
-<body>
-
-{% include "header.html" %}
-
-<nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
-
-	{% if user.is_authenticated %}
-		{% if request.mobile_verified %}
-			{% include "navbars/top_navbar.html" with username=user.username %}
-		{% else %}
-			{% include "navbars/top_navbar_unauth.html" %}
-		{% endif %}
-	{% else %}
-		{% include "navbars/top_navbar_unauth.html" %}
-	{% endif %}
-
-	{% if request.META.HTTP_X_IORG_FBS %}{% include "data_mode_strip.html" %}{% endif %}
-	
-	<a name="section0"></a>
-
-	{% if request.is_opera_mini %}{% include "opera_mini_warning.html" %}{% endif %}
-</nav>
-
-<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
-
+{% extends "base/base_topic_home.html" %}
+{% block content %}
 {% load show_error %}
-<main style="display:block" itemscope itemtype="http://schema.org/CollectionPage">
+<main class="mbl" style="display:block" itemscope itemtype="http://schema.org/CollectionPage">
 
 	{% if topic_started %}
 	<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff66;max-width:750px;margin-left:auto;margin-right:auto;width:97%;text-align:center;padding:7px 0;color:#202020" class="cxl lsp clb mbs">New topic started!</div>
@@ -75,7 +11,7 @@
 	<div style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#ffff66;max-width:750px;margin-left:auto;margin-right:auto;width:97%;text-align:center;padding:7px 0;color:#202020" class="cxl lsp clb mbs">Sorry! Ye topic pehlay se mojood hai</div>
 	{% endif %}
 
-	<article style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#fefefa;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
+	<article style="overflow:hidden;background:#fefefa;max-width:750px;margin-left:auto;margin-right:auto;display:block">
 
 		{% include "topics/topic_header.html" with topic_header=topic topic_description=topic_description c1=c1 c2=c2 %}
 		
@@ -124,7 +60,6 @@
 			{% load get_big_group_button %}
 			{% load get_big_home_reply_button %}
 			{% load get_inline_replies_section %}
-			{% load get_transparent_buttons_js %}
 
 			<section style="display:block">
 			<div class="fx fxjscn fxaibl">
@@ -141,7 +76,7 @@
 
 			{% for submission in submissions %}
 
-				<article itemprop="hasPart" itemscope itemtype="http://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;width:97%;display:block">
+				<article itemprop="hasPart" itemscope itemtype="http://schema.org/SocialMediaPosting" class="mbl" style="overflow:hidden;background:white;max-width:750px;margin-left:auto;margin-right:auto;display:block">
 					<div>
 						<a name="section{{ forloop.counter }}"></a>
 						
@@ -162,7 +97,7 @@
 								{% big_vote_button is_pht='0' obid=submission.i origin='22' ooid=submission.si user_voted=submission.v static_url=STATIC_URL topic=topic_url %}
 								{% big_group_button own_id=ident target_id=submission.si parent_object_id=submission.i object_type='link' origin='22' target_username=submission.su home_hash=submission.h topic=topic_url %}
 								{% big_home_reply_button link_id=submission.i comm_count=submission.cc static_url=STATIC_URL origin='22' %}
-								{% include "big_buttons/big_report_button.html" with origin='22' pid=submission.i oun=submission.su ooid=submission.si img_thumb='' raw_caption=submission.d av_url=submission.sa home_hash=submission.h static_url=STATIC_URL type='tx' %}
+								{% include "big_buttons/big_report_button.html" with origin='22' pid=submission.i oun=submission.su ooid=submission.si img_thumb='' raw_caption=submission.d av_url=submission.sa home_hash=submission.h static_url=STATIC_URL type='tx' topic_url=topic_url %}
 							{% endif %}
 						{% endif %}
 						</div>
@@ -184,18 +119,18 @@
 
 			<div class="fx fxjscn fxaicn">
 				{% if page.has_previous %}
-				<div style="padding:0 10px">
+				<div style="padding:0 10px 30px 10px">
 					<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
 				</div>
 				{% endif %}
 				{% if page.has_next %}
-				<div style="padding:0 10px">
+				<div style="padding:0 10px 30px 10px">
 					<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
 				</div>
 				{% endif %}
 			</div>
 
-			{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
+			{% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
 
 		{% else %}
 			<br>
@@ -204,33 +139,4 @@
 
 </main>
 <br>
-
-{% if user.is_authenticated %}
-
-    {% if request.mobile_verified %}
-
-        {% load feed_count %}
-        {% check_feed_count False as feed_count %}
-        {% load count %}
-        {% check_reply_count as reply_count %}
-        {% include "navbars/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count %}
-
-    {% else %}
-
-        {% load feed_count %}
-        {% check_feed_count False as feed_count %}
-        {% include "navbars/bottom_navbar_unverified.html" with feed_count=feed_count %}
-
-    {% endif %}
-
-{% else %}
-
-    {% include "navbars/bottom_navbar_unauth.html" %}
-
-{% endif %}
-
-{% include "min_service_worker.html" %}
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
-
-</body>
-</html>
+{% endblock %}

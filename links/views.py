@@ -382,6 +382,21 @@ def website_rules(request):
 	return render(request,"website_rules.html",{})
 
 
+def more_options(request):
+	"""
+	Renders a page containing the following options:
+
+	- Mehfils
+	- Search
+	- Online
+	- Topics
+	- About
+	- Help
+	- Logout
+	"""
+	return render(request,"more_options.html",{})
+
+
 class ContactView(FormView):
 	form_class = ContactForm
 	template_name = "contact.html"
@@ -408,43 +423,6 @@ class AboutView(FormView):
 class PrivacyPolicyView(FormView):
 	form_class = PrivacyPolicyForm
 	template_name = "privacy_policy.html"
-
-
-def bottom_navbar(request):
-	"""
-	Handles navigation of the bottom menu
-	"""
-	decision = request.GET.get('dec', None)
-	if decision == '1':
-		# redirect to 'for me'
-		return redirect("for_me")
-	elif decision == '2a':
-		# redirect to inbox replies
-		return redirect("retrieve_direct_responses")
-	elif decision == '2b':
-		# redirect to inbox activity
-		return redirect("retrieve_direct_response_activity")
-	elif decision == '3':
-		# redirect to content sharing page
-		return redirect("share_content")
-	elif decision == '4':
-		# redirect to best photos
-		return redirect("photo",list_type='best-list')
-	elif decision == '5':
-		# redirect to best text
-		return redirect("best_home_page")
-	elif decision == '6':
-		# redirect to sign up
-		return redirect("unauth_home_new")
-	elif decision == '7':
-		# redirect to login
-		return redirect("login")
-	elif decision == '8':
-		# redirect to user's profile
-		return redirect("user_profile",request.user.username)
-	else:
-		# default redirect
-		return redirect("photo",list_type='best-list')
 
 
 class HelpView(FormView):

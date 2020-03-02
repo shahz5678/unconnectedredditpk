@@ -148,91 +148,6 @@ S1: Html styling
         background-color: #e67300;
     }
 
-    /* ul-based navigation bar for classifieds*/
-
-    ul.navbar_classifieds {
-    list-style-type: none;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-    background-color: #E8E8E8;
-    font-size: 0.8em;
-    text-align: center;
-    width: 95%;
-    padding-left:5px;
-    padding-right:5px;
-    border-radius:4px;
-    box-shadow:0 1px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #d9d9d9;
-    max-width: 400px;
-    }
-
-    ul.navbar_classifieds li {
-        margin: auto;
-        display: inline-block;
-        border-right: 1px solid #E8E8E8;
-    }
-
-    ul.navbar_classifieds li:first-child {
-        border-left: 1px solid #E8E8E8;
-    }
-
-    ul.navbar_classifieds li a {
-        display: inline-block;
-        color: #424242;
-        text-align: center;
-        padding-left: 1em;
-        padding-right: 1em;
-        padding-top: 0.6em;
-        padding-bottom: 0.6em;
-        text-decoration: none;
-    }
-
-    ul.navbar_classifieds li a:hover {
-        background-color: #d9d9d9;
-        color:#14852e;
-    }
-
-
-    /* div-based navigation bar for classifieds*/
-
-    div.navbar_classifieds {
-    list-style-type: none;
-    overflow: hidden;
-    background-color: #E8E8E8;
-    font-size: 0.8em;
-    border-radius:4px;
-    box-shadow:0 1px 4px rgba(0, 0, 0, 0.1);
-    border: 1px solid #d9d9d9;
-    width: 95%;
-    padding-left:5px;
-    padding-right:5px;
-    max-width: 400px;
-    }
-
-    div.navbar_classifieds span {
-        border-right: 1px solid #E8E8E8;
-    }
-
-    div.navbar_classifieds span:first-child {
-        border-left: 1px solid #E8E8E8;
-    }
-
-    div.navbar_classifieds span a {
-        display: inline-block;
-        color: #424242;
-        padding-left: 1em;
-        padding-right: 1em;
-        padding-top: 0.7em;
-        padding-bottom: 0.7em;
-        text-decoration: none;
-    }
-
-    div.navbar_classifieds span a:hover {
-        background-color: #d9d9d9;
-        color:#14852e;
-    }
-
     .hov:hover {
 
         padding-right: 1em;
@@ -305,15 +220,6 @@ S1: Html styling
             background-color: #FFCCBC;
         }
 
-
-    .emoji-table{
-
-    border: 1px solid #d9d9d9;
-    background: #F3F3F3;
-    padding-top:0.3em;
-    padding-bottom:0.3em;
-}
-
 /*inline reply buttons for home and inbox*/
 
 .box-with-button-right {
@@ -347,12 +253,6 @@ S1: Html styling
   border-radius: 0px 3px 3px 0px;
   color: white;
 
-}
-
-
-/*background color cream*/
-.bgc{
-    background-color:#FFFFE0;
 }
 
 /*=================================================
@@ -502,8 +402,6 @@ font size 80% grey text will be class = "cs cgy",
 }
 
 /*color lightgrey */                        .clg{color:lightgrey;}
-/*color caption deeppink*/                  .cdp{color:deeppink;}
-/*color background yellow : caption_form */ .clbgy{background-color:#FFFFE0;}
 
 /*=================================================
 Buttons
@@ -628,13 +526,6 @@ input:checked + label{
 share photo feature
 button color golden
 */
-.bcgd
-{
-    color:#1947D1;
-    background-color:gold;
-    border:solid;
-    border-color:gold;
-}
 
 /*button color grey*/
 .bcgy{
@@ -649,120 +540,12 @@ button color golden
 
 }
 
-/*button color cream*/
-
-.bcc {
-    background-color:#FFEFD5;
-    border-color:orange;
-}
-
-/* World cricket colored buttons */
-
-.wxi {
-    background-color:#4d0099;
-    border-color:#330066;
-}
-
-.pak {
-    background-color:#008000;
-    border-color:#006600;
-}
-
-.wid {
-    background-color:#990000;
-    border-color:#660000;
-}
-
-.ind {
-    background-color:#1293CC;
-    border-color:#0e77a4;
-}
-
-.eng {
-    background-color:#020277;
-    border-color:#01014b;
-}
-
-.slk {
-    background-color:#26548B;
-    border-color:#163050;
-}
-
-.nze {
-    background-color:#404040;
-    border-color:black;
-}
-
-.saf {
-    background-color:#ddcc5e;
-    border-color:#bda928;
-}
-
-.aus {
-    background-color:#FFFF4D;
-    border-color:#FFFF1A;
-    color:#666600;
-}
-
-/* PSL team colored buttons */
-
-.msu {
-    background-color:#525045;
-    border-color:#38362E;
-}
-
-.zal {
-    background-color:#FCEE0A;
-    border-color:#e3d802;
-    color:#7E7801;
-}
-
-.qal {
-    background-color:#8AE44F;
-    border-color:#6DDD22;
-    color:#2C580E;
-}
-
-.uni {
-    background-color:#EE3000;
-    border-color:#CC2900;
-}
-
-.kng {
-    background-color:#2857D0;
-    border-color:#2148AB;
-}
-
-.gld {
-    background-color:#54348A;
-    border-color:#432A6F;
-}
-/*background color cream*/                  .bgc{background-color:#FFFFE0;}
-/*background color lightgreen*/             .bglg{background-color:#EDFFEE;}
-/*background color light orange*/           .bglo{background-color:#ffe8cc;}
-
-
 .nw { white-space: nowrap;}
 
 .bw {word-wrap:break-word;}
 
 /*=======================================*/
 
-
-/*=================================================
-End Buttons
-==================================================*/
-
-
-
-
-
-
-    .pinkstar {
-
-    font-size:110%;
-    color:deeppink;
-    }
 
 /*=================================================
 Photos
@@ -773,11 +556,6 @@ Photos
     width:100%;max-width:450px;
     margin-bottom:0.3em;border:1px solid lightgrey
 
-}
-
-.bright{
-    filter:brightness(30%);
-    -webkit-filter: brightness(0.3);
 }
 
 
@@ -799,44 +577,6 @@ Divs
 .box {
 
     margin-top:0.5em;padding-top:0.5em;padding-bottom:0.5em;
-}
-
-/* background color light blue*/
-.dbb{
-
-    background-color:#e7f2fe;
-}
-
-/* backgound color light yellow*/
-
-.dby {
-background-color:#ffffe0;
-border:1px solid #FFF0C6;
-border-radius: 6px;
-}
-
-/* backgound color light purple*/
-.dbp {
-
-    background-color:#faebeb;
-    border:1px solid #EBD9E0;
-    border-radius: 6px;
-}
-
-/* backgound color light green*/
-.dbg {
-
-    background-color:#e9fced;
-    border:1px solid #D5F5DC;
-    border-radius: 6px;
-}
-
-/* backgound color light teal*/
-.dbt {
-
-    background-color:#e9f7fb;
-    border:1px solid #CFEDF6;
-    border-radius: 6px;
 }
 
 /*=================================================
@@ -869,60 +609,10 @@ MARGINS
 /*===============================================================================================================*/
 
 /*image border blue*/   .ibb{border:1px solid blue;width:100%;max-width: 400px}
-/*image border teal*/   .ibt{border:1px solid teal;width:100%;max-width: 400px}
-/*image border orange*/ .ibo{border:1px solid #ff8000;width:100%;max-width: 400px}
-/*image border grey*/   .ibg{border:1px solid lightgrey;width:100%;max-width: 400px}
-/*image border green*/  .ibgn{border:1px solid green;width:100%;max-width: 400px}
-/*image border purple*/ .ibp{border:1px solid #765989;width:100%;max-width: 400px}
 /*image width*/ .iw{width:100%;max-width:400px;margin-bottom:0.3em;}
 /*image width*/ .iw2{width:100%;max-width:400px;margin-top:-0.3em;}
-/*filter brightness 50%*/.fbh{filter:brightness(50%);-webkit-filter: brightness(0.5);}
-/*filter brightness 30%*/.fbl{filter:brightness(30%);-webkit-filter: brightness(0.3);}
 
 
-/*===============================================================================================================*/
-/*speech bubble*/
-/*===============================================================================================================*/
-
-.bubble {
-   position: relative;
-   background: #f3961c;
-    border: 0px solid #f3961c;
-   max-width:80%;
-    min-width:5%;
-   padding:10px;
-   font-family:arial;
-   margin:0 auto;
-   margin-left: 10px;
-   font-size:14px;
-   border-radius:6px;
-    display:inline-block;
-
-}
-.bubble:after,
-.bubble:before {
-   right: 100%;
-   top: 50%;
-    border: solid transparent;
-   content: " ";
-   height: 0;
-   width: 0;
-   position: absolute;
-   pointer-events: none;
-}
-
-.bubble:after {
-   border-color: #FFFFCC;
-   border-right-color: #f3961c;
-   border-width: 15px;
-   margin-top: -15px;
-}
-.bubble:before {
-    border-color: #FFFFCC;
-   border-right-color: #FFFFCC;
-   border-width: 16px;
-   margin-top: -16px;
-}
 /* this is for the preloader running in post_basic_items_photo */
 .loader {
     font-size: 20px;
@@ -976,8 +666,6 @@ MARGINS
     }
 }
 
-/* CSS FOR PRIVATE CHAT */
-
 /* generates a flexbox with various alignments */
 
 .fx {
@@ -1022,11 +710,48 @@ MARGINS
             align-items:flex-end;
 }
 
+/*mostly used to make avatar thumbs round*/
+.circle{
+  border-radius: 50%;
+}
+
 /* ensures buttons don't get highlighted after being pressed */
 
 ::-moz-focus-inner, :active, :focus {
     outline:none;
     -moz-outline-style: none;
+}
+
+/* CSS FOR PRIVATE CHAT */
+
+/*youtube link+image*/
+
+img.yt_play {
+  width:65px;
+  height: 65px;
+}
+
+img.yt_play:hover{
+  width:60px;
+  height: 60px;
+}
+
+img.yt_img {
+  opacity:0.7;
+}
+
+img.yt_img:hover{
+  opacity: 1;
+}
+
+.cam_img{
+  position:absolute;
+  z-index:4;
+  opacity:0.01;
+  border:none;
+  max-width:132px;
+  height:60px;
+  font-size:50px
 }
 
 /* online dot in mehfils */
@@ -1041,7 +766,7 @@ MARGINS
 /* increasing line height for better readability */
 
 .lsp{
-  line-height:1.55;
+  line-height:1.56;
 }
 
 /* spacing out characters for cases when small font is used */
@@ -2168,4 +1893,56 @@ background-color:#ccffee;
 
 .tooltip:hover .tooltiptext {
   visibility: visible;
+}
+
+/* styles new navigation system */
+
+.show-it{
+    position: fixed;
+}
+.hide-it{
+    display: none;
+}
+
+button.hd{
+    background: 0 0;
+}
+
+button.hd:focus,button.hd:hover{
+    background-color:rgba(0,0,0,0.04);
+    font-weight: bold;
+ }
+
+.bg{
+    background: #18dddb;background: -moz-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);
+    background: -webkit-linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);
+    background: linear-gradient(90deg, rgba(0,238,209,1) 0%, rgba(109,158,255,1) 100%, rgba(40,215,255,1) 100%);
+}
+
+.sticky {
+    top: 0;
+    z-index:90;
+    background: rgb(252,252,252);
+    border-bottom:1px solid #e8e090;
+}
+
+.bg-strip{
+    display: none;
+}
+
+@supports (position: sticky) {
+    .sticky{
+        position: -webkit-sticky; /* Safari */
+        position: sticky;
+        top: 0;
+        z-index: 90;
+        background: rgb(255,255,255);
+        background: -moz-linear-gradient(0deg, rgba(255,255,255,0) 0%, rgba(255,232,4,1) 100%);
+        background: -webkit-linear-gradient(0deg, rgba(255,255,255,0) 0%, rgba(255,232,4,1) 100%);
+        background: linear-gradient(0deg, rgba(255,255,255,0) 0%, rgba(255,232,4,1) 100%);
+        border-bottom:none;
+    }
+    .bg-strip{
+        display:block;
+    }
 }

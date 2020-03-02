@@ -1,0 +1,200 @@
+{% load google_analytics %}
+<!DOCTYPE html>
+<html style="background:#f0f3f4">
+<head>
+
+    <!-- has to be the first tag in head -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    {% include "favicons.html" %}
+    {% include "css.html" %}
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Damadam is a Pakistani content sharing and social networking website. Join now!">
+    <meta property="og:site_name" content="Damadam.pk">
+    <meta property="og:title" content="Damadam.pk">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://damadam.pk/">
+    <meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
+    <meta property="og:image:width" content="300">
+    <meta property="og:image:height" content="300">
+    <meta property="og:description" content="Damadam is a Pakistani content sharing and social networking website. Join now!">
+    <meta property="fb:app_id" content="1758220174446684" />
+    <meta name="author" content="mhb">
+
+    {% google_analytics %}
+    {% include "ga_user_analytics.html" with my_var=user.id %}
+
+</head>
+<body>
+<!-- TOP NAVBARS -->
+<!-- auth -->
+{% if user.is_authenticated %}
+
+    {% include "navbars/header.html" %}
+    <a name="section0"></a>
+
+    <!-- fbs -->
+    {% if request.META.HTTP_X_IORG_FBS %}
+
+        <!-- verified user -->
+        {% if request.mobile_verified %}
+            {% load feed_count %}
+            {% load count %}
+            {% load count_priv_invites %}
+            {% load count_group_invites %}
+            {% check_feed_count False as feed_count %}
+            {% check_reply_count as reply_count %}
+            {% check_invite_count as invite_count %}
+            {% check_group_invite_count as group_invite_count %}
+            {% include "navbars/fbs/top_navbar_sprites.svg" %}
+            <!--  -->
+            {% include "navbars/fbs/top_navbar.html" with feed_count=feed_count reply_count=reply_count group_invite_count=group_invite_count %}
+            {% include "data_mode_strip.html" %}
+
+        <!-- unverified user -->
+        {% else %}
+            {% load feed_count %}
+            {% check_feed_count False as feed_count %}
+            {% include "navbars/fbs/top_navbar_unverified_sprites.svg" %}
+            <!--  -->
+            {% include "navbars/fbs/top_navbar_unverified.html" with feed_count=feed_count %}
+            {% include "data_mode_strip.html" %}
+
+        {% endif %}
+
+    <!-- showing fbs navbars to opera mini extreme -->
+    {% elif request.is_opera_mini %}
+
+        {% if request.mobile_verified %}
+            {% load feed_count %}
+            {% load count %}
+            {% load count_priv_invites %}
+            {% load count_group_invites %}
+            {% check_feed_count False as feed_count %}
+            {% check_reply_count as reply_count %}
+            {% check_invite_count as invite_count %}
+            {% check_group_invite_count as group_invite_count %}
+            {% include "navbars/fbs/top_navbar_sprites.svg" %}
+            <!--  -->
+            {% include "navbars/fbs/top_navbar.html" with feed_count=feed_count reply_count=reply_count group_invite_count=group_invite_count %}
+
+        {% else %}
+            {% load feed_count %}
+            {% check_feed_count False as feed_count %}
+            {% include "navbars/fbs/top_navbar_unverified_sprites.svg" %}
+            <!--  -->
+            {% include "navbars/fbs/top_navbar_unverified.html" with feed_count=feed_count %}
+
+        {% endif %}
+    
+    <!-- non_fbs -->
+    {% else %}
+
+        {% if request.mobile_verified %}
+            {% include "navbars/non_fbs/top_navbar.html" %}
+        {% else %}
+            {% include "navbars/non_fbs/top_navbar_unverified.html" %}  
+        {% endif %}
+
+    {% endif %}
+
+<!-- unauth -->
+{% else %}
+
+    {% include "navbars/header_unauth.html" %}
+    <a name="section0"></a>
+
+    <!-- fbs -->
+    {% if request.META.HTTP_X_IORG_FBS %}
+        {% include "navbars/fbs/top_navbar_unauth_sprites.svg" %}
+        {% include "navbars/fbs/top_navbar_unauth.html" %}
+        {% include "data_mode_strip.html" %}
+
+    <!-- showing fbs navbars to opera mini extreme -->
+    {% elif request.is_opera_mini %}
+        {% include "navbars/fbs/top_navbar_unauth_sprites.svg" %}
+        {% include "navbars/fbs/top_navbar_unauth.html" %}
+
+    <!-- non_fbs -->
+    {% else %}
+        {% include "navbars/non_fbs/top_navbar_unauth.html" %}
+
+    {% endif %}
+
+{% endif %}
+
+
+<!-- main content -->
+{% block content %}
+{% endblock %}
+
+
+<!-- BOTTOM NAVBARS -->
+<!-- auth -->
+{% if user.is_authenticated %}
+    
+    <!-- fbs -->
+    {% if request.META.HTTP_X_IORG_FBS or request.is_opera_mini %}
+
+        <!-- verified user -->
+        {% if request.mobile_verified %}
+            {% include "navbars/fbs/bottom_navbar.html" %}
+
+        <!-- unverified user -->
+        {% else %}
+            {% include "navbars/fbs/bottom_navbar_unverified.html" %}
+
+        {% endif %}
+
+    <!-- non_fbs -->
+    {% else %}
+
+        <!-- verified user -->
+        {% if request.mobile_verified %}
+            {% load feed_count %}
+            {% load count %}
+            {% load count_priv_invites %}
+            {% check_feed_count False as feed_count %}
+            {% check_reply_count as reply_count %}
+            {% check_invite_count as invite_count %}
+            {% include "navbars/non_fbs/bottom_navbar_sprites.svg" %}
+            <!--  -->
+            {% include "navbars/non_fbs/bottom_navbar.html" with feed_count=feed_count reply_count=reply_count %}
+
+        <!-- unverified user -->
+        {% else %}
+            {% load feed_count %}
+            {% check_feed_count False as feed_count %}
+            {% include "navbars/non_fbs/bottom_navbar_unverified_sprites.svg" %}
+            <!--  -->
+            {% include "navbars/non_fbs/bottom_navbar_unverified.html" with feed_count=feed_count selected='verify' %}
+
+        {% endif %}
+
+    {% endif %}
+
+<!-- unauth -->
+{% else %}
+    
+    <!-- fbs -->
+    {% if request.META.HTTP_X_IORG_FBS or request.is_opera_mini %}
+
+        {% include "navbars/fbs/bottom_navbar_unauth.html" %}
+
+    <!-- non_fbs -->
+    {% else %}
+
+        {% include "navbars/non_fbs/bottom_navbar_unauth_sprites.svg" %}
+        {% include "navbars/non_fbs/bottom_navbar_unauth.html" %}
+
+    {% endif %}
+
+{% endif %}
+
+
+{% include "min_service_worker.html" %}
+<script async type="text/javascript" src="{{ STATIC_URL }}js/lazysizes.min.js"></script>
+<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
+
+</body>
+</html>

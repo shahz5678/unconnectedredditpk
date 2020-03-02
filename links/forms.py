@@ -386,9 +386,11 @@ class UserProfileForm(forms.ModelForm):
 		super(UserProfileForm, self).__init__(*args, **kwargs)
 		self.fields['avatar'].widget.attrs['style'] = 'width:95%;'
 		self.fields['bio'].widget.attrs['style'] = 'width:95%;height:200px;border-radius:8px;border: 1px #1edea8 solid; background-color:#f2f1f0;padding:5px;'
+		self.fields['bio'].widget.attrs['class'] = 'inp'
 		self.fields['age'].error_messages = {'required':retrieve_validation_error_string('required_age'),\
 		'invalid':retrieve_validation_error_string('age_too_large')}
 		self.fields['age'].widget.attrs['maxlength'] = 2
+		self.fields['age'].widget.attrs['class'] = 'inp'
 		self.fields['streak'].error_messages = {'invalid':'Ye ghalat hai'}
 		
 
@@ -598,8 +600,10 @@ class SearchNicknameForm(forms.Form):
 		super(SearchNicknameForm, self).__init__(*args, **kwargs)
 		self.fields['nickname'].widget.attrs['style'] = \
 		'max-width:90%;width:500px;background-color:#F8F8F8;border: 1px solid #3cb7dd;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #229ec9;'
-		self.fields['nickname'].widget.attrs['class'] = 'cxl'
-		if not self.searched:
+		if self.searched:
+			self.fields['nickname'].widget.attrs['class'] = 'cxl inp'
+		else:
+			self.fields['nickname'].widget.attrs['class'] = 'cxl'
 			self.fields['nickname'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['nickname'].widget.attrs['autocomplete'] = 'off'
 

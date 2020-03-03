@@ -14,7 +14,7 @@ class PersonalGroupPostForm(forms.Form):
 	"""
 	image = forms.ImageField(required=False, error_messages={'invalid':'Ye photo kharab hai. Koi aur chunein',\
 		'invalid_image': 'Ye photo kharab hai. Koi aur chunein','required':'Photo lagana zaruri hai'})
-	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
+	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl inp','autocomplete': 'off',\
 		'autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
 	
 
@@ -23,7 +23,6 @@ class PersonalGroupPostForm(forms.Form):
 		super(PersonalGroupPostForm, self).__init__(*args,**kwargs)
 		self.fields['reply'].widget.attrs['style'] = 'width:100%;height:60px;border-radius:6px;border: 1px #bdebfe solid; background-color:white;padding:5px;box-sizing:border-box'
 		self.fields['reply'].widget.attrs['id'] = 'text_field'
-		self.fields['reply'].widget.attrs['class'] = 'inp'
 		self.fields['image'].widget.attrs['id'] = 'browse_image_btn'
 		self.fields['image'].widget.attrs['class'] = 'cam_img'
 

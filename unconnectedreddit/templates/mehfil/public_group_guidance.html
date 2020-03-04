@@ -12,7 +12,7 @@
 		<div class="mbl mt" style="text-align:center;border-bottom:1px solid gainsboro;padding-bottom:15px"><a href="{% url 'public_group' guid %}#section0"><button class="cb cm sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
 
 		<div class="sp cl lsp mbs">
-		<img src="{{ STATIC_URL }}img/gear-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki setting hai. Yahan se ap mehfil control kar saktey hain. Setting mein har option ke sath uski 'help' bhi mojood hai
+		<img src="{{ STATIC_URL }}img/gear-cp.svg" width="20" height="20" class="mrs" style="vertical-align:sub"> ye mehfil ki setting hai. Yahan se ap mehfil control kar saktey hain
 		</div>
 
 		<div class="sp cl lsp mbs">
@@ -38,19 +38,7 @@
 			</li>
 
 			<li class="sp cl lsp mbs">
-			Daily news ke lehaz se new topic set karein, takey members ke paas roz gup shup karney ke liye fresh topic mojood ho
-			</li>
-
-			<li class="sp cl lsp mbs">
 			Mehfil se larai karney waley members ko bahir rakhein. Setting mein <img src="{{ STATIC_URL }}img/read.svg" width="20" height="20" style="vertical-align:sub"> is option se members ki complain zarur check karein
-			</li>
-
-			<li class="sp cl lsp mbs">
-			Hamesha new members ko welcome karein. Unsey dosti lagaien. Mehfil mein ziyada members interest lein tou mehfil top pe ja sakti hai
-			</li>
-
-			<li class="sp cl lsp mbs">
-			Mehfil se kick karney ke baad kick ki wajah poochi jaye gi. Woh zarur likhein takey kick honay waley ko apni ghalti ka ehsas ho
 			</li>
 
 		</ol>
@@ -95,18 +83,6 @@
 			Setting mein <img src="{{ STATIC_URL }}img/history.svg" width="20" height="20" style="vertical-align:sub"> is option ke zariye actions pe nazar rakhein
 			</li>
 
-			{% if can_kick %}
-			<li class="sp cl lsp mbs">
-			Mehfil se kick karney ke baad kick ki wajah poochi jaye gi. Woh zarur likhein takey kick honay waley ko apni ghalti ka ehsas ho
-			</li>
-			{% endif %}
-
-			{% if can_topic %}
-			<li class="sp cl lsp mbs">
-			Daily news ke lehaz se new topic set karein, takey members ke paas roz gup shup karney ke liye fresh topic mojood ho
-			</li>
-			{% endif %}
-
 			<li class="sp cl lsp mbs">
 			Agar mehfil ko ziyada time nahi de saktey tou owner se kahien ke apko officer se remove kar de
 			</li>
@@ -145,15 +121,11 @@
 			</li>
 
 			<li class="sp cl lsp mbs">
-			Agar koi complain ho tou setting ke <img src="{{ STATIC_URL }}img/complain.svg" width="20" height="20" style="vertical-align:sub"> is option se mehfil owner ko batain. Apki complain koi aur nahi dekh sakey ga
+			Agar koi complain ho tou setting ke <img src="{{ STATIC_URL }}img/complain.svg" width="20" height="20" style="vertical-align:sub"> is option se mehfil owner ko batain
 			</li>
 
 			<li class="sp cl lsp mbs">
-			Agar mehfil fazool ya boring ho tou forun exit karein takey apkey matkey mein nahi aye. Exit ke liye setting se <img src="{{ STATIC_URL }}img/exit.svg" width="20" height="20" style="vertical-align:sub"> ye option use karein
-			</li>
-
-			<li class="sp cl lsp mbs">
-			Agar ap apni mehfil banana chahtey hain tou pehlay kuch friends bana lein. Friends ke sath mil ke public mehfil achi terah se chalti hai
+			Agar mehfil fazool ya boring ho tou exit karein. Exit ke liye setting se <img src="{{ STATIC_URL }}img/exit.svg" width="20" height="20" style="vertical-align:sub"> ye option use karein
 			</li>
 
 		</ol>

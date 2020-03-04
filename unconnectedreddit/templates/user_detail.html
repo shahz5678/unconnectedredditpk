@@ -180,7 +180,7 @@
 	<div class="mls mrs">
 	  {% if is_star %}
 	  <b class="cm sp lsp" style="color:darkgray">Top star:</b>
-      <img src="{{ STATIC_URL }}img/gstar.svg" height="18" width="18">&nbsp;<span style="color:lightgray">-</span>&nbsp;<span class="cgy cs sp lsp">{{ is_star }} trending images</span>
+      <img src="{{ STATIC_URL }}img/gstar.svg" height="18" width="18">&nbsp;<span style="color:lightgray">-</span>&nbsp;<span class="cgy cs sp lsp">{{ is_star }} trending images in last 7 days</span>
       <hr size=1 COLOR="#f4f4f4">
 	  {% endif %}
 
@@ -198,7 +198,7 @@
 
       <b class="cm sp lsp" style="color:darkgray">Followers:</b>
       <a href="{% url 'show_follower_list' %}#section0" class="cs">
-      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ verif_follower_count }}</button><span class='cm sp cgy mts'>&nbsp;<span style="color:lightgray">-</span>&nbsp;counting verified followers only</span>
+      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ verif_follower_count }}</button><span class='cm sp cgy mts'>&nbsp;<span style="color:lightgray">-</span>&nbsp;counting verified followers only{% if user.id == 1 %}&nbsp;({{ unverif_follower_count }} unverified followers){% endif %}</span>
       </a>
       <hr size=1 COLOR="#f4f4f4">
       <b class="cm sp lsp" style="color:darkgray">Following:</b>
@@ -236,7 +236,7 @@
 		  {% endif %}
 
 	      <b class="cm sp lsp" style="color:darkgray" >Followers:</b>
-	      <span class="cl sp clb">{{ verif_follower_count }}</span>
+	      <span class="cl sp clb">{{ verif_follower_count }}{% if user.id == 1 %}&nbsp;({{ unverif_follower_count }} unverified followers){% endif %}</span>
 	     
 		</div>
 

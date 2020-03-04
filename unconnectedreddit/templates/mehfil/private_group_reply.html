@@ -6,7 +6,6 @@
 {% block content %}
 <head><title>{% if switching %}Private mehfil{% else %}{{ group_topic }} (private mehfil){% endif %} | Damadam</title></head>
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 <div class="mbl mtl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden;padding:0 6px">
     <h1 style="display:inline" class="clb cl sp lsp">{% if switching %}Mehfil not found{% else %}{% emoticons %}{{ group_topic }}{% endemoticons %}{% endif %}:</h1>
 </div>
@@ -22,7 +21,9 @@
     </div><br>
 {% elif full_member %}
 
-    <script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+    <script defer type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 
     <form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
         {% csrf_token %}

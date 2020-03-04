@@ -8,7 +8,8 @@
 {% block content %}
 <head><title>{% if parent.reply_count %}{{ parent.reply_count }} replies{% else %}No reply yet{% endif %} | Damadam</title></head>
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
 
 <form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
     {% csrf_token %}
@@ -70,7 +71,6 @@
 
     {% if not on_fbs and forloop.counter == 3 %}
 
-        <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
         <div class="mbs" style="text-align:center;background:snow">
         <ins class="adsbygoogle"
              style="display:inline-block;width:320px;height:100px"
@@ -192,5 +192,6 @@
 
 </main><br><br><br>
 {% include "transparent_buttons_js_helper.html" with ident=user_id static_url=STATIC_URL %}
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}
 

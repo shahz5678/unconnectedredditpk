@@ -14,8 +14,8 @@ class PersonalGroupPostForm(forms.Form):
 	"""
 	image = forms.ImageField(required=False, error_messages={'invalid':'Ye photo kharab hai. Koi aur chunein',\
 		'invalid_image': 'Ye photo kharab hai. Koi aur chunein','required':'Photo lagana zaruri hai'})
-	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl','autocomplete': 'off',\
-		'autofocus': 'autofocus','autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
+	reply = forms.CharField(required=False, widget=forms.Textarea(attrs={'cols':30,'class': 'cxl inp','autocomplete': 'off',\
+		'autocorrect':'off','autocapitalize':'off','spellcheck':'false'}))
 	
 
 	def __init__(self,*args,**kwargs):
@@ -119,9 +119,7 @@ class PersonalGroupReplyPostForm(forms.Form):
 		self.fields['rep_reply'].widget.attrs['id'] = 'rep_text_field'
 		# self.fields['rep_reply'].widget.attrs['class'] = 'inp'
 		self.fields['rep_image'].widget.attrs['id'] = 'browse_rep_image_btn'
-		# self.fields['rep_image'].widget.attrs['onchange'] = 'show_rep_image_name(event)'
 		self.fields['rep_image'].widget.attrs['style'] = 'width: 0.1px;height: 0.1px;opacity: 0;overflow: hidden;position: absolute;z-index: -1;'
-		# self.fields['rep_image'].widget.attrs['style'] = 'position: absolute;top: -1000px;opacity: 0;width: 0.1px;height: 0.1px'
 
 	def clean(self):
 		data = self.cleaned_data

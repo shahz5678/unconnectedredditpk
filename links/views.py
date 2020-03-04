@@ -2278,6 +2278,7 @@ def check_if_post_is_viewable(user_id, post_attributes):
 			return privacy_setting, '3'
 
 	##########
+	# TODO: is this patch working?
 	# Is user_id allowed to view this post?
 	elif audience == 'p':
 
@@ -2287,10 +2288,17 @@ def check_if_post_is_viewable(user_id, post_attributes):
 		
 		else:
 			# can fully view the post
-			privacy_setting = 'unlimited'
-			return privacy_setting, '3'
+			if expireat:
+				if expireat < time.time():
+					return privacy_setting, '2'
+				else:
+					return privacy_setting, '3'	
+			else:
+				privacy_setting = 'unlimited'
+				return privacy_setting, '3'
 
 	##########
+
 	elif audience == 'a':
 		
 		is_follower = check_if_follower(user_id,submitter_id,with_db_lookup=True)

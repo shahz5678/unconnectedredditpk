@@ -45,7 +45,8 @@
 		</div>
 	{% endif %}
 
-	<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+	<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
+	<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
 
 	<form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
 	    {% csrf_token %}
@@ -68,7 +69,6 @@
 		{% if not fbs and forloop.counter == 2 %}
 
 			{% if feed_type == 'fresh_photos' %}
-				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 				<aside class="mbl" style="text-align:center;background:#f0f3f4">
 					<ins class="adsbygoogle"
 					     style="display:block"
@@ -81,7 +81,6 @@
 					</script>
 				</aside>
 			{% else %}
-				<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 				<aside class="mbl" style="text-align:center;background:#f0f3f4">
 					<ins class="adsbygoogle"
 					     style="display:block"
@@ -201,4 +200,5 @@
 </main><br>
 {% include "transparent_buttons_js_helper.html" with ident=ident static_url=STATIC_URL %}
 {% include "navbars/bottom_navbar_js_helper.html" with ident=ident %}
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
 {% endblock %}

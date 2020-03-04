@@ -1,0 +1,1 @@
+for(var input_btns=document.getElementsByClassName("inp"),i=0,len=input_btns.length;i<len;i++)input_btns[i].onfocus=(()=>{var t=document.getElementById("bottom_nav");t.classList.remove("show-it"),t.classList.add("hide-it")}),input_btns[i].onblur=(()=>{var t=document.getElementById("bottom_nav");t.classList.remove("hide-it"),t.classList.add("show-it")});

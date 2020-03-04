@@ -202,6 +202,7 @@ def return_to_content(request,origin,obj_id=None,link_id=None,target_uname=None,
 		return redirect('retrieve_direct_response_activity')
 	elif origin == '36':
 		# originated from 'popular mehfil' list 
+		# DEPRECATED
 		return redirect('get_ranked_groups')
 	elif origin == '37':
 		# originated from 'Red Stars' list 

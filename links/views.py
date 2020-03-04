@@ -1194,7 +1194,9 @@ class UserProfileDetailView(FormView):
 			raise Http404("User ID does not compute")
 		if star_id:
 			user_id = self.request.user.id
-			context["verif_follower_count"] = get_verified_follower_count(star_id)# we don't show unverified followers
+			verified_followers, unverified_followers = get_verified_follower_count(star_id, with_unverified=True)
+			context["verif_follower_count"] = verified_followers
+			context["unverif_follower_count"] = unverified_followers
 			context["following_count"] = get_following_count(star_id)
 			context["own_id"] = user_id
 			context["star_id"] = star_id

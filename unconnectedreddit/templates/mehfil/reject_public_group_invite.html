@@ -1,7 +1,7 @@
 {% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Reject public mehfil invite | Damadam</title></head>
+<head><title>Reject mehfil invite | Damadam</title></head>
 <div class="mbs">
 <div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="cp cxl">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
@@ -11,10 +11,7 @@
 <div class="cxl lsp mbl">Is mehfil ke invite ko reject karna hai?</div>
 
 	<form class="mbs mts" method="POST" action="{% url 'left_public_group' %}">
-	{% csrf_token %}
-	<input type="hidden" name="slug" value="{{ unique }}">
-	<input type="hidden" name="pk" value="{{ pk }}">
-	<input type="hidden" name="igrp" value="{{ inside_grp }}">
+	{% csrf_token %}<input type="hidden" name="slug" value="{{ unique }}"><input type="hidden" name="pk" value="{{ pk }}"><input type="hidden" name="igrp" value="{{ inside_grp }}">
 	<button type="submit" name="ldec" class="btn bcr bm mrs mbs pg_ok_res sp" value="1" style="height:26px">Reject</button>
 	<button type="submit" name="ldec" class="cl cgy sp mls" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray" value="0">Cancel</button>
 	</form>

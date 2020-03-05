@@ -608,7 +608,7 @@ def formulate_unverif_count(unverif_count, verif_count):
 		if unverif_count < verif_count:
 			return str(unverif_count)
 		else:
-			remainder = unverif_count % 1000
+			remainder = verif_count % 1000
 			if remainder == 0:
 				return str(verif_count - 1000)+'+'
 			else:
@@ -618,7 +618,7 @@ def formulate_unverif_count(unverif_count, verif_count):
 		if unverif_count < verif_count:
 			return str(unverif_count)
 		else:
-			remainder = unverif_count % 1000
+			remainder = verif_count % 1000
 			if remainder == 0:
 				return str(verif_count - 1000)+'+'
 			else:

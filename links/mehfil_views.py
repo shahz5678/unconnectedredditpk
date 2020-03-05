@@ -62,7 +62,7 @@ retrieve_group_submissions, retrieve_cached_mehfil_replies, group_submission_exi
 temporarily_save_group_credentials, get_temporarily_saved_group_credentials, rate_limit_group_creation, retrieve_group_rules, save_group_rules, \
 create_group_credentials, cache_mehfil_replies, is_group_creation_rate_limited, permanently_delete_group, invalidate_presence, retrieve_group_topic, \
 retrieve_group_meta_data, hide_writers_group_messages, is_group_member_and_rules_signatory, create_group_membership_and_rules_signatory, rescind_offer,\
-insert_rules_signatory, retrieve_group_id, retrieve_group_owner_id, retrieve_group_privacy, retrieve_group_owner_unames_and_uniques_and_topics_in_bulk,\
+insert_rules_signatory, retrieve_group_id, retrieve_group_owner_id, retrieve_group_privacy, retrieve_cached_mehfil_pages, retrieve_user_group_data, \
 save_group_topic_and_rules, invalidate_all_rule_signatories, purge_group_membership, purge_group_invitation, save_group_invite, remove_group_officer,\
 group_member_exists, retrieve_immune_ids, group_officer_targeted, kick_users_from_group, is_group_officer, add_kick_feedback, banned_from_group,\
 get_ban_details, unkick_users_from_group, add_unkick_feedback, retrieve_group_administrative_activity, filter_non_members, filter_non_recents,\
@@ -74,11 +74,11 @@ submit_group_ownership_request, cancel_invite, is_ownership_request_legit, save_
 retrieve_all_member_ids, cache_group_membership_data, retrieve_cached_membership_data, retrieve_group_buying_time_and_price,retrieve_group_uuid, \
 get_num_group_members, show_private_group_invite_instructions, retrieve_group_topic_log, retrieve_biggest_pic_sharer_in_group,retrieve_group_chatter, \
 retrieve_closed_group_remaining_invites, recently_quit_group, can_officer_change_topic, hide_private_group_submission, retrieve_single_group_submission,\
-retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_membership_frozen, retrieve_cached_ranked_groups, cache_ranked_groups, \
-get_ranked_mehfils, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
-retrieve_officer_stats, invalidate_cached_ranked_groups, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites,\
-filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, retrieve_user_group_invites, group_invite_exists,\
-get_group_id, retrieve_user_group_data, retrieve_cached_mehfil_pages, cache_mehfil_pages, invalidate_cached_mehfil_pages
+retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_membership_frozen, invalidate_cached_mehfil_pages, get_group_id, \
+cache_mehfil_pages, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
+retrieve_officer_stats, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites, retrieve_user_group_invites, \
+filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, group_invite_exists
+#invalidate_cached_ranked_groups , cache_ranked_groups, retrieve_group_owner_unames_and_uniques_and_topics_in_bulk, get_ranked_mehfils, retrieve_cached_ranked_groups
 
 
 ################################### Mehfil info #####################################
@@ -2824,7 +2824,7 @@ class ChangeGroupTopicView(FormView):
 					invitee_ids = [tup[0] for tup in invitee_ids_and_invite_times]
 					for invitee_id in invitee_ids:
 						invalidate_cached_mehfil_invites(invitee_id)
-					invalidate_cached_ranked_groups()
+					# invalidate_cached_ranked_groups()
 					#############
 					return redirect("public_group", slug=unique)
 				else:
@@ -4976,53 +4976,54 @@ def public_group_guidance(request):
 
 ########################## Popular mehfil list #########################
 
-
-def get_ranked_groups(request):
-	"""
-	Displays top public mehfils, sorted by 'stickiness' (DAU/BWAU)
-	"""
-	"""
-	('5',12) does not exist in test_list (used for testing purposes)
+# DEPRECATED 
+#
+# def get_ranked_groups(request):
+# 	"""
+# 	Displays top public mehfils, sorted by 'stickiness' (DAU/BWAU)
+# 	"""
+# 	"""
+# 	('5',12) does not exist in test_list (used for testing purposes)
 	
-	test_list = [('12',12),('54',11),('78',54),('11',12),('53',11),('77',54),('13',12),('55',11),('79',54),\
-	('4',12),('56',11),('80',54),('5',12),('50',11),('81',54),('2',12),('44',11),('72',54),('1',12),('45',11)\
-	,('10',54),('34',12),('35',11),('36',54),('39',54),('37',12),('38',11)]
+# 	test_list = [('12',12),('54',11),('78',54),('11',12),('53',11),('77',54),('13',12),('55',11),('79',54),\
+# 	('4',12),('56',11),('80',54),('5',12),('50',11),('81',54),('2',12),('44',11),('72',54),('1',12),('45',11)\
+# 	,('10',54),('34',12),('35',11),('36',54),('39',54),('37',12),('38',11)]
 	
-	group_ids_list = test_list
-	"""
-	user_id = request.user.id
-	banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
-	if banned:
-		# Cannot open group page if banned
-		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
-			'org':'19'})
-	else:
-		###################### Retention activity logging ######################
-		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-			time_now = time.time()
-			act = 'G4' if request.mobile_verified else 'G4.u'
-			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-		########################################################################
-		groups_data = retrieve_cached_ranked_groups()
-		if groups_data:
-			trending_groups = json.loads(groups_data)
-		else:
-			trending_groups = []
-			group_ids_list = get_ranked_mehfils()
-			group_ids_dict = dict(group_ids_list)
-			group_ids = map(itemgetter(0), group_ids_list)
-			groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
-			for group in groups:
-				if group['oun']:
-					group_id = group['gi']
-					trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
-			trending_groups.sort(key=itemgetter(4), reverse=True)
-			cache_ranked_groups(json.dumps(trending_groups))
+# 	group_ids_list = test_list
+# 	"""
+# 	user_id = request.user.id
+# 	banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+# 	if banned:
+# 		# Cannot open group page if banned
+# 		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+# 			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+# 			'org':'19'})
+# 	else:
+# 		###################### Retention activity logging ######################
+# 		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+# 		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+# 			time_now = time.time()
+# 			act = 'G4' if request.mobile_verified else 'G4.u'
+# 			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+# 			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+# 		########################################################################
+# 		groups_data = retrieve_cached_ranked_groups()
+# 		if groups_data:
+# 			trending_groups = json.loads(groups_data)
+# 		else:
+# 			trending_groups = []
+# 			group_ids_list = get_ranked_mehfils()
+# 			group_ids_dict = dict(group_ids_list)
+# 			group_ids = map(itemgetter(0), group_ids_list)
+# 			groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
+# 			for group in groups:
+# 				if group['oun']:
+# 					group_id = group['gi']
+# 					trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
+# 			trending_groups.sort(key=itemgetter(4), reverse=True)
+# 			cache_ranked_groups(json.dumps(trending_groups))
 
-		return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
+# 		return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
 
 
 ########################## Mehfil creation #########################

@@ -13,11 +13,9 @@ from cricket_score import cricket_scr
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
 process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, SHARE_ORIGIN,NUM_TO_DELETE,\
-GIBBERISH_PUNISHMENT_MULTIPLIER#, UPVOTE, DOWNVOTE,
-# from page_controls import PHOTOS_PER_PAGE
+GIBBERISH_PUNISHMENT_MULTIPLIER
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, Cooldown, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
-#from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import retrieve_random_pin, calculate_world_age_discount, log_gibberish_text_writer, get_gibberish_text_writers, \
 set_world_age, queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, get_world_age, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, exact_date, \
@@ -28,10 +26,10 @@ personal_group_hard_deletion, exited_personal_group_hard_deletion, update_person
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_share, logging_sharing_metrics, cache_photo_share_data, \
-retrieve_bulk_unames, save_most_recent_online_users,sanitize_unused_subscriptions,log_1on1_chat, recreate_hell_banned_list#, log_replier_reply_rate
+retrieve_bulk_unames, save_most_recent_online_users,sanitize_unused_subscriptions,log_1on1_chat, recreate_hell_banned_list
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
-log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
-retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group
+log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, remove_inactive_members,\
+retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group#, rank_mehfil_active_users
 from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, retrieve_text_obj_scores,\
 insert_hash, retrieve_all_home_text_obj_names, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, \
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, select_hand_picked_obj_for_trending,retire_abandoned_topics,\
@@ -677,7 +675,8 @@ def cleanse_complainers():
 
 @celery_app1.task(name='tasks.rank_mehfils')
 def rank_mehfils():
-	rank_mehfil_active_users()
+	pass
+	# rank_mehfil_active_users()
 
 
 @celery_app1.task(name='tasks.public_group_ranking_clean_up_task')

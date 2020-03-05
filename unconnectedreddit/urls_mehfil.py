@@ -3,18 +3,18 @@ from django.conf.urls import patterns, include, url
 from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from links.mehfil_views import public_group, public_group_request_denied, view_own_officer_app_history, process_public_group_invite, example_group_rules, \
-kick_out, process_private_group_invite, public_mehfil_oversight_dashboard, public_group_officer_management, accept_open_group_rules, \
+kick_out, process_private_group_invite, public_mehfil_oversight_dashboard, public_group_officer_management, accept_open_group_rules, can_create_group, \
 first_time_public_refresh, remove_officer, group_hide_submission, cancel_open_group_invite, left_private_group, del_private_group, left_public_group, \
 preview_open_group, create_open_group, invite_private, join_public_group, show_kicked_users, quick_accept_open_group_rules, process_officer_application_result, \
 owner_rejoining_public_group, force_rules_onto_members, process_kicking_feedback, unkick_users, display_administrative_activity, first_time_refresh, \
 public_group_invite_help, unaccepted_public_mehfil_invites, direct_message, process_open_group_feedback, show_open_group_feedback, delete_open_group_feedback, \
 processing_group_ownership_transfer, private_mehfil_oversight_dashboard, join_private_group, group_ownership_transfer_tac, priv_group, display_group_info_page, \
 display_detailed_info, display_group_users_list, send_request_to_owner, cancel_ownership_request, private_group_invite_help, unaccepted_private_mehfil_invites, \
-cancel_closed_group_invite, private_group_hide_submission, private_group_request_denied, apply_for_officer, display_officer_application, \
-get_ranked_groups, del_public_group, view_officer_app_help, view_officer_application_form, view_officer_app_history, display_officer_app_detailed_info,\
-group_page, public_group_guidance, group_invites, reject_private_group_invite,reject_public_group_invite, can_create_group, DirectMessageView, GroupTypeView,\
-PublicGroupView, ChangeGroupRulesView, ChangePrivateGroupTopicView, ChangeGroupTopicView, PrivateGroupView, DirectMessageCreateView,\
-ReinvitePrivateView, ClosedGroupCreateView, InviteUsersToGroupView, InviteUsersToPrivateGroupView, GroupTypeView, ReinviteView
+cancel_closed_group_invite, private_group_hide_submission, private_group_request_denied, apply_for_officer, display_officer_application, group_page, \
+del_public_group, view_officer_app_help, view_officer_application_form, view_officer_app_history, display_officer_app_detailed_info, group_invites,\
+public_group_guidance, reject_private_group_invite,reject_public_group_invite, DirectMessageView, GroupTypeView, PublicGroupView, ChangeGroupRulesView, \
+ChangePrivateGroupTopicView, ChangeGroupTopicView, PrivateGroupView, DirectMessageCreateView, ReinvitePrivateView, ClosedGroupCreateView, GroupTypeView,\
+InviteUsersToGroupView, InviteUsersToPrivateGroupView, ReinviteView#, get_ranked_groups 
 from links.views import redirect_to_mehfil_list
 admin.autodiscover()
 
@@ -54,10 +54,9 @@ urlpatterns = patterns('',
 	url(r'^mehfil/joined/list/$', auth(group_page), name='group_page'),
 	url(r'^mehfil/invited/list/$', auth(group_invites), name='group_invites'),
 	################################# Mehfil help #############################################
-	#url(r'^mehfil/help/$', auth(GroupHelpView.as_view()), name='group_help'),
 	url(r'^mehfil/public/guidance/$', auth(public_group_guidance), name='public_group_guidance'),
 	################################# Popular mehfils #############################################
-	url(r'^mehfil/popular-list/$', auth(get_ranked_groups), name='get_ranked_groups'),
+	# url(r'^mehfil/popular-list/$', auth(get_ranked_groups), name='get_ranked_groups'),
 	################################# Mehfil administration #############################################
 	url(r'^mehfil/public/hide/$', auth(group_hide_submission), name="group_hide_submission"),
 	url(r'^mehfil/public/officer/decide/$', auth(process_officer_application_result), name='process_officer_application_result'),

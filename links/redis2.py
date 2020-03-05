@@ -580,6 +580,7 @@ def trim_expired_fanouts(submitter_id=None, time_now=None):
 def formulate_unverif_count(unverif_count, verif_count):
 	"""
 	"""
+	verif_count, unverif_count = int(verif_count), int(unverif_count)
 	if verif_count < 11:
 		# return as it is
 		return str(unverif_count)

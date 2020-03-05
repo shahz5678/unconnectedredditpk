@@ -1,10 +1,10 @@
 {% extends "base/base_mehfil.html" %}
 {% block content %}
-<head><title>Create public mehfil | Damadam</title></head>
+<head><title>Create mehfil | Damadam</title></head>
 <div class="mtl">
 	{% include "mehfil/mehfil_list_navbar.html" with section='new' static_url=STATIC_URL %}
 </div>
-<h1 class="clb cxl" style="text-align:center">{% if owner_rejoining %}Set new topic and rules:{% else %}Create public mehfil:{% endif %}</h1>
+<h1 class="clb cxl" style="text-align:center">{% if owner_rejoining %}Set new topic and rules:{% else %}Create new mehfil:{% endif %}</h1>
 <div class="bx mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white">
 
 {% if data_expired %}
@@ -28,22 +28,21 @@
 {% endif %}
 	
 	<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard sp lsp">
-	{% if form.topic.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.topic.errors.0 }}</div>{% else %}<div class="cl mbs" style="font-weight:bold">Public mehfil ka topic likhein:</div>{% endif %}
+	{% if form.topic.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.topic.errors.0 }}</div>{% else %}<div class="cl mbs" style="font-weight:bold">Mehfil ka topic likhein:</div>{% endif %}
 	<ul style="margin:0;padding-left: 15px;">
-		<li>Topic mein saaf alfaz mein mehfil ka maqsad explain karein</li>
-		<li>Achey topics woh hain jinko parh ke members forun samajh jaien mehfil kis barey mein hai</li>
-		<li>Topic {{ topic_char_limit }} characters tak hona chahiye</li>
+		<li>Topic aisa ho ke members forun samajh jaien mehfil kis barey mein hai</li>
+		<li>Topic {{ topic_char_limit }} characters tak ho sakta hai</li>
 	</ul>
 	<div class="mts">{{ form.topic }}</div>
 	</div>
 
 	<div style="padding:8px;background-color:ivory;text-align:left" class="bizcard mtl sp lsp">
-	{% if form.rules.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.rules.errors.0 }}</div>{% else %}<div class="mbs cl" style="font-weight:bold">Public mehfil ke rules likhein:</div>{% endif %}
+	{% if form.rules.errors %}<div class="mbs cr cl" style="font-weight:bold">{{ form.rules.errors.0 }}</div>{% else %}<div class="mbs cl" style="font-weight:bold">Mehfil ke rules likhein:</div>{% endif %}
 	<ul style="margin:0;padding-left: 15px;">
-		<li>Tamam rules likhein jinki wajah se mehfil se kick ho sakti hai</li>
+		<li>Rules mein explain karein members kya kar saktey hain, kya nahi</li>
 		<li>Har rule new line mein likhein</li> 
-		<li>Rules ke sath number nahi dalein (e.g. 1, 2, 3). Agr ap har rule new line mein likhein ge tou hamara system khud bakhud rules ke sath numbers laga de ga</li>
-		<li>Rules {{ rules_char_limit }} characters tak honay chahiyen</li>
+		<li>Rules ke sath number nahi dalein (e.g. 1, 2, 3). Hamara system khud bakhud rules ke sath numbers laga de ga</li>
+		<li>Rules {{ rules_char_limit }} characters tak ho saktey hain</li>
 	</ul>
 	<div class="mtl">{{ form.rules }}</div>
 	</div>

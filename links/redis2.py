@@ -636,7 +636,10 @@ def get_verified_follower_count(user_id, with_unverified=False):
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(NO_FOLLOWERS+user_id):
 		# set for verified and unverified both
-		return 0
+		if with_unverified:
+			return 0, 0
+		else:
+			return 0
 	else:
 		if with_unverified:
 			key_names = [NUM_VERIFIED_FOLLOWERS+user_id, NUM_UNVERIFIED_FOLLOWERS+user_id]

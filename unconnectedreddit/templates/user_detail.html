@@ -100,7 +100,7 @@
 	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;margin-right:auto;margin-left:auto;padding-bottom:7px">
 
 			{% load human_time %}
-			<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Public mehfil(s) owned:</div>
+			<div class="cl sp lsp mbs" style="padding:10px 0;font-weight:bold;text-align:center;color:darkgray;border-bottom:2px solid whitesmoke;background-color:#fefefa">Mehfil(s) owned:</div>
 			{% for group_id, uuid, topic, ownership_time in star_owner_mehfils %}
 				<div class="mbs" style="text-align:center">
 				<a href="{% url 'public_group' slug=uuid %}">

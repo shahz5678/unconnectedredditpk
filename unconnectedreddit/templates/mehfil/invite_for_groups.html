@@ -1,7 +1,7 @@
 {% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Invite users to public mehfil | Damadam</title></head>
+<head><title>Invite users to mehfil | Damadam</title></head>
 <div class="mtl">
 	{% include "mehfil/open_group_invite_navbar.html" with static_url=STATIC_URL section='invite' guid=unique %}
 </div>
@@ -17,7 +17,7 @@
 	{% if show_instr %}
 		<div style="padding:8px;background-color:ivory" class="bizcard mbs lsp">
 			{% if instr_type == 'owner' %}
-				<div class="cxl lsp">Public mehfil owner {{ max_invites }} users invite kar sakta hai</div>
+				<div class="cxl lsp">Mehfil owner {{ max_invites }} users invite kar sakta hai</div>
 				<hr size=1 COLOR="#E9EBEE">
 				<div class="cm sp cr" style="text-align:left">Note:</div>
 				<div class="cs sp" style="text-align:left">&#x25CF;&nbsp;Agar ap ne 1 user invite kiya tou apkey <b>{{ one_less }}</b> invites reh jaien ge</div>

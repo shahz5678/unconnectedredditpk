@@ -198,18 +198,18 @@
 
       <b class="cm sp lsp" style="color:darkgray">Followers:</b>
       <a href="{% url 'show_follower_list' %}#section0" class="cs">
-      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ verif_follower_count }}</button><span class='cm sp cgy mts'>&nbsp;<span style="color:lightgray">-</span>&nbsp;counting verified followers only{% if user.id == 1 %}&nbsp;({{ unverif_follower_count }} unverified followers){% endif %}</span>
+      <button class="btn cl sp" style="background-color:#1edea8;padding:2px 6px;height:22px">{{ verif_follower_count }} verified followers</button><div class="sp lsp cl cgy" style="margin-left:94px">{{ unverif_follower_count }} unverified followers</div>
       </a>
       <hr size=1 COLOR="#f4f4f4">
       <b class="cm sp lsp" style="color:darkgray">Following:</b>
       <a href="{% url 'show_following_list' %}#section0" class="cs">
-      <button class="btn" style="background-color:#1edea8;padding:2px 5px;height:22px">{{ following_count }}</button>
+      <button class="btn" style="background-color:#1edea8;padding:2px 6px;height:22px">{{ following_count }}</button>
       </a>
       <hr size=1 COLOR="#f4f4f4">
 
 		<b class="cm sp lsp" style="color:darkgray">Blocked users:</b>
 		<a href="{% url 'banned_users_list' %}#section0" class="cs">
-		<button class="btn" style="background-color:tomato;padding:2px 5px;height:22px">{{ blocked }}</button>
+		<button class="btn" style="background-color:tomato;padding:2px 6px;height:22px">{{ blocked }}</button>
 		</a>
 	</div>
 
@@ -236,7 +236,8 @@
 		  {% endif %}
 
 	      <b class="cm sp lsp" style="color:darkgray" >Followers:</b>
-	      <span class="cl sp clb">{{ verif_follower_count }}{% if user.id == 1 %}&nbsp;({{ unverif_follower_count }} unverified followers){% endif %}</span>
+	      <span class="cl sp clb">{{ verif_follower_count }} verified followers</span>
+	      <div class="cl sp clb" style="margin-left:94px">{{ unverif_follower_count }} unverified followers</div>
 	     
 		</div>
 

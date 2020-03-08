@@ -23,7 +23,8 @@
     <meta name="author" content="mhb">
     <meta name="google" content="notranslate" />
 
-{% google_analytics %}
+    {% google_analytics %}
+    {% include "ga_user_analytics.html" with my_var=user.id %}
 
 </head>
 <body>

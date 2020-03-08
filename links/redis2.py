@@ -582,8 +582,11 @@ def formulate_unverif_count(unverif_count, verif_count):
 	"""
 	verif_count, unverif_count = int(verif_count), int(unverif_count)
 	if verif_count < 11:
-		# return as it is
-		return str(unverif_count)
+		if unverif_count <= verif_count:
+			# return as it is
+			return str(unverif_count)
+		else:
+			return str(verif_count)+'+'
 	
 	elif verif_count < 1001:
 		if unverif_count < verif_count:

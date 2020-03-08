@@ -4483,21 +4483,22 @@ class InviteUsersToPrivateGroupView(ListView):
 			if group_owner_id:
 				own_id = str(self.request.user.id)
 				if group_member_exists(group_id, own_id):
-					user_ids = get_most_recent_online_users()
-					# user_ids = [18,114,113,128,164,132,123,133,150,160]
-					if user_ids:
-						users_purified = [pk for pk in user_ids if pk not in condemned]# remove hell-banned users
-						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified, group_uuid, inviter_id=own_id, is_public=False)
-						username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
-						if username_data:
-							return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
+					return [(-5,-5,-5,-5)]
+					# user_ids = get_most_recent_online_users()
+					# # user_ids = [18,114,113,128,164,132,123,133,150,160]
+					# if user_ids:
+					# 	users_purified = [pk for pk in user_ids if pk not in condemned]# remove hell-banned users
+					# 	non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified, group_uuid, inviter_id=own_id, is_public=False)
+					# 	username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
+					# 	if username_data:
+					# 		return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
 
-						else:
-							# no one online
-							return [(-1,-1,-1,-1)]
-					else:
-						# no one online
-						return [(-1,-1,-1,-1)]
+					# 	else:
+					# 		# no one online
+					# 		return [(-1,-1,-1,-1)]
+					# else:
+					# 	# no one online
+					# 	return [(-1,-1,-1,-1)]
 				else:
 					# not allowed to invite users (e.g. isn't a member of the mehfil)
 					return [(-2,-2,-2,-2)]
@@ -4527,6 +4528,9 @@ class InviteUsersToPrivateGroupView(ListView):
 				elif marker == -4:
 					# user is banned
 					context["banned"] = True
+				elif marker == -5:
+					# invites are off
+					context["invites_off"] = True
 			else:
 				# can invite users
 				own_id = self.request.user.id

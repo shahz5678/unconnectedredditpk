@@ -63,9 +63,21 @@
 	<form method="POST" class="mbs" style="border-top:1px dashed lightgray;padding-top:10px" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
 	</div>
 {% else %}
-<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Cannot invite to mehfil</h1>
-<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">	
-	{% if no_online %}
+<h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Cannot invite to mehfil!</h1>
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;background-color:ivory;text-align:center">	
+	{% if invites_off %}
+	<div class="cxl clb lsp" style="padding:10px;border-bottom:1px solid gainsboro">Private mehfil invites off ho gaye hain</div>
+	<form style="background:white;padding:10px;" method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	<div style="background:white;padding:4px 10px;">
+		<ul style="text-align:left;margin:0" class="lsp cxl">
+			<li>Mustaqbil mein private mehfils ka option khatam ho jaye ga</li>
+			<li>Private mehfils se mazeed invites nahi send ho saktey</li>
+			<li>Ab new private mehfils bhi nahi ban saktien</li>
+			<li>Public mehfils istemal karein, woh jaari rehain gi</li>
+		</ul>
+	</div>
+	<form style="background:white;padding:10px;" method="POST" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
+	{% elif no_online %}
 	<div class="cm cgy lsp sp">- invite karney ke liye koi nahi hai -</div>
 	<form method="POST" class="mbs mts" action="{% url 'priv_group' %}">{% csrf_token %}<input type="hidden" name="private_uuid" value="{{ unique }}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></form>
 	{% elif cant_invite %}

@@ -20,8 +20,8 @@
 	<meta property="og:description" content="Damadam is a Pakistani content sharing and social networking website. Join now!">
 	<meta property="fb:app_id" content="1758220174446684" />
 	<meta name="author" content="mhb">
+	<meta name="google" content="notranslate" />
 	
-	{% google_analytics %}
 	<title>List of Topics | Damadam</title>
 
 	{% if page.has_previous %}
@@ -30,6 +30,8 @@
 	{% if page.has_next %}
 		<link rel="next" href="?page={{ page.next_page_number }}" />
 	{% endif %}
+
+	{% google_analytics %}
 	{% include "ga_user_analytics.html" with my_var=user.id %}
 
 </head>

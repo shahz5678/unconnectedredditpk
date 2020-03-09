@@ -3,11 +3,13 @@ from django.contrib.auth.decorators import login_required as auth
 from django.contrib import admin
 from links.verification_views import verify_user_artificially, pin_verification, number_verification_help,\
 wait_before_verifying, account_kit_verification_commencement, account_kit_verification_processing, account_kit_verification_result,\
-unverify_user, verify_user_mobile_unpaid #verify_user_mobile_paid
+unverify_user, verify_user_mobile_unpaid, fireb_verification #verify_user_mobile_paid
 from links.unauth_views import render_set_new_password
 admin.autodiscover()
 
 urlpatterns = patterns('',
+	###################### test section #############################
+	url(r'^fireb_verification/$', auth(fireb_verification), name='fireb_verification'),
 	############################################# Artificial Verification and Unverfication Urls #####################
 	url(r'^verification/mobile/artificial/$', auth(verify_user_artificially), name='verify_user_artificially'),
 	url(r'^verification/mobile/unverified/$', auth(unverify_user), name='unverify_user'),

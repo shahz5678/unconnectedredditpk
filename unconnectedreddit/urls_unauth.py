@@ -1,7 +1,7 @@
 from django.conf.urls import patterns, url
 from django.contrib import admin
 from links.unauth_views import unauth_home_new, create_nick_new, create_password_new, create_account, login, forgot_password, log_google_in, \
-set_forgetters_password, create_dummy_user, logout_then_login, prelim_mobile_verification#verify_forgetters_pin, send_SMS_to_forgetter, unauth_home_new_ur
+set_forgetters_password, create_dummy_user, logout_then_login, prelim_mobile_verification,set_forgetters_password_fb#verify_forgetters_pin, send_SMS_to_forgetter, unauth_home_new_ur
 from django.contrib.auth.decorators import login_required as auth    
 from links.views import first_time_choice, new_user_gateway, turn_off_newbie#, export_tut_ab_results
 #from links.number_verification import verify_forgetter_number
@@ -39,6 +39,7 @@ urlpatterns = patterns('',
 	# url(r'^forgot-password/verify-pin/$',verify_forgetters_pin, name="verify_forgetters_pin"),
 
 	url(r'^forgot-password/set-new-pass/$',set_forgetters_password, name="set_forgetters_password"),
+	url(r'^forgot-password/set-new-pass/fb/$',set_forgetters_password_fb, name="set_forgetters_password_fb"),
 	url(r'^forgot-password/confirm-number/$',prelim_mobile_verification, name="prelim_mobile_verification"),
 	#url(r'^forgot-password/confirm-number/$',verify_forgetter_number, name="verify_forgetter_number"),	
 	# url(r'^forgot-password/sms/(?P<lang>[\w.@+-]+)/$',send_SMS_to_forgetter, name="send_SMS_to_forgetter"),

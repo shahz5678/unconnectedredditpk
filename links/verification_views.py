@@ -2,7 +2,8 @@ import time, requests, uuid
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
-from django.http import Http404
+from django.http import HttpResponse, HttpResponseRedirect, Http404
+from django.core.urlresolvers import reverse_lazy, reverse
 from account_kit_config_manager import account_kit_handshake
 from verification_forms import AddVerifiedUserForm, rate_limit_artificial_verification, MobileVerificationForm, PinVerifyForm, UnverifyUserIDForm
 from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited, twiliolog_pin_sms_sent, twiliolog_user_verified,\
@@ -16,6 +17,59 @@ from utilities import convert_to_epoch
 from redis4 import retrieve_uname
 from redis8 import retrieve_var
 from models import UserProfile
+import ujson as json
+
+
+from redis3 import save_consumer_details, someone_elses_data
+
+@csrf_protect
+def fireb_verification(request,*args,**kwargs):
+	"""
+	Handles firebase-led verification
+	"""
+	is_ajax = request.is_ajax()
+	if is_ajax:
+		if request.method == 'POST':
+			user_id = request.user.id
+			uid = request.POST.get('uid')
+			provider = request.POST.get('Provider')
+			puid = request.POST.get('ProviderUID')
+			name = request.POST.get('Name')
+			email = request.POST.get('email')
+			purl = request.POST.get('PhotoURL')
+			num = request.POST.get('phoneNumber')
+			
+			# num is 'null' when a non-mob-num verification method is used
+			num_already_used = someone_elses_number(num,user_id) if num != 'null' else False
+			
+			if num_already_used:
+				#redirect to a page saying that user number is already being used
+				request.session["account_kit_verification_failed"] = '1'
+				request.session["account_kit_verification_failure_reason"] = '1'#number already used up done
+				request.session.modified = True
+				return HttpResponse(json.dumps({'success':False,'message':reverse("account_kit_verification_failed",kwargs={})}),content_type='application/json',)
+			else:
+				already_verified = someone_elses_data(uid,user_id)
+				if already_verified:
+					request.session["account_kit_verification_failed"] = '1'
+					request.session["account_kit_verification_failure_reason"] = '1'#number already used up done
+					request.session.modified = True
+					return HttpResponse(json.dumps({'success':False,'message':reverse("account_kit_verification_failed",kwargs={})}),content_type='application/json',)
+				else:
+					user_verification_data = {'uid':uid,'provider':provider,'puid':puid,'name':name,'email':email,'purl':purl,'num':num,'verif_time':time.time()}
+					save_consumer_details(user_verification_data,user_id)
+					change_verification_status(user_id,'verified')
+					request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+					request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
+					request.session["account_kit_verification_succeeded"] = '1'
+					request.session.modified = True
+					return HttpResponse(json.dumps({'success':False,'message':reverse("account_kit_verification_successful",kwargs={})}),content_type='application/json')
+				# return HttpResponse(json.dumps({'success':False,'message':reverse("photo",kwargs={'list_type':'best-list'})}),content_type='application/json')
+		else:
+			return redirect('verify_user_mobile_unpaid')
+
+	else:
+		return redirect('for_me')
 
 ############################## Number verification administration  #################################
 
@@ -38,7 +92,7 @@ def verify_user_artificially(request):
 					valid_user_id = processed_form.cleaned_data.get("user_id")
 					random_string = str(uuid.uuid4())
 					account_kid_id = 'artificial_verification'		
-					mobile_data = {'national_number':random_string,'number':random_string,'country_prefix':'92'}
+					mobile_data = {'national_number':'3435050100','number':'+923435050100','country_prefix':'92'}
 					with_points = request.POST.get("wth_pts",None)
 					save_consumer_number(account_kid_id,mobile_data,valid_user_id)
 					change_verification_status(valid_user_id,'verified')
@@ -127,7 +181,7 @@ def account_kit_verification_commencement(request):
 
 def account_kit_verification_processing(request):
 	"""
-	Processes data returned from account kit when a user goes through the profile verification flow
+	UNUSED: Processes data returned from account kit when a user goes through the profile verification flow
 
 	Acts as an endpoint for account kit when it return user credentials
 	"""
@@ -283,7 +337,7 @@ def verify_user_mobile_unpaid(request):
 	"""
 	if is_mobile_verified(request.user.id): 
 		# not allowed to proceed
-		return redirect("missing_page")
+		return redirect("for_me")
 	else:
 		################### Retention activity logging ###################
 		user_id = request.user.id

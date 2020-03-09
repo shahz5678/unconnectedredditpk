@@ -1,25 +1,141 @@
 {% extends "base/base_verification.html" %}
 {% block content %}
-<head><title>User verification | Damadam.pk</title></head>
-<style>body{background: #fefbfb}</style>
-{% include "fb_analytics.html" %}
+<head><title>User verification | Damadam</title></head>
+<style>body{background: #f0f3f4}</style>
 
-<div class="mbl mtl" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center"> 
-  <div class="cxl mbl">Enter your phone number:</div>
-  <div class="cs sp lsp mbl">Hum apko aik pin code bhejein ge</div>       
+{% include "firebase.html" %}
+
+<script type="text/javascript">
+function get_cookie(name) {
+  if (!name) { return null; }
+  var value = "; " + document.cookie;
+  var parts = value.split("; " + name + "=");
+  if (parts.length >= 2) return parts.pop().split(";").shift();
+}
+
+  // Initialize the FirebaseUI Widget using Firebase.
+
+  var ui = new firebaseui.auth.AuthUI(firebase.auth());
+
+  ui.start('#firebaseui-auth-container', {
+
+    signInFlow: 'popup',
+
+    //signInSuccessUrl: 'False',
+    
+
+    signInOptions : [
+      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+      firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+      {
+        provider: firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+        recaptchaParameters: {
+          type: 'image', // 'audio'
+          size: 'invisible', // 'invisible' or 'compact'
+          badge: 'bottomleft' //' bottomright' or 'inline' applies to invisible.
+        },
+        defaultCountry: 'PK', // Set default country to the United Kingdom (+44).
+        // For prefilling the national number, set defaultNationNumber.
+        // This will only be observed if only phone Auth provider is used since
+        // for multiple providers, the NASCAR screen will always render first
+        // with a 'sign in with phone number' button.
+        defaultNationalNumber: '03001111222',
+        // You can also pass the full phone number string instead of the
+        // 'defaultCountry' and 'defaultNationalNumber'. However, in this case,
+        // the first country ID that matches the country code will be used to
+        // populate the country selector. So for countries that share the same
+        // country code, the selected country may not be the expected one.
+        // In that case, pass the 'defaultCountry' instead to ensure the exact
+        // country is selected. The 'defaultCountry' and 'defaultNationaNumber'
+        // will always have higher priority than 'loginHint' which will be ignored
+        // in their favor. In this case, the default country will be 'PK' even
+        // though 'loginHint' specified the country code as '+1'.
+        loginHint: '+9234567891011'
+      }
 
 
-    <form method="POST" action="{% url 'account_kit_verification_commencement' %}" class="mtl cgy">
+    ],
 
-      {% csrf_token %}
-      {% if form.phonenumber.errors %}<b class="cr sp cs lsp mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
-      {{ form.phonenumber }}<br>
-      <div class="cs mt clb">oper mobile number likhien (example: 03451234567)</div>
-      <button class="btn bct mtl mbs bl cs sp pg_ok_res" style="height:35px;width:100%;padding:10px;">SUBMIT</button>
-    </form>
 
-    <hr size=1 COLOR="#e6e6e6">
-    <div class="cs lsp" style="text-align:left;padding:5px 5px;"><span class="cgy"><b>Tip:</b> Sirf numbers likhien, dashes ya spaces ki zarurat nahi</span></div>
+    // the area where i assume something is going wrong...
+    callbacks: {
+      signInSuccess: () => false
+    }
 
+  });
+
+  firebase.auth().setPersistence(firebase.auth.Auth.Persistence.NONE)
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user) {
+      // User logged in already or has just logged in.
+      var form_data = new FormData();
+      form_data.append("uid",user.uid);
+      if (user != null) {
+        user.providerData.forEach(function (profile) {
+          
+          form_data.append("Provider",profile.providerId)
+          form_data.append("ProviderUID",profile.uid)
+          form_data.append("Name",profile.displayName)
+          form_data.append("email",profile.email)
+          form_data.append("PhotoURL",profile.photoURL)
+      
+        });
+      }
+      form_data.append("phoneNumber",user.phoneNumber)
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/fireb_verification/');
+      xhr.timeout = 120000; // time in milliseconds, i.e. 55 seconds
+      xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
+      xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      
+
+      xhr.onload = function () {
+
+        if (this.status == 200) {
+          var resp = JSON.parse(this.responseText);//supported, because xhr.responseType is text, which is coverted to JSON upon receipt
+          window.location.replace(resp.message);//supported
+          //personal_group_preloader('destroy');
+        } else {
+          // e.g. if status == 404 or 403 or 500 (this is an error at the application level, not network level)
+          window.location.replace('/missing/');
+          // personal_group_preloader('destroy');
+        }
+      };
+      xhr.onerror = function () {
+        // onerror fires when there is a failure on the network level
+        window.location.replace('/online_kon/');// e.g. fail_url = '/1-on-1/' 
+        // personal_group_preloader('destroy');
+      };
+      xhr.ontimeout = function (e) {
+        // XMLHttpRequest timed out
+        window.location.replace('/online_kon/');
+        // personal_group_preloader('destroy');
+      };
+      xhr.onprogress = function () {
+        // personal_group_preloader('finishing');
+      };
+
+
+      xhr.send(form_data);
+          // form_data.append("uid",user.uid);
+          // form_data.append("uid",user.uid);
+
+    } else {
+
+      console.log('no user exists'); 
+      // User not logged in or has just logged out.
+    }
+    });
+
+  
+
+
+</script>
+
+<h1 class="clb cxl lsp" style="text-align:center">Select verification option:</h1>
+
+<div class="mbl" style="text-align:center;">
+  <div class="bx" style="border:3px solid #ececec;border-radius:12px;display:inline-block;overflow:hidden;background:white;min-height:188px;min-width:258px;" id="firebaseui-auth-container"></div>
 </div>
+<br>
 {% endblock %}

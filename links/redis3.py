@@ -796,22 +796,67 @@ def retrieve_mobile_unverified_in_bulk(user_ids):
 
 
 # return True if user has any number on file
-def is_mobile_verified(user_id):
+def is_mobile_verified(user_id,return_type=False):
 	"""
 	return True if user has any number on file
 	"""
-	return redis.Redis(connection_pool=POOL).exists("um:"+str(user_id))
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = str(user_id)
+	exists_flag = False
+	type_of_verification = 0
+	
+	if my_server.exists("um:"+user_id):
+		exists_flag = True
+		type_of_verification = 1
+
+	elif my_server.exists(USER_VERIFICATION_DATA+user_id):
+		exists_flag = True
+		type_of_verification = 2
+	
+	if return_type:
+		return exists_flag, type_of_verification
+	else:
+		return exists_flag
+
 
 def someone_elses_number(national_number, user_id):
+	"""
+	Checks if user verified via the 'old' method
+
+	Legacy from the account kit era
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	rival_id = my_server.zscore("verified_numbers", national_number)
+	rival_id = my_server.zscore("verified_numbers", national_number[3:])
+
+	if rival_id is None or int(rival_id) == user_id:
+		# either own number, or available number, either way NOT someone else's number
+		if rival_id is not None:
+			if int(rival_id) == int(user_id):
+				#set flag to delete user from old verification system and add in new system
+				my_server.setex(REVERIFY+str(user_id),1,TEN_MINS)
+			return False
+		else:
+			return False	
+	else:
+		# someone else's number
+		return True
+
+#############################################################################################
+#############################################################################################
+
+VERIFIED_FIREBASE_IDS = 'vfi'
+REVERIFY = 'rvy:'
+USER_VERIFICATION_DATA = 'uvd:'
+
+def someone_elses_data(provider_id, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	rival_id = my_server.zscore(VERIFIED_FIREBASE_IDS, provider_id)
 	if rival_id is None or int(rival_id) == user_id:
 		# either own number, or available number, either way NOT someone else's number
 		return False
 	else:
 		# someone else's number
-		return True
-
+		return True		
 
 
 def get_user_verified_number(user_id,country_code=False):
@@ -848,6 +893,7 @@ def unverify_user_id(user_id):
 			pipeline1.zrem('ecomm_verified_users', user_id)
 			pipeline1.zrem('verified_numbers',*numbers_to_remove)
 			pipeline1.delete("um:"+user_id)
+			pipeline1.delete(REVERIFY+user_id)
 			pipeline1.execute()
 	return numbers_to_remove
 
@@ -869,6 +915,29 @@ def save_consumer_number(account_kit_id, mobile_data, user_id):
 		if my_server.llen(user_mobile) > 2:
 			removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
 			my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
+
+
+def save_consumer_details(user_data, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	if user_data:
+		user_id = str(user_id)
+		# reverifying when user was already verified via the 'old' method
+		if my_server.exists(REVERIFY+user_id):
+			unverify_user_id(user_id)
+		pipeline1 = my_server.pipeline()
+		pipeline1.hmset(USER_VERIFICATION_DATA+user_id, user_data)
+		pipeline1.zadd(VERIFIED_FIREBASE_IDS,user_data['uid'], user_id) # to ensure that once used, a mobile number can't be tied to another ID
+		pipeline1.zadd('ecomm_verified_users',user_id, user_data['verif_time']) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
+		pipeline1.execute()
+
+
+def get_provider(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hget(USER_VERIFICATION_DATA+str(user_id),'provider')
+
+def get_fbase_id(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hget(USER_VERIFICATION_DATA+str(user_id),'uid')	
 
 # retrieves approved ad's item name, to be sent in an SMS to the ad creator
 def get_item_name(ad_id):

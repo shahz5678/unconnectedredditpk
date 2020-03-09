@@ -159,7 +159,7 @@ def prelim_mobile_verification(request, lang=None, *args, **kwargs):
 				if fg_ttl:
 					#ratelimied - user recently used forgot password to retrieve their password - don't let them do it again
 					#######################################
-					return HttpResponse(json.dumps({'success':True,'message':reverse("set_forgetters_password_fb",kwargs={})}),content_type='application/json',)
+					return HttpResponse(json.dumps({'success':True,'message':reverse("set_forgetters_password_fb",kwargs={'fg_ttl':fg_ttl})}),content_type='application/json',)
 					########################################
 				else:
 					#success, redirecting to set new password page 

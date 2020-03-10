@@ -795,68 +795,93 @@ def retrieve_mobile_unverified_in_bulk(user_ids):
 	return unverified_ids
 
 
-# return True if user has any number on file
-def is_mobile_verified(user_id,return_type=False):
-	"""
-	return True if user has any number on file
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	user_id = str(user_id)
-	exists_flag = False
-	type_of_verification = 0
-	
-	if my_server.exists("um:"+user_id):
-		exists_flag = True
-		type_of_verification = 1
+USER_VERIFICATION_DATA = 'uvd:'
 
-	elif my_server.exists(USER_VERIFICATION_DATA+user_id):
-		exists_flag = True
-		type_of_verification = 2
-	
-	if return_type:
-		return exists_flag, type_of_verification
+
+def is_mobile_verified(user_id, with_legacy_verification=False):
+	"""
+	Return True if user is verified
+	"""
+	# 'is_legacy_verification' required as well (useful in 'Forgot password')
+	if with_legacy_verification:
+		user_id = str(user_id)
+		is_legacy_verification = False
+		my_server = redis.Redis(connection_pool=POOL)
+
+		# Firebase verification
+		if my_server.exists(USER_VERIFICATION_DATA+user_id):
+			return True, is_legacy_verification
+		
+		# Account Kit verification (legacy)
+		elif my_server.exists("um:"+user_id):
+			is_legacy_verification = True#
+			return True, is_legacy_verification
+		
+		# No verification
+		else:
+			return False, is_legacy_verification
+
+	#########################################################
+	# 'is_legacy_verification' flag is not required
 	else:
-		return exists_flag
+		if redis.Redis(connection_pool=POOL).zscore('ecomm_verified_users',user_id):
+			# user is verified			
+			return True
+		else:
+			# user is not verified
+			return False
 
+
+# REVERIFY = 'rvy:'
 
 def someone_elses_number(national_number, user_id):
 	"""
-	Checks if user verified via the 'old' method
-
-	Legacy from the account kit era
+	Checks legacy data for evidence of a mobile number having been already used (i.e. via the account kit method)
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	rival_id = my_server.zscore("verified_numbers", national_number[3:])
 
-	if rival_id is None or int(rival_id) == user_id:
-		# either own number, or available number, either way NOT someone else's number
-		if rival_id is not None:
-			if int(rival_id) == int(user_id):
-				#set flag to delete user from old verification system and add in new system
-				my_server.setex(REVERIFY+str(user_id),1,TEN_MINS)
-			return False
-		else:
-			return False	
+	if rival_id is None:
+		# number is unused
+		return False
+
+	elif int(user_id) == int(rival_id):
+		# number used by own self
+		# my_server.setex(REVERIFY+str(user_id),1,TEN_MINS)#set flag to delete user from old verification system and add in new system
+		return False
+
 	else:
 		# someone else's number
 		return True
 
-#############################################################################################
-#############################################################################################
+####################################################################################################################
+########################################## Firebase Verification ###################################################
 
 VERIFIED_FIREBASE_IDS = 'vfi'
-REVERIFY = 'rvy:'
-USER_VERIFICATION_DATA = 'uvd:'
 
-def someone_elses_data(provider_id, user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	rival_id = my_server.zscore(VERIFIED_FIREBASE_IDS, provider_id)
-	if rival_id is None or int(rival_id) == user_id:
-		# either own number, or available number, either way NOT someone else's number
-		return False
+def someone_elses_data(firebase_id, user_id, mob_num):
+	"""
+	Ensuring the firebase_id has not been used prior
+
+	Note: mob_num's format is '+923004503130'
+	"""
+	# Google/Facebook were used for verification
+	if mob_num[:3] == '+92':
+		# a '+92' mobile number was provided. It could possibly be a legacy number. Check accordingly
+		num_already_used = someone_elses_number(national_number=mob_num, user_id=user_id)
+		if num_already_used:
+			return '1'# the provided mobile number was used up via account kit verification
+	###########################
+	rival_id = redis.Redis(connection_pool=POOL).zscore(VERIFIED_FIREBASE_IDS, firebase_id)
+	if rival_id is None:
+		# this firebase ID has never been used before - so this isn't someone else's either
+		return '-1' 
+	elif int(rival_id) == user_id:
+		# own data
+		return '0'# the used is already verified
 	else:
-		# someone else's number
-		return True		
+		# someone else's data
+		return '1'# the provided firebase_id was already used (same as num_already_used case)
 
 
 def get_user_verified_number(user_id,country_code=False):
@@ -893,7 +918,7 @@ def unverify_user_id(user_id):
 			pipeline1.zrem('ecomm_verified_users', user_id)
 			pipeline1.zrem('verified_numbers',*numbers_to_remove)
 			pipeline1.delete("um:"+user_id)
-			pipeline1.delete(REVERIFY+user_id)
+			# pipeline1.delete(REVERIFY+user_id)
 			pipeline1.execute()
 	return numbers_to_remove
 
@@ -921,9 +946,8 @@ def save_consumer_details(user_data, user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	if user_data:
 		user_id = str(user_id)
-		# reverifying when user was already verified via the 'old' method
-		if my_server.exists(REVERIFY+user_id):
-			unverify_user_id(user_id)
+		# if my_server.exists(REVERIFY+user_id):
+		# 	unverify_user_id(user_id)
 		pipeline1 = my_server.pipeline()
 		pipeline1.hmset(USER_VERIFICATION_DATA+user_id, user_data)
 		pipeline1.zadd(VERIFIED_FIREBASE_IDS,user_data['uid'], user_id) # to ensure that once used, a mobile number can't be tied to another ID
@@ -935,9 +959,10 @@ def get_provider(user_id):
 	my_server = redis.Redis(connection_pool=POOL)
 	return my_server.hget(USER_VERIFICATION_DATA+str(user_id),'provider')
 
-def get_fbase_id(user_id):
-	my_server = redis.Redis(connection_pool=POOL)
-	return my_server.hget(USER_VERIFICATION_DATA+str(user_id),'uid')	
+def get_firebase_id(user_id):
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).hget(USER_VERIFICATION_DATA+str(user_id),'uid')	
 
 # retrieves approved ad's item name, to be sent in an SMS to the ad creator
 def get_item_name(ad_id):
@@ -2116,6 +2141,7 @@ def set_forgot_password_rate_limit(user_id):
 	Once password has been retrieved via "forgot password", rate-limit user from immediately trying again
 	"""
 	redis.Redis(connection_pool=POOL).setex("prrl:"+str(user_id),'1',TWO_HOURS)
+
 
 def is_forgot_password_rate_limited(user_id):
 	"""

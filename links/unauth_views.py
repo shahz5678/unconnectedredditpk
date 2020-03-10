@@ -201,7 +201,7 @@ def set_forgetters_password(request, *args, **kwargs):
 					form.save()
 					user = authenticate(username=user.username,password=password)
 					quick_login(request,user)
-					request.user.session_set.exclude(session_key=request.session.session_key).delete() # logging the user out of everywhere else
+					update_session_auth_hash(request, user)# logging the user out of everywhere else
 					request.session.pop('forgetters_userid',None)
 					set_forgot_password_rate_limit(user_id)
 					return render(request,'change_password/new_password.html',{'new_pass':password})

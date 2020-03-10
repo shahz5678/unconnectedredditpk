@@ -249,7 +249,12 @@ def main_navbar(request):
 		return redirect("login")
 	elif decision == '8':
 		# redirect to user's profile
-		return redirect("user_profile",request.user.username)
+		username = request.user.username
+		if username:
+			return redirect("user_profile",request.user.username)
+		else:
+			# in case the user was logged out in the special circumstance of having changed their password
+			return redirect("login")
 	elif decision == '9':
 		# redirect to top stars
 		return redirect("top_photo")

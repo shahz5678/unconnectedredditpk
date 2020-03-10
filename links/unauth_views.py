@@ -148,8 +148,7 @@ def prelim_account_verification(request, *args, **kwargs):
 					save_consumer_details(user_verification_data,user_id)
 					###################################################################################
 					
-					else:
-						return HttpResponse(json.dumps({'success':True,'message':reverse("set_forgetters_password",kwargs={})}),content_type='application/json')
+					return HttpResponse(json.dumps({'success':True,'message':reverse("set_forgetters_password",kwargs={})}),content_type='application/json')
 			
 				else:
 					#Number provided does not belong to the user

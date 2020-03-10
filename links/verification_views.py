@@ -12,6 +12,7 @@ retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id, log_ak
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points, log_user_activity
 from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME, SEGMENT_STARTING_USER_ID
+from redis3 import save_consumer_details, someone_elses_data
 from redis2 import change_verification_status
 from utilities import convert_to_epoch
 from redis4 import retrieve_uname
@@ -20,56 +21,65 @@ from models import UserProfile
 import ujson as json
 
 
-from redis3 import save_consumer_details, someone_elses_data
+############################## Firebase Verification  #################################
 
 @csrf_protect
-def fireb_verification(request,*args,**kwargs):
+def firebase_verification(request,*args,**kwargs):
 	"""
 	Handles firebase-led verification
+
+	JS is required for this to work, otherwise we redirect the user to "for_me"
 	"""
 	is_ajax = request.is_ajax()
 	if is_ajax:
 		if request.method == 'POST':
 			user_id = request.user.id
-			uid = request.POST.get('uid')
-			provider = request.POST.get('Provider')
-			puid = request.POST.get('ProviderUID')
-			name = request.POST.get('Name')
-			email = request.POST.get('email')
-			purl = request.POST.get('PhotoURL')
-			num = request.POST.get('phoneNumber')
-			
-			# num is 'null' when a non-mob-num verification method is used
-			num_already_used = someone_elses_number(num,user_id) if num != 'null' else False
-			
-			if num_already_used:
-				#redirect to a page saying that user number is already being used
-				request.session["account_kit_verification_failed"] = '1'
-				request.session["account_kit_verification_failure_reason"] = '1'#number already used up done
+			uid = request.POST.get('uid')# firebase ID
+			provider = request.POST.get('Provider')# Google, FB or mobile device
+			puid = request.POST.get('ProviderUID')# Any ID specific to the provider above (e.g. FB ID)
+			name = request.POST.get('Name')# Name (if available)
+			email = request.POST.get('email')# Email (if available)
+			purl = request.POST.get('PhotoURL')# Image (if available)
+			num = request.POST.get('phoneNumber')# Phone number (if available)
+
+			preexisting_verification = someone_elses_data(firebase_id=uid,user_id=user_id, mob_num=num)
+			if preexisting_verification in ('0','1'):
+				request.session["firebase_verification_failed"] = '1'
+				request.session["firebase_verification_failure_reason"] = preexisting_verification#number already used up
 				request.session.modified = True
-				return HttpResponse(json.dumps({'success':False,'message':reverse("account_kit_verification_failed",kwargs={})}),content_type='application/json',)
+				return HttpResponse(json.dumps({'success':False,'message':reverse("firebase_verification_failed",kwargs={})}),content_type='application/json',)
+
 			else:
-				already_verified = someone_elses_data(uid,user_id)
-				if already_verified:
-					request.session["account_kit_verification_failed"] = '1'
-					request.session["account_kit_verification_failure_reason"] = '1'#number already used up done
-					request.session.modified = True
-					return HttpResponse(json.dumps({'success':False,'message':reverse("account_kit_verification_failed",kwargs={})}),content_type='application/json',)
-				else:
-					user_verification_data = {'uid':uid,'provider':provider,'puid':puid,'name':name,'email':email,'purl':purl,'num':num,'verif_time':time.time()}
-					save_consumer_details(user_verification_data,user_id)
-					change_verification_status(user_id,'verified')
-					request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
-					request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-					request.session["account_kit_verification_succeeded"] = '1'
-					request.session.modified = True
-					return HttpResponse(json.dumps({'success':False,'message':reverse("account_kit_verification_successful",kwargs={})}),content_type='application/json')
-				# return HttpResponse(json.dumps({'success':False,'message':reverse("photo",kwargs={'list_type':'best-list'})}),content_type='application/json')
+				user_verification_data = {'uid':uid,'provider':provider,'puid':puid,'name':name,'email':email,'purl':purl,'num':num,'verif_time':time.time()}
+				save_consumer_details(user_verification_data,user_id)
+				change_verification_status(user_id,'verified')# updating 'fan_verification_status' in postgresql table UserFan
+				request.session["firebase_verification_succeeded"] = '1'
+				return HttpResponse(json.dumps({'success':True,'message':reverse("firebase_verification_successful",kwargs={})}),content_type='application/json')
 		else:
 			return redirect('verify_user_mobile_unpaid')
-
+	##############################
 	else:
 		return redirect('for_me')
+
+
+def firebase_verification_result(request):
+	"""
+	Shows failure or success state to user after processing their firebase credentials
+	"""
+	verification_successful = request.session.pop("firebase_verification_succeeded",'')
+	if verification_successful:
+		request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+		request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
+		user_id = request.user.id
+		return render(request,"verification/reward_earned.html",{'user_var':retrieve_var(user_id=user_id)})
+	else:
+		verification_failed = request.session.pop("firebase_verification_failed",'')
+		if verification_failed:
+			reason = request.session.pop('firebase_verification_failure_reason','')
+			return render(request,"verification/verification_failed.html",{'reason':reason})
+		else:
+			raise Http404("This is an invalid result")
+
 
 ############################## Number verification administration  #################################
 
@@ -92,7 +102,7 @@ def verify_user_artificially(request):
 					valid_user_id = processed_form.cleaned_data.get("user_id")
 					random_string = str(uuid.uuid4())
 					account_kid_id = 'artificial_verification'		
-					mobile_data = {'national_number':'3435050100','number':'+923435050100','country_prefix':'92'}
+					mobile_data = {'national_number':random_string,'number':random_string,'country_prefix':'92'}
 					with_points = request.POST.get("wth_pts",None)
 					save_consumer_number(account_kid_id,mobile_data,valid_user_id)
 					change_verification_status(valid_user_id,'verified')
@@ -332,7 +342,7 @@ def wait_before_verifying(request):
 @csrf_protect
 def verify_user_mobile_unpaid(request):
 	"""
-	This renders a template where user puts her number that she wants verified
+	This renders a template where user selects verification method (FB, Goog, Mobile)
 
 	"""
 	if is_mobile_verified(request.user.id): 
@@ -346,7 +356,16 @@ def verify_user_mobile_unpaid(request):
 			activity_dict = {'m':'GET','act':'Z.u','t':time_now}# defines what activity just took place
 			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
-		return render(request,'verification/user_mobile_verification.html',{'form':MobileVerificationForm()})	
+		template_name = 'verification/user_mobile_verification_fbs.html' if request.META.get('HTTP_X_IORG_FBS',False) else \
+		'verification/user_mobile_verification.html'
+		return render(request,template_name,{'form':MobileVerificationForm()})	
+
+
+def unable_to_verify_on_fbs(request):	
+		"""	
+		Renders the verfication template alongwith the error that user can't verify on FBS	
+		"""	
+		return render(request,'verification/user_mobile_verification_fbs.html',{'err':True})
 
 
 # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

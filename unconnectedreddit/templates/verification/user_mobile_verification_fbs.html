@@ -4,9 +4,10 @@
 
 <div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
-	{% if err %}<div class="cxl lsp mbl cr">Verify karwaney ke liye <a href="https://bit.ly/37re4dg" class="cb" style="border-bottom:1px dotted #1947d1">data&nbsp;mode</a> istemal karein</div>{% else %}<div class="cxl lsp mbl">Kisi aik option ke zariye apna account verify karwain:</div>{% endif %}
+	{% if is_fbs %}<div class="cxl lsp mbl cr">Verify karwaney ke liye <a href="https://bit.ly/37re4dg" class="cb" style="border-bottom:1px dotted #1947d1">data&nbsp;mode</a> istemal karein</div>{% elif is_opera %}<div class="cxl lsp mbl cr">Opera Mini ye nahi chala sakta. Koi aur browser use karein, maslan <a href="https://play.google.com/store/apps/details?id=com.android.chrome&hl=en" class="cb" style="border-bottom:1px dotted #4b05a8" target="_blank" rel="nofollow">Chrome</a> or <a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&hl=en" class="cb" style="border-bottom:1px dotted #4b05a8" target="_blank" rel="nofollow">Firefox</a></div>{% else %}<div class="cxl lsp mbl">Kisi aik option ke zariye apna account verify karwain:</div>{% endif %}
 
 		<form method="GET" action="{% url 'unable_to_verify_on_fbs' %}">
+		{% if request.is_opera_mini %}<input type="hidden" name="is_opera" value="1">{% endif %}
 		<div>
 			<button style="width: 260px;height:40px;background:#ffffff;color:#7a7a7a;border:1px solid #cbcbcb" class="mbl">
 				<div class="fx fxjsfs fxaicn">				

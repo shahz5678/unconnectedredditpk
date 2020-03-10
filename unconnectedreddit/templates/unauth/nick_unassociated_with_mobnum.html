@@ -1,21 +1,19 @@
-{% extends "base/base_signup.html" %}
+{% extends "base/base_verification.html" %}
 {% block content %}
 <head><title>Unable to retrieve password | Damadam.pk</title></head>
-<div style="margin-top: 5%;">
-{% include "unauth/title.html" with lang='' translate='0' %}
 
-<div class="clb bizcard mbl" style="margin-right: auto; margin-left:auto;max-width:400px;width:93%;background-color:#2de0ae;text-align:center">
+<div class="clb mbl" style="margin-right: auto; margin-left:auto;max-width:500px;background-color:white;text-align:center">
 
-<div class="lsp cxl" style="color:#f9ef6c;text-shadow:1px 1px #009940;padding:10px;border-bottom:1px dashed #c0f4d5;font-weight:bold;background-color:#26d5ab;border-top-left-radius:6px;border-top-right-radius:6px">{{ nick }} ka password nahi mil sakta</div>
-
-<div style="padding:0 10px 10px 10px">
-	<div class="mtl mbl">
-    	<b style="color:white;text-shadow:1px 1px #009940;" class="lsp cxl">Password sirf aisi ID ka milta hai jiska mobile number verified ho</b>
+	<div class="cxl lsp clb bx" style="border-top:1px solid gainsboro;padding:10px;max-width:600px;min-width:320px;margin-left:auto;margin-right:auto;border-bottom:1px solid gainsboro">
+	  Forgot Password
 	</div>
-	<a href="{% url 'login' %}"><button class="mt mbl bs cl sp pg_ok_res" style="color:white;background-color:#ffd332;border:solid 1px #ffc800;text-shadow:1px 1px #9f4d10;font-weight:bold;height:30px" type="submit">OK</button></a>
-</div>
+
+	<div class="cxl mts mbs lsp cr" style="padding:0 8px"><b>Sorry! '{{ nick }}' unverified hai, is liye password retrieve nahi ho sakta</b></div>
+
+	<a href="{% url 'forgot_password' %}"><button class="btn bcb bl pg_ok_res mtl mbl cl sp" style="height:30px" type="submit">BACK</button></a>
 
 </div>
+
 {% include "unauth/old_account_button.html" with lang='' %}
-</div>
+<br><br><br>
 {% endblock %}

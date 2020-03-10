@@ -83,8 +83,8 @@ function get_cookie(name) {
       }
       form_data.append("phoneNumber",user.phoneNumber)
       var xhr = new XMLHttpRequest();
-      xhr.open('POST', '/fireb_verification/');
-      xhr.timeout = 120000; // time in milliseconds, i.e. 55 seconds
+      xhr.open('POST', '/verification/mobile/via-firebase/');
+      xhr.timeout = 180000; // time in milliseconds, i.e. 180 seconds
       xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
       xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
       
@@ -132,10 +132,12 @@ function get_cookie(name) {
 
 </script>
 
-<h1 class="clb cxl lsp" style="text-align:center">Select verification option:</h1>
-
 <div class="mbl" style="text-align:center;">
-  <div class="bx" style="border:3px solid #ececec;border-radius:12px;display:inline-block;overflow:hidden;background:white;min-height:188px;min-width:258px;" id="firebaseui-auth-container"></div>
+  <div class="bx" style="display:inline-block;overflow:hidden;background:white;max-width:600px;min-width:320px;min-height:182px;padding-bottom:20px" id="firebaseui-auth-container">
+    <div class="cxl lsp clb bx" style="border-top:1px solid gainsboro;padding:10px 10px 0 10px;max-width:600px;min-width:320px;margin-left:auto;margin-right:auto">
+      Kisi aik option ke zariye apna account verify karwain:
+    </div>
+  </div>
 </div>
 <br>
 {% endblock %}

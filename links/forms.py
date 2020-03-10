@@ -183,7 +183,7 @@ def retrieve_validation_error_string(err_type, lang=None, payload=None):
 		if lang == 'ur':
 			return 'پاس ورڈ غلط لکھا ہے ۔ اگر پاس ورڈ یاد نہیں تو سب سے نیچے "پاس ورڈ بھول گۓ" کو دبایں'
 		else:
-			return 'Password sahi nahi. Agr password yad nahi tou sab se neechay "Password yad nahi" dabain'
+			return 'Password sahi nahi. Agr password yad nahi tou sab se neechay "Forgot Password" dabain'
 	elif err_type == 'wrong_pin':
 		if lang == 'ur':
 			return 'کوڈ غلط ہے'

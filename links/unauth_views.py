@@ -73,7 +73,7 @@ def logout_then_login(request):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
-def forgot_password(request, lang=None, *args, **kwargs):
+def forgot_password(request, *args, **kwargs):
 	"""
 	This initiates the 'forgot password' flow
 
@@ -83,7 +83,7 @@ def forgot_password(request, lang=None, *args, **kwargs):
 		# already logged in
 		return redirect('for_me')
 	elif request.method == "POST":
-		form = ForgettersNicknameForm(data=request.POST, lang=lang)
+		form = ForgettersNicknameForm(data=request.POST, lang=None)
 		if form.is_valid():
 			username, user_id = form.cleaned_data.get("username")
 			verified_status, is_legacy_verification = is_mobile_verified(user_id, with_legacy_verification=True)
@@ -92,21 +92,16 @@ def forgot_password(request, lang=None, *args, **kwargs):
 				request.session["forgetters_userid"] = user_id
 				request.session.modified = True
 				if is_legacy_verification:
-					template_name = "unauth/verify_forgetters_account_via_firebase.html"
-					return render(request,template_name,{'provider_type':'phone'})
+					return render(request,"unauth/verify_forgetters_account_via_firebase.html",{'provider_type':'phone'})
 				else:
 					provider = get_provider(user_id)# what kind of provider was used (FB, Goog, Mobile)
-					template_name = "unauth/verify_forgetters_account_via_firebase.html"
-					return render(request,template_name,{'provider_type':provider})						
+					return render(request,"unauth/verify_forgetters_account_via_firebase.html",{'provider_type':provider})						
 			else:
-				template_name = "unauth/nick_unassociated_with_mobnum_ur.html" if lang == 'ur' else "unauth/nick_unassociated_with_mobnum.html"
-				return render(request,template_name,{'nick':username})
+				return render(request,"unauth/nick_unassociated_with_mobnum.html",{'nick':username})
 		else:
-			template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
-			return render(request,template_name,{'form':form})
+			return render(request,"unauth/forgot_password.html",{'form':form})
 	else:
-		template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
-		return render(request,template_name,{'form':ForgettersNicknameForm()})
+		return render(request,"unauth/forgot_password.html",{'form':ForgettersNicknameForm()})
 
 
 
@@ -175,10 +170,7 @@ def prelim_account_verification(request, *args, **kwargs):
 				request.session["account_kit_verification_failure_reason"] = '3'#someone elses number, trying to dupe forgot password
 				return HttpResponse(json.dumps({'success':True,'message':reverse("firebase_forgot_pass_verification_failed",kwargs={})}),content_type='application/json')
 		else:
-			# pass
-			# template_name = "unauth/verify_forgetters_account_via_firebase.html"
-			# provider = get_provider(user_id)
-			# return render(request,template_name,{'provider_type':provider})
+			# TODO: show a prompt that non-JS environments don't support this functionality
 			return redirect("forgot_password")
 	else:
 		# not a POST request
@@ -188,7 +180,7 @@ def prelim_account_verification(request, *args, **kwargs):
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @sensitive_post_parameters()
 @csrf_protect
-def set_forgetters_password(request, lang=None, *args, **kwargs):
+def set_forgetters_password(request, *args, **kwargs):
 	"""
 	This enables a verified user (who's forgotten their password) to simply create a new one
 	"""
@@ -199,13 +191,12 @@ def set_forgetters_password(request, lang=None, *args, **kwargs):
 		user_id = request.session.get('forgetters_userid',None)
 		if user_id:
 			user = User.objects.get(id=user_id)
-			form = ResetForgettersPasswordForm(data=request.POST, user=user, lang=lang)
+			form = ResetForgettersPasswordForm(data=request.POST, user=user, lang=None)
 			if form.is_valid():
 				fg_ttl = is_forgot_password_rate_limited(user_id)
 				if fg_ttl:
 					# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again'
-					template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
-					return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
+					return render(request,"unauth/forgot_password.html",{'form':ForgettersNicknameForm(),'fg_rate_limit':fg_ttl})
 				else:
 					password = form.cleaned_data['password']
 					form.save()
@@ -216,12 +207,10 @@ def set_forgetters_password(request, lang=None, *args, **kwargs):
 					set_forgot_password_rate_limit(user_id)
 					return render(request,'change_password/new_password.html',{'new_pass':password})
 			else:
-				template_name = "unauth/set_new_password_ur.html" if lang == 'ur' else "unauth/set_new_password.html"
 				fg_ttl = is_forgot_password_rate_limited(user_id)
-				return render(request,template_name,{'form':form,'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
+				return render(request,"unauth/set_new_password.html",{'form':form,'fg_rate_limit':fg_ttl})
 		else:
-			template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
-			return render(request,template_name,{'form':ForgettersNicknameForm(),"did_not_work":True})
+			return render(request,"unauth/forgot_password.html",{'form':ForgettersNicknameForm(),"did_not_work":True})
 	else:
 		# it's a GET request
 		user_id = request.session.get('forgetters_userid',None)
@@ -229,11 +218,9 @@ def set_forgetters_password(request, lang=None, *args, **kwargs):
 			fg_ttl = is_forgot_password_rate_limited(user_id)
 			if fg_ttl:
 				# user 'recently' successfully used forgot password to retrieve their password - don't let them do it again'
-				template_name = "unauth/forgot_password_ur.html" if lang == 'ur' else "unauth/forgot_password.html"
-				return render(request,template_name,{'form':ForgettersNicknameForm(),'fg_rate_limit':time.time()-fg_ttl if lang == 'ur' else fg_ttl})
+				return render(request,"unauth/forgot_password.html",{'form':ForgettersNicknameForm(),'fg_rate_limit':fg_ttl})
 			else:
-				template_name = "unauth/set_new_password_ur.html" if lang == 'ur' else "unauth/set_new_password.html"
-				return render(request,template_name,{'form':ResetForgettersPasswordForm()})
+				return render(request,"unauth/set_new_password.html",{'form':ResetForgettersPasswordForm()})
 		else:
 			# the user probably directly landed on this page - redirect them
 			return redirect("login")

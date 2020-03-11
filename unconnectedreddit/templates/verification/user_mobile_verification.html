@@ -59,7 +59,12 @@ function get_cookie(name) {
 
     // the area where i assume something is going wrong...
     callbacks: {
-      signInSuccess: () => false
+      signInSuccess: () => false,
+           uiShown: function() {
+
+        document.getElementById('loader').style.display = 'none';
+
+     }
     }
 
   });
@@ -103,12 +108,12 @@ function get_cookie(name) {
       };
       xhr.onerror = function () {
         // onerror fires when there is a failure on the network level
-        window.location.replace('/online_kon/');// e.g. fail_url = '/1-on-1/' 
+        window.location.replace('/missing/');// e.g. fail_url = '/1-on-1/' 
         // personal_group_preloader('destroy');
       };
       xhr.ontimeout = function (e) {
         // XMLHttpRequest timed out
-        window.location.replace('/online_kon/');
+        window.location.replace('/missing/');
         // personal_group_preloader('destroy');
       };
       xhr.onprogress = function () {
@@ -137,6 +142,9 @@ function get_cookie(name) {
     <div class="cxl lsp clb bx" style="border-top:1px solid gainsboro;padding:10px 10px 0 10px;max-width:600px;min-width:320px;margin-left:auto;margin-right:auto">
       Kisi aik option ke zariye apna account verify karwain:
     </div>
+
+    <div id="loader" style="padding-top:30px;color:#00bfa5" class="cxl lsp">Loading ...</div>
+
   </div>
 </div>
 <br>

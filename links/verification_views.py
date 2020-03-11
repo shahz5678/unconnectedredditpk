@@ -356,16 +356,17 @@ def verify_user_mobile_unpaid(request):
 			activity_dict = {'m':'GET','act':'Z.u','t':time_now}# defines what activity just took place
 			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
-		template_name = 'verification/user_mobile_verification_fbs.html' if request.META.get('HTTP_X_IORG_FBS',False) else \
-		'verification/user_mobile_verification.html'
+		template_name = 'verification/user_mobile_verification_fbs.html' if (request.is_opera_mini or request.META.get('HTTP_X_IORG_FBS',False)) \
+		else 'verification/user_mobile_verification.html'
 		return render(request,template_name,{'form':MobileVerificationForm()})	
 
 
 def unable_to_verify_on_fbs(request):	
 		"""	
-		Renders the verfication template alongwith the error that user can't verify on FBS	
+		Renders the verfication template alongwith the error that user can't verify on FBS (or via opera mini)
 		"""	
-		return render(request,'verification/user_mobile_verification_fbs.html',{'err':True})
+		return render(request,'verification/user_mobile_verification_fbs.html',{'is_fbs':request.META.get('HTTP_X_IORG_FBS',False),\
+			'is_opera':request.GET.get('is_opera',None)})
 
 
 # @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

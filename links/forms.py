@@ -747,7 +747,7 @@ class ReauthForm(forms.Form):
 		super(ReauthForm, self).__init__(*args,**kwargs)
 		self.fields['password'].error_messages = {'required':retrieve_validation_error_string('pass_empty'),'invalid':retrieve_validation_error_string('generic')}
 		self.fields['password'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color:#1cb841;'
+		'background-color:whitesmoke;width:1000px;border: 1px solid #8cc1f8;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #808080;'
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
@@ -773,7 +773,7 @@ class ResetPasswordForm(forms.Form):
 		super(ResetPasswordForm, self).__init__(*args,**kwargs)
 		self.fields['password'].error_messages = {'required':retrieve_validation_error_string('pass_empty'),'invalid':retrieve_validation_error_string('generic')}
 		self.fields['password'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color:#1cb841;'
+		'background-color:whitesmoke;width:1000px;border: 1px solid #8cc1f8;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #808080;'
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'

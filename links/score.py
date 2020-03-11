@@ -587,7 +587,9 @@ Z12 - landed on 1st page of 'content reporting'
 Z12.u - landed on 1st page of 'content reporting' (while unverified). This never displays - instead user is redirected to a 'verify-now' prompt
 
 Z - verified successfully
-Z.u - visited verification page where one inputs their mobile number (i.e. verification_button.html)
+Z.u - visited verification page, JS user
+Z.o.u - visited verification page, opera mini user (but non-fbs)
+Z.f.u - visited verification page, freebasics user
 ---------------------
 J1 - reported content
 J - blocking another user successfully (pvp)

@@ -404,7 +404,7 @@ class ContactView(FormView):
 
 class AboutView(FormView):
 	form_class = AboutForm
-	template_name = "x32_details.html"
+	template_name = "about.html"
 
 	def get_context_data(self, **kwargs):
 		context = super(AboutView, self).get_context_data(**kwargs)
@@ -2118,6 +2118,7 @@ def upload_public_photo(request,*args,**kwargs):
 					context['num_fans']= followers_exist(own_id)
 					set_photo_upload_key(own_id, secret_key)
 					return render(request,"upload_public_photo.html",context)
+
 
 ##################################################################
 

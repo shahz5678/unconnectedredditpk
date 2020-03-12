@@ -889,17 +889,17 @@ def best_home_page(request):
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = newbie_flag
-		if newbie_flag in ('1','2','3','5','6','7'):
-			if newbie_flag == '5':
-				context["newbie_tutorial_page"] = 'tutorial5b.html'
-			elif newbie_flag == '6':
-				context["newbie_tutorial_page"] = 'tutorial6b.html'
-			elif newbie_flag == '7':
-				context["newbie_tutorial_page"] = 'tutorial7c.html'
-			else:
-				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
-		else:
-			context["newbie_tutorial_page"] = 'newbie_rules.html'
+		# if newbie_flag in ('1','2','3','5','6','7'):
+		# 	if newbie_flag == '5':
+		# 		context["newbie_tutorial_page"] = 'tutorial5b.html'
+		# 	elif newbie_flag == '6':
+		# 		context["newbie_tutorial_page"] = 'tutorial6b.html'
+		# 	elif newbie_flag == '7':
+		# 		context["newbie_tutorial_page"] = 'tutorial7c.html'
+		# 	else:
+		context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
+		# else:
+		# 	context["newbie_tutorial_page"] = 'newbie_rules.html'
 
 	return render(request, 'text_page.html', context)
 

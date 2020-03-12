@@ -207,7 +207,8 @@ def export_retention_activity_occurrence_log(request):
 					1 if actions[265] in set_of_user_actions else 0,1 if actions[266] in set_of_user_actions else 0,\
 					1 if actions[267] in set_of_user_actions else 0,1 if actions[268] in set_of_user_actions else 0,\
 					1 if actions[269] in set_of_user_actions else 0,1 if actions[270] in set_of_user_actions else 0,\
-					1 if actions[271] in set_of_user_actions else 0,1 if actions[272] in set_of_user_actions else 0]
+					1 if actions[271] in set_of_user_actions else 0,1 if actions[272] in set_of_user_actions else 0,\
+					1 if actions[273] in set_of_user_actions else 0,1 if actions[274] in set_of_user_actions else 0]
 					total = [sum(acts)]
 					to_write = credentials+acts+total
 					wtr.writerows([to_write])

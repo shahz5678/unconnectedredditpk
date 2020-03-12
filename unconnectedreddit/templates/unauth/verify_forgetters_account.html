@@ -2,7 +2,7 @@
 {% block content %}
 <head><title>User verification | Damadam.pk</title></head>
 <style>body{background: #fefbfb}</style>
-{% include "fb_analytics.html" %}
+
 
 <div class="lsp cm" style="color:white;padding:10px;border-bottom:1px #c0f4d5;font-weight:bold;background-color:#26d5ab;text-align:center">Ab apna verified mobile number likhein</div>
 
@@ -10,12 +10,12 @@
 	<div class="cxs sp mbl">Apko 6 digits ka pin code <b>SMS</b> ya <b>WhatsApp</b> ke zariye bheja jai ga</div>				
 
 
-		<form method="POST" action="{% url 'prelim_mobile_verification' %}" class="mtl cgy">
+		<form method="POST" action="{% url 'prelim_account_verification' %}" class="mtl cgy">
 
 			{% csrf_token %}
 			{% if form.phonenumber.errors %}<b class="cr sp cxs mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}
 			{{ form.phonenumber }}<br>
-			<div class="cxs mt clb">oper mobile number likhien (example: 03451234567)</div>
+			<div class="cxs mt clb">uper mobile number likhien (example: 03451234567)</div>
 			<button class="btn bct mtl mbs bl cs sp pg_ok_res" style="height:35px;width:100%;padding:10px;">OK</button>
 		</form>
 

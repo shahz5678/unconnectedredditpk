@@ -349,15 +349,22 @@ def verify_user_mobile_unpaid(request):
 		# not allowed to proceed
 		return redirect("for_me")
 	else:
+		if request.META.get('HTTP_X_IORG_FBS',False):
+			template_name = 'verification/user_mobile_verification_fbs.html'
+			action = 'Z.f.u'
+		elif request.is_opera_mini:
+			template_name = 'verification/user_mobile_verification_fbs.html'
+			action = 'Z.o.u'
+		else:
+			template_name = 'verification/user_mobile_verification.html'
+			action = 'Z.u'
 		################### Retention activity logging ###################
 		user_id = request.user.id
 		if user_id > SEGMENT_STARTING_USER_ID:
 			time_now = time.time()
-			activity_dict = {'m':'GET','act':'Z.u','t':time_now}# defines what activity just took place
+			activity_dict = {'m':'GET','act':action,'t':time_now}# defines what activity just took place
 			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		##################################################################
-		template_name = 'verification/user_mobile_verification_fbs.html' if (request.is_opera_mini or request.META.get('HTTP_X_IORG_FBS',False)) \
-		else 'verification/user_mobile_verification.html'
 		return render(request,template_name,{'form':MobileVerificationForm()})	
 
 

@@ -1031,6 +1031,16 @@ def new_user_gateway(request,lang=None,*args,**kwargs):
 	request.session["newbie_flag"] = '3'# defaulting all users to 'variation 3' (i.e. 'content' specific tutorial)
 	request.session["newbie_lang"] = lang if lang else 'eng'
 	request.session.modified = True
+	############################################
+	############################################
+	user_id = request.user.id
+	if user_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		request.session['rd'] = '1'
+		activity_dict = {'m':'GET','act':'V3','t':time_now}# defines what activity just took place
+		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var3')
+	############################################
+	############################################
 	return redirect("photo",list_type='best-list')
 	# return redirect("first_time_choice", lang=lang)
 
@@ -2108,6 +2118,7 @@ def upload_public_photo(request,*args,**kwargs):
 					context['num_fans']= followers_exist(own_id)
 					set_photo_upload_key(own_id, secret_key)
 					return render(request,"upload_public_photo.html",context)
+
 
 ##################################################################
 

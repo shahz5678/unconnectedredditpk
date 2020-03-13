@@ -10,6 +10,39 @@
 
 		<div class="cxl" style="padding:0 8px;margin-bottom:0"><b><bdo dir="rtl">خوش آمدید!</bdo></b></div>
 	
+		{% if state == 'with_buttons' %}
+
+		<div style="padding:0 8px 20px 8px;background: #fffff0;background: -moz-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: -webkit-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);border-bottom:1px solid gainsboro">
+
+			<div class="mbs mt fx fxaicn" style="justify-content: flex-end">
+				<div class="cl" style="text-align:right"><bdo dir="rtl">دمادم پے لوگ دلچسپ پوسٹ لگاتے ہیں</bdo></div>
+				<div style="padding:0px 16px 0 8px"><svg width="30px" height="30px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+			</div>
+
+			<div class="mbs fx fxaicn" style="justify-content: flex-end">
+				<div class="cl" style="text-align:right"><bdo dir="rtl">بہتریں پوسٹوں کو <bdo dir="ltr">'trending'</bdo> میں آنے کا موقع ملتا ہے</bdo></div>
+				<div style="padding:0px 16px 0 8px"><svg width="30px" height="30px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+			</div>
+
+			<div class="fx fxaicn" style="justify-content: flex-end">
+				<div class="cl" style="text-align:right"><bdo dir="rtl"><bdo dir="ltr">'Trending'</bdo> پوسٹس دیکھنے کے لیے یہ بٹن دبایں:</bdo></div>
+				<div style="padding:0px 16px 0 8px"><svg width="30px" height="30px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+			</div>
+
+			<div class="mtl" style="margin-left:auto;margin-right:auto">
+				<a href="{% url 'photo' 'best-list' %}#error">
+				<button style="background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);border-radius:8px;border:none;width:200px;height:60px" class="mt pg_ok_res">
+					<div class="fx fxjscn fxaicn">
+						<img src="{{ STATIC_URL }}img/share_photo.svg" class="mrl mt" width="28" height="28" style="vertical-align:middle">
+						<div style="font-size:10.2px;color:#fff;font-weight:bold;" class="mll mts lsp sp">TRENDING<BR>POSTS</div>
+					</div>
+				</button></a>
+			</div>
+
+		</div>
+
+		{% else %}
+
 		<div style="padding:0 8px 20px 8px;background: #fffff0;background: -moz-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: -webkit-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);border-bottom:1px solid gainsboro">
 
 			<div class="mbs mt fx fxaicn" style="justify-content: flex-end">
@@ -28,6 +61,8 @@
 			</div>
 
 		</div>
+
+		{% endif %}
 
 		<div style="background:white;padding:6px 8px">
 			<span class="cgy"><bdo dir="rtl"><bdo dir="ltr">'Chatting'</bdo> یا <bdo dir="ltr">'comment'</bdo> کرنے کے لیے اپنا اکاؤنٹ <bdo dir="ltr">'verify'</bdo> کروايں</bdo></span>
@@ -56,24 +91,59 @@
 
 		<div class="cxl lsp" style="padding:0 8px 8px 8px;margin-bottom:0"><b>Welcome!</b></div>
 	
-		<div style="padding:0 8px 20px 8px;background: #fffff0;background: -moz-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: -webkit-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);border-bottom:1px solid gainsboro">
+		{% if state == 'with_buttons' %}
 
-			<div class="mt fx fxjsfs fxaicn">
-				<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
-				<div class="cl lsp" style="text-align:left">Damadam pe users dilchusp posts lgatay hain</div>
+			<div style="padding:0 8px 20px 8px;background: #fffff0;background: -moz-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: -webkit-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);border-bottom:1px solid gainsboro">
+
+				<div class="mt fx fxjsfs fxaicn">
+					<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+					<div class="cl lsp" style="text-align:left">Damadam pe users dilchusp posts lgatay hain</div>
+				</div>
+
+				<div class="mtl fx fxjsfs fxaicn">
+					<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+					<div class="cl lsp" style="text-align:left">Behtreen posts ko 'trending' mai aney ka moqa milta hai</div>
+				</div>
+
+				<div class="mtl fx fxjsfs fxaicn">
+					<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+					<div class="cl lsp" style="text-align:left">'Trending' posts dekhney ke liye ye button dabain:</div>
+				</div>
+
+				<div class="mtl" style="margin-left:auto;margin-right:auto">
+					<a href="{% url 'photo' 'best-list' %}#error">
+					<button style="background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);border-radius:8px;border:none;width:200px;height:60px" class="mt pg_ok_res">
+						<div class="fx fxjscn fxaicn">
+							<img src="{{ STATIC_URL }}img/share_photo.svg" class="mrl mt" width="28" height="28" style="vertical-align:middle">
+							<div style="font-size:10.2px;color:#fff;font-weight:bold;" class="mll mts lsp sp">TRENDING<BR>POSTS</div>
+						</div>
+					</button></a>
+				</div>
+
 			</div>
 
-			<div class="mtl fx fxjsfs fxaicn">
-				<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
-				<div class="cl lsp" style="text-align:left">Behtreen posts ko 'trending' mai aney ka moqa milta hai</div>
+		{% else %}
+
+			<div style="padding:0 8px 20px 8px;background: #fffff0;background: -moz-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: -webkit-linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,240,1) 100%);border-bottom:1px solid gainsboro">
+
+				<div class="mt fx fxjsfs fxaicn">
+					<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+					<div class="cl lsp" style="text-align:left">Damadam pe users dilchusp posts lgatay hain</div>
+				</div>
+
+				<div class="mtl fx fxjsfs fxaicn">
+					<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+					<div class="cl lsp" style="text-align:left">Behtreen posts ko 'trending' mai aney ka moqa milta hai</div>
+				</div>
+
+				<div class="mtl fx fxjsfs fxaicn">
+					<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
+					<div class="cl lsp" style="text-align:left">Posts pasand aney pe users ko 'follow' zarur karein</div>
+				</div>
+
 			</div>
 
-			<div class="mtl fx fxjsfs fxaicn">
-				<div style="padding:0px 16px 0 8px"><svg width="24px" height="24px" fill="#a4e7f4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/fbs/top_navbar_unverified_sprites.svg#star"></use></svg></div>
-				<div class="cl lsp" style="text-align:left">Posts pasand aney pe users ko 'follow' zarur karein</div>
-			</div>
-
-		</div>
+		{% endif %}
 
 		<div style="background:white;padding:6px 8px" class="lsp">
 			<span class="cgy">Users se direct baat karney ke liye account verify karwain:</span>

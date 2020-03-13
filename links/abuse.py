@@ -72,7 +72,7 @@ SOLICITATION_WORDS = ['whatapp','whatsap','watsap','whtsap','whtapp','facebook',
 BANNED_FORGOTTEN_NICKS = ['fuck','sex','phudd','phudi','phodi','lun','choot','pussy','boob','xx','breast','penis','hitler','gasht','gandu','luun',\
 'mhb','allah','bhagwan','allaah','quran','jesus','Damadam-Feedback','Damadam-Admin']
 
-CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin','pakistn','pakistaan','pkistan']
+CONTEXTUALLY_SENSITIVE_WORDS = ['allah','pakistan','muslim','admin','pakistn','pakistaan','pkistan','damadam']
 
 FLAGGED_PUBLIC_TEXT_POSTING_WORDS = ['1 on 1', 'invite', ' hot ', 'lun', 'girl', 'bye', 'new', 'sex', ' fan ', 'sis', 'join', 'boring', 'private',\
 'married', 'prvt', 'bored', 'fake', 'invt', 'pvt', ' post ',' copy ', 'ldki', 'grl', 'noon', 'allah', 'ﺍِﻟٰﻪ'.decode('utf-8'),'ﺍﻟﻠّﻪ'.decode('utf-8'),\

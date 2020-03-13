@@ -278,7 +278,7 @@ ZODIAC = {'1':'None','3':'Aquarius','4':'Pisces','5':'Aries','6':'Taurus','7':'G
 '11':'Libra','12':'Scorpio','13':'Sagittarius','14':'Capricorn'}
 ###############################################################################################################
 PROJ_ZUCK_STARTING_USER_ID = 20000000#1975000
-SEGMENT_STARTING_USER_ID = 2251100# starting user ID of user segment analysis
+SEGMENT_STARTING_USER_ID = 2252400# starting user ID of user segment analysis
 
 """
 TYPES OF USER ACTIVITIES:
@@ -476,7 +476,7 @@ V.u - voted on an object (while unverified)
 ---------------------
 V1 - selected 'var1' in the tutorial
 V2 - selected 'var2' in the tutorial
-V3 - selected 'var3' in the tutorial
+V3 - witnessed 'var3' tutorial while on 'best photos' page
 V4 - selected 'var4' in the tutorial
 ---------------------
 G1 - loaded list of joined mehfils

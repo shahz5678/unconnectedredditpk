@@ -889,17 +889,7 @@ def best_home_page(request):
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = newbie_flag
-		# if newbie_flag in ('1','2','3','5','6','7'):
-		# 	if newbie_flag == '5':
-		# 		context["newbie_tutorial_page"] = 'tutorial5b.html'
-		# 	elif newbie_flag == '6':
-		# 		context["newbie_tutorial_page"] = 'tutorial6b.html'
-		# 	elif newbie_flag == '7':
-		# 		context["newbie_tutorial_page"] = 'tutorial7c.html'
-		# 	else:
-		context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
-		# else:
-		# 	context["newbie_tutorial_page"] = 'newbie_rules.html'
+		context["newbie_tutorial_page"] = 'tutorial3.html'# hardcoding to tutorial 3
 
 	return render(request, 'text_page.html', context)
 
@@ -997,7 +987,7 @@ def home_page(request, lang=None):
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = newbie_flag
-		context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
+		context["newbie_tutorial_page"] = 'tutorial3.html'# hardcoding to tutorial 3
 
 	return render(request, 'text_page.html', context)
 
@@ -1780,7 +1770,7 @@ def photo_page(request,list_type='best-list'):
 			context['obj_type_rep_sent_to'] = request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None)
 			context['parent_obj_id_rep_sent_to'] = request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None)
 			if newbie_flag:
-				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
+				context["newbie_tutorial_page"] = 'tutorial3.html'# hardcoding to tutorial 3
 
 		return render(request,"photos_page.html",context)
 	else:
@@ -2118,7 +2108,6 @@ def upload_public_photo(request,*args,**kwargs):
 					context['num_fans']= followers_exist(own_id)
 					set_photo_upload_key(own_id, secret_key)
 					return render(request,"upload_public_photo.html",context)
-
 
 ##################################################################
 

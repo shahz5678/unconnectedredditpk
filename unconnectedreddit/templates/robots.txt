@@ -78,7 +78,7 @@ Disallow: /
 User-agent: BLP_bbot/0.1
 Disallow: /
 
-User-agent: Googlebot
+User-agent: *
 Disallow: /static/img/corona/corona-se-bachao-hikmat-e-amli.png
 Disallow: /static/img/corona/corona-virus-aur-flu-mein-farq.png
 Disallow: /static/img/corona/corona-virus-ilaj.png
@@ -87,6 +87,4 @@ Disallow: /static/img/corona/corona-virus-kya-hai.png
 Disallow: /static/img/corona/corona-virus-se-bachao.png
 Disallow: /static/img/corona/kesey-pata-chalta-hai-corona-virus-ho-gaya-hai.png
 Disallow: /static/img/corona/wuzu-pyaz-klonji-corona-ilaj.png
-
-User-agent: *
 Crawl-delay: 1

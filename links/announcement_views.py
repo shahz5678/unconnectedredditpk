@@ -572,6 +572,13 @@ def survey(request):
 ##############################################################################################
 
 
+def corona_virus(request):
+	"""
+	Renders an info page about COVID-19
+	"""
+	return render(request,"announcement/corona.html",{})
+
+
 def coming_soon(request):
 	"""
 	Renders the detail of an announcement

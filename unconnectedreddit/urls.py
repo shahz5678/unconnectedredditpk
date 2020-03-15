@@ -38,7 +38,7 @@ HistoryHelpView
 from links.redirection_views import redirect_to_content, main_navbar
 from links.number_verification import verify_user_number
 from links.voting_views import user_vote_history, user_old_vote_history
-from links.announcement_views import export_survey_results, coming_soon, benefits_of_data_mode#, survey
+from links.announcement_views import export_survey_results, corona_virus, benefits_of_data_mode#, survey
 
 admin.autodiscover()
 
@@ -166,7 +166,7 @@ urlpatterns = patterns('',
 	########################################## Survey Related ########################################
 	# url(r'^survey/answers/$', auth(survey),name='survey'),
 	url(r'^survey/export/$', auth(export_survey_results), name='export_survey_results'),
-	url(r'^announcement/new/$', auth(coming_soon), name='coming_soon'),
+	url(r'^corona-virus/$', corona_virus, name='corona_virus'),
 	url(r'^announcement/data-mode/$', benefits_of_data_mode, name='benefits_of_data_mode'),
 		############################# Permanent redirects ############################################
 	url(r'^freshphotos/$', auth(fresh_photos_list), name='fresh_photos_list'),

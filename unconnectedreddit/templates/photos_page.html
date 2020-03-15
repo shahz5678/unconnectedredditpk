@@ -100,10 +100,10 @@
 
 		{% elif forloop.counter == 4 %}
 
-			<div class="mbl" style="display:block;overflow:hidden;background:#80d4ff;text-align:center;overflow:hidden">
-				<img class="mtl" src="{{ STATIC_URL }}img/gstar.svg" width="30" height="30">
-				<div class="mt mbl cxl lsp" style="color:black"><b>Apna 'red star' paaney ka chance barhain!</b></div>
-				<a href="{% url 'coming_soon' %}#section0"><button class="cs lsp sp" style="width:100%;border-radius:0;border:none;background:tomato;color:white;height:40px"><b>KAISEY?</b></button></a>
+			<div class="mbl" style="display:block;overflow:hidden;background:tomato;text-align:center;overflow:hidden">
+				<img class="mts" src="{{ STATIC_URL }}img/mask.svg" width="50" height="50" style="width:50px;height:50px">
+				<div class="mbs cxl lsp" style="color:black"><b>Corona Virus zaruri malumat</b></div>
+				<a href="{% url 'corona_virus' %}#section0"><button class="cs lsp sp" style="width:100%;border-radius:0;border:none;background-image: linear-gradient(to right, #50C9C3 0%, #96DEDA 51%, #50C9C3 100%);color:#000;height:40px"><b>PRESS HERE</b></button></a>
 			</div>
 
 		{% endif %}

@@ -12,7 +12,7 @@
 <div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo kharab hai, koi aur chunein</span></div>
 
 {% if forbidden %}
-<h1 class="cxl clb lsp" style="text-align:center">Share photo post on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Share photo on Damadam:</h1>
     <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
         {% load get_display_ban_msg %}
         <div class="mtl">
@@ -35,7 +35,7 @@
             <hr size=1 COLOR="#E9EBEE">
             <div class="mt sp lsp">1) Agr apki shared photo dilchusp hui tou 'trending' mein aa sakti hai</div>
             <div class="mts sp lsp">2) 'Trending' mein aney se apko aur users 'Follow' karna start kar dete hain</div>
-            <div class="mts sp lsp">3) Photo examples: funny memes, jokes, current affairs, poetry,riddles, quotes, sports, or nature etc</div>
+            <div class="mts sp lsp">3) Photo examples: funny memes, current affairs, poetry,riddles, quotes, sports, or nature etc</div>
             </div>
         {% endif %}
         <form action="{% url 'upload_public_photo' %}" id="public_photo_form" class="mt" method="POST" enctype="multipart/form-data">
@@ -105,14 +105,17 @@
     </div>
 
         {% if not show_instructions %}
-        <h2 class="cxl clb lsp nos" style="text-align:center">Photo sharing tips:</h2>
+        <h2 class="cxl clb lsp nos" style="text-align:center">Steps to become a <img class="mtl" src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14"> star:</h2>
     
         <div class="clb mbl mts nos" style="overflow:hidden;background:white;max-width:500px;margin-left:auto;margin-right:auto;text-align:left">
         <div class="cgy lsp sp cm mbs" style="padding:0 10px;">
-            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Agr apki shared photo dilchusp hui tou 'trending' mein aa sakti hai</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> 'Trending' mein aney se apko aur users 'Follow' karna start kar dete hain</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> Vulgarity, abuse, mazhabi fasaad aur spamming mana hain. Aik dafa <a href="{% url 'help' %}#guidelines" class="cb" target="_blank" style="border-bottom:1px dotted blue">hamari guidelines</a> zarur dekh lein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
+            <div class="mt" style="text-align:left"><span class="cgy cs">1)</span> Is page ke top pe TEMPLATES ka section hai:</div>
+            <div class="mt" style="text-align:center"><img src="{{ STATIC_URL }}img/templates.png" style="max-width:514px;width:100%"></div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> 'TEMPLATES' pics hoti hain jinko edit kia ja sakey</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> 'TEMPLATES' download karein aur un pe munfarid editing karein</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Sab se mazedar edited pics 'trending' mein aien gi aur apka star banney ka chance barhey ga</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Ap hamari 'TEMPLATES' ke ilawa deegar templates bhi use kar sakte hain, bas editing apki apni honi chahiye, copied nahi</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">6)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
         </div>
         </div>
         {% endif %}

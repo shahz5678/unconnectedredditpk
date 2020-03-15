@@ -889,17 +889,7 @@ def best_home_page(request):
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = newbie_flag
-		if newbie_flag in ('1','2','3','5','6','7'):
-			if newbie_flag == '5':
-				context["newbie_tutorial_page"] = 'tutorial5b.html'
-			elif newbie_flag == '6':
-				context["newbie_tutorial_page"] = 'tutorial6b.html'
-			elif newbie_flag == '7':
-				context["newbie_tutorial_page"] = 'tutorial7c.html'
-			else:
-				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
-		else:
-			context["newbie_tutorial_page"] = 'newbie_rules.html'
+		context["newbie_tutorial_page"] = 'tutorial3.html'# hardcoding to tutorial 3
 
 	return render(request, 'text_page.html', context)
 
@@ -997,17 +987,7 @@ def home_page(request, lang=None):
 	newbie_flag = request.session.get("newbie_flag",None)
 	if newbie_flag:
 		context["newbie_flag"] = newbie_flag
-		if newbie_flag in ('1','2','3','5','6','7'):
-			if newbie_flag == '5':
-				context["newbie_tutorial_page"] = 'tutorial5b.html'
-			elif newbie_flag == '6':
-				context["newbie_tutorial_page"] = 'tutorial6b.html'
-			elif newbie_flag == '7':
-				context["newbie_tutorial_page"] = 'tutorial7c.html'
-			else:
-				context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
-		else:
-			context["newbie_tutorial_page"] = 'newbie_rules.html'
+		context["newbie_tutorial_page"] = 'tutorial3.html'# hardcoding to tutorial 3
 
 	return render(request, 'text_page.html', context)
 
@@ -1022,29 +1002,53 @@ def turn_off_newbie(request,origin):
 	Origin must match that which is defined in return_to_content()
 	"""
 	request.session.pop("newbie_flag",None)
-	if origin == '3':
-		return redirect("fresh_text")
+	####################################################
+	# fresh and trending images
+	if origin == '1':
+		return redirect("photo",list_type='fresh-list')
 	elif origin == '2':
 		return redirect("photo",list_type='best-list')
-	elif origin == '1':
-		return redirect("photo",list_type='fresh-list')
-	elif origin == '36':
-		return redirect('get_ranked_groups')
+	####################################################
+	# fresh and trending posts
+	elif origin == '3':
+		return redirect("fresh_text")
+	elif origin == '12':
+		return redirect('best_home_page')
+	####################################################
 	elif origin == '26':
 		return redirect('for_me')	
 	elif origin == '27':
 		return redirect('topic_listing')
+	# elif origin == '36':
+	# 	return redirect('get_ranked_groups')
 	else:
 		return redirect('for_me')
 
 def new_user_gateway(request,lang=None,*args,**kwargs):
-	# set necessary newbie_flags for other parts of damadam too (e.g. for matka: is mein woh sab batien likhi aa jatien hain jin mein tum ne hissa liya (maslan jawab, tabsrey, waghera))
-	request.session["newbie_flag"] = True
+	"""
+	Set necessary newbie flags so user is shown the correct tutorial
+	"""
+	request.session["newbie_flag"] = '3'# defaulting all users to 'variation 3' (i.e. 'content' specific tutorial)
+	request.session["newbie_lang"] = lang if lang else 'eng'
 	request.session.modified = True
-	return redirect("first_time_choice", lang=lang)
+	############################################
+	############################################
+	user_id = request.user.id
+	if user_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		request.session['rd'] = '1'
+		activity_dict = {'m':'GET','act':'V3','t':time_now}# defines what activity just took place
+		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var3')
+	############################################
+	############################################
+	return redirect("photo",list_type='best-list')
+	# return redirect("first_time_choice", lang=lang)
 
 
 def first_time_choice(request,lang=None, *args, **kwargs):
+	"""
+	Unused at the moment
+	"""
 	user_id = request.user.id
 	if request.method == 'POST':
 		request.session["newbie_lang"] = lang if lang else 'eng'
@@ -1765,27 +1769,6 @@ def photo_page(request,list_type='best-list'):
 		context["page"] = {'number':page_num,'has_previous':True if page_num>1 else False,'has_next':True if page_num<max_pages else False,\
 		'previous_page_number':previous_page_number,'next_page_number':next_page_number,'max_pages':max_pages}
 		
-		if newbie_flag:
-			if newbie_flag in ('1','2','3','5','6','7'):
-				if newbie_flag == '5':
-					context["newbie_tutorial_page"] = 'tutorial5b.html'
-				elif newbie_flag == '6':
-					context["newbie_tutorial_page"] = 'tutorial6b.html'
-				elif newbie_flag == '7':
-					if page_num == 1:
-						context["newbie_tutorial_page"] = 'tutorial7a.html'
-					elif page_num >= 2:
-						context["newbie_tutorial_page"] = 'tutorial7b.html'
-						is_set = set_tutorial_seen(viewer_id=own_id)
-						request.session.pop("newbie_flag",None)
-					else:
-						# what if they paginate even more?
-						pass
-				else:
-					context["newbie_tutorial_page"] = 'tutorial'+newbie_flag+'.html'
-			else:
-				context["newbie_tutorial_page"] = 'newbie_rules.html'
-		#####################
 		if own_id:
 			# only pass these if user is logged in
 			context['ident'] = own_id
@@ -1796,6 +1779,8 @@ def photo_page(request,list_type='best-list'):
 			context['uname_rep_sent_to'] = request.session.pop("dir_rep_sent"+str(own_id),None)
 			context['obj_type_rep_sent_to'] = request.session.pop("dir_rep_tgt_obj_type"+str(own_id),None)
 			context['parent_obj_id_rep_sent_to'] = request.session.pop("dir_rep_tgt_obj_id"+str(own_id),None)
+			if newbie_flag:
+				context["newbie_tutorial_page"] = 'tutorial3.html'# hardcoding to tutorial 3
 
 		return render(request,"photos_page.html",context)
 	else:

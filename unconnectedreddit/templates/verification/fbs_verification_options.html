@@ -1,0 +1,39 @@
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
+
+	{% if is_fbs %}<div class="cxl lsp mbl cr">Verify karwaney ke liye <a href="https://bit.ly/37re4dg" class="cb" style="border-bottom:1px dotted #1947d1">data&nbsp;mode</a> istemal karein</div>{% elif is_opera %}<div class="cxl lsp mbl cr">Opera Mini pe verification system nahi chalta. Koi aur browser use karein, maslan <a href="https://play.google.com/store/apps/details?id=com.android.chrome&hl=en" class="cb" style="border-bottom:1px dotted #4b05a8" target="_blank" rel="nofollow">Chrome</a> or <a href="https://play.google.com/store/apps/details?id=org.mozilla.firefox&hl=en" class="cb" style="border-bottom:1px dotted #4b05a8" target="_blank" rel="nofollow">Firefox</a></div>{% else %}<div class="cxl lsp mbl">Verify karwaney ke liye koi aik option select karein:</div>{% endif %}
+
+		<form method="GET" action="{% url 'unable_to_verify_on_fbs' %}">
+		{% if request.is_opera_mini %}<input type="hidden" name="is_opera" value="1">{% endif %}
+		<div>
+			<button style="width: 260px;height:40px;background:#ffffff;color:#7a7a7a;border:1px solid #cbcbcb" class="mbl">
+				<div class="fx fxjsfs fxaicn">				
+					<img style="margin-left:30px" src="{{ STATIC_URL }}img/google.svg" width="18">
+					<div style="margin-left:30px" class="cxl">Google</div>
+				</div>
+			</button>
+		</div>
+
+		<div>
+			<button style="width: 260px;height:40px;background:#3b5998;color:white;border:1px solid #3b5998" class="mbl">
+				<div class="fx fxjsfs fxaicn">				
+					<img style="margin-left:30px" src="{{ STATIC_URL }}img/fb2.svg" width="18">
+					<div style="margin-left:30px" class="cxl">Facebook</div>
+				</div>
+			</button>
+		</div>
+
+		<div>
+			<button style="width: 260px;height:40px;background:#03bd7e;color:white;border:1px solid #03bd7e" class="mbl">
+				<div class="fx fxjsfs fxaicn">				
+					<img style="margin-left:30px" src="{{ STATIC_URL }}img/phone.svg" width="18">
+					<div style="margin-left:30px" class="cxl">Mobile</div>
+				</div>
+			</button>
+		</div>
+		</form>
+
+		<div class="cs lsp sp cgy mts" style="border-top:1px solid gainsboro;padding-top:10px">
+			NOTE: Verification se ye options apke liye open ho jaien ge - 'Reply', '1&nbsp;on&nbsp;1', 'Like', 'Mehfils'
+		</div>
+
+</div>

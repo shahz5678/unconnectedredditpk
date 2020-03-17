@@ -79,4 +79,5 @@ User-agent: BLP_bbot/0.1
 Disallow: /
 
 User-agent: *
+Disallow: /static/img/corona/
 Crawl-delay: 1

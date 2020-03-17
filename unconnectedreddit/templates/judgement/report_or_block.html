@@ -22,7 +22,7 @@
 				<input type="hidden" name="cap" value="{{ cap }}">
 				<input type="hidden" name="oun" value="{{ oun }}">
 				<input type="hidden" name="tp" value="{{ type }}">
-				<button value="{{ obid }}" style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" name="report" type="submit"><img src="{{ STATIC_URL }}img/report_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><div style="font-size:10.2px" class="mts cgy lsp">REPORT<br>PHOTO</div></button>
+				<button value="{{ obid }}" style="border-radius:8px;border:1px solid #BEBEBE;width:85px;height:85px" class="vt" name="report" type="submit"><img src="{{ STATIC_URL }}img/report_dark.svg" class="mt" width="20" height="20" style="vertical-align:middle"><div style="font-size:10.2px" class="mts cgy lsp">REPORT<br>IMAGE</div></button>
 			</form>
 			<form method="POST" style="padding:10px" action="{% url 'enter_inter_user_ban' %}">
 			  {% csrf_token %}
@@ -44,7 +44,7 @@
 				</form>
 			</div>
 		{% else %}
-			<div class="cl lsp cr mbs" style="max-width:400px;margin:0 auto"><b>Sorry!</b> Ap apni photo report nahi kar saktey, na hi apney ap ko block kar saktey hain</div>
+			<div class="cl lsp cr mbs" style="max-width:400px;margin:0 auto"><b>Sorry!</b> Ap apna image report nahi kar saktey, na hi apney ap ko block kar saktey hain</div>
 
 			<form method="POST" class="mtl mbs" action="{% url 'redirect_to_content' %}">
 			{% csrf_token %}

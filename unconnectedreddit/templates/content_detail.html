@@ -31,7 +31,7 @@
 
 	{% if not from_cull_queue and show_copy_prompt %}
 		<div class="mbl" style="margin-left:auto;margin-right:auto;max-width:600px;background:white;">
-			<div style="text-align:center;border-bottom:2px solid whitesmoke;background:#fefefa;padding:0 5px 10px 5px" class="cl clb lsp mts">Is photo ko Whatsapp ya Facebook pe share karne ke liye ye link copy karein:</div>
+			<div style="text-align:center;border-bottom:2px solid whitesmoke;background:#fefefa;padding:0 5px 10px 5px" class="cl clb lsp mts">Is image ko Whatsapp ya Facebook pe share karne ke liye ye link copy karein:</div>
 			<div class="lsp cxl cp" style="padding:10px;text-align:center">{{ regular_url }}</div>
 		</div>
 	{% endif %}
@@ -54,12 +54,12 @@
 		</div>
 		
 		{% if other_photos %}
-		<div class="csw co mts mbs" style="text-align:center"><b>{{ oun }} ki mazeed photos:</b></div>
+		<div class="csw co mts mbs" style="text-align:center"><b>{{ oun }} ke mazeed imagess:</b></div>
 			{% for pht in other_photos %}
 				<a href="{% url 'content_detail_view' pk=pht.id origin='6' obj_type='g' %}"><img src="{{ pht.image_file|s3:"thumb" }}" style="max-width:100px;width:100%;" class="mrs mbs"></a>
 			{% endfor %}
 		{% else %}
-			<div style="text-align:center" class="mtl sp lsp csw co">{{ oun }} ne aur photos nahi charhain...</div>
+			<div style="text-align:center" class="mtl sp lsp csw co">{{ oun }} ne mazeed images nahi charhain...</div>
 		{% endif %}
 
 		<a href="{% url 'cull_content_loc' obj_id 'img' %}"><button type="submit" class="sp btn bcgy bm mtl pg_ok_res" style="height:30px;width:100%;border-radius:0"><b>wapis</b></button></a><br>

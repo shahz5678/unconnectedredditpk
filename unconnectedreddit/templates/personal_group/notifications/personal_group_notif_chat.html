@@ -5,9 +5,9 @@
   {% if i_am_sender %}
   
   	<div class="lsp mts mbs mrs mls cl">
-      <span class="cm sp">Sorry! Photo nahi gyi ...</span>
+      <span class="cm sp">Sorry! Image share nahi hua ...</span>
       <hr size=1 COLOR="#F1F1DA">
-  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap usko photos bhej sakein
+  		{% if their_nick %}<img src="{{ sent_to_av_url }}" width="22" height="22" alt="{{ sent_to_av_url|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_to_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} se ijazat mangi gyi ke ap images share kar sakein
   	</div>
 
   	<div class="mbs mrs" style="text-align:right">
@@ -20,7 +20,7 @@
   	{% if status == 'open' %}
 
 	  	<div class="lsp mts mbs mrs mls cl">
-	  		{% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} apko photo bhejna chahta hai 
+	  		{% if their_nick %}<img src="{{ sent_by_av_url }}" width="22" height="22" alt="{{ sent_by_username|slice:"1" }}" class="circle">&nbsp;<b>{{ sent_by_username|truncatechars:15 }}</b>{% else %}<b>{{ trunick }}</b>{% endif %} ap se image share karna chahta hai 
 	  	</div>
 
 	  	<div class="mbs mrs" style="text-align:right">
@@ -30,7 +30,7 @@
 	  	<hr size=1 COLOR="#F1F1DA"> 
 	  	
 	  	<div class="lsp mrs mls mts cl">
-	  		Isko photo bhejney ki ijazat dein?
+	  		Isko image sharing ki ijazat dein?
 	  	</div>
 
 	  	<form method="POST" action="{% url 'set_personal_group_photo_sharing_perm_from_chat' %}" class="mts mbs">

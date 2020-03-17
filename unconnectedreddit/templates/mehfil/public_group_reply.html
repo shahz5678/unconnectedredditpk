@@ -44,13 +44,13 @@
 <div class="mbl" style="padding:10px 8px;max-width:750px;width:100%;overflow:hidden;background:white;margin-right:auto;margin-left:auto;color:black;box-sizing:border-box">
     <a name="sectionJ"></a> 
 
-    <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
-    <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye photo kharab hai, koi aur chunein</span></div>
+    <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye image buhut bara hai, chota image chunein</span></div>
+    <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye image kharab hai, koi aur chunein</span></div>
     <form action="{% url 'public_group_reply' %}" id="grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if pics_perms == '1' %}
         <div class="mbl">
-        <b class="sp cs">Upload photo:</b>
+        <b class="sp cs">Upload image:</b>
         <div class="mt">{{ form.image }}</div>
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
         </div>

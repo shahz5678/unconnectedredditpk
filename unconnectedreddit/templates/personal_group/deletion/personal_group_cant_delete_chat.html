@@ -18,21 +18,21 @@
 	{% elif all_photos %}
 
 		{% if un %}
-		<span class="cxl">Ap apni photos bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap apne images bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% else %}
-		<span class="cxl">Ap apni photos mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap apne images mita sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% endif %}
 
 	{% elif one_photo %}
 
 		{% if act == 'del' %}
-		<span class="cxl">Ap ye photo bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% elif act == 'undel' %}
-		<span class="cxl">Ap ye photo mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image mita sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% elif act == 'hide' %}
-		<span class="cxl">Ap ye photo hide kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image hide kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% elif act == 'unhide' %}
-		<span class="cxl">Ap ye photo unhide kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image unhide kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% else %}
 		<span class="cxl">Ap ye kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% endif %}

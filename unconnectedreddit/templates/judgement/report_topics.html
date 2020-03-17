@@ -46,14 +46,14 @@
 {% elif section == 'text_chat' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Sharing chat on home</div>
 	<div style="text-align:left" class="mts lsp sp">Home pe dilchusp items share karien. In items ke comments mein chatting ki ja sakti hai, lekin home pe directly chat share nahi karien, ye <a href="{% url 'spamming_definition' %}#section0" class="cb" style="border-bottom:1px dotted blue" target="_blank">'spamming'</a> ke zumrey mein ata hai.</div>
-	<div style="text-align:left" class="mts lsp sp">"Hello how are you?", "Assalam ualaikum all", "Ap kaisey hain" aisi posts hain jo chatting ke liye theek hain, lekin home pe sharing ya photo titles ke liye nahi. Aisi posts share karney waloon ko report karein.</div>
+	<div style="text-align:left" class="mts lsp sp">"Hello how are you?", "Assalam-u-alaikum all", "Ap kaisey hain" aisi posts hain jo chatting ke liye theek hain, lekin text pe sharing ya image titles ke liye nahi. Aisi posts share karney waloon ko report karein.</div>
 
 {% elif section == 'text_firqa_wariyat' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Firqa wariyat</div>
 	<div style="text-align:left" class="mts lsp sp">Agar koi bhi firqa wariyat wali post share ki jaye, tou usko forun report kar dein. Apney mazhab ki beshaq tareef karein. Lekin dusroon ke mazhab ke khilaf kuch bhi share nahi karein.</div>
 {% elif section == 'photo_firqa_wariyat' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Firqa wariyat</div>
-	<div style="text-align:left" class="mts lsp sp">Agar koi bhi firqat wariyat wali photo share ki jaye, tou usko forun report kar dein. Apney mazhab ki beshaq tareef karein. Lekin dusroon ke mazhab ke khilaf kuch bhi share nahi karein.</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi bhi firqat wariyat wala image share kia jaye, tou usko forun report kar dein. Apney mazhab ki beshaq tareef karein. Lekin dusroon ke mazhab ke khilaf kuch bhi share nahi karein.</div>
 {% elif section == 'username_firqa_wariyat' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Firqa wariyat</div>
 	<div style="text-align:left" class="mts lsp sp">Agar kisi ke nickname mein firqa wariyat ho tou usko forun report karein. Aisi profiles ko ban kar dia jaye ga. Apney mazhab ki beshaq tareef karein. Dusroon ke mazhab ke khilaf baat karney ki ijazat nahi.</div>
@@ -81,26 +81,26 @@
 	<div style="text-align:left" class="mts lsp sp">Agar koi user apki recent post copy kar ke home pe share karey tou usko report karein. Report mein apni copied post select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
 	<div style="text-align:left" class="mts lsp sp">Posts copy karna ghalat hai. Users ka time waste hota hai jab woh aik jesi posts ko bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid posts lagein. Abhi ye rule sirf recent posts pe apply kia jata hai.</div>
 {% elif section == 'photo_plagiarism' %}
-	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apki photo copy karna</div>
-	<div style="text-align:left" class="mts lsp sp">Agar koi user apki recent photo copy kar ke home pe share karey tou usko report karein. Report mein apni copied photo select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
-	<div style="text-align:left" class="mts lsp sp">Photos copy karna ghalat hai. Users ka time waste hota hai jab woh aik jesi photos ko bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid photos lagein, aik jesi nahi. Abhi ye rule sirf recent photos pe apply kia jata hai.</div>
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apka image copy karna</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi user apka recent image copy kar ke share karey tou usko report karein. Report mein apna copied image select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
+	<div style="text-align:left" class="mts lsp sp">Images copy karna ghalat hai. Users ka time waste hota hai jab woh aik jese images ko bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid images lagein, aik jese nahi. Ye rule sirf recent images pe apply kia jata hai.</div>
 
 {% elif section == 'text_double_posting' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apni post dubara lagana</div>
 	<div style="text-align:left" class="mts lsp sp">Agar koi user apni recent post dubara share karey tou usko report karein. Report mein is user ki copied post select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
 	<div style="text-align:left" class="mts lsp sp">Same post bar bar share karna ghalat hai. Users ka time waste hota hai jab woh aik jesi posts bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid posts lagein. Abhi ye rule sirf recent posts pe apply kia jata hai.</div>
 {% elif section == 'photo_double_posting' %}
-	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apni photo dubara lagana</div>
-	<div style="text-align:left" class="mts lsp sp">Agar koi user apni recent photo dubara share karey tou usko report karein. Report mein is user ki copied photo select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
-	<div style="text-align:left" class="mts lsp sp">Same photo bar bar share karna ghalat hai. Users ka time waste hota hai jab woh aik jesi photos bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid photos lagein, aik jesi nahi.</div>
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Apna image dubara lagana</div>
+	<div style="text-align:left" class="mts lsp sp">Agar koi user apna recent image dubara share karey tou usko report karein. Report mein is user ka copied image select karein takey Damadam ka system un dono ko compare kar ke decision le sakey.</div>
+	<div style="text-align:left" class="mts lsp sp">Same image bar bar share karna ghalat hai. Users ka time waste hota hai jab woh aik jese images bar bar dekhtey hain. Hamari koshish hai ke Damadam pe munfarid images lagein, aik jese nahi.</div>
 
 {% elif section == 'text_romantic_solicitation' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Romance ki bheek</div>
-	<div style="text-align:left" class="mts lsp sp">Damadam pe love or sad poetry and photos ki ijazat zarur hai, lekin harassment and indecency ki nahi. Aisi home posts forun report karein jin mein romance ki bheek mangi ja rehi ho.</div>
+	<div style="text-align:left" class="mts lsp sp">Damadam pe love or sad poetry and images ki ijazat zarur hai, lekin harassment and indecency ki nahi. Aisi home posts forun report karein jin mein romance ki bheek mangi ja rehi ho.</div>
 	<div style="text-align:left" class="mts lsp sp">"Please call me on whatsapp", "Koi girl hai?", "Koi aunty hai?", "Koi boy private mein aye ga?". Aisi tamam posts mahol kharab karti hain. Agar koi user chatting mein ap se romance ki bheek mangey tou usko block kar dein.</div>
 {% elif section == 'photo_title_solicitation' %}
-	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Photo title mein bheek</div>
-	<div style="text-align:left" class="mts lsp sp">Photo ke title mein comments, fans and votes ki bheek mangna ghalat hai. Aisi photos ko forun report karein takey Damadam ka system unko ban kar sakey. Is se Damadam ki quality high ho gi.</div>
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Image title mein bheek</div>
+	<div style="text-align:left" class="mts lsp sp">Image ke title mein comments, followers and likes ki bheek mangna ghalat hai. Aise images ko forun report karein takey Damadam ka system unko ban kar sakey. Is se Damadam ki quality high ho gi.</div>
 
 {% elif section == 'text_rumor' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Rumors</div>
@@ -133,20 +133,20 @@
 	<div style="text-align:left" class="mts lsp sp">Un tamam screenshots ko report karein jo kisi user ko sharminda karney ke liye share ki jaien. Damadam ko hassad aur bullying se paak karein.</div>
 
 {% elif section == 'photo_nudity_or_sex' %}
-	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Porn photos</div>
-	<div style="text-align:left" class="mts lsp sp">Aisi koi photo share nahi karein jo ap apni family ke sath nahi dekh saktey. Porn photos share karney waloon ko ban kia jaye ga. Aisi photos forun report karein.</div>
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Porn images</div>
+	<div style="text-align:left" class="mts lsp sp">Aisa koi image share nahi karein jo ap apni family ke sath nahi dekh saktey. Porn images share karney waloon ko ban kia jaye ga. Aise images forun report karein.</div>
 {% elif section == 'photo_bloodshed' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Khoon kharaba ya aziyat</div>
-	<div style="text-align:left" class="mts lsp sp">Aisi photos ki ijazat nahi jin mein khoon kharaba ho, aziyat ho, ya human body ko cut kiya gaya ho. Aisi photos ko forun ban kia jaye ga.</div>
-	<div style="text-align:left" class="mts lsp sp">Na aisi photos khud upload karein, aur na hi kisi aur ki aisi photos ki hosla afzai karein. Aisi photos se demagh pe bura asar par sakta hai.</div>
+	<div style="text-align:left" class="mts lsp sp">Aise images ki ijazat nahi jin mein khoon kharaba ho, aziyat ho, ya human body ko cut kiya gaya ho. Aise images ko forun ban kia jaye ga.</div>
+	<div style="text-align:left" class="mts lsp sp">Na aise images khud upload karein, aur na hi kisi aur ke aise images ki hosla afzai karein. Aise images se demagh pe bura asar par sakta hai.</div>
 {% elif section == 'photo_low_quality' %}
-	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Low quality photo</div>
-	<div style="text-align:left" class="mts lsp sp">Agar photo itni dhundli ho ke sahi se nazr nahi aa rahi ho, tou usko report karein. Is terah Damadam pe sirf high quality photos ko yaqeeni banaya jaye ga.</div>
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Low resolution image</div>
+	<div style="text-align:left" class="mts lsp sp">Agar image itna dhundla ho ke sahi se nazr nahi aa raha ho, tou usko report karein. Is terah Damadam pe sirf high quality images ko yaqeeni banaya jaye ga.</div>
 {% elif section == 'photo_wrong_title' %}
-	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Wrong or unrelated photo title</div>
-	<div style="text-align:left" class="mts lsp sp">Photo ka title photo se related hona chahiye. Unrelated ya betukkey titles photo ko low quality banatey hain. Aik relevant aur dilchusp title kisi bhi photo mein jaan daal deta hai.</div>
+	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Wrong or unrelated image title</div>
+	<div style="text-align:left" class="mts lsp sp">Image ka title image se related hona chahiye. Unrelated ya betukkey titles image ko low quality banatey hain. Aik relevant aur dilchusp title kisi bhi image mein jaan daal deta hai.</div>
 {% elif section == 'photo_rumor' %}
 	<div class="cxl lsp clb" style="padding-bottom:10px;border-bottom:1px dashed darkgray;font-weight:bold">Rumors</div>
-	<div style="text-align:left" class="mts lsp sp">Photo mein aisa kuch nahi hona chahiye jo kisi aur user ki dil-azaari karey. Maslan koi fake rumor ho ya screenshot ho jis mein kisi user ko be-izzat kia ja raha ho. Aisi photos ke khilaf action lia jaye ga.</div>
+	<div style="text-align:left" class="mts lsp sp">Image mein aisa kuch nahi hona chahiye jo kisi aur user ki dil-azaari karey. Maslan koi fake rumor ho ya screenshot ho jis mein kisi user ko be-izzat kia ja raha ho. Aise images ke khilaf action lia jaye ga.</div>
 {% else %}
 {% endif %}

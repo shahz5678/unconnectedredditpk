@@ -43,7 +43,8 @@ from links.announcement_views import export_survey_results, corona_virus, benefi
 admin.autodiscover()
 
 urlpatterns = patterns('',
-
+	############################# home page ################################
+	url(r'^$', best_photos_list, name='home'),
 	###################### sitemaps and robots.txt #########################
 	url(r'^sitemap\.xml$', sitemap, name='sitemap'),
 	url(r'^robots\.txt/$', TemplateView.as_view(template_name="robots.txt", content_type='text/plain')),

@@ -4,7 +4,7 @@
 {% load future_time %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Cant share photo | Damadam</title></head>
+<head><title>Cant share image | Damadam</title></head>
 
 <div class="mbl clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:480px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 
@@ -14,9 +14,9 @@
 	<hr size=1 COLOR="#E9EBEE">
 	
 	{% if ttl %}
-	<div class="cl lsp">Ap ye photo share kar sakein ge:<br><span class="cxl">{{ ttl|future_time }}</span></div>
+	<div class="cl lsp">Ap ye image share kar sakein ge:<br><span class="cxl">{{ ttl|future_time }}</span></div>
 	{% else %}
-	<div class="cl lsp">Ye photo share nahi ki ja sakti kiyun ke isko upload karney waley ki photos banned hain</div>
+	<div class="cl lsp">Ye image share nahi kia ja sakta kiyun ke isko upload karney waley ke images banned hain</div>
 	{% endif %}
 
 	<form method="POST" class="mtl mbs" action="{% url 'redirect_to_content' %}">

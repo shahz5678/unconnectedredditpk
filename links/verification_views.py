@@ -104,14 +104,15 @@ def verify_user_artificially(request):
 					from django.db.models import F
 					valid_user_id = processed_form.cleaned_data.get("user_id")
 					random_string = str(uuid.uuid4())
-					account_kid_id = 'artificial_verification'		
-					mobile_data = {'national_number':random_string,'number':random_string,'country_prefix':'92'}
-					with_points = request.POST.get("wth_pts",None)
-					save_consumer_number(account_kid_id,mobile_data,valid_user_id)
+					# account_kid_id = 'artificial_verification'		
+					# mobile_data = {'national_number':random_string,'number':random_string,'country_prefix':'92','verif_time',time.time()}
+					user_verification_data = {'uid':random_string,'provider':'artificial','puid':random_string,'name':'artificial','email':'artificial','purl':'artificial','verif_time':time.time()}
+					# with_points = request.POST.get("wth_pts",None)
+					save_consumer_details(user_verification_data,valid_user_id)
+					# save_consumer_number(account_kid_id,mobile_data,valid_user_id)
 					change_verification_status(valid_user_id,'verified')
 					# if with_points == '1':
 					# 	UserProfile.objects.filter(user_id=valid_user_id).update(score=F('score')+500)
-					
 					return render(request,"verification/artificial_verification.html",{'form':AddVerifiedUserForm(),\
 						'verified_id':valid_user_id})
 				else:

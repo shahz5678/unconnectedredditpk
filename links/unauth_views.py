@@ -98,7 +98,10 @@ def forgot_password(request, *args, **kwargs):
 				else:
 					fp_log_firebase_entered()
 					provider = get_provider(user_id)# what kind of provider was used (FB, Goog, Mobile)
-					return render(request,"unauth/verify_forgetters_account_via_firebase.html",{'provider_type':provider})						
+					if provider == 'artificial':
+						return redirect('missing_page')
+					else:	
+						return render(request,"unauth/verify_forgetters_account_via_firebase.html",{'provider_type':provider})						
 			else:
 				return render(request,"unauth/nick_unassociated_with_mobnum.html",{'nick':username})
 		else:

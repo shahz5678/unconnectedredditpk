@@ -28,7 +28,7 @@ def firebase_verification(request,*args,**kwargs):
 	"""
 	Handles firebase-led verification
 
-	JS is required for this to work, otherwise we redirect the user to "for_me"
+	JS is required for this to work, otherwise we redirect the user to "home"
 	"""
 	is_ajax = request.is_ajax()
 	if is_ajax:
@@ -59,7 +59,7 @@ def firebase_verification(request,*args,**kwargs):
 			return redirect('verify_user_mobile_unpaid')
 	##############################
 	else:
-		return redirect('for_me')
+		return redirect('home')
 
 
 def firebase_verification_result(request):
@@ -307,7 +307,7 @@ def wait_before_verifying(request):
 	user_id = request.user.id
 	if request.method == "POST":
 		if is_mobile_verified(user_id):
-			return redirect('for_me')
+			return redirect('home')
 		else:
 			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
 			if on_fbs:
@@ -347,7 +347,7 @@ def verify_user_mobile_unpaid(request):
 	"""
 	if is_mobile_verified(request.user.id): 
 		# not allowed to proceed
-		return redirect("for_me")
+		return redirect("home")
 	else:
 		if request.META.get('HTTP_X_IORG_FBS',False):
 			template_name = 'verification/user_mobile_verification_fbs.html'
@@ -487,7 +487,7 @@ def pin_verification(request):
 							change_verification_status(user_id,'verified')
 							set_personal_group_mobile_num_cooloff(user_id)
 							if their_anon_status is None:
-								return redirect('for_me')
+								return redirect('home')
 							else:
 								twiliolog_user_reverified()
 								log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())

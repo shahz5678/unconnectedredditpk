@@ -30,7 +30,7 @@
 	<section style="display:block" itemprop="mainContentOfPage" itemscope itemtype="https://schema.org/WebPageElement">
 
 	{% if page.max_pages < 2 %}
-		<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest photos</span>{% else %}<span itemprop="headline">Trending photos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
+		<h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest images</span>{% else %}<span itemprop="headline">Trending images</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1>
 	{% else %}
 		{% load next_page %}
 		{% load prev_page %}
@@ -40,7 +40,7 @@
 			<button style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|prev_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/back.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>
 			</form>
 
-			<div><h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest photos</span>{% else %}<span itemprop="headline">Trending photos</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1></div>
+			<div><h1 style="text-align:center" class="cxl lsp clb">{% if feed_type == 'fresh_photos' %}<span itemprop="headline">Latest images</span>{% else %}<span itemprop="headline">Trending images</span>{% endif %} <span class="cs">(page {{ page.number }})</span>:</h1></div>
 
 			<form style="display:inline" method="GET" action="{% url 'photo' list_type %}">
 			<button  style="background:0 0;border:none" type="submit" name="page" value="{{ page.number|next_page:page.max_pages }}"><img src="{{ STATIC_URL }}img/forward.svg" style="width:22px;height:22px;vertical-align:text-bottom"></button>

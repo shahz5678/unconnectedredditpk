@@ -46,7 +46,6 @@
 		<h1 class="cxl lsp clb" style="margin:0;display:inline-block">{% if feed_count == 1 %}1 new post for me:{% elif feed_count %}{{ feed_count }} new posts for me:{% else %}For me <span class="cs">(page {{ page.number }})</span>:{% endif %}</h1>
 	</div>
 
-	<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/share/share_button.js"></script>
 	<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
 	<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
 
@@ -103,8 +102,6 @@
 					{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin=origin static_url=STATIC_URL %}
 					{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
 					{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
-
-					{% include "big_buttons/big_share_button.html" with origin=origin %}
 
 				{% endif %}
 			</div>

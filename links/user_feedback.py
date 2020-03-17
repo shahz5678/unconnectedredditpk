@@ -159,7 +159,7 @@ def website_choices_feedback(request,*args,**kwargs):
 						form = WebsiteFeedbackUserDetailsForm()
 						return render(request,"website_feedback_thanks.html",{'form':form})
 					else:
-						return redirect('for_me')
+						return redirect('home')
 				else:
 					context = {'form':form}
 					context["question1"] = request.POST.get("question1",None)
@@ -237,7 +237,7 @@ def website_feedback(request,*args,**kwargs):
 						form = WebsiteFeedbackUserDetailsForm()
 						return render(request,"website_feedback_thanks.html",{'form':form})
 					else:
-						return redirect('for_me')
+						return redirect('home')
 				else:
 					context = {}
 					context["form"] = form
@@ -257,7 +257,7 @@ def website_feedback(request,*args,**kwargs):
 					data["city"] = form.cleaned_data.get("loc")
 					data["age"] = form.cleaned_data.get("age")
 					save_website_feedback_user_details(data)
-					return redirect('for_me')
+					return redirect('home')
 				else:
 					return render(request,"website_feedback_thanks.html",{'form':form})
 			else:

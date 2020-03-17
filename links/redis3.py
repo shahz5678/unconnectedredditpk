@@ -908,19 +908,31 @@ def unverify_user_id(user_id):
 	"""
 	numbers_to_remove = []
 	if user_id:
-		user_id = str(user_id)
-		my_server = redis.Redis(connection_pool=POOL)
-		user_number_data = my_server.lrange("um:"+user_id,0,-1)
-		for data_row in user_number_data:
-			numbers_to_remove.append(ast.literal_eval(data_row)["national_number"])
-		if numbers_to_remove:
-			pipeline1 = my_server.pipeline()
-			pipeline1.zrem('ecomm_verified_users', user_id)
-			pipeline1.zrem('verified_numbers',*numbers_to_remove)
-			pipeline1.delete("um:"+user_id)
-			# pipeline1.delete(REVERIFY+user_id)
-			pipeline1.execute()
-	return numbers_to_remove
+		verified_status, is_legacy_verification = is_mobile_verified(user_id,with_legacy_verification=True)
+		if verified_status:
+			user_id = str(user_id)
+			my_server = redis.Redis(connection_pool=POOL)
+			if is_legacy_verification:
+				pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+				user_number_data = my_server.lrange("um:"+user_id,0,-1)
+				for data_row in user_number_data:
+					numbers_to_remove.append(ast.literal_eval(data_row)["national_number"])
+				if numbers_to_remove:
+					pipeline1.zrem('ecomm_verified_users', user_id)
+					pipeline1.zrem('verified_numbers',*numbers_to_remove)
+					pipeline1.delete("um:"+user_id)
+					# pipeline1.delete(REVERIFY+user_id)
+					pipeline1.execute()
+				return numbers_to_remove
+			else:
+				pipeline1 = my_server.pipeline()
+				provider_id = my_server.hmget(USER_VERIFICATION_DATA+user_id,'uid')
+				pipeline1.delete(USER_VERIFICATION_DATA+user_id)
+				my_server.zrem(VERIFIED_FIREBASE_IDS,provider_id[0])
+				pipeline1.zrem('ecomm_verified_users',user_id)
+				pipeline1.execute()
+				return provider_id
+					
 
 
 # this mechanism saves up to TWO user numbers, trimming the 3rd

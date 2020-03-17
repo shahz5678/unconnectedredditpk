@@ -1,18 +1,18 @@
 {% extends "base/base_share.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Share image | Damadam</title></head>
+<head><title>Post image | Damadam</title></head>
 <style>label{border:1px solid #3cb7dd}.checkbox{position:absolute;opacity:0;cursor:pointer;height:0;width:0}.label{background:#fff;padding:7px 10px;height:46px;width:260px;border:1px solid #93d7ec;margin:0 auto -1px;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.crsr{cursor:pointer}input+label:hover{background-color:#eee}.checkbox:checked+label{background-color:#3cb7dd;color:#fff}</style>
 
 <script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 <div class="mtl">
     {% include "content/share_content_navbar.html" with static_url=STATIC_URL section='photo' %}
 </div>
-<div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
-<div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye photo kharab hai, koi aur chunein</span></div>
+<div id="pub_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye image buhut bara hai, chota image chunein</span></div>
+<div id="pub_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr sp lsp">Ye image kharab hai, koi aur chunein</span></div>
 
 {% if forbidden %}
-<h1 class="cxl clb lsp" style="text-align:center">Share photo on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Post image on Damadam:</h1>
     <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
         {% load get_display_ban_msg %}
         <div class="mtl">
@@ -20,22 +20,22 @@
         </div>
     </div>
 {% else %}
-<h1 class="cxl clb lsp" style="text-align:center">Share photo on Damadam:</h1>
+<h1 class="cxl clb lsp" style="text-align:center">Post image on Damadam:</h1>
     
     <div class="clb mbl mts" style="overflow:hidden;background:white;max-width:500px;margin-left:auto;margin-right:auto;text-align:center">
 
         <div class="fx fxjscn fxaicn">
-            <div class="sp nos" style="border-radius:0;width:50%;border:none;color:#4b9eca;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid gainsboro">POST PHOTO</div>
+            <div class="sp nos" style="border-radius:0;width:50%;border:none;color:#4b9eca;height:40px;line-height:40px;font-weight:bold;border-bottom:1px solid gainsboro">POST IMAGE</div>
             <a href="{% url 'show_templates' %}#section0" class="sp" style="width:50%;"><button style="background:gainsboro;border-radius:0;border:none;color:#808080;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc;">TEMPLATES</button></a>
         </div>
 
         {% if show_instructions %}
             <div class="mbl" style="text-align:left;background-color:#ffffe6;padding:4px 8px 6px 8px;border-bottom:1px solid #e9ebee">
-            <div style="text-align:center" class="cxl lsp">Welcome! Mazedar photos share karein aur followers barhain!</div>
+            <div style="text-align:center" class="cxl lsp">Welcome! Original images post karein aur followers barhain!</div>
             <hr size=1 COLOR="#E9EBEE">
-            <div class="mt sp lsp">1) Agr apki shared photo dilchusp hui tou 'trending' mein aa sakti hai</div>
+            <div class="mt sp lsp">1) Agr apka image dilchusp hua tou 'trending' mein aa sakta hai</div>
             <div class="mts sp lsp">2) 'Trending' mein aney se apko aur users 'Follow' karna start kar dete hain</div>
-            <div class="mts sp lsp">3) Photo examples: funny memes, current affairs, poetry,riddles, quotes, sports, or nature etc</div>
+            <div class="mts sp lsp">3) Image examples: Original content, current affairs, memes, poetry, riddles, quotes, sports, or nature etc</div>
             </div>
         {% endif %}
         <form action="{% url 'upload_public_photo' %}" id="public_photo_form" class="mt" method="POST" enctype="multipart/form-data">
@@ -43,9 +43,9 @@
         <input id="pub_img_sk" type="hidden" name="sk" value="{{ sk }}">
         <input type="hidden" name="opt" value="0">
         
-        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">1.</b>&nbsp;Select Photo:</div>{% endif %}
+        {% if form.image_file.errors %}<div id="pub_img_upload" class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.image_file.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">1.</b>&nbsp;Select Image:</div>{% endif %}
         <div class="mts mbl" style="text-align:center">{{ form.image_file }}</div>
-        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">2.</b> Likhein photo kis barey mein hai:</div>{% endif %}
+        {% if form.caption.errors %}<div class="cr cl sp" style="padding:10px 10px 0 10px;">{{ form.caption.errors.0 }}</div>{% else %}<div class="mts cxl lsp nos"><b style="color:#3cb7dd">2.</b> Likhein image kis barey mein hai:</div>{% endif %}
         
         <div style="padding:5px 10px 0 10px;text-align:center">{{ form.caption }}</div>
         <div class="mtl cxl lsp mbs nos"><b style="color:#3cb7dd">3.</b> Select Expiry:</div>
@@ -113,7 +113,7 @@
             <div class="mt" style="text-align:center"><img src="{{ STATIC_URL }}img/templates.png" style="max-width:514px;width:100%"></div>
             <div class="mts" style="text-align:left"><span class="cgy cs">2)</span> 'TEMPLATES' pics hoti hain jinko edit kia ja sakey</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">3)</span> 'TEMPLATES' download karein aur un pe munfarid editing karein</div>
-            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Sab se mazedar edited pics 'trending' mein aien gi aur apka star banney ka chance barhey ga</div>
+            <div class="mts" style="text-align:left"><span class="cgy cs">4)</span> Sab se mazedar edited images 'trending' mein aien gi aur apka star banney ka chance barhey ga</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">5)</span> Ap hamari 'TEMPLATES' ke ilawa deegar templates bhi use kar sakte hain, bas editing apki apni honi chahiye, copied nahi</div>
             <div class="mts" style="text-align:left"><span class="cgy cs">6)</span> One day mein {{ sharing_limit }} se ziyada items share nahi hotay</div>
         </div>

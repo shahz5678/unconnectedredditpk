@@ -290,7 +290,7 @@ def topic_redirect(request, topic_url=None, obj_hash=None, *args, **kwargs):
 			url = reverse_lazy("topic_page",args=[topic_url])+addendum
 		return redirect(url)
 	else:
-		return redirect('for_me')
+		return redirect('home')
 
 
 def retrieve_topic_contribution_page_data(topic_url, page_num, with_oldest=False):

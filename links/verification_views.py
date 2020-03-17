@@ -6,13 +6,14 @@ from django.http import HttpResponse, HttpResponseRedirect, Http404
 from django.core.urlresolvers import reverse_lazy, reverse
 from account_kit_config_manager import account_kit_handshake
 from verification_forms import AddVerifiedUserForm, rate_limit_artificial_verification, MobileVerificationForm, PinVerifyForm, UnverifyUserIDForm
-from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited, twiliolog_pin_sms_sent, twiliolog_user_verified,\
-twiliolog_reverification_pin_sms_sent, twiliolog_user_reverified, log_fbs_please_wait, log_fbs_user_verification, save_user_account_kit_server_secret,\
-retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id, log_ak_entered, log_ak_user_verification_outcome
+from redis3 import save_consumer_number, is_mobile_verified, is_sms_sending_rate_limited, save_user_account_kit_server_secret,\
+retrieve_user_account_kit_secret, someone_elses_number, unverify_user_id
+#twiliolog_pin_sms_sent, twiliolog_user_verified,twiliolog_reverification_pin_sms_sent, twiliolog_user_reverified, log_fbs_please_wait,\
+#log_fbs_user_verification,log_ak_entered, log_ak_user_verification_outcome
 from redis5 import can_change_number, get_personal_group_target_id, get_personal_group_anon_state, set_personal_group_mobile_num_cooloff
 from tasks import send_user_pin, save_consumer_credentials, increase_user_points, log_user_activity
 from score import NUMBER_VERIFICATION_BONUS, FBS_VERIFICATION_WAIT_TIME, SEGMENT_STARTING_USER_ID
-from redis3 import save_consumer_details, someone_elses_data
+from redis3 import save_consumer_details, someone_elses_data, log_firebase_user_verification_outcome,log_firebase_entered
 from redis2 import change_verification_status
 from utilities import convert_to_epoch
 from redis4 import retrieve_uname
@@ -47,6 +48,7 @@ def firebase_verification(request,*args,**kwargs):
 				request.session["firebase_verification_failed"] = '1'
 				request.session["firebase_verification_failure_reason"] = preexisting_verification#number already used up
 				request.session.modified = True
+				log_firebase_user_verification_outcome('data_already_used')
 				return HttpResponse(json.dumps({'success':False,'message':reverse("firebase_verification_failed",kwargs={})}),content_type='application/json',)
 
 			else:
@@ -54,6 +56,7 @@ def firebase_verification(request,*args,**kwargs):
 				save_consumer_details(user_verification_data,user_id)
 				change_verification_status(user_id,'verified')# updating 'fan_verification_status' in postgresql table UserFan
 				request.session["firebase_verification_succeeded"] = '1'
+				log_firebase_user_verification_outcome('verified')
 				return HttpResponse(json.dumps({'success':True,'message':reverse("firebase_verification_successful",kwargs={})}),content_type='application/json')
 		else:
 			return redirect('verify_user_mobile_unpaid')
@@ -106,8 +109,8 @@ def verify_user_artificially(request):
 					with_points = request.POST.get("wth_pts",None)
 					save_consumer_number(account_kid_id,mobile_data,valid_user_id)
 					change_verification_status(valid_user_id,'verified')
-					if with_points == '1':
-						UserProfile.objects.filter(user_id=valid_user_id).update(score=F('score')+500)
+					# if with_points == '1':
+					# 	UserProfile.objects.filter(user_id=valid_user_id).update(score=F('score')+500)
 					
 					return render(request,"verification/artificial_verification.html",{'form':AddVerifiedUserForm(),\
 						'verified_id':valid_user_id})
@@ -160,132 +163,132 @@ def get_requirements(request, secret, secret_omitted=False):
 
 
 
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def account_kit_verification_commencement(request):
-	"""
-	Passes required data to FB's Account Kit
-	"""
-	if request.method == "POST":
-		user_id = request.user.id
-		form = MobileVerificationForm(request.POST,user_id=user_id,allow_reverification=False)
-		if form.is_valid():
-			phonenumber = form.cleaned_data.get("phonenumber")
-			target_number = '+92'+phonenumber[-10:]
-			# send GET request to Account Kit url
-			user_account_kit_server_secret = str(uuid.uuid4())# save locally
-			save_user_account_kit_server_secret(user_id, user_account_kit_server_secret)
-			URL = "https://www.accountkit.com/v1.0/basic/dialog/sms_login/"
-			PARAMS = {'counter_code':'PK','app_id':'1758220174446684','state':user_account_kit_server_secret,\
-			#'redirect':'http://127.0.0.1:8000/verification/mobile/via-account-kit/process-verification/',\
-			'redirect':'https://damadam.pk/verification/mobile/via-account-kit/process-verification/',\
-			'phone_number':phonenumber,'fbAppEventsEnabled':'true','debug':'false'}
-			log_ak_entered()
-			r = requests.get(url = URL, params = PARAMS) 
-			return redirect(r.url)
-		else:
-			return render(request,'verification/user_mobile_verification.html',{'form':form})
-	else:
-		raise Http404("This does not work with a GET request")
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @csrf_protect
+# def account_kit_verification_commencement(request):
+# 	"""
+# 	Passes required data to FB's Account Kit
+# 	"""
+# 	if request.method == "POST":
+# 		user_id = request.user.id
+# 		form = MobileVerificationForm(request.POST,user_id=user_id,allow_reverification=False)
+# 		if form.is_valid():
+# 			phonenumber = form.cleaned_data.get("phonenumber")
+# 			target_number = '+92'+phonenumber[-10:]
+# 			# send GET request to Account Kit url
+# 			user_account_kit_server_secret = str(uuid.uuid4())# save locally
+# 			save_user_account_kit_server_secret(user_id, user_account_kit_server_secret)
+# 			URL = "https://www.accountkit.com/v1.0/basic/dialog/sms_login/"
+# 			PARAMS = {'counter_code':'PK','app_id':'1758220174446684','state':user_account_kit_server_secret,\
+# 			#'redirect':'http://127.0.0.1:8000/verification/mobile/via-account-kit/process-verification/',\
+# 			'redirect':'https://damadam.pk/verification/mobile/via-account-kit/process-verification/',\
+# 			'phone_number':phonenumber,'fbAppEventsEnabled':'true','debug':'false'}
+# 			log_ak_entered()
+# 			r = requests.get(url = URL, params = PARAMS) 
+# 			return redirect(r.url)
+# 		else:
+# 			return render(request,'verification/user_mobile_verification.html',{'form':form})
+# 	else:
+# 		raise Http404("This does not work with a GET request")
 
 
-def account_kit_verification_processing(request):
-	"""
-	UNUSED: Processes data returned from account kit when a user goes through the profile verification flow
+# def account_kit_verification_processing(request):
+# 	"""
+# 	UNUSED: Processes data returned from account kit when a user goes through the profile verification flow
 
-	Acts as an endpoint for account kit when it return user credentials
-	"""
-	# did server token match 
-	# is the user mobile number still valid (i.e. has not been used up already, is a Pakistani number, etc)
-	# are the user credentials complete
-	if request.mobile_verified:
-		request.session["account_kit_verification_failed"] = '1'
-		log_ak_user_verification_outcome("id_already_verified")	
-		request.session["account_kit_verification_failure_reason"] = '0'#user is already verified
-		request.session.modified = True
-		return redirect("account_kit_verification_failed")
-	else:
-		user_id = request.user.id
-		original_secret = retrieve_user_account_kit_secret(identifier=str(user_id))
-		if original_secret:
-			AK_ID, MN_data, err = get_requirements(request=request,secret=original_secret)
-			if AK_ID and MN_data:
-				if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
-					request.session["account_kit_verification_failed"] = '1'
-					log_ak_user_verification_outcome("number_already_used")
-					request.session["account_kit_verification_failure_reason"] = '1'#number already used up done
-					request.session.modified = True
-					return redirect("account_kit_verification_failed")
-				else:
-					# verify the user
-					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
-					change_verification_status(user_id,'verified')
-					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
-					log_ak_user_verification_outcome("verified")
-					################### Retention activity logging ###################
-					if user_id > SEGMENT_STARTING_USER_ID:
-						time_now = time.time()
-						activity_dict = {'m':'GET','act':'Z','t':time_now}# defines what activity just took place
-						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-					##################################################################
-					request.session["account_kit_verification_succeeded"] = '1'
-					request.session.modified = True
-					return redirect("account_kit_verification_successful")
-			elif AK_ID == 'generic' or AK_ID == 'used' or AK_ID == 'expired' or AK_ID == 'invalid':
-				# return render(request,"unverified_number.html",{'referrer':'home','reason':AK_ID,'from_ecomm':False})
-				request.session["account_kit_verification_failed"] = '1'
-				request.session["account_kit_verification_failure_reason"] = '2'#could not be verified
-				request.session.modified = True
-				return redirect("account_kit_verification_failed")
-			elif err['status'] == "NOT_AUTHENTICATED":
-				# return render(request,"dont_worry_just_authenticate.html",{'csrf':original_secret,'referrer':'home','type':'user',\
-				# 	'from_ecomm':False})
-				request.session["account_kit_verification_failed"] = '1'
-				log_ak_user_verification_outcome("pressed_cross")
-				request.session["account_kit_verification_failure_reason"] = '3'#encourage user to go back and verify 
-				request.session.modified = True
-				#pressed cross
-				return redirect("account_kit_verification_failed")
-			elif err['status'] == "PARTIALLY_AUTHENTICATED":
-				# return render(request,"try_again.html",{'type':'user','from_ecomm':False})
-				request.session["account_kit_verification_failed"] = '1'
-				request.session["account_kit_verification_failure_reason"] = '4'#could not be verified 
-				log_ak_user_verification_outcome("verification_failed_reason4")
-				request.session.modified = True
-				return redirect("account_kit_verification_failed")
-			else:
-				# return render(request,"unverified_number.html",{'referrer':'home','from_ecomm':False})
-				request.session["account_kit_verification_failed"] = '1'
-				log_ak_user_verification_outcome("verification_failed_reason5")
-				request.session["account_kit_verification_failure_reason"] = '5'#could not be verified
-				request.session.modified = True
-				return redirect("account_kit_verification_failed")
-		else:
-			# return render(request,"try_again.html",{'type':'user','from_ecomm':False})
-			request.session["account_kit_verification_failed"] = '1'
-			log_ak_user_verification_outcome("sms_expired")
-			request.session["account_kit_verification_failure_reason"] = '6'#user too late or secret never generated (simply loading URL)
-			request.session.modified = True
-			return redirect("account_kit_verification_failed")
+# 	Acts as an endpoint for account kit when it return user credentials
+# 	"""
+# 	# did server token match 
+# 	# is the user mobile number still valid (i.e. has not been used up already, is a Pakistani number, etc)
+# 	# are the user credentials complete
+# 	if request.mobile_verified:
+# 		request.session["account_kit_verification_failed"] = '1'
+# 		log_ak_user_verification_outcome("id_already_verified")	
+# 		request.session["account_kit_verification_failure_reason"] = '0'#user is already verified
+# 		request.session.modified = True
+# 		return redirect("account_kit_verification_failed")
+# 	else:
+# 		user_id = request.user.id
+# 		original_secret = retrieve_user_account_kit_secret(identifier=str(user_id))
+# 		if original_secret:
+# 			AK_ID, MN_data, err = get_requirements(request=request,secret=original_secret)
+# 			if AK_ID and MN_data:
+# 				if someone_elses_number(national_number=MN_data['national_number'], user_id=user_id):
+# 					request.session["account_kit_verification_failed"] = '1'
+# 					log_ak_user_verification_outcome("number_already_used")
+# 					request.session["account_kit_verification_failure_reason"] = '1'#number already used up done
+# 					request.session.modified = True
+# 					return redirect("account_kit_verification_failed")
+# 				else:
+# 					# verify the user
+# 					save_consumer_credentials.delay(AK_ID, MN_data, user_id)
+# 					change_verification_status(user_id,'verified')
+# 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
+# 					log_ak_user_verification_outcome("verified")
+# 					################### Retention activity logging ###################
+# 					if user_id > SEGMENT_STARTING_USER_ID:
+# 						time_now = time.time()
+# 						activity_dict = {'m':'GET','act':'Z','t':time_now}# defines what activity just took place
+# 						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+# 					##################################################################
+# 					request.session["account_kit_verification_succeeded"] = '1'
+# 					request.session.modified = True
+# 					return redirect("account_kit_verification_successful")
+# 			elif AK_ID == 'generic' or AK_ID == 'used' or AK_ID == 'expired' or AK_ID == 'invalid':
+# 				# return render(request,"unverified_number.html",{'referrer':'home','reason':AK_ID,'from_ecomm':False})
+# 				request.session["account_kit_verification_failed"] = '1'
+# 				request.session["account_kit_verification_failure_reason"] = '2'#could not be verified
+# 				request.session.modified = True
+# 				return redirect("account_kit_verification_failed")
+# 			elif err['status'] == "NOT_AUTHENTICATED":
+# 				# return render(request,"dont_worry_just_authenticate.html",{'csrf':original_secret,'referrer':'home','type':'user',\
+# 				# 	'from_ecomm':False})
+# 				request.session["account_kit_verification_failed"] = '1'
+# 				log_ak_user_verification_outcome("pressed_cross")
+# 				request.session["account_kit_verification_failure_reason"] = '3'#encourage user to go back and verify 
+# 				request.session.modified = True
+# 				#pressed cross
+# 				return redirect("account_kit_verification_failed")
+# 			elif err['status'] == "PARTIALLY_AUTHENTICATED":
+# 				# return render(request,"try_again.html",{'type':'user','from_ecomm':False})
+# 				request.session["account_kit_verification_failed"] = '1'
+# 				request.session["account_kit_verification_failure_reason"] = '4'#could not be verified 
+# 				log_ak_user_verification_outcome("verification_failed_reason4")
+# 				request.session.modified = True
+# 				return redirect("account_kit_verification_failed")
+# 			else:
+# 				# return render(request,"unverified_number.html",{'referrer':'home','from_ecomm':False})
+# 				request.session["account_kit_verification_failed"] = '1'
+# 				log_ak_user_verification_outcome("verification_failed_reason5")
+# 				request.session["account_kit_verification_failure_reason"] = '5'#could not be verified
+# 				request.session.modified = True
+# 				return redirect("account_kit_verification_failed")
+# 		else:
+# 			# return render(request,"try_again.html",{'type':'user','from_ecomm':False})
+# 			request.session["account_kit_verification_failed"] = '1'
+# 			log_ak_user_verification_outcome("sms_expired")
+# 			request.session["account_kit_verification_failure_reason"] = '6'#user too late or secret never generated (simply loading URL)
+# 			request.session.modified = True
+# 			return redirect("account_kit_verification_failed")
 
 
-def account_kit_verification_result(request):
-	"""
-	Shows failure or success state to user after processing their account kit credentials
-	"""
-	verification_successful = request.session.pop("account_kit_verification_succeeded",'')
-	if verification_successful:
-		request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
-		request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-		user_id = request.user.id
-		return render(request,"verification/reward_earned.html",{'user_var':retrieve_var(user_id=user_id)})
-	else:
-		verification_failed = request.session.pop("account_kit_verification_failed",'')
-		if verification_failed:
-			reason = request.session.pop('account_kit_verification_failure_reason','')
-			return render(request,"verification/verification_failed.html",{'reason':reason})
-		else:
-			raise Http404("This is an invalid result")
+# def account_kit_verification_result(request):
+# 	"""
+# 	Shows failure or success state to user after processing their account kit credentials
+# 	"""
+# 	verification_successful = request.session.pop("account_kit_verification_succeeded",'')
+# 	if verification_successful:
+# 		request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+# 		request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
+# 		user_id = request.user.id
+# 		return render(request,"verification/reward_earned.html",{'user_var':retrieve_var(user_id=user_id)})
+# 	else:
+# 		verification_failed = request.session.pop("account_kit_verification_failed",'')
+# 		if verification_failed:
+# 			reason = request.session.pop('account_kit_verification_failure_reason','')
+# 			return render(request,"verification/verification_failed.html",{'reason':reason})
+# 		else:
+# 			raise Http404("This is an invalid result")
 
 
 ############################## User number verification #################################
@@ -298,44 +301,44 @@ def number_verification_help(request):
 	return render(request,"verification/num_verification_help.html",{})
 
 
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def wait_before_verifying(request):
-	"""
-	Prompt shown to FBS based would-be verifiers, chiding them to wait 24 hours before dipping their beaks in the verification bucket
-	"""
-	user_id = request.user.id
-	if request.method == "POST":
-		if is_mobile_verified(user_id):
-			return redirect('for_me')
-		else:
-			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-			if on_fbs:
-				joining_epoch_time = convert_to_epoch(request.user.date_joined)
-				expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
-				ttw = expire_at - time.time()
-				if ttw > 0:
-					# expiry of this lock is a 'future' event
-					return render(request,'verification/wait_before_verifying.html',{'redirect_to_paid_internet':True})
-				else:
-					# this lock has expired!
-					return redirect("verify_user_mobile")
-			else:
-				return redirect("verify_user_mobile")
-	else:
-		try:
-			joining_epoch_time = convert_to_epoch(request.user.date_joined)
-			expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
-			ttw = expire_at - time.time()
-			if ttw > 0:
-				# expiry of this lock is a 'future' event
-				log_fbs_please_wait(user_id=user_id, expire_at=int(expire_at))
-				return render(request, "verification/wait_before_verifying.html", {'time_to_wait':int(ttw)})
-			else:
-				# this lock has expired!
-				return redirect("verify_user_mobile")
-		except (ValueError, TypeError):
-			return redirect('missing_page')				
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @csrf_protect
+# def wait_before_verifying(request):
+# 	"""
+# 	Prompt shown to FBS based would-be verifiers, chiding them to wait 24 hours before dipping their beaks in the verification bucket
+# 	"""
+# 	user_id = request.user.id
+# 	if request.method == "POST":
+# 		if is_mobile_verified(user_id):
+# 			return redirect('for_me')
+# 		else:
+# 			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+# 			if on_fbs:
+# 				joining_epoch_time = convert_to_epoch(request.user.date_joined)
+# 				expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
+# 				ttw = expire_at - time.time()
+# 				if ttw > 0:
+# 					# expiry of this lock is a 'future' event
+# 					return render(request,'verification/wait_before_verifying.html',{'redirect_to_paid_internet':True})
+# 				else:
+# 					# this lock has expired!
+# 					return redirect("verify_user_mobile")
+# 			else:
+# 				return redirect("verify_user_mobile")
+# 	else:
+# 		try:
+# 			joining_epoch_time = convert_to_epoch(request.user.date_joined)
+# 			expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
+# 			ttw = expire_at - time.time()
+# 			if ttw > 0:
+# 				# expiry of this lock is a 'future' event
+# 				log_fbs_please_wait(user_id=user_id, expire_at=int(expire_at))
+# 				return render(request, "verification/wait_before_verifying.html", {'time_to_wait':int(ttw)})
+# 			else:
+# 				# this lock has expired!
+# 				return redirect("verify_user_mobile")
+# 		except (ValueError, TypeError):
+# 			return redirect('missing_page')				
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -347,17 +350,21 @@ def verify_user_mobile_unpaid(request):
 	"""
 	if is_mobile_verified(request.user.id): 
 		# not allowed to proceed
+		log_firebase_user_verification_outcome('id_already_verified_firebase')
 		return redirect("for_me")
 	else:
 		if request.META.get('HTTP_X_IORG_FBS',False):
 			template_name = 'verification/user_mobile_verification_fbs.html'
 			action = 'Z.f.u'
+			log_firebase_entered(not_supported=True)
 		elif request.is_opera_mini:
 			template_name = 'verification/user_mobile_verification_fbs.html'
 			action = 'Z.o.u'
+			log_firebase_entered(not_supported=True)
 		else:
 			template_name = 'verification/user_mobile_verification.html'
 			action = 'Z.u'
+			log_firebase_entered()
 		################### Retention activity logging ###################
 		user_id = request.user.id
 		if user_id > SEGMENT_STARTING_USER_ID:
@@ -450,93 +457,93 @@ def unable_to_verify_on_fbs(request):
 # 					'pin_expired':request.session.pop("start_verification_again"+str(user_id),None)})
 
 
-@cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-@csrf_protect
-def pin_verification(request):
-	"""
-	This will verify the pin entered by the user
-	"""
-	if request.method == "POST":
-		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-		if on_fbs:
-			joining_epoch_time = convert_to_epoch(request.user.date_joined)
-			if joining_epoch_time + FBS_VERIFICATION_WAIT_TIME - time.time() > 0:
-				# rate limited from verifying currently, inform accordingly
-				return redirect("wait_before_verifying")
-		###########################################################################
-		user_id = request.user.id
-		if is_mobile_verified(user_id):
-			target_id = get_personal_group_target_id(user_id)
-			if can_change_number(user_id) and target_id:
-				form = PinVerifyForm(request.POST,user_id=user_id,allow_reverification=True)
-				phonenumber = request.session.get('phonenumber'+str(user_id),None)
-				if form.is_valid():
-					pin_state = form.cleaned_data.get("pinnumber")
-					if pin_state == 'pin_matched':
-						request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
-						request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-						for_personal_group = request.session.pop("for_personal_group",None)
-						own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(user_id, target_id)
-						if for_personal_group == '1':
-							request.session.pop('phonenumber'+str(user_id),None)
-							account_kid_id = 'twilio_verification'
-							national_number = phonenumber[-10:]
-							number ='+92'+national_number	
-							mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
-							save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
-							change_verification_status(user_id,'verified')
-							set_personal_group_mobile_num_cooloff(user_id)
-							if their_anon_status is None:
-								return redirect('for_me')
-							else:
-								twiliolog_user_reverified()
-								log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
-								return render(request,"personal_group/sms_settings/personal_group_successful_mob_verification.html",\
-									{'tid':target_id,'their_anon':their_anon_status,'name':retrieve_uname(target_id,decode=True),\
-									'avatar':None if their_anon_status else UserProfile.objects.filter(user_id=target_id).values_list('avatar',flat=True)[0]})
-						else:
-							# maybe the key has already been popped, send the person back to the relevant personal group
-							request.session["personal_group_gid_key:"+target_id] = group_id#checked
-							request.session.modified = True
-							return redirect("enter_personal_group")
-					else:
-						# pin_state is 'invalid' or 'expired'
-						request.session['start_verification_again'+str(user_id)] = '1'
-						request.session.modified = True
-						return redirect("verify_user_mobile")
-				else:
-					return render(request,"verification/enter_pin_code.html",{'form':form})
-			else:
-				return redirect('missing_page')
-		else:
-			form = PinVerifyForm(request.POST,user_id=user_id,allow_reverification=False)
-			phonenumber = request.session.get('phonenumber'+str(user_id),None)
-			if form.is_valid():
-				pin_state = form.cleaned_data.get("pinnumber")
-				if pin_state == 'pin_matched':
-					request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
-					request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-					request.session.pop('phonenumber'+str(user_id),None)
-					account_kid_id = 'twilio_verification'
-					national_number = phonenumber[-10:]
-					number ='+92'+national_number	
-					mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
-					save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
-					change_verification_status(user_id,'verified')
-					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
-					twiliolog_user_verified()
-					log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
-					return render(request,"verification/reward_earned.html",{})
-				else:
-					# pin_state is 'invalid' or 'expired'
-					request.session['start_verification_again'+str(user_id)] = '1'
-					request.session.modified = True
-					return redirect("verify_user_mobile")
-			else:
-				return render(request,"verification/enter_pin_code.html",{'form':form})
-	else:
-		# not a POST request
-		return redirect('missing_page')
+# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
+# @csrf_protect
+# def pin_verification(request):
+# 	"""
+# 	This will verify the pin entered by the user
+# 	"""
+# 	if request.method == "POST":
+# 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
+# 		if on_fbs:
+# 			joining_epoch_time = convert_to_epoch(request.user.date_joined)
+# 			if joining_epoch_time + FBS_VERIFICATION_WAIT_TIME - time.time() > 0:
+# 				# rate limited from verifying currently, inform accordingly
+# 				return redirect("wait_before_verifying")
+# 		###########################################################################
+# 		user_id = request.user.id
+# 		if is_mobile_verified(user_id):
+# 			target_id = get_personal_group_target_id(user_id)
+# 			if can_change_number(user_id) and target_id:
+# 				form = PinVerifyForm(request.POST,user_id=user_id,allow_reverification=True)
+# 				phonenumber = request.session.get('phonenumber'+str(user_id),None)
+# 				if form.is_valid():
+# 					pin_state = form.cleaned_data.get("pinnumber")
+# 					if pin_state == 'pin_matched':
+# 						request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+# 						request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
+# 						for_personal_group = request.session.pop("for_personal_group",None)
+# 						own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(user_id, target_id)
+# 						if for_personal_group == '1':
+# 							request.session.pop('phonenumber'+str(user_id),None)
+# 							account_kid_id = 'twilio_verification'
+# 							national_number = phonenumber[-10:]
+# 							number ='+92'+national_number	
+# 							mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
+# 							save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
+# 							change_verification_status(user_id,'verified')
+# 							set_personal_group_mobile_num_cooloff(user_id)
+# 							if their_anon_status is None:
+# 								return redirect('for_me')
+# 							else:
+# 								twiliolog_user_reverified()
+# 								log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
+# 								return render(request,"personal_group/sms_settings/personal_group_successful_mob_verification.html",\
+# 									{'tid':target_id,'their_anon':their_anon_status,'name':retrieve_uname(target_id,decode=True),\
+# 									'avatar':None if their_anon_status else UserProfile.objects.filter(user_id=target_id).values_list('avatar',flat=True)[0]})
+# 						else:
+# 							# maybe the key has already been popped, send the person back to the relevant personal group
+# 							request.session["personal_group_gid_key:"+target_id] = group_id#checked
+# 							request.session.modified = True
+# 							return redirect("enter_personal_group")
+# 					else:
+# 						# pin_state is 'invalid' or 'expired'
+# 						request.session['start_verification_again'+str(user_id)] = '1'
+# 						request.session.modified = True
+# 						return redirect("verify_user_mobile")
+# 				else:
+# 					return render(request,"verification/enter_pin_code.html",{'form':form})
+# 			else:
+# 				return redirect('missing_page')
+# 		else:
+# 			form = PinVerifyForm(request.POST,user_id=user_id,allow_reverification=False)
+# 			phonenumber = request.session.get('phonenumber'+str(user_id),None)
+# 			if form.is_valid():
+# 				pin_state = form.cleaned_data.get("pinnumber")
+# 				if pin_state == 'pin_matched':
+# 					request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
+# 					request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
+# 					request.session.pop('phonenumber'+str(user_id),None)
+# 					account_kid_id = 'twilio_verification'
+# 					national_number = phonenumber[-10:]
+# 					number ='+92'+national_number	
+# 					mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
+# 					save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
+# 					change_verification_status(user_id,'verified')
+# 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
+# 					twiliolog_user_verified()
+# 					log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
+# 					return render(request,"verification/reward_earned.html",{})
+# 				else:
+# 					# pin_state is 'invalid' or 'expired'
+# 					request.session['start_verification_again'+str(user_id)] = '1'
+# 					request.session.modified = True
+# 					return redirect("verify_user_mobile")
+# 			else:
+# 				return render(request,"verification/enter_pin_code.html",{'form':form})
+# 	else:
+# 		# not a POST request
+# 		return redirect('missing_page')
 
 	
-############################## Pink star verification #################################
+# ############################## Pink star verification #################################

@@ -296,4 +296,4 @@ def main_navbar(request):
 		return redirect("search_username")
 	else:
 		# default redirect
-		return redirect("photo",list_type='best-list')
+		return redirect("home")

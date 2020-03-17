@@ -109,14 +109,14 @@
 	</div>
 {% else %}
 	<div class="bizcard" style="background-color:ivory;padding:10px;text-align:center">
-		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Photo reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
+		<div class="cs sp lsp" style="border-bottom:1px dashed lightgray;padding-bottom:10px"><span class="cgy">Image reported {% if complaint.n == '1' %}(1 complaint){% else %}({{ complaint.n }} complaints){% endif %}</span></div>
 		{% if complaint.pl.0.rt == '10' or complaint.pl.0.rt == '9' %}<!-- this just looks at the first complaint -->
 			<img src="{{ complaint.url }}" alt="{{ complaint.c }}" class="mtl cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
-			{% if complaint.ot == 'g' %}<a href="{% url 'content_detail_view' pk=complaint.obid origin=6 obj_type='g' %}" target="_blank">{% else %}<a href="{% url 'photo_detail' pk=complaint.obid origin=6 %}" target="_blank">{% endif %}<button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see photo details</button></a><br>
+			{% if complaint.ot == 'g' %}<a href="{% url 'content_detail_view' pk=complaint.obid origin=6 obj_type='g' %}" target="_blank">{% else %}<a href="{% url 'photo_detail' pk=complaint.obid origin=6 %}" target="_blank">{% endif %}<button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see image details</button></a><br>
 		{% else %}
 			<div class="cl mts" style="font-weight:bold">{% emoticons %}{{ complaint.c }}{% endemoticons %}</div>
 			<img src="{{ complaint.url }}" alt="{{ complaint.c }}" class="mts cxs sp" style="border-radius:12px;overflow:hidden" width="200"><br>
-			{% if complaint.ot == 'g' %}<a href="{% url 'content_detail_view' pk=complaint.obid origin=6 obj_type='g' %}" target="_blank">{% else %}<a href="{% url 'photo_detail' pk=complaint.obid origin=6 %}" target="_blank">{% endif %}<button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see photo details</button></a><br>
+			{% if complaint.ot == 'g' %}<a href="{% url 'content_detail_view' pk=complaint.obid origin=6 obj_type='g' %}" target="_blank">{% else %}<a href="{% url 'photo_detail' pk=complaint.obid origin=6 %}" target="_blank">{% endif %}<button class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">see image details</button></a><br>
 		{% endif %}
 		<div class="cxs mts sp cgy" style="text-align:right">uploaded {{ complaint.ct|human_time }}</div>
 	</div>
@@ -142,7 +142,7 @@
 					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Meri ye wali post copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Is ne apni recent post copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
 					<div style="padding:8px;background-color:ivory" class="bizcard mt cm mbs sp lsp">{{ dict.otxt }}</div>
 				{% else %}
-					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Meri photo copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Is ne apni recent photo dubara lagai hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
+					<b class="cs mrs">{{ forloop.counter }})</b>{% if dict.rt == '9' %}<b class="clb sp lsp">Mera image copy ki hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% else %}<b class="clb sp lsp">Is ne apna recent image dubara lagai hai <span class="cgy cxs sp" style="font-weight:lighter">(uploaded {{ complaint.oict|human_time }})</span>:</b>{% endif %}
 					<img src="{{ dict.ourl }}" style="border-radius:12px" class="pht mt" alt="photo">
 				{% endif %}
 			{% else %}

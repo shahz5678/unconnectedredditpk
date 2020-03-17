@@ -28,8 +28,8 @@
 
 <form action="{% url 'post_js_reply_to_personal_group' %}" id="form_template" method="POST" style="display:none" enctype="multipart/form-data">
   {% csrf_token %}
-    <span id="pg_rep_size_err" style="text-align:center;display:none" class="cr">Ye photo buhut barri hai, choti photo chunein</span>
-    <span id="pg_rep_mime_err" style="text-align:center;display:none" class="cr">Ye photo kharab hai, koi aur chunein</span>
+    <span id="pg_rep_size_err" style="text-align:center;display:none" class="cr">Ye image buhut bara hai, chota image chunein</span>
+    <span id="pg_rep_mime_err" style="text-align:center;display:none" class="cr">Ye image kharab hai, koi aur chunein</span>
     <input id="rep_sk" type="hidden" name="sk" value="{{ sk }}"><input id="rep_tid" type="hidden" name="tid" value="{{ tid }}"><input id="rep_tt" type="hidden" name="tt" value=""><input id="rep_idx" type="hidden" name="idx" value=""><input id="rep_bid" type="hidden" name="bid" value="">
     <div class="mtl fx fxjscn">
       <div style="width:20%; position:relative">

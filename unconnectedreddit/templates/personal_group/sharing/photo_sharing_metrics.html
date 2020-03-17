@@ -3,22 +3,22 @@
 {% load human_time %}
 {% load s3 %}
 {% block content %}
-<head><title>{{ username }}'s shared photos | Damadam</title></head>
+<head><title>{{ username }}'s shared images | Damadam</title></head>
 
 <div class="mbl" style="max-width:600px;margin-left:auto;margin-right:auto;">
 
 {% if first_time %}
 <div class="cxl mbs bizcard lsp clb" style="padding:10px 8px;text-align:center;background-color:#ffffed">
-<span class="mrs" style="font-weight:bold">{% if own_profile %}Apki{% else %}{{ username }} ki{% endif %} pichley 1 week ki sab se ziyada shared photos yahan hain</span>
+<span class="mrs" style="font-weight:bold">{% if own_profile %}Apki{% else %}{{ username }} ki{% endif %} pichley 1 week ke sab se ziyada shared images yahan hain</span>
 </div>
 {% else %}
-<h1 class="cl clb" style="text-align:center">{% if own_profile %}Your{% else %}{{ username|truncatechars:13 }}'s{% endif %} {% if num_photos == 1 %}top shared photo{% elif num_photos == 0 %}top shared photos{% else %}top {{ num_photos }} shared photos{% endif %}:</h1>
+<h1 class="cl clb" style="text-align:center">{% if own_profile %}Your{% else %}{{ username|truncatechars:13 }}'s{% endif %} {% if num_photos == 1 %}top shared image{% elif num_photos == 0 %}top shared images{% else %}top {{ num_photos }} shared images{% endif %}:</h1>
 {% endif %}
 
 <div class="bizcard clb" style="background-color:white;padding:10px 8px;text-align:center">
 	{% if num_photos < 1 %}
 	<div class="cxl">
-		Pichley 1 week mein koi photo share nahi hui
+		Pichley 1 week mein koi image share nahi hua
 		<hr size=1 COLOR="#f2f2f2">
 		<div class="cgy cs sp">{% if own_profile %}Apkey khud kiye huay shares is list mein shamil nahi{% else %}Ye list kuch waqfay baad update hogi{% endif %}</div>
 		<a href="{% url 'user_profile' username %}"><button class="btn bcb bm mts mbl" style="height:26px">wapis</button></a>

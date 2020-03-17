@@ -46,6 +46,7 @@
 		<h1 class="cxl lsp clb" style="margin:0;display:inline-block">{% if feed_count == 1 %}1 new post for me:{% elif feed_count %}{{ feed_count }} new posts for me:{% else %}For me <span class="cs">(page {{ page.number }})</span>:{% endif %}</h1>
 	</div>
 
+	<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/share/share_button.js"></script>
 	<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
 	<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
 
@@ -102,6 +103,8 @@
 					{% big_external_share_button owner_username=link.su on_opera=on_opera photo_id=link.i origin=origin static_url=STATIC_URL %}
 					{% include "big_buttons/big_delete_button.html" with own_id=ident origin=origin obj_hash=link.h static_url=STATIC_URL %}
 					{% include "big_buttons/big_report_button.html" with origin=origin pid=link.i oun=link.su ooid=link.si img_thumb=link.it raw_caption=link.d av_url=link.sa home_hash=link.h static_url=STATIC_URL type='img' %}
+
+					{% include "big_buttons/big_share_button.html" with origin=origin %}
 
 				{% endif %}
 			</div>
@@ -190,7 +193,7 @@
 			<h2 class="clb mts mbs lsp" style="font-weight:lighter;padding:0 8px;">Agr best posts dekhni hain tou aik button dabain:</h2>
 		
 			<div class="mbl">
-				<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">IMAGE<br>POSTS</div></button></a>
 
 				<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
 			</div>

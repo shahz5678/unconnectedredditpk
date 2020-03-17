@@ -74,7 +74,7 @@
         </div>
         {% elif data.act == 'banned_uploader' %}
         <div style="padding:5px;background-color:#fff2f2;border-radius:5px">
-            <div class="mbs lsp"><b><a href="{% url 'user_profile' data.tunm %}" class="cb">{{ data.tunm }}</a></b> <span class="cgy">- {% if data.dur == '1' %} photos blocked for 3 hours{% elif data.dur == '2' %} photos blocked for 1 day{% elif data.dur == '3' %} photos blocked for 3 days{% elif data.dur == '4' %} photos blocked for 1 month{% elif data.dur == '5' %} photos blocked forever{% else %}{% endif %}</span></div>
+            <div class="mbs lsp"><b><a href="{% url 'user_profile' data.tunm %}" class="cb">{{ data.tunm }}</a></b> <span class="cgy">- {% if data.dur == '1' %} images blocked for 3 hours{% elif data.dur == '2' %} images blocked for 1 day{% elif data.dur == '3' %} images blocked for 3 days{% elif data.dur == '4' %} images blocked for 1 month{% elif data.dur == '5' %} images blocked forever{% else %}{% endif %}</span></div>
             <div class="lsp"><b>Target:</b> <a href="{% url 'user_profile_photo' data.tunm data.obj_id %}"><img src="{{ data.p }}" style="border-radius:4px;border:2px solid dodgerblue" alt="pic"></a></div>
             <div class="lsp"><b>Reason:</b> {% emoticons %}{{ data.rsn }}{% endemoticons %}</div>
             <div style="text-align:right" class="mts cgy cxs sp">{{ data.t|human_time }}</div>

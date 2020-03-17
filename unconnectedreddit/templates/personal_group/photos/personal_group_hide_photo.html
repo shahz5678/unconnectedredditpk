@@ -1,12 +1,12 @@
 {% extends "base/base_pg.html" %}
 {% load s3 %}
 {% block content %}
-<head><title>Action on shared photo | Damadam</title></head>
+<head><title>Action on shared image | Damadam</title></head>
 <div class="clb" style="max-width:480px;width:100%;text-align:center;background:white">
 
     
    <div class="mbl lsp" style="padding-top:14px">
-    {% if action == 'hide' %}<span class="cxl clb">Kya ye photo hide kar di jaye?</span>{% elif action == 'unhide' %}<span class="cxl clb">Kya ye photo dikha di jaye?</span>{% endif %}
+    {% if action == 'hide' %}<span class="cxl clb">Kya ye image hide kar dia jaye?</span>{% elif action == 'unhide' %}<span class="cxl clb">Kya ye image show kar dia jaye?</span>{% endif %}
     </div>
 
     <form action="{% url 'hide_photo_from_personal_group_chat' %}" method="POST" class="mtl mbl">

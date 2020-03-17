@@ -44,7 +44,7 @@
 			<div class="mts lsp cl sp cgy">Damadam ki behtareen posts dekhney ke liye koi aik button dabain:</div>
 
 			<div class="mbl">
-				<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+				<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">IMAGE<br>POSTS</div></button></a>
 
 				<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
 			</div>
@@ -181,7 +181,7 @@
 				<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
 				<hr size=1 COLOR="#f2f2f2">
 					<div class="mts lsp cl sp cgy">Apki posts exist nahi kartein ya expire ho chuki hain</div>
-				<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
+				<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Images</button></a></div>
 		</div>	
 	{% elif post_count > 0 and is_own_profile %}
 		<!-- all posts for followers, viewed by own_profile -->
@@ -412,7 +412,7 @@
 				<div class="cxl lsp clb mts">Sorry! Ye khali hai ...</div>
 				<hr size=1 COLOR="#f2f2f2">
 					<div class="mts lsp cl sp cgy">Aap ne koi private posts share nahi ki huin</div>
-				<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Photos</button></a></div>
+				<div class="mtl mbl"><a href="{% url 'for_me' %}"><button class="bcb btn bl sp pg_ok_res mrl" style="height:28px">For Me</button></a><a href="{% url 'photo' 'best-list' %}"><button class="mll bco btn bl sp pg_ok_res" style="height:28px">Images</button></a></div>
 			</div>
 
 	{% else %}

@@ -1,8 +1,8 @@
-<div class="fr" id="pg_size_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
-<div class="fr" id="pg_mime_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye photo kharab hai, koi aur chunein</span></div>
+<div class="fr" id="pg_size_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye image buhut bara hai, chota image chunein</span></div>
+<div class="fr" id="pg_mime_err" style="background-color: #FFF2F2;padding:4px;display:none"><span class="cr lsp">Ye image kharab hai, koi aur chunein</span></div>
 
 <div class="sp cs" style="border-radius:0px;text-align:center;border-bottom:1px solid #e8e8e8" id="personal_group_top">
-    {% if no_permit %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko photo send karney ki ijazat nahi di hui</span></div>{% elif no_save_chat %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko uski chat save karney ki ijazat nahi di hui</span></div>{% elif no_notif %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko notification send karney ki ijazat nahi di hui</span></div>{% elif form_errors %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp">{{ form_errors }}</span></div>{% elif last_seen_time_diff %}
+    {% if no_permit %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko image sharing ki ijazat nahi di hui</span></div>{% elif no_save_chat %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko uski chat save karney ki ijazat nahi di hui</span></div>{% elif no_notif %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp"><b>{{ t_nick }}</b> ne apko notification send karney ki ijazat nahi di hui</span></div>{% elif form_errors %}<div style="background-color: #FFF2F2;padding:4px;"><span class="cr lsp">{{ form_errors }}</span></div>{% elif last_seen_time_diff %}
     <div style="background-color: #fefefa;text-align:center">
         <div style="padding:5px;color:gray">
             {% if is_js_env %}

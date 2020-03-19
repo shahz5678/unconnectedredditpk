@@ -16,10 +16,10 @@ from tasks import registration_task, send_user_pin
 from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.cache import cache_control
 from django.views.decorators.debug import sensitive_post_parameters
-from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, insert_nick, temporarily_save_user_csrf, set_forgot_password_rate_limit, \
-is_forgot_password_rate_limited, twiliolog_user_verified, twiliolog_pin_sms_sent, log_post_banned_username, save_user_account_kit_server_secret, \
-someone_elses_number, log_ak_user_verification_outcome,retrieve_user_account_kit_secret,log_fp_ak_entered, log_fp_ak_user_verification_outcome,\
-get_provider, get_firebase_id, get_user_verified_number, save_consumer_details, unverify_user_id#, log_forgot_password, is_sms_sending_rate_limited
+from redis3 import get_temp_id, nick_already_exists, is_mobile_verified, insert_nick, temporarily_save_user_csrf,\
+set_forgot_password_rate_limit, is_forgot_password_rate_limited, log_post_banned_username, save_user_account_kit_server_secret,\
+someone_elses_number,retrieve_user_account_kit_secret, get_provider, get_firebase_id, get_user_verified_number, \
+save_consumer_details, unverify_user_id,fp_log_firebase_entered,fp_log_firebase_user_verification_outcome #,log_fp_ak_entered, log_fp_ak_user_verification_outcome,twiliolog_user_verified, twiliolog_pin_sms_sent,, log_forgot_password, is_sms_sending_rate_limited log_ak_user_verification_outcome,
 from unauth_forms import CreateAccountForm, CreatePasswordForm, CreateNickNewForm, ForgettersNicknameForm, ResetForgettersPasswordForm, SignInForm,\
 ForgettersMobileNumber, ForgettersPin
 from verification_views import get_requirements
@@ -81,7 +81,8 @@ def forgot_password(request, *args, **kwargs):
 	"""
 	if request.user.is_authenticated():
 		# already logged in
-		return redirect('home')
+    fp_log_firebase_user_verification_outcome('id_already_logged_in_firebase')
+    return redirect('home')
 	elif request.method == "POST":
 		form = ForgettersNicknameForm(data=request.POST, lang=None)
 		if form.is_valid():
@@ -92,10 +93,15 @@ def forgot_password(request, *args, **kwargs):
 				request.session["forgetters_userid"] = user_id
 				request.session.modified = True
 				if is_legacy_verification:
+					fp_log_firebase_entered()
 					return render(request,"unauth/verify_forgetters_account_via_firebase.html",{'provider_type':'phone'})
 				else:
+					fp_log_firebase_entered()
 					provider = get_provider(user_id)# what kind of provider was used (FB, Goog, Mobile)
-					return render(request,"unauth/verify_forgetters_account_via_firebase.html",{'provider_type':provider})						
+					if provider == 'artificial':
+						return redirect('missing_page')
+					else:	
+						return render(request,"unauth/verify_forgetters_account_via_firebase.html",{'provider_type':provider})						
 			else:
 				return render(request,"unauth/nick_unassociated_with_mobnum.html",{'nick':username})
 		else:
@@ -114,7 +120,8 @@ def prelim_account_verification(request, *args, **kwargs):
 	"""
 	if request.user.is_authenticated():
 		# already logged in
-		return redirect('home')
+    fp_log_firebase_user_verification_outcome('id_already_logged_in_firebase')
+    return redirect('home')
 	elif request.method == "POST":
 		is_ajax = request.is_ajax()
 		if is_ajax:
@@ -146,27 +153,31 @@ def prelim_account_verification(request, *args, **kwargs):
 					# add credentials to the new verification system
 					user_verification_data = {'uid':uid,'provider':provider,'puid':puid,'name':name,'email':email,'purl':purl,'num':num,'verif_time':time.time()}
 					save_consumer_details(user_verification_data,user_id)
+					fp_log_firebase_user_verification_outcome('reverified')
 					###################################################################################
 					
 					return HttpResponse(json.dumps({'success':True,'message':reverse("set_forgetters_password",kwargs={})}),content_type='application/json')
 			
 				else:
 					#Number provided does not belong to the user
+					fp_log_firebase_user_verification_outcome('details_for_unrelated_account')
 					request.session.pop('forgetters_username',None)
 					request.session.pop('forgetters_userid',None)
-					request.session["account_kit_verification_failed"] = '1'
-					request.session["account_kit_verification_failure_reason"] = '3'#someone elses number, trying to dupe forgot password
+					request.session["firebase_verification_failed"] = '1'
+					request.session["firebase_verification_failure_reason"] = '3'#someone elses number, trying to dupe forgot password
 					return HttpResponse(json.dumps({'success':True,'message':reverse("firebase_forgot_pass_verification_failed",kwargs={})}),content_type='application/json',)
 			
 			elif stored_id == uid:
 				# user is authentic - they have verified using firebase, redirect to set new password page
+				fp_log_firebase_user_verification_outcome('reverified')
 				return HttpResponse(json.dumps({'success':True,'message':reverse("set_forgetters_password",kwargs={})}),content_type='application/json')
 			else:
 				# not your account details
+				fp_log_firebase_user_verification_outcome('details_for_unrelated_account')
 				request.session.pop('forgetters_username',None)
 				request.session.pop('forgetters_userid',None)
-				request.session["account_kit_verification_failed"] = '1'
-				request.session["account_kit_verification_failure_reason"] = '3'#someone elses number, trying to dupe forgot password
+				request.session["firebase_verification_failed"] = '1'
+				request.session["firebase_verification_failure_reason"] = '3'#someone elses number, trying to dupe forgot password
 				return HttpResponse(json.dumps({'success':True,'message':reverse("firebase_forgot_pass_verification_failed",kwargs={})}),content_type='application/json')
 		else:
 			# TODO: show a prompt that non-JS environments don't support this functionality

@@ -316,7 +316,7 @@ def enter_personal_group_from_single_notif(request):
 			request.session["personal_group_tid_key"] = target_id
 			return redirect("enter_personal_group")
 		else:
-			return redirect('for_me')
+			return redirect('personal_group_user_listing')
 	else:
 		return render(request,"verification/unable_to_submit_without_verifying.html",{'1on1':True})
 
@@ -2002,11 +2002,11 @@ def accept_personal_group_invite(request):
 					if poid:
 						return redirect("publicreply_view",poid)
 					else:
-						return redirect('for_me')
+						return redirect("show_personal_group_invite_list",list_type='received')
 				else:
 					return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
-		return redirect('for_me')
+		return redirect("show_personal_group_invite_list",list_type='received')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2036,12 +2036,11 @@ def send_personal_group_invite(request):
 				if poid:
 					return redirect("publicreply_view",poid)
 				else:
-					return redirect('for_me')
+					return redirect("show_personal_group_invite_list",list_type='sent')
 			else:
-				# return return_to_source(origin,poid,target_username)
 				return return_to_content(request,origin,poid,home_hash,target_username)
 	else:
-		return redirect('for_me')
+		return redirect("show_personal_group_invite_list",list_type='sent')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -2129,7 +2128,7 @@ def change_personal_group_invite_privacy(request):
 							context["lid"] = request.POST.get("lid",None)
 							return render(request,"helpful_instructions.html",context)
 	else:
-		return redirect('for_me')
+		return redirect("show_personal_group_invite_list",list_type='sent')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)

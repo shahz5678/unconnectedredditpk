@@ -26,17 +26,17 @@
 	{% endif %}
 
 {% if referrer == 'home' %}
-<a href="{% url 'for_me' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
+<a href="{% url 'home' %}#section0"><button class="btn bcg bm mtl" style="height:28px">OK</button></a>
 {% elif referrer == 'personal_group' %}
 <form method="POST" class="mtl" action="{% url 'enter_personal_group' %}">
 	{% csrf_token %}
 	<input type="hidden" name="tid" value="{{ tid }}">
-	<button type="submit" class="btn bcb bs mtl cl" style="border:none;height:30px;">OK</button>
+	<button type="submit" class="btn bcb bs mtl cl" style="border:none;height:28px;">OK</button>
 </form>
 {% elif referrer == 'login' %}
-<a href="{% url 'login' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
+<a href="{% url 'login' %}#section0"><button class="btn bcg bm mtl" style="height:28px">OK</button></a>
 {% else %}
-<a href="{% url 'classified_listing' %}#section0"><button class="btn bcg bm mtl" style="height:25px">OK</button></a>
+<a href="{% url 'classified_listing' %}#section0"><button class="btn bcg bm mtl" style="height:28px">OK</button></a>
 {% endif %}
 
 </div>

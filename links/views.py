@@ -1022,7 +1022,7 @@ def turn_off_newbie(request,origin):
 	# elif origin == '36':
 	# 	return redirect('get_ranked_groups')
 	else:
-		return redirect('for_me')
+		return redirect('home')
 
 def new_user_gateway(request,lang=None,*args,**kwargs):
 	"""
@@ -1068,7 +1068,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 				log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now, which_var='var'+choice)
 			############################################
 			############################################
-			return redirect('for_me')
+			return redirect('home')
 			# if choice == '5':
 			# 	return redirect("get_ranked_groups")
 			# elif choice == '6':
@@ -1076,7 +1076,7 @@ def first_time_choice(request,lang=None, *args, **kwargs):
 			# elif choice == '7':
 			# 	return redirect(reverse_lazy("photo", args=['best-list']))
 			# else:
-			# 	return redirect('for_me')
+			# 	return redirect('home')
 		else:
 			request.session["redo_tut_selection"+str(user_id)] = '1'
 			return redirect("first_time_choice",lang)
@@ -1129,7 +1129,7 @@ def show_online_users(request):
 
 class LinkDeleteView(DeleteView):
 	model = Link
-	success_url = reverse_lazy('for_me')
+	success_url = reverse_lazy('home')
 
 
 def user_profile_photo(request, slug=None, photo_pk=None, is_notif=None, *args, **kwargs):
@@ -3147,7 +3147,7 @@ def welcome_reply(request,*args,**kwargs):
 					description = target.username+" salam! Is jalebi se mu meetha karo (jalebi)"
 					reply = Publicreply.objects.create(submitted_by_id=user_id, answer_to=parent, description=description)
 				else:
-					return redirect('for_me')
+					return redirect('home')
 				parent.latest_reply = reply
 				parent.save()
 				try:
@@ -3163,7 +3163,7 @@ def welcome_reply(request,*args,**kwargs):
 					is_welc=False,reply_count=parent.reply_count,priority='home_jawab',from_unseen=False)
 				
 				##################################################################
-				return redirect('for_me')
+				return redirect('home')
 			else:
 				return render(request,'old_user.html',{'username':target.username})
 		else:
@@ -3240,7 +3240,7 @@ def hell_ban(request,*args,**kwargs):
 					else:
 						return redirect("user_profile",username)
 				except:
-					return redirect('for_me')
+					return redirect('home')
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
@@ -3337,7 +3337,7 @@ def kick_ban_user(request,*args,**kwargs):
 					# Session.objects.filter(user_id__in=target_ids).delete()
 					return redirect("user_profile",username)
 				except:
-					return redirect('for_me')
+					return redirect('home')
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")
@@ -3392,7 +3392,7 @@ def kick_user(request,*args,**kwargs):
 					# Session.objects.filter(user_id__in=target_ids).delete()
 					return redirect("user_profile",username)
 				except:
-					return redirect('for_me')
+					return redirect('home')
 		else:
 			target_username = request.POST.get("t_uname")
 			target_id = request.POST.get("t_id")

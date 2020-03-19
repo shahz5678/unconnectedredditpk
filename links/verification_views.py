@@ -29,7 +29,7 @@ def firebase_verification(request,*args,**kwargs):
 	"""
 	Handles firebase-led verification
 
-	JS is required for this to work, otherwise we redirect the user to "for_me"
+	JS is required for this to work, otherwise we redirect the user to "home"
 	"""
 	is_ajax = request.is_ajax()
 	if is_ajax:
@@ -62,7 +62,7 @@ def firebase_verification(request,*args,**kwargs):
 			return redirect('verify_user_mobile_unpaid')
 	##############################
 	else:
-		return redirect('for_me')
+		return redirect('home')
 
 
 def firebase_verification_result(request):
@@ -302,46 +302,6 @@ def number_verification_help(request):
 	return render(request,"verification/num_verification_help.html",{})
 
 
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @csrf_protect
-# def wait_before_verifying(request):
-# 	"""
-# 	Prompt shown to FBS based would-be verifiers, chiding them to wait 24 hours before dipping their beaks in the verification bucket
-# 	"""
-# 	user_id = request.user.id
-# 	if request.method == "POST":
-# 		if is_mobile_verified(user_id):
-# 			return redirect('for_me')
-# 		else:
-# 			on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-# 			if on_fbs:
-# 				joining_epoch_time = convert_to_epoch(request.user.date_joined)
-# 				expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
-# 				ttw = expire_at - time.time()
-# 				if ttw > 0:
-# 					# expiry of this lock is a 'future' event
-# 					return render(request,'verification/wait_before_verifying.html',{'redirect_to_paid_internet':True})
-# 				else:
-# 					# this lock has expired!
-# 					return redirect("verify_user_mobile")
-# 			else:
-# 				return redirect("verify_user_mobile")
-# 	else:
-# 		try:
-# 			joining_epoch_time = convert_to_epoch(request.user.date_joined)
-# 			expire_at = joining_epoch_time + FBS_VERIFICATION_WAIT_TIME
-# 			ttw = expire_at - time.time()
-# 			if ttw > 0:
-# 				# expiry of this lock is a 'future' event
-# 				log_fbs_please_wait(user_id=user_id, expire_at=int(expire_at))
-# 				return render(request, "verification/wait_before_verifying.html", {'time_to_wait':int(ttw)})
-# 			else:
-# 				# this lock has expired!
-# 				return redirect("verify_user_mobile")
-# 		except (ValueError, TypeError):
-# 			return redirect('missing_page')				
-
-
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
 @csrf_protect
 def verify_user_mobile_unpaid(request):
@@ -351,8 +311,8 @@ def verify_user_mobile_unpaid(request):
 	"""
 	if is_mobile_verified(request.user.id): 
 		# not allowed to proceed
-		log_firebase_user_verification_outcome('id_already_verified_firebase')
-		return redirect("for_me")
+    log_firebase_user_verification_outcome('id_already_verified_firebase')
+    return redirect("home")
 	else:
 		if request.META.get('HTTP_X_IORG_FBS',False):
 			template_name = 'verification/user_mobile_verification_fbs.html'
@@ -456,95 +416,6 @@ def unable_to_verify_on_fbs(request):
 # 			else:
 # 				return render(request,'verification/user_mobile_verification.html',{'form':MobileVerificationForm(),\
 # 					'pin_expired':request.session.pop("start_verification_again"+str(user_id),None)})
-
-
-# @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
-# @csrf_protect
-# def pin_verification(request):
-# 	"""
-# 	This will verify the pin entered by the user
-# 	"""
-# 	if request.method == "POST":
-# 		on_fbs = request.META.get('HTTP_X_IORG_FBS',False)
-# 		if on_fbs:
-# 			joining_epoch_time = convert_to_epoch(request.user.date_joined)
-# 			if joining_epoch_time + FBS_VERIFICATION_WAIT_TIME - time.time() > 0:
-# 				# rate limited from verifying currently, inform accordingly
-# 				return redirect("wait_before_verifying")
-# 		###########################################################################
-# 		user_id = request.user.id
-# 		if is_mobile_verified(user_id):
-# 			target_id = get_personal_group_target_id(user_id)
-# 			if can_change_number(user_id) and target_id:
-# 				form = PinVerifyForm(request.POST,user_id=user_id,allow_reverification=True)
-# 				phonenumber = request.session.get('phonenumber'+str(user_id),None)
-# 				if form.is_valid():
-# 					pin_state = form.cleaned_data.get("pinnumber")
-# 					if pin_state == 'pin_matched':
-# 						request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
-# 						request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-# 						for_personal_group = request.session.pop("for_personal_group",None)
-# 						own_anon_status, their_anon_status, group_id = get_personal_group_anon_state(user_id, target_id)
-# 						if for_personal_group == '1':
-# 							request.session.pop('phonenumber'+str(user_id),None)
-# 							account_kid_id = 'twilio_verification'
-# 							national_number = phonenumber[-10:]
-# 							number ='+92'+national_number	
-# 							mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
-# 							save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
-# 							change_verification_status(user_id,'verified')
-# 							set_personal_group_mobile_num_cooloff(user_id)
-# 							if their_anon_status is None:
-# 								return redirect('for_me')
-# 							else:
-# 								twiliolog_user_reverified()
-# 								log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
-# 								return render(request,"personal_group/sms_settings/personal_group_successful_mob_verification.html",\
-# 									{'tid':target_id,'their_anon':their_anon_status,'name':retrieve_uname(target_id,decode=True),\
-# 									'avatar':None if their_anon_status else UserProfile.objects.filter(user_id=target_id).values_list('avatar',flat=True)[0]})
-# 						else:
-# 							# maybe the key has already been popped, send the person back to the relevant personal group
-# 							request.session["personal_group_gid_key:"+target_id] = group_id#checked
-# 							request.session.modified = True
-# 							return redirect("enter_personal_group")
-# 					else:
-# 						# pin_state is 'invalid' or 'expired'
-# 						request.session['start_verification_again'+str(user_id)] = '1'
-# 						request.session.modified = True
-# 						return redirect("verify_user_mobile")
-# 				else:
-# 					return render(request,"verification/enter_pin_code.html",{'form':form})
-# 			else:
-# 				return redirect('missing_page')
-# 		else:
-# 			form = PinVerifyForm(request.POST,user_id=user_id,allow_reverification=False)
-# 			phonenumber = request.session.get('phonenumber'+str(user_id),None)
-# 			if form.is_valid():
-# 				pin_state = form.cleaned_data.get("pinnumber")
-# 				if pin_state == 'pin_matched':
-# 					request.session.pop("newbie_flag",None)# verified users aren't newbies by definition
-# 					request.session.pop("newbie_lang",None)# verified users aren't newbies by definition
-# 					request.session.pop('phonenumber'+str(user_id),None)
-# 					account_kid_id = 'twilio_verification'
-# 					national_number = phonenumber[-10:]
-# 					number ='+92'+national_number	
-# 					mobile_data = {'national_number':national_number,'number':number,'country_prefix':'92'}
-# 					save_consumer_credentials.delay(account_kid_id, mobile_data, user_id)
-# 					change_verification_status(user_id,'verified')
-# 					increase_user_points.delay(user_id=user_id, increment=NUMBER_VERIFICATION_BONUS)
-# 					twiliolog_user_verified()
-# 					log_fbs_user_verification(user_id, on_fbs=on_fbs, time_now=time.time())
-# 					return render(request,"verification/reward_earned.html",{})
-# 				else:
-# 					# pin_state is 'invalid' or 'expired'
-# 					request.session['start_verification_again'+str(user_id)] = '1'
-# 					request.session.modified = True
-# 					return redirect("verify_user_mobile")
-# 			else:
-# 				return render(request,"verification/enter_pin_code.html",{'form':form})
-# 	else:
-# 		# not a POST request
-# 		return redirect('missing_page')
 
 	
 # ############################## Pink star verification #################################

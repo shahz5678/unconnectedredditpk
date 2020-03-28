@@ -22,7 +22,7 @@ def image_description_generator(caption):
 			elif "sad " in caption_lower:
 				image_alt_text = 'Sad poetry'
 				image_filename = 'sad-poetry-{}'.format(random_string)
-			elif "love" in caption_lower:
+			elif "love" in caption_lower or "romantic" in caption_lower:
 				image_alt_text = 'Romantic poetry'
 				image_filename = 'romantic-poetry-{}'.format(random_string)
 			elif "urdu" in caption_lower:
@@ -50,14 +50,15 @@ def image_description_generator(caption):
 		or "hihi" in caption_lower or "hehe" in caption_lower or unicode("😂", "utf-8") in caption_lower \
 		or unicode("🤣", "utf-8") in caption_lower or unicode("😝", "utf-8") in caption_lower \
 		or unicode("😆", "utf-8") in caption_lower or unicode("🤪", "utf-8") in caption_lower \
+		or unicode("😁", "utf-8") in caption_lower or unicode("😅", "utf-8") in caption_lower \
 		or ":d" in caption_lower or ".a5" in caption_lower or ".c1" in caption_lower \
 		or ".c5" in caption_lower or ".b1" in caption_lower or ".b3" in caption_lower \
 		or ".d2" in caption_lower or ".d1" in caption_lower:
-			if "corona" in caption_lower:
-				image_alt_text = 'Coronavirus Funny Image'
+			if "corona" in caption_lower or "carona" in caption_lower or "crona" in caption_lower or "caroona" in caption_lower:
+				image_alt_text = 'Corona meme, carona meme, coronavirus meme, corona joke'
 				image_filename = 'coronavirus-funny-{}'.format(random_string)
 			else:
-				image_alt_text = 'Funny image'
+				image_alt_text = 'Funny joke'
 				image_filename = 'funny-{}'.format(random_string)
 			add_to_sitemap = True
 
@@ -66,9 +67,21 @@ def image_description_generator(caption):
 		elif "morning" in caption_lower or "mornng" in caption_lower \
 		or "morng" in caption_lower:
 			if "good" in caption_lower or "gud" in caption_lower \
-			or "goood" in caption_lower or "gd" in caption_lower:
+			or "goood" in caption_lower or "gd" in caption_lower \
+			or ".q1" in caption_lower:
 				image_alt_text = 'Good morning'
 				image_filename = 'good-morning-{}'.format(random_string)
+				add_to_sitemap = True
+			else:
+				image_alt_text = caption
+				image_filename = random_string
+
+		###############################################
+		# is it a "subha bakhair" greeting?
+		elif "bakhair" in caption_lower or "bakhir" in caption_lower or "bakher" in caption_lower or "baker" in caption_lower:
+			if "subha" in caption_lower or "suba" in caption_lower:
+				image_alt_text = 'Subha bakhair'
+				image_filename = 'subha-bakhair-{}'.format(random_string)
 				add_to_sitemap = True
 			else:
 				image_alt_text = caption
@@ -140,14 +153,14 @@ def image_description_generator(caption):
 
 		###############################################
 		# does it relate to a current issue?
-		elif "corona" in caption_lower:
-			image_alt_text = 'Coronavirus social media post'
+		elif "corona" in caption_lower or "carona" in caption_lower or "caroona" in caption_lower:
+			image_alt_text = 'Corona social media post, carona social media post'
 			image_filename = 'coronavirus-social-media-post-{}'.format(random_string)
 			add_to_sitemap = True
 
 		###############################################
 		# can it be called a 'post'?
-		elif "post" in caption_lower or unicode("♥", "utf-8") in caption_lower:
+		elif "post" in caption_lower or unicode("♥", "utf-8") in caption_lower or unicode("❤️","utf-8") in caption_lower:
 			if "islam" in caption_lower:
 				image_alt_text = 'Islamic post'
 				image_filename = 'islamic-post-{}'.format(random_string)

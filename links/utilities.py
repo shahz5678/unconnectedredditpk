@@ -36,7 +36,7 @@ def image_description_generator(caption):
 		###############################################
 		# is it poetry by a certain poet?
 		elif "elia" in caption_lower or "eliya" in caption_lower:
-			if "john" in caption_lower or "jaun" in caption_lower or "jahan" in caption_lower:
+			if "john" in caption_lower or "jaun" in caption_lower or "jahan" in caption_lower or "joun" in caption_lower:
 				image_alt_text = 'Jaun Elia poetry'
 				image_filename = 'jaun-elia-poetry-{}'.format(random_string)
 				add_to_sitemap = True
@@ -168,6 +168,17 @@ def image_description_generator(caption):
 				image_alt_text = 'Social media post'
 				image_filename = 'social-media-post-{}'.format(random_string)
 			add_to_sitemap = True
+
+		###############################################
+		# is it language specific?
+		elif "just" in caption_lower:
+			if "fun" in caption_lower:
+				image_alt_text = 'Funny post'
+				image_filename = 'funny-post-{}'.format(random_string)
+				add_to_sitemap = True
+			else:
+				image_alt_text = caption
+				image_filename = random_string
 
 		###############################################
 		#TODO: add more cases as the need arises

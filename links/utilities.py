@@ -28,6 +28,9 @@ def image_description_generator(caption):
 			elif "urdu" in caption_lower:
 				image_alt_text = 'Urdu poetry'
 				image_filename = 'urdu-poetry-{}'.format(random_string)
+			elif "pashto" in caption_lower:
+				image_alt_text = 'Pashto poetry'
+				image_filename = 'pashto-poetry-{}'.format(random_string)
 			else:
 				image_alt_text = 'Poetry'
 				image_filename = 'poetry-{}'.format(random_string)
@@ -86,7 +89,7 @@ def image_description_generator(caption):
 		elif "morning" in caption_lower or "mornng" in caption_lower or "morng" in caption_lower or "mr9g" in caption_lower:
 			if "good" in caption_lower or "gud" in caption_lower or "goood" in caption_lower \
 			or "gooood" in caption_lower or "gd" in caption_lower or "g00d" in caption_lower \
-			or ".q1" in caption_lower:
+			or "gxd" in caption_lower or ".q1" in caption_lower:
 				image_alt_text = 'Good morning'
 				image_filename = 'good-morning-{}'.format(random_string)
 				add_to_sitemap = True
@@ -119,7 +122,7 @@ def image_description_generator(caption):
 
 		###############################################
 		# is it an evening greeting?
-		elif "evening" in caption_lower:
+		elif "evening" in caption_lower or "eveing" in caption_lower:
 			if "good" in caption_lower or "gud" in caption_lower or "goood" in caption_lower \
 			or "gooood" in caption_lower or "gd" in caption_lower:
 				image_alt_text = 'Good evening'
@@ -205,6 +208,11 @@ def image_description_generator(caption):
 		elif "golden words" in caption_lower:
 			image_alt_text = 'Golden words'
 			image_filename = 'golden-words-{}'.format(random_string)
+			add_to_sitemap = True
+
+		elif "quote" in caption_lower:
+			image_alt_text = 'Quote'
+			image_filename = 'quote-{}'.format(random_string)
 			add_to_sitemap = True
 
 		###############################################

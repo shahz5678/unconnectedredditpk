@@ -32,6 +32,8 @@ def get_s3_object(filename,category='img'):
 				############################################
 				if "1-on-1/" in filename or "group/" in filename or "dp/" in filename or "shared/" in filename:
 					return NEW_BUCKET_ADDR+'thumbnail/'+filename
+				elif "follower/" in filename:
+					return NEW_BUCKET_ADDR+'thumbnail/follower/'+filename.partition("follower/")[-1]
 				############################################
 				################# Legacy ###################
 				############################################

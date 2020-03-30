@@ -79,6 +79,10 @@ def image_description_generator(caption):
 			elif "quarantine" in caption_lower:
 				image_alt_text = 'Quarantine meme, quarantine funny, quarantine joke'
 				image_filename = 'quarantine-funny-{}'.format(random_string)
+			elif "stay" in caption_lower and "home" in caption_lower:
+				image_alt_text = 'Stay home meme, stay home funny joke'
+				image_filename = 'stay-home-meme-{}'.format(random_string)
+				add_to_sitemap = True
 			else:
 				image_alt_text = 'Funny joke'
 				image_filename = 'funny-joke-{}'.format(random_string)
@@ -176,6 +180,21 @@ def image_description_generator(caption):
 			image_filename = 'coronavirus-social-media-post-{}'.format(random_string)
 			add_to_sitemap = True
 
+		elif "stay" in caption_lower and "home" in caption_lower:
+			image_alt_text = 'Stay home'
+			image_filename = 'stay-home-{}'.format(random_string)
+			add_to_sitemap = True
+
+		elif "quarantine" in caption_lower:
+			image_alt_text = 'Quarantine post, quarantine social media post'
+			image_filename = 'quarantine-post-{}'.format(random_string)
+			add_to_sitemap = True
+
+		elif "lockdown" in caption_lower or ("lock" in caption_lower and "down" in caption_lower):
+			image_alt_text = 'Lockdown post, lockdown social media post'
+			image_filename = 'lockdown-post-{}'.format(random_string)
+			add_to_sitemap = True
+
 		###############################################
 		# can it be called a 'post'?
 		elif "post" in caption_lower or unicode("♥", "utf-8") in caption_lower:
@@ -213,18 +232,6 @@ def image_description_generator(caption):
 		elif "quote" in caption_lower:
 			image_alt_text = 'Quote'
 			image_filename = 'quote-{}'.format(random_string)
-			add_to_sitemap = True
-
-		###############################################
-		# is it quarantine or lockdown specific?
-		elif "quarantine" in caption_lower:
-			image_alt_text = 'Quarantine post, quarantine social media post'
-			image_filename = 'quarantine-post-{}'.format(random_string)
-			add_to_sitemap = True
-
-		elif "lockdown" in caption_lower:
-			image_alt_text = 'Lockdown post, lockdown social media post'
-			image_filename = 'lockdown-post-{}'.format(random_string)
 			add_to_sitemap = True
 
 		###############################################

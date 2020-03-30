@@ -190,7 +190,7 @@ def image_description_generator(caption):
 			image_filename = 'quarantine-post-{}'.format(random_string)
 			add_to_sitemap = True
 
-		elif "lockdown" in caption_lower or ("lock" in caption_lower and "down" in caption_lower):
+		elif "lock" in caption_lower and "down" in caption_lower:
 			image_alt_text = 'Lockdown post, lockdown social media post'
 			image_filename = 'lockdown-post-{}'.format(random_string)
 			add_to_sitemap = True

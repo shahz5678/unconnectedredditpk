@@ -67,9 +67,10 @@ def image_description_generator(caption):
 		or unicode("🤣", "utf-8") in caption_lower or unicode("😝", "utf-8") in caption_lower \
 		or unicode("😆", "utf-8") in caption_lower or unicode("🤪", "utf-8") in caption_lower \
 		or unicode("😁", "utf-8") in caption_lower or unicode("😅", "utf-8") in caption_lower \
-		or ":d" in caption_lower or ".a5" in caption_lower or ".c1" in caption_lower \
-		or ".c5" in caption_lower or ".b1" in caption_lower or ".b3" in caption_lower \
-		or ".d2" in caption_lower or ".d1" in caption_lower or ".d3" in caption_lower:
+		or unicode("😄", "utf-8") in caption_lower or ":d" in caption_lower or ".a5" in caption_lower \
+		or ".c1" in caption_lower or ".c5" in caption_lower or ".b1" in caption_lower \
+		or ".b3" in caption_lower or ".d2" in caption_lower or ".d1" in caption_lower \
+		or ".d3" in caption_lower:
 			if "corona" in caption_lower or "carona" in caption_lower or "crona" in caption_lower or "caroona" in caption_lower:
 				image_alt_text = 'Corona meme, carona meme, coronavirus meme, corona joke'
 				image_filename = 'coronavirus-funny-{}'.format(random_string)
@@ -138,7 +139,7 @@ def image_description_generator(caption):
 
 		###############################################
 		# is it a night greeting?
-		elif "night" in caption_lower:
+		elif "night" in caption_lower or "ni8" in caption_lower:
 			if "good" in caption_lower or "gud" in caption_lower or "goood" in caption_lower \
 			or "gooood" in caption_lower or "gd" in caption_lower:
 				image_alt_text = 'Good night'
@@ -197,7 +198,7 @@ def image_description_generator(caption):
 
 		###############################################
 		# can it be called a 'post'?
-		elif "post" in caption_lower or unicode("♥", "utf-8") in caption_lower:
+		elif "post" in caption_lower or unicode("♥", "utf-8") in caption_lower or unicode("💙","utf-8") in caption_lower:
 			if "islam " in caption_lower or "islamic" in caption_lower:
 				image_alt_text = 'Islamic post'
 				image_filename = 'islamic-post-{}'.format(random_string)

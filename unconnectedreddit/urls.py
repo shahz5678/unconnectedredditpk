@@ -5,9 +5,7 @@ from django.contrib import admin
 from django.views.generic.base import TemplateView
 from urls_unauth import urlpatterns as urlpatterns_unauth
 from urls_maint import urlpatterns as urlpatterns_maint
-# from urls_advertiser import urlpatterns as urlpatterns_adv
 from urls_retention import urlpatterns as urlpatterns_retention
-# from urls_ads import urlpatterns as urlpatterns_ads
 from urls_feedback import urlpatterns as urlpatterns_feedback
 from urls_groups import urlpatterns as urlpatterns_groups
 from urls_sharing import urlpatterns as urlpatterns_sharing
@@ -44,7 +42,7 @@ admin.autodiscover()
 
 urlpatterns = patterns('',
 	############################# home page ################################
-	url(r'^$', best_photos_list, name='home'),
+	url(r'^$', auth(best_photos_list), name='home'),
 	###################### sitemaps and robots.txt #########################
 	url(r'^sitemap\.xml$', sitemap, name='sitemap'),
 	url(r'^robots\.txt/$', TemplateView.as_view(template_name="robots.txt", content_type='text/plain')),

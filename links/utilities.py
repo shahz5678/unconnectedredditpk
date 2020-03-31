@@ -15,7 +15,7 @@ def image_description_generator(caption):
 
 		###############################################
 		# is it a poetry related image?
-		if "poetry" in caption_lower:
+		if "poetry" in caption_lower or "p0etry" in caption_lower:
 			if "funny" in caption_lower:
 				image_alt_text = 'Funny poetry'
 				image_filename = 'funny-poetry-{}'.format(random_string)
@@ -61,6 +61,19 @@ def image_description_generator(caption):
 				add_to_sitemap = True
 
 		###############################################
+		# is it a morning greeting?
+		elif "morning" in caption_lower or "mornng" in caption_lower or "morng" in caption_lower or "mr9g" in caption_lower:
+			if "good" in caption_lower or "gud" in caption_lower or "goood" in caption_lower \
+			or "gooood" in caption_lower or "gd" in caption_lower or "g00d" in caption_lower \
+			or "gxd" in caption_lower or ".q1" in caption_lower:
+				image_alt_text = 'Good morning'
+				image_filename = 'good-morning-{}'.format(random_string)
+				add_to_sitemap = True
+			else:
+				image_alt_text = caption
+				image_filename = random_string
+
+		###############################################
 		# is it a funny meme/image?
 		elif "funny" in caption_lower or "hhhh" in caption_lower or "haha" in caption_lower \
 		or "hihi" in caption_lower or "hehe" in caption_lower or unicode("😂", "utf-8") in caption_lower \
@@ -88,19 +101,6 @@ def image_description_generator(caption):
 				image_alt_text = 'Funny joke'
 				image_filename = 'funny-joke-{}'.format(random_string)
 			add_to_sitemap = True
-
-		###############################################
-		# is it a morning greeting?
-		elif "morning" in caption_lower or "mornng" in caption_lower or "morng" in caption_lower or "mr9g" in caption_lower:
-			if "good" in caption_lower or "gud" in caption_lower or "goood" in caption_lower \
-			or "gooood" in caption_lower or "gd" in caption_lower or "g00d" in caption_lower \
-			or "gxd" in caption_lower or ".q1" in caption_lower:
-				image_alt_text = 'Good morning'
-				image_filename = 'good-morning-{}'.format(random_string)
-				add_to_sitemap = True
-			else:
-				image_alt_text = caption
-				image_filename = random_string
 
 		###############################################
 		# is it a "subha bakhair" greeting?
@@ -176,7 +176,7 @@ def image_description_generator(caption):
 
 		###############################################
 		# does it relate to a current issue?
-		elif "corona" in caption_lower or "carona" in caption_lower or "caroona" in caption_lower:
+		elif "corona" in caption_lower or "carona" in caption_lower or "caroona" in caption_lower or "crona" in caption_lower:
 			image_alt_text = 'Corona social media post, carona social media post, coronavirus post'
 			image_filename = 'coronavirus-social-media-post-{}'.format(random_string)
 			add_to_sitemap = True
@@ -234,6 +234,18 @@ def image_description_generator(caption):
 			image_alt_text = 'Quote'
 			image_filename = 'quote-{}'.format(random_string)
 			add_to_sitemap = True
+
+		###############################################
+		# is it regarding a location (e.g. Kashmir)
+		elif "kashmir" in caption_lower:
+			if "neelum" in caption_lower:
+				image_alt_text = 'Neelum Valley Kashmir AJK'
+				image_filename = 'neelum-valley-kashmir-{}'.format(random_string)
+				add_to_sitemap = True
+			else:
+				image_alt_text = 'Kashmir'
+				image_filename = 'kashmir-{}'.format(random_string)
+				add_to_sitemap = True
 
 		###############################################
 		#TODO: add more cases as the need arises

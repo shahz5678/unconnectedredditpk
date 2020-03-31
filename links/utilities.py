@@ -40,7 +40,7 @@ def image_description_generator(caption):
 		# is it poetry by a certain poet?
 		elif "elia" in caption_lower or "eliya" in caption_lower:
 			if "john" in caption_lower or "jaun" in caption_lower or "jahan" in caption_lower or "joun" in caption_lower \
-			or "joon" in caption_lower or "jon" in caption_lower:
+			or "joon" in caption_lower or "jon" in caption_lower or "jun" in caption_lower:
 				image_alt_text = 'Jaun Elia poetry'
 				image_filename = 'jaun-elia-poetry-{}'.format(random_string)
 				add_to_sitemap = True

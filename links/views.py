@@ -2113,6 +2113,11 @@ def upload_public_photo(request,*args,**kwargs):
 							activity_dict = {'m':'GET','act':'PL.u','t':time_now}# defines what activity just took place
 						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
+					ttl, type_of_rate_limit = content_sharing_rate_limited(own_id)
+
+					if ttl:
+						context["ttl"] = ttl
+
 					context["show_instructions"] = True if tutorial_unseen(user_id=own_id, which_tut='26', renew_lease=True) else False
 					context["form"] = UploadPhotoForm()
 					secret_key = str(uuid.uuid4())

@@ -3588,11 +3588,11 @@ def retrieve_indexable_content_detail_list(cohort):
 	"""
 	Retreiving all content_ids belonging to a certain sitemap cohort
 	"""
-	trending_content_objs = Cooldown.objects.select_related('content__type_of_content').\
-	filter(hot_score=cohort).values_list('content_id','time_of_casting','content__type_of_content')
+	trending_content_objs = Cooldown.objects.select_related('content__image_file').\
+	filter(hot_score=cohort).values_list('content_id','time_of_casting','content__image_file')# web_link used as a store for image's 'alt' description
 	final_data = []
-	for content_id, time_of_casting, content_type in trending_content_objs:
-		final_data.append((content_id,time_of_casting.strftime("%Y-%m-%dT%I:%M:%S+00:00"),content_type))
+	for content_id, time_of_casting, image_url in trending_content_objs:
+		final_data.append((content_id,time_of_casting.strftime("%Y-%m-%dT%I:%M:%S+00:00"),'https:{}'.format(get_s3_object(image_url))))
 	return final_data
 
 

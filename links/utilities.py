@@ -84,7 +84,8 @@ def image_description_generator(caption):
 		or ".c1" in caption_lower or ".c5" in caption_lower or ".b1" in caption_lower \
 		or ".b3" in caption_lower or ".d2" in caption_lower or ".d1" in caption_lower \
 		or ".d3" in caption_lower:
-			if "corona" in caption_lower or "carona" in caption_lower or "crona" in caption_lower or "caroona" in caption_lower:
+			if "corona" in caption_lower or "carona" in caption_lower or "crona" in caption_lower or "caroona" in caption_lower \
+			or "krona" in caption_lower:
 				image_alt_text = 'Corona meme, carona meme, coronavirus meme, corona joke'
 				image_filename = 'coronavirus-funny-{}'.format(random_string)
 			elif "lock" in caption_lower and "down" in caption_lower:
@@ -104,7 +105,8 @@ def image_description_generator(caption):
 
 		###############################################
 		# is it a "subha bakhair" greeting?
-		elif "bakhair" in caption_lower or "bakhir" in caption_lower or "bakher" in caption_lower or "baker" in caption_lower:
+		elif "bakhair" in caption_lower or "bakhir" in caption_lower or "bakher" in caption_lower or "baker" in caption_lower \
+		or "bkhair" in caption_lower:
 			if "subha" in caption_lower or "suba" in caption_lower or "soba" in caption_lower:
 				image_alt_text = 'Subha bakhair'
 				image_filename = 'subha-bakhair-{}'.format(random_string)
@@ -176,7 +178,8 @@ def image_description_generator(caption):
 
 		###############################################
 		# does it relate to a current issue?
-		elif "corona" in caption_lower or "carona" in caption_lower or "caroona" in caption_lower or "crona" in caption_lower:
+		elif "corona" in caption_lower or "carona" in caption_lower or "caroona" in caption_lower or "crona" in caption_lower \
+		or "krona" in caption_lower:
 			image_alt_text = 'Corona social media post, carona social media post, coronavirus post'
 			image_filename = 'coronavirus-social-media-post-{}'.format(random_string)
 			add_to_sitemap = True
@@ -186,7 +189,7 @@ def image_description_generator(caption):
 			image_filename = 'stay-home-{}'.format(random_string)
 			add_to_sitemap = True
 
-		elif "quarantine" in caption_lower:
+		elif "quarantine" in caption_lower or "qurantime" in caption_lower:
 			image_alt_text = 'Quarantine post, quarantine social media post'
 			image_filename = 'quarantine-post-{}'.format(random_string)
 			add_to_sitemap = True

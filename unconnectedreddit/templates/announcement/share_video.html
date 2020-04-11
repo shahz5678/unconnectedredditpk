@@ -1,0 +1,69 @@
+{% extends "base/base_noindex.html" %}
+{% block content %}
+
+<h1 class="cxl lsp" style="text-align:center;font-weight:400;padding:4px 8px;">Submit your video</h1>
+
+<main class="bx" style="background:white;margin-right:auto;margin-left:auto;max-width:700px;display:block;padding:4px 8px;overflow:hidden">
+
+	<div class="mts cxl lsp" style="text-align:center;font-weight:bold">Video requirements:</div>
+
+	<div class="cl mts sp lsp fx fxjsfs fxaicn">
+		<div class="mrs">
+			<svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements_grayscale.svg#youtube"></use></svg>
+		</div>
+		<div>30-45 seconds ki video bnain. Usko youtube pe upload kar ke link neechay submit karein</div>
+	</div>
+
+	<div class="mtl cl sp lsp fx fxjsfs fxaicn"> 
+		<div class="mrs"><svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements_grayscale.svg#laugh"></use></svg></div>
+		<div>Video mein "Comedy" honi chahiye. Maslan "Prank", "Skit", "Parody", "Roasting" waghera</div>
+	</div>
+
+	<div class="mtl cl sp lsp fx fxjsfs fxaicn"> 
+		<div class="mrs"><svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements_grayscale.svg#hashtag"></use></svg></div>
+		<div>Youtube pe video ka name ye rakhein: <b>#Damadam comedy by <span style="overflow-wrap:anywhere;display:inline-block;">{{ nickname }}</span></b></div>
+	</div>
+
+	<div class="mtl cl sp lsp fx fxjsfs fxaicn"> 
+		<div class="mrs"><svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements_grayscale.svg#person"></use></svg></div>
+		<div>Video mein apka khud hona lazmi hai, sirf apki voice nahi</div>
+	</div>
+
+	<div class="mtl cl sp lsp fx fxjsfs fxaicn"> 
+		<div class="mrs"><svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements_grayscale.svg#5secs"></use></svg></div>
+		<div>Pehle 5 seconds mein apna taruf karwain Damadam ID name lekr</div>
+	</div>
+
+	<div class="mtl mbs cl sp lsp fx fxjsfs fxaicn"> 
+		<div class="mrs"><svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements_grayscale.svg#video"></use></svg></div>
+		<div>Video fresh banani hai. Purani video submit nahi karein</div>
+	</div>
+
+	<div class="cs mbl sp lsp cgy">NOTE: tamam requirements poori karein. Apki video select honay ke chances barhein ge</div>
+
+</main>
+
+<main style="margin-right:auto;margin-left:auto;max-width:700px;display:block;overflow:hidden">
+	<a href="{% url 'youtube_uploading_help' %}"><button style="text-align:center;padding:7px;color:white;border:none;border-radius:0;margin:0;border-bottom:1px solid #e2ddbf;width:100%;background:#333531;" class="pg_ok_res cxs sp"><b>HELP&nbsp;►&nbsp;HOW TO UPLOAD VIDEO ON YOUTUBE</b></button></a>
+</main>
+
+<main class="bx mbl" style="background:gainsboro;border-top:1px solid gainsboro;text-align:center;margin-right:auto;margin-left:auto;max-width:700px;display:block;padding:4px 8px;overflow:hidden">
+
+	<div class="mbl">
+
+		<div style="font-weight:bold;color:#000" class="mtl sp">Youtube Video Link:</div>
+		<input type="text" name="link" value="Disabled: Tuesday ko open ho ga" class="mt cm sp" style="width:90%;max-width:360px;border:1px solid #C8C8C8;height:36px;border-radius:6px;background:whitesmoke;padding-left:4px;text-align:center" disabled>
+
+		<div style="font-weight:bold;color:#000" class="mtl sp">Your Mobile Number (optional):</div>
+		<input type="text" name="mobnum" value="Disabled: Tuesday ko open ho ga" class="mt cm sp" style="width:90%;max-width:360px;border:1px solid #C8C8C8;height:36px;border-radius:6px;background:whitesmoke;padding-left:4px;text-align:center" disabled>
+		<div style="width:90%;max-width:360px;margin-left:auto;margin-right:auto" class="cs sp mt mbs clb">NOTE: Agr aap select huay tou apko SMS aye ga (no calls)</div>
+		
+		<div class="mtl" style="text-align:center;margin-left:auto;margin-right:auto;">
+			<div style="border-top-right-radius:45px;border-bottom-right-radius:45px;border-top-left-radius:45px;border-bottom-left-radius:45px;border:1px solid #b8b3ad;width:280px;height:60px;color:#b8b3ad;line-height:60px;text-align:center;margin-left:auto;margin-right:auto;" class="bx cxl sp"><b>SUBMIT</b></div>
+		</div>
+
+	</div>
+
+</main>
+<br><br>
+{% endblock %}

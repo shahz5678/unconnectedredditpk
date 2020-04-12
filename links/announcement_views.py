@@ -700,6 +700,62 @@ def survey(request):
 ##############################################################################################
 ##############################################################################################
 
+def coming_soon(request):
+	"""
+	Renders the detail of an announcement
+	"""
+	return render(request,"announcement/coming_soon_detail.html",{})
+
+
+def maintainance_notice(request):
+	"""
+	Renders the detail of an announcement
+	"""
+	return render(request,"announcement/maintainance_detail.html",{})
+
+##################################### Video Announcement #####################################
+
+
+def video_announcement(request):
+	"""
+	Announcing the commencement of our video competition
+	"""
+	return render(request,"announcement/video_announcement.html",{})
+
+
+def share_video(request):
+	"""
+	Renders and processes a form that allows contenders to submit their youtube links
+	"""
+	if request.mobile_verified:
+		return render(request,"announcement/share_video.html",{'nickname':retrieve_uname(request.user.id,decode=True)})
+	else:
+		# tell the user to verify first
+		return render(request,"verification/unable_to_submit_without_verifying.html")
+
+
+def youtube_uploading_help(request):
+	"""
+	Detailed help page for people who want to know more about uploading a video on youtube, making it unlisted, etc
+	"""
+	return render(request,"announcement/youtube_uploading_help.html",{})
+
+
+###################################### FBS to Data Mode ######################################
+
+@csrf_protect
+def benefits_of_data_mode(request):
+	"""
+	Renders the detail of an announcement
+	"""
+	if request.method == "POST":
+		r = requests.get(url = "https://damadam.pk", params = {'click_out':True}) 
+		return redirect(r.url)
+	else:
+		return render(request,"announcement/benefits_of_data_mode.html",{})
+
+######################################## Corona Virus ########################################
+
 def corona_virus_management(request, lang=None):
 	"""
 	Renders an info page about COVID-19
@@ -719,28 +775,4 @@ def corona_virus(request, lang=None):
 	else:
 		return render(request,"announcement/corona.html",{})
 
-
-def coming_soon(request):
-	"""
-	Renders the detail of an announcement
-	"""
-	return render(request,"announcement/coming_soon_detail.html",{})
-
-
-def maintainance_notice(request):
-	"""
-	Renders the detail of an announcement
-	"""
-	return render(request,"announcement/maintainance_detail.html",{})
-
-
-@csrf_protect
-def benefits_of_data_mode(request):
-	"""
-	Renders the detail of an announcement
-	"""
-	if request.method == "POST":
-		r = requests.get(url = "https://damadam.pk", params = {'click_out':True}) 
-		return redirect(r.url)
-	else:
-		return render(request,"announcement/benefits_of_data_mode.html",{})
+###############################################################################################

@@ -167,6 +167,8 @@ REMOVAL_RATE_LIMIT = 'rrl:'# rate limit key to limit rate of 'remove' commands a
 
 GLOBAL_UPLOADED_IMGS = 'gui'
 
+STAR_SCORE = 'star_score'
+
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
 ##################################################################################################################
@@ -1798,6 +1800,13 @@ def retrieve_handpicked_photos_count():
 		return 0
 
 
+def retrieve_trenders_by_score():
+	"""
+	Retrieves top stars sorted by score calculated in calculate_trender_score()
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrange(STAR_SCORE,0,-1)
+
+
 def calculate_trender_score():
 	"""
 	Provides a 'score' for trenders - in order to rank them in the 'star list'
@@ -1959,7 +1968,6 @@ def calculate_trender_score():
 		final_scores.append(key)
 		final_scores.append(value)
 
-	STAR_SCORE = 'star_score'
 	if final_scores:
 		my_server = redis.Redis(connection_pool=POOL)
 		my_server.delete(STAR_SCORE)

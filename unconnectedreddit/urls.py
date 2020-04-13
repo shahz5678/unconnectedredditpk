@@ -28,7 +28,7 @@ reset_password, content_detail_view, display_text_comments, manage_user, manage_
 hell_ban, remove_hell_ban,photo_top_trenders, user_profile_photos, missing_page, hide_jawab,photo_page, photo_redirect, \
 upload_public_photo, website_rules, redirect_to_profile_photos,public_photo_upload_denied, user_profile_photos_redirect, \
 display_old_image_comments, content_sitemap_of_sitemaps, private_or_expired, photo_detail_view, content_sitemap, kick_ban_user,\
-show_templates, more_options
+show_templates, more_options, top_star_list
 from links.views import FacesHelpView, UserActivityView, AboutView, ContactView, PrivacyPolicyView, PhotosHelpView, \
 EmoticonsHelpView, LogoutHelpView, WelcomeView, WelcomeMessageView, LogoutPenaltyView, UserSettingsEditView, \
 UserProfileDetailView, UserProfileEditView, LinkDeleteView, HelpView, PhotoShareView, RegisterHelpView, VerifyHelpView, \
@@ -37,7 +37,7 @@ from links.redirection_views import redirect_to_content, main_navbar
 from links.number_verification import verify_user_number
 from links.voting_views import user_vote_history, user_old_vote_history
 from links.announcement_views import export_survey_results, benefits_of_data_mode, corona_virus, corona_virus_management, \
-video_announcement, share_video, youtube_uploading_help#, survey
+video_announcement, share_video, video_submitted, youtube_uploading_help#, survey
 
 admin.autodiscover()
 
@@ -112,6 +112,7 @@ urlpatterns = patterns('',
 	###################################################################################
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/(?P<pk>\d+)/$', auth(photo_redirect), name='redirect_to_photo'),
 	url(r'^photo/redirect/(?P<list_type>[\w.@+-]+)/$', auth(photo_redirect), name='redirect_to_photo'),
+	url(r'^stars/images/$', auth(top_star_list), name='top_star_list'),
 	url(r'^photo/top-trenders/$', auth(photo_top_trenders), name='top_photo'),
 	url(r'^photo/top-trenders/help/$', auth(top_photo_help), name='top_photo_help'),
 	url(r'^photo/(?P<list_type>[\w.@+-]+)/$', photo_page, name='photo'),
@@ -169,6 +170,7 @@ urlpatterns = patterns('',
 	url(r'^announcement/videos/$', auth(video_announcement), name='video_announcement'),
 	url(r'^share/video/$', auth(share_video), name='share_video'),
 	url(r'^share/video/help/$', auth(youtube_uploading_help), name='youtube_uploading_help'),
+	url(r'^share/video-submitted/$', auth(video_submitted), name='video_submitted'),
 	url(r'^corona-virus/$', corona_virus, name='corona_virus'),
 	url(r'^corona-virus/(?P<lang>[\w.@+-]+)/$', corona_virus, name='corona_virus'),
 	url(r'^surviving-corona/$', corona_virus_management, name='corona_virus_management'),

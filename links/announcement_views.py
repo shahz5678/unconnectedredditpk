@@ -715,6 +715,10 @@ def maintainance_notice(request):
 
 ##################################### Video Announcement #####################################
 
+from score import COMPETITION_ROUND
+from video_forms import YoutubeVideoSubmissionForm
+from redis4 import already_entered_competition, save_competition_entry
+
 
 def video_announcement(request):
 	"""
@@ -723,15 +727,48 @@ def video_announcement(request):
 	return render(request,"announcement/video_announcement.html",{})
 
 
+@csrf_protect
 def share_video(request):
 	"""
 	Renders and processes a form that allows contenders to submit their youtube links
 	"""
 	if request.mobile_verified:
-		return render(request,"announcement/share_video.html",{'nickname':retrieve_uname(request.user.id,decode=True)})
+		own_id = request.user.id
+		if request.method == "POST":
+			form = YoutubeVideoSubmissionForm(request.POST,user_id=own_id)
+			if form.is_valid():
+				# form is valid
+				youtube_url = form.cleaned_data.get('youtube_url','')
+				mobile_number = form.cleaned_data.get('phonenumber','')
+				save_competition_entry(participant_id=own_id, video_url=youtube_url, time_now=time.time(), round_num=COMPETITION_ROUND, \
+					mobile_number=mobile_number)
+				request.session["vid_submission"+":"+COMPETITION_ROUND+":"+str(own_id)] = '1'
+				return redirect("video_submitted")
+			else:
+				# form is invalid
+				return render(request,"announcement/share_video.html",{'nickname':retrieve_uname(own_id,decode=True),\
+					'form':form,'already_entered':already_entered_competition(participant_id=own_id, round_num=COMPETITION_ROUND)})
+		else:
+			return render(request,"announcement/share_video.html",{'nickname':retrieve_uname(own_id,decode=True),\
+				'form':YoutubeVideoSubmissionForm(),'already_entered':already_entered_competition(participant_id=own_id, \
+					round_num=COMPETITION_ROUND)})
 	else:
 		# tell the user to verify first
 		return render(request,"verification/unable_to_submit_without_verifying.html")
+
+
+def video_submitted(request):
+	"""
+	Shows a prompt that the user's video has successfully been submitted
+	"""
+	own_id = request.user.id
+	if request.session.pop("vid_submission:"+COMPETITION_ROUND+":"+str(own_id),'') == '1':
+		return render(request,"announcement/video_submitted.html",{'nickname':retrieve_uname(own_id,decode=True)})
+	else:
+		if already_entered_competition(participant_id=own_id, round_num=COMPETITION_ROUND):
+			return render(request,"announcement/video_submitted.html",{'nickname':retrieve_uname(own_id,decode=True)})
+		else:
+			return redirect("video_announcement")
 
 
 def youtube_uploading_help(request):

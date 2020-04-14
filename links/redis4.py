@@ -2373,3 +2373,16 @@ def	check_participant_mob_num(mob_num, participant_id):
 	else:
 		# unused previously. 
 		return False
+
+
+def retrieve_competition_submissions(round_num):
+	"""
+	Returns submitted competition data, readying it for CSV export
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	all_participant_ids = my_server.zrange(PARTICIPANT_LIST+round_num,0,-1)
+	
+	pipeline1 = my_server.pipeline()
+	for participant_id in all_participant_ids:
+		pipeline1.hgetall(PARTICIPANT_HASH+round_num+':'+participant_id)
+	return pipeline1.execute()

@@ -30,7 +30,7 @@ class YoutubeVideoSubmissionForm(forms.Form):
 		#Check if youtube_url associated with another entry
 		previously_submitted = check_participant_video_url(video_url=youtube_url)
 		if previously_submitted:
-			raise forms.ValidationError('Ye Youtube ka link pehlay bhi submit ho chuka hai')
+			raise forms.ValidationError('Ye YouTube ka link pehlay bhi submit ho chuka hai')
 
 		return youtube_url
 

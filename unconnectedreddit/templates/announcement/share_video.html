@@ -12,7 +12,7 @@
 		<div class="mrs">
 			<svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements.svg#youtube"></use></svg>
 		</div>
-		<div>30-45 seconds ki video bnain. Usko youtube pe upload kar ke link neechay submit karein</div>
+		<div>30-45 seconds ki video bnain. Usko YouTube pe upload kar ke link neechay submit karein</div>
 	</div>
 
 	<div class="mtl cl sp lsp fx fxjsfs fxaicn"> 
@@ -22,7 +22,7 @@
 
 	<div class="mtl cl sp lsp fx fxjsfs fxaicn"> 
 		<div class="mrs"><svg width="40px" height="40px"><use xlink:href="{{ STATIC_URL }}img/spritesheets/video_requirements.svg#hashtag"></use></svg></div>
-		<div>Youtube pe video ka name ye rakhein: <b>#Damadam comedy by <span style="overflow-wrap:anywhere;display:inline-block;">{{ nickname }}</span></b></div>
+		<div>YouTube pe video ka name ye rakhein: <b>#Damadam comedy by <span style="overflow-wrap:anywhere;display:inline-block;">{{ nickname }}</span></b></div>
 	</div>
 
 	<div class="mtl cl sp lsp fx fxjsfs fxaicn"> 
@@ -60,7 +60,7 @@
 		<form class="mbl" method="POST" action="{% url 'share_video' %}">
 			{% csrf_token %}
 
-			{% if form.youtube_url.errors %}<div style="font-weight:bold" class="mtl sp cr">{{ form.youtube_url.errors.0 }}</div>{% else %}<div style="font-weight:bold;color:#000" class="mtl sp">Youtube Video Link:</div>{% endif %}
+			{% if form.youtube_url.errors %}<div style="font-weight:bold" class="mtl sp cr">{{ form.youtube_url.errors.0 }}</div>{% else %}<div style="font-weight:bold;color:#000" class="mtl sp">YouTube Video Link:</div>{% endif %}
 			{{ form.youtube_url }}
 
 			{% if form.phonenumber.errors %}<div style="font-weight:bold" class="mtl sp cr">{{ form.phonenumber.errors.0 }}</div>{% else %}<div style="font-weight:bold;color:#000" class="mtl sp">Your Mobile Number (optional):</div>{% endif %}

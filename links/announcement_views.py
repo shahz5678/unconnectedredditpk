@@ -800,10 +800,11 @@ def export_video_submissions(request):
 					user_id = data.get('user_id',None)
 					epoch_submission_time = data.get('t',None)
 					submission_time = exact_date(float(epoch_submission_time)) if epoch_submission_time else ''
+					raw_video_url = unicode(data['raw_vurl'], "utf-8")
 					youtube_video_id = data.get('yt_video_id','').encode('utf-8')
 					youtube_url = 'https://www.youtube.com/watch?v={}'.format(youtube_video_id) if youtube_video_id else ''
-					to_write = [user_id, retrieve_uname(user_id,decode=True).encode('utf-8'),submission_time, data.get('raw_vurl','').encode('utf-8'),\
-					data.get('mob_num','').encode('utf-8'),data.get('is_youtube','0'),youtube_url,'','','','','','']
+					to_write = [user_id, retrieve_uname(user_id,decode=True).encode('utf-8'),submission_time, raw_video_url.encode('utf-8'),\
+					data.get('mob_num',''),data.get('is_youtube','0'),youtube_url,'','','','','','']
 					wtr.writerows([to_write])
 	raise Http404("Completed ;)")
 

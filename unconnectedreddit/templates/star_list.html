@@ -1,11 +1,10 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
-<head><title>Users followed by {{ user.username }} | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Users followed by {{ user.username }} | Damadam</title></head>
 
     <h1 class="cxl clb" style="text-align:center;overflow:hidden">Users jin ke ap fan hein:</span></h1>
 
-    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+    <div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:96%;margin:0 auto;overflow: hidden;text-align:center">
         {% if not users %}
             
             <div class="clb cxl lsp">Is time ap kisi ke bhi fan nahi</div>
@@ -23,7 +22,7 @@
                     <div style="word-break: break-all;">
                     <span class="cxs sp cgy">{{ forloop.counter0|add:page_obj.start_index }}.</span>
                     <a href="{% url 'user_profile' star.username %}#section0" class="clb" style="font-weight:bold">
-                    <img src="{{ star.userprofile__avatar|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub" alt="pic">
+                    <img src="{{ star.userprofile__avatar|s3:'thumb' }}" class="circle" style="vertical-align:sub" alt="pic">
                     {{ star.username }}</a>{% if star.id|slugify in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="14" height="14" alt="*" style="color:gold">{% endif %}
                     :
                     <a href="{% url 'user_profile' star.username %}#section0" class="co mrs"><bdi><b>{{ star.photo_count }}</b> fotos</bdi></a>

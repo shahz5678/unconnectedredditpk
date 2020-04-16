@@ -1,10 +1,10 @@
 # Django settings for unconnectedreddit project.
 import os
 from datetime import datetime, timedelta
-from env import ON_AZURE, DB_PASSWORD, MIXPANEL_TOKEN, NEW_AWS_STORAGE_BUCKET
+from env import ON_PRODUCTION, DB_PASSWORD, MIXPANEL_TOKEN, NEW_AWS_STORAGE_BUCKET, SECRET_KEY
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /unconnectedredditpk/unconnectedreddit/ 'project' folder
-MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /unconnectedredditpk/ external folder
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) #i.e. to /app/unconnectedreddit/ 'project' folder
+MAIN_DIR = os.path.dirname(os.path.dirname(__file__)) #i.e. to /app/ external folder
 
 ON_MAC = os.environ.get('ON_MAC')
 MAC_USER = os.environ.get('MAC_USER')
@@ -18,15 +18,10 @@ AWS_HEADERS = {'Expires': expires,'Cache-Control': 'max-age=31536000'}
 AWS_STORAGE_BUCKET_NAME = NEW_AWS_STORAGE_BUCKET
 AWS_QUERYSTRING_AUTH = False
 
+DEBUG = False if ON_PRODUCTION == '1' else True
 
-if ON_AZURE == '1':
-	DEBUG=False
-else:
-	DEBUG=True
-	
+# URL prefix for static files.
 STATIC_URL = '/static/'
-
-TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
 	('H B', 'mhb11@gmail.com'),
@@ -35,8 +30,7 @@ ADMINS = (
 MANAGERS = ADMINS
 
 # Hosts/domain names that are valid for this site; required if DEBUG is False
-# See https://docs.djangoproject.com/en/1.5/ref/settings/#allowed-hosts
-ALLOWED_HOSTS = ['*']																																														
+ALLOWED_HOSTS = ['*']
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name
@@ -52,7 +46,7 @@ SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
+USE_I18N = False#True
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
@@ -74,21 +68,64 @@ GOOGLE_ANALYTICS_SITE_SPEED = True
 # Example: "/var/www/example.com/media/"
 MEDIA_ROOT = ''
 FONTS_ROOT = os.path.join(BASE_DIR, 'fonts/')
+
+
 # URL that handles the media served from MEDIA_ROOT. Make sure to use a
 # trailing slash.
 # Examples: "http://example.com/media/", "http://media.example.com/"
 MEDIA_URL = ''
 FONTS_URL = '/fonts/'
+
+
 # Absolute path to the directory static files should be collected to.
 # Don't put anything in this directory yourself; store your static files
 # in apps' "static/" subdirectories and in STATICFILES_DIRS.
 # Example: "/var/www/example.com/static/"
 STATIC_ROOT = 'staticfiles'
 
-# URL prefix for static files.
-# Example: "http://example.com/static/", "http://static.example.com/"
-# STATIC_URL = '/static/'
-# STATIC_URL = '//damadamstatic.azureedge.net/'
+
+TEMPLATE_DIRS = (
+	# Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
+	# Always use forward slashes, even on Windows.
+	# Don't forget to use absolute paths, not relative paths.
+)
+
+if ON_PRODUCTION == '1':
+	TEMPLATE_LOADERS = (
+		('django.template.loaders.cached.Loader', (
+			'django.template.loaders.filesystem.Loader',
+			'django.template.loaders.app_directories.Loader',
+		)),
+	)
+else:
+	TEMPLATE_LOADERS = (
+		'django.template.loaders.filesystem.Loader',
+		'django.template.loaders.app_directories.Loader',
+	)
+
+
+TEMPLATES = [
+	{
+		"BACKEND": "django.template.backends.django.DjangoTemplates",
+		"DIRS":[],
+		"OPTIONS": {
+			"loaders":TEMPLATE_LOADERS,
+			"debug":DEBUG,
+			"context_processors":[
+				"django.contrib.auth.context_processors.auth",
+				"django.template.context_processors.csrf",
+				"django.template.context_processors.debug",
+				# "django.template.context_processors.i18n",
+				"django.template.context_processors.media",
+				"django.template.context_processors.static",
+				"django.contrib.messages.context_processors.messages",
+				"django.template.context_processors.request",
+				"django.template.context_processors.tz",
+			],
+		},
+	},
+]
+
 
 # Additional locations of static files
 STATICFILES_DIRS = (
@@ -103,79 +140,44 @@ STATICFILES_FINDERS = (
 #    'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
-# Make this unique, and don't share it with anybody.
-SECRET_KEY = 'iapysen!%y-wvpfdmlp^!*@#nkn3hi_y9(%si)5c(tig_r29a6'
-
 # List of callables that know how to import templates from various sources.
-
-if ON_AZURE == '1':
-	TEMPLATE_LOADERS = (
-		('django.template.loaders.cached.Loader', (
-			'django.template.loaders.filesystem.Loader',
-			'django.template.loaders.app_directories.Loader',
-		)),
-	)
-else:
-	TEMPLATE_LOADERS = (
-		'django.template.loaders.filesystem.Loader',
-		'django.template.loaders.app_directories.Loader',
-	)
 
 MIDDLEWARE_CLASSES = (
 	# 'unconnectedreddit.middleware.NoWWWRedirect.NoWWWRedirectMiddleware',
- #   'debug_toolbar.middleware.DebugToolbarMiddleware',
 	'unconnectedreddit.middleware.XForwardedFor.XForwardedForMiddleware',
-	'user_sessions.middleware.SessionMiddleware',
-	# 'django.contrib.sessions.middleware.SessionMiddleware',
+	#'user_sessions.middleware.SessionMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware',
 	'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware',
 	'django.contrib.auth.middleware.AuthenticationMiddleware',
-	#'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
+	#'debug_toolbar.middleware.DebugToolbarMiddleware',
+	'django.contrib.auth.middleware.SessionAuthenticationMiddleware', #does not exist in django 1.5
+	'django.contrib.messages.middleware.MessageMiddleware',
 	'unconnectedreddit.middleware.MobileVerified.MobVerifiedMiddleware',
 	'unconnectedreddit.middleware.WhoseOnline.WhoseOnlineMiddleware', #enable from here
-	'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
+	# 'unconnectedreddit.middleware.EcommTracking.TrackUniqueEcommVisitsMiddleware',
 	'unconnectedreddit.middleware.HellBanned.HellBannedMiddleware',
+	'unconnectedreddit.middleware.OperaMini.OperaMiniMiddleware',
 	#'request.middleware.RequestMiddleware',
-	'django.contrib.messages.middleware.MessageMiddleware',
 	'mobileesp.middleware.MobileDetectionMiddleware',
 	# Uncomment the next line for simple clickjacking protection:
 	'django.middleware.clickjacking.XFrameOptionsMiddleware',
 )
 
-SESSION_ENGINE = 'user_sessions.backends.db'
-# SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
-
-#MOBI_DETECT_TABLET = True
-#MOBI_USER_AGENT_IGNORE_LIST = ['ipad', 'android', 'iphone',]
-
-TEMPLATE_CONTEXT_PROCESSORS = (
-	"django.contrib.auth.context_processors.auth",
-	"django.core.context_processors.csrf",
-	"django.core.context_processors.debug",
-	"django.core.context_processors.i18n",
-	"django.core.context_processors.media",
-	"django.core.context_processors.static",
-	"django.contrib.messages.context_processors.messages",
-	"django.core.context_processors.request",
-	"django.core.context_processors.tz",
-	)
+#SESSION_ENGINE = 'user_sessions.backends.db'
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+#SESSION_ENGINE = 'django.contrib.sessions.backends.cached_db'
 
 ROOT_URLCONF = 'unconnectedreddit.urls'
 
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'unconnectedreddit.wsgi.application'
 
-TEMPLATE_DIRS = (
-	# Put strings here, like "/home/html/django_templates" or "C:/www/django/templates".
-	# Always use forward slashes, even on Windows.
-	# Don't forget to use absolute paths, not relative paths.
-)
-
 INSTALLED_APPS = (
 	'django.contrib.auth',
 	'django.contrib.contenttypes',
-	# 'django.contrib.sessions',
-	'user_sessions',
+	#'django.contrib.sessions',
+	#'user_sessions',
 	'django.contrib.sites',
 	'django.contrib.messages',
 	'django.contrib.staticfiles',
@@ -183,29 +185,25 @@ INSTALLED_APPS = (
 	# 'django.contrib.comments',
 	'links',
 	'unconnectedreddit',
-	# 'south',
-	#'registration', #found at has@has-VirtualBox:~/.virtualenvs/unconnectedreddit/local/lib/python2.7/site-packages/registration/backends/simple$
-	'bootstrap_pagination',
 	'djcelery',
-	'tweepy',
 	'django.contrib.humanize',
 	'analytical',
-	'mathfilters',
+	#'mathfilters',
 	'storages',
 	'emoticons',
 	'django_extensions',
 	#'google_analytics',
-	#'request',
 	# 'debug_toolbar',
 	# Uncomment the next line to enable admin documentation:
 	# 'django.contrib.admindocs',
 )
 
+
 if ON_MAC == '1':
 	CACHES = {
 		'default': {
 			'BACKEND':'django.core.cache.backends.memcached.MemcachedCache',
-			'LOCATION':'unix:usr/local/var/run/memcached/memcached.sock',
+			'LOCATION':'unix:/Users/Fahad/Desktop/unconnectedredditpk/memcached/memcached.sock',
 			# 'LOCATION':'127.0.0.1:11211',
 		}
 	}
@@ -213,28 +211,17 @@ else:
 	CACHES = {
 		'default': {
 			'BACKEND':'django.core.cache.backends.memcached.MemcachedCache',
-			'LOCATION':'unix:/var/run/memcached/memcached.sock',
+			'LOCATION':'unix:/tmp/memcached.sock',
 			# 'LOCATION':'127.0.0.1:11211',
 		}
 	}
 
 CSRF_FAILURE_VIEW = 'links.views.csrf_failure'
 
-# CACHES = {
-#     "default": {
-#         "BACKEND": "django_redis.cache.RedisCache",
-#         "LOCATION": "redis://127.0.0.1:6379/2",
-#         "OPTIONS": {
-#             "CLIENT_CLASS": "django_redis.client.DefaultClient"
-#         },
-#         "KEY_PREFIX": "example"
-#     }
-# }
-
 from django.core.urlresolvers import reverse_lazy
 
-LOGIN_URL=reverse_lazy('login')
-LOGIN_REDIRECT_URL = reverse_lazy('home')
+LOGIN_REDIRECT_URL = reverse_lazy('home')#The URL where requests are redirected after login when the contrib.auth.login view gets no next parameter.
+LOGIN_URL=reverse_lazy('unauth_home_new')
 LOGOUT_URL=reverse_lazy('logout')
 
 # A sample error logging configuration. The only tangible logging
@@ -267,7 +254,7 @@ LOGGING = {
 }
 
 import dj_database_url
-if ON_AZURE == '1':
+if ON_PRODUCTION == '1':
 	# DATABASE_URL = 'postgres://<username>:<password>@40.114.247.165:5432/myapp'
 	# DATABASES = {
 	# 'default': dj_database_url.config(default=DATABASE_URL)
@@ -322,7 +309,7 @@ djcelery.setup_loader()
 # Redis broker
 if ON_MAC == '1':
 	BROKER_URL = 'redis+socket:///usr/local/var/run/redis/redis.sock'
-elif ON_AZURE == '1':
+elif ON_PRODUCTION == '1':
 	BROKER_URL = 'redis+socket:///var/run/redis.sock'
 else:
 	BROKER_URL = 'redis+socket:///var/run/redis.sock'
@@ -337,7 +324,7 @@ CELERY_ALWAYS_EAGER = False
 #The backend is the resource which returns the results of a completed task from Celery. 6379 is the default port to the redis server.
 if ON_MAC == '1':
 	CELERY_RESULT_BACKEND = 'redis+socket:///usr/local/var/run/redis/redis.sock'
-elif ON_AZURE == '1':
+elif ON_PRODUCTION == '1':
 	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
 else:
 	CELERY_RESULT_BACKEND = 'redis+socket:///var/run/redis.sock'
@@ -430,7 +417,7 @@ CELERYBEAT_SCHEDULE = {
 	},
 	'tasks.rank_mehfils': {
 		'task': 'tasks.rank_mehfils',
-		'schedule': timedelta(seconds=30*60), # execute every 30 mins (ranks mehfils with highest DAU/Bi-weekly AU and Owner attentiveness)
+		'schedule': timedelta(seconds=30*60000), # unused now - previously ranked pub mehs
 	},
 	'tasks.empty_idle_public_and_private_groups': {
 		'task': 'tasks.empty_idle_public_and_private_groups',

@@ -1,14 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Leave public mehfil | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-<div class="mbs">
+<head><title>Exit mehfil | Damadam</title></head>
+<div class="mbl mtl">
 <div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="cp cxl">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
 </div>
 </div>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 <div class="cxl lsp mbl">Kya is mehfil se exit karna hai?</div>
 
 	<form class="mbs mts" method="POST" action="{% url 'left_public_group' %}">
@@ -19,10 +18,10 @@
 	<button type="submit" name="ldec" class="btn bcr bm mrs mbs pg_ok_res sp" value="1" style="height:26px">Exit</button>
 	<button type="submit" name="ldec" class="cl cgy sp mls" style="background:0 0;border:none;padding:0;border-bottom:1px dotted darkgray" value="0">Cancel</button>
 	</form>
-	<div class="cs sp lsp" style="border-top:1px dashed darkgray;padding-top:10px;text-align:left">
-	<span class="cgy"><b>Note I:</b> Agar ap ne owner ko 'praise', 'complain' ya 'idea' dia hai tou woh apkey exit kartey hi delete ho jaye ga</span>
+	<div class="cs sp lsp" style="border-top:1px solid gainsboro;padding-top:10px;text-align:left">
+	<span class="cgy"><b>Note I:</b> Agar ap ne mehfil officer banney ki application di hui hai tou woh apkey exit kartey hi delete ho jaye gi</span>
 	<div class="mts">
-		<span class="cgy"><b>Note II:</b> Agar ap ne mehfil transfer ya officer banney ki application submit ki hui hai tou woh apkey exit kartey hi delete ho jaye gi</span>
+		<span class="cgy"><b>Note II:</b> Agar ap ne owner ko 'praise', 'complain' ya 'idea' dia hai tou woh apkey exit kartey hi delete ho jaye ga</span>
 	</div>
 	</div>
 </div>

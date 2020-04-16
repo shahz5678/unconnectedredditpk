@@ -1,81 +1,18 @@
-{% load google_analytics %}
-<!DOCTYPE html>
-<html>
+{% extends "base/base_topic_list.html" %}
+{% block content %}
+<main class="mbl" style="display:block" itemscope itemtype="https://schema.org/CollectionPage">
 
-<head>
-	<!-- has to be the first tag in head -->
-	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-	{% include "favicons.html" %}
-	{% include "css.html" %}
-   <!-- <meta charset="utf-8"> THIS IS AN HTML5 TAG-->
-	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Discuss your favorite topics on Damadam with your friends. Join the fun now!">
-	<meta property="og:site_name" content="Damadam.pk">
-	<meta property="og:title" content="Damadam.pk">
-	<meta property="og:type" content="website">
-	<meta property="og:url" content="https://damadam.pk/">
-	<meta property="og:image" content="https://damadam.pk/static/img/og_image.png">
-	<meta property="og:image:width" content="300">
-	<meta property="og:image:height" content="300">
-	<meta property="og:description" content="Damadam is the place for gupshup with girls and guys from Pakistan, the best funny photos and memes, and Urdu content. Join the fun now!">
-	<meta property="fb:app_id" content="1758220174446684" />
-	<meta name="author" content="mhb">
-	
-	{% google_analytics %}
-	<title>List of Topics | Damadam</title>
-
-	{% if page.has_previous %}
-	<link rel="prev" href="?page={{ page.previous_page_number }}" />
-	{% endif %}
-	{% if page.has_next %}
-		<link rel="next" href="?page={{ page.next_page_number }}" />
-	{% endif %}
-	{% include "ga_user_analytics.html" with my_var=user.id %}
-
-</head>
-
-<body style="background:#f0f3f4">
-{% include "header.html" %}
-<nav itemscope itemtype="http://schema.org/SiteNavigationElement" class="mbl">
-	<ul class="navbar">
-	{% if user.is_authenticated %}
-		{% if request.mobile_verified %}
-			{% load feed_count %}
-	    	{% check_feed_count False as feed_count %}
-			{% load count %}
-	    	{% check_reply_count as reply_count %}
-			{% load count_priv_invites %}
-			{% check_invite_count as invite_count %}
-			{% load count_group_invites %}
-			{% check_group_invite_count as group_invite_count %}
-			<!-- bunched HTML removes spaces between li elements -->
-			<li>{% if feed_count %}<a href="/">For Me<span style="color:mediumblue"> ({{ feed_count }})</span></a>{% else %}<a href="/">For Me</a>{% endif %}</li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'top_photo' %}">Stars</a></li><li>{% if reply_count %}<a class="sharing" href="{% url 'retrieve_direct_responses' %}#section0">Inbox<span style="color:mediumblue"> ({{ reply_count }})</span></a>{% else %}<a class="sharing" href="{% url 'retrieve_direct_response_activity' %}#section0">Inbox</a>{% endif %}</li><li><a href="{% url 'personal_group_user_listing' %}#section0">1 on 1{% if invite_count > 0 %}<span style="color:mediumblue"> ({{ invite_count }})</span>{% endif %}</a></li><li><a class="sharing" href="{% url 'group_page' %}#section0">Mehfil{% if group_invite_count > 0 %}<span style="color:mediumblue"> ({{ group_invite_count }})</span>{% endif %}</a></li><li><a href="{% url 'online_kon' %}">Online</a></li><li><a href="{% url 'topic_listing' %}">Topics</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
-		{% else %}
-			{% load feed_count %}
-	    	{% check_feed_count False as feed_count %}
-			<li>{% if feed_count %}<a href="/">For Me<span style="color:mediumblue"> ({{ feed_count }})</span></a>{% else %}<a href="/">For Me</a>{% endif %}</li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a class="sharing" href="{% url 'share_content' %}#section0">Share</a></li><li><a href="{% url 'user_profile' user.username %}#section0"><bdi>Profile</bdi></a></li>
-		{% endif %}
-	{% else %}
-		<li><a href="{% url 'unauth_home_new' %}">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Fotos</a></li><li><a href="{% url 'unauth_home_new' %}#section0"><b>Create New Account</b></a></li><li><a href="{% url 'login' %}#section0">Use Old Account</a></li>
-	{% endif %}
-	</ul>
-	<a name="section0"></a>
-</nav>
-
-<main style="display:block" itemscope itemtype="https://schema.org/CollectionPage">
-
-	<main style="display:block;max-width:600px;margin:0 auto;width:97%;position:relative;">
+	<main style="display:block;max-width:600px;margin:0 auto;width:98%;position:relative;">
 	    {% if newbie_flag %}
-	        {% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='27' %}
+	        {% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='27' state='with_buttons' %}
 	    {% endif %}
 	</main>
 
 	<h1 class="cxl clb lsp" style="text-align:center">Topics:</h1>
 
-	<article class="sp" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:#fefefa;max-width:600px;margin-left:auto;margin-right:auto;width:97%;display:block;text-align:center">
+	<article class="sp" style="overflow:hidden;background:#fefefa;max-width:600px;margin-left:auto;margin-right:auto;display:block;text-align:center">
 
-	<div class="lsp" style="color:#909090;background:ivory;border-bottom:2px solid #ececec;padding:10px">Topic select karein jiski posts view karni hain:</div>
+	<div class="lsp" style="color:#909090;background:ivory;border-bottom:1px solid #ececec;padding:10px">Topic select karein jiski posts view karni hain:</div>
 
 	<div style="padding:10px">
 
@@ -85,9 +22,6 @@
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Attitude Status' url='attitude-status' c1='#2ed7e1' c2='#7f5fff' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Boys vs Girls' url='boys-vs-girls' c1='#5cf48c' c2='#ff5a5a' %}
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Sad Poetry' url='sad-poetry' c1='#f4d140' c2='#3bc1f0' %}
-		
-		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Drama Serial:</h2>
-		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Ehd e Wafa' url='ehd-e-wafa' c1='#04ead3' c2='#6193fe' %}
 		
 		<h2 style="font-size:30px;color:#c0ceeb;margin:0 0 10px 0">Just for Fun:</h2>
 		{% include "topics/topic_button.html" with static_url=STATIC_URL label='Bujho To Jaane' url='bujho-to-jaane' c1='#c66aff' c2='#34caf0' %}
@@ -145,19 +79,6 @@
 	</article>
 
 </main>
-<br>
-
-<nav style="display:block" itemscope itemtype="http://schema.org/SiteNavigationElement">
-	<ul class="navbar">
-		<li><a href="/">For Me</a></li><li><a href="{% url 'photo' 'best-list' %}">Photos</a></li><li><a href="{% url 'best_home_page' %}">Text</a></li><li><a href="{% url 'search_username' %}">Search</a></li><li><a href="{% url 'reauth' %}#section0">Change Password</a></li><li><a href="{% url 'help' %}#section0">Help</a></li>
-	</ul>
-</nav>
-
-<footer style="text-align:center;padding-bottom:10px" class="mtl sp lsp cxs cgy">
-	|<a href="{% url 'about' %}" class="clb" style="font-weight:bold"> &nbsp;About&nbsp; </a>|<a href="{% url 'privacy_policy' %}" class="clb" style="font-weight:bold"> &nbsp;Privacy Policy&nbsp; </a>|
-</footer>
-
-{% include "min_service_worker.html" %}
-<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/earlyaccess/droidarabicnaskh.css">
-
-</body>
+<br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=user.id %}
+{% endblock %}

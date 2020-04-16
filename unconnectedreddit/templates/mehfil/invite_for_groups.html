@@ -1,16 +1,15 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Invite users to public mehfil | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-
-{% include "mehfil/open_group_invite_navbar.html" with static_url=STATIC_URL section='invite' guid=unique %}
-
+<head><title>Invite users to mehfil | Damadam</title></head>
+<div class="mtl">
+	{% include "mehfil/open_group_invite_navbar.html" with static_url=STATIC_URL section='invite' guid=unique %}
+</div>
 {% if group %}
 	<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
 	<h1 class="cxl lsp clb" style="text-align:center;overflow:hidden;margin:0">Invite to&nbsp;<span class="cp">{% emoticons %}{{ group_topic|truncatechars:'80' }}{% endemoticons %}</span></h1>
 	</div>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+	<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">	
 
 	<div class="mbl mt"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>
 
@@ -18,7 +17,7 @@
 	{% if show_instr %}
 		<div style="padding:8px;background-color:ivory" class="bizcard mbs lsp">
 			{% if instr_type == 'owner' %}
-				<div class="cxl lsp">Public mehfil owner {{ max_invites }} users invite kar sakta hai</div>
+				<div class="cxl lsp">Mehfil owner {{ max_invites }} users invite kar sakta hai</div>
 				<hr size=1 COLOR="#E9EBEE">
 				<div class="cm sp cr" style="text-align:left">Note:</div>
 				<div class="cs sp" style="text-align:left">&#x25CF;&nbsp;Agar ap ne 1 user invite kiya tou apkey <b>{{ one_less }}</b> invites reh jaien ge</div>
@@ -67,7 +66,7 @@
 	</div>
 {% else %}
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">Cannot invite to mehfil</h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">	
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">	
 	{% if no_online %}
 	<div class="cm cgy lsp sp">- invite karney ke liye koi nahi hai -</div>
 	<div class="mbs mts"><a href="{% url 'public_group' unique %}"><button type="submit" class="cb sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to mehfil</button></a></div>

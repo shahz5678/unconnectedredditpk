@@ -1,15 +1,14 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load human_time %}
 {% load emoticons_tags %}
 {% load s3 %}
 {% block content %}
-<head><title>Feeedback | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-
-{% include "mehfil/open_group_feedback_navbar.html" with static_url=STATIC_URL section=type %}
-
+<head><title>Feeedback | Damadam</title></head>
+<div class="mtl">
+	{% include "mehfil/open_group_feedback_navbar.html" with static_url=STATIC_URL section=type %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center;overflow:hidden">{% if type == '1' %}Praise from members:{% elif type == '2' %}Complaints from members:{% elif type == '3' %}Ideas from members:{% endif %}</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:left">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:left">
 
 {% if show_instr %}
 <div style="padding:8px;background-color:ivory;text-align:center" class="bizcard mt mbl sp lsp">
@@ -32,7 +31,7 @@
 
 <hr size=1 COLOR="#E9EBEE">
 {% for item in feedback %}
-<div class="cl lsp sp mts"><img src="{{ item.oau|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<b>{{ item.uname }}:</b>&nbsp;{% emoticons %}{{ item.f }}{% endemoticons %}</div>
+<div class="cl lsp sp mts"><img src="{{ item.oau|s3:'thumb' }}" class="circle" style="vertical-align:sub">&nbsp;<b>{{ item.uname }}:</b>&nbsp;{% emoticons %}{{ item.f }}{% endemoticons %}</div>
 <div class="sp lsp cxs mts mbs" style="text-align:right"><span class="cgy">{{ item.tt|human_time }}</span></div>
 <hr size=1 COLOR="#E9EBEE">
 {% empty %}

@@ -291,18 +291,13 @@ class PrivateGroupReplyForm(forms.Form):
 
 	Turn to regular form if getting rid of Reply model
 	"""
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus','class': 'cxl',\
-		'autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_REPLY_LENGTH}),\
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl inp','autocomplete': 'off',\
+		'autocapitalize':'off','spellcheck':'false','maxlength':PRIVATE_GROUP_REPLY_LENGTH}),\
 	error_messages={'required': 'Likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
 	wid = forms.IntegerField(required=False)
 	gp = forms.IntegerField()
-	
-	# class Meta:
-	#     model = Reply
-	#     exclude = ("submitted_on","which_group","writer","abuse")
-	#     fields = ("image", "text")
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)
@@ -366,18 +361,12 @@ class PublicGroupReplyForm(forms.Form):
 
 	Turn to regular form if getting rid of Reply model
 	"""
-	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'autofocus': 'autofocus',\
-		'class': 'cxl','autocomplete': 'off','autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_REPLY_LENGTH}),\
+	text = forms.CharField(required=False,widget=forms.Textarea(attrs={'cols':40,'rows':3,'class': 'cxl inp','autocomplete': 'off',\
+		'autocapitalize':'off','spellcheck':'false','maxlength':PUBLIC_GROUP_REPLY_LENGTH}),\
 	error_messages={'required': 'Likhna zaruri hai'})
 	image = forms.ImageField(required=False,error_messages={'invalid_image': 'tip: photo sahi nahi hai'})
 	sk = forms.CharField(required=False)
-	# wid = forms.IntegerField(required=False)
 	gp = forms.IntegerField()
-
-	# class Meta:
-	#     model = Reply
-	#     exclude = ("submitted_on","which_group","writer","abuse")
-	#     fields = ("image", "text")
 
 	def __init__(self,*args,**kwargs):
 		self.user_id = kwargs.pop('user_id',None)

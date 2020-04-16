@@ -1,14 +1,11 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load emoticons_tags %}
 {% load humanize %}
 {% load s3 %}
 {% block content %}
-<head><title>Duplicate content report | Damadam.pk</title></head>
-<style>
-body{background: #E9EBEE}
-</style>
+<head><title>Duplicate content report | Damadam</title></head>
 <h1 class="cxl clb" style="text-align:center">Report {{ oun|truncatechars:'13' }}'s item:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 {% if tp == 'tx' %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mbs cl sp lsp">
 	{% emoticons %}{{ cap }}{% endemoticons %}
@@ -43,8 +40,8 @@ body{background: #E9EBEE}
 
 {% else %}
 	<img src="{{ purl }}" alt="pic" style="border: 1px solid #A9A9A9;border-radius:5px">
-	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apki kaunsi photo copy ki geyi hai?{% else %}Isne apni kaunsi photo dubara lagai hai?{% endif %}</div>
-	<div class="cgy mt sp mbs cl lsp">Sirf recent photos mein se pick karein:</div>
+	<div class="cxl lsp sp" style="font-weight:bold">{% if dec == '9' %}Apka kaunsa image copy ki geyi hai?{% else %}Isne apna kaunsa image dubara lagai hai?{% endif %}</div>
+	<div class="cgy mt sp mbs cl lsp">Sirf recent images mein se pick karein:</div>
 
 	<form method="post" action="{% url 'report_content' %}" class="mts lsp sp">
 	{% csrf_token %}
@@ -65,7 +62,7 @@ body{background: #E9EBEE}
 		</div>
 		<div style="text-align:right;color:darkgray" class="mts cxs sp">{{ obj.1|naturaltime }}</div>
 	{% empty %}
-		<div class="cxl lsp cr">Recent photos mojood nahi!</div>
+		<div class="cxl lsp cr">Recent images mojood nahi!</div>
 	{% endfor %}
 	<button class="btn bm bcr mbs mrs mtl pg_ok_res" name="dec" style="height:26px" value="{{ dec }}" type="submit">Submit</button>
 	<button class="mbs cgy mtl mls cl pg_ok_res" name="dec" style="background:0 0;padding:0;border:none;border-bottom:1px dotted gray" value="0" type="submit">Cancel</button>

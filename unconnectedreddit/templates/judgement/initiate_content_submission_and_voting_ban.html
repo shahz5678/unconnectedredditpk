@@ -1,13 +1,12 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<style>body{background: #E9EBEE}</style>
 <head><title>Judgement on {{ oun }} | Damadam</title></head>
-
-{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='ban_post' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
-
+<div class="mtl">
+	{% include "judgement/defender_navbar.html" with static_url=STATIC_URL section='ban_post' num_complaints=complaints obid=obid purl=purl oun=oun ooid=ooid orig=orig lid=lid obj_type=obj_type cap=cap from_cull=from_cull %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center">Banning options:</h1>
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="clb mbl" style="background-color:#FEFCFC;padding:10px 8px;max-width:600px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 
 {% if not_enough_data %}
 
@@ -42,9 +41,9 @@
 	<div class="mtl cxl lsp"><b>{{ oun|truncatechars:'13' }}</b> ke khilaf ye actions liye jaien ge:</div>
 
 	<ul class="clb" style="display:inline-block;padding: 0;font-weight:bold">
-		<li style="text-align:left" class="mbs"><div class="mt sp">Ban home and foto submission</div></li>
-		<li style="text-align:left" class="mbs"><div class="mt sp">Censor home history and fotos</div></li>
-		<li style="text-align:left" class="mbs"><div class="mt sp">Ban home and foto liking</div></li>
+		<li style="text-align:left" class="mbs"><div class="mt sp">Ban text and image submission</div></li>
+		<li style="text-align:left" class="mbs"><div class="mt sp">Censor post history</div></li>
+		<li style="text-align:left" class="mbs"><div class="mt sp">Ban text and image liking</div></li>
 	</ul>
 
 	<div class="cl sp">Kya ye tamam qadam utha dein?</div>

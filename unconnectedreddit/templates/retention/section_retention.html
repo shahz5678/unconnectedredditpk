@@ -1,12 +1,11 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
 
 <head><title>Retention metrics | Damadam</title></head>
-<style>body{background: #E9EBEE}</style>
 
 <h1 class="cxl clb lsp" style="text-align:center">Retention summary for variation '{{variation}}':</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:950px;width:92%;margin:0 auto;overflow: hidden;text-align:left">
+<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:950px;width:96%;margin:0 auto;overflow: hidden;text-align:left">
 
 
 {% for cohort_id, cohort_time_string, cohort_name, retention in retention_data %}

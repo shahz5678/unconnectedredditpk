@@ -1,11 +1,10 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% block content %}
-<head><title>Report help (single item) | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Report help (single item) | Damadam</title></head>
 
 <h1 class="cxl clb lsp" style="text-align:center">Report help:</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="clb mbl" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 	{% if rep_type == 'img' %}
 		{% include "judgement/report_topics.html" with section=label %}
 	{% elif rep_type == 'tx' %}

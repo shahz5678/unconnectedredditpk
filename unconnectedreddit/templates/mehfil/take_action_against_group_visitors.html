@@ -1,19 +1,18 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load s3 %}
 {% load human_time %}
 {% block content %}
 <head><title>Take action against visitors | Damadam</title></head>
-<style>body{background: #E9EBEE}</style>
 
 {% if unauthorized %}
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Cannot complete action</span></h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp mbs">Ye is terah nahi chalta!</div>
 	<a href="{% url 'group_page' %}" class="cgy cl sp" style="border-bottom:1px dotted gray">wapis</a><br><br>
 	</div>
 {% elif show_unkick_feedback_options %}
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Unblocking reason:</span></h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Ap ne ye ID(s) kiyun unblock ki?</div>
 	<form method="POST" action="{% url 'process_kicking_feedback' 'public' %}" class="mt">
 		{% csrf_token %}
@@ -26,7 +25,7 @@
 	</div>
 {% elif show_kick_feedback_options %}
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Provide feedback:</span></h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	<div class="cxl lsp">Kicked out member(s) ko feedback dein ke un se kya ghalti hui:</div>
 	<form method="POST" action="{% url 'process_kicking_feedback' 'public' %}" class="mt">
 		{% csrf_token %}
@@ -38,9 +37,11 @@
 	<div class="cs sp lsp"><span class="cgy"><b>Note:</b>&nbsp;feedback {{ reason_len }} characters se lamba nahi likhein</span></div>
 	</div>
 {% elif show_punishment_options %}
-	{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kick' guid=guid privacy='0' %}
+	<div class="mtl">
+		{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kick' guid=guid privacy='0' %}
+	</div>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Kick out members:</span></h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 	{% if kick and owner %}
 		<form method="POST" action="{% url 'kick_out' 'public' %}">
 			{% csrf_token %}
@@ -80,9 +81,11 @@
 	{% endif %}
 	</div>
 {% else %}
-	{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kick' guid=guid privacy='0' %}
+	<div class="mtl">
+		{% include "mehfil/kick_navbar.html" with static_url=STATIC_URL section='kick' guid=guid privacy='0' %}
+	</div>
 	<h1 class="cxl clb" style="text-align:center;overflow:hidden">Kick out members:</span></h1>
-	<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+	<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
 	<div style="padding:8px;background-color:ivory" class="bizcard mbs sp cl lsp">Recent visiting members select karein jinko kick out karna hai</div>
 	<div class="mtl"><a href="{% url 'public_group' guid %}" class="cb sp cl" style="border-bottom:1px dotted blue">back to mehfil</a></div>
@@ -97,7 +100,7 @@
 				<li style="text-align:left">
 				<div class="mts mbl">
 				{% if visitor_id in immune_ids %}<input style="vertical-align:sub" type="checkbox" id="{{ forloop.counter }}" name="cids" value="{{ visitor_id }}" disabled>{% else %}<input style="vertical-align:sub" type="checkbox" id="{{ forloop.counter }}" name="cids" value="{{ visitor_id }}">{% endif %}
-				<label for="{{ forloop.counter }}"><img src="{{ visitor.avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%" alt="pic">{% if visitor_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;{{ visitor.uname }}</label>
+				<label for="{{ forloop.counter }}"><img src="{{ visitor.avurl|s3:'thumb' }}" class="circle" style="vertical-align:sub" alt="pic">{% if visitor_id in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}&nbsp;{{ visitor.uname }}</label>
 				</div>
 				</li>
 			{% endfor %}
@@ -111,23 +114,20 @@
 	{% if owner %}<hr size=1 COLOR="#E9EBEE"><div class="sp lsp cs"><span class="cgy"><b>Note:</b>&nbsp;officers ko yahan se punishment di jaye tou system unko officer se hata deta hai</span></div>{% elif officer %}<hr size=1 COLOR="#E9EBEE"><div class="cs sp lsp"><span class="cgy"><b>Note:</b>&nbsp;mehfil owner aur officers ko yahan se punishment nahi di ja sakti</span></div>{% endif %}
 	</div>
 {% endif %}
-<br>
-{% endblock %}
 
-{% block pagination %}
 {% if is_paginated %}
 	<div class="fx fxjscn fxaicn">
 		{% if page_obj.has_previous %}
-	    <div style="padding:0 10px">
+	    <div style="padding:0 10px 30px 10px">
 	    <a href="?page={{ page_obj.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
 	    </div>
 	    {% endif %}
 	    {% if page_obj.has_next %}
-	    <div style="padding:0 10px">
+	    <div style="padding:0 10px 30px 10px">
 	    <a href="?page={{ page_obj.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
 	    </div>
 	    {% endif %}
 	</div>
 {% endif %}
-<br>
+<br><br>
 {% endblock %}

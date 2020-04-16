@@ -1,14 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
 <head><title>Public group settings | Damadam</title></head>
-<style>body{background: #E9EBEE}</style>
 
-<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
-    <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
+<div class="mbl mtl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden;padding:0 6px">
+    <h1 style="display:inline" class="clb cl sp lsp">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
 {% if officers_appointed %}
 	<div style="padding:8px;background-color:ivory" class="bizcard mt mbs sp lsp">Officer appoint kar diya gya!</div>
@@ -27,7 +26,7 @@
 
 	<div class="mt mbl"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
 
-	<div class="cxl lsp mbs" style="border-top:1px dashed lightgray;padding-top:10px">Owner! Ap kya karna chahtey hain?</div>
+	<div class="cxl lsp mbs" style="border-top:1px solid gainsboro;padding-top:10px">Owner settings:</div>
 
 	<form action="{% url 'public_mehfil_oversight_dashboard' %}" style="max-width:420px;margin:0 auto" method="POST">
 	{% csrf_token %}
@@ -135,7 +134,7 @@
 	{% if show_tut %}
 		<div style="padding:8px;background-color:ivory" class="bizcard mt mbs cxl lsp">Welcome! Ap is mehfil ke officer hain. Neechay ke options achi terah se dekh lein takey apko apni duty karney mein asani ho</div>
 	{% else %}
-		<div class="cxl lsp mbs" style="border-top:1px dashed lightgray;padding-top:10px">Officer! Ap kya karna chahtey hain?</div>
+		<div class="cxl lsp mbs" style="border-top:1px solid gainsboro;padding-top:10px">Officer settings:</div>
 	{% endif %}
 
 	<form action="{% url 'public_mehfil_oversight_dashboard' %}" style="max-width:420px;margin:0 auto" method="POST">
@@ -184,22 +183,22 @@
 
 	<tr>
 		<td>
-			<button type="submit" class="bizcard st-bg" name="dec" value="14" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/list.svg" width="45" height="45" style="vertical-align:middle"></button>
+			<button type="submit" class="bizcard st-bg" name="dec" value="7" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Read rules:</b>&nbsp;<span class="mrs">ye dabain mehfil ke rules read karney ke liye</span>
-			<button type="submit" name="hdec" class="cb cs sp" value="14" id="h14" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;<span class="mrs">ye dabain officers ki history dekhne ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="7" id="h7" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
 			</div>
 		</td>
 	</tr>
 
 	<tr>
 		<td>
-			<button type="submit" class="bizcard st-bg" name="dec" value="7" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/history.svg" width="50" height="50" style="vertical-align:middle"></button>
+			<button type="submit" class="bizcard st-bg" name="dec" value="14" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/list.svg" width="45" height="45" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>History:</b>&nbsp;<span class="mrs">ye dabain officers ki history dekhne ke liye</span>
-			<button type="submit" name="hdec" class="cb cs sp" value="7" id="h7" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			<div class="lsp" style="text-align:left"><b>Read rules:</b>&nbsp;<span class="mrs">ye dabain mehfil ke rules read karney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="14" id="h14" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
 			</div>
 		</td>
 	</tr>
@@ -259,7 +258,7 @@
 
 	<div class="mbl mt"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
 
-	<div class="cxl lsp mbs" style="border-top:1px dashed lightgray;padding-top:10px">Member! Ap kya karna chahtey hain?</div>
+	<div class="cxl lsp mbs" style="border-top:1px solid gainsboro;padding-top:10px">Member settings:</div>
 
 	<form action="{% url 'public_mehfil_oversight_dashboard' %}" style="max-width:420px;margin:0 auto" method="POST">
 	{% csrf_token %}
@@ -281,11 +280,11 @@
 
 	<tr>
 		<td>
-			<button type="submit" class="bizcard st-bg" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/praise.svg" width="50" height="50" style="vertical-align:middle"></button>
+			<button type="submit" class="bizcard st-bg" name="dec" value="16" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/shield_y.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Praise:</b>&nbsp;<span class="mrs">agar mehfil mein kuch buhut acha hai tou mehfil owner ki hosla afzai karein</span>
-			<button type="submit" name="hdec" class="cb cs sp" value="8" id="h8" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			<div class="lsp" style="text-align:left"><b>Apply for officer:</b>&nbsp;<span class="mrs">ye dabain is mehfil ke officer banney ke liye</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="16" id="h16" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
 			</div>
 		</td>
 	</tr>
@@ -314,11 +313,11 @@
 
 	<tr>
 		<td>
-			<button type="submit" class="bizcard st-bg" name="dec" value="16" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/shield_y.svg" width="50" height="50" style="vertical-align:middle"></button>
+			<button type="submit" class="bizcard st-bg" name="dec" value="8" style="width:75px;height:75px"><img src="{{ STATIC_URL }}img/praise.svg" width="50" height="50" style="vertical-align:middle"></button>
 		</td>
 		<td>
-			<div class="lsp" style="text-align:left"><b>Apply for officer:</b>&nbsp;<span class="mrs">ye dabain is mehfil ke officer banney ke liye</span>
-			<button type="submit" name="hdec" class="cb cs sp" value="16" id="h16" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
+			<div class="lsp" style="text-align:left"><b>Praise:</b>&nbsp;<span class="mrs">agar mehfil mein kuch buhut acha hai tou mehfil owner ki hosla afzai karein</span>
+			<button type="submit" name="hdec" class="cb cs sp" value="8" id="h8" style="background:0 0;border:none;padding:0;border-bottom:1px dotted dodgerblue;border-radius:0">help</button>
 			</div>
 		</td>
 	</tr>
@@ -345,4 +344,5 @@
 
 </div>
 <br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=user.id %}
 {% endblock %}

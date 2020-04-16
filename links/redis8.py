@@ -45,6 +45,7 @@ def log_activity(user_id, activity_dict, time_now, which_var=None):
 	variation = my_server.get(UVAR+user_id)
 	if variation:
 		which_var = variation
+
 	#######################################################
 	# only proceed if user is part of any variation, otherwise ignore the user entirely (they're not part of any experimental variation)
 	if which_var:
@@ -213,6 +214,8 @@ def set_tutorial_seen(viewer_id):
 def is_tutorial_seen(viewer_id):
 	"""
 	Retrieves whether a user has seen a portion of a tutorial
+
+	UNUSED at the moment
 	"""
 	return redis.Redis(connection_pool=POOL).exists(TUT_SEEN+str(viewer_id))
 
@@ -220,6 +223,8 @@ def is_tutorial_seen(viewer_id):
 def retrieve_variation_subset(user_id, choice):
 	"""
 	Used to add new 'mehfil', 'topic' and 'photo' variations
+
+	UNUSED at the moment
 	"""
 	if choice == '2':
 		# divide var2 into 2

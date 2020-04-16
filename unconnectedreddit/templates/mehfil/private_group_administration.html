@@ -1,21 +1,20 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% load future_time %}
 {% block content %}
 <head><title>Private group settings | Damadam</title></head>
-<style>body{background: #E9EBEE}</style>
 
-<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
-    <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
+<div class="mbl mtl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden;padding:0 6px">
+    <h1 style="display:inline" class="clb cl sp lsp">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
 {% if owner %}
 
 	<form method="POST" class="mt mbl" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
 
-	<div class="cxl lsp mbs" style="border-top:1px dashed lightgray;padding-top:10px">Owner! Ap kya karna chahtey hain?</div>
+	<div class="cxl lsp mbs" style="border-top:1px solid gainsboro;padding-top:10px">Owner settings:</div>
 
 	<form action="{% url 'private_mehfil_oversight_dashboard' %}" style="max-width:420px;margin:0 auto" method="POST">
 	{% csrf_token %}
@@ -88,7 +87,7 @@
 
 	<form method="POST" class="mbl mt" action="{% url 'priv_group' %}">{% csrf_token %}<button type="submit" name="private_uuid" value="{{ unique }}" class="pg_ok_res cb sp cm" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue">back to mehfil</button></form>
 
-	<div class="cxl lsp mbs" style="border-top:1px dashed lightgray;padding-top:10px">Ap kya karna chahtey hain?</div>
+	<div class="cxl lsp mbs" style="border-top:1px solid gainsboro;padding-top:10px">Member settings:</div>
 
 	<form action="{% url 'private_mehfil_oversight_dashboard' %}" style="max-width:420px;margin:0 auto" method="POST">
 	{% csrf_token %}
@@ -151,4 +150,5 @@
 
 </div>
 <br><br>
+{% include "navbars/bottom_navbar_js_helper.html" with ident=user.id %}
 {% endblock %}

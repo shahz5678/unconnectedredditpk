@@ -1,48 +1,54 @@
-{% extends "base.html" %}
+{% extends "base/base_verification.html" %}
 {% block content %}
-<head><title>Account not verified | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Account not verified | Damadam</title></head>
 
 <h1 class="cxl lsp clb" style="text-align:center">Please verify your account!</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="mbl clb" style="background-color:#FEFCFC;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
+
 {% if share_on_home %}
-<div class="cxl lsp mbs">Sorry! Share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif reply %}
-<div class="cxl lsp mbs">Sorry! Reply dene ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif fan %}
-<div class="cxl lsp mbs">Sorry! Fan banney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif comment %}
-<div class="cxl lsp mbs">Sorry! Reply karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif 1on1 %}
-<div class="cxl lsp mbs">Sorry! Account verify kiye beghair ap 1 on 1 ki sahulat use nahi kar saktey&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif vote %}
-<div class="cxl lsp mbs">Sorry! Like karney se pehlay account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif share_in_mehfil %}
-<div class="cxl lsp mbs">Sorry! Mehfil mein likhney ke liye pehlay account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif join_public_mehfil %}
-<div class="cxl lsp mbs">Sorry! Public mehfil join karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif create_public_mehfil %}
-<div class="cxl lsp mbs">Sorry! Public mehfil bananey ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif join_private_mehfil %}
-<div class="cxl lsp mbs">Sorry! Private mehfil join karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif create_private_mehfil %}
-<div class="cxl lsp mbs">Sorry! Private mehfil bananey ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif ban_user %}
-<div class="cxl lsp mbs">Sorry! Block ki sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Share karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif direct_reply %}
-<div class="cxl lsp mbs">Sorry! Reply ki sahoolat hasil karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Reply dene ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif 1on1 %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">1 on 1 use karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif vote %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Like karney se pehlay account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif file_report %}
-<div class="cxl lsp mbs">Sorry! Kisi item ko report karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Report karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif reply %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Reply dene ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif fan %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Fan banney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif comment %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Reply karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif upload_public_photo %}
-<div class="cxl lsp mbs">Sorry! Foto share karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Image share karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif share_in_mehfil %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Mehfil mein likhney ke liye pehlay account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif join_public_mehfil %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Mehfil join karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif create_public_mehfil %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Mehfil bananey ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif join_private_mehfil %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Private mehfil join karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif create_private_mehfil %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Private mehfil bananey ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% elif ban_user %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Block ki sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% elif subscribe_to_topic %}
-<div class="cxl lsp mbs">Sorry! Topic ko subscribe karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
-{% elif logout %}
-<div class="cxl lsp mbs">Sorry! Ye sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:tomato;border-bottom:1px dotted tomato;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Topic ko subscribe karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
+{% else %}
+<div class="cm sp lsp clw" style="background:tomato;padding:8px;">Ye sahulat hasil karney ke liye account verify karwain&nbsp;&nbsp;<a href="{% url 'number_verification_help' %}#section0"><button style="background:0 0;border:none;padding:0;color:#24355c;border-bottom:1px dotted #24355c;border-radius:0" class="sp pg_ok_res">help</button></a></div>
 {% endif %}
 	
-	{% include "verification/verification_button.html" with is_user_verified='1' static_url=STATIC_URL %}
+	{% if request.META.HTTP_X_IORG_FBS %}
+		{% include "verification/fbs_verification_options.html" %}
+	{% elif request.is_opera_mini %}
+		{% include "verification/fbs_verification_options.html" %}
+	{% else %}
+		{% include "verification/firebase_verification_options.html" %}
+	{% endif %}
 
 </div>
 <br><br>

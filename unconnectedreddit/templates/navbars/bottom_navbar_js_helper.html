@@ -1,0 +1,51 @@
+<div id="more_popup" style="display:none;position: fixed;top: 0px;left: 0px;z-index: 102">
+	<div class="outer_ldr cs sp" style="background-color: whitesmoke;padding:12px;border-radius:10px;border:none">
+		
+		<div style="text-align:right">
+			<button style="padding:0;border:none;background:0 0" id="more_popup_x" class="pg_ok_res"><img src="{{ STATIC_URL }}img/x_gy.svg" width="14" height="14"></button>
+		</div>
+
+		<h2 class="cxl mbl" style="color:#606060;text-align:center;font-weight:lighter">MORE OPTIONS:</h2>
+
+		<form method="GET" action="{% url 'main_navbar' %}">
+			<div class="fx fxjscn fxaicn mbl">
+				{% if ident %}
+					{% load count_group_invites %}
+					{% check_group_invite_count as group_invite_count %}
+				{% endif %}
+				{% if group_invite_count %}
+					<button name="dec" class="sp lsp mrs wt" style="border-radius:8px;border:1px solid gainsboro;width:120px;height:120px;position:relative;padding-left:0;padding-right:0" value="11">	
+						<div class="cxs sp" style="z-index: 120;position:absolute;padding-top:66px;color:#8c76a6;width:100%;text-align:center"><b>{{ group_invite_count }} INVITES</b></div>
+						<img src="{{ STATIC_URL }}img/online-cp.svg" width="28" height="28">
+						<div style="color:#8c76a6;font-weight:600">MEHFILS</div>
+					</button>
+				{% else %}
+					<button name="dec" class="sp lsp mrs wt" style="border-radius:8px;border:1px solid gainsboro;width:120px;height:120px;" value="11">	
+						<img src="{{ STATIC_URL }}img/online-cp.svg" width="28" height="28">
+						<div style="color:#8c76a6;font-weight:600">MEHFILS</div>
+					</button>
+				{% endif %}
+				<button name="dec" class="sp lsp mls wt" style="border-radius:8px;border:1px solid gainsboro;width:120px;height:120px;" value="13">
+					<img src="{{ STATIC_URL }}img/edit.svg" width="28" height="28">
+					<div style="color:#00bfa5;font-weight:600">TOPICS</div>
+				</button>
+			</div>
+			<div class="fx fxjscn fxaicn mbl">
+				<button name="dec" class="sp lsp mrs wt" style="border-radius:8px;border:1px solid gainsboro;width:120px;height:120px;" value="20">
+					<img src="{{ STATIC_URL }}img/search.svg" width="28" height="28">
+					<div style="color:#3cb7dd;font-weight:600">SEARCH</div>
+				</button>
+				<button name="dec" class="sp lsp mls wt" style="border-radius:8px;border:1px solid gainsboro;width:120px;height:120px;" value="12">
+					<img src="{{ STATIC_URL }}img/members-ct.svg" width="28" height="28">
+					<div style="color:#3cb7dd;font-weight:600">ONLINE</div>
+				</button>
+			</div>
+			<div class="fx fxjscn fxaicn mtl">
+				<button name="dec" style="padding:2px 4px;border:none" class="hd cs sp lsp cb mrl" value="16">HELP</button>
+				<button name="dec" style="padding:2px 4px;border:none" class="hd cs sp lsp cb mrl mll" value="17">ABOUT</button>
+				<button name="dec" style="padding:2px 4px;border:none" class="hd cs sp lsp cb mll" value="18">LOG&nbsp;OUT</button>
+			</div>
+		</form>
+	</div>
+</div>
+<script async type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_modal.v2.js"></script>

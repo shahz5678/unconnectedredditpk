@@ -1,63 +1,34 @@
-{% extends "base.html" %}
+{% extends "base/base_verification.html" %}
 {% block content %}
 <head><title>Account verification incomplete | Damadam</title></head>
-<style>body{background: #E9EBEE}</style>
-{% include "fb_analytics.html" %}
 
-<div class="bizcard" style="background-color:#FEFCFC;padding:10px 8px;max-width:450px;width:92%;margin:0 auto;overflow: hidden;text-align:center">
+<div class="mbl" style="background-color:#FEFCFC;padding:10px 8px;max-width:500px;margin-right:auto;margin-left:auto;overflow: hidden;text-align:center">
 
 {% if reason == '0' %}
-	<div class="cxl mbl clb">Apki ID pehlay se verified hai</div>
+	<div class="cxl mbl clb">Your account is already verified</div>
 	<a href="{% url 'for_me' %}"><button class="btn bcb bm sp pg_ok_res" style="height:28px">For Me</button></a>
 {% elif reason == '1' %}
-	<span class="cxl clb">Sorry! Koi aur account is mobile number pe verified hai</span>
+	<span class="cxl clb lsp">Sorry! The details you provided have already been used</span>
 	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Different mobile number ke sath verify karwaney ke liye 'verify now' dabain:</div>
+	<div class="mt cm sp lsp mbs">Press 'verify now' to try again:</div>
 	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
 {% elif reason == '2' %}
-	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
+	<span class="cxl clb lsp">Sorry! Your account could not be verified</span>
 	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'verify now' dabain:</div>
+	<div class="mt cm sp lsp mbs">Press 'verify now' to try again:</div>
 	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
 {% elif reason == '3' %}
-	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
+	<span class="cxl clb" lsp>Sorry! Your account details could not be matched</span>
 	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'verify now' dabain:</div>
-	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
-{% elif reason == '4' %}
-	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
-	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'verify now' dabain:</div>
-	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
-{% elif reason == '5' %}
-	<span class="cxl clb">Sorry! Apka account verify nahi hua</span>
-	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'verify now' dabain:</div>
-	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
-{% elif reason == '6' %}
-	<span class="cxl clb">Sorry! Dobara verify kerwaien</span>
-	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'verify now' dabain:</div>
-	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
-{% elif reason == '7' %}
-	<span class="cxl clb">Sorry! Apki tasdiq nahi ho saki</span>
-	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'forgot password' dabain:</div>
+	<div class="mt cm sp lsp mbs">Press 'forgot password' to try again:</div>
 
-	<a href="{% url 'forgot_password' %}#section0">
-	  <button style="padding:1em 0;border:none;width:100%;background:#3cb7dd" class="pg_ok_res"><img src="{{ STATIC_URL }}img/verified_dark.svg" height="23" width="23" style="vertical-align:sub" class="mrs"><span style="color:white;font-weight:bold" class="cxl sp">FORGOT&nbsp;PASSWORD</span></button>
-	</a>
-{% elif reason == '8' %}
-	<span class="cxl clb">Sorry! Apki tasdiq nahi ho saki</span>
-	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'forgot password' dabain:</div>
 	<a href="{% url 'forgot_password' %}#section0">
 	  <button style="padding:1em 0;border:none;width:100%;background:#3cb7dd" class="pg_ok_res"><img src="{{ STATIC_URL }}img/verified_dark.svg" height="23" width="23" style="vertical-align:sub" class="mrs"><span style="color:white;font-weight:bold" class="cxl sp">FORGOT&nbsp;PASSWORD</span></button>
 	</a>
 {% else %}
-	<span class="cxl clb">Sorry! Ap ne buhut deir kar di</span>
+	<span class="cxl clb lsp">Sorry! Your account details could not be processed</span>
 	<hr size=1 COLOR="#E6E6E6">
-	<div class="mt cm sp lsp mbs">Dobara try karney ke liye 'verify now' dabain:</div>
+	<div class="mt cm sp lsp mbs">Please try again:</div>
 	{% include "verification/verification_button.html" with static_url=STATIC_URL %}
 {% endif %}
 

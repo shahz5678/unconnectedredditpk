@@ -1,0 +1,8 @@
+{% extends "base/base_verification.html" %}
+{% block content %}
+<head><title>User verification | Damadam.pk</title></head>
+
+<h1 class="cxl lsp clb" style="text-align:center">Please verify your account!</h1>
+{% include "verification/fbs_verification_options.html" with is_fbs=is_fbs is_opera=is_opera %}
+
+{% endblock %}

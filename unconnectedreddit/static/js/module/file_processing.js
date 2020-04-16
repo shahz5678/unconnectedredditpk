@@ -1,4 +1,4 @@
-// feeder for helper_funcs.v1.17.js
+// feeder for helper_funcs.v1.20.js
 // Compress via https://jscompress.com/ and press "download"
 var valid_img = false;
 var max_img_width = 450;
@@ -209,7 +209,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	// send the form via AJAX
 	var xhr = new XMLHttpRequest();
 	xhr.open('POST', target_action);
-	xhr.timeout = 55000; // time in milliseconds, i.e. 55 seconds
+	xhr.timeout = 190000; // time in milliseconds, i.e. 190 seconds
 	xhr.setRequestHeader("X-CSRFToken", get_cookie('csrftoken'));
 	xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
 	xhr.onload = function () {
@@ -225,7 +225,7 @@ function process_ajax(text, img_name, target_action, img_to_send, is_resized, is
 	};
 	xhr.onerror = function () {
 		// onerror fires when there is a failure on the network level
-		window.location.replace(fail_url);// e.g. fail_url = '/1-on-1/'
+		window.location.replace(fail_url);// e.g. fail_url = '/1-on-1/'	
 		personal_group_preloader('destroy');
 	};
 	xhr.ontimeout = function (e) {
@@ -488,9 +488,7 @@ Blob = (function() {
 	// var form_template = document.querySelector('#form_template');//select form in personal_group.html
 var form_template = document.getElementById('form_template');
 if (form_template) {
-	// var rep_size = form_template.querySelector('#pg_rep_size_err');
 	var rep_size = form_template.firstElementChild.nextElementSibling; // 5 times faster than prev statement
-	// var rep_mime = form_template.querySelector('#pg_rep_mime_err');
 	var rep_mime = form_template.firstElementChild.nextElementSibling.nextElementSibling; // 3 times faster than prev statement
 	form_template.onsubmit = personal_group_reply_submit;
 };// call personal_group_reply_submit if form_template is submitted

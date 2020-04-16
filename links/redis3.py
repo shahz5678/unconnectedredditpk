@@ -9,7 +9,6 @@ from operator import itemgetter
 from templatetags.s3 import get_s3_object
 # from ecomm_category_mapping import ECOMM_CATEGORY_MAPPING
 from send_sms import send_expiry_sms_in_bulk#, process_bulk_sms
-from html_injector import image_thumb_formatting#, contacter_string
 from redis4 import retrieve_bulk_unames, retrieve_user_id, retrieve_avurl
 from score import PHOTOS_WITH_SEARCHED_NICKNAMES, TWILIO_NOTIFY_THRESHOLD,USER_REBAN_ACTION_RATELIMIT, USER_UNBAN_ACTION_RATELIMIT, THRESHOLD_WORLD_AGE
 
@@ -72,6 +71,7 @@ ONE_DAY = 24*60*60
 ONE_WEEK = 1*7*24*60*60
 TWO_WEEKS = 2*7*24*60*60
 ONE_MONTH = 30*24*60*60
+ONE_YEAR = 31104000
 
 ########################################################################################################
 ################################### Descriptive next and prev button split test ########################
@@ -795,23 +795,93 @@ def retrieve_mobile_unverified_in_bulk(user_ids):
 	return unverified_ids
 
 
-# return True if user has any number on file
-def is_mobile_verified(user_id):
+USER_VERIFICATION_DATA = 'uvd:'
+
+
+def is_mobile_verified(user_id, with_legacy_verification=False):
 	"""
-	return True if user has any number on file
+	Return True if user is verified
 	"""
-	return redis.Redis(connection_pool=POOL).exists("um:"+str(user_id))
+	# 'is_legacy_verification' required as well (useful in 'Forgot password')
+	if with_legacy_verification:
+		user_id = str(user_id)
+		is_legacy_verification = False
+		my_server = redis.Redis(connection_pool=POOL)
+
+		# Firebase verification
+		if my_server.exists(USER_VERIFICATION_DATA+user_id):
+			return True, is_legacy_verification
+		
+		# Account Kit verification (legacy)
+		elif my_server.exists("um:"+user_id):
+			is_legacy_verification = True#
+			return True, is_legacy_verification
+		
+		# No verification
+		else:
+			return False, is_legacy_verification
+
+	#########################################################
+	# 'is_legacy_verification' flag is not required
+	else:
+		if redis.Redis(connection_pool=POOL).zscore('ecomm_verified_users',user_id):
+			# user is verified			
+			return True
+		else:
+			# user is not verified
+			return False
+
+
+# REVERIFY = 'rvy:'
 
 def someone_elses_number(national_number, user_id):
+	"""
+	Checks legacy data for evidence of a mobile number having been already used (i.e. via the account kit method)
+	"""
 	my_server = redis.Redis(connection_pool=POOL)
-	rival_id = my_server.zscore("verified_numbers", national_number)
-	if rival_id is None or int(rival_id) == user_id:
-		# either own number, or available number, either way NOT someone else's number
+	rival_id = my_server.zscore("verified_numbers", national_number[3:])
+
+	if rival_id is None:
+		# number is unused
 		return False
+
+	elif int(user_id) == int(rival_id):
+		# number used by own self
+		# my_server.setex(REVERIFY+str(user_id),1,TEN_MINS)#set flag to delete user from old verification system and add in new system
+		return False
+
 	else:
 		# someone else's number
 		return True
 
+####################################################################################################################
+########################################## Firebase Verification ###################################################
+
+VERIFIED_FIREBASE_IDS = 'vfi'
+
+def someone_elses_data(firebase_id, user_id, mob_num):
+	"""
+	Ensuring the firebase_id has not been used prior
+
+	Note: mob_num's format is '+923004503130'
+	"""
+	# Google/Facebook were used for verification
+	if mob_num[:3] == '+92':
+		# a '+92' mobile number was provided. It could possibly be a legacy number. Check accordingly
+		num_already_used = someone_elses_number(national_number=mob_num, user_id=user_id)
+		if num_already_used:
+			return '1'# the provided mobile number was used up via account kit verification
+	###########################
+	rival_id = redis.Redis(connection_pool=POOL).zscore(VERIFIED_FIREBASE_IDS, firebase_id)
+	if rival_id is None:
+		# this firebase ID has never been used before - so this isn't someone else's either
+		return '-1' 
+	elif int(rival_id) == user_id:
+		# own data
+		return '0'# the used is already verified
+	else:
+		# someone else's data
+		return '1'# the provided firebase_id was already used (same as num_already_used case)
 
 
 def get_user_verified_number(user_id,country_code=False):
@@ -838,18 +908,31 @@ def unverify_user_id(user_id):
 	"""
 	numbers_to_remove = []
 	if user_id:
-		user_id = str(user_id)
-		my_server = redis.Redis(connection_pool=POOL)
-		user_number_data = my_server.lrange("um:"+user_id,0,-1)
-		for data_row in user_number_data:
-			numbers_to_remove.append(ast.literal_eval(data_row)["national_number"])
-		if numbers_to_remove:
-			pipeline1 = my_server.pipeline()
-			pipeline1.zrem('ecomm_verified_users', user_id)
-			pipeline1.zrem('verified_numbers',*numbers_to_remove)
-			pipeline1.delete("um:"+user_id)
-			pipeline1.execute()
-	return numbers_to_remove
+		verified_status, is_legacy_verification = is_mobile_verified(user_id,with_legacy_verification=True)
+		if verified_status:
+			user_id = str(user_id)
+			my_server = redis.Redis(connection_pool=POOL)
+			if is_legacy_verification:
+				pipeline1 = redis.Redis(connection_pool=POOL).pipeline()
+				user_number_data = my_server.lrange("um:"+user_id,0,-1)
+				for data_row in user_number_data:
+					numbers_to_remove.append(ast.literal_eval(data_row)["national_number"])
+				if numbers_to_remove:
+					pipeline1.zrem('ecomm_verified_users', user_id)
+					pipeline1.zrem('verified_numbers',*numbers_to_remove)
+					pipeline1.delete("um:"+user_id)
+					# pipeline1.delete(REVERIFY+user_id)
+					pipeline1.execute()
+				return numbers_to_remove
+			else:
+				pipeline1 = my_server.pipeline()
+				provider_id = my_server.hmget(USER_VERIFICATION_DATA+user_id,'uid')
+				pipeline1.delete(USER_VERIFICATION_DATA+user_id)
+				my_server.zrem(VERIFIED_FIREBASE_IDS,provider_id[0])
+				pipeline1.zrem('ecomm_verified_users',user_id)
+				pipeline1.execute()
+				return provider_id
+					
 
 
 # this mechanism saves up to TWO user numbers, trimming the 3rd
@@ -869,6 +952,29 @@ def save_consumer_number(account_kit_id, mobile_data, user_id):
 		if my_server.llen(user_mobile) > 2:
 			removed_number = ast.literal_eval(my_server.rpop(user_mobile))["national_number"]
 			my_server.zrem("verified_numbers",removed_number) #remove the number from 'verified_numbers' sorted set as well. This frees up the number to be used elsewhere
+
+
+def save_consumer_details(user_data, user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	if user_data:
+		user_id = str(user_id)
+		# if my_server.exists(REVERIFY+user_id):
+		# 	unverify_user_id(user_id)
+		pipeline1 = my_server.pipeline()
+		pipeline1.hmset(USER_VERIFICATION_DATA+user_id, user_data)
+		pipeline1.zadd(VERIFIED_FIREBASE_IDS,user_data['uid'], user_id) # to ensure that once used, a mobile number can't be tied to another ID
+		pipeline1.zadd('ecomm_verified_users',user_id, user_data['verif_time']) # keeping a universal table of all ecomm user_ids that have been verified, might be useful later
+		pipeline1.execute()
+
+
+def get_provider(user_id):
+	my_server = redis.Redis(connection_pool=POOL)
+	return my_server.hget(USER_VERIFICATION_DATA+str(user_id),'provider')
+
+def get_firebase_id(user_id):
+	"""
+	"""
+	return redis.Redis(connection_pool=POOL).hget(USER_VERIFICATION_DATA+str(user_id),'uid')	
 
 # retrieves approved ad's item name, to be sent in an SMS to the ad creator
 def get_item_name(ad_id):
@@ -1733,14 +1839,14 @@ def tutorial_unseen(user_id, which_tut, renew_lease=False):
 	'23' 'first time instruction viewer in private mehfil invited users list'
 	'24' 'first time visitor of member activity in private mehfils'
 	'25' 'first time viewer of sharing tutorial'
-	'26' 'first time foto sharer'
+	'26' 'first time photo sharer'
 	'27' 'first time password change'
 	'28' 'first time officership applier'
 	'29' 'first time officer applications list viewer'
 	'30' 'first time officer dashboard viewing'
 	"""
-	my_server = redis.Redis(connection_pool=POOL)
 	key_name = "tk:"+str(user_id)+":"+str(which_tut)
+	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(key_name):
 		if renew_lease:
 			# increase TTL if renew_lease is passed
@@ -1820,6 +1926,36 @@ def remove_verified_mob(target_user_ids):
 		pass
 
 
+###################### Auth log ######################
+
+
+LOGGED = 'lg' # a global list that contains auth combos
+
+
+def log_logger(var1,var2):
+	"""
+	A genertic auth logger
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	if var2:
+		var2= int(var2)
+		my_server.zremrangebyscore(LOGGED,var2,var2)
+		my_server.zadd(LOGGED,var1+':'+str(var2),var2)
+
+
+def clean_log_logger():
+	"""
+	Removes inactive users from set called LOGGED
+	"""
+	active_last_year = time.time()-ONE_YEAR
+	my_server = redis.Redis(connection_pool=POOL)
+	inactive_ids = my_server.zrangebyscore('world_age_last_increment','-inf',active_last_year)
+	if inactive_ids:
+		pipeline1 = my_server.pipeline()
+		for user in inactive_ids:
+			pipeline1.zremrangebyscore(LOGGED,user,user)
+		pipeline1.execute()
+
 ###################### setting user's world age ######################
 
 
@@ -1841,7 +1977,6 @@ def get_world_age(user_id):
 		return int(world_age)
 	else:
 		return 0
-
 
 def set_world_age(user_id):
 	"""
@@ -2019,6 +2154,7 @@ def set_forgot_password_rate_limit(user_id):
 	"""
 	redis.Redis(connection_pool=POOL).setex("prrl:"+str(user_id),'1',TWO_HOURS)
 
+
 def is_forgot_password_rate_limited(user_id):
 	"""
 	Checks if user already recently reset their password, and stops them from doing it again so soon
@@ -2060,145 +2196,197 @@ def retrieve_user_account_kit_secret(identifier, from_forgot_pass=False):
 		return redis.Redis(connection_pool=POOL).get(ACCOUNT_KIT_SECRET_STORE+str(identifier))
 
 
-################################################### Accountkit usage related loggers ###########################
+################################################## Firebase verification related loggers ###########################
 
-def log_ak_entered():
+def log_firebase_entered(not_supported=False):
 	"""
-	this function logs the number of users funnelled to Accountkit for verification
+	this function logs the number of users funnelled to Firebase for verification
 	"""
-	redis.Redis(connection_pool=POOL).incr("entered_ak_count")
+	if not_supported:
+		redis.Redis(connection_pool=POOL).incr("entered_firebase_ns_count")
+	else:
+		redis.Redis(connection_pool=POOL).incr("entered_firebase_count")
 
 
-def log_ak_user_verification_outcome(reason):
+def log_firebase_user_verification_outcome(reason):
 	"""
-	this function logs the number of verified users through Accountkit
+	this function logs the number of verified users through firebase
 	"""
 	if reason == 'verified':
-		redis.Redis(connection_pool=POOL).incr("verified_on_ak_count")
-	elif reason == 'pressed_cross':
-		redis.Redis(connection_pool=POOL).incr("pressed_x_on_ak_count")
-	elif reason == 'number_already_used':
-		redis.Redis(connection_pool=POOL).incr("number_already_used_ak_count")
-	elif reason == 'verification_failed_reason4':
-		redis.Redis(connection_pool=POOL).incr("not_verified_reason4_count")
-	elif reason == 'verification_failed_reason5':
-		redis.Redis(connection_pool=POOL).incr("not_verified_reason5_count")
-	elif reason == 'sms_expired':
-		redis.Redis(connection_pool=POOL).incr("sms_expired_count")
-	elif reason == 'id_already_verified':
-		redis.Redis(connection_pool=POOL).incr("id_already_verified_count")
+		redis.Redis(connection_pool=POOL).incr("verified_on_firebase_count")
+	elif reason == 'data_already_used':
+		redis.Redis(connection_pool=POOL).incr("number_already_used_firebase_count")
+	elif reason == 'id_already_verified_firebase':
+		redis.Redis(connection_pool=POOL).incr("id_already_verified_firebase_count")	
 
 
-################################################### Accountkit forgot password related loggers ###################
+################################################## Firebase forgot password related loggers ###########################
 
-
-def log_fp_ak_entered():
+def fp_log_firebase_entered(not_supported=False):
 	"""
-	this function logs the number of Forgot password user funnelled to Accountkit for verification
+	this function logs the number of users funnelled to Firebase for account verification in forgot password
 	"""
-	redis.Redis(connection_pool=POOL).incr("entered_fp_ak_count")
+	if not_supported:
+		redis.Redis(connection_pool=POOL).incr("fp_entered_firebase_ns_count")
+	else:
+		redis.Redis(connection_pool=POOL).incr("fp_entered_firebase_count")
 
 
-def log_fp_ak_user_verification_outcome(reason):
+def fp_log_firebase_user_verification_outcome(reason):
 	"""
-	this function logs the number of Accountkit errors for users in forgot password funnel
+	this function logs the number of verified users through forgot password funnel
 	"""
-	pass
-	if reason == 'ratelimited_before_ak':
-		redis.Redis(connection_pool=POOL).incr("forgetter_ratelimited_before_ak_count")
-	elif reason == 'ratelimited_after_ak':
-		redis.Redis(connection_pool=POOL).incr("forgetter_ratelimited_after_ak_count")
-	elif reason == 'verified':
-		redis.Redis(connection_pool=POOL).incr("change_password_success_count")
-	elif reason == 'forgetters_userid_missing':
-		redis.Redis(connection_pool=POOL).incr("forgetters_userid_missing_count")
-	elif reason == 'forgetter_using_someone_elses_number':
-		redis.Redis(connection_pool=POOL).incr("forgetter_using_someone_elses_number_count")
-	elif reason == 'forgetter_on_setting_pass_screen':
-		redis.Redis(connection_pool=POOL).incr("forgetter_on_setting_pass_screen_count")
-	elif reason == 'forgetters_number_questionable':
-		redis.Redis(connection_pool=POOL).incr("forgetters_number_questionable_count")
-	elif reason == 'forgetter_ran_into_unknown_error':
-		redis.Redis(connection_pool=POOL).incr("forgetter_ran_into_unknown_error_count")
+	if reason == 'reverified':
+		redis.Redis(connection_pool=POOL).incr("fp_verified_on_firebase_count")
+	elif reason == 'details_for_unrelated_account':
+		redis.Redis(connection_pool=POOL).incr("fp_number_already_used_firebase_count")
+	# elif reason == 'verification_failed_reason4':
+	# 	redis.Redis(connection_pool=POOL).incr("not_verified_firebase_count")
+	# elif reason == 'sms_expired':
+	# 	redis.Redis(connection_pool=POOL).incr("sms_expired_count")
+	elif reason == 'id_already_logged_in_firebase':
+		redis.Redis(connection_pool=POOL).incr("fp_id_already_verified_firebase_count")	
+
+
+################################################### Accountkit usage related loggers ###########################
+
+# def log_ak_entered():
+# 	"""
+# 	this function logs the number of users funnelled to Accountkit for verification
+# 	"""
+# 	redis.Redis(connection_pool=POOL).incr("entered_ak_count")
+
+
+# def log_ak_user_verification_outcome(reason):
+# 	"""
+# 	this function logs the number of verified users through Accountkit
+# 	"""
+# 	if reason == 'verified':
+# 		redis.Redis(connection_pool=POOL).incr("verified_on_ak_count")
+# 	elif reason == 'pressed_cross':
+# 		redis.Redis(connection_pool=POOL).incr("pressed_x_on_ak_count")
+# 	elif reason == 'number_already_used':
+# 		redis.Redis(connection_pool=POOL).incr("number_already_used_ak_count")
+# 	elif reason == 'verification_failed_reason4':
+# 		redis.Redis(connection_pool=POOL).incr("not_verified_reason4_count")
+# 	elif reason == 'verification_failed_reason5':
+# 		redis.Redis(connection_pool=POOL).incr("not_verified_reason5_count")
+# 	elif reason == 'sms_expired':
+# 		redis.Redis(connection_pool=POOL).incr("sms_expired_count")
+# 	elif reason == 'id_already_verified':
+# 		redis.Redis(connection_pool=POOL).incr("id_already_verified_count")
+
+
+# ################################################### Accountkit forgot password related loggers ###################
+
+
+# def log_fp_ak_entered():
+# 	"""
+# 	this function logs the number of Forgot password user funnelled to Accountkit for verification
+# 	"""
+# 	redis.Redis(connection_pool=POOL).incr("entered_fp_ak_count")
+
+
+# def log_fp_ak_user_verification_outcome(reason):
+# 	"""
+# 	this function logs the number of Accountkit errors for users in forgot password funnel
+# 	"""
+# 	pass
+# 	if reason == 'ratelimited_before_ak':
+# 		redis.Redis(connection_pool=POOL).incr("forgetter_ratelimited_before_ak_count")
+# 	elif reason == 'ratelimited_after_ak':
+# 		redis.Redis(connection_pool=POOL).incr("forgetter_ratelimited_after_ak_count")
+# 	elif reason == 'verified':
+# 		redis.Redis(connection_pool=POOL).incr("change_password_success_count")
+# 	elif reason == 'forgetters_userid_missing':
+# 		redis.Redis(connection_pool=POOL).incr("forgetters_userid_missing_count")
+# 	elif reason == 'forgetter_using_someone_elses_number':
+# 		redis.Redis(connection_pool=POOL).incr("forgetter_using_someone_elses_number_count")
+# 	elif reason == 'forgetter_on_setting_pass_screen':
+# 		redis.Redis(connection_pool=POOL).incr("forgetter_on_setting_pass_screen_count")
+# 	elif reason == 'forgetters_number_questionable':
+# 		redis.Redis(connection_pool=POOL).incr("forgetters_number_questionable_count")
+# 	elif reason == 'forgetter_ran_into_unknown_error':
+# 		redis.Redis(connection_pool=POOL).incr("forgetter_ran_into_unknown_error_count")
 
 
 ################################################### Twilio usage related loggers ###########################
 
-def twiliolog_pin_sms_sent(forgot_pass=False):
-	"""
-	this function logs the number of smses sent out for verification
-	"""
-	if forgot_pass:
-		redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_sms_count") 
-	else:
-		redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
+# def twiliolog_pin_sms_sent(forgot_pass=False):
+# 	"""
+# 	this function logs the number of smses sent out for verification
+# 	"""
+# 	if forgot_pass:
+# 		redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_sms_count") 
+# 	else:
+# 		redis.Redis(connection_pool=POOL).incr("twilio_sms_count") 
 
 
-def twiliolog_user_verified(forgot_pass=False):
-	"""
-	this function logs the number of verified users through twilio
-	"""
-	if forgot_pass:
-		redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_verified_count")
-	else:
-		redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
+# def twiliolog_user_verified(forgot_pass=False):
+# 	"""
+# 	this function logs the number of verified users through twilio
+# 	"""
+# 	if forgot_pass:
+# 		redis.Redis(connection_pool=POOL).incr("twilio_forgot_pass_verified_count")
+# 	else:
+# 		redis.Redis(connection_pool=POOL).incr("twilio_verified_count")
 
 
-def twiliolog_reverification_pin_sms_sent(forgot_pass=False):
-	"""
-	This function logs the number of smses sent out for reverification
-	"""
-	redis.Redis(connection_pool=POOL).incr("twilio_reverified_sms_count") 
+# def twiliolog_reverification_pin_sms_sent(forgot_pass=False):
+# 	"""
+# 	This function logs the number of smses sent out for reverification
+# 	"""
+# 	redis.Redis(connection_pool=POOL).incr("twilio_reverified_sms_count") 
 
 
-def twiliolog_user_reverified(forgot_pass=False):
-	"""
-	This function logs the number of reverified users through twilio
-	"""
-	redis.Redis(connection_pool=POOL).incr("twilio_reverified_count")
+# def twiliolog_user_reverified(forgot_pass=False):
+# 	"""
+# 	This function logs the number of reverified users through twilio
+# 	"""
+# 	redis.Redis(connection_pool=POOL).incr("twilio_reverified_count")
 
-def log_fbs_please_wait(user_id, expire_at):
-	"""
-	Logging all users shown a prompt (only does it once for each user_id) 
+# def log_fbs_please_wait(user_id, expire_at):
+# 	"""
+# 	Logging all users shown a prompt (only does it once for each user_id) 
 
-	verified_on_data_after_being_prompted_on_fbs_before_rl_expiry' / 'prompted_on_fbs_to_wait' yields conversion rate of people who go to paid internet from fbs
-	"""
-	user_id = str(user_id)
-	my_server = redis.Redis(connection_pool=POOL)
-	was_key_set = my_server.setnx("uvfbs:"+user_id,expire_at)
-	if was_key_set:
-		my_server.expire("uvfbs:"+user_id,ONE_WEEK)
-		my_server.incr("prompted_on_fbs_to_wait") # but not YET told that via "paid" internet, the user can verify right away
+# 	verified_on_data_after_being_prompted_on_fbs_before_rl_expiry' / 'prompted_on_fbs_to_wait' yields conversion rate of people who go to paid internet from fbs
+# 	"""
+# 	user_id = str(user_id)
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	was_key_set = my_server.setnx("uvfbs:"+user_id,expire_at)
+# 	if was_key_set:
+# 		my_server.expire("uvfbs:"+user_id,ONE_WEEK)
+# 		my_server.incr("prompted_on_fbs_to_wait") # but not YET told that via "paid" internet, the user can verify right away
 	
-def log_fbs_user_verification(user_id, on_fbs, time_now):
-	"""
-	Logging users' mobile verification
-	"""
-	my_server = redis.Redis(connection_pool=POOL)
-	expire_at = my_server.get('uvfbs:'+str(user_id))
-	if expire_at:
-		# this user was prompted on FBS
-		if int(expire_at) > time_now:
-			# blocked from verifying on FBS
-			if on_fbs:
-				my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_before_rl_expiry')# should not happen, should be 0
-			else:
-				my_server.incr('verified_on_data_after_being_prompted_on_fbs_before_rl_expiry')# these people converted to paid internet from FBS for verification purposes
-		else:
-			# allowed to verify on FBS (i.e. waited the requisite time)
-			if on_fbs:
-				my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_after_rl_expiry')
-			else:
-				# this user chose to verify on data even though they could have verified on FBS
-				my_server.incr('verified_on_data_after_being_prompted_on_fbs_after_rl_expiry')# should be a very rare occurence
-		# get rid of the key
-		my_server.delete('uvfbs:'+str(user_id))
-	else:
-		# this user was never prompted on FBS
-		if on_fbs:
-			my_server.incr('verified_on_fbs_after_waiting_one_day_without_prompt')# these users opt to wait a day instead of going on paid internet
-		else:
-			my_server.incr('verified_on_data_without_prompt')# these users verified on data (and never received the FBS prompt)
+# def log_fbs_user_verification(user_id, on_fbs, time_now):
+# 	"""
+# 	Logging users' mobile verification
+# 	"""
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	expire_at = my_server.get('uvfbs:'+str(user_id))
+# 	if expire_at:
+# 		# this user was prompted on FBS
+# 		if int(expire_at) > time_now:
+# 			# blocked from verifying on FBS
+# 			if on_fbs:
+# 				my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_before_rl_expiry')# should not happen, should be 0
+# 			else:
+# 				my_server.incr('verified_on_data_after_being_prompted_on_fbs_before_rl_expiry')# these people converted to paid internet from FBS for verification purposes
+# 		else:
+# 			# allowed to verify on FBS (i.e. waited the requisite time)
+# 			if on_fbs:
+# 				my_server.incr('verified_on_fbs_after_being_prompted_on_fbs_after_rl_expiry')
+# 			else:
+# 				# this user chose to verify on data even though they could have verified on FBS
+# 				my_server.incr('verified_on_data_after_being_prompted_on_fbs_after_rl_expiry')# should be a very rare occurence
+# 		# get rid of the key
+# 		my_server.delete('uvfbs:'+str(user_id))
+# 	else:
+# 		# this user was never prompted on FBS
+# 		if on_fbs:
+# 			my_server.incr('verified_on_fbs_after_waiting_one_day_without_prompt')# these users opt to wait a day instead of going on paid internet
+# 		else:
+# 			my_server.incr('verified_on_data_without_prompt')# these users verified on data (and never received the FBS prompt)
 
 #########################################Invalid Nickname Logger##################################
 

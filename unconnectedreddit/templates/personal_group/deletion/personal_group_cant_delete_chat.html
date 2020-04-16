@@ -1,11 +1,11 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load future_time %}
 {% block content %}
-<head><title>Unable to complete action | Damadam.pk</title></head>
+<head><title>Unable to complete action | Damadam</title></head>
 
-<div class="margin cgy" style="max-width:420px;width:92%;">
+<div class="mbl cgy" style="max-width:500px;margin-right:auto;margin-left:auto">
 
-	<div class="card" style="background-color:#FFFAF0;padding:10px;text-align:center">
+	<div class="card lsp" style="background-color:#FFFAF0;padding:10px;text-align:center;margin-top:0">
 
 	{% if all_chat %}
 
@@ -18,21 +18,21 @@
 	{% elif all_photos %}
 
 		{% if un %}
-		<span class="cxl">Ap apni fotos bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap apne images bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% else %}
-		<span class="cxl">Ap apni fotos mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap apne images mita sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% endif %}
 
 	{% elif one_photo %}
 
 		{% if act == 'del' %}
-		<span class="cxl">Ap ye foto bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image bahal kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% elif act == 'undel' %}
-		<span class="cxl">Ap ye foto mita sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image mita sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% elif act == 'hide' %}
-		<span class="cxl">Ap ye foto hide kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image hide kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% elif act == 'unhide' %}
-		<span class="cxl">Ap ye foto unhide kar sakien ge <b>{{ ttl|future_time }}</b></span>
+		<span class="cxl">Ap ye image unhide kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% else %}
 		<span class="cxl">Ap ye kar sakien ge <b>{{ ttl|future_time }}</b></span>
 		{% endif %}

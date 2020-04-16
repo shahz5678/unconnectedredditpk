@@ -1,15 +1,14 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load human_time %}
 {% load get_super_defender_navbar %}
 {% block content %}
-<head><title>Add defender | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-
-{% super_defender_navbar static_url=STATIC_URL section='add' %}
-
+<head><title>Add defender | Damadam</title></head>
+<div class="mtl">
+	{% super_defender_navbar static_url=STATIC_URL section='add' %}
+</div>
 <h1 class="cxl clb lsp" style="text-align:center">With great power comes great responsibility!</h1>
 
-<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:450px;width:92%;margin:0 auto;overflow:hidden;text-align:left">
+<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow:hidden;text-align:left">
 {% if successful %}
 <div class="cxl lsp mbs" style="text-align:center;font-weight:bold">...{{ added_username }} is now super powered!</div>
 {% endif %}

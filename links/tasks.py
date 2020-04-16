@@ -13,39 +13,36 @@ from cricket_score import cricket_scr
 from send_sms import process_sms, bind_user_to_twilio_notify_service, process_buyer_sms, send_personal_group_sms,\
 process_user_pin_sms
 from score import PUBLIC_GROUP_MESSAGE, PRIVATE_GROUP_MESSAGE, PUBLICREPLY, SHARE_ORIGIN,NUM_TO_DELETE,\
-GIBBERISH_PUNISHMENT_MULTIPLIER#, UPVOTE, DOWNVOTE,
-# from page_controls import PHOTOS_PER_PAGE
+GIBBERISH_PUNISHMENT_MULTIPLIER
 from models import Photo, LatestSalat, Photo, PhotoComment, Link, Publicreply, TotalFanAndPhotos, UserProfile, Cooldown, \
 Video, HotUser, PhotoStream, HellBanList, UserFan
-#from order_home_posts import order_home_posts, order_home_posts2, order_home_posts1
 from redis3 import retrieve_random_pin, calculate_world_age_discount, log_gibberish_text_writer, get_gibberish_text_writers, \
 set_world_age, queue_punishment_amount, save_used_item_photo, save_single_unfinished_ad, save_consumer_number, get_world_age, \
 process_ad_final_deletion, process_ad_expiry, log_detail_click, remove_banned_users_in_bulk, log_404_errors, exact_date, \
-ratelimit_banner_from_unbanning_target, is_mobile_verified
+ratelimit_banner_from_unbanning_target, is_mobile_verified, clean_log_logger
 from redis5 import trim_personal_group, set_personal_group_image_storage, mark_personal_group_attendance, cache_personal_group_data,\
 invalidate_cached_user_data, get_personal_group_anon_state, personal_group_soft_deletion, \
 personal_group_hard_deletion, exited_personal_group_hard_deletion, update_personal_group_last_seen, set_uri_metadata_in_personal_group,\
 rate_limit_personal_group_sharing, exit_user_from_targets_priv_chat
 from redis4 import expire_online_users, get_recent_online, set_online_users, log_input_rate, log_input_text, retrieve_uname, retrieve_avurl, \
 retrieve_credentials, invalidate_avurl, log_personal_group_exit_or_delete,log_share, logging_sharing_metrics, cache_photo_share_data, \
-retrieve_bulk_unames, save_most_recent_online_users,sanitize_unused_subscriptions,log_1on1_chat, recreate_hell_banned_list#, log_replier_reply_rate
+retrieve_bulk_unames, save_most_recent_online_users,sanitize_unused_subscriptions,log_1on1_chat, recreate_hell_banned_list
 from redis6 import group_attendance, add_to_universal_group_activity, retrieve_single_group_submission, increment_pic_count,\
-log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, rank_mehfil_active_users, remove_inactive_members,\
-retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group
+log_group_chatter, del_overflowing_group_submissions, empty_idle_groups, delete_ghost_groups, remove_inactive_members,\
+retrieve_all_member_ids, group_owner_administrative_interest, hide_direct_response_in_group#, rank_mehfil_active_users
 from redis7 import log_like, retrieve_obj_feed, add_obj_to_home_feed, get_photo_feed, add_photos_to_best_photo_feed, retrieve_text_obj_scores,\
 insert_hash, retrieve_all_home_text_obj_names, delete_temporarily_saved_content_details, cleanse_inactive_complainers, account_created, set_top_stars, \
 add_posts_to_best_posts_feed, add_single_trending_object, trim_expired_user_submissions, select_hand_picked_obj_for_trending,retire_abandoned_topics,\
-queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_bayesian_affinity, cleanse_voting_records, \
-study_voting_preferences,retrieve_img_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, cache_old_detailed_voting_data,\
-get_best_home_feed, create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, archive_closed_objs_and_votes, \
-hide_inline_direct_response
+queue_obj_into_trending, in_defenders, remove_obj_from_trending, calculate_top_trenders, calculate_trender_score, calculate_bayesian_affinity, \
+cleanse_voting_records, study_voting_preferences,retrieve_img_obj_scores, add_single_trending_object_in_feed, cache_detailed_voting_data, \
+cache_old_detailed_voting_data, get_best_home_feed, create_sybil_relationship_log, set_best_photo_for_fb_fan_page, can_post_image_on_fb_fan_page, \
+archive_closed_objs_and_votes, hide_inline_direct_response
 from redis9 import delete_all_direct_responses_between_two_users, cleanse_direct_response_list, submit_direct_response, set_comment_history, \
 delete_single_direct_response, hide_direct_response_in_inbox, modify_direct_response_objs, log_direct_response_metrics, log_location_for_sender,\
 delete_direct_responses_upon_obj_deletion, cleanse_replier_data_from_location, cleanse_replier_history_when_pvp_blocked, remove_1on1_direct_responses,\
 log_rate_of_reply
 from redis2 import trim_expired_fanouts, fan_out_to_followers,remove_follower, sanitize_posts_after_pvp_ban
 from ecomm_tracking import insert_latest_metrics
-from links.azurevids.azurevids import uploadvid
 from django.contrib.auth.models import User
 from facebook_api import photo_poster
 from redis3 import log_vote_disc
@@ -678,7 +675,8 @@ def cleanse_complainers():
 
 @celery_app1.task(name='tasks.rank_mehfils')
 def rank_mehfils():
-	rank_mehfil_active_users()
+	pass
+	# rank_mehfil_active_users()
 
 
 @celery_app1.task(name='tasks.public_group_ranking_clean_up_task')
@@ -689,6 +687,9 @@ def public_group_ranking_clean_up_task():
 	Mislabeled task due to legacy reasons
 	"""
 	calculate_top_trenders()
+	###############################
+	# giving each 'star' a score depending on ratio of pics in trending and recency of uploaded trending images
+	calculate_trender_score()
 
 
 @celery_app1.task(name='tasks.log_group_owner_interaction')
@@ -775,13 +776,15 @@ def rank_all_photos():
 	Mislabeled task due to legacy reasons
 	"""
 	time_now = time.time()
-	pushed, obj_id = select_hand_picked_obj_for_trending()#push_hand_picked_obj_into_trending()
-	if pushed and obj_id:
-		cohort_num = int(time_now/604800)#cohort size is 1 week
-		Cooldown.objects.create(content_id=obj_id,hot_score=cohort_num)
-		# Logout.objects.create(logout_user_id=obj_id,pre_logout_score=cohort_num)
+	pushed, obj_id, audience = select_hand_picked_obj_for_trending()#push_hand_picked_obj_into_trending()
+	if pushed and obj_id and audience == 'p':
 		#####################################################
-		# Send this to Facebook fan page (every 6 hours)
+		# if it wasn't already added to the sitemap - add it now so that crawlers can index the image
+		if not Cooldown.objects.filter(content_id=obj_id).exists():
+			cohort_num = int(time_now/604800)#cohort size is 1 week
+			Cooldown.objects.create(content_id=obj_id,hot_score=cohort_num)
+		#####################################################
+		# Also send image to Facebook fan page (every few hours)
 		if can_post_image_on_fb_fan_page():
 			photo = Link.objects.only('image_file','description','submitter__username').get(id=obj_id)
 			photo_poster(image_obj=photo.image_file, image_caption=photo.description, owner_username=photo.submitter.username, \
@@ -790,8 +793,8 @@ def rank_all_photos():
 		#####################################################
 	else:
 		pass
-		# TODO : activate when 'handpicked_prob' has been built
 		#####################################################
+		# TODO : activate when 'handpicked_prob' has been built
 		# fresh_photo_ids = get_photo_feed(feed_type='fresh_photos')#fresh photos in hash format
 		# best_photo_ids = get_photo_feed(feed_type='best_photos')#trending photos in hash format
 		# remaining_fresh_photo_ids = [id_ for id_ in fresh_photo_ids if id_ not in best_photo_ids]#unselected photos so far
@@ -932,10 +935,12 @@ def salat_info():
 def salat_streaks():
 	"""
 	Cleans up user voting records saved in Redis
+	Cleans auth details of users who have not been active since one year
 
 	Mislabeled due to legacy reasons
 	"""
 	cleanse_voting_records()
+	clean_log_logger()
 
 
 @celery_app1.task(name='tasks.photo_upload_tasks')

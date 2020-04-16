@@ -1,15 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load show_error %}
 {% load human_time %}
 {% load emoticons_tags %}
 {% load get_banning_history %}
 {% block content %}
-<head><title>Defender's feedback | Damadam.pk</title></head>
+<head><title>Defender's feedback | Damadam</title></head>
 
-<style>body{background: #E9EBEE}</style>
-
-<div class="clb" style="margin: 0 auto;max-width:600px;width:93%">
-  <div class="bizcard" style="background-color:white;padding:10px">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px">
+  <div style="background-color:white;padding:10px">
     <div class="cxl lsp" style="text-align:center">{% if action == 'undo_content_ban' %}<b>{{ oun|truncatechars:'13' }}</b> ki saza khatam karney ka reason likhein:{% elif action == 'banned_content_submitter' %}<b>{{ oun|truncatechars:'13' }}</b> ko saza dene ka reason batain:{% elif action == 'banned_voter' %}Ye like ban laganey ka reason batain:{% endif %}</div>
     <hr size=1 COLOR="#E9EBEE">
     <div class="cgy sp" style="font-weight:bold">Instructions:</div>
@@ -76,7 +74,7 @@
         </div>
         {% elif data.act == 'banned_uploader' %}
         <div style="padding:5px;background-color:#fff2f2;border-radius:5px">
-            <div class="mbs lsp"><b><a href="{% url 'user_profile' data.tunm %}" class="cb">{{ data.tunm }}</a></b> <span class="cgy">- {% if data.dur == '1' %} fotos blocked for 3 hours{% elif data.dur == '2' %} fotos blocked for 1 day{% elif data.dur == '3' %} fotos blocked for 3 days{% elif data.dur == '4' %} fotos blocked for 1 month{% elif data.dur == '5' %} fotos blocked forever{% else %}{% endif %}</span></div>
+            <div class="mbs lsp"><b><a href="{% url 'user_profile' data.tunm %}" class="cb">{{ data.tunm }}</a></b> <span class="cgy">- {% if data.dur == '1' %} images blocked for 3 hours{% elif data.dur == '2' %} images blocked for 1 day{% elif data.dur == '3' %} images blocked for 3 days{% elif data.dur == '4' %} images blocked for 1 month{% elif data.dur == '5' %} images blocked forever{% else %}{% endif %}</span></div>
             <div class="lsp"><b>Target:</b> <a href="{% url 'user_profile_photo' data.tunm data.obj_id %}"><img src="{{ data.p }}" style="border-radius:4px;border:2px solid dodgerblue" alt="pic"></a></div>
             <div class="lsp"><b>Reason:</b> {% emoticons %}{{ data.rsn }}{% endemoticons %}</div>
             <div style="text-align:right" class="mts cgy cxs sp">{{ data.t|human_time }}</div>

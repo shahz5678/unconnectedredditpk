@@ -1,0 +1,176 @@
+<div id="bottom_nav" class="show-it" style="background:#fefefa;z-index:89;position: fixed;bottom: 0;height:56px;width:100%;text-align:center;border-top:1px solid #dddddd">
+	
+	<form method="GET" style="height:100%;background:0 0" class="fx fxjscn fxaicn" action="{% url 'main_navbar' %}">
+
+		{% if selected == 'for_me' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						{% if feed_count %}
+							<b style="font-size:14px;color:#00bfa5;">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- verify -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="19">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#verify"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">VERIFY</div>
+			
+			</button>
+
+			<!-- share -->
+			<button name="dec" id="more_btn" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="14">
+
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#more"></use></svg>
+					</div>
+				</div>
+				<div id="more_label" class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">MORE</div>
+
+			</button>
+
+		{% elif selected == 'verify' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						{% if feed_count %}
+							<svg width="10px" height="10px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#star"></use></svg>
+							<b style="font-size:14px;color:#00bfa5;">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- verify -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="19">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#verify"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%;">VERIFY</div>
+			
+			</button>
+
+			<!-- share -->
+			<button name="dec" id="more_btn" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="14">
+
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#more"></use></svg>
+					</div>
+				</div>
+				<div id="more_label" class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">MORE</div>
+
+			</button>
+
+		{% elif selected == 'more' %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						{% if feed_count %}
+							<svg width="10px" height="10px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#star"></use></svg>
+							<b style="font-size:14px;color:#00bfa5;">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- verify -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="19">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#verify"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">VERIFY</div>
+			
+			</button>
+
+			<!-- share -->
+			<button name="dec" id="more_btn" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="14">
+
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#more"></use></svg>
+					</div>
+				</div>
+				<div id="more_label" class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%;">MORE</div>
+
+			</button>
+
+		{% else %}
+			<!-- for me -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="1">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						{% if feed_count %}
+							<svg width="10px" height="10px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#star"></use></svg>
+							<b style="font-size:14px;color:#00bfa5;">{{ feed_count }}</b>
+						{% else %}
+							<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#eye"></use></svg>
+						{% endif %}
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">FOR&nbsp;ME</div>
+
+			</button>
+
+			<!-- verify -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="19">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#verify"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">VERIFY</div>
+			
+			</button>
+
+			<!-- share -->
+			<button name="dec" id="more_btn" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="14">
+
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unverified_sprites.svg#more"></use></svg>
+					</div>
+				</div>
+				<div id="more_label" class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">MORE</div>
+
+			</button>
+
+		{% endif %}
+
+	</form>
+
+</div>

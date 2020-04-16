@@ -1,19 +1,18 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% block content %}
-<head><title>Group detailed information | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Group detailed information | Damadam</title></head>
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Mehfil information:</span></h1>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:500px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:500px;padding:10px;background-color:white;text-align:center">
 
 <form method="POST" action="{% url 'display_group_info_page' %}" class="mbl" style="text-align:center">{% csrf_token %}<button type="submit" class="cb cs sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to info</button><input type="hidden" name="guid" value="{{ guid }}"></form>
 
 {% if is_public %}
 
 	{% if info == '1' or info == '2' %}
-		<div class="cxl lsp mbl">Ye mehfil {{ created_at }} pe create hui aur iskey owner ka nickname <a href="{% url 'user_profile' oun %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ oun }}</a> hai</div>
+		<div class="cxl lsp mbl">Ye mehfil {{ created_at }} pe create hui, aur iskey owner ka nickname <a href="{% url 'user_profile' oun %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ oun }}</a> hai</div>
 	{% elif info == '3' %}
-		<div class="cxl lspm mbl">Ap ne ye mehfil join ki on {{ joined_at }}</div>
+		<div class="cxl lsp mbl">Ap ne ye mehfil join ki on {{ joined_at }}</div>
 	{% elif info == '6' %}
 		{% if net_joiners > 1 %}
 		<div class="cxl lsp">Pichley 1 week mein is mehfil ke members mein <b>{{ net_joiners }} users</b> ka izafa hua</div>
@@ -25,7 +24,7 @@
 		<div class="cxl lsp">Pichley 1 week mein is mehfil ke members mein koi increase ya decrease nahi hua</div>
 		{% endif %}
 		<hr size=1 COLOR="#E9EBEE">
-		<div class="cs sp" style="text-align:left"><span class="cgy"><b>Note:</b>&nbsp;ye number nikalney ke liye pichley 1 week ke new members mein se exit karney waley members ko minus kiya jata hai. Kicked out members shamil nahi hotay</span></div>
+		<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note:</b>&nbsp;ye number nikalney ke liye pichley 1 week ke new members mein se exit karney waley members ko minus kiya jata hai. 'Kicked out' members shamil nahi hotay</span></div>
 	{% elif info == '7' %}
 		{% if total_officers > 1 %}
 		<div class="cxl lsp">Is mehfil ke <b>{{ total_officers }} officers</b> hain</div>
@@ -38,16 +37,16 @@
 		{% else %}
 		<div class="cxl lsp">Is mehfil ka koi officer nahi</div>
 		<hr size=1 COLOR="#E9EBEE">
-		<div class="cs sp" style="text-align:left"><span class="cgy"><b>Note:</b>&nbsp;Mehfil owner ko suggest karein ke woh officer banai, takey mehfil manage karni asaan ho</span></div>
+		<div class="cs sp lsp" style="text-align:left"><span class="cgy"><b>Note:</b>&nbsp;Mehfil owner ko suggest karein ke woh officer banai, takey mehfil manage karni asaan ho</span></div>
 		{% endif %}
 	{% elif info == '8' %}
 		<div class="cxl lsp">Is mehfil ke members ne Damadam join kiya {{ average_age }}</div>
 		<hr size=1 COLOR="#E9EBEE">
 		<div style="text-align:left;font-weight:bold" class="cgy">Note:</div>
-		<div class="cs sp" style="text-align:left">
+		<div class="cs sp lsp" style="text-align:left">
 			<span class="cgy">
-			<div class="mt">1. Ye aik <b>average</b> hai. Isko <b>ausat</b> bhi kehtay hain</div>
-			<div class="mt">2. Ye average agar ziyada ho tou iska matlab ke mehfil mein old users buhut hain</div>
+			<div class="mt">1. Ye aik <b>average</b> hai (yani <b>ausat</b>)</div>
+			<div class="mt">2. Ye average agar ziyada ho tou iska matlab ke mehfil mein old users zyada hain</div>
 			</span>
 		</div>
 	{% elif info == '9' %}
@@ -66,10 +65,10 @@
 		{% endif %}
 		<hr size=1 COLOR="#E9EBEE">
 		<div style="text-align:left;font-weight:bold" class="cgy">Note:</div>
-		<div class="cs sp" style="text-align:left">
+		<div class="cs sp lsp" style="text-align:left">
 			<span class="cgy">
 			<div class="mt">1. Size 'tiny', 'small', 'medium', 'big' and 'huge' mein se select kiya jata hai</div>
-			<div class="mt">2. Size calculate kartey waqt mehfil ko Damadam ki aur mehfils se compare kiya jata hai</div>
+			<div class="mt">2. Size calculate karney ke liye mehfil ko baqi tamam mehfils se compare kiya jata hai</div>
 			</span>
 		</div>
 	{% elif info == '10' or info == '11' %}
@@ -94,7 +93,7 @@
 			{% for topic, topic_time, topic_writer_uname, topic_writer_avurl in topic_data %}
 				<hr size=1 COLOR="#E9EBEE">
 				<div class="cl sp lsp" style="text-align:left"><span class="mrs cxs sp" style="font-weight:bold">{{ forloop.counter }}.</span>{% emoticons %}{{ topic }}{% endemoticons %}</div>
-				<div class="cs sp" style="text-align:right"><span class="cgy">- set {{ topic_time|human_time }} by <img src="{{ topic_writer_avurl|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%">&nbsp;<a href="{% url 'user_profile' topic_writer_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ topic_writer_uname }}</a></span></div>
+				<div class="cs sp" style="text-align:right"><span class="cgy">- set {{ topic_time|human_time }} by <img src="{{ topic_writer_avurl|s3:'thumb' }}" class="circle" style="vertical-align:sub">&nbsp;<a href="{% url 'user_profile' topic_writer_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ topic_writer_uname }}</a></span></div>
 			{% endfor %}
 			<hr size=1 COLOR="#E9EBEE">
 			<form method="POST" action="{% url 'display_group_info_page' %}" class="mts" style="text-align:center">{% csrf_token %}<button type="submit" class="cb cs sp" style="background:0 0;padding:0;border:none;border-bottom:1px dotted blue">back to info</button><input type="hidden" name="guid" value="{{ guid }}"></form>
@@ -107,7 +106,7 @@
 			<ul style="display:inline-block;padding: 0;list-style:none">
 				{% for data in chatter_data %}
 					<li style="text-align:left" class="mbs sp">
-					<div class="sp"><span class="cs mrs" style="font-weight:bold">{{ forloop.counter }}.</span><img src="{{ data.1|s3:'thumb' }}" style="vertical-align:sub;border-radius:50%">&nbsp;<a href="{% url 'user_profile' data.0 %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ data.0 }}</a></div>
+					<div class="sp"><span class="cs mrs" style="font-weight:bold">{{ forloop.counter }}.</span><img src="{{ data.1|s3:'thumb' }}" style="vertical-align:sub" class="circle">&nbsp;<a href="{% url 'user_profile' data.0 %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ data.0 }}</a></div>
 					</li>
 				{% endfor %}
 			</ul>
@@ -118,11 +117,11 @@
 		{% endif %}
 	{% elif info == '9' %}
 		{% if pic_sharer_uname %}
-			<div class="cxl lsp mbl">Is mehfil mein sab se ziyada fotos <a href="{% url 'user_profile' pic_sharer_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ pic_sharer_uname }}</a> ne share keen</div>
+			<div class="cxl lsp mbl">Is mehfil mein sab se ziyada images <a href="{% url 'user_profile' pic_sharer_uname %}#section0" class="cb" style="border-bottom:1px dotted blue">{{ pic_sharer_uname }}</a> ne share kiye</div>
 			<hr size=1 COLOR="#E9EBEE">
 			<div class="cs sp" style="text-align:left"><span class="cgy"><b>Note:</b>&nbsp;Ye nickname kuch time baad update hota hai</span></div>
 		{% else %}
-			<div class="sp mtl lsp cl cgy">Ye dekhne ke liye is mehfil mein mazeed fotos share karni parein gi</div>
+			<div class="sp mtl lsp cl cgy">Ye dekhne ke liye is mehfil mein mazeed images share karne parein ge</div>
 		{% endif %}
 	{% endif %}
 

@@ -1,0 +1,161 @@
+<form method="GET" action="{% url 'main_navbar' %}" itemscope itemtype="http://schema.org/SiteNavigationElement" class="clb fx fxjscn fxaicn" style="background:white;height:30px;width:100%;margin-bottom:60px">
+	<button type="submit" name="dec" class="sp cxs hd" style="padding:0;height:100%;width:100%;max-width:150px;border-radius:0;border:none;" value="17">ABOUT</button>
+	<button type="submit" name="dec" class="sp cxs hd" style="padding:0;height:100%;width:100%;max-width:150px;border-radius:0;border:none;" value="10">PRIVACY&nbsp;POLICY</button>
+</form>
+
+<div style="background:#fefefa;z-index:89;position: fixed;bottom: 0;height:56px;width:100%;text-align:center;border-top:1px solid #dddddd">
+	
+	<form method="GET" style="height:100%;background:0 0" class="fx fxjscn fxaicn" action="{% url 'main_navbar' %}">
+		
+		{% if selected == 'sign_up' %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">LOGIN</div>
+			
+			</button>
+
+			<!-- images -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">IMAGES</div>
+			
+			</button>
+
+		{% elif selected == 'login' %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%">LOGIN</div>
+			
+			</button>
+
+			<!-- images -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">IMAGES</div>
+			
+			</button>
+
+		{% elif selected == 'photos' %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">LOGIN</div>
+			
+			</button>
+
+			<!-- images -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#00bfa5"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:600;color:#00bfa5;height:37px;width:100%">IMAGES</div>
+			
+			</button>
+
+		{% else %}
+			<!-- sign up -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="6">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#add"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">SIGN&nbsp;UP</div>
+			
+			</button>
+
+			<!-- login -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="7">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#keyhole"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">LOGIN</div>
+			
+			</button>
+
+			<!-- images -->
+			<button name="dec" class="vt sp cxs" style="height:100%;width:30%;max-width:200px;border-radius:0;border:none" value="4">
+				
+				<div class="bx" style="height:29px;width:100%">
+					<div style="padding-top:6px">
+						<svg width="18px" height="18px" fill="#b4b4b4"><use xlink:href="{{ STATIC_URL }}img/spritesheets/non_fbs/bottom_navbar_unauth_sprites.svg#fotos_clw"></use></svg>
+					</div>
+				</div>
+				<div class="bx" style="font-weight:500;color:#b4b4b4;height:37px;width:100%;">IMAGES</div>
+			
+			</button>
+		{% endif %}
+
+	</form>
+
+</div>

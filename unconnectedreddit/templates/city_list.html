@@ -1,4 +1,4 @@
-{% extends "base_ecomm.html" %}
+{% extends "base/base_ecomm.html" %}
 {% load join_string %}
 {% block content %}
 
@@ -14,7 +14,7 @@
 {% include "baich_do.html" %}
 
 <div class="mts">
-<ul class="navbar_classifieds">
+<ul>
 <li><a href="{% url 'show_user_ads' %}#section0">Meray ads</a></li>
 <li><a href="{% url 'classified_listing' %}#section0">All Pakistan ({{ ad_count }} ads)</a></li>
 </ul>

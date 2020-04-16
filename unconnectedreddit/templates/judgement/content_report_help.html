@@ -1,16 +1,16 @@
-{% extends "base.html" %}
+{% extends "base/base.html" %}
 {% load get_report_navbar %}
 {% block content %}
 {% load cache %}
-<head><title>Report help | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Report help | Damadam</title></head>
 
 {% if tp == 'tx' %}
-	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
-
+	<div class="mtl">
+		{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
+	</div>
 	<h1 class="cxl clb lsp" style="text-align:center">Text report help:</h1>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		<div class="cxl lsp"><span class="cgy">Damadam pe shared text ki quality high karney ke liye following cheezoon ka khayal rakhein</span></div>
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
+		<div class="cxl lsp"><span class="cgy">Shared text ki quality high rakhney ke liye in cheezoon ka khayal rakhein</span></div>
 		<hr size=1 COLOR="#E9EBEE">
 		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
 		{% csrf_token %}
@@ -47,10 +47,6 @@
 	</div>
 	<br>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_chat' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
 		{% include "judgement/report_topics.html" with section='text_firqa_wariyat' %}
 	</div>
 	<br>
@@ -59,27 +55,11 @@
 	</div>
 	<br>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_plagiarism' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_double_posting' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_romantic_solicitation' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
 		{% include "judgement/report_topics.html" with section='text_rumor' %}
 	</div>
 	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='text_multi_new_line' %}
-	</div>
-	<br>
 	{% endcache %}
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 	<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
 	{% csrf_token %}
 		<input type="hidden" name="tp" value="{{ tp }}">
@@ -92,10 +72,11 @@
 		<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
 	</form>
 {% elif tp == 'mf' %}
-	{% report_navbar categ='mehfil' topic=topic rules=rules guid=group_uuid obid=gid oid=ooid static_url=STATIC_URL section='help' %}
-
+	<div class="mtl">
+		{% report_navbar categ='mehfil' topic=topic rules=rules guid=group_uuid obid=gid oid=ooid static_url=STATIC_URL section='help' %}
+	</div>
 	<h1 class="cxl clb lsp" style="text-align:center">Mehfil report help:</h1>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 		<div class="cxl lsp"><span class="cgy">Damadam pe mehfils ki quality behtar bananey ke liye following cheezoon ka khayal rakhein</span></div>
 		<hr size=1 COLOR="#E9EBEE">
 		<form class="mt" method="POST" action="{% url 'report_mehfil' %}#section0">
@@ -141,7 +122,7 @@
 	</div>
 	<br>
 	{% endcache %}
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 	<form class="mt" method="POST" action="{% url 'report_mehfil' %}#section0">
 	{% csrf_token %}
 		<input type="hidden" name="guid" value="{{ group_uuid }}">
@@ -150,10 +131,11 @@
 		<button name="gid" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ gid }}">back to report</button>
 	</form>
 {% elif tp == 'pf' %}
-	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
-
+	<div class="mtl">
+		{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
+	</div>
 	<h1 class="cxl clb lsp" style="text-align:center">Profile report help:</h1>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 		<div class="cxl lsp"><span class="cgy">Damadam ki community behtar bananey ke liye following cheezoon ka khayal rakhein</span></div>
 		<hr size=1 COLOR="#E9EBEE">
 		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
@@ -199,7 +181,7 @@
 	</div>
 	<br>
 	{% endcache %}
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 	<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
 	{% csrf_token %}
 		<input type="hidden" name="tp" value="{{ tp }}">
@@ -212,11 +194,12 @@
 		<button name="report" type="submit" class="cb sp" style="background:0 0;border:none;padding:0;border-bottom:1px dotted blue" value="{{ obid }}">back to report</button>
 	</form>
 {% elif tp == 'img' %}
-	{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
-
-	<h1 class="cxl clb lsp" style="text-align:center">Foto report help:</h1>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		<div class="cxl lsp"><span class="cgy">Damadam ki shared fotos ki quality high karney ke liye following cheezoon ka khayal rakhein</span></div>
+	<div class="mtl">
+		{% report_navbar categ='content' tp=tp orig=orig cap=cap purl=purl lid=lid oun=oun obid=obid oid=oid static_url=STATIC_URL section='help' %}
+	</div>
+	<h1 class="cxl clb lsp" style="text-align:center">Image report help:</h1>
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
+		<div class="cxl lsp"><span class="cgy">Shared images ki quality high rakhney ke liye in cheezoon ka khayal rakhein</span></div>
 		<hr size=1 COLOR="#E9EBEE">
 		<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
 		{% csrf_token %}
@@ -231,7 +214,7 @@
 		</form>
 	</div>
 	<br>
-	{% cache 5000 foto_report_help %}
+	{% cache 5000 photo_report_help %}
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
 		{% include "judgement/report_topics.html" with section='photo_nudity_or_sex' %}
 	</div>
@@ -249,31 +232,11 @@
 	</div>
 	<br>
 	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_screenshot' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_low_quality' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_wrong_title' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_title_solicitation' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_plagiarism' %}
-	</div>
-	<br>
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
-		{% include "judgement/report_topics.html" with section='photo_double_posting' %}
+		{% include "judgement/report_topics.html" with section='photo_rumor' %}
 	</div>
 	<br>
 	{% endcache %}
-	<div class="bizcard clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;width:93%;margin:0 auto;overflow: hidden;text-align:center">
+	<div class="mbl clb" style="background-color:#FEFCFC;padding:10px;max-width:500px;margin-left:auto;margin-right:auto;overflow: hidden;text-align:center">
 	<form class="mt" method="POST" action="{% url 'report_content' %}#section0">
 	{% csrf_token %}
 		<input type="hidden" name="tp" value="{{ tp }}">
@@ -288,7 +251,7 @@
 {% endif %}
 
 <hr size=1 COLOR="#E9EBEE">
-<div class="cs sp lsp"><span class="cgy">Damadam ki quality high karney mein hamari help karein</span></div>
+<div class="cs sp lsp"><span class="cgy">Content quality high rakhney mein hamari help karein</span></div>
 </div>
 <br><br>
 {% endblock %}

@@ -1,8 +1,7 @@
-{% extends "base_signup.html" %}
+{% extends "base/base_signup.html" %}
 {% block content %}
 <head><title>User verification | Damadam.pk</title></head>
 <style>body{background: #fefbfb}</style>
-{% include "fb_analytics.html" %}
 
 
 
@@ -10,7 +9,7 @@
 
 <div class="bizcard" style="background-color:#FEFCFC;padding:3px 8px;max-width:500px;width:92%;margin:0 auto;overflow: hidden;text-align:center">	
 
-	<form method="POST" action="{% url 'prelim_mobile_verification' 'ur' %}" class="mtl cgy">
+	<form method="POST" action="{% url 'prelim_account_verification' 'ur' %}" class="mtl cgy">
 
 			{% csrf_token %}
 			{% if form.phonenumber.errors %}<b class="cr sp cxs mtl mbl">{{ form.phonenumber.errors.0 }}</b><br>{% endif %}

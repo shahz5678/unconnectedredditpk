@@ -24,7 +24,7 @@ from redis3 import set_inter_user_ban, temporarily_save_user_csrf, remove_single
 save_ban_target_credentials, get_ban_target_credentials, delete_ban_target_credentials, tutorial_unseen, retrieve_user_world_age
 from score import PHOTO_REPORT_PROMPT,TEXT_REPORT_PROMPT, HOURS_LOOKBACK_FOR_CHECKING_CONTENT_CLONES,\
 MEHFIL_REPORT_PROMPT, PROFILE_REPORT_PROMPT, GET_TEXT_REPORT_HELP_LABEL, GET_PHOTO_REPORT_HELP_LABEL, GET_PROFILE_REPORT_HELP_LABEL,\
-GET_MEHFIL_REPORT_HELP_LABEL#, SEGMENT_STARTING_USER_ID
+GET_MEHFIL_REPORT_HELP_LABEL, SEGMENT_STARTING_USER_ID
 from redis7 import get_complaint_details, has_super_privilege, get_content_complaints, delete_complaint, \
 get_num_complaints, in_defenders, get_votes, rate_limit_complainer, in_defs_forever, get_complainer_ids, retrieve_top_complainer_reputation, \
 log_banning, get_defenders_ledger, get_global_admins_ledger, is_content_voting_closed, remove_defender, get_payables, retrieve_all_defenders, \
@@ -35,7 +35,7 @@ edit_content_and_voting_ban, is_ban_editing_locked, set_complaint, are_ids_unban
 from redis6 import retrieve_group_reqd_data, freeze_reported_group_functionality, retrieve_group_owner_id, retrieve_group_creation_time, \
 retrieve_group_rules, get_reported_group_info
 from redis4 import return_referrer_logs, retrieve_uname, retrieve_bulk_unames, freeze_critical_profile_functionality, retrieve_credentials
-from redis2 import invalidate_cached_user_feed_history
+from redis2 import invalidate_cached_user_feed_history, delete_last_fanout_data
 
 SEVEN_MINS = 7*60
 TWENTY_MINS = 20*60
@@ -168,11 +168,11 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					banned, ttl = set_inter_user_ban(own_id=user_id, target_id=target_user_id, target_username=target_username, \
 						ttl=CONVERT_DUR_CODE_TO_DURATION[second_decision], time_now=time_now, can_unban=can_unban)
 					################### Retention activity logging ###################
-					# if user_id > SEGMENT_STARTING_USER_ID:
-					# 	time_now = time.time()
-					# 	act = 'J' if request.mobile_verified else 'J.u'
-					# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'J' if request.mobile_verified else 'J.u'
+						activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					if banned is None and ttl:
 						request.session["user_ban_cooloff_username"] = target_username
@@ -201,7 +201,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 					else:
 						# could be malicious
 						delete_ban_target_credentials(user_id)
-						return redirect('for_me')
+						return redirect('home')
 				else:
 					return redirect("banned_users_list")
 		elif initial_decision:
@@ -225,16 +225,16 @@ def enter_inter_user_ban(request,*args,**kwargs):
 			target_user_id = int(request.POST.get("tuid",None)[2:-2],16) #converting hex number to int
 			if target_user_id == user_id:
 				# cannot block self
-				return redirect('for_me')
+				return redirect('home')
 			elif target_user_id != user_id:
 				target_username = retrieve_uname(target_user_id,decode=True)
 				if target_username:
 					################### Retention activity logging ###################
-					# if user_id > SEGMENT_STARTING_USER_ID:
-					# 	time_now = time.time()
-					# 	act = 'Z11' if request.mobile_verified else 'Z11.u'
-					# 	activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_user_id}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z11' if request.mobile_verified else 'Z11.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_user_id}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					save_ban_target_credentials(own_id=user_id, target_id=target_user_id, target_username=target_username)
 					banner_id, existing_ttl = is_already_banned(own_id=user_id, target_id=target_user_id, return_banner=True)# already banned by the user
@@ -260,7 +260,7 @@ def enter_inter_user_ban(request,*args,**kwargs):
 				else:
 					raise Http404("Target username does not exist")
 			else:
-				return redirect('for_me')
+				return redirect('home')
 	else:
 		# it's a GET request from the direct response list
 		origin = request.session.pop('from_dir_rep_list'+str(user_id),None)
@@ -271,11 +271,11 @@ def enter_inter_user_ban(request,*args,**kwargs):
 				if target_username:
 					# process the blocking screen
 					################### Retention activity logging ###################
-					# if user_id > SEGMENT_STARTING_USER_ID:
-					# 	time_now = time.time()
-					# 	act = 'Z11' if request.mobile_verified else 'Z11.u'
-					# 	activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_user_id}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z11' if request.mobile_verified else 'Z11.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now,'tuid':target_user_id}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					save_ban_target_credentials(own_id=user_id, target_id=target_user_id, target_username=target_username)
 					banner_id, existing_ttl = is_already_banned(own_id=user_id, target_id=target_user_id, return_banner=True)# already banned by the user
@@ -884,7 +884,7 @@ def voting_ban_defender_help(request):
 			return redirect("missing_page")
 	else:
 		# not a POST request
-		return redirect('for_me')
+		return redirect('home')
 
 
 @cache_control(max_age=0, no_cache=True, no_store=True, must_revalidate=True)
@@ -1004,6 +1004,7 @@ def judge_content_voters(request):
 									invalidate_cached_user_feed_history(unbanned_id,'public')
 									invalidate_cached_user_feed_history(unbanned_id,'limited')
 									invalidate_cached_user_feed_history(unbanned_id,'private')
+									delete_last_fanout_data(unbanned_id)
 								#################################################################
 								#################################################################
 								if ban_time:
@@ -1050,6 +1051,7 @@ def judge_content_voters(request):
 									invalidate_cached_user_feed_history(unbanned_id,'public')
 									invalidate_cached_user_feed_history(unbanned_id,'limited')
 									invalidate_cached_user_feed_history(unbanned_id,'private')
+									delete_last_fanout_data(unbanned_id)
 								#################################################################
 								#################################################################
 								if ban_time:
@@ -1327,6 +1329,7 @@ def judge_content_submitters(request):
 								invalidate_cached_user_feed_history(obj_owner_id,'public')
 								invalidate_cached_user_feed_history(obj_owner_id,'limited')
 								invalidate_cached_user_feed_history(obj_owner_id,'private')
+								delete_last_fanout_data(obj_owner_id)
 								#################################################################
 								#################################################################
 								if ban_time:
@@ -2095,10 +2098,10 @@ def report_content(request,*args,**kwargs):
 							else:
 								#charge the price and send the report
 								################### Retention activity logging ###################
-								# if own_id > SEGMENT_STARTING_USER_ID:
-								# 	time_now = time.time()
-								# 	activity_dict = {'m':'GET','act':'K','t':time_now,'ot':tp}# defines what activity just took place
-								# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+								if own_id > SEGMENT_STARTING_USER_ID:
+									time_now = time.time()
+									activity_dict = {'m':'GET','act':'J1','t':time_now,'ot':tp}# defines what activity just took place
+									log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 								##################################################################
 								if tp == 'tx':
 									payload = Link.objects.only('description').get(id=dup_obid).description
@@ -2175,10 +2178,10 @@ def report_content(request,*args,**kwargs):
 								else:
 									#go ahead and charge the price
 									################### Retention activity logging ###################
-									# if own_id > SEGMENT_STARTING_USER_ID:
-									# 	time_now = time.time()
-									# 	activity_dict = {'m':'POST','act':'K','t':time_now,'ot':tp}# defines what activity just took place
-									# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+									if own_id > SEGMENT_STARTING_USER_ID:
+										time_now = time.time()
+										activity_dict = {'m':'POST','act':'J1','t':time_now,'ot':tp}# defines what activity just took place
+										log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 									##################################################################
 									return render(request,'judgement/content_report_sent.html',{'orig':orig,'obid':obid,'oun':oun,'tp':tp,\
 										'payload':data.description if tp == 'tx' else purl,'lid':lid})
@@ -2227,11 +2230,11 @@ def report_content(request,*args,**kwargs):
 				else:
 				# show options with radio buttons to reporting user (this is screen 1, it's the default people land on)
 					################### Retention activity logging ###################
-					# if own_id > SEGMENT_STARTING_USER_ID:
-					# 	time_now = time.time()
-					# 	act = 'Z12' if request.mobile_verified else 'Z12.u'
-					# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+					if own_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'Z12' if request.mobile_verified else 'Z12.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+						log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 					##################################################################
 					own_id = str(own_id)
 					# score = request.user.userprofile.score

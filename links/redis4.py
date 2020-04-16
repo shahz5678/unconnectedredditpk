@@ -103,6 +103,7 @@ THREE_MINS = 3*60
 ONE_MIN = 60
 
 
+	
 def save_deprecated_photo_ids_and_filenames(deprecated_photos):
 	my_server = redis.Redis(connection_pool=POOL)
 	final_list = []
@@ -2136,7 +2137,7 @@ def log_superhuman_survey_answers(user_id, answers_dict, time_now):
 		return False
 	else:
 		# answering for the first time
-		answers = json.dumps(answers_dict)
+		answers = json.dumps(answers_dict)# turn answer dict into a json string
 		my_server.setex(answer_key,answers,TWO_WEEKS)
 		my_server.zadd(HXU_ANSWERERS,answer_key,time_now)
 		my_server.expire(HXU_ANSWERERS,TWO_WEEKS)
@@ -2288,3 +2289,100 @@ def retrieve_1on1_type():
 		counter += 1
 	########################################################
 	return group_types
+
+
+############################ Video competition ############################
+
+from get_meta_data import extract_yt_id
+
+ONE_MONTH = 30*24*60*60
+
+YT_VID = 'ytvid:'# key used to 'lock' a particular youtube video from being submitted twice
+PARTICIPANT_MOB_NUM = 'pmn:'# key used to 'lock' a particular mobile number from being submitted twice
+
+PARTICIPANT_HASH = 'phash:'# hash contains data related to a user's entry for the competition
+PARTICIPANT_LIST = 'plist:'# a sorted set containing all users who sent an entry for a competition's specfic round
+
+
+def save_competition_entry(participant_id, video_url, time_now, round_num, mobile_number):
+	"""
+	Saves the entry submitted by a user
+	"""
+	participant_id = str(participant_id)
+	is_yt = '1' if ('youtube.com/' in video_url or 'youtu.be/' in video_url) else '0'# detect youtube url
+	yt_video_id = extract_yt_id(youtube_url=video_url) if is_yt == '1' else ''
+	
+	payload = {'raw_vurl':video_url,'user_id':participant_id,'t':time_now}
+	if mobile_number:
+		payload['mob_num'] = mobile_number
+	payload['is_youtube'] = '0'
+	if yt_video_id:
+		payload['yt_video_id'] = yt_video_id
+		payload['is_youtube'] = is_yt# updating to the actual value (doing it this way seals a buggy edge-case)
+
+	hash_key = PARTICIPANT_HASH+round_num+':'+participant_id
+	list_key = PARTICIPANT_LIST+round_num
+
+	my_server = redis.Redis(connection_pool=POOL)
+	
+	# if a youtube video_id exists, use it to create a 'locking' key
+	if yt_video_id:
+		my_server.setex(YT_VID+yt_video_id,participant_id,ONE_MONTH)
+	if mobile_number:
+		my_server.setex(PARTICIPANT_MOB_NUM+mobile_number,participant_id,ONE_MONTH)
+
+	my_server.hmset(hash_key,payload)
+	my_server.zadd(list_key,participant_id,time_now)
+
+	my_server.expire(hash_key,THREE_MONTHS)
+	my_server.expire(list_key,THREE_MONTHS)
+
+
+def already_entered_competition(participant_id, round_num):
+	"""
+	Checks if a participant has already entered their credentials for a round of the competition
+	"""
+	return redis.Redis(connection_pool=POOL).exists(PARTICIPANT_HASH+round_num+':'+str(participant_id))
+
+
+def check_participant_video_url(video_url):
+	"""
+	Has this yt video been submitted before?
+	"""
+	is_yt = '1' if ('youtube.com/' in video_url or 'youtu.be/' in video_url) else '0'# detect youtube url
+	yt_video_id = extract_yt_id(youtube_url=video_url) if is_yt == '1' else ''
+	if yt_video_id:
+		return redis.Redis(connection_pool=POOL).exists(YT_VID+yt_video_id)
+	else:
+		return False
+
+
+def	check_participant_mob_num(mob_num, participant_id):
+	"""
+	Has this mobile number been submitted before?
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	user_id = my_server.get(PARTICIPANT_MOB_NUM+mob_num)
+	if user_id:
+		if str(participant_id) == user_id:
+			# submitted by yourself previously
+			return False
+		else:
+			# submitted by someone else previously
+			return True
+	else:
+		# unused previously. 
+		return False
+
+
+def retrieve_competition_submissions(round_num):
+	"""
+	Returns submitted competition data, readying it for CSV export
+	"""
+	my_server = redis.Redis(connection_pool=POOL)
+	all_participant_ids = my_server.zrange(PARTICIPANT_LIST+round_num,0,-1)
+	
+	pipeline1 = my_server.pipeline()
+	for participant_id in all_participant_ids:
+		pipeline1.hgetall(PARTICIPANT_HASH+round_num+':'+participant_id)
+	return pipeline1.execute()

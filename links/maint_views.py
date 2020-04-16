@@ -2,7 +2,7 @@ import random, itertools
 from verified import FEMALES
 from operator import itemgetter
 from datetime import datetime, timedelta
-from user_sessions.models import Session
+# from user_sessions.models import Session
 from django.http import Http404
 from django.contrib.auth.models import User
 from django.shortcuts import render, redirect
@@ -31,7 +31,7 @@ def skip_outage_notif(request, *args, **kwargs):
 		else:
 			return redirect("fresh_text")
 	else:
-		return redirect('for_me')
+		return redirect('home')
 
 
 def damadam_cleanup(request, *args, **kwargs):
@@ -79,7 +79,7 @@ def change_nicks(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			count = int(request.POST.get("count",None))
 			if decision == 'No':
-				return redirect('for_me')
+				return redirect('home')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True)
 				id_list = map(itemgetter(1), inactives) #list of ids to deprecate
@@ -101,11 +101,11 @@ def change_nicks(request,*args,**kwargs):
 				else:
 					return render(request,'change_nicks.html',{'count':count+1,'nicks_remaining':get_inactive_count()})
 			else:
-				return redirect('for_me')
+				return redirect('home')
 		else:
 			return render(request,'change_nicks.html',{'count':1,'nicks_remaining':get_inactive_count()})
 	else:
-		return redirect('for_me')
+		return redirect('home')
 
 def export_nicks(request,*args,**kwargs):
 	"""Exports deprecated nicks in a CSV.
@@ -458,7 +458,7 @@ def remove_inactives_notification_activity(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect('for_me')
+				return redirect('home')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_5K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -485,7 +485,7 @@ def remove_inactives_groups(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect('for_me')
+				return redirect('home')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -505,20 +505,22 @@ def remove_inactives_groups(request,*args,**kwargs):
 
 @csrf_protect
 def remove_inactive_user_sessions(request,*args,**kwargs):
-	"""Sanitize all sessions of deprecated ids.
+	"""
+	Sanitize all sessions of deprecated ids.
 
+	TODO: 'Session' table is now defunct - this functionality needs to be updated
 	"""
 	if request.user.username == 'mhb11':
 		if request.method == "POST":
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect('for_me')
+				return redirect('home')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
 				# print "Deleting %s sessions created by %s users" % (Session.objects.filter(user_id__in=id_list).count(), len(id_list))
-				Session.objects.filter(user_id__in=id_list).delete()
+				# Session.objects.filter(user_id__in=id_list).delete()
 				if last_batch:
 					delete_inactives_copy(delete_orig=True)
 				return render(request,'sanitize_inactive_sessions.html',{'last_batch':last_batch, \
@@ -565,7 +567,7 @@ def remove_inactives_photos(request,*args,**kwargs):
 			decision = request.POST.get("dec",None)
 			if decision == 'No':
 				delete_inactives_copy()
-				return redirect('for_me')
+				return redirect('home')
 			elif decision == 'Yes':
 				inactives, last_batch = get_inactives(get_10K=True, key="copy_of_inactive_users")
 				id_list = map(itemgetter(1), inactives) #list of user ids
@@ -599,7 +601,7 @@ def remove_inactives_photos(request,*args,**kwargs):
 #     		decision = request.POST.get("dec",None)
 # 			if decision == 'No':
 # 				delete_inactives_copy()
-# 				return redirect('for_me')
+# 				return redirect('home')
 # 			elif decision == 'Yes':
 # 				inactives, last_batch = get_inactives(get_50K=True, key="copy_of_inactive_users")
 # 				id_list = map(itemgetter(1), inactives) #list of user ids

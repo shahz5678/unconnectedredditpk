@@ -1,15 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base_stars.html" %}
 {% block content %}
 {% load cache %}
-{% cache 6000 top_star_help %}
+{% cache 10000 stars_help %}
 
 <head><title>Trending posters help | Damadam</title></head>
- 
-<style>body{background:#f0f3f4}</style>
 
 <h1 style="text-align:center;padding:0 5px" class="cxl lsp clb">Be a top star:</h1>
 
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 
 	<div class="fx fxjscn fxaicn">
 		<a href="{% url 'top_photo' %}" class="sp" style="width:50%;"><button class="wt" style="border-radius:0;border:none;color:#ff5849;height:40px;font-weight:bold;width:100%;border-bottom:1px solid #dcdcdc">TOP STARS</button></a>
@@ -31,7 +29,7 @@
 	</div>
 <br>
 
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 
 			<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/8af5d01b-18bb-494f-a253-99b4d9ba9ac4.jpg" width="100%" alt="Sample photo">
 			</div>	
@@ -44,7 +42,7 @@
 
 	</div>
 <br>
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/729318f2-b5c7-44b2-b437-64f4cb4bec43.jpg" width="100%" alt="Sample photo">
 				</div>	
 				<a class="cs" href="https://damadam.pk/photo_detail/4605417" target='_blank'>example 1</a> ,
@@ -56,7 +54,7 @@
 	</div>
 <br>
 
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/40884b56-8426-49de-a479-a78b3302ab99.jpg" width="100%" alt="Sample photo">
 				</div>
 				<a class="cs" href="https://damadam.pk/photo_detail/4589860" target='_blank'>original post</a>
@@ -67,7 +65,7 @@
 	</div>
 
 <br>
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 				
 			<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/4be090d2-1b93-4df4-a702-94aa202de92f.jpg" width="100%" alt="Sample photo">
 			</div>	
@@ -79,7 +77,7 @@
 
 	</div>
 <br> 
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/88b33c22-db21-45e6-a261-7fb22c50c1c7.jpg" width="100%" style="border:2px" alt="Sample photo">
 				</div>	
 			  		<a class="cs" href="https://damadam.pk/photo_detail/4604918" target='_blank'>original post</a> ,
@@ -92,7 +90,7 @@
 	</div>
 <br>
 
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 			<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/49ad6524-4001-4204-aad1-b8b3cc9106f7.jpg" width="100%" alt="Sample photo">
 			</div>	
 			<a class="cs" href="https://damadam.pk/photo_detail/4579639" target='_blank'>original post</a>
@@ -103,20 +101,20 @@
 	</div>
 <br>	
 
-	<div class="mbl clb" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;max-width:600px;width:98%;text-align:center;margin:0 auto">
+	<div class="mbl clb" style="overflow:hidden;background:white;max-width:600px;text-align:center;margin:0 auto">
 				<div><img src="https://s3.ap-southeast-1.amazonaws.com/damadam-2019/public/ca0b49be-a0ba-4490-8ca1-1d34694fbb96.jpg" width="100%" alt="Sample photo">
 				</div>	
 				<div class="sp cl lsp mbs" style="padding:0 8px;color:tomato">
 				    <h3>:: General Tip ::</h3>
-				    <p style="text-align:justify">Khud khenchi hoi pics mein khyal rakhien ke ird gird ka mahol kaisa hai. Background khoobsurat ho tuo behter hai. Uper di gai misaal ki tarah ki ghalti nahi kerien. Shukriya!</p>
+				    <p style="text-align:justify">Khud khenchi hoi pics mein khyal rakhien ke background khoobsurat ho tuo behter hai. Uper di gai misaal ki tarah ki ghalti nahi kerien. Shukriya!</p>
 			  	</div>
 	</div>
 <br>
 
 <div style="text-align:center">
-   <a href="{% url 'top_photo' %}"><button class="btn bcb bxl mt mbl sp pg_ok_res" style="height:30px">Wapis</button></a><br>
+   <a href="{% url 'top_photo' %}"><button class="btn bcb bxl sp pg_ok_res" style="height:30px">BACK</button></a><br>
 </div>
-<br><br>
+<br><br><br>
 
 {% endcache %}
 {% endblock %}

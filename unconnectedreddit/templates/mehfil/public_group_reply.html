@@ -1,28 +1,29 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load s3 %}
 {% load human_time %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>{% if switching %}Public mehfil{% else %}{{ group_topic }} (public mehfil){% endif %} | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.18.js"></script>
+<head><title>{% if switching %}Mehfil{% else %}Mehfil: {{ group_topic }}{% endif %} | Damadam</title></head>
+
 {% if switching %}
 
-<div class="mbs">
+<div class="mbs mtl">
 <div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl sp">Mehfil not found:</h1>
 </div>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white">    
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;width:98%;padding:10px;background-color:white">    
     <div class="cxl lsp" style="text-align:center">Ho sakta hai mehfil delete ho gyi ho</div>
     <hr size=1 COLOR="#E9EBEE">
-    <div class="sp lsp mbl" style="text-align:center">Ap beshaq koi aur mehfil try kar lein</div>
-    <div style="text-align:center"><a href="{% url 'group_page' %}#section0"><button class="btn bm bcp mbl pg_ok_res sp" style="height:26px">wapis</button></a></div>
+    <div class="sp lsp mbl" style="text-align:center">Ap beshak koi aur mehfil try kar lein</div>
+    <div style="text-align:center"><a href="{% url 'group_page' %}#section0"><button class="btn bm bcp mbl pg_ok_res sp" style="height:28px">wapis</button></a></div>
 </div>
 {% elif full_member %}
 
-<script async type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/page/bottom_navbar/bottom_navbar_hider.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/min_dir_rep.v1.js"></script>
+<script defer type="text/javascript" src="{{ STATIC_URL }}js/module/helper_funcs.v1.20.js"></script>
 
 <form action="{% url 'post_direct_response' %}" id="direct_reply_template" method="POST" class="mts" style="display:none">
     {% csrf_token %}
@@ -36,20 +37,20 @@
 </form>
 
 {% load get_group_button %}
-<div class="mbl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden">
-    <h1 style="display:inline" class="clb cxl lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
+<div class="mbl mtl" style="max-width: 600px;margin-left: auto;margin-right:auto;text-align:center;overflow:hidden;padding:0 6px">
+    <h1 style="display:inline" class="clb cl sp lsp">{% emoticons %}{{ group_topic }}{% endemoticons %}:</h1>
 </div>
 
-<div class="mbl" style="border:3px solid #ececec;border-radius:12px;padding:10px 8px;max-width:750px;width:100%;overflow:hidden;background:white;margin-right:auto;margin-left:auto;color:black;box-sizing:border-box">
+<div class="mbl" style="padding:10px 8px;max-width:750px;width:100%;overflow:hidden;background:white;margin-right:auto;margin-left:auto;color:black;box-sizing:border-box">
     <a name="sectionJ"></a> 
 
-    <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye photo buhut barri hai, choti photo chunein</span></div>
-    <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye photo kharab hai, koi aur chunein</span></div>
+    <div id="grp_img_size_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye image buhut bara hai, chota image chunein</span></div>
+    <div id="grp_img_mime_err" class="mbs" style="text-align:left;display:none"><span class="cr lsp">Ye image kharab hai, koi aur chunein</span></div>
     <form action="{% url 'public_group_reply' %}" id="grp_form" method="POST" class="mbl" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
         {% if pics_perms == '1' %}
         <div class="mbl">
-        <b class="sp cs">Upload photo:</b>
+        <b class="sp cs">Upload image:</b>
         <div class="mt">{{ form.image }}</div>
         {% if on_fbs %}<div class="mt cgy cs">Freebasics pe <b>200 KB</b> se barri pic nahi lagti</div>{% endif %}
         </div>
@@ -58,7 +59,7 @@
         <input id="grp_sk" type="hidden" name="sk" value="{{ sk }}">
         <input id="grp_wid" type="hidden" name="wid" value="-1">
         <input name="uid" type="hidden" value="{{ unique }}">
-        <button class="btn bm bcp mrl mbs mts pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:28px" value="{{ group_id }}">OK</button>
+        <button class="btn bm bcp mrl mbs mts pg_ok_res" id="grp_subform" type="submit" name="gp" style="height:28px;width:130px" value="{{ group_id }}">OK</button>
     </form>&nbsp;
     <form action="{% url 'first_time_public_refresh' %}" class="mbl" method="POST" enctype="multipart/form-data" style="display:inline;">
         {% csrf_token %}
@@ -104,7 +105,7 @@
             {% if reply.hd == '1' %}
 
                 <!-- reference hidden -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" class="circle" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" alt="pic" class="lazyload circle">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -120,7 +121,7 @@
             {% elif reply.tgt_image %}
 
                 <!-- image reference -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" class="circle" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" alt="pic" class="lazyload circle">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -136,7 +137,7 @@
             {% elif reply.pre %}
 
                 <!-- text reference -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" class="circle" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" alt="pic" class="lazyload circle">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -152,7 +153,7 @@
             {% else %}
 
                 <!-- no reference -->
-                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+                <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" class="circle" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" alt="pic" class="lazyload circle">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
                 <div id="disc_btns{{ reply.id }}" style="display:inline-block">
                     <div class="fx fxjsfs" style="max-width:300px">
@@ -189,7 +190,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="cm sp" style="font-weight:bold;color:black">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" class="circle" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" alt="pic" class="lazyload circle">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             <div id="disc_btns{{ reply.id }}" style="display:inline-block">
             <div class="fx fxjsfs" style="max-width:300px">
@@ -216,7 +217,7 @@
 </div>
 </div>
 
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;">
+<div class="clb" style="margin: 0 auto;max-width:600px;padding:10px;background-color:white;">
 
     <div class="bizcard mbl lsp cl sp" style="background-color:ivory;padding:10px;text-align:center">
 
@@ -272,7 +273,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" class="circle" alt="pic">{% else %}<img data-src="{{ reply.writer_avurl }}" alt="pic" class="lazyload circle">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs mrs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             {% if reply.tgt_image %}
                 {% include "direct_response/reference_snippet.html" with tgt_uname=reply.tu reply_prefix=reply.pre|emoticons reply_postfix=reply.post|emoticons static_url=STATIC_URL img=reply.tgt_image|s3 state=reply.hd %}
@@ -294,7 +295,7 @@
                 <div class="st-dot" style="background-color:#C8C8C8;border:2px solid #C4C4C4;"></div>
             {% endif %}
 
-            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic">{% else %}<img data-src="{{ reply.writer_avurl }}" style="border-radius:50%" alt="no pic" class="lazyload">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs">&nbsp;{{ reply.submitted_on|human_time }}</span>
+            <a href="{% url 'user_profile' reply.writer_uname %}#section0" class="clb cm sp" style="font-weight:bold">{% if on_fbs %}<img src="{{ reply.writer_avurl }}" class="circle" alt="no pic">{% else %}<img data-src="{{ reply.writer_avurl }}" alt="no pic" class="lazyload circle">{% endif %}&nbsp;<bdi>{{ reply.writer_uname }}</bdi></a>{% if reply.wid in stars %}&nbsp;<img src="{{ STATIC_URL }}img/gstar.svg" width="12" height="12" alt="*" style="color:gold">{% endif %}:&nbsp;<span class="bw cl"><bdi>{% emoticons %}{{ reply.text }}{% endemoticons %}</bdi></span><span class="sp cgy cxs">&nbsp;{{ reply.submitted_on|human_time }}</span>
 
             </div>
            
@@ -307,4 +308,5 @@
 {% endif %}
     <br><br>
 <input type="hidden" id="furl" name="furl" value="{{ furl }}">
+{% include "navbars/bottom_navbar_js_helper.html" with ident=own_id %}
 {% endblock %}

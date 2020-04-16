@@ -1,12 +1,12 @@
-{% extends "base.html" %}
+{% extends "base/base_inbox.html" %}
 {% block content %}
 <head><title>{{ slug }}'s likes | Damadam</title></head>
-<style>body{background: #f0f3f4}</style>
 
 {% load count %}
 {% check_reply_count as reply_count %}
-
-{% include "inbox_navbar.html" with section='likes' username=slug  num_rep=reply_count %}
+<div class="mtl">
+	{% include "inbox_navbar.html" with section='likes' username=slug  num_rep=reply_count %}
+</div>
 
 {% load s3 %}
 {% load human_time %}
@@ -16,7 +16,6 @@
 {% load get_big_send_button %}
 {% load get_big_group_button %}
 {% load get_big_home_reply_button %}
-{% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
 <h1 class="cxl clb lsp" style="text-align:center">My likes:</h1>
 
@@ -24,7 +23,7 @@
 
 		{% if datum.tp == 'tx' %}
 
-			<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
+			<article class="mbl" style="max-width:750px;display:block;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
 		
 
 				{% if datum.ex %}
@@ -53,13 +52,13 @@
 
 		{% else %}
 
-		<article class="mbl" style="max-width:750px;display:block;border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
+		<article class="mbl" style="max-width:750px;display:block;overflow:hidden;background:white;margin-left:auto;margin-right:auto">
 			
 			{% if datum.ex %}
 
 				{% if datum.ex > time_now %}
 					<!-- can be shown -->
-					{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter ot='g' %}
+					{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter ot='g' alt_txt=datum.cp %}
 
 					<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 						{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
@@ -77,7 +76,7 @@
 
 			{% else %}
 				<!-- can be shown -->
-				{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons raw_caption=datum.cp origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter ot='g' %}
+				{% photo_object pid=datum.id ooid=datum.ooid img_url=datum.i|s3 img_thumb=datum.i|s3:'thumb' caption=datum.cp|emoticons origin='25' upload_time=datum.t|human_time machine_time=datum.mt oun=datum.ou av_url=datum.av|s3:'thumb' vsc=datum.nv is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=datum.s show_trending=datum.tr lazyload_idx=forloop.counter ot='g' alt_txt=datum.cp %}
 
 				<div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy mbl">
 					{% big_group_button own_id=own_id target_id=datum.ooid parent_object_id=datum.obid object_type='photo' origin='25' target_username=datum.ou home_hash='' %}
@@ -90,18 +89,16 @@
 		</article>
 
 		{% endif %}
-
-		{% transparent_buttons_js ident=ident static_url=STATIC_URL %}
 		
 	{% empty %}
 
-	<div class="mbl" style="background-color:white;padding:7px;text-align:center;border:3px solid #ececec;border-radius:12px;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;width:98%;box-sizing:border-box">
+	<div class="mbl" style="background-color:white;padding:7px;text-align:center;overflow:hidden;max-width:750px;margin-left:auto;margin-right:auto;box-sizing:border-box">
 		<div class="cxl lsp clb"><b>Ap ne <span style="color:#ff3377">0</span> posts 'like' ki hain</b></div>
 		<hr size=1 COLOR="#f2f2f2">
 		<h2 class="clb mbs lsp" style="font-weight:lighter">Koi aik button press kar ke woh posts dekhein jin ko 'like' kia ja sakta hai:</h2>
 		
 		<div class="mbl">
-			<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">PHOTO<br>POSTS</div></button></a>
+			<a href="{% url 'photo' 'best-list' %}#error"><button style="border-radius:8px;border:1px solid #ff9933;width:100px;height:100px" class="vt mrl mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_photo_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#ff9933;font-weight:bold;" class="mts lsp sp">IMAGE<br>POSTS</div></button></a>
 
 			<a href="{% url 'best_home_page' %}#error"><button style="border-radius:8px;border:1px solid #3cb7dd;width:100px;height:100px" class="vt mll mts pg_ok_res"><img src="{{ STATIC_URL }}img/share_text_reversed.svg" class="mt" width="30" height="30" style="vertical-align:middle"><br><div style="font-size:10.2px;color:#3cb7dd;font-weight:bold" class="mts lsp sp">TEXT<br>POSTS</div></button></a>
 		</div>
@@ -112,15 +109,15 @@
 
 <div class="mbl fx fxjscn fxaicn">
 	{% if page.has_previous %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     	<a href="?page={{ page.previous_page_number }}#section0">{% include 'big_buttons/big_prev_button.html' %}</a>
     </div>
     {% endif %}
     {% if page.has_next %}
-    <div style="padding:0 10px">
+    <div style="padding:0 10px 30px 10px">
     	<a href="?page={{ page.next_page_number }}#section0">{% include 'big_buttons/big_next_button.html' %}</a>
     </div>
     {% endif %}
 </div>
-
+<br>
 {% endblock %}

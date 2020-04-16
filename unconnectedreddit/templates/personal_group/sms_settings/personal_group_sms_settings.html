@@ -1,9 +1,9 @@
-{% extends "base_pg.html" %}
+{% extends "base/base_pg.html" %}
 {% load s3 %}
 {% load truncap %}
 {% block content %}
-<head><title>SMS settings for 1 on 1 messaging | Damadam.pk</title></head>
-<div class="margin clb" style="max-width:420px;width:92%;">
+<head><title>SMS settings for 1 on 1 messaging | Damadam</title></head>
+<div class="mbl clb" style="max-width:420px;margin-left:auto;margin-right:auto">
 {% if fresh_visit %}
 	
 	<div class="lsp card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
@@ -30,7 +30,7 @@
 {% elif new_smsrec == '0' %}
 
 	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
-		<span class="cxl">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko ap ne SMS ke zariye online bulwaney se rok diya</span>
+		<span class="cxl">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko ap ne SMS ke zariye online bulwaney se rok diya</span>
 		<hr size=1 COLOR="#E6E6E6">
 		<div class="mt cl cgy">
 			1 on 1 mein janey ke liye OK dabain:<br>
@@ -45,7 +45,7 @@
 {% elif sms_sent %}
 
 	<div class="card mbl" style="background-color:#FFFAF0;padding:10px;text-align:center">
-		<span class="cxl">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko SMS bhej di geyi</span>
+		<span class="cxl">{% if their_anon %}<b>{{ name|truncap }}</b>{% else %}<img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle"> <b>{{ name|truncatechars:15 }}</b>{% endif %} ko SMS bhej di geyi</span>
 		<hr size=1 COLOR="#E6E6E6">
 		<div class="mt cl cgy">
 			1 on 1 mein janey ke liye OK dabain:<br>
@@ -78,7 +78,7 @@
 		{% if their_anon %}
 			<span class="cxl"><div class="av_btn" style="border: 1px #404040 solid;width:26px;height:26px;color:#404040;line-height:27px;"><b>{{ name|truncap }}</b></div>&nbsp;se 1 on 1</span>
 		{% else %}
-			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" style="border-radius: 50%;">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
+			<span class="cxl"><img src="{{ avatar|s3:'thumb' }}" width="22" height="22" alt="pic" class="circle">&nbsp;<b>{{ name|truncatechars:15 }}</b> se 1 on 1</span>
 		{% endif %}
 	</div>
 	<hr size=1 COLOR="#ffeb3b">

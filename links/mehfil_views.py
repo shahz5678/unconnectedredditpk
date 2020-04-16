@@ -31,7 +31,7 @@ from redis7 import check_content_and_voting_ban, get_all_image_star_ids
 
 from redis3 import retrieve_mobile_unverified_in_bulk, is_mobile_verified, tutorial_unseen, exact_date
 
-from views import condemned, valid_uuid, get_page_obj, get_price, get_indices, create_sorted_invitee_list, retrieve_user_env
+from views import condemned, valid_uuid, get_page_obj, get_price, get_indices, create_sorted_invitee_list
 
 from redis4 import set_text_input_key, retrieve_credentials,retrieve_bulk_credentials,retrieve_uname, retrieve_bulk_unames,\
 get_most_recent_online_users
@@ -53,7 +53,7 @@ PUBLIC_GROUP_MIN_SELLING_PRICE, GROUP_VISITORS_PER_PAGE, PRIVATE_GROUP_MAX_MEMBE
 MIN_MEMBERSHIP_AGE_FOR_GIVING_PUBLIC_GRP_FEEDBACK, MIN_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OWNERSHIP, GROUP_MEMBERS_PER_PAGE, \
 MAX_MEMBER_INVITES_PER_PRIVATE_GROUP, DELETION_THRESHOLD, MEHFIL_REPORT_PROMPT, MAX_OFFICER_APPOINTMENTS_ALLWD, GROUP_OFFICER_QUESTIONS, \
 MIN_APP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, MIN_GRP_MEMBERSHIP_AGE_FOR_REQUESTING_GRP_OFFICERSHIP, TOTAL_LIST_SIZE, MEHFIL_LIST_PAGE_SIZE,\
-PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF,CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE#, SEGMENT_STARTING_USER_ID
+PUBLIC_GROUP_EXIT_LOCK, PRIVATE_GROUP_EXIT_LOCK, GROUP_GREEN_DOT_CUTOFF, GROUP_IDLE_DOT_CUTOFF,CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE, SEGMENT_STARTING_USER_ID
 
 
 from redis6 import appoint_public_mehfil_officer, is_officer_appointments_rate_limited, retrieve_cached_attendance_data, get_latest_presence, \
@@ -62,7 +62,7 @@ retrieve_group_submissions, retrieve_cached_mehfil_replies, group_submission_exi
 temporarily_save_group_credentials, get_temporarily_saved_group_credentials, rate_limit_group_creation, retrieve_group_rules, save_group_rules, \
 create_group_credentials, cache_mehfil_replies, is_group_creation_rate_limited, permanently_delete_group, invalidate_presence, retrieve_group_topic, \
 retrieve_group_meta_data, hide_writers_group_messages, is_group_member_and_rules_signatory, create_group_membership_and_rules_signatory, rescind_offer,\
-insert_rules_signatory, retrieve_group_id, retrieve_group_owner_id, retrieve_group_privacy, retrieve_group_owner_unames_and_uniques_and_topics_in_bulk,\
+insert_rules_signatory, retrieve_group_id, retrieve_group_owner_id, retrieve_group_privacy, retrieve_cached_mehfil_pages, retrieve_user_group_data, \
 save_group_topic_and_rules, invalidate_all_rule_signatories, purge_group_membership, purge_group_invitation, save_group_invite, remove_group_officer,\
 group_member_exists, retrieve_immune_ids, group_officer_targeted, kick_users_from_group, is_group_officer, add_kick_feedback, banned_from_group,\
 get_ban_details, unkick_users_from_group, add_unkick_feedback, retrieve_group_administrative_activity, filter_non_members, filter_non_recents,\
@@ -74,11 +74,11 @@ submit_group_ownership_request, cancel_invite, is_ownership_request_legit, save_
 retrieve_all_member_ids, cache_group_membership_data, retrieve_cached_membership_data, retrieve_group_buying_time_and_price,retrieve_group_uuid, \
 get_num_group_members, show_private_group_invite_instructions, retrieve_group_topic_log, retrieve_biggest_pic_sharer_in_group,retrieve_group_chatter, \
 retrieve_closed_group_remaining_invites, recently_quit_group, can_officer_change_topic, hide_private_group_submission, retrieve_single_group_submission,\
-retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_membership_frozen, retrieve_cached_ranked_groups, cache_ranked_groups, \
-get_ranked_mehfils, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
-retrieve_officer_stats, invalidate_cached_ranked_groups, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites,\
-filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, retrieve_user_group_invites, group_invite_exists,\
-get_group_id, retrieve_user_group_data, retrieve_cached_mehfil_pages, cache_mehfil_pages, invalidate_cached_mehfil_pages
+retrieve_group_reqd_data, is_ownership_transfer_frozen, is_deletion_frozen, is_membership_frozen, invalidate_cached_mehfil_pages, get_group_id, \
+cache_mehfil_pages, retrieve_single_group_application, officer_appointed_too_many_times, retrieve_all_current_applications, officer_application_exists,\
+retrieve_officer_stats, retrieve_topic_and_rules_ttl, human_readable_time, invalidate_cached_mehfil_invites, retrieve_user_group_invites, \
+filter_uninvitables, nickname_strings, retrieve_cached_mehfil_invites, cache_mehfil_invites, group_invite_exists
+#invalidate_cached_ranked_groups , cache_ranked_groups, retrieve_group_owner_unames_and_uniques_and_topics_in_bulk, get_ranked_mehfils, retrieve_cached_ranked_groups
 
 
 ################################### Mehfil info #####################################
@@ -99,10 +99,10 @@ def display_group_info_page(request):
 				time_now = time.time()
 				is_public = False if group_privacy == '1' else True
 				###################### Retention activity logging ######################
-				# if own_id > SEGMENT_STARTING_USER_ID:
-				# 	act = 'U9' if is_public else 'R6'
-				# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				if own_id > SEGMENT_STARTING_USER_ID:
+					act = 'U9' if is_public else 'R6'
+					activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				data = get_group_info(group_id, is_public = is_public)
 				data['uj'] = retrieve_group_joining_time(group_id, own_id)# this is different for each user, so retrieved separately
@@ -598,10 +598,10 @@ def private_mehfil_oversight_dashboard(request):
 		if owner_id == own_id:
 			# group admin
 			###################### Retention activity logging ######################
-			# if int(own_id) > SEGMENT_STARTING_USER_ID:
-			# 	time_now = time.time()
-			# 	activity_dict = {'m':'POST','act':'R5','t':time_now}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'R5','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
@@ -665,10 +665,10 @@ def private_mehfil_oversight_dashboard(request):
 		elif group_member_exists(group_id, own_id):
 			# a regular member
 			###################### Retention activity logging ######################
-			# if int(own_id) > SEGMENT_STARTING_USER_ID:
-			# 	time_now = time.time()
-			# 	activity_dict = {'m':'POST','act':'R4','t':time_now}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'R4','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
@@ -834,10 +834,10 @@ def public_mehfil_oversight_dashboard(request):
 		if owner_id == own_id:
 			# group admin
 			###################### Retention activity logging ######################
-			# if int(own_id) > SEGMENT_STARTING_USER_ID:
-			# 	time_now = time.time()
-			# 	activity_dict = {'m':'POST','act':'U7','t':time_now}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'U7','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			log_group_owner_interaction.delay(group_id=group_id, time_now=time.time())
 			decision = request.POST.get("dec",None)
@@ -924,10 +924,10 @@ def public_mehfil_oversight_dashboard(request):
 		elif is_group_officer(group_id,own_id):
 			# group officer, can use their powers here
 			###################### Retention activity logging ######################
-			# if int(own_id) > SEGMENT_STARTING_USER_ID:
-			# 	time_now = time.time()
-			# 	activity_dict = {'m':'POST','act':'U6','t':time_now}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'U6','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
@@ -1037,10 +1037,10 @@ def public_mehfil_oversight_dashboard(request):
 		elif group_member_exists(group_id, own_id):
 			# just an onlooker
 			###################### Retention activity logging ######################
-			# if int(own_id) > SEGMENT_STARTING_USER_ID:
-			# 	time_now = time.time()
-			# 	activity_dict = {'m':'POST','act':'U5','t':time_now}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				time_now = time.time()
+				activity_dict = {'m':'POST','act':'U5','t':time_now}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			decision = request.POST.get("dec",None)
 			help_decision = request.POST.get("hdec",None)
@@ -2291,10 +2291,10 @@ def private_group_hide_submission(request):
 					if decision == 'h':
 						# hide
 						###################### Retention activity logging ######################
-						# if own_id > SEGMENT_STARTING_USER_ID:
-						# 	request.session['rd'] = '1'
-						# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W3.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
 						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,action_by='owner')
 						if action_successful:
@@ -2312,10 +2312,10 @@ def private_group_hide_submission(request):
 					else:
 						# unhide
 						###################### Retention activity logging ######################
-						# if own_id > SEGMENT_STARTING_USER_ID:
-						# 	request.session['rd'] = '1'
-						# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W3.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
 						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
 						if action_successful:
@@ -2335,10 +2335,10 @@ def private_group_hide_submission(request):
 					if decision == 'h':
 						# hide
 						###################### Retention activity logging ######################
-						# if own_id > SEGMENT_STARTING_USER_ID:
-						# 	request.session['rd'] = '1'
-						# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W3.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
 						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,action_by='owner')
 						if action_successful:
@@ -2358,10 +2358,10 @@ def private_group_hide_submission(request):
 						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='owner')
 						if action_successful:
 							###################### Retention activity logging ######################
-							# if own_id > SEGMENT_STARTING_USER_ID:
-							# 	request.session['rd'] = '1'
-							# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							if own_id > SEGMENT_STARTING_USER_ID:
+								request.session['rd'] = '1'
+								activity_dict = {'m':'POST','act':'W3.h','t':time_now}# defines what activity just took place
+								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
 							################################################
 							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
@@ -2382,10 +2382,10 @@ def private_group_hide_submission(request):
 					if decision == 'h':
 						# hide
 						###################### Retention activity logging ######################
-						# if own_id > SEGMENT_STARTING_USER_ID:
-						# 	request.session['rd'] = '1'
-						# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						if own_id > SEGMENT_STARTING_USER_ID:
+							request.session['rd'] = '1'
+							activity_dict = {'m':'POST','act':'W3.h','t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
 						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,action_by='writer')
 						if action_successful:
@@ -2405,10 +2405,10 @@ def private_group_hide_submission(request):
 						action_successful, target_user_id = hide_private_group_submission(group_id,submission_id,unhide=True,action_by='writer')
 						if action_successful:
 							###################### Retention activity logging ######################
-							# if own_id > SEGMENT_STARTING_USER_ID:
-							# 	request.session['rd'] = '1'
-							# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							if own_id > SEGMENT_STARTING_USER_ID:
+								request.session['rd'] = '1'
+								activity_dict = {'m':'POST','act':'W3.h','t':time_now}# defines what activity just took place
+								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
 							################################################
 							hide_associated_direct_responses.delay(obj_type='6',parent_obj_id=group_id,reply_id=submission_id,\
@@ -2462,10 +2462,10 @@ def group_hide_submission(request, *args, **kwargs):
 				# hide the submission:
 				time_now = time.time()
 				###################### Retention activity logging ######################
-				# if own_id > SEGMENT_STARTING_USER_ID:
-				# 	request.session['rd'] = '1'
-				# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				if own_id > SEGMENT_STARTING_USER_ID:
+					request.session['rd'] = '1'
+					activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				writer_id, target_user_id, action_successful, ttl = hide_group_submission(gid,own_id,pk)#hides group submission and returns writer ID by default
 				if action_successful:
@@ -2478,7 +2478,7 @@ def group_hide_submission(request, *args, **kwargs):
 					####### construct and add to administrative activity #######
 					construct_administrative_activity.delay(own_id, writer_id, time_now, gid, 'hide', pk)
 					############################################################
-				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
+				url = reverse_lazy("public_group", args=[data['u']])+"#section0"
 				return redirect(url)
 			elif not submission_exists:
 				context["non_existence"] = True
@@ -2502,10 +2502,10 @@ def group_hide_submission(request, *args, **kwargs):
 				# unhide the submission:
 				time_now = time.time()
 				###################### Retention activity logging ######################
-				# if own_id > SEGMENT_STARTING_USER_ID:
-				# 	request.session['rd'] = '1'
-				# 	activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
-				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				if own_id > SEGMENT_STARTING_USER_ID:
+					request.session['rd'] = '1'
+					activity_dict = {'m':'POST','act':'W2.h','t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				writer_id, target_user_id, action_successful, ttl = hide_group_submission(gid,own_id,pk,unhide=True)
 				if ttl > 0:
@@ -2527,7 +2527,7 @@ def group_hide_submission(request, *args, **kwargs):
 					####### construct and add to administrative activity #######
 					construct_administrative_activity.delay(own_id, writer_id, time_now, gid, 'unhide', pk)
 					############################################################
-				url = reverse_lazy("public_group", args=[data['u']])+"#sectionJ"
+				url = reverse_lazy("public_group", args=[data['u']])+"#section0"
 				return redirect(url)
 			elif not submission_exists:
 				context["cant_restore"] = True
@@ -2576,11 +2576,11 @@ def display_group_users_list(request, grp_priv, list_type):
 	if group_member_exists(group_id, own_id):
 		# user can view this groups listing
 		###################### Retention activity logging ######################
-		# if own_id > SEGMENT_STARTING_USER_ID:
-		# 	time_now = time.time()
-		# 	act = 'U10' if group_privacy == '0' else 'R7'
-		# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		if own_id > SEGMENT_STARTING_USER_ID:
+			time_now = time.time()
+			act = 'U10' if group_privacy == '0' else 'R7'
+			activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		########################################################################
 		if list_type == 'visitors':
 			# this is for displaying recent visitors
@@ -2824,7 +2824,7 @@ class ChangeGroupTopicView(FormView):
 					invitee_ids = [tup[0] for tup in invitee_ids_and_invite_times]
 					for invitee_id in invitee_ids:
 						invalidate_cached_mehfil_invites(invitee_id)
-					invalidate_cached_ranked_groups()
+					# invalidate_cached_ranked_groups()
 					#############
 					return redirect("public_group", slug=unique)
 				else:
@@ -3291,11 +3291,11 @@ class PrivateGroupView(FormView):
 					context["replies"] = [(reply,presence_dict.get(reply["wid"],'gone')) for reply in latest_replies]
 					context["error_string"] = self.request.session.pop("dir_rep_invalid"+str(user_id),None)
 					###################### Retention activity logging ######################
-					# from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
-					# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-					# 	act = 'R1' if self.request.mobile_verified else 'R1.u'
-					# 	activity_dict = {'m':'GET','act':act,'t':updated_at,'url':context["group_topic"]}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=updated_at)
+					from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
+					if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+						act = 'R1' if self.request.mobile_verified else 'R1.u'
+						activity_dict = {'m':'GET','act':act,'t':updated_at,'url':context["group_topic"]}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=updated_at)
 					########################################################################
 					if not self.request.user_banned:#do the following ONLY if user isn't hell-banned
 						# members = get_group_members(group_id)# redis 1 legacy function
@@ -3312,11 +3312,11 @@ class PrivateGroupView(FormView):
 							context["reply_time"] = None
 				else:
 					###################### Retention activity logging ######################
-					# if user_id > SEGMENT_STARTING_USER_ID:
-					# 	time_now = time.time()
-					# 	act = 'R2' if self.request.mobile_verified else 'R2.u'
-					# 	activity_dict = {'m':'GET','act':act,'t':time_now,'url':data['tp']}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					if user_id > SEGMENT_STARTING_USER_ID:
+						time_now = time.time()
+						act = 'R2' if self.request.mobile_verified else 'R2.u'
+						activity_dict = {'m':'GET','act':act,'t':time_now,'url':data['tp']}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					########################################################################
 					# give membership option
 					context["full_member"] = False
@@ -3334,13 +3334,13 @@ class PrivateGroupView(FormView):
 		data-filled form and errors.
 		"""
 		###################### Retention activity logging ######################
-		# user_id = self.request.user.id
-		# if user_id > SEGMENT_STARTING_USER_ID:
-		# 	self.request.session['rd'] = '1'
-		# 	time_now = time.time()
-		# 	act = 'W2.i' if self.request.mobile_verified else 'W2.u'
-		# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		user_id = self.request.user.id
+		if user_id > SEGMENT_STARTING_USER_ID:
+			self.request.session['rd'] = '1'
+			time_now = time.time()
+			act = 'W2.i' if self.request.mobile_verified else 'W2.u'
+			activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		########################################################################
 		self.request.session["private_group_error"] = form.errors.as_text().split("*")[2]
 		self.request.session.modified = True
@@ -3409,11 +3409,11 @@ class PrivateGroupView(FormView):
 					time_now = time.time()
 					set_input_rate_and_history.delay(section='prv_grp',section_id=group_id,text=text,user_id=user_id,time_now=time_now)
 					###################### Retention activity logging ######################
-					# if user_id > SEGMENT_STARTING_USER_ID:
-					# 	self.request.session['rd'] = ['1']
-					# 	act = 'W2' if self.request.mobile_verified else 'W2.u'
-					# 	activity_dict = {'m':'POST','act':act,'t':time_now,'url':data['tp'],'tx':text,'pi':uploaded_img_loc}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+					if user_id > SEGMENT_STARTING_USER_ID:
+						self.request.session['rd'] = '1'
+						act = 'W2' if self.request.mobile_verified else 'W2.u'
+						activity_dict = {'m':'POST','act':act,'t':time_now,'url':data['tp'],'tx':text,'pi':uploaded_img_loc}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 					########################################################################
 
 					own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
@@ -3435,7 +3435,7 @@ class PrivateGroupView(FormView):
 						return HttpResponse(json.dumps({'success':True,'message':reverse('private_group_reply')}),content_type='application/json',)
 					else:
 						self.request.session['unique_id'] = unique_id
-						url = reverse_lazy("private_group_reply")+"#sectionJ"
+						url = reverse_lazy("private_group_reply")+"#section0"
 						return redirect(url)
 			else:
 				# group does not exist - perhaps was deleted
@@ -3514,7 +3514,7 @@ class PublicGroupView(FormView):
 				context["own_id"] = user_id
 				context["stars"] = get_all_image_star_ids()
 				context["csrf"] = csrf.get_token(self.request)
-				context["score"] = self.request.user.userprofile.score
+				# context["score"] = self.request.user.userprofile.score
 				context["group_topic"] = group_data['tp']
 				context["group_owner_uname"] = retrieve_uname(group_data['oi'],decode=True)
 				updated_at = time.time()
@@ -3551,10 +3551,10 @@ class PublicGroupView(FormView):
 						json_data = json.dumps(latest_replies)
 						cache_mehfil_replies(json.dumps(latest_replies),group_id)
 					###################### Retention activity logging ######################
-					# from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
-					# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-					# 	activity_dict = {'m':'GET','act':'U1','t':updated_at,'url':context["group_topic"]}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=updated_at)
+					from_redirect = self.request.session.pop('rd',None)# remove this too when removing retention activity logger
+					if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+						activity_dict = {'m':'GET','act':'U1','t':updated_at,'url':context["group_topic"]}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=updated_at)
 					########################################################################
 					presence_dict = get_latest_presence(group_id,set(reply["wid"] for reply in latest_replies),updated_at)
 					presence_dict[str(user_id)] = 'green'#ensures own status is 'green'
@@ -3568,10 +3568,10 @@ class PublicGroupView(FormView):
 					context["error_string"] = self.request.session.pop("dir_rep_invalid"+str(user_id),None)
 				else:
 					###################### Retention activity logging ######################
-					# if user_id > SEGMENT_STARTING_USER_ID:
-					# 	act = 'U2' if self.request.mobile_verified else 'U2.u'
-					# 	activity_dict = {'m':'GET','act':act,'t':updated_at,'url':context["group_topic"]}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=updated_at)
+					if user_id > SEGMENT_STARTING_USER_ID:
+						act = 'U2' if self.request.mobile_verified else 'U2.u'
+						activity_dict = {'m':'GET','act':act,'t':updated_at,'url':context["group_topic"]}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=updated_at)
 					########################################################################
 					if is_member:
 						context["partial_member"] = True
@@ -3609,13 +3609,13 @@ class PublicGroupView(FormView):
 		data-filled form and errors.
 		"""
 		###################### Retention activity logging ######################
-		# user_id = self.request.user.id
-		# if user_id > SEGMENT_STARTING_USER_ID:
-		# 	self.request.session['rd'] = ['1']
-		# 	time_now = time.time()
-		# 	act = 'W3.i' if self.request.mobile_verified else 'W3.u'
-		# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		user_id = self.request.user.id
+		if user_id > SEGMENT_STARTING_USER_ID:
+			self.request.session['rd'] = '1'
+			time_now = time.time()
+			act = 'W3.i' if self.request.mobile_verified else 'W3.u'
+			activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		########################################################################
 		self.request.session["public_group_error"] = form.errors.as_text().split("*")[2]
 		self.request.session.modified = True
@@ -3693,11 +3693,11 @@ class PublicGroupView(FormView):
 				reply_time = time.time()
 				set_input_rate_and_history.delay(section='pub_grp',section_id=group_id,text=text,user_id=user_id,time_now=reply_time)
 				###################### Retention activity logging ######################
-				# if user_id > SEGMENT_STARTING_USER_ID:
-				# 	self.request.session['rd'] = ['1']
-				# 	act = 'W3' if self.request.mobile_verified else 'W3.u'
-				# 	activity_dict = {'m':'POST','act':act,'t':reply_time,'url':topic,'tx':text,'pi':uploaded_img_loc}# defines what activity just took place
-				# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
+				if user_id > SEGMENT_STARTING_USER_ID:
+					self.request.session['rd'] = '1'
+					act = 'W3' if self.request.mobile_verified else 'W3.u'
+					activity_dict = {'m':'POST','act':act,'t':reply_time,'url':topic,'tx':text,'pi':uploaded_img_loc}# defines what activity just took place
+					log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=reply_time)
 				########################################################################
 
 				own_uname, own_avurl = retrieve_credentials(user_id,decode_uname=True)
@@ -3718,8 +3718,7 @@ class PublicGroupView(FormView):
 				if is_ajax:
 					return HttpResponse(json.dumps({'success':True,'message':reverse('public_group')}),content_type='application/json',)
 				else:
-					# url = reverse_lazy("public_group_reply")+"#sectionJ"
-					url = reverse_lazy("public_group", args=[public_uuid])+"#sectionJ"
+					url = reverse_lazy("public_group", args=[public_uuid])+"#section0"
 					return redirect(url)
 			else:
 				# not a member and / or signatory
@@ -3767,15 +3766,15 @@ def group_page(request):
 		cache_mehfil_pages(pages,own_id)
 	page_num = int(page_num)
 	###################### Retention activity logging ######################
-	# if own_id > SEGMENT_STARTING_USER_ID:
-	# 	time_now = time.time()
-	# 	act = 'G1' if request.mobile_verified else 'G1.u'
-	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-	# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+	if own_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		act = 'G1' if request.mobile_verified else 'G1.u'
+		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+		log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
 	return render(request,"mehfil/group_list.html",{'object_list':final_data,'stars':get_all_image_star_ids(),'num_grps':len(final_data),\
 		'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<num_pages else False,\
-		'has_previous':True if page_num>1 else False},'page_num':page_num})
+		'has_previous':True if page_num>1 else False},'page_num':page_num,'own_id':own_id})
 
 
 def group_invites(request):
@@ -3793,11 +3792,11 @@ def group_invites(request):
 		cache_mehfil_invites(pages,user_id)
 	page_num = int(page_num)
 	###################### Retention activity logging ######################
-	# if user_id > SEGMENT_STARTING_USER_ID:
-	# 	time_now = time.time()
-	# 	act = 'G2' if request.mobile_verified else 'G2.u'
-	# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-	# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+	if user_id > SEGMENT_STARTING_USER_ID:
+		time_now = time.time()
+		act = 'G2' if request.mobile_verified else 'G2.u'
+		activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+		log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 	########################################################################
 	return render(request,"mehfil/group_invites.html",{'object_list':final_data,'stars':get_all_image_star_ids(),'page_num':page_num,\
 		'page_obj':{'previous_page_number':page_num-1,'next_page_number':page_num+1,'has_next':True if page_num<num_pages else False,\
@@ -3849,9 +3848,9 @@ def join_private_group(request):
 			return redirect("error")
 		elif not request.mobile_verified:
 			###################### Retention activity logging ######################
-			# if int(own_id) > SEGMENT_STARTING_USER_ID:
-			# 	activity_dict = {'m':'POST','act':'R.u','t':time_now,'url':retrieve_group_topic(group_id=group_id)}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if int(own_id) > SEGMENT_STARTING_USER_ID:
+				activity_dict = {'m':'POST','act':'R.u','t':time_now,'url':retrieve_group_topic(group_id=group_id)}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			# do not let user join a mehfil if they're not verified
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_private_mehfil':True})
@@ -3908,10 +3907,10 @@ def join_private_group(request):
 				invalidate_cached_mehfil_invites(own_id)
 				main_sentence = own_uname+" ne mehfil join ki at {0}".format(exact_date(time_now))
 				###################### Retention activity logging ######################
-				# if int(own_id) > SEGMENT_STARTING_USER_ID:
-				# 	request.session['rd'] = '1'
-				# 	activity_dict = {'m':'POST','act':'R','t':time_now,'url':retrieve_group_topic(group_id=group_id)}# defines what activity just took place
-				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				if int(own_id) > SEGMENT_STARTING_USER_ID:
+					request.session['rd'] = '1'
+					activity_dict = {'m':'POST','act':'R','t':time_now,'url':retrieve_group_topic(group_id=group_id)}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				document_administrative_activity.delay(group_id, main_sentence, 'join')
 				added = create_group_membership_and_rules_signatory(group_id=group_id, member_id=own_id, time_now=time_now, \
@@ -4064,9 +4063,9 @@ def join_public_group(request):
 		elif not request.mobile_verified:
 			# do not let user join a mehfil if they're not verified
 			###################### Retention activity logging ######################
-			# if own_id > SEGMENT_STARTING_USER_ID:
-			# 	activity_dict = {'m':'POST','act':'U.u','t':time_now,'url':retrieve_group_topic(group_id=group_id)}# defines what activity just took place
-			# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+			if own_id > SEGMENT_STARTING_USER_ID:
+				activity_dict = {'m':'POST','act':'U.u','t':time_now,'url':retrieve_group_topic(group_id=group_id)}# defines what activity just took place
+				log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 			########################################################################
 			return render(request,'verification/unable_to_submit_without_verifying.html',{'join_public_mehfil':True})
 		elif is_membership_frozen(group_id):
@@ -4114,9 +4113,9 @@ def join_public_group(request):
 							return render(request,"mehfil/accept_open_group_rules.html",{'only_pinkstars_allowed':True})
 					else:
 						###################### Retention activity logging ######################
-						# if own_id > SEGMENT_STARTING_USER_ID:
-						# 	activity_dict = {'m':'POST','act':'U0','t':time_now,'url':group_meta_data['tp']}# defines what activity just took place
-						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						if own_id > SEGMENT_STARTING_USER_ID:
+							activity_dict = {'m':'POST','act':'U0','t':time_now,'url':group_meta_data['tp']}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
 						# this group entertains everyone
 						if str(own_id) == group_meta_data['oi']:
@@ -4222,10 +4221,10 @@ def accept_open_group_rules(request):
 						# this group allows users other than pink stars
 						if (time_now-float(start_time)) >= float(time_to_read):
 							###################### Retention activity logging ######################
-							# if own_id > SEGMENT_STARTING_USER_ID:
-							# 	request.session['rd'] = ['1']
-							# 	activity_dict = {'m':'POST','act':'U','t':time_now,'url':group_meta_data['tp']}# defines what activity just took place
-							# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+							if own_id > SEGMENT_STARTING_USER_ID:
+								request.session['rd'] = '1'
+								activity_dict = {'m':'POST','act':'U','t':time_now,'url':group_meta_data['tp']}# defines what activity just took place
+								log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 							########################################################################
 							# rules are acceptable to the user and they took the prescribed time to read them
 							group_owner_id = group_meta_data['oi']
@@ -4484,21 +4483,22 @@ class InviteUsersToPrivateGroupView(ListView):
 			if group_owner_id:
 				own_id = str(self.request.user.id)
 				if group_member_exists(group_id, own_id):
-					user_ids = get_most_recent_online_users()
-					# user_ids = [18,114,113,128,164,132,123,133,150,160]
-					if user_ids:
-						users_purified = [pk for pk in user_ids if pk not in condemned]# remove hell-banned users
-						non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified, group_uuid, inviter_id=own_id, is_public=False)
-						username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
-						if username_data:
-							return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
+					return [(-5,-5,-5,-5)]
+					# user_ids = get_most_recent_online_users()
+					# # user_ids = [18,114,113,128,164,132,123,133,150,160]
+					# if user_ids:
+					# 	users_purified = [pk for pk in user_ids if pk not in condemned]# remove hell-banned users
+					# 	non_invited_non_member_invitable_online_ids = filter_uninvitables(users_purified, group_uuid, inviter_id=own_id, is_public=False)
+					# 	username_data = retrieve_bulk_unames(non_invited_non_member_invitable_online_ids,decode=True)
+					# 	if username_data:
+					# 		return create_sorted_invitee_list(username_data, non_invited_non_member_invitable_online_ids)
 
-						else:
-							# no one online
-							return [(-1,-1,-1,-1)]
-					else:
-						# no one online
-						return [(-1,-1,-1,-1)]
+					# 	else:
+					# 		# no one online
+					# 		return [(-1,-1,-1,-1)]
+					# else:
+					# 	# no one online
+					# 	return [(-1,-1,-1,-1)]
 				else:
 					# not allowed to invite users (e.g. isn't a member of the mehfil)
 					return [(-2,-2,-2,-2)]
@@ -4528,6 +4528,9 @@ class InviteUsersToPrivateGroupView(ListView):
 				elif marker == -4:
 					# user is banned
 					context["banned"] = True
+				elif marker == -5:
+					# invites are off
+					context["invites_off"] = True
 			else:
 				# can invite users
 				own_id = self.request.user.id
@@ -4913,7 +4916,7 @@ def first_time_public_refresh(request):
 		if tutorial_unseen(user_id=request.user.id, which_tut='14', renew_lease=True):
 			return render(request, 'mehfil/public_mehfil_refresh.html', {'unique': unique})
 		else:
-			url = reverse_lazy("public_group", args=[unique])+"#sectionJ"
+			url = reverse_lazy("public_group", args=[unique])+"#section0"
 			return redirect(url)
 	else:
 		return redirect("public_group")
@@ -4930,10 +4933,10 @@ def first_time_refresh(request, unique=None, *args, **kwargs):
 			return render(request, 'mehfil/mehfil_refresh.html', {'unique': unique})
 		else:
 			request.session["unique_id"] = unique
-			url = reverse_lazy("private_group_reply")+"#sectionJ"
+			url = reverse_lazy("private_group_reply")+"#section0"
 			return redirect(url)
 	else:
-		url = reverse_lazy("private_group_reply")+"#sectionJ"
+		url = reverse_lazy("private_group_reply")+"#section0"
 		return redirect(url)
 
 
@@ -4951,10 +4954,10 @@ def public_group_guidance(request):
 		own_id = request.user.id
 		group_owner_id, group_id = retrieve_group_owner_id(group_uuid=group_uuid, with_group_id=True)
 		###################### Retention activity logging ######################
-		# if own_id > SEGMENT_STARTING_USER_ID:
-		# 	time_now = time.time()
-		# 	activity_dict = {'m':'POST','act':'U8','t':time_now}# defines what activity just took place
-		# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+		if own_id > SEGMENT_STARTING_USER_ID:
+			time_now = time.time()
+			activity_dict = {'m':'POST','act':'U8','t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 		########################################################################
 		if str(own_id) == group_owner_id:
 			# show owner instructions
@@ -4977,60 +4980,54 @@ def public_group_guidance(request):
 
 ########################## Popular mehfil list #########################
 
+# DEPRECATED 
+#
+# def get_ranked_groups(request):
+# 	"""
+# 	Displays top public mehfils, sorted by 'stickiness' (DAU/BWAU)
+# 	"""
+# 	"""
+# 	('5',12) does not exist in test_list (used for testing purposes)
+	
+# 	test_list = [('12',12),('54',11),('78',54),('11',12),('53',11),('77',54),('13',12),('55',11),('79',54),\
+# 	('4',12),('56',11),('80',54),('5',12),('50',11),('81',54),('2',12),('44',11),('72',54),('1',12),('45',11)\
+# 	,('10',54),('34',12),('35',11),('36',54),('39',54),('37',12),('38',11)]
+	
+# 	group_ids_list = test_list
+# 	"""
+# 	user_id = request.user.id
+# 	banned, time_remaining, ban_details = check_content_and_voting_ban(user_id, with_details=True)
+# 	if banned:
+# 		# Cannot open group page if banned
+# 		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
+# 			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
+# 			'org':'19'})
+# 	else:
+# 		###################### Retention activity logging ######################
+# 		from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
+# 		if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
+# 			time_now = time.time()
+# 			act = 'G4' if request.mobile_verified else 'G4.u'
+# 			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+# 			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+# 		########################################################################
+# 		groups_data = retrieve_cached_ranked_groups()
+# 		if groups_data:
+# 			trending_groups = json.loads(groups_data)
+# 		else:
+# 			trending_groups = []
+# 			group_ids_list = get_ranked_mehfils()
+# 			group_ids_dict = dict(group_ids_list)
+# 			group_ids = map(itemgetter(0), group_ids_list)
+# 			groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
+# 			for group in groups:
+# 				if group['oun']:
+# 					group_id = group['gi']
+# 					trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
+# 			trending_groups.sort(key=itemgetter(4), reverse=True)
+# 			cache_ranked_groups(json.dumps(trending_groups))
 
-def get_ranked_groups(request):
-	"""
-	Displays top public mehfils, sorted by 'stickiness' (DAU/BWAU)
-	"""
-	"""
-	('5',12) does not exist in test_list (used for testing purposes)
-	
-	test_list = [('12',12),('54',11),('78',54),('11',12),('53',11),('77',54),('13',12),('55',11),('79',54),\
-	('4',12),('56',11),('80',54),('5',12),('50',11),('81',54),('2',12),('44',11),('72',54),('1',12),('45',11)\
-	,('10',54),('34',12),('35',11),('36',54),('39',54),('37',12),('38',11)]
-	
-	group_ids_list = test_list
-	"""
-	banned, time_remaining, ban_details = check_content_and_voting_ban(request.user.id, with_details=True)
-	if banned:
-		# Cannot open group page if banned
-		return render(request, 'judgement/cannot_comment.html', {'time_remaining': time_remaining,'ban_details':ban_details,\
-			'forbidden':True,'own_profile':True,'defender':None,'is_profile_banned':True, 'tun':request.user.username, \
-			'org':'19'})
-	else:
-		###################### Retention activity logging ######################
-		# user_id = request.user.id
-		# from_redirect = request.session.pop('rd',None)# remove this too when removing retention activity logger
-		# if not from_redirect and user_id > SEGMENT_STARTING_USER_ID:
-		# 	time_now = time.time()
-		# 	act = 'U4' if request.mobile_verified else 'U4.u'
-		# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
-		########################################################################
-		groups_data = retrieve_cached_ranked_groups()
-		if groups_data:
-			trending_groups = json.loads(groups_data)
-		else:
-			trending_groups = []
-			group_ids_list = get_ranked_mehfils()
-			group_ids_dict = dict(group_ids_list)
-			group_ids = map(itemgetter(0), group_ids_list)
-			groups = retrieve_group_owner_unames_and_uniques_and_topics_in_bulk(group_ids)
-			for group in groups:
-				if group['oun']:
-					group_id = group['gi']
-					trending_groups.append((group['oun'],group['tp'],group['u'],group_id,group_ids_dict[group_id]))#group_ids_dict[group_id] is group_score
-			trending_groups.sort(key=itemgetter(4), reverse=True)
-			cache_ranked_groups(json.dumps(trending_groups))
-		context = {'object_list':trending_groups}
-		########################################################################
-		newbie_flag = request.session.get("newbie_flag",None)
-		if newbie_flag == '5':
-			context["newbie_flag"] = True
-			context["newbie_tutorial_page"] = 'tutorial5.html'
-			context['newbie_lang'] = request.session.get("newbie_lang",None)
-			context['origin'] = '36'
-		return render(request,"mehfil/group_ranking.html",context)
+# 		return render(request,"mehfil/group_ranking.html",{'object_list':trending_groups})
 
 
 ########################## Mehfil creation #########################
@@ -5045,12 +5042,12 @@ class GroupTypeView(FormView):
 
 	def get_context_data(self, **kwargs):
 		###################### Retention activity logging ######################
-		# user_id = self.request.user.id
-		# if user_id > SEGMENT_STARTING_USER_ID:
-		# 	time_now = time.time()
-		# 	act = 'G3' if self.request.mobile_verified else 'G3.u'
-		# 	activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
-		# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
+		user_id = self.request.user.id
+		if user_id > SEGMENT_STARTING_USER_ID:
+			time_now = time.time()
+			act = 'G3' if self.request.mobile_verified else 'G3.u'
+			activity_dict = {'m':'GET','act':act,'t':time_now}# defines what activity just took place
+			log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=time_now)
 		########################################################################
 		context = super(GroupTypeView, self).get_context_data(**kwargs)
 		context["public_invite_cancellation"] = human_readable_time(CANCEL_PUBLIC_INVITE_AFTER_TIME_PASSAGE)
@@ -5075,10 +5072,10 @@ def can_create_group(request, group_type):
 			time_now = time.time()
 			if not request.mobile_verified:
 				###################### Retention activity logging ######################
-				# if own_id > SEGMENT_STARTING_USER_ID:
-				# 	act = 'R3.u' if group_type == 'private' else 'U3.u'
-				# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-				# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+				if own_id > SEGMENT_STARTING_USER_ID:
+					act = 'R3.u' if group_type == 'private' else 'U3.u'
+					activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+					log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 				########################################################################
 				return render(request,"mehfil/group_type.html",{'not_verified':True})
 			else:
@@ -5089,12 +5086,12 @@ def can_create_group(request, group_type):
 					raise Http404("Unable to access user joining date")
 				if group_type == 'public':
 					ttl = USER_AGE_AFTER_WHICH_PUBLIC_MEHFIL_CAN_BE_CREATED - (time_now - convert_to_epoch(join_date))
-					if ttl > 4:
+					if ttl > 1:
 						###################### Retention activity logging ######################
-						# if own_id > SEGMENT_STARTING_USER_ID:
-						# 	act = 'R3.i' if group_type == 'private' else 'U3.i'
-						# 	activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
-						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
+						if own_id > SEGMENT_STARTING_USER_ID:
+							act = 'R3.i' if group_type == 'private' else 'U3.i'
+							activity_dict = {'m':'POST','act':act,'t':time_now}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=time_now)
 						########################################################################
 						# this user isn't allowed to create a group
 						return render(request,"mehfil/group_type.html",{'age_inadequate_ttl':ttl,'user_age_inadequate':True})
@@ -5213,7 +5210,7 @@ class DirectMessageCreateView(FormView):
 					return redirect("profile", slug=invitee, type='fotos')
 			else:
 				# invitee doesn't exist
-				return redirect('for_me')
+				return redirect('home')
 
 
 class ClosedGroupCreateView(FormView):
@@ -5275,9 +5272,9 @@ class ClosedGroupCreateView(FormView):
 					# rate limit further public mehfil creation by this user (for 1 day)
 					rate_limit_group_creation(user_id, which_group='private')
 					###################### Retention activity logging ######################
-					# if user_id > SEGMENT_STARTING_USER_ID:
-					# 	activity_dict = {'m':'POST','act':'R3','t':created_at}# defines what activity just took place
-					# 	log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=created_at)
+					if user_id > SEGMENT_STARTING_USER_ID:
+						activity_dict = {'m':'POST','act':'R3','t':created_at}# defines what activity just took place
+						log_user_activity.delay(user_id=user_id, activity_dict=activity_dict, time_now=created_at)
 					########################################################################
 
 					self.request.session["unique_id"] = unique
@@ -5360,9 +5357,9 @@ def create_open_group(request):
 						# rate limit further public mehfil creation by this user (for 1 day)
 						rate_limit_group_creation(own_id, which_group='public')
 						###################### Retention activity logging ######################
-						# if own_id > SEGMENT_STARTING_USER_ID:
-						# 	activity_dict = {'m':'POST','act':'U3','t':created_at}# defines what activity just took place
-						# 	log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=created_at)
+						if own_id > SEGMENT_STARTING_USER_ID:
+							activity_dict = {'m':'POST','act':'U3','t':created_at}# defines what activity just took place
+							log_user_activity.delay(user_id=own_id, activity_dict=activity_dict, time_now=created_at)
 						########################################################################
 						# go to newly created public mehfil's invite page
 						request.session["public_uuid"] = unique_id

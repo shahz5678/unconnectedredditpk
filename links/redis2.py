@@ -13,6 +13,7 @@ from redis9 import change_delete_status_of_direct_responses
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC2, db=0)
 
 TEN_MINS = 600# 10 minutes in seconds
+ONE_HOUR = 3600# 1 hour in seconds
 ONE_DAY = 86400# 1 day in seconds
 ONE_WEEK = 604800# 1 week in seconds
 TWO_WEEKS = 172800# 2 weeks in seconds
@@ -24,6 +25,7 @@ THREE_MONTHS = 60*60*24*90
 FOLLOWERS_LIST = "fsl:"#a sorted set containing all subscriber ids of a given target user id, sorted by time of subscription
 FOLLOWER_STRING = "fs:"#a key that contains a concatenated list of a given user's fans
 NUM_VERIFIED_FOLLOWERS = "nvf:" #a key that stores the number of verified followers a given user has
+NUM_UNVERIFIED_FOLLOWERS = 'uvf:' #a key that stores the number of unverified followers a given user has
 NUM_ALL_FOLLOWERS = "naf:" #a key that stores the number of followers a given user has
 NO_FOLLOWERS = "nof:" # a key that is set for a user who has zero followers (verified and unverified)
 USER_FEED = "uf:" # a key that keeps all the posts by all the people you follow
@@ -470,21 +472,24 @@ def add_last_fanout_to_feed(own_id,target_user_id,time_now):
 
 		if not obj_already_added:
 			expiry_time = my_server.zscore(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
-			
-			my_server.zadd(USER_FEED+own_id,obj_hash,time.time())
-			new_follower_string = follower_string+own_id+':'
-			new_obj = new_follower_string+'*'+obj_hash
-			pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
-			pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS,ffe_obj)
-			pipeline1.zadd(FOLLOWER_FANOUTS_AND_EXPIRES,new_obj,expiry_time)
-			pipeline1.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS,new_obj,target_user_id)
-	
-			if add_to_short_lived_item_expireat_feed == 'True':
-				pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash,expire_at)
+			if expiry_time:
+				my_server.zadd(USER_FEED+own_id,obj_hash,time.time())
+				new_follower_string = follower_string+own_id+':'
+				new_obj = new_follower_string+'*'+obj_hash
+				pipeline1.zrem(FOLLOWER_FANOUTS_AND_EXPIRES,ffe_obj)
+				pipeline1.zrem(FOLLOWER_FANOUTS_AND_SUBMITTERS,ffe_obj)
+				pipeline1.zadd(FOLLOWER_FANOUTS_AND_EXPIRES,new_obj,expiry_time)
+				pipeline1.zadd(FOLLOWER_FANOUTS_AND_SUBMITTERS,new_obj,target_user_id)
+				
+				if add_to_short_lived_item_expireat_feed == 'True':
+					pipeline1.zadd(SHORT_LIVED_CONTENT_EXPIRE_TIMES+own_id,obj_hash,expire_at)
 
-			payload = new_obj+'*'+str(add_to_short_lived_item_expireat_feed)+'-'+str(expire_at)
-			pipeline1.setex(LAST_USER_FANOUT+target_user_id, payload ,int(float(expire_at)-time_now))	
-			pipeline1.execute()
+				payload = new_obj+'*'+str(add_to_short_lived_item_expireat_feed)+'-'+str(expire_at)
+				pipeline1.setex(LAST_USER_FANOUT+target_user_id, payload ,int(float(expire_at)-time_now))	
+				
+				pipeline1.execute()
+			else:
+				pass
 	else:
 		pass
 
@@ -572,7 +577,59 @@ def trim_expired_fanouts(submitter_id=None, time_now=None):
 
 ################################## Displaying follower counts or IDs ##################################
 
-def get_verified_follower_count(user_id):
+def formulate_unverif_count(unverif_count, verif_count):
+	"""
+	"""
+	verif_count, unverif_count = int(verif_count), int(unverif_count)
+	if verif_count < 11:
+		if unverif_count <= verif_count:
+			# return as it is
+			return str(unverif_count)
+		else:
+			return str(verif_count)+'+'
+	
+	elif verif_count < 1001:
+		if unverif_count < verif_count:
+			return str(unverif_count)
+		else:
+			remainder = verif_count % 10
+			if remainder == 0:
+				return str(verif_count - 10)+'+'
+			else:
+				return str(verif_count - remainder)+'+'
+	
+	elif verif_count < 10001:
+		if unverif_count < verif_count:
+			return str(unverif_count)
+		else:
+			remainder = verif_count % 100
+			if remainder == 0:
+				return str(verif_count - 100)+'+'
+			else:
+				return str(verif_count - remainder)+'+'
+	
+	elif verif_count < 100001:
+		if unverif_count < verif_count:
+			return str(unverif_count)
+		else:
+			remainder = verif_count % 1000
+			if remainder == 0:
+				return str(verif_count - 1000)+'+'
+			else:
+				return str(verif_count - remainder)+'+'
+	
+	else:
+		if unverif_count < verif_count:
+			return str(unverif_count)
+		else:
+			remainder = verif_count % 1000
+			if remainder == 0:
+				return str(verif_count - 1000)+'+'
+			else:
+				return str(verif_count - remainder)+'+'
+
+
+def get_verified_follower_count(user_id, with_unverified=False):
 	"""
 	Returns how many followers user_id has
 
@@ -581,23 +638,53 @@ def get_verified_follower_count(user_id):
 	user_id = str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(NO_FOLLOWERS+user_id):
-		return 0
-	else:
-		follower_count = my_server.get(NUM_VERIFIED_FOLLOWERS+user_id)#retrieve follower count from redis if it exists
-		# retrieve follower count from DB and cache it
-		if follower_count:
-			return follower_count
+		# set for verified and unverified both
+		if with_unverified:
+			return 0, 0
 		else:
-			follower_count = UserFan.objects.filter(star_id=user_id,fan_verification_status='1').count()
-			my_server.setex(NUM_VERIFIED_FOLLOWERS+user_id,follower_count,ONE_DAY)#delete this at fan removal or addition
-			return follower_count
+			return 0
+	else:
+		if with_unverified:
+			key_names = [NUM_VERIFIED_FOLLOWERS+user_id, NUM_UNVERIFIED_FOLLOWERS+user_id]
+			follower_counts = my_server.mget(*key_names)#retrieve follower counts from redis, if they exist
+			verif_follower_count, unverif_follower_count = follower_counts[0], follower_counts[1]
+			
+			if verif_follower_count:
+				if unverif_follower_count is None:
+					# counting unverified followers
+					unverif_follower_count = UserFan.objects.filter(star_id=user_id,fan_verification_status='0').count()
+					# caching unverified follower count for 1 hour
+					my_server.setex(NUM_UNVERIFIED_FOLLOWERS+user_id,unverif_follower_count,ONE_HOUR)
+			else:
+				# counting verified followers
+				verif_follower_count = UserFan.objects.filter(star_id=user_id,fan_verification_status='1').count()
+				# caching verified follower count for 1 hour
+				my_server.setex(NUM_VERIFIED_FOLLOWERS+user_id,verif_follower_count,ONE_DAY)#delete this at fan removal or addition
+				if unverif_follower_count is None:
+					# counting unverified followers
+					unverif_follower_count = UserFan.objects.filter(star_id=user_id,fan_verification_status='0').count()
+					# caching unverified follower count for 1 hour
+					my_server.setex(NUM_UNVERIFIED_FOLLOWERS+user_id,unverif_follower_count,ONE_HOUR)
+
+			return verif_follower_count, formulate_unverif_count(unverif_count=unverif_follower_count, verif_count=verif_follower_count)
+
+		###################################
+		else:
+			follower_count = my_server.get(NUM_VERIFIED_FOLLOWERS+user_id)#retrieve follower count from redis if it exists
+			# retrieve follower count from DB and cache it
+			if follower_count:
+				return follower_count
+			else:
+				follower_count = UserFan.objects.filter(star_id=user_id,fan_verification_status='1').count()
+				my_server.setex(NUM_VERIFIED_FOLLOWERS+user_id,follower_count,ONE_DAY)#delete this at fan removal or addition
+				return follower_count
 
 
 def get_all_follower_count(user_id):
 	"""
 	Returns how many followers user_id has
 
-	ONLY USER FOR LOGGERS
+	ONLY USED FOR LOGGERS
 	"""
 	my_server = redis.Redis(connection_pool=POOL)
 	if my_server.exists(NO_FOLLOWERS+str(user_id)):
@@ -1130,6 +1217,8 @@ def invalidate_cached_user_feed_history(user_id, hist_type):
 
 ##################### Loggers for follow feature ####################
 #####################################################################
+
+# NOTE: THESE LOGGERS ARE OFFLINE CURRENTLY
 
 POST_DATA_LOGGER = 'dl'
 POST_FOLLOW_LOGGER = 'fl'

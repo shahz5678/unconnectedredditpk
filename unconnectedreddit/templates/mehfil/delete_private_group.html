@@ -1,14 +1,13 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
-<head><title>Delete private mehfil | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
-<div class="mbs">
+<head><title>Delete private mehfil | Damadam</title></head>
+<div class="mbs mtl">
 <div style="max-width: 600px;margin:0 auto;text-align:center;overflow:hidden">
     <h1 style="display:inline" class="clb cxl">{% emoticons %}{{ topic }}{% endemoticons %}:</h1>
 </div>
 </div>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 <div class="cxl lsp mbl">Kya is mehfil ko hamesha ke liye delete kar dein?</div>
 
 <form action="{% url 'del_private_group' pk unique %}" method="POST">

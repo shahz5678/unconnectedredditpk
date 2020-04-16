@@ -1,26 +1,22 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load emoticons_tags %}
 {% block content %}
+<!-- deprecated -->
 <head><title>Trending public groups | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
-
-<main style="display:block;max-width:600px;margin:0 auto;width:97%;position:relative;">
-    {% if newbie_flag %}
-        {% include newbie_tutorial_page with static_url=STATIC_URL lang=newbie_lang origin='36' %}
-    {% endif %}
-</main>
-
-{% include "mehfil/mehfil_list_navbar.html" with section='ranking' static_url=STATIC_URL %}
-
+<div class="mtl">
+    {% load count_group_invites %}
+    {% check_group_invite_count as group_invite_count %}
+    {% include "mehfil/mehfil_list_navbar.html" with section='ranking' static_url=STATIC_URL %}
+</div>
 <h1 class="clb cxl lsp" style="text-align:center">Popular mehfils:</h1>
 
 {% for group in object_list %}
 
-    <div class="fx fxjsfs fxaicn bizcard" style="max-width:600px;margin: 0 auto;width:97%;">
+    <div class="fx fxjsfs fxaicn bizcard" style="max-width:600px;margin: 0 auto">
         
-        <div class="sp cp" style="background-color:whitesmoke;align-self:stretch;padding:10px;border-top-left-radius:6px;border-bottom-left-radius:6px;"><span style="display: inline-block;vertical-align: middle;line-height: normal">{{ forloop.counter }}</span></div>
+        <div class="sp cp" style="background-color:ivory;align-self:stretch;padding:10px;border-radius:0px;"><span style="display: inline-block;vertical-align: middle;line-height: normal">{{ forloop.counter }}</span></div>
 
-        <div class="clb bw" style="width:100%;background-color:white;border-top-right-radius:6px;border-bottom-right-radius:6px;">
+        <div class="clb bw" style="width:100%;background-color:white;border-radius:0px;">
             <a href="{% url 'public_group' slug=group.2 %}">
                 <button class="vt" style="border:none;width:100%;padding:10px;font-size:100%;border-top-left-radius:0px;border-bottom-left-radius:0">
                 <div class="mbs lsp cp cl" style="overflow:hidden;text-align:left;font-weight:bold">{% emoticons %}{{ group.1 }}{% endemoticons %}</div>
@@ -33,12 +29,11 @@
     <br>
 {% empty %}
 
-    <div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;background-color:white">
+    <div class="clb" style="margin: 0 auto;max-width:600px;background-color:white">
         <div class="cgy cxl sp" style="padding:20px 10px;text-align:center">- ye list khali hai -</div>
     </div>
 
 {% endfor %}
 
 <br><br>
-
 {% endblock %}

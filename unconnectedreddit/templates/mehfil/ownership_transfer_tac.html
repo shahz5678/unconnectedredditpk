@@ -1,10 +1,10 @@
-{% extends "base.html" %}
+{% extends "base/base_mehfil.html" %}
 {% load human_time %}
 {% block content %}
-<head><title>Transfer ownership | Damadam.pk</title></head>
-<style>body{background: #E9EBEE}</style>
+<head><title>Transfer ownership | Damadam</title></head>
+
 <h1 class="cxl clb" style="text-align:center;overflow:hidden">Transfer ownership:</span></h1>
-<div class="clb bizcard" style="margin: 0 auto;max-width:600px;width:93%;padding:10px;background-color:white;text-align:center">
+<div class="clb mbl" style="margin-left:auto;margin-right:auto;max-width:600px;padding:10px;background-color:white;text-align:center">
 
 {% if review_ownership_transfer_requests %}
 	{% load s3 %}
@@ -12,7 +12,7 @@
 		<div class="mt mbl"><a href="{% url 'public_group' slug=unique %}" class="cm sp cb" style="border-bottom:1px dotted blue">back to mehfil</a></div>
 
 		<div style="padding:8px;background-color:ivory;text-align:center" class="bizcard lsp">
-		<span class="cxl lsp">Ap ye public mehfil kisi bhi member ko transfer kar saktey hain. Iskey rules yeh hain:</span>
+		<span class="cxl lsp">Ap ye mehfil kisi bhi member ko transfer kar saktey hain. Iskey rules yeh hain:</span>
 		<ul style="display:inline-block;margin-bottom:0;padding: 0;list-style:none">
 		<li style="text-align:left" class="mbs sp">1. Jis ne is mehfil ka owner banna hai, usko khud apko ownership ki request send karni hogi</li>
 		<li style="text-align:left" class="mbs sp">2. Apkey pas offer accept karney ke liye 3 days hon ge</li>
@@ -27,7 +27,7 @@
 			{% for request in ownership_requests %}
 			<div class="mbl bizcard" style="background-color:#f8f2fa;padding:10px;border-radius:10px">
 				
-				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'user_profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne mehfil ka owner banney ke liye request send ki</div>
+				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" class="circle" style="vertical-align:sub">&nbsp;<a href="{% url 'user_profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne mehfil ka owner banney ke liye request send ki</div>
 				
 				<div class="sp cs" style="text-align:right"><span class="cgy">{{ request.t|human_time }}</span></div>
 				<form class="mt" method="POST" action="{% url 'group_ownership_transfer_tac' 'public' %}">
@@ -65,7 +65,7 @@
 			<div class="cxl lsp mbs" style="font-weight:bold">{{ num_requests }} ownership request(s):</div>
 			{% for request in ownership_requests %}
 			<div class="mbl bizcard" style="background-color:#e9fced;padding:10px;border-radius:10px">
-				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" style="border-radius:50%;vertical-align:sub">&nbsp;<a href="{% url 'user_profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne owner banney ke liye request send ki</div>
+				<div class="sp lsp cl mbs" style="text-align:left"><img src="{{ request.savurl|s3:'thumb' }}" class="circle" style="vertical-align:sub">&nbsp;<a href="{% url 'user_profile' request.suname %}" class="cb" style="border-bottom:1px dotted blue">{{ request.suname }}</a> ne owner banney ke liye request send ki</div>
 				<div class="sp cs" style="text-align:right"><span class="cgy">{{ request.t|human_time }}</span></div>
 				<form class="mt" method="POST" action="{% url 'group_ownership_transfer_tac' 'private' %}">
 					{% csrf_token %}

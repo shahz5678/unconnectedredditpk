@@ -529,6 +529,30 @@ function determine_pause_length(string) {
 	}
 }
 
+///////////////////////////////////////////////////////////////////////////////////
+
+// var share_btns = document.getElementsByClassName('share');
+// for (var i=0, len=share_btns.length; i < len; i++) share_btns[i].onclick = share_modal;
+
+
+// function share_modal(e) {
+
+// 	var pop_up = document.getElementById("share_popup");
+// 	if (Object.prototype.toString.call(window.operamini) === "[object OperaMini]" || !e.currentTarget.value || !pop_up) return;
+// 	e.preventDefault();
+
+// 	var overlay = document.createElement('div');
+//     overlay.id = "personal_group_overlay";
+//     overlay.className = 'ovl';//
+//     overlay.style.background = '#000000';
+//     overlay.style.opacity = '0.5';
+
+//     document.body.appendChild(overlay);
+// 	pop_up.style.display = 'block';
+
+// }
+
+///////////////////////////////////////////////////////////////////////////////////
 
 var report_btns = document.getElementsByClassName('report');
 for (var i=0, len=report_btns.length; i < len; i++) report_btns[i].onclick = report_modal;
@@ -551,7 +575,6 @@ function report_modal(e) {
 			var payload_array = payload.split("#",8);// one more than python's split (i.e. in python, we would have split by '7')
 			
 			var content_topic = document.getElementById("tp"+payload_array[2]);
-
 			var report_content = document.getElementById("report_txt");
 			report_content.innerHTML = '"'+payload_array[7].substring(0, 40)+' ..."'; // description
 			var report_user = document.getElementById("submitter");
@@ -591,7 +614,7 @@ function report_modal(e) {
 			var report_user = document.getElementById("uploader");
 			report_user.innerHTML = payload_array[3]; // owner_username
 			var report_label = document.getElementById("report_label");
-			report_label.innerHTML = 'REPORT<br>FOTO';
+			report_label.innerHTML = 'REPORT<br>PHOTO';
 			var block_label = document.getElementById("block_label");
 			block_label.innerHTML = 'BLOCK<br>USER';
 			var target_id = payload_array[4];// owner_id
@@ -729,11 +752,15 @@ function report_modal(e) {
 				report_thumburl.value = '';
 				report_linkid.value = '';
 				report_ownerid.value = '';
-				report_topic.value = '';
+				if (report_topic && report_topic.value) {
+					report_topic.value = '';
+				}
 
 				block_targetid.value = '';
 				block_targetusername.value = '';
-				block_topic.value = '';
+				if (block_topic && block_topic.value) {
+					block_topic.value = '';
+				}
 			};
 	    }
 

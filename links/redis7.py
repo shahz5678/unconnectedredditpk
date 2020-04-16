@@ -14,9 +14,9 @@ from page_controls import ITEMS_PER_PAGE_IN_ADMINS_LEDGER, DEFENDER_LEDGERS_SIZE
 from redis3 import retrieve_user_world_age, exact_date
 from abuse import FLAGGED_PUBLIC_TEXT_POSTING_WORDS
 from redis4 import retrieve_bulk_credentials
+from models import Link, Photo, Cooldown
 from collections import defaultdict
 from colors import COLOR_GRADIENTS
-from models import Link, Photo
 from location import REDLOC7
 
 POOL = redis.ConnectionPool(connection_class=redis.UnixDomainSocketConnection, path=REDLOC7, db=0)
@@ -166,6 +166,8 @@ TEMP_POST_DATA = 'tpd:' # temporary data store for share functionality
 REMOVAL_RATE_LIMIT = 'rrl:'# rate limit key to limit rate of 'remove' commands a user can issue on their posted objs
 
 GLOBAL_UPLOADED_IMGS = 'gui'
+
+STAR_SCORE = 'star_score'
 
 ##################################################################################################################
 ################################# Detecting duplicate images post in public photos ###############################
@@ -837,30 +839,30 @@ def retrieve_voting_records(voter_id, start_idx=0, end_idx=-1, upvotes=True, wit
 #################################################### Updating image content objects ############################################
 
 
-def get_recent_photos(user_id):
-	"""
-	Contains last 5 photos
+# def get_recent_photos(user_id):
+# 	"""
+# 	Contains last 5 photos
 
-	This list self-deletes if user doesn't upload a photo for more than 4 days
-	"""
-	return redis.Redis(connection_pool=POOL).lrange("imgs:"+str(user_id), 0, -1)
+# 	This list self-deletes if user doesn't upload a photo for more than 4 days
+# 	"""
+# 	return redis.Redis(connection_pool=POOL).lrange("imgs:"+str(user_id), 0, -1)
 
 
-def save_recent_photo(user_id, photo_id):
+def save_recent_photo(user_id, photo_id, time_now):
 	"""
-	Save last 5 photos uploaded by a user
+	Add the image to some required data structures
 	"""
-	time_now = time.time()
-	key_name = "imgs:"+str(user_id)
+	# time_now = time.time()
+	# key_name = "imgs:"+str(user_id)
 	my_server = redis.Redis(connection_pool=POOL)
-	my_server.lpush(key_name, photo_id)
-	my_server.ltrim(key_name, 0, 4) # save the most recent 5 photos'
-	my_server.expire(key_name,FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
+	# my_server.lpush(key_name, photo_id)
+	# my_server.ltrim(key_name, 0, 4) # save the most recent 5 photos'
+	# my_server.expire(key_name,FOUR_DAYS) #ensuring people who don't post anything for 4 days have to restart
 	############################################
-	my_server.setex(MOST_RECENT_IMG_UPLOAD_TIME+str(user_id),time_now,ONE_MONTH)
-	my_server.zincrby(GLOBAL_UPLOADED_IMG_VOLUME,user_id,amount=1)
+	my_server.setex(MOST_RECENT_IMG_UPLOAD_TIME+str(user_id),time_now,ONE_MONTH)# used in 'rep' calculation
 	############################################
 	# useful for display a 'counter' in our 'fresh' page page
+	my_server.zincrby(GLOBAL_UPLOADED_IMG_VOLUME,user_id,amount=1)
 	my_server.zadd(GLOBAL_UPLOADED_IMGS,photo_id,time_now)
 	if random() < 0.01:
 		# run clean up after 100 attempts (on avg)
@@ -945,9 +947,8 @@ def add_obj_to_photo_feed(submitter_id, time_now, hash_name, my_server=None):
 
 
 def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_username, is_star, img_url, img_caption, \
-	submission_time, from_fbs, type_of_object, comments, img_height, img_width, add_to_home_feed=False, \
+	submission_time, from_fbs, type_of_object, comments, img_height, img_width, alt_text, add_to_home_feed=False, \
 	add_to_photo_feed=True, poster_defined_expiry_time=None):
-
 	"""
 	Creating image object (used in home and photo feed, etc)
 	"""
@@ -958,7 +959,7 @@ def add_image_post(obj_id, categ, submitter_id, submitter_av_url, submitter_user
 	img_hw_ratio = (1.0*img_width/img_height)
 	immutable_data = {'i':obj_id,'c':categ,'sa':submitter_av_url,'su':submitter_username,'si':submitter_id,'t':submission_time,\
 	'd':img_caption,'iu':img_url,'it':img_thumb,'h':hash_name,'ht':img_height,'wd':img_width,'com':comments, 'ot':type_of_object[0], \
-	'aud':type_of_object[1],'rt':round((100.0/img_hw_ratio),2),'nht':round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio)}
+	'aud':type_of_object[1],'rt':round((100.0/img_hw_ratio),2),'nht':round(MAX_PUBLIC_IMG_WIDTH/img_hw_ratio),'alt':alt_text}
 
 	expiry = type_of_object[2]
 	if expiry:
@@ -1799,6 +1800,181 @@ def retrieve_handpicked_photos_count():
 		return 0
 
 
+def retrieve_trenders_by_score():
+	"""
+	Retrieves top stars sorted by score calculated in calculate_trender_score()
+	"""
+	return redis.Redis(connection_pool=POOL).zrevrange(STAR_SCORE,0,-1)
+
+
+def calculate_trender_score():
+	"""
+	Provides a 'score' for trenders - in order to rank them in the 'star list'
+
+	'trending hit rate': num_trending_in_1_week / total_submitted_in_1_week
+	'recency bonus': give a small 'boost' if most of the trending images were recent (i.e. within the past 3 days)
+	"""
+	user_ids = get_all_image_star_ids()# retrieve all star_ids
+	if user_ids:
+		from datetime import datetime, timedelta
+
+		hit_rates = {}
+		time_now = datetime.utcnow()
+		one_week_ago = time_now-timedelta(days=7)
+		image_data = Link.objects.filter(submitter_id__in=user_ids,submitted_on__gte=one_week_ago).\
+		values_list('submitter_id','submitted_on','trending_status')
+		
+		if image_data:
+			# defaultdict(int) is a python dictionary that doesn't give KeyError if 'key' doesn't exist (when dict is accessed)
+			total_submissions_dict = defaultdict(int)# contains total images uploaded by a trender_id in last 7 days(trending and non-trending)
+			trending_submissions_dict = defaultdict(int)# contains trending images uploaded by a trender_id in last 7 days
+			num_trending_in_interval_one = defaultdict(int)# last 24 hours time window
+			num_trending_in_interval_two = defaultdict(int)# last 24-48 hours time window
+			num_trending_in_interval_three = defaultdict(int)# last 48-72 hours time window
+			one_day_ago = time_now-timedelta(days=1)
+			two_days_ago = time_now-timedelta(days=2)
+			three_days_ago = time_now-timedelta(days=3)
+			for image_tup in image_data:
+				submitter_id, submitted_on, trending_status = image_tup[0], image_tup[1], image_tup[2]
+				###########################################
+				# gathering data for 'trending hit rate'
+				total_submissions_dict[submitter_id] += 1
+				if trending_status == '1':
+					trending_submissions_dict[submitter_id] += 1
+					###########################################
+					# gathering data for 'recency bonus'
+					if submitted_on >= one_day_ago:
+						num_trending_in_interval_one[submitter_id] += 1
+					elif submitted_on >= two_days_ago:
+						num_trending_in_interval_two[submitter_id] += 1
+					elif submitted_on >= three_days_ago:
+						num_trending_in_interval_three[submitter_id] += 1
+					else:
+						# not eligible for bonus
+						pass
+
+			################################
+			trender_ids = map(int, user_ids)
+			for trender_id in trender_ids:
+
+				total_submissions = total_submissions_dict.get(trender_id,0)
+				total_trending = trending_submissions_dict.get(trender_id,0)
+
+				# calculate the 'hit rate' of the trender
+				hit_rate = (total_trending*1.0)/total_submissions if total_submissions else 0
+				
+				# eligible for a boost? calculate it
+				trending_count_in_interval_one = num_trending_in_interval_one.get(trender_id,0)
+				trending_count_in_interval_two = num_trending_in_interval_two.get(trender_id,0)
+				trending_count_in_interval_three = num_trending_in_interval_three.get(trender_id,0)
+
+				# has a trending image in: each of the previous 3 time intervals
+				if trending_count_in_interval_one and trending_count_in_interval_two and trending_count_in_interval_three:
+					weight_of_recent_trending = ((trending_count_in_interval_one+trending_count_in_interval_two+trending_count_in_interval_three)*1.0)/total_trending
+					
+					# most trending contributions came recently - the user is an active contributor
+					if weight_of_recent_trending > 0.50:
+						# give max boost available for this tier
+						boost = 0.2 * hit_rate
+					else:
+						# give boost
+						boost = 0.2 * hit_rate * (weight_of_recent_trending*2)
+
+				# has a trending image in: the most recent two time intervals
+				elif trending_count_in_interval_one and trending_count_in_interval_two:
+					weight_of_recent_trending = ((trending_count_in_interval_one+trending_count_in_interval_two)*1.0)/total_trending
+
+					# most trending contributions came recently - the user is an active contributor
+					if weight_of_recent_trending > 0.30:
+						# give max boost available for this tier
+						boost = 0.15 * hit_rate
+					else:
+						# give boost
+						boost = 0.15 * hit_rate * (weight_of_recent_trending*1.5)
+
+				# has a trending image in: time interval one (0-24hrs) and time interval three (48-72 hrs)
+				elif trending_count_in_interval_one and trending_count_in_interval_three:
+					weight_of_recent_trending = ((trending_count_in_interval_one+trending_count_in_interval_three)*1.0)/total_trending
+
+					# most trending contributions came recently - the user is an active contributor
+					if weight_of_recent_trending > 0.30:
+						# give max boost available for this tier
+						boost = 0.10 * hit_rate
+					else:
+						# give boost
+						boost = 0.10 * hit_rate * (weight_of_recent_trending*1.5)
+
+				# has a trending image in: time interval one (0-24hrs) only
+				elif trending_count_in_interval_one:
+					weight_of_recent_trending = (trending_count_in_interval_one*1.0)/total_trending
+
+					# most trending contributions came recently - the user is an active contributor
+					if weight_of_recent_trending > 0.15:
+						# give max boost available for this tier
+						boost = 0.07 * hit_rate
+					else:
+						# give boost
+						boost = 0.07 * hit_rate * (weight_of_recent_trending*3)
+
+				# has a trending image in: time interval two (24-48hrs) and time interval three (48-72 hrs)
+				elif trending_count_in_interval_two and trending_count_in_interval_three:
+					weight_of_recent_trending = ((trending_count_in_interval_two+trending_count_in_interval_three)*1.0)/total_trending
+					
+					# most trending contributions came recently - the user is an active contributor
+					if weight_of_recent_trending > 0.30:
+						# give max boost available for this tier
+						boost = 0.06 * hit_rate
+					else:
+						# give boost
+						boost = 0.06 * hit_rate * (weight_of_recent_trending*1.5)
+
+				# has a trending image in: time interval two (24-48hrs) one
+				elif trending_count_in_interval_two:
+					weight_of_recent_trending = (trending_count_in_interval_two*1.0)/total_trending
+
+					# most trending contributions came recently - the user is an active contributor
+					if weight_of_recent_trending > 0.15:
+						# give max boost available for this tier
+						boost = 0.045 * hit_rate
+					else:
+						# give boost
+						boost = 0.045 * hit_rate * (weight_of_recent_trending*3)
+
+				# has a trending image in: time interval three (48-72hrs) one
+				elif trending_count_in_interval_three:
+					weight_of_recent_trending = (trending_count_in_interval_three*1.0)/total_trending
+
+					# most trending contributions came recently - the user is an active contributor
+					if weight_of_recent_trending > 0.15:
+						# give max boost available for this tier
+						boost = 0.03 * hit_rate
+					else:
+						# give boost
+						boost = 0.03 * hit_rate * (weight_of_recent_trending*3)
+
+				# has no trending images in the most recent 3 time intervals
+				else:
+					boost = 0
+
+				########################################
+
+				hit_rates[trender_id] = hit_rate+boost
+
+	# return hit_rates
+
+	############ saving result in redis
+	final_scores = []
+	for key, value in hit_rates.iteritems():
+		final_scores.append(key)
+		final_scores.append(value)
+
+	if final_scores:
+		my_server = redis.Redis(connection_pool=POOL)
+		my_server.delete(STAR_SCORE)
+		my_server.zadd(STAR_SCORE,*final_scores)
+
+
+
 def calculate_top_trenders():
 	"""
 	Calculating top X trending users within the prev Y hours (rolling-basis)
@@ -2117,7 +2293,7 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 	"""
 	Pick the submitter within HAND_PICKED_TRENDING_PHOTOS with the best voting score (aud-likes based vote score used here)
 	"""
-	pushed, obj_id = False, None
+	pushed, obj_id, audience = False, None, None
 	my_server = redis.Redis(connection_pool=POOL)
 	all_enqueued_members = my_server.zrange(HAND_PICKED_TRENDING_PHOTOS,0,-1)	
 	vote_keys = []
@@ -2128,11 +2304,12 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 			vote_key = VOTE_ON_TXT+obj_id
 		else:
 			vote_key = VOTE_ON_IMG+obj_id
-		vote_keys.append(vote_key)
+		vote_keys.append((vote_key, obj))
 
 	pipeline1 = my_server.pipeline()
-	for vote_key in vote_keys:
+	for vote_key, obj_hash_name in vote_keys:
 		pipeline1.zrange(vote_key,0,-1)
+		pipeline1.hgetall(obj_hash_name)
 	result1, counter = pipeline1.execute(),0
 
 	objs_and_vote_vals = []
@@ -2145,39 +2322,122 @@ def select_hand_picked_obj_for_trending(feed_type='best_photos'):
 				vote_score = my_server.zscore(VOTER_AUD_LIKE_PROBS,voter_id)
 				if vote_score > highest_vote_score:
 					highest_vote_score = vote_score
-		objs_and_vote_vals.append((obj, highest_vote_score))
-		counter += 1
+		###############################################################	
+		obj_data = result1[counter+1]
+		if obj_data:
+			obj_data = unpack_json_blob([obj_data])[0]
+			time_of_submission = obj_data['t']
+		###############################################################
+			objs_and_vote_vals.append((obj, highest_vote_score, time_of_submission, obj_data))
+		else:
+			my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj)# remove from hand_picked list
+		counter += 2
 
-	objs_and_vote_vals.sort(key=itemgetter(1),reverse=True)
+	# first sort according to vote score (descending), and then time of submission (ascending)
+	objs_and_vote_vals = sorted(objs_and_vote_vals, key=lambda x: (-x[1], x[2]))
 
-	best_trending_items = objs_and_vote_vals[:5]# selecting the best 5 - now try pushing them one by one
+	# selecting the best 5 - now try pushing them one by one
+	best_trending_items = objs_and_vote_vals[:5]
+
 	if best_trending_items:
-		for obj_hash_name, item_highest_vote in best_trending_items:
-			obj_hash = my_server.hgetall(obj_hash_name)
-			if obj_hash:
-				# this img obj is locked from entering trending because of sybil votes
-				if my_server.exists(LOCKED_IMG+obj_hash_name):
-					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
-				else:
-					# do the deed - push the object for members to see!
-					time_of_selection = time.time()
-					obj_hash['tos'] = time_of_selection
-					obj_hash = unpack_json_blob([obj_hash])[0]
-					obj_id = obj_hash['i']
-					########################
-					# related to 'rep'
-					my_server.setex(HANDPICKED_TRENDING_IMG+obj_hash_name,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
-					my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,obj_hash_name+":"+str(obj_hash['si']),obj_hash['si'])
-					########################
-					add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
-						from_hand_picked=True)
-					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list as well
-					pushed = True
-					break# break out of the for loop
-			else:
+		for obj_hash_name, item_highest_vote, time_of_submission, obj_hash_data in best_trending_items:
+			# this img obj is locked from entering trending because of sybil votes
+			if my_server.exists(LOCKED_IMG+obj_hash_name):
 				my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
+			
+			# push this into trending
+			else:
+				obj_id = obj_hash_data['i']
+				audience = obj_hash_data['aud']
+				obj_hash_data['tos'] = time.time()# time_of_selection
+				########################
+				# related to 'rep'
+				my_server.setex(HANDPICKED_TRENDING_IMG+obj_hash_name,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
+				my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,obj_hash_name+":"+str(obj_hash_data['si']),obj_hash_data['si'])
+				# ########################
+				# # do the deed - push the object for members to see!
+				add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash_data, my_server=my_server,\
+					from_hand_picked=True)
+				my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list as well
+				pushed = True
+				break# break out of the for loop
 	
-	return pushed, obj_id
+	return pushed, obj_id, audience
+
+
+# def select_hand_picked_obj_for_trending(feed_type='best_photos'):
+# 	"""
+# 	Pick the submitter within HAND_PICKED_TRENDING_PHOTOS with the best voting score (aud-likes based vote score used here)
+# 	"""
+# 	pushed, obj_id = False, None
+# 	my_server = redis.Redis(connection_pool=POOL)
+# 	all_enqueued_members = my_server.zrange(HAND_PICKED_TRENDING_PHOTOS,0,-1)	
+# 	vote_keys = []
+# 	for obj in all_enqueued_members:
+# 		data = obj.partition(":")
+# 		obj_type, obj_id = data[0], data[-1]
+# 		if obj_type == 'tx':
+# 			vote_key = VOTE_ON_TXT+obj_id
+# 		else:
+# 			vote_key = VOTE_ON_IMG+obj_id
+# 		vote_keys.append(vote_key)
+
+# 	pipeline1 = my_server.pipeline()
+# 	for vote_key in vote_keys:
+# 		pipeline1.zrange(vote_key,0,-1)
+# 	result1, counter = pipeline1.execute(),0
+
+# 	objs_and_vote_vals = []
+# 	for obj in all_enqueued_members:
+
+# 		highest_vote_score = 0
+# 		obj_votes = result1[counter]
+# 		if obj_votes:
+# 			for voter_id in obj_votes:
+# 				vote_score = my_server.zscore(VOTER_AUD_LIKE_PROBS,voter_id)
+# 				if vote_score > highest_vote_score:
+# 					highest_vote_score = vote_score
+		
+
+
+
+
+
+# 		objs_and_vote_vals.append((obj, highest_vote_score))
+# 		counter += 1
+
+	
+# 	objs_and_vote_vals.sort(key=itemgetter(1),reverse=True)
+
+	
+# 	best_trending_items = objs_and_vote_vals[:5]# selecting the best 5 - now try pushing them one by one
+# 	if best_trending_items:
+# 		for obj_hash_name, item_highest_vote in best_trending_items:
+# 			obj_hash = my_server.hgetall(obj_hash_name)
+# 			if obj_hash:
+# 				# this img obj is locked from entering trending because of sybil votes
+# 				if my_server.exists(LOCKED_IMG+obj_hash_name):
+# 					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
+# 				else:
+# 					# do the deed - push the object for members to see!
+# 					time_of_selection = time.time()
+# 					obj_hash['tos'] = time_of_selection
+# 					obj_hash = unpack_json_blob([obj_hash])[0]
+# 					obj_id = obj_hash['i']
+# 					########################
+# 					# related to 'rep'
+# 					my_server.setex(HANDPICKED_TRENDING_IMG+obj_hash_name,'1',ONE_MONTH)# this key is only set if the obj was NOT locked
+# 					my_server.zadd(GLOBAL_HANDPICKED_IMG_DATA,obj_hash_name+":"+str(obj_hash['si']),obj_hash['si'])
+# 					########################
+# 					add_single_trending_object(prefix='img:', obj_id=obj_id, obj_hash=obj_hash, my_server=my_server,\
+# 						from_hand_picked=True)
+# 					my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list as well
+# 					pushed = True
+# 					break# break out of the for loop
+# 			else:
+# 				my_server.zrem(HAND_PICKED_TRENDING_PHOTOS,obj_hash_name)# remove from hand_picked list
+	
+# 	return pushed, obj_id
 
 
 def push_hand_picked_obj_into_trending(feed_type='best_photos'):
@@ -2300,7 +2560,9 @@ def remove_obj_from_trending(prefix,obj_id):
 			pipeline1.zrem(TRENDING_FOTOS_AND_TIMES,obj_id)
 			pipeline1.zrem(TRENDING_FOTOS_AND_USERS,obj_id)
 			pipeline1.execute()
-			# Photo.objects.filter(id=obj_id).update(device='1')
+			# in case the object trended and was part of the sitemap, remove it from the sitemap model
+			if Cooldown.objects.filter(content_id=obj_id).exists():
+				Cooldown.objects.filter(content_id=obj_id).delete()
 			Link.objects.filter(id=obj_id).update(trending_status='0')
 			feeds_to_subtract = [TRENDING_PHOTO_FEED]#,TRENDING_PHOTO_DETAILS]#,TRENDING_PICS_AND_TIMES,TRENDING_PICS_AND_USERS]
 			log_user_submission(submitter_id=obj_owner_id, submitted_obj=composite_id, feeds_to_subtract=feeds_to_subtract, \

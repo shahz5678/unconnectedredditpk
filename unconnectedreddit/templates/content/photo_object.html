@@ -1,5 +1,5 @@
 {% if show_uname_credentials %}
-	<!-- e.g. for_me, trending, best photos, photo_detail, voting history -->
+	<!-- e.g. for_me, trending, best photos, photo_detail, voting history, comments -->
 	{% if is_new %}<div style="background: #feec4d;text-align:center;color:black;padding:4px 0" class="cxs sp">NEW</div>{% endif %}
 	<div class="mbs">
 
@@ -7,7 +7,7 @@
 	  
 			<div class="fx fxjsfs fxaicn" style="padding:7px">
 
-			  	<a href="{% url 'user_profile' oun %}" style="text-decoration: none;"><span itemprop="image" class="mrs">{% if is_fbs %}<img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp" style="border-radius:50%;border:1px solid gainsboro">{% else %}<img data-src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="lazyload cxs sp" style="border-radius:50%;border:1px solid gainsboro">{% endif %}</span></a>
+			  	<a href="{% url 'user_profile' oun %}" style="text-decoration: none;"><span itemprop="image" class="mrs">{% if is_fbs %}<img src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="cxs sp circle" style="border:1px solid gainsboro">{% else %}<img data-src="{{ av_url }}" alt="{{ oun }}" width="22" height="22" class="lazyload cxs sp circle" style="border:1px solid gainsboro">{% endif %}</span></a>
 
 			  	<div style="word-break: break-all;"><span itemscope itemtype="https://schema.org/Person" itemprop="author"><a href="{% url 'user_profile' oun %}" itemprop="url" style="text-decoration: none;">{% if ex_url %}<h2 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h2>{% else %}<h3 style="padding:0;margin:0;display:inline" class="clb cs sp"><span itemprop="alternateName">{{ oun }}</span></h3>{% endif %}</a></span>{% if is_star %}&nbsp;<img src="{{ static_url }}img/gstar.svg" width="14" height="14">{% endif %}</div>
 			
@@ -35,10 +35,10 @@
 			</div>
 		{% else %}
 	
-			{% if vsc < VDC %}
-				<div class="lsp mbs cl sp" style="color:darkgray;text-align:center">- mita diya gya -</div>
+			{% if block_time_remaining %}
+				<div class="lsp mbs cxl sp cgy" style="text-align:center">- mita diya gya -</div>
 			{% else %}
-				{% if ex_url %}<h1 itemprop="headline" class="ow cxl lsp clb nos" style="overflow:hidden;padding:0 5px 8px 5px;margin:0;font-weight:300;text-align:center"><bdi>{{ cap }}</bdi></h1>{% else %}<h2 itemprop="headline" class="ow cxl lsp clb nos" style="text-align:center;overflow:hidden;padding:0 5px 8px 5px;margin:0;font-weight:300"><bdi>{{ cap }}</bdi></h2>{% endif %}
+				{% if vsc < VDC %}<div class="lsp mbs cxl sp cgy" style="text-align:center">- mita diya gya -</div>{% elif ex_url %}<h1 itemprop="headline" class="ow cxl lsp clb nos" style="overflow:hidden;padding:0 5px 8px 5px;margin:0;font-weight:300;text-align:center"><bdi>{{ cap }}</bdi></h1>{% else %}<h2 itemprop="headline" class="ow cxl lsp clb nos" style="text-align:center;overflow:hidden;padding:0 5px 8px 5px;margin:0;font-weight:300"><bdi>{{ cap }}</bdi></h2>{% endif %}
 			{% endif %}
 
 			<span itemprop="image" itemscope itemtype="https://schema.org/ImageObject">
@@ -51,10 +51,8 @@
 					{% else %}
 						{% if vsc < VDC %}
 							<img alt="hidden" style="vertical-align: top;" class="sp cs" src="{{ static_url }}img/broken.svg">
-						{% elif vsc < VDP %}
-							<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
 						{% else %}
-							<div style="display: block;overflow:hidden;position: relative;padding-bottom:{{ ratio }}%;height: 0;text-align:center">{% if is_fbs or lazyload_idx == 1 %}<img style="width: 100%;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else%}<img style="width: 100%;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}</div>
+							<div style="display: block;overflow:hidden;position: relative;padding-bottom:{{ ratio }}%;height: 0;text-align:center">{% if is_fbs or lazyload_idx == 1 %}<img style="width: 100%;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ alt_txt }}">{% else %}<img style="width: 100%;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ alt_txt }}">{% endif %}</div>
 						{% endif %}
 					{% endif %}
 				</div>
@@ -66,13 +64,7 @@
 					<img alt="hidden" style="vertical-align: top;" class="cs sp" src="{{ static_url }}img/broken.svg">
 					{% else %}
 					<span>
-						{% if vsc < VDC %}
-							<img alt="hidden" style="vertical-align: top;" class="sp cs" src="{{ static_url }}img/broken.svg">
-						{% elif vsc < VDP %}
-							<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">
-						{% else %}
-							{% if is_fbs or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else%}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}
-						{% endif %}
+						{% if vsc < VDC %}<img alt="hidden" style="vertical-align: top;" class="sp cs" src="{{ static_url }}img/broken.svg">{% elif is_fbs or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cxs sp" src="{{ img_url }}" alt="{{ alt_txt }}">{% else %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cxs sp" data-src="{{ img_url }}" alt="{{ alt_txt }}">{% endif %}
 					</span>
 					{% endif %}
 				</div>
@@ -94,7 +86,7 @@
 	</div>
 
 {% else %}
-	<!-- e.g. user profile photo history -->
+	<!-- unused -->
 	<div>
 
 		{% if et and et < time_now %}
@@ -117,13 +109,7 @@
 					<img class="cs sp" alt="hidden" style="vertical-align: top;" src="{{ static_url }}img/broken.svg">
 				{% else %}
 					<span>
-						{% if vsc < VDC %}
-							<img class="cs sp" style="vertical-align: top;" alt="hidden" src="{{ static_url }}img/broken.svg">
-						{% elif vsc < VDP %}
-							<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="bright cs sp" src="{{ img_url }}" alt="{{ raw_caption }}" style="border-radius:12px">
-						{% else %}
-							{% if is_fbs or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ raw_caption }}">{% else %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cs sp" data-src="{{ img_url }}" alt="{{ raw_caption }}">{% endif %}
-						{% endif %}
+						{% if vsc < VDC %}<img class="cs sp" style="vertical-align: top;" alt="hidden" src="{{ static_url }}img/broken.svg">{% elif is_fbs or lazyload_idx == 1 %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="cs sp" src="{{ img_url }}" alt="{{ alt_txt }}">{% else %}<img style="width:100%;max-width:450px;vertical-align: top;" itemprop="image" class="lazyload cs sp" data-src="{{ img_url }}" alt="{{ alt_txt }}">{% endif %}
 					</span>
 				{% endif %}
 

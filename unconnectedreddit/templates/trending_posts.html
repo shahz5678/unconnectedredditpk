@@ -1,4 +1,4 @@
-{% extends noindex|yesno:"base_noindex.html,base.html" %}
+{% extends noindex|yesno:"base/base_profile_noindex.html,base/base_profile.html" %}
 {% load s3 %}
 {% load humanize %}
 {% load emoticons_tags %}
@@ -9,15 +9,13 @@
 {% load get_big_points_button %}
 {% load get_user_profile_navbar %}
 {% load get_big_home_reply_button %}
-{% load get_transparent_buttons_js %}
 {% load get_big_photo_comment_button %}
 {% block content %}
 <head><title>{{ target_uname }}'s trending posts | Damadam</title></head>
-<style>body{background:#f0f3f4}</style>
 
-<main itemscope itemtype="https://schema.org/CollectionPage" class="clb" style="margin: 0 auto;max-width:750px;width:98%">
+<main class="mbl" itemscope itemtype="https://schema.org/CollectionPage" class="clb" style="margin-left:auto;margin-right:auto;max-width:750px">
 
-  <div class="mbl" style="text-align:center"> 
+  <div class="mtl mbl" style="text-align:center"> 
   {% if is_star %}<img src="{{ STATIC_URL }}img/gstar.svg" width="18" height="18">&nbsp;{% endif %}
   {% if own_profile %}
       {% if total_objs == 1 %}<h1 class="cxl lsp" style="display:inline">My {{ total_objs }} trending post:</h1>{% elif total_objs == 0 %}<h1 class="cxl lsp" style="display:inline">My trending posts:</h1>{% else %}<h1 class="cxl lsp" style="display:inline">My {{ total_objs }} trending posts:</h1>{% endif %}
@@ -32,10 +30,10 @@
 {% for obj in object_list %}
 
 {% if obj.type_of_content == 'g' %}
-  <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white;padding-top:6px">
+  <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="overflow:hidden;background:white;padding-top:6px">
       <a name="section{{ forloop.counter }}"></a>
 
-      {% photo_object pid=obj.id ooid=star_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons raw_caption=obj.description vsc=obj.net_votes is_fbs=on_fbs origin='14' upload_time=obj.submitted_on|naturaltime machine_time=obj.submitted_on oun=target_uname static_url=STATIC_URL block_time_remaining=time_remaining show_uname_credentials=False show_trending='' lazyload_idx=forloop.counter ot='g' et=obj.expire_at time_now=time_now %}
+      {% photo_object pid=obj.id ooid=star_id img_url=obj.image_file|s3 img_thumb=obj.image_file|s3:'thumb' caption=obj.description|emoticons vsc=obj.net_votes is_fbs=on_fbs origin='14' upload_time=obj.submitted_on|naturaltime machine_time=obj.submitted_on oun=target_uname av_url=av_url static_url=STATIC_URL block_time_remaining=time_remaining show_trending='' lazyload_idx=forloop.counter ot='g' et=obj.expire_at time_now=time_now alt_txt=obj.web_link %}
         
         <div class="mbs mtl">
           <div style="flex-wrap:wrap" class="fx fxjscn fxaicn cxs sp cgy">
@@ -58,7 +56,7 @@
 
 {% else %}
 
-  <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="border:3px solid #ececec;border-radius:12px;overflow:hidden;background:white">
+  <article itemprop="hasPart" itemscope itemtype="https://schema.org/SocialMediaPosting" class="mbl" style="overflow:hidden;background:white">
       <a name="section{{ forloop.counter }}"></a>
 
       {% text_object obid=obj.id ooid=star_id text=obj.description|urlize|url_target_blank|emoticons|linebreaksbr raw_text=obj.description origin='14' upload_time=obj.submitted_on machine_time=obj.mt oun=target_uname av_url=av_url vsc=obj.net_votes is_fbs=on_fbs home_hash='' static_url=STATIC_URL is_star=is_star alignment=obj.cagtegory topic=obj.topic_name topic_url=obj.url show_topic='1' c1=obj.c1 c2=obj.c2 et=obj.expire_at time_now=time_now %}
@@ -99,7 +97,7 @@
     <hr size=1 COLOR="#f4f4f4">
     <div class="mbs">
       <div class="cgy mbl sp">Dusrey users ki trending posts view karein:</div>
-      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res mrl" style="height:26px">Photos</button></a><a href="{% url 'best_home_page' %}#section0" itemprop="significantLink"><button class="btn bct bl sp pg_ok_res" style="height:26px">Text</button></a>
+      <a href="{% url 'photo' 'best-list' %}#section0" itemprop="significantLink"><button class="btn bco bl sp pg_ok_res mrl" style="height:26px">Images</button></a><a href="{% url 'best_home_page' %}#section0" itemprop="significantLink"><button class="btn bct bl sp pg_ok_res" style="height:26px">Text</button></a>
     </div>
     
   {% endif %}
@@ -109,20 +107,21 @@
 {% endfor %}
 </div>
 
+<div class="fx fxjscn">
+  {% if page.has_previous %}
+    <div style="padding:0 8px 30px 10px">
+    <a href="?page={{ page.previous_page_number }}#sectionJ">{% include 'big_buttons/big_prev_button.html' %}</a>
+    </div>
+  {% endif %}
+  {% if page.has_next %}
+    <div style="padding:0 10px 30px 8px">
+    <a href="?page={{ page.next_page_number }}#sectionJ">{% include 'big_buttons/big_next_button.html' %}</a>
+    </div>
+  {% endif %}
+</div>
+
 </main>
-
-  <div class="fx fxjscn">
-    {% if page.has_previous %}
-      <div class="mbl" style="padding:0 8px 0 10px">
-      <a href="?page={{ page.previous_page_number }}#sectionJ">{% include 'big_buttons/big_prev_button.html' %}</a>
-      </div>
-    {% endif %}
-    {% if page.has_next %}
-      <div class="mbl" style="padding:0 10px 0 8px">
-      <a href="?page={{ page.next_page_number }}#sectionJ">{% include 'big_buttons/big_next_button.html' %}</a>
-      </div>
-    {% endif %}
-  </div>
-
-{% transparent_buttons_js ident=user_id static_url=STATIC_URL %}
+<br>
+{% include "transparent_buttons_js_helper.html" with ident=user_id static_url=STATIC_URL %}
+{% include "navbars/bottom_navbar_js_helper.html" with ident=user_id %}
 {% endblock %}
